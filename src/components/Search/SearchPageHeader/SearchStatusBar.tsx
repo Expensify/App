@@ -9,7 +9,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryJSON, TripSearchStatus} from '@components/Search/types';
+import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchGroupBy, SearchQueryJSON, TaskSearchStatus, TripSearchStatus} from '@components/Search/types';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -45,6 +45,45 @@ const expenseOptions: Array<{status: ExpenseSearchStatus; type: SearchDataTypes;
         status: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED,
         icon: Expensicons.DocumentSlash,
         text: 'common.unreported',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+        icon: Expensicons.Pencil,
+        text: 'common.drafts',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+        icon: Expensicons.Hourglass,
+        text: 'common.outstanding',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+        icon: Expensicons.ThumbsUp,
+        text: 'iou.approved',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.DONE,
+        icon: Expensicons.Checkbox,
+        text: 'iou.done',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.PAID,
+        icon: Expensicons.Checkmark,
+        text: 'iou.settledExpensify',
+    },
+];
+
+const expenseReportOptions: Array<{status: ExpenseSearchStatus; type: SearchDataTypes; icon: IconAsset; text: TranslationPaths}> = [
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        icon: Expensicons.All,
+        text: 'common.all',
     },
     {
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -159,7 +198,28 @@ const chatOptions: Array<{type: SearchDataTypes; status: ChatSearchStatus; icon:
     },
 ];
 
-function getOptions(type: SearchDataTypes) {
+const taskOptions: Array<{type: SearchDataTypes; status: TaskSearchStatus; icon: IconAsset; text: TranslationPaths}> = [
+    {
+        type: CONST.SEARCH.DATA_TYPES.TASK,
+        status: CONST.SEARCH.STATUS.TASK.ALL,
+        icon: Expensicons.All,
+        text: 'common.all',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.TASK,
+        status: CONST.SEARCH.STATUS.TASK.OUTSTANDING,
+        icon: Expensicons.Hourglass,
+        text: 'common.outstanding',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.TASK,
+        status: CONST.SEARCH.STATUS.TASK.COMPLETED,
+        icon: Expensicons.Checkbox,
+        text: 'search.filters.completed',
+    },
+];
+
+function getOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return invoiceOptions;
@@ -167,9 +227,11 @@ function getOptions(type: SearchDataTypes) {
             return tripOptions;
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return chatOptions;
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return taskOptions;
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
-            return expenseOptions;
+            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? expenseReportOptions : expenseOptions;
     }
 }
 
@@ -182,7 +244,7 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const options = getOptions(queryJSON.type);
+    const options = getOptions(queryJSON.type, queryJSON.groupBy);
     const scrollRef = useRef<RNScrollView>(null);
     const isScrolledRef = useRef(false);
     const {shouldShowStatusBarLoading} = useSearchContext();

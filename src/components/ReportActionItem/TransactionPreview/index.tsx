@@ -1,13 +1,18 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import ControlSelection from '@libs/ControlSelection';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
-import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
-import {getTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
+import {getOriginalTransactionIfBillIsSplit, getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
+import {isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
@@ -16,29 +21,23 @@ import {clearIOUError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TransactionPreviewContent from './TransactionPreviewContent';
 import type {TransactionPreviewProps} from './types';
 
-const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<Transaction>) => {
-    const {originalTransactionID, source, splits} = transaction?.comment ?? {};
-
-    // If splits property is defined in the transaction, it is actually an original transaction
-    if (splits && splits.length > 0) {
-        return {isSplit: true, originalTransaction: transaction};
-    }
-
-    if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
-        return {isSplit: false, originalTransaction: transaction};
-    }
-
-    const originalTransaction = getTransaction(originalTransactionID);
-
-    return {isSplit: !!originalTransaction, originalTransaction: originalTransaction ?? transaction};
-};
-
 function TransactionPreview(props: TransactionPreviewProps) {
-    const {action, chatReportID, reportID, contextMenuAnchor, checkIfContextMenuActive = () => {}, shouldDisplayContextMenu, iouReportID, transactionID: transactionIDFromProps} = props;
+    const {translate} = useLocalize();
+    const {
+        action,
+        chatReportID,
+        reportID,
+        contextMenuAnchor,
+        checkIfContextMenuActive = () => {},
+        shouldDisplayContextMenu,
+        iouReportID,
+        transactionID: transactionIDFromProps,
+        onPreviewPressed,
+    } = props;
 
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
@@ -58,6 +57,9 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const sessionAccountID = session?.accountID;
     const areThereDuplicates = allDuplicates.length > 0 && duplicates.length > 0 && allDuplicates.length === duplicates.length;
 
+    const transactionDetails = useMemo(() => getTransactionDetails(transaction), [transaction]);
+    const {amount: requestAmount, currency: requestCurrency} = transactionDetails ?? {};
+
     const showContextMenu = (event: GestureResponderEvent) => {
         if (!shouldDisplayContextMenu) {
             return;
@@ -74,19 +76,53 @@ function TransactionPreview(props: TransactionPreviewProps) {
         Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
     }, [duplicates, report, route, transaction]);
 
-    const {originalTransaction, isSplit} = getOriginalTransactionIfBillIsSplit(transaction);
+    const {originalTransaction, isBillSplit} = getOriginalTransactionIfBillIsSplit(transaction);
+
+    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
+    const isTransactionMadeWithCard = isCardTransaction(transaction);
+    const showCashOrCardTranslation = isTransactionMadeWithCard ? 'iou.card' : 'iou.cash';
+
+    if (onPreviewPressed) {
+        return (
+            <PressableWithoutFeedback
+                onPress={shouldDisableOnPress ? undefined : props.onPreviewPressed}
+                onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
+                onLongPress={showContextMenu}
+                shouldUseHapticsOnLongPress
+                accessibilityLabel={isBillSplit ? translate('iou.split') : translate(showCashOrCardTranslation)}
+                accessibilityHint={convertToDisplayString(requestAmount, requestCurrency)}
+            >
+                <TransactionPreviewContent
+                    /* eslint-disable-next-line react/jsx-props-no-spreading */
+                    {...props}
+                    isBillSplit={isBillSplit}
+                    chatReport={chatReport}
+                    personalDetails={personalDetails}
+                    transaction={originalTransaction}
+                    iouReport={iouReport}
+                    violations={violations}
+                    offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
+                    navigateToReviewFields={navigateToReviewFields}
+                    areThereDuplicates={areThereDuplicates}
+                    sessionAccountID={sessionAccountID}
+                    walletTermsErrors={walletTerms?.errors}
+                    routeName={route.name}
+                />
+            </PressableWithoutFeedback>
+        );
+    }
 
     return (
         <TransactionPreviewContent
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
-            isBillSplit={isSplit}
+            isBillSplit={isBillSplit}
             chatReport={chatReport}
             personalDetails={personalDetails}
             transaction={originalTransaction}
             iouReport={iouReport}
             violations={violations}
-            showContextMenu={showContextMenu}
             offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
             navigateToReviewFields={navigateToReviewFields}
             areThereDuplicates={areThereDuplicates}
