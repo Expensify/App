@@ -13,6 +13,7 @@ import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createPolicyTax, getNextTaxCode, getTaxValueWithPercentage, validateTaxName, validateTaxValue} from '@libs/actions/TaxRate';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -20,6 +21,7 @@ import {hasAccountingConnections} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -36,7 +38,7 @@ function WorkspaceCreateTaxPage({
 }: WorkspaceCreateTaxPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
 
     const submitForm = useCallback(
         ({value, ...values}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
@@ -117,6 +119,10 @@ function WorkspaceCreateTaxPage({
                                     // We increase the amount max length to support the extra decimals.
                                     amountMaxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
                                     extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                                    autoGrowExtraSpace={variables.w80}
+                                    autoGrowMarginSide="left"
+                                    // Currently, autoGrow is only supported on Android. Therefore, we need to check the platform before applying flex styles to avoid layout issues on other platforms.
+                                    style={[styles.iouAmountTextInput, styles.textAlignRight, getPlatform() === CONST.PLATFORM.ANDROID && styles.flex1]}
                                 />
                             </View>
                         </FormProvider>

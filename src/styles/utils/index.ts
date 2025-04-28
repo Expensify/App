@@ -1321,9 +1321,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /*
      * Returns styles for the text input container, with extraSpace allowing overflow without affecting the layout.
      */
-    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number): ViewStyle => {
+    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number, marginSide?: 'left' | 'right'): ViewStyle => {
         if (!!width && !!extraSpace) {
-            return {marginRight: -extraSpace, width: width + extraSpace};
+            const marginKey = marginSide === 'left' ? 'marginLeft' : 'marginRight';
+            return {[marginKey]: -extraSpace, width: width + extraSpace};
         }
         return {width};
     },
