@@ -854,7 +854,7 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function createTypeMenuSections(): SearchTypeMenuSection[] {
+function createTypeMenuSections(session: OnyxTypes.Session): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [
         {
             translationPath: 'common.explore',
@@ -909,7 +909,8 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.Pencil,
                 getRoute: () => {
-                    return '';
+                    const query = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS});
+                    return ROUTES.SEARCH_ROOT.getRoute({query});
                 },
             });
         }
@@ -920,7 +921,8 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.ThumbsUp,
                 getRoute: () => {
-                    return '';
+                    const query = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING});
+                    return ROUTES.SEARCH_ROOT.getRoute({query});
                 },
             });
         }
@@ -931,7 +933,8 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.MoneyBag,
                 getRoute: () => {
-                    return '';
+                    const query = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.DONE]});
+                    return ROUTES.SEARCH_ROOT.getRoute({query});
                 },
             });
         }
@@ -942,7 +945,11 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.CheckCircle,
                 getRoute: () => {
-                    return '';
+                    const query = buildCannedSearchQuery({
+                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.PAID, CONST.SEARCH.STATUS.EXPENSE.DONE],
+                    });
+                    return ROUTES.SEARCH_ROOT.getRoute({query});
                 },
             });
         }
