@@ -5,7 +5,7 @@ import BaseVideoPlayer from './BaseVideoPlayer';
 import type {VideoPlayerProps} from './types';
 
 function VideoPlayer({videoControlsStyle, shouldUseControlsBottomMargin = true, ...props}: VideoPlayerProps) {
-    const {noReportID} = uniqueIDForVideoWithoutReport();
+    const {fakeReportID} = uniqueIDForVideoWithoutReport();
     const {reportID} = props;
 
     return (
@@ -15,7 +15,7 @@ function VideoPlayer({videoControlsStyle, shouldUseControlsBottomMargin = true, 
             isVideoHovered
             shouldUseSharedVideoElement={false}
             videoControlsStyle={[shouldUseControlsBottomMargin ? {bottom: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NATIVE} : undefined, videoControlsStyle]}
-            reportID={reportID ?? noReportID}
+            reportID={reportID ?? fakeReportID}
         />
     );
 }
