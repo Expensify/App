@@ -2910,7 +2910,7 @@ const translations = {
         verifyCompany: {
             title: '¡Empieza a viajar hoy mismo!',
             message: `Por favor, contacta a tu gestor de cuenta o a salesteam@expensify.com para solicitar una demostración de Travel y habilitarlo para tu empresa.`,
-        }
+        },
     },
     workspace: {
         common: {
