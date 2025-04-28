@@ -503,7 +503,7 @@ function SearchAutocompleteList(
         return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
-    // Store the initial query value
+    // Store references for tracking input changes
     const initialRenderRef = useRef(true);
     const prevQueryRef = useRef(autocompleteQueryValue);
 
@@ -512,14 +512,15 @@ function SearchAutocompleteList(
             return;
         }
 
-        // If this is the first render, just store the query but don't call the API
+        // For the first render, store the query and call the API
         if (initialRenderRef.current) {
             initialRenderRef.current = false;
             prevQueryRef.current = autocompleteQueryValue;
+            handleSearch(autocompleteQueryValue);
             return;
         }
-
-        // Only call the API if the query has changed from the previous value
+        
+        // For subsequent renders, only call the API if the query has changed
         if (prevQueryRef.current !== autocompleteQueryValue) {
             prevQueryRef.current = autocompleteQueryValue;
             handleSearch(autocompleteQueryValue);
