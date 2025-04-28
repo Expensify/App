@@ -14,10 +14,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-            - variant: 'developmentDebug'
+          - variant: 'developmentDebug'
 
-            - variant: 'Debug'
-              is_hybrid_build: true
+          - variant: 'Debug'
+            is_hybrid_build: true
     steps:
       - name: Checkout
         # v4
