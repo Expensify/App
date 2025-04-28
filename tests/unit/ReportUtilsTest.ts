@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -32,6 +34,7 @@ import {
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     isAllowedToApproveExpenseReport,
+    isArchivedNonExpenseReportWithID,
     isChatUsedForOnboarding,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
@@ -2299,6 +2302,8 @@ describe('ReportUtils', () => {
                     });
                 });
             });
+
+            // This test is broken, so I am commenting it out. I have opened up https://github.com/Expensify/App/issues/60854 to get the test fixed
             describe('has approver rule', () => {
                 describe('has no transaction match with approver rule', () => {
                     it('should return list contain submitsTo of ownerAccountID and the forwardsTo of them', () => {
@@ -2354,12 +2359,12 @@ describe('ReportUtils', () => {
                             approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                         };
                         const expenseReport: Report = {
-                            ...createRandomReport(1),
+                            ...createRandomReport(100),
                             ownerAccountID: employeeAccountID,
                             type: CONST.REPORT.TYPE.EXPENSE,
                         };
                         const transaction1: Transaction = {
-                            ...createRandomTransaction(2),
+                            ...createRandomTransaction(1),
                             category: 'cat1',
                             tag: '',
                             created: testDate,
@@ -2367,7 +2372,7 @@ describe('ReportUtils', () => {
                             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         };
                         const transaction2: Transaction = {
-                            ...createRandomTransaction(3),
+                            ...createRandomTransaction(2),
                             category: '',
                             tag: 'tag1',
                             created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
@@ -2375,7 +2380,7 @@ describe('ReportUtils', () => {
                             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         };
                         const transaction3: Transaction = {
-                            ...createRandomTransaction(4),
+                            ...createRandomTransaction(3),
                             category: 'cat2',
                             tag: '',
                             created: testDate,
@@ -2383,18 +2388,19 @@ describe('ReportUtils', () => {
                             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
                         };
                         const transaction4: Transaction = {
-                            ...createRandomTransaction(5),
+                            ...createRandomTransaction(4),
                             category: '',
                             tag: 'tag2',
                             created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                             reportID: expenseReport.reportID,
                             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
                         };
-                        Onyx.merge(ONYXKEYS.COLLECTION.TRANSACTION, {
-                            [transaction1.transactionID]: transaction1,
-                            [transaction2.transactionID]: transaction2,
-                            [transaction3.transactionID]: transaction3,
-                            [transaction4.transactionID]: transaction4,
+
+                        Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, {
+                            transactions_1: transaction1,
+                            transactions_2: transaction2,
+                            transactions_3: transaction3,
+                            transactions_4: transaction4,
                         }).then(() => {
                             const result = [categoryapprover2Email, categoryapprover1Email, tagapprover2Email, tagapprover1Email, 'admin@test.com'];
                             expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
@@ -2402,6 +2408,52 @@ describe('ReportUtils', () => {
                     });
                 });
             });
+        });
+    });
+
+    describe('isArchivedNonExpenseReportWithID', () => {
+        // Given an expense report, a chat report, and an archived chat report
+        const expenseReport: Report = {
+            ...createRandomReport(1000),
+            ownerAccountID: employeeAccountID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        const chatReport: Report = {
+            ...createRandomReport(2000),
+            ownerAccountID: employeeAccountID,
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+        const archivedChatReport: Report = {
+            ...createRandomReport(3000),
+            ownerAccountID: employeeAccountID,
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+
+        beforeAll(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${archivedChatReport.reportID}`, archivedChatReport);
+
+            // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedChatReport.reportID}`, {
+                private_isArchived: new Date().toString(),
+            });
+        });
+
+        it('should return false if the report is an expense report', () => {
+            // Simulate how components use the hook useReportIsArchived() to see if the report is archived
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
+            expect(isArchivedNonExpenseReportWithID(expenseReport, isReportArchived.current)).toBe(false);
+        });
+
+        it('should return false if the report is a non-expense report and not archived', () => {
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(chatReport?.reportID));
+            expect(isArchivedNonExpenseReportWithID(chatReport, isReportArchived.current)).toBe(false);
+        });
+
+        it('should return true if the report is a non-expense report and archived', () => {
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedChatReport?.reportID));
+            expect(isArchivedNonExpenseReportWithID(archivedChatReport, isReportArchived.current)).toBe(true);
         });
     });
 });
