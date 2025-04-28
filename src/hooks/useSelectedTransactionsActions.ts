@@ -6,7 +6,7 @@ import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canDeleteCardTransactionByLiabilityType, canDeleteTransaction, canHoldUnholdReportAction, isMoneyRequestReport as isMoneyRequestReportUtils} from '@libs/ReportUtils';
-import {getTransaction, isOnHold} from '@libs/TransactionUtils';
+import {getTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session} from '@src/types/onyx';
