@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -503,12 +503,28 @@ function SearchAutocompleteList(
         return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
-    useEffect(() => {
-        if (!handleSearch) {
-            return;
-        }
+    // Store the initial query value
+const initialRenderRef = useRef(true);
+const prevQueryRef = useRef(autocompleteQueryValue);
+
+useEffect(() => {
+    if (!handleSearch) {
+        return;
+    }
+
+    // If this is the first render, just store the query but don't call the API
+    if (initialRenderRef.current) {
+        initialRenderRef.current = false;
+        prevQueryRef.current = autocompleteQueryValue;
+        return;
+    }
+
+    // Only call the API if the query has changed from the previous value
+    if (prevQueryRef.current !== autocompleteQueryValue) {
+        prevQueryRef.current = autocompleteQueryValue;
         handleSearch(autocompleteQueryValue);
-    }, [autocompleteQueryValue, handleSearch]);
+    }
+}, [autocompleteQueryValue, handleSearch]);
 
     /* Sections generation */
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
