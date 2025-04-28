@@ -52,6 +52,7 @@ import {
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
+import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
 import variables from '@styles/variables';
 import {
     approveMoneyRequest,
@@ -149,12 +150,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
 
     const isExported = isExportedUtils(reportActions);
-    const [markAsExportedModalVisible, setMarkAsExportedModalVisible] = useState(false);
 
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isCancelPaymentModalVisible, setIsCancelPaymentModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
+
+    const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
 
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation} = usePaymentAnimations();
     const styles = useThemeStyles();
@@ -381,14 +383,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         markAsCashAction(iouTransactionID, reportID);
     }, [requestParentReportAction, transactionThreadReport?.reportID]);
 
-    const confirmManualExport = useCallback(() => {
-        if (!connectedIntegration || !moneyRequestReport) {
-            throw new Error('Missing data');
-        }
-
-        markAsManuallyExported(moneyRequestReport.reportID, connectedIntegration);
-    }, [connectedIntegration, moneyRequestReport]);
-
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
         <Icon
             src={src}
@@ -460,6 +454,18 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return getReportPrimaryAction(moneyRequestReport, transactions, violations, policy);
     }, [isPaidAnimationRunning, moneyRequestReport, policy, transactions, violations]);
 
+    const confirmExport = useCallback(() => {
+        setExportModalStatus(null);
+        if (!moneyRequestReport?.reportID || !connectedIntegration) {
+            return;
+        }
+        if (exportModalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
+            exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
+        } else if (exportModalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+            markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
+        }
+    }, [connectedIntegration, exportModalStatus, moneyRequestReport?.reportID]);
+
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
             <Button
@@ -512,7 +518,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     if (!connectedIntegration || !moneyRequestReport) {
                         return;
                     }
-                    exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
+                    if (isExported) {
+                        setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+                        return;
+                    }
+                    confirmExport();
                 }}
             />
         ),
@@ -639,8 +649,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 if (!connectedIntegration || !moneyRequestReport) {
                     throw new Error('Missing data');
                 }
-
-                exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
+                if (isExported) {
+                    setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+                    return;
+                }
+                confirmExport();
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED]: {
@@ -649,10 +662,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED,
             onSelected: () => {
                 if (isExported) {
-                    setMarkAsExportedModalVisible(true);
+                    setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
                     return;
                 }
-                confirmManualExport();
+                confirmExport();
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.HOLD]: {
@@ -871,19 +884,17 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 danger
                 shouldEnableNewFocusManagement
             />
-            <ConfirmModal
-                title={translate('workspace.exportAgainModal.title')}
-                onConfirm={() => {
-                    confirmManualExport();
-                    setMarkAsExportedModalVisible(false);
-                }}
-                onCancel={() => setMarkAsExportedModalVisible(false)}
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                prompt={translate('workspace.exportAgainModal.description', {connectionName: connectedIntegration!, reportName: moneyRequestReport?.reportName ?? ''})}
-                confirmText={translate('workspace.exportAgainModal.confirmText')}
-                cancelText={translate('workspace.exportAgainModal.cancelText')}
-                isVisible={markAsExportedModalVisible}
-            />
+            {!!connectedIntegration && (
+                <ConfirmModal
+                    title={translate('workspace.exportAgainModal.title')}
+                    onConfirm={confirmExport}
+                    onCancel={() => setExportModalStatus(null)}
+                    prompt={translate('workspace.exportAgainModal.description', {connectionName: connectedIntegration, reportName: moneyRequestReport?.reportName ?? ''})}
+                    confirmText={translate('workspace.exportAgainModal.confirmText')}
+                    cancelText={translate('workspace.exportAgainModal.cancelText')}
+                    isVisible={!!exportModalStatus}
+                />
+            )}
             <ConfirmModal
                 title={translate('iou.unapproveReport')}
                 isVisible={isUnapproveModalVisible}
