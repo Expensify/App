@@ -1,6 +1,16 @@
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {OriginalMessageIOU, ReportAction, Transaction} from '@src/types/onyx';
-import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
+import type {OriginalMessageIOU, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import {convertToDisplayString} from './CurrencyUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {
+    getMoneyRequestSpendBreakdown,
+    getNonHeldAndFullAmount,
+    hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
+    hasUpdatedTotal,
+} from './ReportUtils';
 
 /**
  * In MoneyRequestReport we filter out some IOU action types, because expense/transaction data is displayed in a separate list
@@ -39,4 +49,112 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
         .filter((reportID): reportID is string => !!reportID);
 }
 
-export {isActionVisibleOnMoneyRequestReport, getThreadReportIDsForTransactions};
+/**
+ * Filters all available transactions and returns the ones that belong to a specific report (by `reportID`).
+ * It is used as an onyx selector, to make sure that report related views do not process all transactions in onyx.
+ */
+function selectAllTransactionsForReport(transactions: OnyxCollection<Transaction>, reportID: string | undefined, reportActions: ReportAction[]) {
+    if (!reportID) {
+        return [];
+    }
+
+    return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
+        if (!transaction) {
+            return false;
+        }
+        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        return transaction.reportID === reportID && !isDeletedParentAction(action);
+    });
+}
+
+/* This function is a legacy used for old version of MoneyReportHeader & ReportPreview, do not use it in new versions or anywhere else */
+/**
+ * Determines the appropriate button type for the IOU Report Preview based on the given flags.
+ *
+ * @param flags - An object containing boolean flags indicating button visibility options.
+ * @param flags.shouldShowSubmitButton - Flag indicating if the submit button should be shown.
+ * @param flags.shouldShowExportIntegrationButton - Flag indicating if the export integration button should be shown.
+ * @param flags.shouldShowRBR - Flag indicating if the RBR button should be shown.
+ * @param flags.shouldShowSettlementButton - Flag indicating if the settlement button should be shown.
+ * @param flags.shouldShowPayButton - Flag indicating if the pay button should be shown.
+ * @param flags.shouldShowApproveButton - Flag indicating if the approve button should be shown.
+ * @returns - Returns the type of button that should be displayed based on the input flags.
+ */
+const getIOUReportPreviewButtonType = ({
+    shouldShowSubmitButton,
+    shouldShowExportIntegrationButton,
+    shouldShowApproveButton,
+    shouldShowSettlementButton,
+    shouldShowPayButton,
+    shouldShowRBR,
+}: {
+    shouldShowSubmitButton: boolean;
+    shouldShowExportIntegrationButton: boolean;
+    shouldShowRBR: boolean;
+    shouldShowSettlementButton: boolean;
+    shouldShowPayButton: boolean;
+    shouldShowApproveButton: boolean;
+}): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> => {
+    const shouldShowSettlementWithoutRBR = shouldShowSettlementButton && !shouldShowRBR;
+    const shouldShowSettlementOrRBR = shouldShowSettlementButton || shouldShowRBR;
+    const shouldShowSettlementOrExport = shouldShowSettlementButton || shouldShowExportIntegrationButton;
+
+    if (shouldShowSettlementWithoutRBR && shouldShowPayButton) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
+    }
+    if (shouldShowSettlementWithoutRBR && shouldShowApproveButton) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
+    }
+
+    if (!shouldShowSettlementOrRBR && shouldShowExportIntegrationButton) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
+    }
+
+    if (shouldShowRBR && !shouldShowSubmitButton && shouldShowSettlementOrExport) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
+    }
+
+    if (shouldShowSubmitButton) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
+    }
+
+    return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
+};
+
+/**
+ * Determines the total amount to be displayed based on the selected button type in the IOU Report Preview.
+ *
+ * @param report - Onyx report object
+ * @param policy - Onyx policy object
+ * @param reportPreviewAction - The action that will take place when button is clicked which determines how amounts are calculated and displayed.
+ * @returns - The total amount to be formatted as a string. Returns an empty string if no amount is applicable.
+ */
+const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>) => {
+    // Determine whether the non-held amount is appropriate to display for the PAY button.
+    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(report?.reportID);
+    const canAllowSettlement = hasUpdatedTotal(report, policy);
+
+    // Split the total spend into different categories as needed.
+    const {totalDisplaySpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+
+    if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY) {
+        // Return empty string if there are only held expenses which cannot be paid.
+        if (hasOnlyHeldExpenses) {
+            return '';
+        }
+
+        // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
+        if (hasHeldExpensesReportUtils(report?.reportID) && canAllowSettlement && hasValidNonHeldAmount) {
+            return nonHeldAmount;
+        }
+
+        // Default to reimbursable spend for PAY button if above conditions are not met.
+        return convertToDisplayString(reimbursableSpend, report?.currency);
+    }
+
+    // For all other cases, return the total display spend.
+    return convertToDisplayString(totalDisplaySpend, report?.currency);
+};
+
+export {isActionVisibleOnMoneyRequestReport, getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton, selectAllTransactionsForReport, getIOUReportPreviewButtonType};

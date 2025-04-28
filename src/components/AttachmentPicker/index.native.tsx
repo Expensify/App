@@ -109,7 +109,7 @@ function AttachmentPicker({
     const theme = useTheme();
 
     const completeAttachmentSelection = useRef<(data: FileObject[]) => void>(() => {});
-    const onModalHide = useRef<() => void>();
+    const onModalHide = useRef<(() => void) | undefined>(undefined);
     const onCanceled = useRef<() => void>(() => {});
     const onClosed = useRef<() => void>(() => {});
     const popoverRef = useRef(null);

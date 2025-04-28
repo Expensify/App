@@ -1,4 +1,4 @@
-import type {Spread, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -295,9 +295,6 @@ type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionB
     previousMessage?: (OriginalMessage<T> & Message) | Array<Message | undefined>;
 };
 
-/** */
-type ReportActionChangeLog = ReportAction<ValueOf<Spread<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG, typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>>>;
-
 /** Record of report actions, indexed by report action ID */
 type ReportActions = Record<string, ReportAction>;
 
@@ -305,4 +302,4 @@ type ReportActions = Record<string, ReportAction>;
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionChangeLog, OldDotReportAction, Person};
+export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, OldDotReportAction};

@@ -14,6 +14,9 @@ type OnyxData = {
 
     /** Onyx instructions that are executed before request is made to the server */
     optimisticData?: OnyxUpdate[];
+
+    /** Onyx instructions that are executed when Onyx queue is flushed */
+    queueFlushedData?: OnyxUpdate[];
 };
 
 /** HTTP request method names */
