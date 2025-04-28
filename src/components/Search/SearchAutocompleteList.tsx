@@ -504,27 +504,27 @@ function SearchAutocompleteList(
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
     // Store the initial query value
-const initialRenderRef = useRef(true);
-const prevQueryRef = useRef(autocompleteQueryValue);
+    const initialRenderRef = useRef(true);
+    const prevQueryRef = useRef(autocompleteQueryValue);
 
-useEffect(() => {
-    if (!handleSearch) {
-        return;
-    }
+    useEffect(() => {
+        if (!handleSearch) {
+            return;
+        }
 
-    // If this is the first render, just store the query but don't call the API
-    if (initialRenderRef.current) {
-        initialRenderRef.current = false;
-        prevQueryRef.current = autocompleteQueryValue;
-        return;
-    }
+        // If this is the first render, just store the query but don't call the API
+        if (initialRenderRef.current) {
+            initialRenderRef.current = false;
+            prevQueryRef.current = autocompleteQueryValue;
+            return;
+        }
 
-    // Only call the API if the query has changed from the previous value
-    if (prevQueryRef.current !== autocompleteQueryValue) {
-        prevQueryRef.current = autocompleteQueryValue;
-        handleSearch(autocompleteQueryValue);
-    }
-}, [autocompleteQueryValue, handleSearch]);
+        // Only call the API if the query has changed from the previous value
+        if (prevQueryRef.current !== autocompleteQueryValue) {
+            prevQueryRef.current = autocompleteQueryValue;
+            handleSearch(autocompleteQueryValue);
+        }
+    }, [autocompleteQueryValue, handleSearch]);
 
     /* Sections generation */
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
