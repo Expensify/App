@@ -153,8 +153,3 @@ platforms:
         title: Expensify Billing & Subscriptions
         icon: /assets/images/subscription-annual.svg
         description: Review Expensify's subscription options, plan types, and payment methods.
-
-      - href: search-overview
-        title: Search Functionality in New Expensify
-        icon: /assets/images/magnifying-glass.svg
-        description: Search feature overview.
