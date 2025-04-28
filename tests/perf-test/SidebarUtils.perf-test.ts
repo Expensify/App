@@ -83,6 +83,7 @@ describe('SidebarUtils', () => {
         await measureFunction(() =>
             SidebarUtils.getOptionData({
                 report,
+                reportAttributes: {},
                 reportNameValuePairs,
                 reportActions,
                 personalDetails,
