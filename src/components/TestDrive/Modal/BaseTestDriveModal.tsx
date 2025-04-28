@@ -1,26 +1,21 @@
 import React from 'react';
-import {InteractionManager} from 'react-native';
 import FastTrack from '@assets/images/fast-track-cover.jpg';
+import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import FeatureTrainingModal from './FeatureTrainingModal';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-function TestDriveModal() {
+type BaseTestDriveModalProps = Partial<ChildrenProps> & {
+    description: string;
+    onHelp: (closeModal: () => void) => void;
+    onConfirm: (closeModal: () => void) => void;
+    onClose: (() => void) | undefined;
+};
+
+function BaseTestDriveModal({description, onHelp, onConfirm, onClose, children}: BaseTestDriveModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    const closeModal = () => {
-        Navigation.dismissModal();
-    };
-
-    const navigateTestDriveDemo = () => {
-        InteractionManager.runAfterInteractions(() => {
-            Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
-        });
-    };
 
     return (
         <FeatureTrainingModal
@@ -28,17 +23,21 @@ function TestDriveModal() {
             illustrationOuterContainerStyle={styles.p0}
             illustrationAspectRatio={CONST.FEATURE_TRAINING.TEST_DRIVE_COVER_ASPECT_RATIO}
             title={translate('testDrive.modal.title')}
-            description={translate('testDrive.modal.description')}
+            description={description}
             helpText={translate('testDrive.modal.helpText')}
             confirmText={translate('testDrive.modal.confirmText')}
-            onHelp={closeModal}
-            onConfirm={navigateTestDriveDemo}
+            onHelp={onHelp}
+            onConfirm={onConfirm}
+            onClose={onClose}
             shouldRenderSVG={false}
             modalInnerContainerStyle={styles.testDriveModalContainer}
-        />
+            shouldCloseOnConfirm={false}
+        >
+            {children}
+        </FeatureTrainingModal>
     );
 }
 
-TestDriveModal.displayName = 'TestDriveModal';
+BaseTestDriveModal.displayName = 'BaseTestDriveModal';
 
-export default TestDriveModal;
+export default BaseTestDriveModal;

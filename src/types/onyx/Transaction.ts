@@ -181,7 +181,10 @@ type Receipt = {
     reservationList?: Reservation[];
 
     /** Receipt is manager_mctest@expensify.com testing receipt */
-    isTestReceipt?: true;
+    isTestReceipt?: boolean;
+
+    /** Receipt is Test Drive testing receipt */
+    isTestDriveReceipt?: boolean;
 };
 
 /** Model of route */

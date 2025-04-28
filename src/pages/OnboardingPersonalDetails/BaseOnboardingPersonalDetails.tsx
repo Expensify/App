@@ -77,7 +77,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
 
-            navigateAfterOnboarding(onboardingPurposeSelected, isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, mergedAccountConciergeReportID);
+            navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, mergedAccountConciergeReportID);
         },
         [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth, mergedAccountConciergeReportID],
     );

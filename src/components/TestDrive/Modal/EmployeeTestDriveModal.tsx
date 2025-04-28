@@ -1,0 +1,116 @@
+import {Str} from 'expensify-common';
+import React, {useCallback, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import {
+    initMoneyRequest,
+    setMoneyRequestAmount,
+    setMoneyRequestCreated,
+    setMoneyRequestDescription,
+    setMoneyRequestMerchant,
+    setMoneyRequestParticipants,
+    setMoneyRequestReceipt,
+} from '@libs/actions/IOU';
+import {setTestDriveReceiptAndNavigate} from '@libs/actions/TestDrive';
+import Navigation from '@libs/Navigation/Navigation';
+import {generateReportID} from '@libs/ReportUtils';
+import {generateAccountID} from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
+import BaseTestDriveModal from './BaseTestDriveModal';
+
+function EmployeeTestDriveModal() {
+    const {translate} = useLocalize();
+    const [bossEmail, setBossEmail] = useState('');
+    const [formError, setFormError] = useState<TranslationPaths | undefined>();
+    const actionToPerformRef = useRef<'dismiss' | 'navigate_iou'>('dismiss');
+
+    const validate = useCallback(
+        (value: string) => {
+            const loginTrim = value.trim();
+
+            if (!loginTrim || !Str.isValidEmail(loginTrim)) {
+                setFormError('common.error.email');
+                return false;
+            }
+
+            setFormError(undefined);
+            return true;
+        },
+        [setFormError],
+    );
+
+    const dismiss = (closeModal: () => void) => {
+        actionToPerformRef.current = 'dismiss';
+        closeModal();
+    };
+
+    const confirm = (closeModal: () => void) => {
+        if (!validate(bossEmail)) {
+            return;
+        }
+
+        actionToPerformRef.current = 'navigate_iou';
+        closeModal();
+    };
+
+    const navigate = () => {
+        switch (actionToPerformRef.current) {
+            case 'navigate_iou': {
+                const filename = `${CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.FILENAME}_${Date.now()}.png`;
+                setTestDriveReceiptAndNavigate(filename, (source) => {
+                    const transactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+                    const reportID = generateReportID();
+                    initMoneyRequest(reportID, undefined, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
+
+                    setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
+
+                    setMoneyRequestParticipants(transactionID, [
+                        {
+                            accountID: generateAccountID(bossEmail),
+                            login: bossEmail,
+                            displayName: bossEmail,
+                            selected: true,
+                        },
+                    ]);
+
+                    setMoneyRequestAmount(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.AMOUNT, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.CURRENCY);
+                    setMoneyRequestDescription(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.DESCRIPTION, true);
+                    setMoneyRequestMerchant(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
+                    setMoneyRequestCreated(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.CREATED, true);
+
+                    InteractionManager.runAfterInteractions(() => {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                    });
+                });
+                break;
+            }
+            default: {
+                // do nothing
+            }
+        }
+    };
+
+    return (
+        <BaseTestDriveModal
+            description={translate('testDrive.modal.employee.description')}
+            onHelp={dismiss}
+            onConfirm={confirm}
+            onClose={navigate}
+        >
+            <TextInput
+                placeholder={translate('testDrive.modal.employee.email')}
+                accessibilityLabel={translate('testDrive.modal.employee.email')}
+                value={bossEmail}
+                onChangeText={setBossEmail}
+                errorText={formError ? translate(formError) : undefined}
+            />
+        </BaseTestDriveModal>
+    );
+}
+
+EmployeeTestDriveModal.displayName = 'EmployeeTestDriveModal';
+
+export default EmployeeTestDriveModal;

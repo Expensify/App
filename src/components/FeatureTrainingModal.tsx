@@ -23,6 +23,7 @@ import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
 import type DotLottieAnimation from './LottieAnimations/types';
 import Modal from './Modal';
+import RenderHTML from './RenderHTML';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import Text from './Text';
 import VideoPlayer from './VideoPlayer';
@@ -68,7 +69,7 @@ type BaseFeatureTrainingModalProps = {
     confirmText: string;
 
     /** A callback to call when user confirms the tutorial */
-    onConfirm?: () => void;
+    onConfirm?: (closeModal: () => void) => void;
 
     /** A callback to call when modal closes */
     onClose?: () => void;
@@ -77,7 +78,7 @@ type BaseFeatureTrainingModalProps = {
     helpText?: string;
 
     /** Link to navigate to when user wants to learn more */
-    onHelp?: () => void;
+    onHelp?: (closeModal: () => void) => void;
 
     /** Styles for the content container */
     contentInnerContainerStyles?: StyleProp<ViewStyle>;
@@ -99,6 +100,12 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether the modal image is a SVG */
     shouldRenderSVG?: boolean;
+
+    /** Whether the modal description is written in HTML */
+    shouldRenderHTMLDescription?: boolean;
+
+    /** Whether the modal will be closed on confirm */
+    shouldCloseOnConfirm?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -156,6 +163,8 @@ function FeatureTrainingModal({
     imageHeight,
     isModalDisabled = true,
     shouldRenderSVG = true,
+    shouldRenderHTMLDescription = true,
+    shouldCloseOnConfirm = true,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -298,9 +307,15 @@ function FeatureTrainingModal({
     }, [onClose, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
-        closeModal();
-        onConfirm?.();
-    }, [onConfirm, closeModal]);
+        if (shouldCloseOnConfirm) {
+            closeModal();
+        }
+        onConfirm?.(closeModal);
+    }, [shouldCloseOnConfirm, onConfirm, closeModal]);
+
+    const onHelpPress = () => {
+        onHelp?.(closeModal);
+    };
 
     /**
      * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
@@ -344,7 +359,7 @@ function FeatureTrainingModal({
                             {!!title && !!description && (
                                 <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentInnerContainerStyles]}>
                                     {typeof title === 'string' ? <Text style={[styles.textHeadlineH1]}>{title}</Text> : title}
-                                    <Text style={styles.textSupporting}>{description}</Text>
+                                    {shouldRenderHTMLDescription ? <RenderHTML html={description} /> : <Text style={styles.textSupporting}>{description}</Text>}
                                     {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
                                     {children}
                                 </View>
@@ -362,7 +377,7 @@ function FeatureTrainingModal({
                                 <Button
                                     large
                                     style={[styles.mb3]}
-                                    onPress={onHelp}
+                                    onPress={onHelpPress}
                                     text={helpText}
                                 />
                             )}
