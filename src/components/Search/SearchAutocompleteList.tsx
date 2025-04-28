@@ -519,7 +519,7 @@ function SearchAutocompleteList(
             handleSearch(autocompleteQueryValue);
             return;
         }
-        
+
         // For subsequent renders, only call the API if the query has changed
         if (prevQueryRef.current !== autocompleteQueryValue) {
             prevQueryRef.current = autocompleteQueryValue;
