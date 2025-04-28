@@ -54,7 +54,7 @@ function BaseVideoPlayer({
     isVideoHovered = false,
     isPreview,
     reportID,
-}: VideoPlayerProps) {
+}: VideoPlayerProps & {reportID: string}) {
     const styles = useThemeStyles();
     const {
         pauseVideo,
