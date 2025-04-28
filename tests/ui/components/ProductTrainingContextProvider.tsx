@@ -210,7 +210,7 @@ describe('ProductTrainingContextProvider', () => {
             // When a tooltip has been dismissed
             const date = new Date();
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {
                     timestamp: DateUtils.getDBTime(date.valueOf()),
@@ -237,7 +237,7 @@ describe('ProductTrainingContextProvider', () => {
                 },
             });
             await waitForBatchedUpdatesWithAct();
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
             // When the user dismiss the tooltip
             result.current.hideProductTrainingTooltip();
@@ -295,8 +295,8 @@ describe('ProductTrainingContextProvider', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then only highest priority tooltip should show
-            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
+            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
 
             const {result} = renderHook(
                 () => ({
@@ -315,8 +315,8 @@ describe('ProductTrainingContextProvider', () => {
             // When higher priority tooltip is dismissed
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             const date = new Date();
-            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
+            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
 
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {
@@ -345,7 +345,6 @@ describe('ProductTrainingContextProvider', () => {
         it('should transition to next priority tooltip when current is dismissed', async () => {
             // When starting with all tooltips visible
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {nudgeMigration: {timestamp: new Date()}});
             const date = new Date();
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {
@@ -354,8 +353,8 @@ describe('ProductTrainingContextProvider', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH;
+            const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
 
             const {result} = renderHook(
                 () => ({
