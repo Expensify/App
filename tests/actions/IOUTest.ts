@@ -2778,6 +2778,7 @@ describe('actions/IOU', () => {
             });
 
             expect(t).toBeTruthy();
+            expect(t?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
             // Given fetch operations are resumed
             mockFetch?.resume?.();
