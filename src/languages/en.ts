@@ -1509,6 +1509,11 @@ const translations = {
         domainAdminsDescriptionPartThree: 'and prevent any admin actions from being taken with your account.',
         warning: `Once your account is locked, our team will review it to remove any unauthorized access. After that, you'll need to work with Concierge to help secure the account and restore your access.`,
     },
+    unlockAccountPage: {
+        yourAccountIsLocked: 'Your account is locked',
+        chatToConciergeToUnlock: 'Chat to Concierge to resolve the security concerns with your account to unlock it.',
+        chatWithConcierge: 'Chat with Concierge',
+    },
     passwordPage: {
         changePassword: 'Change password',
         changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com and New Expensify accounts.',
