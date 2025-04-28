@@ -202,6 +202,7 @@ import {
     getAttendees,
     getBillable,
     getCardID,
+    getCardName,
     getCategory,
     getCurrency,
     getDescription,
@@ -649,6 +650,7 @@ type TransactionDetails = {
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
     description?: string;
     cardID: number;
+    cardName?: string;
     originalAmount: number;
     originalCurrency: string;
     postedDate: string;
@@ -3708,6 +3710,7 @@ function getTransactionDetails(transaction: OnyxInputOrEntry<Transaction>, creat
         tag: getTag(transaction),
         mccGroup: getMCCGroup(transaction),
         cardID: getCardID(transaction),
+        cardName: getCardName(transaction),
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
         postedDate: getFormattedPostedDate(transaction),
