@@ -1325,7 +1325,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
             color: theme.text,
-            paddingTop: 17,
+            paddingTop: 15,
             paddingBottom: 8,
             paddingLeft: 0,
             borderWidth: 0,
@@ -1337,7 +1337,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputMultilineContainer: {
             height: '100%',
-            paddingTop: 17,
+            paddingTop: 15,
         },
 
         textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
@@ -1354,12 +1354,12 @@ const styles = (theme: ThemeColors) =>
         textInputDesktop: addOutlineWidth(theme, {}, 0),
 
         textInputIconContainerPaddingTop: {
-            paddingTop: 9,
+            paddingTop: 8,
         },
 
         textInputIconContainer: {
             paddingHorizontal: 11,
-            paddingTop: 9,
+            paddingTop: 8,
         },
 
         textInputLeftIconContainer: {
@@ -1396,7 +1396,7 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 9,
+            paddingTop: 7,
             paddingBottom: 8,
         },
 
@@ -1408,8 +1408,8 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 9,
-            paddingBottom: 10,
+            paddingTop: 7,
+            paddingBottom: 8,
         },
 
         textInputPrefix: {
