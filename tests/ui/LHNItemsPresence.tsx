@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticExpenseReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
@@ -107,6 +108,7 @@ describe('SidebarLinksData', () => {
             keys: ONYXKEYS,
             safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        initOnyxDerivedValues();
     });
 
     // Helper to initialize common state
@@ -151,6 +153,7 @@ describe('SidebarLinksData', () => {
             // When the SidebarLinks are rendered again with the current active report ID.
             LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
 
+            await waitForBatchedUpdatesWithAct();
             // Then the active report should be displayed as part of LHN,
             expect(getOptionRows()).toHaveLength(1);
 
