@@ -11888,13 +11888,30 @@ function getValidMergedPRs(commits) {
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
  */
 async function getPullRequestsMergedBetween(fromTag, toTag) {
-    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    const commitList = await getCommitHistoryBetweenTags(fromTag, toTag);
-    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
-    // Find which commit messages correspond to merged PR's
-    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
-    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-    return pullRequestNumbers;
+    console.log(`Looking for commits made between ${fromTag} and ${toTag}`);
+    // API call
+    console.log(`[jules API] Fetching commits for ${fromTag}...${toTag}`);
+    const apiCommitList = await getCommitHistoryBetweenTags(fromTag, toTag);
+    console.log(`[jules API] Found ${apiCommitList.length} commits.`);
+    const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
+    console.log(`[jules API] Parsed PRs: ${apiPullRequestNumbers.join(', ')}`);
+    // Old git log
+    console.log(`[jules git log] Fetching commits for ${fromTag}...${toTag}`);
+    const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    console.log(`[jules git log] Found ${gitCommitList.length} commits.`);
+    const gitPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
+    console.log(`[jules git log] Parsed PRs: ${gitPullRequestNumbers.join(', ')}`);
+    const areEqual = apiPullRequestNumbers.length === gitPullRequestNumbers.length && apiPullRequestNumbers.every((val, index) => val === gitPullRequestNumbers[index]);
+    if (areEqual) {
+        console.log('[jules compare] Results MATCH!');
+    }
+    else {
+        console.error('[jules compare] Results DONT MATCH!');
+        console.error(`[jules compare] API PRs: ${apiPullRequestNumbers.join(', ')}`);
+        console.error(`[jules compare] Git Log PRs: ${gitPullRequestNumbers.join(', ')}`);
+        throw new Error('Commit history methods returned different results!');
+    }
+    return apiPullRequestNumbers;
 }
 exports["default"] = {
     getPreviousExistingTag,
