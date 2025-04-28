@@ -558,6 +558,7 @@ const translations = {
         sharedIn: 'Shared in',
         unreported: 'Unreported',
         general: 'General',
+        workspacesTabTitle: 'Workspaces',
     },
     supportalNoAccess: {
         title: 'Not so fast',

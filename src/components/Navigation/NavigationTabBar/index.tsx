@@ -299,7 +299,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                         <PressableWithFeedback
                             onPress={showWorkspaces}
                             role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('common.workspaces')}
+                            accessibilityLabel={translate('common.workspacesTabTitle')}
                             style={styles.leftNavigationTabBarItem}
                         >
                             <View>
@@ -320,7 +320,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                     styles.navigationTabBarLabel,
                                 ]}
                             >
-                                {translate('common.workspaces')}
+                                {translate('common.workspacesTabTitle')}
                             </Text>
                         </PressableWithFeedback>
                         <NavigationTabBarAvatar
@@ -425,7 +425,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                 <PressableWithFeedback
                     onPress={showWorkspaces}
                     role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.workspaces')}
+                    accessibilityLabel={translate('common.workspacesTabTitle')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
                 >
@@ -447,7 +447,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             styles.navigationTabBarLabel,
                         ]}
                     >
-                        {translate('common.workspaces')}
+                        {translate('common.workspacesTabTitle')}
                     </Text>
                 </PressableWithFeedback>
                 <NavigationTabBarAvatar
