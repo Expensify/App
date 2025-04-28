@@ -937,7 +937,6 @@ function openReport(
     }
 
     const optimisticReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
