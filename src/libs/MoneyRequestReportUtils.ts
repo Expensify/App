@@ -10,6 +10,7 @@ import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
+    isReportTransactionThread,
 } from './ReportUtils';
 
 /**
@@ -39,7 +40,6 @@ function isActionVisibleOnMoneyRequestReport(action: ReportAction) {
  * function will return a list of reportIDs for the threads for the IOU parent action of every transaction.
  * It is used in UI to allow for navigation to "sibling" transactions when opening a single transaction (report) view.
  */
-
 function getThreadReportIDsForTransactions(reportActions: ReportAction[], transactions: Transaction[]) {
     return transactions
         .map((transaction) => {
@@ -65,6 +65,30 @@ function selectAllTransactionsForReport(transactions: OnyxCollection<Transaction
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
         return transaction.reportID === reportID && !isDeletedParentAction(action);
     });
+}
+
+/**
+ * Given a list of transaction, this function checks if a given report has exactly one transaction
+ *
+ * Note: this function may seem a bit trivial, but it's used as a guarantee that the same logic of checking for report
+ * is used in context of Search and Inbox
+ */
+function isSingleTransactionReport(report: OnyxEntry<Report>, transactions: Transaction[]) {
+    if (transactions.length !== 1) {
+        return false;
+    }
+
+    return transactions.at(0)?.reportID === report?.reportID;
+}
+
+/**
+ * Returns whether a "table" ReportView/MoneyRequestReportView should be used for the report.
+ *
+ * If report is a special "transaction thread" we want to use other Report views.
+ * Likewise, if report has only 1 connected transaction, then we also use other views.
+ */
+function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: Transaction[]) {
+    return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
 }
 
 /* This function is a legacy used for old version of MoneyReportHeader & ReportPreview, do not use it in new versions or anywhere else */
@@ -157,4 +181,12 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
     return convertToDisplayString(totalDisplaySpend, report?.currency);
 };
 
-export {isActionVisibleOnMoneyRequestReport, getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton, selectAllTransactionsForReport, getIOUReportPreviewButtonType};
+export {
+    isActionVisibleOnMoneyRequestReport,
+    getThreadReportIDsForTransactions,
+    getTotalAmountForIOUReportPreviewButton,
+    selectAllTransactionsForReport,
+    getIOUReportPreviewButtonType,
+    isSingleTransactionReport,
+    shouldDisplayReportTableView,
+};
