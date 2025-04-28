@@ -28,7 +28,8 @@ import {
     clearPolicyErrorField,
     deleteWorkspace,
     deleteWorkspaceAvatar,
-    openPolicyProfilePage, setIsComingFromGlobalReimbursementsFlow,
+    openPolicyProfilePage,
+    setIsComingFromGlobalReimbursementsFlow,
     updateLastAccessedWorkspaceSwitcher,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
@@ -215,7 +216,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         goBackFromWorkspaceCentralScreen(policy?.id);
-    }
+    };
 
     return (
         <WorkspacePageWithSections

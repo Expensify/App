@@ -5285,5 +5285,5 @@ export {
     clearQuickbooksOnlineAutoSyncErrorField,
     updateLastAccessedWorkspaceSwitcher,
     setIsForcedToChangeCurrency,
-    setIsComingFromGlobalReimbursementsFlow
+    setIsComingFromGlobalReimbursementsFlow,
 };
