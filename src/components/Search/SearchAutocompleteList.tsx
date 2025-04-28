@@ -503,28 +503,18 @@ function SearchAutocompleteList(
         return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
-    // Store references for tracking input changes
-    const initialRenderRef = useRef(true);
+    // Only call search when input value changes, not on focus
     const prevQueryRef = useRef(autocompleteQueryValue);
 
     useEffect(() => {
-        if (!handleSearch) {
+        // Only proceed if handleSearch exists and query has changed
+        if (!handleSearch || prevQueryRef.current === autocompleteQueryValue) {
             return;
         }
 
-        // For the first render, store the query and call the API
-        if (initialRenderRef.current) {
-            initialRenderRef.current = false;
-            prevQueryRef.current = autocompleteQueryValue;
-            handleSearch(autocompleteQueryValue);
-            return;
-        }
-
-        // For subsequent renders, only call the API if the query has changed
-        if (prevQueryRef.current !== autocompleteQueryValue) {
-            prevQueryRef.current = autocompleteQueryValue;
-            handleSearch(autocompleteQueryValue);
-        }
+        // Update reference and call search API
+        prevQueryRef.current = autocompleteQueryValue;
+        handleSearch(autocompleteQueryValue);
     }, [autocompleteQueryValue, handleSearch]);
 
     /* Sections generation */
