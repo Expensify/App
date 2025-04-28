@@ -81,7 +81,7 @@ describe('useFastSearchFromOptions', () => {
 
         const {recentReports, personalDetails} = search('John Fabio');
 
-        expect(personalDetails).toEqual([expect.objectContaining({text: 'Fábio John'})])
-        expect(recentReports).toEqual([{text: 'Fábio, John (Report)'}])
-    })
+        expect(personalDetails).toEqual([expect.objectContaining({text: 'Fábio John'})]);
+        expect(recentReports).toEqual([{text: 'Fábio, John (Report)'}]);
+    });
 });
