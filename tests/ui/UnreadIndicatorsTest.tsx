@@ -372,7 +372,7 @@ describe('Unread Indicators', () => {
                 const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                 expect(displayNameTexts).toHaveLength(2);
-                expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
+                expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getAllByText('C User').at(0)).toBeOnTheScreen();
                 expect((displayNameTexts.at(1)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User', {includeHiddenElements: true})).toBeOnTheScreen();
