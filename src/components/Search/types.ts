@@ -100,6 +100,8 @@ type QueryFilter = {
 
 type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
 
+type SearchSingleSelectionKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS;
+
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
@@ -159,6 +161,7 @@ export type {
     SelectedTransactions,
     SearchColumnType,
     SearchBooleanFilterKeys,
+    SearchSingleSelectionKeys,
     SearchDateFilterKeys,
     SearchStatus,
     SearchQueryJSON,

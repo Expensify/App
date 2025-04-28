@@ -556,6 +556,11 @@ const translations = {
         unreported: 'Unreported',
         explore: 'Explore',
         todo: 'To-do',
+        invoice: 'Invoice',
+        expense: 'Expense',
+        chat: 'Chat',
+        task: 'Task',
+        trip: 'Trip',
     },
     supportalNoAccess: {
         title: 'Not so fast',

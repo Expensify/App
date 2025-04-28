@@ -547,6 +547,11 @@ const translations = {
         unreported: 'No reportado',
         explore: 'Explorar',
         todo: 'Tereas',
+        invoice: 'Factura',
+        expense: 'Gasto',
+        chat: 'Chat',
+        task: 'Tarea',
+        trip: 'Viaje',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
