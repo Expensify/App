@@ -25,8 +25,8 @@ import {
     Workflows,
 } from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
-import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -127,6 +127,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const {canUseLeftHandBar} = usePermissions();
+    const shouldDisplayLHB = canUseLeftHandBar && !shouldUseNarrowLayout;
     const policyFeatureStates = useMemo(
         () => ({
             [CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]: policy?.areDistanceRatesEnabled,
@@ -429,19 +430,21 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         };
     }, [policy]);
 
-    const shouldShowBottomTab = !shouldShowNotFoundPage;
+    const shouldShowNavigationTabBar = !shouldShowNotFoundPage;
 
     return (
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
-            includeSafeAreaPaddingBottom
-            bottomContent={shouldShowBottomTab ? <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} /> : null}
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
+            extraContent={shouldShowNavigationTabBar ? <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} /> : null}
+            extraContentStyles={shouldDisplayLHB && styles.leftNavigationTabBarPosition}
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
                 onLinkPress={Navigation.goBackToHome}
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
+                addBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={policyName}

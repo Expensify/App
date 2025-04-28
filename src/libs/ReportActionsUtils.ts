@@ -5,6 +5,7 @@ import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -272,7 +273,7 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
 }
 
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE && !!getOriginalMessage(reportAction as ReportAction<'INTEGRATIONSMESSAGE'>)?.result?.success;
 }
 
 /**
@@ -514,6 +515,11 @@ function getCombinedReportActions(
     return getSortedReportActions(filteredReportActions, true);
 }
 
+const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.TRACK];
+
+// Get all IOU report actions for the report.
+const iouRequestTypesSet = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([...iouRequestTypes, CONST.IOU.REPORT_ACTION_TYPE.PAY]);
+
 /**
  * Finds most recent IOU request action ID.
  */
@@ -521,11 +527,6 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
     if (!Array.isArray(reportActions)) {
         return null;
     }
-    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-        CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-    ];
     const iouRequestActions =
         reportActions?.filter((action) => {
             if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU)) {
@@ -584,7 +585,7 @@ function findPreviousAction(reportActions: ReportAction[], actionIndex: number):
  * @param actionIndex - index of the action
  */
 function findNextAction(reportActions: ReportAction[], actionIndex: number): OnyxEntry<ReportAction> {
-    for (let i = actionIndex - 1; i > 0; i--) {
+    for (let i = actionIndex - 1; i >= 0; i--) {
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
         if (isNetworkOffline || reportActions.at(i)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -861,10 +862,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (isConciergeCategoryOptions(reportAction) && isResolvedConciergeCategoryOptions(reportAction)) {
-        return false;
-    }
-
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
@@ -1131,6 +1128,24 @@ function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean
 }
 
 /**
+ * Simple hook to check whether the PureReportActionItem should return item based on whether the ReportPreview was recently deleted and the PureReportActionItem has not yet unloaded
+ */
+function useNewTableReportViewActionRenderConditionals({childMoneyRequestCount, childVisibleActionCount, pendingAction, actionName}: ReportAction) {
+    const previousChildMoneyRequestCount = usePrevious(childMoneyRequestCount);
+
+    const isActionAReportPreview = actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+    const isActionInUpdateState = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    const reportsCount = childMoneyRequestCount;
+    const previousReportsCount = previousChildMoneyRequestCount ?? 0;
+    const commentsCount = childVisibleActionCount ?? 0;
+
+    const isEmptyPreviewWithComments = reportsCount === 0 && commentsCount > 0 && previousReportsCount > 0;
+
+    // We only want to remove the item if the ReportPreview has comments but no reports, so we avoid having a PureReportActionItem with no ReportPreview but only comments
+    return !(isActionAReportPreview && isActionInUpdateState && isEmptyPreviewWithComments);
+}
+
+/**
  * Returns the number of expenses associated with a report preview
  */
 function getNumberOfMoneyRequests(reportPreviewAction: OnyxEntry<ReportAction>): number {
@@ -1139,6 +1154,11 @@ function getNumberOfMoneyRequests(reportPreviewAction: OnyxEntry<ReportAction>):
 
 function isSplitBillAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+}
+
+function isIOURequestReportAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    const type = isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.type;
+    return !!type && iouRequestTypes.includes(type);
 }
 
 function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
@@ -1174,14 +1194,6 @@ function isTagModificationAction(actionName: string): boolean {
     );
 }
 
-// Get all IOU report actions for the report.
-const iouRequestTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
-    CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-    CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-    CONST.IOU.REPORT_ACTION_TYPE.PAY,
-    CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-]);
-
 /**
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
@@ -1213,7 +1225,7 @@ function getOneTransactionThreadReportID(
         const actionType = originalMessage?.type;
         if (
             actionType &&
-            iouRequestTypes.has(actionType) &&
+            iouRequestTypesSet.has(actionType) &&
             action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an assocaited IOU transaction ID or
@@ -2210,9 +2222,10 @@ function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): str
     return connectionName ? translateLocal('report.actions.type.removedConnection', {connectionName}) : '';
 }
 
-function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
+function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, actorName?: string) {
     const originalMessage = getOriginalMessage(reportAction);
     return translateLocal('newRoomPage.renamedRoomAction', {
+        actorName,
         oldName: originalMessage?.oldName ?? '',
         newName: originalMessage?.newName ?? '',
     });
@@ -2398,6 +2411,7 @@ export {
     isResolvedConciergeCategoryOptions,
     isAddCommentAction,
     isApprovedOrSubmittedReportAction,
+    isIOURequestReportAction,
     isChronosOOOListAction,
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
@@ -2412,6 +2426,7 @@ export {
     isMemberChangeAction,
     isExportIntegrationAction,
     isMessageDeleted,
+    useNewTableReportViewActionRenderConditionals,
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
