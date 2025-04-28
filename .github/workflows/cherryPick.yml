@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       PULL_REQUEST_URL:
-        description: The full URL of the Expensify/App pull request to cherry-pick
+        description: The full URL of the Expensify/App or Expensify/Mobile-Expensify pull request to cherry-pick
         required: true
 
 jobs:
