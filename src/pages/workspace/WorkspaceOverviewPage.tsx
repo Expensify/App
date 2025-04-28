@@ -294,6 +294,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 interactive={!readOnly}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
                                 onPress={onPressName}
+                                shouldBreakWord
                                 numberOfLinesTitle={0}
                             />
                         </OfflineWithFeedback>

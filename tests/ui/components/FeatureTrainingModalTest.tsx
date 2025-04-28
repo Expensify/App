@@ -15,6 +15,8 @@ const CONFIRM_TEXT = 'Start';
 jest.mock('@libs/Navigation/Navigation', () => ({
     isTopmostRouteModalScreen: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
+    getActiveRouteWithoutParams: jest.fn(() => '/'),
+    getActiveRoute: jest.fn(() => '/'),
 }));
 
 jest.mock('@libs/Fullstory');
