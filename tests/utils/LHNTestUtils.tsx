@@ -8,7 +8,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
 import {EnvironmentProvider} from '@components/withEnvironment';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
+import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import DateUtils from '@libs/DateUtils';
 import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';

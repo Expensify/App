@@ -6,7 +6,7 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReportIDs';
+import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getAssignedSupportData, openWorkspace} from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
