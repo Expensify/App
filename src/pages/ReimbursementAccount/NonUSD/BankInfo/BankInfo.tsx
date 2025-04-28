@@ -60,18 +60,18 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
             getCorpayBankAccountFields(country, currency);
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (reimbursementAccount?.errors || reimbursementAccount?.isLoading || !reimbursementAccount?.isSuccess) {
+        if (reimbursementAccount?.isLoading === true || !!reimbursementAccount?.errors) {
             return;
         }
 
-        if (reimbursementAccount?.isSuccess) {
+        if (reimbursementAccount?.isSuccess === true) {
             onSubmit();
-            clearReimbursementAccountBankCreation();
         }
-
-        return () => clearReimbursementAccountBankCreation();
     }, [country, currency, isOffline, onSubmit, prevIsOffline, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
+
+    useEffect(() => {
+        return () => clearReimbursementAccountBankCreation();
+    }, []);
 
     useEffect(() => {
         if (country === '') {
