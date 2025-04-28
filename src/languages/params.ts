@@ -691,10 +691,6 @@ type ReviewParams = {
     amount: string;
 };
 
-type ScheduleCallSlotsParams = {
-    date: string;
-};
-
 type CurrencyInputDisabledTextParams = {
     currency: string;
 };
@@ -944,6 +940,5 @@ export type {
     NeedCategoryForExportToIntegrationParams,
     SubscriptionSettingsSummaryParams,
     ReviewParams,
-    ScheduleCallSlotsParams,
     CurrencyInputDisabledTextParams,
 };

@@ -69,7 +69,7 @@ function ScheduleCallConfirmationPage() {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                <Text style={[styles.mb5, styles.ph5]}>{translate('schdeuledCall.confirmation.description')}</Text>
+                <Text style={[styles.mb5, styles.ph5, styles.colorMuted]}>{translate('schdeuledCall.confirmation.description')}</Text>
                 <MenuItem
                     style={styles.mb3}
                     title={guideDetails?.displayName}
@@ -79,7 +79,7 @@ function ScheduleCallConfirmationPage() {
                     icon={[
                         {
                             id: guideDetails?.accountID,
-                            source: guideDetails?.avatarThumbnail ?? guideDetails?.fallbackIcon ?? FallbackAvatar,
+                            source: guideDetails?.avatarThumbnail ?? guideDetails?.avatar ?? guideDetails?.fallbackIcon ?? FallbackAvatar,
                             name: guideDetails?.login,
                             type: CONST.ICON_TYPE_AVATAR,
                         },
@@ -100,7 +100,7 @@ function ScheduleCallConfirmationPage() {
                     }}
                 />
                 <MenuItemWithTopDescription
-                    title="30 Minutes"
+                    title={translate('schdeuledCall.confirmation.minutes')}
                     description={translate('schdeuledCall.confirmation.meetingLength')}
                     interactive={false}
                     style={styles.mb3}

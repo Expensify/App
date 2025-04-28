@@ -129,7 +129,7 @@ function ScheduleCallPage() {
             ) : (
                 <ScrollView style={styles.flexGrow1}>
                     <View style={styles.ph5}>
-                        <Text style={styles.mb5}>{translate('schdeuledCall.book.description')}</Text>
+                        <Text style={[styles.mb5, styles.colorMuted]}>{translate('schdeuledCall.book.description')}</Text>
                         <View
                             style={[styles.datePickerPopover, styles.border]}
                             collapsable={false}
@@ -158,7 +158,10 @@ function ScheduleCallPage() {
                     )}
                     {!!scheduleCallDraft?.date && (
                         <View style={[styles.ph5, styles.mb5]}>
-                            <Text style={[styles.mb5]}>{translate('schdeuledCall.book.slots', {date: format(scheduleCallDraft.date, CONST.DATE.MONTH_DAY_YEAR_FORMAT)})}</Text>
+                            <Text style={[styles.mb5, styles.colorMuted]}>
+                                {translate('schdeuledCall.book.slots')}
+                                <Text style={[styles.textStrong, styles.colorMuted]}>{format(scheduleCallDraft.date, CONST.DATE.MONTH_DAY_YEAR_FORMAT)}</Text>
+                            </Text>
                             <View
                                 style={[styles.flexRow, styles.flexWrap, styles.justifyContentStart, styles.gap2]}
                                 onLayout={({

@@ -6261,7 +6261,7 @@ const translations = {
         book: {
             title: 'Schedule a Call',
             description: 'Find a time that works for you.',
-            slots: ({date}: ScheduleCallSlotsParams) => `Available times for ${date}`,
+            slots: 'Available times for ',
         },
         confirmation: {
             title: 'Confirm Call',
@@ -6269,6 +6269,7 @@ const translations = {
             setupSpecialist: 'Your setup specialist',
             meetingLength: 'Meeting length',
             dateTime: 'Date & time',
+            minutes: '30 minutes',
         },
     },
     testDrive: {
