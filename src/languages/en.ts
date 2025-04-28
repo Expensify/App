@@ -5204,6 +5204,23 @@ const translations = {
                 subtitle: 'Get started by booking your first trip below.',
                 buttonText: 'Book a trip',
             },
+            emptySubmitResults: {
+                title: 'No expenses to submit',
+                subtitle: "You're all clear. Take a victory lap!",
+                buttonText: 'Create report',
+            },
+            emptyApproveResults: {
+                title: 'No expenses to approve',
+                subtitle: 'Zero expenses. Maximum chill. Well done!',
+            },
+            emptyPayResults: {
+                title: 'No expenses to pay',
+                subtitle: 'Congrats! You crossed the finish line.',
+            },
+            emptyExportResults: {
+                title: 'No expenses to export',
+                subtitle: 'Time to take it easy, nice work.',
+            },
         },
         saveSearch: 'Save search',
         deleteSavedSearch: 'Delete saved search',

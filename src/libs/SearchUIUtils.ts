@@ -868,7 +868,7 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                     },
                 },
                 {
-                    translationPath: 'common.expenseReports',
+                    translationPath: 'common.reports',
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     icon: Expensicons.Document,
                     getSearchQuery: (policyID?: string) => {
@@ -907,6 +907,7 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                 translationPath: 'common.submit',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.Pencil,
+
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
