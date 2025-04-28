@@ -56,7 +56,7 @@ describe('getPrimaryAction', () => {
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-            managerID: CURRENT_USER_ACCOUNT_ID
+            managerID: CURRENT_USER_ACCOUNT_ID,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = {

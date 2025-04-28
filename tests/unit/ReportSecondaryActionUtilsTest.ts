@@ -69,7 +69,7 @@ describe('getSecondaryAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,           
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             managerID: CURRENT_USER_ACCOUNT_ID,
         } as unknown as Report;
         const policy = {
@@ -98,7 +98,7 @@ describe('getSecondaryAction', () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,         
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             managerID: CURRENT_USER_ACCOUNT_ID,
         } as unknown as Report;
         const policy = {} as unknown as Policy;
@@ -126,7 +126,7 @@ describe('getSecondaryAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,         
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             managerID: CURRENT_USER_ACCOUNT_ID,
         } as unknown as Report;
         const policy = {role: CONST.POLICY.ROLE.ADMIN} as unknown as Policy;
