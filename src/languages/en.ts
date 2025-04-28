@@ -438,6 +438,9 @@ const translations = {
         websiteExample: 'e.g. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
+        title: 'Title',
+        assignee: 'Assignee',
+        createdBy: 'Created by',
         with: 'with',
         shareCode: 'Share code',
         share: 'Share',
@@ -524,6 +527,7 @@ const translations = {
         offlinePrompt: "You can't take this action right now.",
         outstanding: 'Outstanding',
         chats: 'Chats',
+        tasks: 'Tasks',
         unread: 'Unread',
         sent: 'Sent',
         links: 'Links',
@@ -548,6 +552,7 @@ const translations = {
         reimbursable: 'Reimbursable',
         editYourProfile: 'Edit your profile',
         comments: 'Comments',
+        sharedIn: 'Shared in',
         unreported: 'Unreported',
     },
     supportalNoAccess: {
@@ -1105,7 +1110,7 @@ const translations = {
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
         hold: 'Hold',
-        unhold: 'Unhold',
+        unhold: 'Remove hold',
         holdExpense: 'Hold expense',
         unholdExpense: 'Unhold expense',
         heldExpense: 'held this expense',
@@ -1950,7 +1955,7 @@ const translations = {
         requestNewCodeAfterErrorOccurred: 'Request a new code',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
-            incorrectMagicCode: 'Incorrect magic code',
+            incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
         },
     },
@@ -2165,7 +2170,7 @@ const translations = {
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
         notHere: "Hmm... it's not here",
         pageNotFound: 'Oops, this page cannot be found',
-        noAccess: "That chat doesn't exist or you don't have access to it. Try using search to find a chat.",
+        noAccess: 'This chat or expense may have been deleted or you do not have access to it.\n\nFor any questions please contact concierge@expensify.com',
         goBackHome: 'Go back to home page',
     },
     errorPage: {
@@ -2937,7 +2942,8 @@ const translations = {
             descriptionHint: 'Share information about this workspace with all members.',
             welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
             subscription: 'Subscription',
-            markAsExported: 'Mark as manually entered',
+            markAsEntered: 'Mark as manually entered',
+            markAsExported: 'Mark as manually exported',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
@@ -4333,6 +4339,7 @@ const translations = {
             goToODToSettings: 'Go to Expensify Classic to manage your settings.',
             setup: 'Connect',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Last synced ${relativeDate}`,
+            notSync: 'Not synced',
             import: 'Import',
             export: 'Export',
             advanced: 'Advanced',
@@ -4889,7 +4896,6 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
-                none: 'None',
                 alcohol: 'Alcohol',
                 hotelIncidentals: 'Hotel incidentals',
                 gambling: 'Gambling',
@@ -5138,6 +5144,7 @@ const translations = {
         description: 'Description',
         assignee: 'Assignee',
         completed: 'Completed',
+        action: 'Complete',
         messages: {
             created: ({title}: TaskCreatedActionParams) => `task for ${title}`,
             completed: 'marked as complete',
@@ -5223,6 +5230,7 @@ const translations = {
             link: 'Link',
             pinned: 'Pinned',
             unread: 'Unread',
+            completed: 'Completed',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Less than ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Greater than ${amount ?? ''}`,
@@ -6209,9 +6217,10 @@ const translations = {
             part2: ' here!',
         },
         bottomNavInboxTooltip: {
-            part1: 'Your to-do list',
-            part2: '\n🟢 = ready for you',
-            part3: ' 🔴 = needs review',
+            part1: 'Check what ',
+            part2: 'needs your attention',
+            part3: '\nand ',
+            part4: 'chat about expenses.',
         },
         workspaceChatTooltip: {
             part1: 'Submit expenses',
@@ -6222,6 +6231,11 @@ const translations = {
             part1: 'Create expenses',
             part2: ', start chatting,',
             part3: '\nand more!',
+        },
+        expenseReportsFilter: {
+            part1: 'Welcome! Find all of your',
+            part2: "\ncompany's reports",
+            part3: ' here.',
         },
         scanTestTooltip: {
             part1: 'Want to see how Scan works?',
@@ -6253,6 +6267,11 @@ const translations = {
             description: 'Take a quick product tour to get up to speed fast. No pit stops required!',
             confirmText: 'Start test drive',
             helpText: 'Skip',
+        },
+        banner: {
+            currentlyTestDrivingExpensify: "You're currently test driving Expensify",
+            readyForTheRealThing: 'Ready for the real thing?',
+            getStarted: 'Get started',
         },
     },
 };
