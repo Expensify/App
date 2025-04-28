@@ -25,13 +25,7 @@ import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {
-    buildSearchQueryJSON,
-    buildUserReadableQueryString,
-    buildUserReadableQueryStringWithPolicyID,
-    isCannedSearchQuery,
-    isCannedSearchQueryWithPolicyIDCheck,
-} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, buildUserReadableQueryStringWithPolicyID} from '@libs/SearchQueryUtils';
 import {createBaseSavedSearchMenuItem, createTypeMenuSections, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import type {SavedSearchMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -47,7 +41,7 @@ type SearchTypeMenuProps = {
 };
 
 function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
-    const {type, groupBy, hash} = queryJSON ?? {};
+    const {hash} = queryJSON ?? {};
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
@@ -190,30 +184,18 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [styles],
     );
 
-    let isCannedQuery = false;
-
-    if (queryJSON) {
-        if (canUseLeftHandBar) {
-            isCannedQuery = isCannedSearchQueryWithPolicyIDCheck(queryJSON);
-        } else {
-            isCannedQuery = isCannedSearchQuery(queryJSON);
-        }
-    }
-
     const activeItemIndex = useMemo(() => {
-        if (!isCannedQuery) {
-            return -1;
-        }
-
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
 
         return flattenedMenuItems.findIndex((item) => {
-            if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
-                return item.translationPath === 'common.expenseReports' && item.type === type;
-            }
-            return item.type === type;
+            const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
+
+            // if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+            //     return item.translationPath === 'common.expenseReports' && item.type === type;
+            // }
+            return searchQueryJSON?.hash === hash;
         });
-    }, [isCannedQuery, groupBy, type, typeMenuSections]);
+    }, [hash, typeMenuSections]);
 
     return (
         <ScrollView
@@ -236,7 +218,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                 }
                                 clearAllFilters();
                                 clearSelectedTransactions();
-                                Navigation.navigate(item.getRoute());
+                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.getSearchQuery()}));
                             });
 
                             return (

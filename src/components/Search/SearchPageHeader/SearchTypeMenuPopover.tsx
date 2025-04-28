@@ -98,12 +98,12 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
     const title = searchName ?? (isCannedQuery ? undefined : getBuildUserReadableQueryString());
 
     const activeItemIndex = useMemo(() => {
-        if (!isCannedQuery) {
-            return -1;
-        }
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flattenedMenuItems.findIndex((item) => item.type === queryJSON.type);
-    }, [isCannedQuery, typeMenuSections, queryJSON.type]);
+        return flattenedMenuItems.findIndex((item) => {
+            const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
+            return searchQueryJSON?.hash === hash;
+        });
+    }, [hash, typeMenuSections]);
 
     const getOverflowMenu = useCallback(
         (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal, true, closeMenu),
@@ -197,7 +197,7 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
                         shouldCallAfterModalHide: true,
                         onSelected: singleExecution(() => {
                             clearAllFilters();
-                            Navigation.navigate(item.getRoute());
+                            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.getSearchQuery()}));
                         }),
                     });
                 });

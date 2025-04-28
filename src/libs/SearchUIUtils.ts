@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {MenuItemWithLink} from '@components/MenuItemList';
-import type {SearchColumnType, SearchQueryJSON, SearchStatus, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
@@ -14,7 +14,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -125,7 +124,7 @@ type SearchTypeMenuItem = {
     translationPath: TranslationPaths;
     type: SearchDataTypes;
     icon: IconAsset;
-    getRoute: (policyID?: string) => Route;
+    getSearchQuery: (policyID?: string) => SearchQueryString;
 };
 
 /**
@@ -863,27 +862,27 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                     translationPath: 'common.expenses',
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     icon: Expensicons.Receipt,
-                    getRoute: (policyID?: string) => {
-                        const query = buildCannedSearchQuery({policyID});
-                        return ROUTES.SEARCH_ROOT.getRoute({query});
+                    getSearchQuery: (policyID?: string) => {
+                        const queryString = buildCannedSearchQuery({policyID});
+                        return queryString;
                     },
                 },
                 {
                     translationPath: 'common.expenseReports',
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     icon: Expensicons.Document,
-                    getRoute: (policyID?: string) => {
-                        const query = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, policyID});
-                        return ROUTES.SEARCH_ROOT.getRoute({query});
+                    getSearchQuery: (policyID?: string) => {
+                        const queryString = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, policyID});
+                        return queryString;
                     },
                 },
                 {
                     translationPath: 'common.chats',
                     type: CONST.SEARCH.DATA_TYPES.CHAT,
                     icon: Expensicons.ChatBubbles,
-                    getRoute: (policyID?: string) => {
-                        const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
-                        return ROUTES.SEARCH_ROOT.getRoute({query});
+                    getSearchQuery: (policyID?: string) => {
+                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                        return queryString;
                     },
                 },
             ],
@@ -908,13 +907,13 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                 translationPath: 'common.submit',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.Pencil,
-                getRoute: () => {
-                    const query = buildQueryStringFromFilterFormValues({
+                getSearchQuery: () => {
+                    const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
                         from: [`${session.accountID}`],
                     });
-                    return ROUTES.SEARCH_ROOT.getRoute({query});
+                    return queryString;
                 },
             });
         }
@@ -924,13 +923,13 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                 translationPath: 'search.bulkActions.approve',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.ThumbsUp,
-                getRoute: () => {
-                    const query = buildQueryStringFromFilterFormValues({
+                getSearchQuery: () => {
+                    const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
                         to: [`${session.accountID}`],
                     });
-                    return ROUTES.SEARCH_ROOT.getRoute({query});
+                    return queryString;
                 },
             });
         }
@@ -940,14 +939,13 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                 translationPath: 'search.bulkActions.pay',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.MoneyBag,
-                getRoute: () => {
-                    const query = buildQueryStringFromFilterFormValues({
+                getSearchQuery: () => {
+                    const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.DONE],
                         to: [`${session.accountID}`],
                     });
-
-                    return ROUTES.SEARCH_ROOT.getRoute({query});
+                    return queryString;
                 },
             });
         }
@@ -957,12 +955,12 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                 translationPath: 'common.export',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.CheckCircle,
-                getRoute: () => {
-                    const query = buildCannedSearchQuery({
+                getSearchQuery: () => {
+                    const queryString = buildCannedSearchQuery({
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.PAID, CONST.SEARCH.STATUS.EXPENSE.DONE],
                     });
-                    return ROUTES.SEARCH_ROOT.getRoute({query});
+                    return queryString;
                 },
             });
         }
