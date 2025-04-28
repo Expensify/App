@@ -18,6 +18,7 @@ jobs:
         include:
           - scheme: 'New Expensify Dev'
             configuration: 'DebugDevelopment'
+            is_hybrid_build: false
 
           - scheme: 'Expensify Dev'
             configuration: 'Debug'

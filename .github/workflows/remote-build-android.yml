@@ -15,6 +15,7 @@ jobs:
       matrix:
         include:
           - variant: 'developmentDebug'
+            is_hybrid_build: false
 
           - variant: 'Debug'
             is_hybrid_build: true
