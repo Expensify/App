@@ -174,7 +174,7 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
                 ];
 
                 section.menuItems.forEach((item, itemIndex) => {
-                    const flattenedIndex = index * section.menuItems.length + itemIndex;
+                    const flattenedIndex = index * (section.menuItems.length - 1) + itemIndex;
                     let isSelected = false;
 
                     if (!title) {

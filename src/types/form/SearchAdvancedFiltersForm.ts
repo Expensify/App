@@ -13,6 +13,7 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
 ];
 
 const FILTER_KEYS = {
+    GROUP_BY: 'groupBy',
     TYPE: 'type',
     STATUS: 'status',
     DATE_AFTER: 'dateAfter',
@@ -56,6 +57,7 @@ type InputID = ValueOf<typeof FILTER_KEYS>;
 type SearchAdvancedFiltersForm = Form<
     InputID,
     {
+        [FILTER_KEYS.GROUP_BY]: string;
         [FILTER_KEYS.TYPE]: string;
         [FILTER_KEYS.STATUS]: string[] | string;
         [FILTER_KEYS.DATE_AFTER]: string;

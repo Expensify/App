@@ -911,6 +911,7 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
                         from: [`${session.accountID}`],
                     });
@@ -927,6 +928,7 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
                         to: [`${session.accountID}`],
                     });
@@ -943,6 +945,7 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.DONE],
                         to: [`${session.accountID}`],
                     });
@@ -957,7 +960,7 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.CheckCircle,
                 getSearchQuery: () => {
-                    const queryString = buildCannedSearchQuery({
+                    const queryString = buildQueryStringFromFilterFormValues({
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.PAID, CONST.SEARCH.STATUS.EXPENSE.DONE],
                     });

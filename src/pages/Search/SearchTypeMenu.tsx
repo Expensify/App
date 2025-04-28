@@ -204,7 +204,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     <View key={section.translationPath}>
                         <Text style={[styles.sectionTitle, styles.pb2]}>{translate(section.translationPath)}</Text>
                         {section.menuItems.map((item, itemIndex) => {
-                            const flattenedIndex = sectionIndex * section.menuItems.length + itemIndex;
+                            const flattenedIndex = sectionIndex * (section.menuItems.length - 1) + itemIndex;
                             const focused = flattenedIndex === activeItemIndex;
                             const shouldShowTooltip = item.translationPath === 'common.expenseReports' && !focused && shouldShowExpenseReportsTypeTooltip;
 

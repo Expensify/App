@@ -341,7 +341,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
  */
 function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, policyID, ...otherFilters} = filterValues;
+    const {type, status, policyID, groupBy, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
@@ -352,9 +352,19 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizedType}`);
     }
 
+    if (groupBy) {
+        const sanitizedGroupBy = sanitizeSearchValue(groupBy);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
+    }
+
     if (status && typeof status === 'string') {
         const sanitizedStatus = sanitizeSearchValue(status);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
+    }
+
+    if (status && Array.isArray(status)) {
+        const filterValueArray = [...new Set<string>(status)];
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
     }
 
     if (policyID) {
@@ -396,8 +406,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.FEED ||
                     filterKey === FILTER_KEYS.IN ||
                     filterKey === FILTER_KEYS.ASSIGNEE ||
-                    filterKey === FILTER_KEYS.CREATED_BY ||
-                    filterKey === FILTER_KEYS.STATUS) &&
+                    filterKey === FILTER_KEYS.CREATED_BY) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
