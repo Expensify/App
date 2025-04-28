@@ -59,6 +59,7 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const taxRates = getAllTaxRates();
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
@@ -92,7 +93,7 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
         return buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
     }, [allCards, allPolicies, canUseLeftHandBar, cardFeedNamesWithType, personalDetails, queryJSON, reports, taxRates]);
 
-    const typeMenuSections = useMemo(() => createTypeMenuSections(), []);
+    const typeMenuSections = useMemo(() => createTypeMenuSections(session), [session]);
     const isCannedQuery = canUseLeftHandBar ? isCannedSearchQueryWithPolicyIDCheck(queryJSON) : isCannedSearchQuery(queryJSON);
     const title = searchName ?? (isCannedQuery ? undefined : getBuildUserReadableQueryString());
 

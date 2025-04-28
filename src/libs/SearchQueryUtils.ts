@@ -351,7 +351,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizedType}`);
     }
 
-    if (status) {
+    if (status && typeof status === 'string') {
         const sanitizedStatus = sanitizeSearchValue(status);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
     }
@@ -395,7 +395,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.FEED ||
                     filterKey === FILTER_KEYS.IN ||
                     filterKey === FILTER_KEYS.ASSIGNEE ||
-                    filterKey === FILTER_KEYS.CREATED_BY) &&
+                    filterKey === FILTER_KEYS.CREATED_BY ||
+                    filterKey === FILTER_KEYS.STATUS) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {

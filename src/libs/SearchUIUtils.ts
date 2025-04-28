@@ -55,7 +55,7 @@ import {
     isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
-import {buildCannedSearchQuery} from './SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
@@ -854,7 +854,7 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function createTypeMenuSections(): SearchTypeMenuSection[] {
+function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [
         {
             translationPath: 'common.explore',
@@ -897,7 +897,7 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
 
     const showTodoSection = showSubmitSuggestion || showApproveSuggestion || showPaySuggestion || showExportSuggestion;
 
-    if (showTodoSection) {
+    if (showTodoSection && session) {
         const section: SearchTypeMenuSection = {
             translationPath: 'common.todo',
             menuItems: [],
@@ -909,7 +909,11 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.Pencil,
                 getRoute: () => {
-                    const query = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS});
+                    const query = buildQueryStringFromFilterFormValues({
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                        from: [`${session.accountID}`],
+                    });
                     return ROUTES.SEARCH_ROOT.getRoute({query});
                 },
             });
@@ -921,7 +925,11 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.ThumbsUp,
                 getRoute: () => {
-                    const query = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING});
+                    const query = buildQueryStringFromFilterFormValues({
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+                        to: [`${session.accountID}`],
+                    });
                     return ROUTES.SEARCH_ROOT.getRoute({query});
                 },
             });
@@ -933,7 +941,12 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.MoneyBag,
                 getRoute: () => {
-                    const query = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.DONE]});
+                    const query = buildQueryStringFromFilterFormValues({
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.DONE],
+                        to: [`${session.accountID}`],
+                    });
+
                     return ROUTES.SEARCH_ROOT.getRoute({query});
                 },
             });
