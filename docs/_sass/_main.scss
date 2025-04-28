@@ -617,6 +617,20 @@ button {
                 bottom: 8px;
                 left: 8px;
 
+                .vjs-paused {
+                    background: url('/assets/images/play.svg');
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    background-size: contain;
+                    font-size: 8px;
+                    color: var(--color-white);
+                    height: 32px;
+                    width: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
                 .vjs-control:focus {
                     text-shadow: none;
                 }
@@ -656,9 +670,10 @@ button {
 
                 .vjs-play-control {
                     .vjs-icon-placeholder:before {
-                        border: none;
-                        top: 7px;
-                        left: 15px;
+                        display: none;
+                        // border: none;
+                        // top: 7px;
+                        // left: 15px;
                     }
                 }
             }
