@@ -11,6 +11,7 @@ const {
     SCAN_TEST_CONFIRMATION,
     ACCOUNT_SWITCHER,
     GBR_RBR_CHAT,
+    EXPENSE_REPORTS_FILTER,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 /**
@@ -83,6 +84,11 @@ type DismissedProductTraining = {
      * When user dismisses the chatGBRRBR product training tooltip, we store the timestamp here.
      */
     [GBR_RBR_CHAT]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the expenseReportsFilter product training tooltip, we store the timestamp here.
+     */
+    [EXPENSE_REPORTS_FILTER]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.
