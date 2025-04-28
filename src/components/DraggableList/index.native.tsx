@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {NestableDraggableFlatList, NestableScrollContainer} from 'react-native-draggable-flatlist';
 import type {ScrollView} from 'react-native-gesture-handler';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {DraggableListProps} from './types';
+import type DraggableListProps from './types';
 
 function DraggableList<T>({ListFooterComponent, ...viewProps}: DraggableListProps<T>, ref: React.ForwardedRef<ScrollView>) {
     const styles = useThemeStyles();

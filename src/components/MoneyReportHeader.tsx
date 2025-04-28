@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {exportReportToCSV, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
@@ -15,12 +16,10 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
-    canDeleteCardTransactionByLiabilityType,
-    canDeleteTransaction,
     changeMoneyRequestHoldStatus,
     getArchiveReason,
     getBankAccountRoute,
@@ -36,14 +35,12 @@ import {
     isExported as isExportedUtils,
     isInvoiceReport,
     isProcessingReport,
-    isReportApproved as isReportApprovedUtils,
     isReportOwner,
     navigateToDetailsPage,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
-    getTransaction,
     hasDuplicateTransactions,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
@@ -66,7 +63,6 @@ import {
     payMoneyRequest,
     submitReport,
     unapproveExpenseReport,
-    unholdRequest,
 } from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -131,7 +127,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
@@ -203,99 +199,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
-    const selectedTransactionsOptions = useMemo(() => {
-        if (!selectedTransactionsID.length) {
-            return [];
-        }
-        const options = [];
-        const selectedTransactions = selectedTransactionsID.map((transactionID) => getTransaction(transactionID)).filter((t) => !!t);
-
-        const anyTransactionOnHold = selectedTransactions.some(isOnHoldTransactionUtils);
-        const allTransactionOnHold = selectedTransactions.every(isOnHoldTransactionUtils);
-        const isReportReimbursed = moneyRequestReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-
-        if (!anyTransactionOnHold && selectedTransactions.length === 1 && !isReportReimbursed) {
-            options.push({
-                text: translate('iou.hold'),
-                icon: Expensicons.Stopwatch,
-                value: CONST.REPORT.SECONDARY_ACTIONS.HOLD,
-                onSelected: () => {
-                    if (!moneyRequestReport?.reportID) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.getRoute({reportID: moneyRequestReport.reportID}));
-                },
-            });
-        }
-
-        if (allTransactionOnHold && selectedTransactions.length === 1) {
-            options.push({
-                text: translate('iou.unhold'),
-                icon: Expensicons.Stopwatch,
-                value: 'UNHOLD',
-                onSelected: () => {
-                    selectedTransactionsID.forEach((transactionID) => {
-                        const action = getIOUActionForTransactionID(reportActions, transactionID);
-                        if (!action?.childReportID) {
-                            return;
-                        }
-                        unholdRequest(transactionID, action?.childReportID);
-                    });
-                    // it's needed in order to recalculate options
-                    setSelectedTransactionsID([...selectedTransactionsID]);
-                },
-            });
-        }
-
-        options.push({
-            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD,
-            text: translate('common.download'),
-            icon: Expensicons.Download,
-            onSelected: () => {
-                if (!moneyRequestReport) {
-                    return;
-                }
-                exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: selectedTransactionsID}, () => {
-                    setIsDownloadErrorModalVisible(true);
-                });
-            },
-        });
-
-        const canAllSelectedTransactionsBeRemoved = selectedTransactionsID.every((transactionID) => {
-            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transactionID);
-            const action = getIOUActionForTransactionID(reportActions, transactionID);
-            const isActionDeleted = isDeletedAction(action);
-            const isIOUActionOwner = typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
-
-            return canRemoveTransaction && isIOUActionOwner && !isActionDeleted;
-        });
-
-        const canRemoveReportTransaction = canDeleteTransaction(moneyRequestReport) && !isReportApproved;
-
-        if (canRemoveReportTransaction && canAllSelectedTransactionsBeRemoved) {
-            options.push({
-                text: translate('common.delete'),
-                icon: Expensicons.Trashcan,
-                value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
-                onSelected: () => {
-                    const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
-
-                    const transactionsWithActions = selectedTransactions.map((t) => ({
-                        transactionID: t?.transactionID,
-                        action: iouActions.find((action) => {
-                            const IOUTransactionID = (getOriginalMessage(action) as OnyxTypes.OriginalMessageIOU)?.IOUTransactionID;
-
-                            return t?.transactionID === IOUTransactionID;
-                        }),
-                    }));
-
-                    transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
-                    setSelectedTransactionsID([]);
-                },
-            });
-        }
-        return options;
-    }, [isReportApproved, moneyRequestReport, reportActions, selectedTransactionsID, session?.accountID, setSelectedTransactionsID, translate]);
+    const selectedTransactionsOptions = useSelectedTransactionsActions({report: moneyRequestReport, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
