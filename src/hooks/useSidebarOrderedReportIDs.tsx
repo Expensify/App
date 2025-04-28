@@ -1,7 +1,6 @@
 import React, {createContext, useCallback, useContext, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import Performance from '@libs/Performance';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
@@ -95,10 +94,7 @@ function SidebarOrderedReportsContextProvider({
             if (!chatReports) {
                 return [];
             }
-            Performance.markStart(CONST.TIMING.GET_ORDERED_REPORTS);
-            const result = reportIDs.map((reportID) => chatReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).filter(Boolean) as OnyxTypes.Report[];
-            Performance.markEnd(CONST.TIMING.GET_ORDERED_REPORTS);
-            return result;
+            return reportIDs.map((reportID) => chatReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).filter(Boolean) as OnyxTypes.Report[];
         },
         [chatReports],
     );
