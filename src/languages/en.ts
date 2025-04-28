@@ -2170,7 +2170,7 @@ const translations = {
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
         notHere: "Hmm... it's not here",
         pageNotFound: 'Oops, this page cannot be found',
-        noAccess: "That chat doesn't exist or you don't have access to it. Try using search to find a chat.",
+        noAccess: 'This chat or expense may have been deleted or you do not have access to it.\n\nFor any questions please contact concierge@expensify.com',
         goBackHome: 'Go back to home page',
     },
     errorPage: {
@@ -4896,7 +4896,6 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
-                none: 'None',
                 alcohol: 'Alcohol',
                 hotelIncidentals: 'Hotel incidentals',
                 gambling: 'Gambling',
@@ -6218,9 +6217,10 @@ const translations = {
             part2: ' here!',
         },
         bottomNavInboxTooltip: {
-            part1: 'Your to-do list',
-            part2: '\n🟢 = ready for you',
-            part3: ' 🔴 = needs review',
+            part1: 'Check what ',
+            part2: 'needs your attention',
+            part3: '\nand ',
+            part4: 'chat about expenses.',
         },
         workspaceChatTooltip: {
             part1: 'Submit expenses',
@@ -6231,6 +6231,11 @@ const translations = {
             part1: 'Create expenses',
             part2: ', start chatting,',
             part3: '\nand more!',
+        },
+        expenseReportsFilter: {
+            part1: 'Welcome! Find all of your',
+            part2: "\ncompany's reports",
+            part3: ' here.',
         },
         scanTestTooltip: {
             part1: 'Want to see how Scan works?',
