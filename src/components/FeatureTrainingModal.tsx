@@ -331,6 +331,7 @@ function FeatureTrainingModal({
                             : {}),
                         ...modalInnerContainerStyle,
                     }}
+                    shouldUseNewModal
                 >
                     <View
                         style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), safeAreaPaddingBottomStyle]}

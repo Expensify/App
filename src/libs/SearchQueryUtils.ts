@@ -340,7 +340,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
  */
 function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, policyID, ...otherFilters} = filterValues;
+    const {type, status, policyID, groupBy, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
@@ -354,6 +354,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (status) {
         const sanitizedStatus = sanitizeSearchValue(status);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
+    }
+
+    if (groupBy) {
+        const sanitizedGroupBy = sanitizeSearchValue(groupBy);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
     }
 
     if (policyID) {
@@ -552,6 +557,10 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.policyID) {
         filtersForm[FILTER_KEYS.POLICY_ID] = queryJSON.policyID;
+    }
+
+    if (queryJSON.groupBy) {
+        filtersForm[FILTER_KEYS.GROUP_BY] = queryJSON.groupBy;
     }
 
     return filtersForm;

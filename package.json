@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.1.32-4",
+  "version": "9.1.33-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -164,7 +164,7 @@
     "react-native-device-info": "10.3.1",
     "react-native-draggable-flatlist": "^4.0.1",
     "react-native-fs": "^2.20.0",
-    "react-native-gesture-handler": "2.22.0",
+    "react-native-gesture-handler": "2.25.0",
     "react-native-google-places-autocomplete": "2.5.6",
     "react-native-haptic-feedback": "^2.3.3",
     "react-native-image-picker": "^7.1.2",

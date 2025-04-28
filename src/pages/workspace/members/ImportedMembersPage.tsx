@@ -5,8 +5,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
-import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {importPolicyMembers} from '@libs/actions/Policy/Member';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,9 +23,11 @@ type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 
 function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
+    const {setIsClosing} = useCloseImportPage();
+
     const policyID = route.params.policyID;
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
@@ -105,8 +107,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     }
 
     const closeImportPageAndModal = () => {
+        setIsClosing(true);
         setIsImporting(false);
-        closeImportPage();
         Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
