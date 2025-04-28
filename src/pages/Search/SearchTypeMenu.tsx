@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAllFilters} from '@libs/actions/Search';
 import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import variables from '@styles/variables';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {
@@ -56,10 +57,16 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {isOffline} = useNetwork();
     const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
     const isFocused = useIsFocused();
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
-        shouldShowSavedSearchesMenuItemTitle && isFocused,
-    );
+    const {
+        shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
+        renderProductTrainingTooltip: renderSavedSearchTooltip,
+        hideProductTrainingTooltip: hideSavedSearchTooltip,
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, shouldShowSavedSearchesMenuItemTitle && isFocused);
+    const {
+        shouldShowProductTrainingTooltip: shouldShowExpenseReportsTypeTooltip,
+        renderProductTrainingTooltip: renderExpenseReportsTypeTooltip,
+        hideProductTrainingTooltip: hideExpenseReportsTypeTooltip,
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.EXPENSE_REPORTS_FILTER, true);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -101,9 +108,9 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     <SavedSearchItemThreeDotMenu
                         menuItems={getOverflowMenu(title, Number(key), item.query)}
                         isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                        hideProductTrainingTooltip={index === 0 && shouldShowProductTrainingTooltip ? hideProductTrainingTooltip : undefined}
-                        shouldRenderTooltip={index === 0 && shouldShowProductTrainingTooltip}
-                        renderTooltipContent={renderProductTrainingTooltip}
+                        hideProductTrainingTooltip={index === 0 && shouldShowSavedSearchTooltip ? hideSavedSearchTooltip : undefined}
+                        shouldRenderTooltip={index === 0 && shouldShowSavedSearchTooltip}
+                        renderTooltipContent={renderSavedSearchTooltip}
                     />
                 ),
                 style: [styles.alignItemsCenter],
@@ -114,23 +121,23 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
                 tooltipShiftVertical: variables.savedSearchShiftVertical,
                 tooltipWrapperStyle: [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper],
-                renderTooltipContent: renderProductTrainingTooltip,
+                renderTooltipContent: renderSavedSearchTooltip,
             };
         },
         [
             allCards,
             hash,
             getOverflowMenu,
+            shouldShowSavedSearchTooltip,
+            hideSavedSearchTooltip,
             styles.alignItemsCenter,
             styles.mh4,
             styles.pv2,
             styles.productTrainingTooltipWrapper,
+            renderSavedSearchTooltip,
             personalDetails,
             reports,
             taxRates,
-            shouldShowProductTrainingTooltip,
-            hideProductTrainingTooltip,
-            renderProductTrainingTooltip,
             cardFeedNamesWithType,
             allPolicies,
             canUseLeftHandBar,
@@ -220,8 +227,13 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                         <Text style={[styles.sectionTitle, styles.pb2]}>{translate(section.translationPath)}</Text>
                         {section.menuItems.map((item, itemIndex) => {
                             const flattenedIndex = sectionIndex * section.menuItems.length + itemIndex;
+                            const focused = flattenedIndex === activeItemIndex;
+                            const shouldShowTooltip = item.translationPath === 'common.expenseReports' && !focused && shouldShowExpenseReportsTypeTooltip;
 
                             const onPress = singleExecution(() => {
+                                if (shouldShowTooltip) {
+                                    hideExpenseReportsTypeTooltip();
+                                }
                                 clearAllFilters();
                                 clearSelectedTransactions();
                                 Navigation.navigate(item.getRoute());
@@ -237,9 +249,18 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                     iconWidth={variables.iconSizeNormal}
                                     iconHeight={variables.iconSizeNormal}
                                     wrapperStyle={styles.sectionMenuItem}
-                                    focused={flattenedIndex === activeItemIndex}
+                                    focused={focused}
                                     onPress={onPress}
                                     shouldIconUseAutoWidthStyle
+                                    shouldRenderTooltip={shouldShowTooltip}
+                                    renderTooltipContent={renderExpenseReportsTypeTooltip}
+                                    tooltipAnchorAlignment={{
+                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                    }}
+                                    tooltipShiftHorizontal={variables.expenseReportsTypeTooltipShiftHorizontal}
+                                    tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
+                                    onEducationTooltipPress={onPress}
                                 />
                             );
                         })}
