@@ -4,7 +4,7 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 import hasKeyTriggeredCompute from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Report, ReportAttributesDerivedValue, ReportMetadata} from '@src/types/onyx';
 
 let isFullyComputed = false;
 
@@ -23,6 +23,7 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+        ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
     compute: (dependencies, {currentValue, sourceValues}) => {
         // transactions are undefined by default so it needs to be set to an empty object as default
@@ -43,18 +44,25 @@ export default createOnyxDerivedValueConfig({
         }
 
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
+        const reportMetadataUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_METADATA];
 
         // if we already computed the report attributes and there is no new reports data, return the current value
-        if ((isFullyComputed && reportUpdates === undefined) || !reports) {
+        if ((isFullyComputed && reportUpdates === undefined && reportMetadataUpdates === undefined) || !reports) {
             return currentValue ?? {reports: {}, locale: null};
         }
 
-        const dataToIterate = isFullyComputed && reportUpdates !== undefined ? reportUpdates : reports ?? {};
+        let dataToIterate: Record<string, Report | ReportMetadata | undefined> = reports;
+        if (isFullyComputed) {
+            if (reportUpdates) {
+                dataToIterate = reportUpdates;
+            } else if (reportMetadataUpdates) {
+                dataToIterate = reportMetadataUpdates;
+            }
+        }
 
-        const reportAttributes = Object.keys(dataToIterate).reduce<ReportAttributesDerivedValue['reports']>((acc, reportID) => {
+        const reportAttributes = Object.keys(dataToIterate).reduce<ReportAttributesDerivedValue['reports']>((acc, key) => {
             // source value sends partial data, so we need an entire report object to do computations
-            const report = reports[reportID];
-
+            const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${key.replace(ONYXKEYS.COLLECTION.REPORT, '').replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '')}`];
             if (!report || !isValidReport(report)) {
                 return acc;
             }
