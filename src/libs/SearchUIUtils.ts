@@ -25,7 +25,6 @@ import type {
     SearchPersonalDetails,
     SearchPolicy,
     SearchReport,
-    SearchTask,
     SearchTransaction,
     SearchTransactionAction,
 } from '@src/types/onyx/SearchResults';
