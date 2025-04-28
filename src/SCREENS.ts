@@ -61,6 +61,9 @@ const SCREENS = {
         ADVANCED_FILTERS_TAG_RHP: 'Search_Advanced_Filters_Tag_RHP',
         ADVANCED_FILTERS_FROM_RHP: 'Search_Advanced_Filters_From_RHP',
         ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
+        ADVANCED_FILTERS_TITLE_RHP: 'Search_Advanced_Filters_Title_RHP',
+        ADVANCED_FILTERS_ASSIGNEE_RHP: 'Search_Advanced_Filters_Assignee_RHP',
+        ADVANCED_FILTERS_CREATED_BY_RHP: 'Search_Advanced_Filters_Created_By_RHP',
         ADVANCED_FILTERS_REIMBURSABLE_RHP: 'Search_Advanced_Filters_Reimbursable_RHP',
         ADVANCED_FILTERS_BILLABLE_RHP: 'Search_Advanced_Filters_Billable_RHP',
         ADVANCED_FILTERS_WORKSPACE_RHP: 'Search_Advanced_Filters_Workspace_RHP',
@@ -593,6 +596,7 @@ const SCREENS = {
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
         UPGRADE: 'Workspace_Upgrade',
         DOWNGRADE: 'Workspace_Downgrade',
+        PAY_AND_DOWNGRADE: 'Workspace_Pay_And_Downgrade',
         RULES: 'Policy_Rules',
         RULES_CUSTOM_NAME: 'Rules_Custom_Name',
         RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',
@@ -641,6 +645,8 @@ const SCREENS = {
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
         WORKSPACES: 'Onboarding_Workspaces',
+        WORK_EMAIL: 'Onboarding_Work_Email',
+        WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',
     },
 
     WELCOME_VIDEO: {
@@ -653,6 +659,14 @@ const SCREENS = {
 
     MIGRATED_USER_WELCOME_MODAL: {
         ROOT: 'MigratedUserWelcomeModal_Root',
+    },
+
+    TEST_DRIVE_MODAL: {
+        ROOT: 'TestDrive_Modal_Root',
+    },
+
+    TEST_DRIVE_DEMO: {
+        ROOT: 'TestDrive_Demo_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
