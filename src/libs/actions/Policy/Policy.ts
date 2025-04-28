@@ -4288,6 +4288,22 @@ function getApproverPolicies(): Policy[] {
     });
 }
 
+function getExporterPolicies(): Policy[] {
+    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => {
+        if (!policy || !sessionEmail) {
+            return false;
+        }
+
+        const isIntacctExporter = policy.connections?.intacct.config.export.exporter === sessionEmail;
+        const isNetSuiteExporter = policy.connections?.netsuite.options.config.exporter === sessionEmail;
+        const isQuickbooksDesktopExporter = policy.connections?.quickbooksDesktop.config.export.exporter === sessionEmail;
+        const isQuickbooksOnlineExporter = policy.connections?.quickbooksOnline.config.export.exporter === sessionEmail;
+        const isXeroExporter = policy.connections?.xero.config.export.exporter === sessionEmail;
+
+        return isIntacctExporter || isNetSuiteExporter || isQuickbooksDesktopExporter || isQuickbooksOnlineExporter || isXeroExporter;
+    });
+}
+
 /**
  * Call the API to enable custom report title for the reports in the given policy
  * @param policyID - id of the policy to apply the limit to
@@ -5293,4 +5309,5 @@ export {
     clearQuickbooksOnlineAutoSyncErrorField,
     updateLastAccessedWorkspaceSwitcher,
     getApproverPolicies,
+    getExporterPolicies,
 };

@@ -31,7 +31,7 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
-import {getAdminPolicies, getApproverPolicies} from './actions/Policy/Policy';
+import {getAdminPolicies, getApproverPolicies, getExporterPolicies} from './actions/Policy/Policy';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
@@ -893,7 +893,7 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
     const showSubmitSuggestion = getAllSharedPolicies().length > 0;
     const showApproveSuggestion = getApproverPolicies().length > 0;
     const showPaySuggestion = getAdminPolicies().length > 0;
-    const showExportSuggestion = 'test';
+    const showExportSuggestion = getExporterPolicies().length > 0;
 
     const showTodoSection = showSubmitSuggestion || showApproveSuggestion || showPaySuggestion || showExportSuggestion;
 
