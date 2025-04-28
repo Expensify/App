@@ -555,6 +555,7 @@ const translations = {
         comments: 'Comments',
         sharedIn: 'Shared in',
         unreported: 'Unreported',
+        workspacesTabTitle: 'Workspaces',
     },
     supportalNoAccess: {
         title: 'Not so fast',
