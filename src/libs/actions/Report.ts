@@ -182,7 +182,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {fetchFile} from './Attachment';
+import {fetchFile, uploadAttachment} from './Attachment';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
 import {close} from './Modal';
@@ -625,10 +625,8 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
-    let attachmentID = rand64();
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
-
-    let optimisticAttachment: Attachment | undefined;
+    const attachmentID = rand64();
 
     if (text && !file) {
         const reportComment = buildOptimisticAddCommentReportAction(text, undefined, attachmentID, undefined, undefined, undefined, reportID);
@@ -643,19 +641,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         const attachment = buildOptimisticAddCommentReportAction(text, file, attachmentID, undefined, undefined, undefined, reportID);
         attachmentAction = attachment.reportAction;
 
-        readFileAsync(file.uri ?? '', file?.name ?? '', (file) => {
-            fetchFile({
-                file,
-            })?.then((arrayBuffer) => {
-                const uint8Array = new Uint8Array(arrayBuffer ?? []);
-                const plainArray = Array.from(uint8Array);
-                Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-                    localSource: plainArray,
-                    localSourceType: file.type,
-                    attachmentID,
-                });
-            });
-        });
+        uploadAttachment(attachmentID, file.uri ?? '');
     }
 
     if (text && file) {

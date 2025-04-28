@@ -3,7 +3,6 @@ import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {CacheAttachmentProps} from './types';
 
 type FetchFileProps = {
     url?: string;
@@ -17,18 +16,29 @@ Onyx.connect({
     callback: (value) => (attachments = value),
 });
 
-function getAttachmentSource(attachmentID: string, src: string) {
-    const attachment: Attachment | undefined = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
-    if (attachment && Array.isArray(attachment?.localSource)) {
-        const uint8Array = new Uint8Array(attachment.localSource as number[]);
-        const blob = new Blob([uint8Array], {type: attachment.localSourceType});
-        const imageUrl = URL.createObjectURL(blob);
-        return imageUrl;
+function uploadAttachment(attachmentID: string, url: string) {
+    if (!attachmentID || !url) {
+        return;
     }
-    return attachment?.remoteSource || src;
+    Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+        source: url,
+    });
 }
 
-function fetchFile({url, file}: FetchFileProps): Promise<ArrayBuffer | undefined> {
+function getAttachmentSource(attachmentID: string, currentSource: string) {
+    const attachment: Attachment | undefined = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
+    if (attachment && attachment.source) {
+        if (attachment.source instanceof Blob) {
+            const imageUrl = URL.createObjectURL(attachment.source);
+            return imageUrl;
+        } else {
+            return attachment.source;
+        }
+    }
+    return attachment?.remoteSource || currentSource;
+}
+
+function fetchFile(url?: string, file?: File): Promise<ArrayBuffer | undefined> {
     return new Promise((resolve) => {
         if (!url && !file?.uri) {
             resolve(undefined);
@@ -78,24 +88,17 @@ function fetchFile({url, file}: FetchFileProps): Promise<ArrayBuffer | undefined
     });
 }
 
-function cacheAttachment({attachmentID, url, file}: CacheAttachmentProps) {
-    const attachment = attachments?.[attachmentID];
+function cacheAttachment(attachmentID: string, url: string, file?: File) {
+    // TODO: Exit from the function if the image is not changed or the image has already been cached
 
-    // Exit from the function if the image is not changed or the image has already been cached
-    // if (attachment && attachment.remoteSource === src && attachment.localSource) {
-    //     return;
-    // }
     const attachmentUrl = url ?? file?.uri ?? '';
-    fetchFile({
-        url: attachmentUrl,
-    })?.then((arrayBuffer) => {
+    fetchFile(attachmentUrl)?.then((arrayBuffer) => {
         const uint8Array = new Uint8Array(arrayBuffer ?? []);
-        const plainArray = Array.from(uint8Array);
+        const fileData = new Blob([uint8Array]);
         Onyx.merge(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-            localSource: plainArray,
-            localSourceType: file?.type ?? '',
+            source: fileData,
         });
     });
 }
 
-export {getAttachmentSource, fetchFile, cacheAttachment};
+export {uploadAttachment, getAttachmentSource, fetchFile, cacheAttachment};
