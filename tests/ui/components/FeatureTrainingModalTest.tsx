@@ -37,6 +37,8 @@ jest.mock('@components/ImageSVG', () => {
     return (props: ViewProps) => <View {...props} />;
 });
 
+jest.unmock('react-native-reanimated');
+
 describe('FeatureTrainingModal', () => {
     describe('renderIllustration', () => {
         it('renders video', () => {
