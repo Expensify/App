@@ -77,6 +77,9 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
         /** Extra styles passed used by MoneyRequestReportPreviewContent */
         reportPreviewStyles: MoneyRequestReportPreviewStyleType;
 
+        /** MoneyRequestReportPreview's current width */
+        currentWidth: number;
+
         /** Callback passed to onLayout  */
         onLayout: (e: LayoutChangeEvent) => void;
 
