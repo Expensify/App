@@ -5,7 +5,6 @@ import {useOnyx} from 'react-native-onyx';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -39,10 +38,6 @@ function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
-    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
-    const {canUsePrivateDomainOnboarding} = usePermissions();
-
-    const isOnPrivateDomainAndHasAccessiblePolicies = canUsePrivateDomainOnboarding && !user?.isFromPublicDomain && user?.hasAccessibleDomainPolicies;
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -79,14 +74,10 @@ function OnboardingModalNavigator() {
                         style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)}
                     >
                         <Stack.Navigator screenOptions={defaultScreenOptions}>
-                            {/* The OnboardingPurpose screen is shown after the workspace step when the user is on a private domain and has accessible policies.
-                             */}
-                            {!isOnPrivateDomainAndHasAccessiblePolicies && (
-                                <Stack.Screen
-                                    name={SCREENS.ONBOARDING.PURPOSE}
-                                    component={OnboardingPurpose}
-                                />
-                            )}
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.PURPOSE}
+                                component={OnboardingPurpose}
+                            />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
                                 component={OnboardingPersonalDetails}
@@ -107,14 +98,6 @@ function OnboardingModalNavigator() {
                                 name={SCREENS.ONBOARDING.WORKSPACES}
                                 component={OnboardingWorkspaces}
                             />
-                            {/* The OnboardingPurpose screen is only shown after the workspace step when the user is on a private domain and has accessible policies
-                             */}
-                            {!!isOnPrivateDomainAndHasAccessiblePolicies && (
-                                <Stack.Screen
-                                    name={SCREENS.ONBOARDING.PURPOSE}
-                                    component={OnboardingPurpose}
-                                />
-                            )}
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.EMPLOYEES}
                                 component={OnboardingEmployees}
