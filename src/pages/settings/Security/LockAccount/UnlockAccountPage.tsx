@@ -2,6 +2,7 @@ import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,7 +14,10 @@ function UnlockAccountPage() {
     const styles = useThemeStyles();
 
     return (
-        <>
+        <ScreenWrapper
+            testID={UnlockAccountPage.displayName}
+            includeSafeAreaPaddingBottom
+        >
             <HeaderWithBackButton
                 onBackButtonPress={() => Navigation.dismissModal()}
                 title={translate('lockAccountPage.lockAccount')}
@@ -29,7 +33,7 @@ function UnlockAccountPage() {
                     containerStyle={styles.h100}
                 />
             </ScrollView>
-        </>
+        </ScreenWrapper>
     );
 }
 
