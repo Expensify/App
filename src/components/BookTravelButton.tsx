@@ -166,6 +166,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
         setRootStatusBarEnabled,
         isUserValidated,
         groupPaidPolicies.length,
+        isTravelVerified,
     ]);
 
     return (
