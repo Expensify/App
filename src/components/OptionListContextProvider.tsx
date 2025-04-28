@@ -62,7 +62,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, [personalDetails, reports]);
 
     /**
-     * This effect is responsible for generating the options list when there data is not yet initialized
+     * This effect is responsible for generating the options list when their data is not yet initialized
      */
     useEffect(() => {
         if (!areOptionsInitialized.current || !reports || hasInitialData) {
