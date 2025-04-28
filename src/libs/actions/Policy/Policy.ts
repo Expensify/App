@@ -4273,6 +4273,21 @@ function getAdminPoliciesConnectedToNetSuite(): Policy[] {
     return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
 }
 
+function getApproverPolicies(): Policy[] {
+    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => {
+        if (!policy || !sessionEmail || policy.type === CONST.POLICY.TYPE.PERSONAL) {
+            return false;
+        }
+
+        const isPolicyApprover = policy.approver === sessionEmail;
+        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
+            return employee.submitsTo === sessionEmail;
+        });
+
+        return isPolicyApprover || isSubmittedTo;
+    });
+}
+
 /**
  * Call the API to enable custom report title for the reports in the given policy
  * @param policyID - id of the policy to apply the limit to
@@ -5277,4 +5292,5 @@ export {
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
     updateLastAccessedWorkspaceSwitcher,
+    getApproverPolicies,
 };

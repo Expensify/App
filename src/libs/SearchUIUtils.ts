@@ -31,7 +31,7 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
-import {getAdminPolicies} from './actions/Policy/Policy';
+import {getAdminPolicies, getApproverPolicies} from './actions/Policy/Policy';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
@@ -39,7 +39,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getAllPoliciesLength, getAllSharedPolicies, getPolicy} from './PolicyUtils';
+import {getAllSharedPolicies, getPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
     getIcons,
@@ -891,7 +891,7 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
     ];
 
     const showSubmitSuggestion = getAllSharedPolicies().length > 0;
-    const showApproveSuggestion = 'test';
+    const showApproveSuggestion = getApproverPolicies().length > 0;
     const showPaySuggestion = getAdminPolicies().length > 0;
     const showExportSuggestion = 'test';
 
@@ -906,7 +906,7 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
         if (showSubmitSuggestion) {
             section.menuItems.push({
                 translationPath: 'common.submit',
-                type: CONST.SEARCH.DATA_TYPES.SUBMIT,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.Pencil,
                 getRoute: () => {
                     return '';
@@ -917,7 +917,7 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
         if (showApproveSuggestion) {
             section.menuItems.push({
                 translationPath: 'search.bulkActions.approve',
-                type: CONST.SEARCH.DATA_TYPES.APPROVE,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.ThumbsUp,
                 getRoute: () => {
                     return '';
@@ -928,7 +928,7 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
         if (showPaySuggestion) {
             section.menuItems.push({
                 translationPath: 'search.bulkActions.pay',
-                type: CONST.SEARCH.DATA_TYPES.PAY,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.MoneyBag,
                 getRoute: () => {
                     return '';
@@ -939,7 +939,7 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
         if (showExportSuggestion) {
             section.menuItems.push({
                 translationPath: 'common.export',
-                type: CONST.SEARCH.DATA_TYPES.EXPORT,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.CheckCircle,
                 getRoute: () => {
                     return '';
