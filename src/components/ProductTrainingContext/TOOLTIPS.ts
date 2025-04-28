@@ -12,12 +12,15 @@ const {
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
+    EXPENSE_REPORTS_FILTER,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
 
 type ShouldShowConditionProps = {
-    shouldUseNarrowLayout?: boolean;
+    shouldUseNarrowLayout: boolean;
+    isUserPolicyAdmin: boolean;
+    hasBeenAddedToNudgeMigration: boolean;
 };
 
 type TooltipData = {
@@ -65,14 +68,15 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: true},
             {text: 'productTrainingTooltip.bottomNavInboxTooltip.part3', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part4', isBold: true},
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP, isDismissedUsingCloseButton),
         name: BOTTOM_NAV_INBOX_TOOLTIP,
-        priority: 900,
-        shouldShow: () => true,
+        priority: 1700,
+        shouldShow: ({hasBeenAddedToNudgeMigration}) => hasBeenAddedToNudgeMigration,
     },
     [LHN_WORKSPACE_CHAT_TOOLTIP]: {
         content: [
@@ -84,6 +88,18 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
         priority: 800,
         shouldShow: () => true,
+    },
+    [EXPENSE_REPORTS_FILTER]: {
+        content: [
+            {text: 'productTrainingTooltip.expenseReportsFilter.part1', isBold: false},
+            {text: 'productTrainingTooltip.expenseReportsFilter.part2', isBold: true},
+            {text: 'productTrainingTooltip.expenseReportsFilter.part3', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(EXPENSE_REPORTS_FILTER),
+        name: EXPENSE_REPORTS_FILTER,
+        priority: 2000,
+        shouldShow: ({shouldUseNarrowLayout, isUserPolicyAdmin, hasBeenAddedToNudgeMigration}: ShouldShowConditionProps) =>
+            !shouldUseNarrowLayout && isUserPolicyAdmin && hasBeenAddedToNudgeMigration,
     },
     [SCAN_TEST_TOOLTIP]: {
         content: [
