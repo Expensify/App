@@ -199,13 +199,13 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
 
-    /** Whether we create corpay bank account */
+    /** Whether we create corpay bank account (non USD flow Step 2) */
     isCreateCorpayBankAccount?: boolean;
 
-    /** Whether we are saving the company data via the API */
+    /** Whether we are saving the company data via the API (non USD flow Step 3) */
     isSavingCorpayOnboardingCompanyFields?: boolean;
 
-    /** Whether we are saving the beneficial owners data via the API */
+    /** Whether we are saving the beneficial owners data via the API (non USD flow Step 4) */
     isSavingCorpayOnboardingBeneficialOwnersFields?: boolean;
 
     /** Whether we are saving the signer info data via the API */
@@ -216,6 +216,9 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether asking for corpay signer information request is successful */
     isAskingForCorpaySignerInformationSuccess?: boolean;
+
+    /** Whether we are saving agreements accepted by user via the API (non USD flow Step 6) */
+    isFinishingCorpayBankAccountOnboarding?: boolean;
 
     /** Where the request is successful */
     isSuccess?: boolean;

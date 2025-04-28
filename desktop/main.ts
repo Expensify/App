@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {exec} from 'child_process';
 import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import type {BaseWindow, BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
@@ -138,103 +137,78 @@ const preferredLocale: Locale = CONST.LOCALES.DEFAULT;
 const appProtocol = CONST.DEEPLINK_BASE_URL.replace('://', '');
 
 const quitAndInstallWithUpdate = () => {
-    console.debug('[dev] Attempting to quit and install update');
     if (!downloadedVersion) {
-        console.debug('[dev] No downloaded version available, skipping quit and install');
         return;
     }
-    console.debug(`[dev] Setting hasUpdate flag and installing version: ${downloadedVersion}`);
     hasUpdate = true;
     autoUpdater.quitAndInstall();
 };
 
 const verifyAndInstallLatestVersion = (browserWindow: BrowserWindow): void => {
-    console.debug('[dev] Starting verifyAndInstallLatestVersion process');
-
     if (!browserWindow || browserWindow.isDestroyed()) {
-        console.debug('[dev] Browser window is invalid or destroyed, skipping update check');
         return;
     }
 
     // Prevent multiple simultaneous updates
     if (isUpdateInProgress) {
-        console.debug('[dev] Update already in progress, skipping new update check');
         return;
     }
 
-    console.debug('[dev] Setting isUpdateInProgress flag and starting update check');
     isUpdateInProgress = true;
 
     autoUpdater
         .checkForUpdates()
         .then((result) => {
-            console.debug('[dev] Update check completed', result?.updateInfo);
-
             if (!browserWindow || browserWindow.isDestroyed()) {
-                console.debug('[dev] Browser window became invalid during update check, aborting');
                 isUpdateInProgress = false;
                 return;
             }
 
             if (result?.updateInfo.version === downloadedVersion) {
-                console.debug(`[dev] Found matching version ${downloadedVersion}, proceeding with installation`);
                 return quitAndInstallWithUpdate();
             }
 
-            console.debug('[dev] New version found, starting download');
             return autoUpdater.downloadUpdate().then(() => {
-                console.debug('[dev] Download completed, proceeding with installation');
                 return quitAndInstallWithUpdate();
             });
         })
         .catch((error) => {
-            console.debug('[dev] Error during update check or download:', error);
             log.error('Error during update check or download:', error);
         })
         .finally(() => {
-            console.debug('[dev] Update process completed, resetting isUpdateInProgress flag');
             isUpdateInProgress = false;
         });
 };
 
 /** Menu Item callback to trigger an update check */
 const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow) => {
-    console.debug('[dev] Starting manual update check process');
-
     // Prevent multiple simultaneous updates
     if (isUpdateInProgress) {
-        console.debug('[dev] Update already in progress, skipping manual update check');
         return;
     }
 
     if (menuItem) {
-        console.debug('[dev] Disabling menu item during update check');
         // Disable item until the check (and download) is complete
         // eslint-disable-next-line no-param-reassign -- menu item flags like enabled or visible can be dynamically toggled by mutating the object
         menuItem.enabled = false;
     }
 
-    console.debug('[dev] Setting isUpdateInProgress flag and starting manual update check');
     isUpdateInProgress = true;
 
     autoUpdater
         .checkForUpdates()
         .catch((error: unknown) => {
-            console.debug('[dev] Error during manual update check:', error);
             isSilentUpdating = false;
             return {error};
         })
         .then((result) => {
-            console.debug('[dev] Manual update check completed', result);
             const downloadPromise = result && 'downloadPromise' in result ? result.downloadPromise : undefined;
 
             if (!browserWindow) {
-                console.debug('[dev] No browser window available, skipping update dialogs');
                 return;
             }
 
             if (downloadPromise) {
-                console.debug('[dev] Update available, showing info dialog');
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
                     message: translate(preferredLocale, 'checkForUpdatesModal.available.title'),
@@ -242,7 +216,6 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
                     buttons: [translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
                 });
             } else if (result && 'error' in result && result.error) {
-                console.debug('[dev] Update check failed, showing error dialog');
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
                     message: translate(preferredLocale, 'checkForUpdatesModal.error.title'),
@@ -250,7 +223,6 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
                     buttons: [translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
                 });
             } else {
-                console.debug('[dev] No update available, showing info dialog');
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
                     message: translate(preferredLocale, 'checkForUpdatesModal.notAvailable.title'),
@@ -264,13 +236,11 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
             return downloadPromise;
         })
         .finally(() => {
-            console.debug('[dev] Manual update check completed, resetting flags');
             isSilentUpdating = false;
             isUpdateInProgress = false;
             if (!menuItem) {
                 return;
             }
-            console.debug('[dev] Re-enabling menu item');
             // eslint-disable-next-line no-param-reassign
             menuItem.enabled = true;
         });
@@ -340,7 +310,6 @@ const mainWindow = (): Promise<void> => {
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
-        console.debug('CONFIG: ', CONFIG);
         app.dock.setIcon(`${__dirname}/../icon-dev.png`);
         app.setName('New Expensify Dev');
     }
@@ -686,21 +655,17 @@ const mainWindow = (): Promise<void> => {
                 });
 
                 app.on('before-quit', () => {
-                    console.debug('[dev] Application is preparing to quit');
                     // Adding __DEV__ check because we want links to be handled by dev app only while it's running
                     // https://github.com/Expensify/App/issues/15965#issuecomment-1483182952
                     if (__DEV__) {
-                        console.debug('[dev] Removing protocol client in dev mode');
                         app.removeAsDefaultProtocolClient(appProtocol);
                     }
 
                     // Clean up update listeners and reset flags
-                    console.debug('[dev] Cleaning up update listeners and resetting flags');
                     autoUpdater.removeAllListeners();
                     isUpdateInProgress = false;
                     isSilentUpdating = false;
 
-                    console.debug('[dev] Setting quitting flag to true');
                     quitting = true;
                 });
                 app.on('activate', () => {

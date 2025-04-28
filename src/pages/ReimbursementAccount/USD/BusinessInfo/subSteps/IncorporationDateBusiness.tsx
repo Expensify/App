@@ -73,6 +73,7 @@ function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
                 defaultValue={defaultCompanyIncorporationDate}
                 shouldSaveDraft={!isEditing}
                 maxDate={new Date()}
+                autoFocus
             />
         </FormProvider>
     );
