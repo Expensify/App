@@ -20,7 +20,7 @@ function isMacOSWeb(): boolean {
     return !isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
 }
 
-function promptToOpenInDesktopApp(initialUrl = '') {
+function promptToOpenInDesktopApp(currentUserAccountID?: number, initialUrl = '') {
     // If the current url path is /transition..., meaning it was opened from oldDot, during this transition period:
     // 1. The user session may not exist, because sign-in has not been completed yet.
     // 2. There may be non-idempotent operations (e.g. create a new workspace), which obviously should not be executed again in the desktop app.
@@ -35,16 +35,24 @@ function promptToOpenInDesktopApp(initialUrl = '') {
     } else {
         // Match any magic link (/v/<account id>/<6 digit code>)
         const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(window.location.pathname);
+        const shouldAuthenticateWithCurrentAccount = !isMagicLink || (isMagicLink && !!currentUserAccountID && window.location.pathname.includes(currentUserAccountID.toString()));
 
-        beginDeepLinkRedirect(!isMagicLink, getInternalNewExpensifyPath(initialUrl));
+        beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount, isMagicLink, getInternalNewExpensifyPath(initialUrl));
     }
 }
 
 function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}: DeeplinkWrapperProps) {
     const [currentScreen, setCurrentScreen] = useState<string | undefined>();
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
-    const removeListener = useRef<() => void>();
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+    const removeListener = useRef<(() => void) | undefined>(undefined);
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (account) => !!account?.delegatedAccess?.delegate,
+        canBeMissing: true,
+    });
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {
+        selector: (session) => session?.accountID,
+        canBeMissing: true,
+    });
     const isActingAsDelegateRef = useRef(isActingAsDelegate);
     const delegatorEmailRef = useRef(getSearchParamFromUrl(getCurrentUrl(), 'delegatorEmail'));
 
@@ -95,7 +103,7 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
         // Otherwise, we want to wait until the navigation state is set up
         // and we know the user is on a screen that supports deeplinks.
         if (isAuthenticated) {
-            promptToOpenInDesktopApp(initialUrl);
+            promptToOpenInDesktopApp(currentUserAccountID, initialUrl);
             setHasShownPrompt(true);
         } else {
             // Navigation state is not set up yet, we're unsure if we should show the deep link prompt or not
@@ -111,7 +119,7 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
             promptToOpenInDesktopApp();
             setHasShownPrompt(true);
         }
-    }, [currentScreen, hasShownPrompt, isAuthenticated, autoAuthState, initialUrl]);
+    }, [currentScreen, hasShownPrompt, isAuthenticated, autoAuthState, initialUrl, currentUserAccountID]);
 
     return children;
 }

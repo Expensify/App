@@ -277,7 +277,7 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
 }
 
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE && !!getOriginalMessage(reportAction as ReportAction<'INTEGRATIONSMESSAGE'>)?.result?.success;
 }
 
 /**
@@ -749,10 +749,6 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.DONATION,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-
-        // We're temporarily deprecating the actions below since the feature is still WIP and these actions are being shown as duplicated
-        CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-        CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
     ];
     if (deprecatedOldDotReportActions.includes(reportAction.actionName)) {
         Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
