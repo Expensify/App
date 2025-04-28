@@ -1502,7 +1502,8 @@ const translations = {
     lockAccountPage: {
         lockAccount: 'Bloquear cuenta',
         unlockAccount: 'Desbloquear cuenta',
-        compromisedDescription: 'Si crees que tu cuenta de Expensify ha sido comprometida, puedes bloquearla para evitar cualquier cambio y bloquear nuevas transacciones en tu(s) tarjeta(s) de Expensify.',
+        compromisedDescription:
+            'Si crees que tu cuenta de Expensify ha sido comprometida, puedes bloquearla para evitar cualquier cambio y bloquear nuevas transacciones en tu(s) tarjeta(s) de Expensify.',
         domainAdminsDescriptionPartOne: 'Para los administradores de dominio, ',
         domainAdminsDescriptionPartTwo: 'esta acción bloqueará toda la actividad de la tarjeta de Expensify en tu(s) dominio(s) ',
         domainAdminsDescriptionPartThree: 'y evitará que se realicen acciones administrativas con tu cuenta.',
