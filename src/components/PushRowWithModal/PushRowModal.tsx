@@ -107,6 +107,4 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
 
 PushRowModal.displayName = 'PushRowModal';
 
-export type {ListItemType};
-
 export default PushRowModal;

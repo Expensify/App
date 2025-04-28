@@ -230,7 +230,6 @@ export default {
     fontSizeOnlyEmojisHeight: 35,
     emojiSize: 20,
     emojiLineHeight: 28,
-    fontSizeUsernameEmoji: 19,
     fontSizeEmojisWithinText: getValueUsingPixelRatio(17, 19),
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
@@ -278,6 +277,7 @@ export default {
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
     navigationTabBarInboxTooltipShiftHorizontal: 36,
+    expenseReportsTypeTooltipShiftHorizontal: 10,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
