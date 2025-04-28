@@ -62,7 +62,7 @@ function SecuritySettingsPage() {
     const personalDetails = usePersonalDetails();
     const {canUseMergeAccounts} = usePermissions();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
@@ -76,7 +76,7 @@ function SecuritySettingsPage() {
         horizontal: 0,
         vertical: 0,
     });
-    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS);
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: false});
     const isAccountLocked = lockAccountDetails?.isLocked ?? false;
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate || false;
