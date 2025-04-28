@@ -1,4 +1,3 @@
-import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import SCREENS from '@src/SCREENS';
 
 // This file is used to define RHP screens that are in relation to the search screen.
@@ -28,6 +27,9 @@ const SEARCH_TO_RHP: Partial<Record<keyof SearchFullscreenNavigatorParamList, st
         SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP,
         SCREENS.SEARCH.ADVANCED_FILTERS_WORKSPACE_RHP,
         SCREENS.SEARCH.ADVANCED_FILTERS_CARD_RHP,
+        SCREENS.SEARCH.ADVANCED_FILTERS_TITLE_RHP,
+        SCREENS.SEARCH.ADVANCED_FILTERS_ASSIGNEE_RHP,
+        SCREENS.SEARCH.ADVANCED_FILTERS_CREATED_BY_RHP,
         SCREENS.SEARCH.ADVANCED_FILTERS_REIMBURSABLE_RHP,
         SCREENS.SEARCH.ADVANCED_FILTERS_BILLABLE_RHP,
         SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP,
