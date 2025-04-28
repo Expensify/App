@@ -9851,7 +9851,7 @@ function prepareOnboardingOnyxData(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                 value: {
-                    [taskCreatedAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
+                    [taskCreatedAction.reportActionID]: {pendingAction: null},
                 },
             },
         );
