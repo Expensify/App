@@ -37,7 +37,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {hash, policyID, groupBy} = queryJSON;
+    const {hash, groupBy} = queryJSON;
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const {canUseLeftHandBar} = usePermissions();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -133,7 +133,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
         }
 
         return items;
-    }, [typeMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme, policyID, closeMenu, shouldGroupByReports]);
+    }, [typeMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme, closeMenu, shouldGroupByReports]);
 
     const processSavedSearches = useCallback(() => {
         if (!savedSearches) {
