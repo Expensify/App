@@ -164,7 +164,7 @@ function dataToNumericRepresentation<T>(
  * Everything in the tree is treated as lowercase.
  */
 function cleanString(input: string) {
-    return input.toLowerCase().replaceAll(/\s+/g, ' ');
+    return input.toLowerCase();
 }
 
 const FastSearch = {

@@ -3,7 +3,7 @@ import SuffixUkkonenTree from '@libs/SuffixUkkonenTree/index';
 
 describe('SuffixUkkonenTree', () => {
     // The suffix tree doesn't take strings, but expects an array buffer, where strings have been separated by a delimiter.
-    function helperStringsToNumericForTree(strings: string[], charSetToSkip?: Set<string>): DynamicArrayBuffer<Uint8Array> {
+    function helperStringsToNumericForTree(strings: string[], charSetToSkip?: RegExp): DynamicArrayBuffer<Uint8Array> {
         const numericLists = strings.map((s) => SuffixUkkonenTree.stringToNumeric(s, {clamp: true, charSetToSkip}));
         const numericList = numericLists.reduce(
             (acc, {numeric}) => {
@@ -55,7 +55,7 @@ describe('SuffixUkkonenTree', () => {
 
     it('should convert string to numeric with a list of chars to skip', () => {
         const {numeric} = SuffixUkkonenTree.stringToNumeric('abcabc', {
-            charSetToSkip: new Set(['b']),
+            charSetToSkip: /[b]/,
             clamp: true,
         });
         expect(Array.from(numeric)).toEqual([0, 2, 0, 2]);
@@ -72,7 +72,7 @@ describe('SuffixUkkonenTree', () => {
 
     it('should find words that contain chars to skip', () => {
         const strings = ['b.an.ana', 'panca.ke'];
-        const numericIntArray = helperStringsToNumericForTree(strings, new Set(['.']));
+        const numericIntArray = helperStringsToNumericForTree(strings, /[.]/);
         const tree = SuffixUkkonenTree.makeTree(numericIntArray);
         tree.build();
 
