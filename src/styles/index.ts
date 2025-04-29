@@ -1353,13 +1353,13 @@ const styles = (theme: ThemeColors) =>
 
         textInputDesktop: addOutlineWidth(theme, {}, 0),
 
-        textInputIconContainerPaddingTop: {
-            paddingTop: 8,
+        textInputIconContainerMarginTop: {
+            marginTop: 8,
         },
 
         textInputIconContainer: {
             paddingHorizontal: 11,
-            paddingTop: 8,
+            marginTop: 8,
         },
 
         textInputLeftIconContainer: {
@@ -1392,11 +1392,10 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             left: 0,
             top: 0,
-            height: variables.inputHeight,
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 7,
+            paddingTop: 15,
             paddingBottom: 8,
         },
 
@@ -1404,11 +1403,10 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             right: 0,
             top: 0,
-            height: variables.inputHeight,
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 7,
+            paddingTop: 15,
             paddingBottom: 8,
         },
 

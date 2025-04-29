@@ -412,7 +412,7 @@ function BaseTextInput(
                                     size="small"
                                     color={theme.iconSuccessFill}
                                     style={[
-                                        styles.textInputIconContainerPaddingTop,
+                                        styles.textInputIconContainerMarginTop,
                                         styles.ml1,
                                         styles.justifyContentStart,
                                         loadingSpinnerStyle,
