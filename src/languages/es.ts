@@ -1109,6 +1109,7 @@ const translations = {
         unheldExpense: 'desbloqueó este gasto',
         explainHold: 'Explica la razón para retener esta solicitud.',
         reason: 'Razón',
+        retract: 'Retirar',
         retracted: 'retirado',
         holdReasonRequired: 'Se requiere una razón para retener.',
         expenseWasPutOnHold: 'Este gasto está retenido',

@@ -589,6 +589,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 setIsDeleteModalVisible(true);
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
+            text: translate('iou.retract'),
+            icon: Expensicons.CircularArrowBackwards,
+            value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
+            onSelected: () => {
+                console.log('retract');
+            },
+        },
     };
 
     const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplemenation[action]);

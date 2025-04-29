@@ -390,7 +390,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[]): bool
     return isReportOpen || isProcessingReport;
 }
 
-function canRetractReport(report: Report, policy: Policy): boolean {
+function canRetractReport(report: Report, policy?: Policy): boolean {
     return true;
 }
 
