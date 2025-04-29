@@ -137,6 +137,8 @@ jest.mock(
                 this.handler(info);
             }
 
+            start() {}
+
             setHandler(handler: () => void) {
                 this.handler = handler;
             }
