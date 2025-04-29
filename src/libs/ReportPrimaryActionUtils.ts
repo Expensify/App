@@ -249,6 +249,10 @@ function getReportPrimaryAction(
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+    if (isMarkAsCashAction(report, reportTransactions, violations, policy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
+    }
+
     if (isReviewDuplicatesAction(report, reportTransactions, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
@@ -271,10 +275,6 @@ function getReportPrimaryAction(
 
     if (isExportAction(report, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
-    }
-
-    if (isMarkAsCashAction(report, reportTransactions, violations, policy)) {
-        return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 
     return '';
