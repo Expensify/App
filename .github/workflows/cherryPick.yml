@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       PULL_REQUEST_URL:
-        description: The full URL of the Expensify/App pull request to cherry-pick
+        description: The full URL of the E/App or E/Mobile-Expensify pull request to cherry-pick
         required: true
 
 jobs:
@@ -45,7 +45,7 @@ jobs:
           fetch-depth: 0
 
       - name: Checkout staging branch without full history if cherry picking App
-        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/App' }}
+        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == github.repository }}
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
@@ -77,7 +77,7 @@ jobs:
           SEMVER_LEVEL: "PATCH"
 
       - name: Fetch history of relevant refs if cherry picking an App change
-        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/App' }}
+        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == github.repository }}
         run: |
           git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
           cd Mobile-Expensify
