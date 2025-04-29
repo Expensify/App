@@ -67,9 +67,11 @@ jobs:
         with:
           script: |
             const commitMessages = context.payload.commits.map((commit) => commit.message);
+            const isCherryPick = commitMessages.some((message) => /.*\(cherry-picked to .* by .*\)$/.test(message));
+            console.log('Is cherry pick?', isCherryPick);
             core.setOutput(
                 'IS_CHERRY_PICK',
-                commitMessages.some((message) => /.*\(cherry-picked to .* by .*\)$/.test(message)),
+                isCherryPick,
             );
 
   # Note: we're updating the checklist before running the deploys and assuming that it will succeed on at least one platform
