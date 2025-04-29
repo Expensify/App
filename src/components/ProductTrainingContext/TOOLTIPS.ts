@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 const {
-    CONCEIRGE_LHN_GBR,
+    CONCIERGE_LHN_GBR,
     RENAME_SAVED_SEARCH,
     BOTTOM_NAV_INBOX_TOOLTIP,
     LHN_WORKSPACE_CHAT_TOOLTIP,
@@ -33,15 +33,15 @@ type TooltipData = {
 };
 
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
-    [CONCEIRGE_LHN_GBR]: {
+    [CONCIERGE_LHN_GBR]: {
         content: [
-            {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
-            {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
+            {text: 'productTrainingTooltip.conciergeLHNGbr.part1', isBold: false},
+            {text: 'productTrainingTooltip.conciergeLHNGbr.part2', isBold: true},
         ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCEIRGE_LHN_GBR, isDismissedUsingCloseButton),
-        name: CONCEIRGE_LHN_GBR,
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCIERGE_LHN_GBR, isDismissedUsingCloseButton),
+        name: CONCIERGE_LHN_GBR,
         priority: 1300,
-        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         shouldShow: () => false,
     },
