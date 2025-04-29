@@ -19,6 +19,10 @@ function isBlockedFromSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 }
 
+function isTravelVerified(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.IS_TRAVEL_VERIFIED) || canUseAllBetas(betas);
+}
+
 function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
@@ -75,6 +79,7 @@ export default {
     canUseLinkPreviews,
     canUseSpotnanaTravel,
     isBlockedFromSpotnanaTravel,
+    isTravelVerified,
     canUseNetSuiteUSATax,
     canUseMergeAccounts,
     canUseManagerMcTest,
