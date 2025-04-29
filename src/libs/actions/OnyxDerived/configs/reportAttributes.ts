@@ -17,22 +17,16 @@ export default createOnyxDerivedValueConfig({
     dependencies: [
         ONYXKEYS.COLLECTION.REPORT,
         ONYXKEYS.NVP_PREFERRED_LOCALE,
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
-        ONYXKEYS.COLLECTION.TRANSACTION,
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
+        ONYXKEYS.COLLECTION.TRANSACTION,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
-    compute: (dependencies, {currentValue, sourceValues}) => {
-        // transactions are undefined by default so it needs to be set to an empty object as default
-        const [reports, preferredLocale, personalDetails, transactions = {}, transactionViolations, reportActions, ...rest] = dependencies;
-
-        const areAllDependenciesSet = [reports, preferredLocale, personalDetails, transactions, transactionViolations, reportActions, ...rest].every(
-            (dependency) => dependency !== undefined,
-        );
-        if (!areAllDependenciesSet) {
+    compute: ([reports, preferredLocale, transactionViolations, reportActions], {currentValue, sourceValues, areAllConnectionsSet}) => {
+        if (!areAllConnectionsSet) {
             return {
                 reports: {},
                 locale: null,
@@ -45,9 +39,10 @@ export default createOnyxDerivedValueConfig({
 
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
         const reportMetadataUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_METADATA];
+        const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
 
         // if we already computed the report attributes and there is no new reports data, return the current value
-        if ((isFullyComputed && reportUpdates === undefined && reportMetadataUpdates === undefined) || !reports) {
+        if ((isFullyComputed && reportUpdates === undefined && reportMetadataUpdates === undefined && transactionViolationsUpdates === undefined) || !reports) {
             return currentValue ?? {reports: {}, locale: null};
         }
 
