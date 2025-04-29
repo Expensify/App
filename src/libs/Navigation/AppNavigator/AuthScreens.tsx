@@ -1,5 +1,5 @@
 import type {RouteProp} from '@react-navigation/native';
-import {findFocusedRoute, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
@@ -25,8 +25,7 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -365,6 +364,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             shortcutsOverviewShortcutConfig.shortcutKey,
             () => {
                 Modal.close(() => {
+                    if (Navigation.isOnboardingFlow()) {
+                        return;
+                    }
+
                     if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS)) {
                         return;
                     }
@@ -383,9 +386,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             searchShortcutConfig.shortcutKey,
             () => {
                 Session.callFunctionIfActionIsAllowed(() => {
-                    const state = navigationRef.getRootState();
-                    const currentFocusedRoute = findFocusedRoute(state);
-                    if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                    if (Navigation.isOnboardingFlow()) {
                         return;
                     }
                     toggleSearch();
@@ -399,6 +400,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
+                if (Navigation.isOnboardingFlow()) {
+                    return;
+                }
                 Modal.close(Session.callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
             },
             chatShortcutConfig.descriptionKey,
