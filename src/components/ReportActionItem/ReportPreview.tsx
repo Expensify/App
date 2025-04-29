@@ -526,7 +526,7 @@ function ReportPreview({
                 onPress={() => confirmApproval()}
             />
         ),
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: shouldShowPayButton ? (
             <AnimatedSettlementButton
                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                 currency={iouReport?.currency}
@@ -555,7 +555,7 @@ function ReportPreview({
                 isDisabled={isOffline && !canAllowSettlement}
                 isLoading={!isOffline && !canAllowSettlement}
             />
-        ),
+        ) : null,
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING]: connectedIntegration ? (
             <ExportWithDropdownMenu
                 policy={policy}
