@@ -75,18 +75,6 @@ function WorkspaceReportFieldsPage({
     const {environmentURL} = useEnvironment();
     const policy = usePolicy(policyID);
     const {selectionMode} = useMobileSelectionMode();
-    const filteredPolicyFieldList = useMemo(() => {
-        if (!policy?.fieldList) {
-            return {};
-        }
-        return Object.values(policy.fieldList ?? {}).reduce<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>>((acc, reportField) => {
-            if (reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportField.fieldID === CONST.POLICY.FIELDS.FIELD_LIST_TITLE) {
-                return acc;
-            }
-            acc[reportField.fieldID] = reportField;
-            return acc;
-        }, {});
-    }, [policy]);
     const [deleteReportFieldsConfirmModalVisible, setDeleteReportFieldsConfirmModalVisible] = useState(false);
     const hasReportAccountingConnections = hasAccountingConnections(policy);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
@@ -99,12 +87,18 @@ function WorkspaceReportFieldsPage({
     const canSelectMultiple = !hasReportAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     const selectionFieldList = useMemo(() => {
-        return Object.values(filteredPolicyFieldList).reduce<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>>((acc, reportField) => {
+        if (!policy?.fieldList) {
+            return {};
+        }
+        return Object.values(policy.fieldList).reduce<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>((acc, reportField) => {
+            if (reportField.fieldID === CONST.POLICY.FIELDS.FIELD_LIST_TITLE) {
+                return acc;
+            }
             const reportFieldKey = getReportFieldKey(reportField.fieldID);
             acc[reportFieldKey] = reportField;
             return acc;
         }, {});
-    }, [filteredPolicyFieldList]);
+    }, [policy]);
 
     const filterReportFields = useCallback((reportField: OnyxValueWithOfflineFeedback<PolicyReportField> | undefined) => {
         return !!reportField && reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -118,7 +112,7 @@ function WorkspaceReportFieldsPage({
 
     const {isOffline} = useNetwork({onReconnect: fetchReportFields});
 
-    const hasVisibleReportField = Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+    const hasVisibleReportField = Object.values(selectionFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     useFocusEffect(fetchReportFields);
 
@@ -129,7 +123,7 @@ function WorkspaceReportFieldsPage({
 
         return [
             {
-                data: Object.values(filteredPolicyFieldList)
+                data: Object.values(selectionFieldList)
                     .sort((a, b) => localeCompare(a.name, b.name))
                     .map((reportField) => ({
                         value: reportField.name,
@@ -145,7 +139,7 @@ function WorkspaceReportFieldsPage({
                 isDisabled: false,
             },
         ];
-    }, [filteredPolicyFieldList, policy, canSelectMultiple, translate, selectedReportFields]);
+    }, [selectionFieldList, policy, canSelectMultiple, translate, selectedReportFields]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(reportFieldsSections.at(0)?.data ?? ([] as ListItem[]));
 
@@ -160,7 +154,7 @@ function WorkspaceReportFieldsPage({
     };
 
     const toggleAllReportFields = () => {
-        const availableReportFields = Object.values(filteredPolicyFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const availableReportFields = Object.values(selectionFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         setSelectedReportFields(selectedReportFields.length > 0 ? [] : Object.keys(availableReportFields));
     };
 
@@ -176,7 +170,7 @@ function WorkspaceReportFieldsPage({
 
     const isLoading = !isOffline && policy === undefined;
     const shouldShowEmptyState =
-        !Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline) && !isLoading;
+        !Object.values(selectionFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline) && !isLoading;
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];

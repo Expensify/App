@@ -86,9 +86,9 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 function WorkspaceMembersPage({personalDetails, route, policy, currentUserPersonalDetails}: WorkspaceMembersPageProps) {
     const {policyMemberEmailsToAccountIDs, employeeListDetails} = useMemo(() => {
         const emailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, true);
-        const details = Object.keys(policy?.employeeList ?? {}).reduce<Record<number, PolicyEmployee>>((acc, key) => {
-            const employee = policy?.employeeList?.[key];
-            const accountID = emailsToAccountIDs[key];
+        const details = Object.keys(policy?.employeeList ?? {}).reduce<Record<number, PolicyEmployee>>((acc, email) => {
+            const employee = policy?.employeeList?.[email];
+            const accountID = emailsToAccountIDs[email];
             if (!employee) {
                 return acc;
             }
@@ -117,7 +117,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             if (!employee?.email) {
                 return false;
             }
-            const employeeAccountID = getAccountIDsByLogins([employee.email])?.at(0);
+            const employeeAccountID = getAccountIDsByLogins([employee.email]).at(0);
             if (!employeeAccountID) {
                 return false;
             }
