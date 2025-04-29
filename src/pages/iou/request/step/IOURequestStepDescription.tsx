@@ -44,9 +44,9 @@ function IOURequestStepDescription({
     report,
 }: IOURequestStepDescriptionProps) {
     const policy = usePolicy(report?.policyID);
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;
         if (action === CONST.IOU.ACTION.EDIT) {
@@ -58,16 +58,23 @@ function IOURequestStepDescription({
         canEvict: false,
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         selector: (reportActions) => reportActions?.[report?.parentReportActionID || reportActionID],
+        canBeMissing: true,
     });
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput(true);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
-    const currentDescriptionInMarkdown = Parser.htmlToMarkdown(
-        isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '',
-    );
+    const isTransactionDraft = shouldUseTransactionDraft(action);
+
+    const currentDescriptionInMarkdown = useMemo(() => {
+        if (!isTransactionDraft) {
+            return Parser.htmlToMarkdown(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '');
+        }
+        return isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
+    }, [isTransactionDraft, isEditingSplitBill, splitDraftTransaction, transaction?.comment?.comment]);
+
     const descriptionRef = useRef(currentDescriptionInMarkdown);
     const isSavedRef = useRef(false);
 
@@ -119,7 +126,6 @@ function IOURequestStepDescription({
             navigateBack();
             return;
         }
-        const isTransactionDraft = shouldUseTransactionDraft(action);
 
         setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
 
