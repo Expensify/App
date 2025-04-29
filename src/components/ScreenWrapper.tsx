@@ -370,6 +370,11 @@ function ScreenWrapper(
             return undefined;
         }
 
+        // Override the prop on purpose to ensure the background is consistent with the address bar and navigation bar on mWeb
+        if (isOfflineIndicatorTranslucent && isMobile()) {
+            return styles.appBG;
+        }
+
         return isOfflineIndicatorTranslucent ? styles.translucentNavigationBarBG : styles.appBG;
     }, [extraContent, isOffline, isOfflineIndicatorTranslucent, styles.appBG, styles.translucentNavigationBarBG]);
 
