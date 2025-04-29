@@ -124,11 +124,9 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 iouReport: {...basicProps.iouReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
-                transactionDetails: {comment: 'A valid comment', merchant: ''},
             };
             jest.spyOn(ReportUtils, 'isPaidGroupPolicyExpenseReport').mockReturnValue(true);
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            console.log(result);
 
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.approved'});
         });
@@ -139,6 +137,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 violations: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, transactionID: 123, showInReview: true}],
+                shouldShowRBR: true,
             };
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowRBR).toBeTruthy();
