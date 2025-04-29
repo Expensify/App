@@ -26,13 +26,14 @@ If your business operates in Singapore, you can enable global reimbursements to 
 ---
 
 # Step 1: Connect Your Singaporean Bank Account
-1. Go to **Settings > Workspaces > [Workspace Name] > Reports**.
-2. Confirm the workspace currency is set to **SGD**.
-3. Click the **Reimbursements** tab.
-4. Set the reimbursement method to **Direct**.
-5. Click **Add business bank account**.
-6. Select **Singapore** as the country and confirm the currency is SGD.
-7. Fill in your account details and click **Save & Continue**.
+1. Go to **Settings > Workspaces [Workspace Name] > Overview**.
+2. In the **Report Currency** dropdown, select **SGD**.
+3. Navigate to **Settings > Workspaces [Workspace Name] > Workflows**.
+4. Scroll to **Make or track payments**.
+5. Set the reimbursement method to **Direct**.
+6. Click **Add business bank account**.
+7. Select **Singapore** as the country and confirm the currency is SGD.
+8. Fill in your account details and click **Save & Continue**.
 
 ---
 
@@ -58,9 +59,10 @@ If your business operates in Singapore, you can enable global reimbursements to 
 **Timeline:** ⏳ From the time you submit all requested documentation, it can take up to **3 weeks**. We recommend pre-funding your account during this time to prevent reimbursement delays.
 
 Once the bank account is approved for global reimbursement:
-1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
-2. Set the verified SGD bank account as the default reimbursement method.
-3.  Instruct employees to connect their deposit account:
+1. Go to **Settings > Workspaces > [Workspace Name] > Workflows**.
+2. Scroll to **Make or track payments**.
+3. Set the verified SGD bank account as the default reimbursement method.
+4.  Instruct employees to connect their deposit account:
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** to input their non-SGD account info.
 
