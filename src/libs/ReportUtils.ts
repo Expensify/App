@@ -6811,15 +6811,15 @@ function buildOptimisticRetractedReportAction(created = DateUtils.getDBTime()): 
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         message: [
             {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: translateLocal('iou.retracted'),
+                html: `<muted-text>${translateLocal('iou.retracted')}</muted-text>`,
             },
         ],
         person: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'strong',
+                style: 'normal',
                 text: getCurrentUserDisplayNameOrEmail(),
             },
         ],
