@@ -193,7 +193,11 @@ describe('getReportPreviewAction', () => {
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, [
             {
-                name: CONST.VIOLATIONS.OVER_LIMIT,
+                name: CONST.VIOLATIONS.RTER,
+                data: {
+                    pendingPattern: true,
+                    rterType: CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD,
+                },
             } as TransactionViolation,
         ]);
 
