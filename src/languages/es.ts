@@ -6795,11 +6795,11 @@ const translations = {
             title: 'Haz una prueba con nosotros',
             description: 'Haz un recorrido rápido por el producto para ponerte al día rápidamente. ¡No se requieren paradas!',
             confirmText: 'Iniciar prueba',
-            helpText: 'Omitir',
+            helpText: 'Saltar',
             employee: {
                 description:
-                    '<br/><muted-text>Get your team <strong>3 free months of Expensify!</strong> Just enter your boss’s email below and we’ll walk you through sending them a scanned test expense — no more manual entry.</muted-text>',
-                email: "Enter your boss's email",
+                    '<br/><muted-text>Consigue <strong>3 meses gratis</strong>  de Expensify para tu equipo. Solo introduce el correo electrónico de tu jefe abajo y le enviaremos un gasto escaneado de prueba — sin entrada manual.</muted-text>',
+                email: 'Introduce el correo electrónico de tu jefe',
             },
         },
         banner: {
@@ -6808,7 +6808,7 @@ const translations = {
             getStarted: 'Comenzar',
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
-            `<h1>${name} invited you to test drive Expensify</h1><br/>Hey! I just got us 3 months free to test drive Expensify, the fastest way to do expenses.<br/><br/>Here’s a test receipt to show you how it works:`,
+            `<h1>${name} te invitó a probar Expensify</h1><br/>¡Hola! Acabo de conseguirnos <strong>3 meses gratis</strong> para probar Expensify, la forma más rápida de gestionar gastos.<br/><br/>Aquí tienes un <strong>recibo de prueba</strong> para mostrarte cómo funciona:`,
     },
 };
 
