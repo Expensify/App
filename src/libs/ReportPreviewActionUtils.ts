@@ -170,6 +170,7 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
+    // We handle RTER violations independently because those are not configured via policy workflows
     const isAdmin = isPolicyAdmin(policy);
     const transactionIDs = transactions?.map((transaction) => transaction.transactionID) ?? [];
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
