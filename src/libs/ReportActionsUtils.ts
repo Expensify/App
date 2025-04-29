@@ -182,7 +182,7 @@ function getReportActionMessage(reportAction: PartialReportAction) {
 }
 
 function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return (getReportActionMessage(reportAction)?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
+    return isMessageDeleted(reportAction) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
 function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>) {
@@ -1124,7 +1124,13 @@ function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<ReportAct
  * A helper method to identify if the message is deleted or not.
  */
 function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return getReportActionMessage(reportAction)?.isDeletedParentAction ?? false;
+    const message = getReportActionMessage(reportAction);
+    const originalMessage = getOriginalMessage(reportAction) as Message;
+    
+    return (message?.deleted != null && message?.deleted != "") ||
+        (message?.isDeletedParentAction ?? false) ||
+        (originalMessage?.deleted != null && originalMessage?.deleted != "") ||
+        (originalMessage?.isDeletedParentAction ?? false) 
 }
 
 /**
@@ -1557,6 +1563,9 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
 
     const actionMessage = action.previousMessage ?? action.message;
     if (Array.isArray(actionMessage)) {
+        if (actionMessage?.length === 1) {
+            return [{...actionMessage[0], isDeletedParentAction: isMessageDeleted(action) } as Message]
+        }
         return actionMessage.filter((item): item is Message => !!item);
     }
     return actionMessage ? [actionMessage] : [];
