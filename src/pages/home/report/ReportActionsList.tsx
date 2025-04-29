@@ -344,8 +344,12 @@ function ReportActionsList({
         prevReportID = report.reportID;
     }, [report.reportID]);
 
+    const initialScrollKey = useMemo(() => {
+        return linkedReportActionID ?? unreadMarkerReportActionID;
+    }, [linkedReportActionID, unreadMarkerReportActionID]);
+    const [isScrolledToStart, setIsScrolledToStart] = useState(true);
+
     const [isListInitiallyLoaded, setIsListInitiallyLoaded] = useState(false);
-    const [isScrolledToStart, setIsScrolledToStart] = useState(false);
     useEffect(() => {
         if (report.reportID !== prevReportID) {
             return;
@@ -743,7 +747,7 @@ function ReportActionsList({
                     extraData={extraData}
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollKey={reportActionID ?? unreadMarkerReportActionID}
+                    initialScrollKey={initialScrollKey}
                 />
             </View>
         </>
