@@ -202,7 +202,7 @@ function TaskAssigneeSelectorModal() {
 
     const isOpen = isOpenTaskReport(report);
     const isReportArchived = useReportIsArchived(report?.parentReportID);
-    const canModifyTaskValue = canModifyTask(report, currentUserPersonalDetails.accountID, undefined, isReportArchived);
+    const canModifyTaskValue = canModifyTask(report, currentUserPersonalDetails.accountID, isReportArchived);
     const isTaskNonEditable = isTaskReport(report) && (!canModifyTaskValue || !isOpen);
 
     useEffect(() => {

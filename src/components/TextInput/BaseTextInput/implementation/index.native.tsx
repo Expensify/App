@@ -266,9 +266,6 @@ function BaseTextInput(
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !isMultiline && !isMarkdownEnabled;
 
-    // Fix iOS cursor jumping when entering first character using HW keyboard https://github.com/Expensify/App/pull/59078#issuecomment-2802834037
-    const selection = inputProps.selection?.end === 0 && inputProps.selection?.start === 0 ? undefined : inputProps.selection;
-
     return (
         <>
             <View style={[containerStyles]}>
@@ -276,8 +273,8 @@ function BaseTextInput(
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
-                    // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
-                    // or if multiline is not supplied we calculate the textinput height, using onLayout.
+                    // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
+                    // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
                     accessibilityLabel={label}
                     style={[
@@ -387,7 +384,6 @@ function BaseTextInput(
                                 keyboardType={inputProps.keyboardType}
                                 inputMode={!disableKeyboard ? inputProps.inputMode : CONST.INPUT_MODE.NONE}
                                 value={uncontrolled ? undefined : value}
-                                selection={selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}

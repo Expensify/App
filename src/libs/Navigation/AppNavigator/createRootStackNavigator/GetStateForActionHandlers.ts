@@ -29,8 +29,9 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     SCREENS.CONCIERGE,
 ];
 
-const workspaceSplitsWithoutEnteringAnimation = new Set();
-const reportsSplitsWithEnteringAnimation = new Set();
+const workspaceSplitsWithoutEnteringAnimation = new Set<string>();
+const reportsSplitsWithEnteringAnimation = new Set<string>();
+const settingsSplitWithEnteringAnimation = new Set<string>();
 
 let lastAccessedWorkspaceSwitcherID: OnyxEntry<string>;
 Onyx.connect({
@@ -159,32 +160,38 @@ function handlePushReportSplitAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
     setActiveWorkspaceID: (workspaceID: string | undefined) => void,
+    canUseLeftHandBar: boolean,
 ) {
-    const haveParamsPolicyID = action.payload.params && 'policyID' in action.payload.params;
-    let policyID;
+    let modifiedAction = {...action};
 
-    const policyIDFromState = getPolicyIDFromState(state as State<RootNavigatorParamList>);
+    // When users have access to the leftHandBar beta, the Workspace Switcher is hidden so the policyID should not be passed to the ReportSplitNavigator.
+    if (!canUseLeftHandBar) {
+        const haveParamsPolicyID = action.payload.params && 'policyID' in action.payload.params;
+        let policyID;
 
-    if (haveParamsPolicyID) {
-        policyID = (action.payload.params as Record<string, string | undefined>)?.policyID;
-        setActiveWorkspaceID(policyID);
-    } else if (policyIDFromState) {
-        policyID = policyIDFromState;
-    } else {
-        policyID = lastAccessedWorkspaceSwitcherID;
-        setActiveWorkspaceID(policyID);
-    }
+        const policyIDFromState = getPolicyIDFromState(state as State<RootNavigatorParamList>);
 
-    const modifiedAction = {
-        ...action,
-        payload: {
-            ...action.payload,
-            params: {
-                ...action.payload.params,
-                policyID,
+        if (haveParamsPolicyID) {
+            policyID = (action.payload.params as Record<string, string | undefined>)?.policyID;
+            setActiveWorkspaceID(policyID);
+        } else if (policyIDFromState) {
+            policyID = policyIDFromState;
+        } else {
+            policyID = lastAccessedWorkspaceSwitcherID;
+            setActiveWorkspaceID(policyID);
+        }
+
+        modifiedAction = {
+            ...action,
+            payload: {
+                ...action.payload,
+                params: {
+                    ...action.payload.params,
+                    policyID,
+                },
             },
-        },
-    };
+        };
+    }
 
     const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, modifiedAction, configOptions);
 
@@ -202,6 +209,30 @@ function handlePushReportSplitAction(
     }
 
     return stateWithReportsSplitNavigator;
+}
+
+function handlePushSettingsSplitAction(
+    state: StackNavigationState<ParamListBase>,
+    action: PushActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+) {
+    const stateWithSettingsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
+
+    if (!stateWithSettingsSplitNavigator) {
+        Log.hmmm('[handlePushSettingsAction] SettingsSplitNavigator has not been found in the navigation state.');
+        return null;
+    }
+
+    const lastFullScreenRoute = stateWithSettingsSplitNavigator.routes.at(-1);
+    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
+
+    // Transitioning to all central screens in settings should be animated
+    if (actionPayloadScreen !== SCREENS.SETTINGS.ROOT && lastFullScreenRoute?.key) {
+        settingsSplitWithEnteringAnimation.add(lastFullScreenRoute.key);
+    }
+
+    return stateWithSettingsSplitNavigator;
 }
 
 /**
@@ -318,6 +349,8 @@ export {
     handleSwitchPolicyIDAction,
     handleSwitchPolicyIDFromSearchAction,
     handleNavigatingToModalFromModal,
+    handlePushSettingsSplitAction,
     workspaceSplitsWithoutEnteringAnimation,
     reportsSplitsWithEnteringAnimation,
+    settingsSplitWithEnteringAnimation,
 };
