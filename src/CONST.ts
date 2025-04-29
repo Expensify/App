@@ -394,6 +394,10 @@ const CONST = {
         IN: 'in',
         OUT: 'out',
     },
+    ELEMENT_NAME: {
+        INPUT: 'INPUT',
+        TEXTAREA: 'TEXTAREA',
+    },
     POPOVER_ACCOUNT_SWITCHER_POSITION: {
         horizontal: 12,
         vertical: 80,
@@ -809,6 +813,7 @@ const CONST = {
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
+        IS_TRAVEL_VERIFIED: 'isTravelVerified',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1195,6 +1200,7 @@ const CONST = {
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+            ADD_EXPENSE: 'addExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1204,6 +1210,7 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+            ADD_EXPENSE: 'addExpense',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
@@ -6436,7 +6443,6 @@ const CONST = {
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
-            TASK: 'task',
             TRIP: 'trip',
             CHAT: 'chat',
         },
@@ -6505,11 +6511,6 @@ const CONST = {
                 LINKS: 'links',
                 PINNED: 'pinned',
             },
-            TASK: {
-                ALL: 'all',
-                OUTSTANDING: 'outstanding',
-                COMPLETED: 'completed',
-            },
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -6524,10 +6525,6 @@ const CONST = {
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
-            TITLE: 'title',
-            ASSIGNEE: 'assignee',
-            CREATED_BY: 'createdBy',
-            IN: 'in',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -6568,9 +6565,6 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
-            TITLE: 'title',
-            ASSIGNEE: 'assignee',
-            CREATED_BY: 'createdBy',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
@@ -6609,9 +6603,6 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
-            TITLE: 'title',
-            ASSIGNEE: 'assignee',
-            CREATED_BY: 'created-by',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
         },
