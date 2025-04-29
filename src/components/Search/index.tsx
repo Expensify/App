@@ -6,7 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, ReportListItemType, SearchListItem, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -32,7 +32,6 @@ import {
     isReportListItemType,
     isSearchDataLoaded,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
-    isTaskListItemType,
     isTransactionListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
@@ -79,14 +78,12 @@ function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, se
     return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
 }
 
-function mapToItemWithSelectionInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
-    if (isTaskListItemType(item)) {
-        return {
-            ...item,
-            shouldAnimateInHighlight,
-        };
-    }
-
+function mapToItemWithSelectionInfo(
+    item: TransactionListItemType | ReportListItemType | ReportActionListItemType,
+    selectedTransactions: SelectedTransactions,
+    canSelectMultiple: boolean,
+    shouldAnimateInHighlight: boolean,
+) {
     if (isReportActionListItemType(item)) {
         return {
             ...item,
@@ -161,6 +158,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     const {canUseTableReportView} = usePermissions();
+    const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
     useEffect(() => {
         clearSelectedTransactions(hash);
@@ -368,13 +366,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     );
 
     const openReport = useCallback(
-        (item: SearchListItem, isOpenedAsReport?: boolean) => {
-            if (selectionMode?.isEnabled) {
-                toggleTransaction(item);
-                return;
-            }
-
-            const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType, isOpenedAsReport?: boolean) => {
+            const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
             const isTransactionItem = isTransactionListItemType(item);
 
             let reportID =
@@ -453,11 +446,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const ListItem = getListItem(type, status, shouldGroupByReports);
     const sortedData = getSortedSections(type, status, data, sortBy, sortOrder, shouldGroupByReports);
-
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
-    const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || selectionMode?.isEnabled === true);
-
     const sortedSelectedData = sortedData.map((item) => {
         const baseKey = isChat
             ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
@@ -503,6 +492,39 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         );
     }
 
+    const toggleTransaction = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
+        if (isReportActionListItemType(item)) {
+            return;
+        }
+        if (isTransactionListItemType(item)) {
+            if (!item.keyForList) {
+                return;
+            }
+
+            setSelectedTransactions(prepareTransactionsList(item, selectedTransactions), data);
+            return;
+        }
+
+        if (item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
+            const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
+
+            item.transactions.forEach((transaction) => {
+                delete reducedSelectedTransactions[transaction.keyForList];
+            });
+
+            setSelectedTransactions(reducedSelectedTransactions, data);
+            return;
+        }
+
+        setSelectedTransactions(
+            {
+                ...selectedTransactions,
+                ...Object.fromEntries(item.transactions.map(mapTransactionItemToSelectedEntry)),
+            },
+            data,
+        );
+    };
+
     const fetchMoreResults = () => {
         if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
@@ -535,7 +557,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat;
 
     return (
         <SearchScopeProvider isOnSearch>
@@ -546,12 +567,11 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 onSelectRow={openReport}
                 onCheckboxPress={toggleTransaction}
                 onAllCheckboxPress={toggleAllTransactions}
-                canSelectMultiple={canSelectMultiple}
-                shouldPreventLongPressRow={isChat || isTask}
+                canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
+                shouldPreventLongPressRow={isChat}
                 SearchTableHeader={
-                    !shouldShowTableHeader ? undefined : (
+                    !isLargeScreenWidth ? undefined : (
                         <SearchTableHeader
-                            canSelectMultiple={canSelectMultiple}
                             data={searchResults?.data}
                             metadata={searchResults?.search}
                             onSortPress={onSortPress}
