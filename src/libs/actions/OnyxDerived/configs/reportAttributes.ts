@@ -39,10 +39,8 @@ export default createOnyxDerivedValueConfig({
 
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
         const reportMetadataUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_METADATA];
-        const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
-
         // if we already computed the report attributes and there is no new reports data, return the current value
-        if ((isFullyComputed && reportUpdates === undefined && reportMetadataUpdates === undefined && transactionViolationsUpdates === undefined) || !reports) {
+        if ((isFullyComputed && !sourceValues) || !reports) {
             return currentValue ?? {reports: {}, locale: null};
         }
 
