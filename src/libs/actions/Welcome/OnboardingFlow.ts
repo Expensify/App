@@ -67,7 +67,6 @@ function getOnboardingInitialPath(isPrivateDomain?: boolean, onboardingValuesPar
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const isUserFromPublicDomain = user?.isFromPublicDomain;
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
-    console.log('currentOnboardingValues', currentOnboardingValues);
     const isVsb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const isIndividual = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
