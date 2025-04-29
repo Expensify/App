@@ -224,8 +224,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             <TransactionItemRow
                                 transactionItem={transaction}
                                 isSelected={isTransactionSelected(transaction.transactionID)}
-                                shouldShowTooltip
                                 dateColumnSize={dateColumnSize}
+                                shouldShowTooltip
                                 shouldUseNarrowLayout={displayNarrowVersion}
                                 shouldShowChatBubbleComponent
                                 onCheckboxPress={toggleTransaction}
