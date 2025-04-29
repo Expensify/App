@@ -2242,7 +2242,7 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
     if (participantAmount !== 1) {
         return false;
     }
-    return !isChatRoom(report) && !isExpenseRequest(report) && !isMoneyRequestReport(report) && !isPolicyExpenseChat(report) && !isTaskReport(report) && isDM(report) && !isIOUReport(report);
+    return (report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID) && !isChatRoom(report) && !isExpenseRequest(report) && !isMoneyRequestReport(report) && !isPolicyExpenseChat(report) && !isTaskReport(report) && isDM(report) && !isIOUReport(report);
 }
 
 /**
