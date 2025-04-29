@@ -63,6 +63,14 @@ function setShouldPopAllStateOnUP(shouldPopAllStateFlag: boolean) {
 }
 
 /**
+ * Returns shouldPopAllStateOnUp variable used to determine whether should we pop all state back to LHN
+ * @returns shouldPopAllStateOnUp
+ */
+function getShouldPopAllStateOnUp() {
+    return shouldPopAllStateOnUP;
+}
+
+/**
  * Checks if the navigationRef is ready to perform a method.
  */
 function canNavigate(methodName: string, params: Record<string, unknown> = {}): boolean {
@@ -632,6 +640,7 @@ function removeScreenByKey(key: string) {
 
 export default {
     setShouldPopAllStateOnUP,
+    getShouldPopAllStateOnUp,
     navigate,
     setParams,
     dismissModal,
