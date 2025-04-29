@@ -16,7 +16,7 @@ type SearchTypeMenuNarrowProps = {
 function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isPopoverVisible, openMenu, closeMenu, allMenuItems, DeleteConfirmModal, windowHeight, canUseLeftHandBar} = useSearchTypeMenu(queryJSON, searchName);
+    const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, DeleteConfirmModal, windowHeight, canUseLeftHandBar} = useSearchTypeMenu(queryJSON, searchName);
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
@@ -28,10 +28,10 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
                 icon={Expensicons.Bookmark}
                 onPress={openMenu}
             />
-            {isPopoverVisible && (
+            {!delayPopoverMenuFirstRender && (
                 <PopoverMenu
                     menuItems={allMenuItems}
-                    isVisible
+                    isVisible={isPopoverVisible}
                     anchorPosition={canUseLeftHandBar ? styles.createLHBMenuPositionSidebar(windowHeight) : styles.createMenuPositionSidebar(windowHeight)}
                     onClose={closeMenu}
                     onItemSelected={closeMenu}

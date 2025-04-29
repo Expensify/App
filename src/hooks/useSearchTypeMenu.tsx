@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -63,6 +63,13 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
     }, [canUseLeftHandBar, queryJSON]);
 
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
+    const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);
+
+    useEffect(() => {
+        setTimeout(() => {
+            setDelayPopoverMenuFirstRender(false);
+        }, 100);
+    }, []);
 
     const getBuildUserReadableQueryString = useCallback(() => {
         return canUseLeftHandBar
@@ -221,6 +228,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
 
     return {
         isPopoverVisible,
+        delayPopoverMenuFirstRender,
         openMenu,
         closeMenu,
         allMenuItems: processedMenuItems,
