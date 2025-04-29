@@ -242,7 +242,7 @@ jobs:
         continue-on-error: true
 
       - name: Label original PR with CP label
-        run: gh pr edit ${{ github.event.inputs.PULL_REQUEST_URL }} --add-label ${{ inputs.TARGET == 'staging' && 'CP Staging' || 'CP Production' }}
+        run: gh pr edit ${{ github.event.inputs.PULL_REQUEST_URL }} --add-label '${{ inputs.TARGET == 'staging' && 'CP Staging' || 'CP Production' }}'
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
