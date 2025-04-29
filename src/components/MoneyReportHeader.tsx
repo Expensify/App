@@ -62,6 +62,7 @@ import {
     payMoneyRequest,
     submitReport,
     unapproveExpenseReport,
+    retractReport,
 } from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -590,11 +591,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
-            text: translate('iou.retract'),
+            text: translate('iou.undoSubmit'),
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             onSelected: () => {
-                console.log('retract');
+                retractReport(moneyRequestReport);
             },
         },
     };
