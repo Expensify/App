@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
-import SelectCircle from '@components/SelectCircle';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ListItemProps, TransactionListItemType} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';

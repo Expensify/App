@@ -229,6 +229,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 shouldUseNarrowLayout={displayNarrowVersion}
                                 shouldShowChatBubbleComponent
                                 onCheckboxPress={toggleTransaction}
+                                shouldShowCheckBox
                             />
                         </PressableWithFeedback>
                     );

@@ -5663,13 +5663,6 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        expenseWidgetSelectCircle: {
-            borderTopLeftRadius: 0,
-            borderTopRightRadius: variables.componentBorderRadiusNormal,
-            borderBottomLeftRadius: 0,
-            borderBottomRightRadius: variables.componentBorderRadiusNormal,
-        },
-
         translucentNavigationBarBG: {
             backgroundColor: theme.translucentNavigationBarBackgroundColor,
         },
