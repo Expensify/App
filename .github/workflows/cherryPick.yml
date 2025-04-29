@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       PULL_REQUEST_URL:
-        description: The full URL of the Expensify/App pull request to cherry-pick
+        description: The full URL of the E/App or E/Mobile-Expensify pull request to cherry-pick
         required: true
       TARGET:
         description: CP to staging or production?
@@ -90,19 +90,9 @@ jobs:
       - name: Fetch history of relevant refs if cherry picking an App change
         if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/App' }}
         run: |
-          # Temporary hack during transition when -staging suffix is being added to tags
-          if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
-            git fetch origin main ${{ inputs.TARGET }} --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
-          else
-            git fetch origin main ${{ inputs.TARGET }} --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
-          fi
+          git fetch origin main ${{ inputs.TARGET }} --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
           cd Mobile-Expensify
-          # Temporary hack during transition when -staging suffix is being added to tags
-          if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
-            git fetch origin main ${{ inputs.TARGET }} --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
-          else
-            git fetch origin main ${{ inputs.TARGET }} --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
-          fi
+          git fetch origin main ${{ inputs.TARGET }} --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
 
       - name: Get E/App version bump commit
         id: getVersionBumpCommit

@@ -139,6 +139,10 @@ Executing `npm run clean` clears cache for React Native, Android, and iOS. It me
 	- `Pods`, `DerivedData`, `build`, `cocoapods`
 - **YAPL**: `npm run clean -- --npm`
 	- `npm`, `Mobile-Expensify/node_modules` (OldDot-specific)
+### I use VSCode and the patches are constantly failing during `npm install`
+In case you use VSCode and are having problems during `npm install` caused by patch errors, e.g. `@onfido/react-native-sdk` and/or `react-native-vision-camera`, **please check if you have any Java-related extensions enabled in your editor**. In case you have it, try **disabling** them and running the steps specified above to have a clean install.
+
+The reason is that some Java extensions are constantly creating files inside `node_modules` libraries and thus messing up with `patch-package` logic, so it’s advisable to keep them disabled in order to avoid such problems.
 ## Android
 ### Error: `Could not find method autolinkLibrariesFromCommandForPath()`
 
