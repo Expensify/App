@@ -180,7 +180,7 @@ function ScreenWrapper(
         enableEdgeToEdgeBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPaddingProp,
         shouldMobileOfflineIndicatorStickToBottom: shouldMobileOfflineIndicatorStickToBottomProp,
         shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
-        isOfflineIndicatorTranslucent: isOfflineIndicatorTranslucentProp,
+        isOfflineIndicatorTranslucent = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -201,7 +201,7 @@ function ScreenWrapper(
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {initialURL} = useContext(InitialURLContext);
 
-    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
 
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPaddingProp !== undefined;
@@ -210,7 +210,6 @@ function ScreenWrapper(
     // We enable all of these flags by default, if we are using edge-to-edge mode.
     const shouldMobileOfflineIndicatorStickToBottom = shouldMobileOfflineIndicatorStickToBottomProp ?? isUsingEdgeToEdgeMode;
     const shouldKeyboardOffsetBottomSafeAreaPadding = shouldKeyboardOffsetBottomSafeAreaPaddingProp ?? isUsingEdgeToEdgeMode;
-    const isOfflineIndicatorTranslucent = isOfflineIndicatorTranslucentProp ?? isUsingEdgeToEdgeMode;
 
     // We disable legacy bottom safe area padding handling, if we are using edge-to-edge mode.
     const includeSafeAreaPaddingBottom = isUsingEdgeToEdgeMode ? false : includeSafeAreaPaddingBottomProp;
@@ -362,16 +361,16 @@ function ScreenWrapper(
      * This style applies the background color of the mobile offline indicator.
      * When there is not bottom content, and the device either has soft keys or is offline,
      * the background style is applied.
-     * By default, the background color of the mobile offline indicator is translucent.
-     * If `isOfflineIndicatorTranslucent` is set to true, an opaque background color is applied.
+     * By default, the background color of the mobile offline indicator is opaque.
+     * If `isOfflineIndicatorTranslucent` is set to true, a translucent background color is applied.
      */
     const mobileOfflineIndicatorBackgroundStyle = useMemo(() => {
-        const showOfflineIndicatorBackground = !extraContent && (isSoftKeyNavigation || isOffline);
+        const showOfflineIndicatorBackground = !extraContent && isOffline;
         if (!showOfflineIndicatorBackground) {
             return undefined;
         }
-        return isOfflineIndicatorTranslucent ? styles.navigationBarBG : styles.appBG;
-    }, [extraContent, isOffline, isOfflineIndicatorTranslucent, isSoftKeyNavigation, styles.appBG, styles.navigationBarBG]);
+        return isOfflineIndicatorTranslucent ? styles.translucentNavigationBarBG : styles.appBG;
+    }, [extraContent, isOffline, isOfflineIndicatorTranslucent, styles.appBG, styles.translucentNavigationBarBG]);
 
     /** In edge-to-edge mode, we always want to apply the bottom safe area padding to the mobile offline indicator. */
     const hasMobileOfflineIndicatorBottomSafeAreaPadding = isUsingEdgeToEdgeMode ? enableEdgeToEdgeBottomSafeAreaPadding : !includeSafeAreaPaddingBottom;
