@@ -29,7 +29,6 @@ import {
     isOpenReport as isOpenReportUtils,
     isPayer,
     isProcessingReport as isProcessingReportUtils,
-    isReportApproved,
     isReportApproved as isReportApprovedUtils,
     isReportManuallyReimbursed,
     isSettled,
@@ -244,7 +243,7 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
     }
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-    return shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) && !isReportApproved({report}) && !isReportManuallyReimbursed(report);
+    return shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) && !isReportApprovedUtils({report}) && !isReportManuallyReimbursed(report);
 }
 
 function getReportPrimaryAction(
