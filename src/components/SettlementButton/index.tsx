@@ -180,7 +180,7 @@ function SettlementButton({
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: [
-                        ...(true ? getPaymentSubitems(false) : []),
+                        ...(isCurrencySupported ? getPaymentSubitems(false) : []),
                         {
                             text: translate('workspace.invoices.paymentMethods.addBankAccount'),
                             icon: Expensicons.Bank,
