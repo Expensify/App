@@ -32,21 +32,23 @@ function LockAccountPage() {
     );
 
     return (
-        <HeaderPageLayout
-            onBackButtonPress={() => Navigation.goBack()}
-            title={translate('lockAccountPage.lockAccount')}
-            testID={LockAccountPage.displayName}
-            footer={lockAccountButton}
-            childrenContainerStyles={[styles.pt3, styles.gap6]}
-        >
-            <View style={[styles.flex1, styles.gap4, styles.mh5]}>
-                <Text>{translate('lockAccountPage.compromisedDescription')}</Text>
-                <Text>
-                    <Text>{translate('lockAccountPage.domainAdminsDescriptionPartOne')}</Text>
-                    <Text style={styles.textBold}>{translate('lockAccountPage.domainAdminsDescriptionPartTwo')}</Text>
-                    <Text>{translate('lockAccountPage.domainAdminsDescriptionPartThree')}</Text>
-                </Text>
-            </View>
+        <>
+            <HeaderPageLayout
+                onBackButtonPress={() => Navigation.goBack()}
+                title={translate('lockAccountPage.lockAccount')}
+                testID={LockAccountPage.displayName}
+                footer={lockAccountButton}
+                childrenContainerStyles={[styles.pt3, styles.gap6]}
+            >
+                <View style={[styles.flex1, styles.gap4, styles.mh5]}>
+                    <Text>{translate('lockAccountPage.compromisedDescription')}</Text>
+                    <Text>
+                        <Text>{translate('lockAccountPage.domainAdminsDescriptionPartOne')}</Text>
+                        <Text style={styles.textBold}>{translate('lockAccountPage.domainAdminsDescriptionPartTwo')}</Text>
+                        <Text>{translate('lockAccountPage.domainAdminsDescriptionPartThree')}</Text>
+                    </Text>
+                </View>
+            </HeaderPageLayout>
             <ConfirmModal
                 danger
                 title={translate('lockAccountPage.lockAccount')}
@@ -63,7 +65,7 @@ function LockAccountPage() {
                 shouldDisableConfirmButtonWhenOffline
                 shouldShowCancelButton
             />
-        </HeaderPageLayout>
+        </>
     );
 }
 
