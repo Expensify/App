@@ -163,7 +163,7 @@ function FeatureTrainingModal({
     imageHeight,
     isModalDisabled = true,
     shouldRenderSVG = true,
-    shouldRenderHTMLDescription = true,
+    shouldRenderHTMLDescription = false,
     shouldCloseOnConfirm = true,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
