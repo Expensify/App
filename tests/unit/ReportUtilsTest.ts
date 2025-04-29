@@ -36,6 +36,7 @@ import {
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReportWithID,
     isChatUsedForOnboarding,
+    isPayer,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
     shouldDisableThread,
@@ -2454,6 +2455,41 @@ describe('ReportUtils', () => {
         it('should return true if the report is a non-expense report and archived', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedChatReport?.reportID));
             expect(isArchivedNonExpenseReportWithID(archivedChatReport, isReportArchived.current)).toBe(true);
+        });
+    });
+
+    describe('isPayer', () => {
+        const approvedReport: Report = {
+            ...createRandomReport(1),
+            type: CONST.REPORT.TYPE.IOU,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            policyID: '1',
+        };
+
+        const unapprovedReport: Report = {
+            ...createRandomReport(2),
+            type: CONST.REPORT.TYPE.IOU,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            policyID: '1',
+        };
+
+        beforeAll(() => {
+            Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+            });
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(() => Onyx.clear());
+
+        it('should return false for admin of a group policy with reimbursement enabled and report not approved', () => {
+            expect(isPayer({email: currentUserEmail, accountID: currentUserAccountID}, unapprovedReport, false)).toBe(false);
+        });
+
+        it('should return false for non-admin of a group policy', () => {
+            expect(isPayer({email: currentUserEmail, accountID: currentUserAccountID}, approvedReport, false)).toBe(false);
         });
     });
 });
