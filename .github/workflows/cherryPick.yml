@@ -44,20 +44,8 @@ jobs:
         id: getBranchName
         run: echo "CONFLICT_BRANCH_NAME=cherry-pick-${{ inputs.TARGET }}-${{ steps.getPRInfo.outputs.PR_NUMBER }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
 
-      - name: Checkout target branch with full history if cherry picking Mobile-Expensify
-        if: ${{ startsWith(steps.getPRInfo.outputs.REPO_FULL_NAME, 'Expensify/Mobile-Expensify') }}
         # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          ref: ${{ inputs.TARGET }}
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          submodules: true
-          # Only fetch depth 0 for Mobile-Expensify, because it's a submodule and we need more history to cherry pick successfully
-          fetch-depth: 0
-
       - name: Checkout target branch without full history if cherry picking App
-        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == github.repository }}
-        # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           ref: ${{ inputs.TARGET }}
@@ -87,8 +75,7 @@ jobs:
         with:
           SEMVER_LEVEL: ${{ inputs.TARGET == 'staging' && 'PATCH' || 'MINOR' }}
 
-      - name: Fetch history of relevant refs if cherry picking an App change
-        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == github.repository }}
+      - name: Fetch history of relevant refs
         run: |
           git fetch origin main ${{ inputs.TARGET }} --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
           cd Mobile-Expensify
