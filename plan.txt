@@ -1,0 +1,60 @@
+Problem (Original):
+
+The GitHub workflow (`createOrUpdateStagingDeploy` action) relied on executing local `git` commands (`git log`, `git show-ref`, `git fetch`) via `GitUtils.ts` to determine the list of pull requests merged between two release tags. This approach was complex, potentially slow, environment-dependent, and prone to parsing errors.
+
+Initial Proposed Solution:
+
+Refactor the process to use the GitHub REST API (`octokit.repos.compareCommits`) instead of local Git commands to fetch commit history and then parse PR numbers using the existing `getValidMergedPRs` logic.
+
+---
+
+Current Status:
+
+*   The `getCommitHistoryBetweenTags` function has been implemented in `GitUtils.ts` using the `octokit.repos.compareCommits` API call.
+*   The primary function `getPullRequestsMergedBetween` has been updated to call *both* the old method (`getCommitHistoryAsJSON` + `getValidMergedPRs`) and the new API-based method (`getCommitHistoryBetweenTags` + `getValidMergedPRs`).
+*   Comparison logic has been added within `getPullRequestsMergedBetween` to log and compare the results from both methods, confirming they are largely consistent.
+*   The workflow currently uses the results from the *new API method*.
+
+---
+
+New Problem:
+
+Cherry-picked commits/PRs that were part of a *previous* release checklist (deployed in the previous version) are being included again in the checklist for the *current* release.
+
+*   **Hypothesis:** This might be occurring because the `staging` branch is deleted and recreated from `main` for each release cycle. When `compareCommits` compares the new `staging` tag against the previous `staging` tag (which might be on a now-deleted ref or an older commit on `main`), it might include commits that were cherry-picked onto the *previous* staging branch but originated from `main` *before* the base tag of the comparison.
+*   The existing `getValidMergedPRs` logic includes a mechanism to remove PRs that appear twice in the commit history (intended to filter out PRs already deployed), but this might not be sufficient to catch these specific cherry-picks when comparing across recreated branches using the API.
+
+---
+
+Next Steps / Potential Solutions:
+
+1.  **Refine Filtering Logic:** Analyze the data returned by `compareCommits` for the problematic cherry-picked commits. See if there's information (e.g., associated PR details, author, commit message patterns distinct from regular merges) that can be used to improve the filtering in `getValidMergedPRs` or a similar function tailored to the API response.
+2.  **Adjust Comparison Base:** Instead of comparing the current `staging` tag (`head`) directly against the previous `staging` tag (`base`), explore alternative `base` refs for the `compareCommits` call. For example:
+    *   Compare against the latest `production` tag.
+    *   Compare against the merge base of the `fromTag` and `toTag`.
+    *   Compare against the commit SHA associated with the previous checklist's successful deployment.
+3.  **Leverage PR Data Directly:** Investigate if the commits returned by `compareCommits` include direct links to the associated Pull Requests. If so, it might be possible to filter based on the PR's merge commit SHA or merge date, rather than relying solely on commit message parsing.
+4.  **State Management:** Consider if the deploy checklist generation process can maintain state about which PRs were included in the *previous* successful deployment, and explicitly exclude those from the current list, regardless of how they appear in the commit history.
+
+Proposed Solution:
+
+Refactor the process to use the GitHub REST API via the existing `octokit` client (`GithubUtils.ts`) instead of local Git commands.
+
+1.  **Replace `getCommitHistoryAsJSON`:** Create a new function (or modify the existing one) that uses `GithubUtils.octokit.repos.compareCommits({ base: fromTag, head: toTag })`.
+    *   This API call directly compares two tags (or any Git refs) and returns the list of commits between them, including commit details.
+    *   This eliminates the need for local `git fetch` and `git log` operations.
+2.  **Extract PR Information from API Data:**
+    *   Modify the `getValidMergedPRs` function (or create a new one) to process the commit data returned by the `compareCommits` API call.
+    *   The API response often contains structured information about associated pull requests within the commit data, which might allow for more direct and reliable PR number extraction than parsing commit messages.
+3.  **Create New Orchestrating Function:** Introduce a new function, `getPullRequestsMergedBetweenAPI(fromTag, toTag)`, in `GitUtils.ts` that:
+    *   Calls the API-based function from step 1 to get commit history.
+    *   Calls the updated function from step 2 to extract PR numbers.
+    *   Returns the final list of PR numbers.
+4.  **Update Workflow Action:** Modify the `.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy.ts` action to call the new `GitUtils.getPullRequestsMergedBetweenAPI` instead of the old `GitUtils.getPullRequestsMergedBetween`.
+
+Benefits:
+
+*   **Simplicity:** Removes complex local Git command execution and output parsing.
+*   **Reliability:** Uses the official, structured GitHub API, reducing fragility.
+*   **Efficiency:** Likely faster as it avoids local Git operations and potentially large history fetches.
+*   **Reduced Dependencies:** Less reliance on the Git client and environment setup on the action runner. 
