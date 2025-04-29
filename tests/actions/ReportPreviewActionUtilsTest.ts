@@ -138,6 +138,31 @@ describe('getReportPreviewAction', () => {
         expect(getReportPreviewAction(VIOLATIONS, report, policy, undefined, isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
+    it('canPay should return false for archived invoice', async () => {
+        const report = {
+            ...createRandomReport(REPORT_ID),
+            type: CONST.REPORT.TYPE.INVOICE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
+            private_isArchived: new Date().toString(),
+        });
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        expect(getReportPreviewAction(VIOLATIONS, report, policy, undefined, isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    });
+
     it('canExport should return true for finished reports', async () => {
         const report = {
             ...createRandomReport(REPORT_ID),
