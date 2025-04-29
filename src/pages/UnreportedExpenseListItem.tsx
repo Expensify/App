@@ -52,12 +52,13 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
                     isSelected={isSelected}
                     shouldShowTooltip={false}
                     dateColumnSize="normal"
-                    onCheckboxPress={() => {}}
+                    onCheckboxPress={() => {
+                        onSelectRow(item);
+                        setIsSelected((val) => !val);
+                    }}
                     containerStyles={emptyStylesArray}
+                    shouldShowCheckBox
                 />
-                <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.expenseWidgetSelectCircle, styles.mln2, styles.pr2]}>
-                    <SelectCircle isChecked={isSelected} />
-                </View>
             </View>
         </BaseListItem>
     );

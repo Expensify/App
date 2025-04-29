@@ -14,6 +14,7 @@ type TransactionItemRowProps = {
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
+    shouldShowCheckBox: boolean;
 };
 
 const story: Meta<typeof TransactionItemRow> = {
@@ -24,6 +25,7 @@ const story: Meta<typeof TransactionItemRow> = {
         shouldUseNarrowLayout: false,
         isSelected: false,
         shouldShowTooltip: true,
+        shouldShowCheckBox: true,
     },
     argTypes: {
         transactionItem: {
@@ -38,13 +40,19 @@ const story: Meta<typeof TransactionItemRow> = {
         shouldShowTooltip: {
             control: 'boolean',
         },
+        shouldShowCheckBox: {
+            control: 'boolean',
+        },
     },
     parameters: {
         useLightTheme: true,
     },
 };
 
-function Template({transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip}: TransactionItemRowProps, {parameters}: {parameters: {useLightTheme?: boolean}}) {
+function Template(
+    {transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip, shouldShowCheckBox}: TransactionItemRowProps,
+    {parameters}: {parameters: {useLightTheme?: boolean}},
+) {
     const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
 
     return (
@@ -58,6 +66,7 @@ function Template({transactionItem, shouldUseNarrowLayout, isSelected, shouldSho
                     shouldShowChatBubbleComponent
                     dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                     onCheckboxPress={() => {}}
+                    shouldShowCheckBox={shouldShowCheckBox}
                 />
             </ThemeStylesProvider>
         </ThemeProvider>

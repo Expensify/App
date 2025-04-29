@@ -117,7 +117,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     showConfirmButton
                     confirmButtonText={translate('iou.addUnreportedExpenseConfirm')}
                     onConfirm={() => {
-                        changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORTID);
+                        changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
                         Navigation.goBack(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
                     }}
                 />

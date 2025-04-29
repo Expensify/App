@@ -30,6 +30,7 @@ function TransactionItemRow({
     shouldShowChatBubbleComponent = false,
     onCheckboxPress,
     containerStyles,
+    shouldShowCheckBox = true,
 }: {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
@@ -39,6 +40,7 @@ function TransactionItemRow({
     shouldShowChatBubbleComponent?: boolean;
     onCheckboxPress: (transactionID: string) => void;
     containerStyles?: ViewStyle[];
+    shouldShowCheckBox: boolean;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -61,17 +63,18 @@ function TransactionItemRow({
                         <View style={containerStyles ?? [hovered ? styles.hoveredComponentBG : backgroundColor, styles.p2, styles.expenseWidgetRadius]}>
                             {' '}
                             <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
-                                {!!selectionMode?.isEnabled && (
-                                    <View style={[styles.mr2, styles.justifyContentCenter]}>
-                                        <Checkbox
-                                            onPress={() => {
-                                                onCheckboxPress(transactionItem.transactionID);
-                                            }}
-                                            accessibilityLabel={CONST.ROLE.CHECKBOX}
-                                            isChecked={isSelected}
-                                        />
-                                    </View>
-                                )}
+                                {!!selectionMode?.isEnabled ||
+                                    (shouldShowCheckBox && (
+                                        <View style={[styles.mr2, styles.justifyContentCenter]}>
+                                            <Checkbox
+                                                onPress={() => {
+                                                    onCheckboxPress(transactionItem.transactionID);
+                                                }}
+                                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                                isChecked={isSelected}
+                                            />
+                                        </View>
+                                    ))}
                                 <View style={[styles.mr3]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
@@ -145,15 +148,17 @@ function TransactionItemRow({
                     {(hovered) => (
                         <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p3, styles.expenseWidgetRadius, styles.gap2]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                                <View style={[styles.mr1]}>
-                                    <Checkbox
-                                        onPress={() => {
-                                            onCheckboxPress(transactionItem.transactionID);
-                                        }}
-                                        accessibilityLabel={CONST.ROLE.CHECKBOX}
-                                        isChecked={isSelected}
-                                    />
-                                </View>
+                                {shouldShowCheckBox && (
+                                    <View style={[styles.mr1]}>
+                                        <Checkbox
+                                            onPress={() => {
+                                                onCheckboxPress(transactionItem.transactionID);
+                                            }}
+                                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                            isChecked={isSelected}
+                                        />
+                                    </View>
+                                )}
                                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
