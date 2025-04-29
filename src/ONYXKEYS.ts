@@ -1,3 +1,4 @@
+import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {OnboardingCompanySize} from './CONST';
@@ -105,13 +106,13 @@ const ONYXKEYS = {
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
     /** Store the information of magic code */
-    VALIDATE_ACTION_CODE: 'validate_action_code',
+    VALIDATE_ACTION_CODE: 'validateActionCode',
 
     /** A list of policies that a user can join */
     JOINABLE_POLICIES: 'joinablePolicies',
 
-    /** Flag to indicate if the joinablePolicies are loading */
-    JOINABLE_POLICIES_LOADING: 'joinablePoliciesLoading',
+    /* Contains meta data for the call to the API to get the joinable policies */
+    VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'validateUserAndGetAccessiblePolicies',
 
     /** Information about the current session (authToken, accountID, email, loading, error) */
     SESSION: 'session',
@@ -130,7 +131,7 @@ const ONYXKEYS = {
     NVP_ONBOARDING: 'nvp_onboarding',
 
     /** This NVP contains data associated with HybridApp */
-    NVP_TRYNEWDOT: 'nvp_tryNewDot',
+    NVP_TRY_NEW_DOT: 'NVP_TRY_NEW_DOT',
 
     /** Contains the platforms for which the user muted the sounds */
     NVP_MUTED_PLATFORMS: 'nvp_mutedPlatforms',
@@ -231,6 +232,12 @@ const ONYXKEYS = {
     /** A timestamp of when the last full reconnect should have been done */
     NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE: 'nvp_reconnectAppIfFullReconnectBefore',
 
+    /** User's first policy creation date */
+    NVP_PRIVATE_FIRST_POLICY_CREATED_DATE: 'nvp_private_firstPolicyCreatedDate',
+
+    /** If the user should see the team 2025 subscription pricing */
+    NVP_PRIVATE_MANUAL_TEAM_2025_PRICING: 'nvp_private_manualTeam2025Pricing',
+
     /** Plaid data (access tokens, bank accounts ...) */
     PLAID_DATA: 'plaidData',
 
@@ -277,6 +284,9 @@ const ONYXKEYS = {
     /** Stores information about the user's saved statements */
     WALLET_STATEMENT: 'walletStatement',
 
+    /** Stores information about the user's purchases */
+    PURCHASE_LIST: 'purchaseList',
+
     /** Stores information about the active personal bank account being set up */
     PERSONAL_BANK_ACCOUNT: 'personalBankAccount',
 
@@ -309,6 +319,9 @@ const ONYXKEYS = {
 
     /** The policyID of the last workspace whose settings were accessed by the user */
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
+
+    /** The policyID of the last workspace whose were accessed by the user via workspace switcher */
+    LAST_ACCESSED_WORKSPACE_SWITCHER_ID: 'lastAccessedWorkspaceSwitcherID',
 
     /** Whether we should show the compose input or not */
     SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
@@ -486,10 +499,26 @@ const ONYXKEYS = {
     TRAVEL_PROVISIONING: 'travelProvisioning',
 
     /** Stores the information about the state of side panel */
-    NVP_SIDE_PANE: 'nvp_sidePanel',
+    NVP_SIDE_PANEL: 'nvp_sidePanel',
 
     /** Information about loading states while talking with AI sales */
     TALK_TO_AI_SALES: 'talkToAISales',
+
+    /** Onyx updates that should be stored after sequential queue is flushed */
+    QUEUE_FLUSHED_DATA: 'queueFlushedData',
+
+    /** Set when we are loading bill when downgrade */
+    IS_LOADING_BILL_WHEN_DOWNGRADE: 'isLoadingBillWhenDowngrade',
+
+    /**
+     * Determines whether billing is required when the user downgrades their plan.
+     * If true, the "Pay & Downgrade" RHP will be displayed to guide the user
+     * through the payment process before downgrading.
+     */
+    SHOULD_BILL_WHEN_DOWNGRADING: 'shouldBillWhenDowngrading',
+
+    /** Billing receipt details */
+    BILLING_RECEIPT_DETAILS: 'billingReceiptDetails',
 
     /** Collection Keys */
     COLLECTION: {
@@ -563,6 +592,9 @@ const ONYXKEYS = {
         /** Expensify cards settings */
         PRIVATE_EXPENSIFY_CARD_SETTINGS: 'private_expensifyCardSettings_',
 
+        /** Expensify cards bank account for a given workspace */
+        EXPENSIFY_CARD_BANK_ACCOUNT_METADATA: 'expensifyCardBankAccountMetadata_',
+
         /** Expensify cards manual billing setting */
         PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING: 'private_expensifyCardManualBilling_',
 
@@ -574,6 +606,9 @@ const ONYXKEYS = {
 
         /** Currently displaying feed */
         LAST_SELECTED_FEED: 'lastSelectedFeed_',
+
+        /** Currently displaying Expensify Card feed */
+        LAST_SELECTED_EXPENSIFY_CARD_FEED: 'lastSelectedExpensifyCardFeed_',
 
         /**  Whether the bank account chosen for Expensify Card in on verification waitlist */
         NVP_EXPENSIFY_ON_CARD_WAITLIST: 'nvp_expensify_onCardWaitlist_',
@@ -742,8 +777,6 @@ const ONYXKEYS = {
         NETSUITE_TOKEN_INPUT_FORM_DRAFT: 'netsuiteTokenInputFormDraft',
         NETSUITE_CUSTOM_FORM_ID_FORM: 'netsuiteCustomFormIDForm',
         NETSUITE_CUSTOM_FORM_ID_FORM_DRAFT: 'netsuiteCustomFormIDFormDraft',
-        NSQS_OAUTH2_FORM: 'nsqsOAuth2Form',
-        NSQS_OAUTH2_FORM_DRAFT: 'nsqsOAuth2FormDraft',
         SAGE_INTACCT_DIMENSION_TYPE_FORM: 'sageIntacctDimensionTypeForm',
         SAGE_INTACCT_DIMENSION_TYPE_FORM_DRAFT: 'sageIntacctDimensionTypeFormDraft',
         SEARCH_ADVANCED_FILTERS_FORM: 'searchAdvancedFiltersForm',
@@ -770,11 +803,16 @@ const ONYXKEYS = {
         RULES_CUSTOM_FORM_DRAFT: 'rulesCustomFormDraft',
         DEBUG_DETAILS_FORM: 'debugDetailsForm',
         DEBUG_DETAILS_FORM_DRAFT: 'debugDetailsFormDraft',
+        ONBOARDING_WORK_EMAIL_FORM: 'onboardingWorkEmailForm',
+        ONBOARDING_WORK_EMAIL_FORM_DRAFT: 'onboardingWorkEmailFormDraft',
+        MERGE_ACCOUNT_DETAILS_FORM: 'mergeAccountDetailsForm',
+        MERGE_ACCOUNT_DETAILS_FORM_DRAFT: 'mergeAccountDetailsFormDraft',
         WORKSPACE_PER_DIEM_FORM: 'workspacePerDiemForm',
         WORKSPACE_PER_DIEM_FORM_DRAFT: 'workspacePerDiemFormDraft',
     },
     DERIVED: {
         CONCIERGE_CHAT_REPORT_ID: 'conciergeChatReportID',
+        REPORT_ATTRIBUTES: 'reportAttributes',
     },
 } as const;
 
@@ -858,7 +896,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM]: FormTypes.NetSuiteCustomFieldForm;
     [ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM]: FormTypes.NetSuiteTokenInputForm;
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM]: FormTypes.NetSuiteCustomFormIDForm;
-    [ONYXKEYS.FORMS.NSQS_OAUTH2_FORM]: FormTypes.NSQSOAuth2Form;
     [ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM]: FormTypes.SageIntacctDimensionForm;
     [ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM]: FormTypes.SearchAdvancedFiltersForm;
     [ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM]: FormTypes.TextPickerModalForm;
@@ -872,6 +909,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.RULES_CUSTOM_FORM]: FormTypes.RulesCustomForm;
     [ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM]: FormTypes.SearchSavedSearchRenameForm;
     [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm | FormTypes.DebugTransactionForm | FormTypes.DebugTransactionViolationForm;
+    [ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM]: FormTypes.OnboardingWorkEmailForm;
+    [ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM]: FormTypes.MergeAccountDetailsForm;
     [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
 };
@@ -925,11 +964,13 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
     [ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
+    [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA]: OnyxTypes.ExpensifyCardBankAccountMetadata;
     [ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING]: boolean;
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: OnyxTypes.CompanyCardFeed;
+    [ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED]: OnyxTypes.FundID;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
 };
@@ -940,8 +981,8 @@ type OnyxValuesMapping = {
 
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding;
 
-    // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
-    [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;
+    // ONYXKEYS.NVP_TRY_NEW_DOT is HybridApp onboarding data
+    [ONYXKEYS.NVP_TRY_NEW_DOT]: OnyxTypes.TryNewDot;
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
@@ -974,7 +1015,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
     [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.ValidateMagicCodeAction;
     [ONYXKEYS.JOINABLE_POLICIES]: OnyxTypes.JoinablePolicies;
-    [ONYXKEYS.JOINABLE_POLICIES_LOADING]: boolean;
+    [ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES]: OnyxTypes.ValidateUserAndGetAccessiblePolicies;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
@@ -983,6 +1024,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.TALK_TO_AI_SALES]: OnyxTypes.TalkToAISales;
+    [ONYXKEYS.QUEUE_FLUSHED_DATA]: OnyxUpdate[];
 
     // The value of this nvp is a string representation of the date when the block expires, or an empty string if the user is not blocked
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
@@ -1020,6 +1062,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.FUND_LIST]: OnyxTypes.FundList;
     [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
+    [ONYXKEYS.PURCHASE_LIST]: OnyxTypes.PurchaseList;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
     [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: string | number;
@@ -1033,6 +1076,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
+    [ONYXKEYS.LAST_ACCESSED_WORKSPACE_SWITCHER_ID]: string;
     [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: boolean;
     [ONYXKEYS.IS_BETA]: boolean;
     [ONYXKEYS.IS_CHECKING_PUBLIC_ROOM]: boolean;
@@ -1082,6 +1126,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;
     [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
+    [ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE]: string;
+    [ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING]: string;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
@@ -1099,11 +1145,15 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
-    [ONYXKEYS.NVP_SIDE_PANE]: OnyxTypes.SidePane;
+    [ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE]: boolean | undefined;
+    [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
+    [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
+    [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
 };
 
 type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: string | undefined;
+    [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: OnyxTypes.ReportAttributesDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

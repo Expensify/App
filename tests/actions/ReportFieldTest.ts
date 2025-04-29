@@ -172,7 +172,6 @@ describe('actions/ReportField', () => {
                 externalIDs: [],
                 isTax: false,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                value: CONST.REPORT_FIELD_TYPES.LIST,
             };
             const createReportFieldArguments: CreateReportFieldArguments = {
                 name: reportFieldName,

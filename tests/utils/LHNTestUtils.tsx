@@ -8,7 +8,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
 import {EnvironmentProvider} from '@components/withEnvironment';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import {ReportIDsContextProvider} from '@hooks/useReportIDs';
+import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
 import DateUtils from '@libs/DateUtils';
 import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
@@ -286,7 +286,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
              * So this is a work around to have currentReportID available
              * only in testing environment.
              *  */}
-            <ReportIDsContextProvider currentReportIDForTests={currentReportID}>
+            <SidebarOrderedReportIDsContextProvider currentReportIDForTests={currentReportID}>
                 <SidebarLinksData
                     insets={{
                         top: 0,
@@ -295,7 +295,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
                         bottom: 0,
                     }}
                 />
-            </ReportIDsContextProvider>
+            </SidebarOrderedReportIDsContextProvider>
         </ComposeProviders>
     );
 }

@@ -16,7 +16,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     const styles = useThemeStyles();
 
     return (
-        <ScrollView>
+        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
             <EmptyStateComponent
                 SkeletonComponent={CardRowSkeleton}
                 containerStyles={styles.mt5}

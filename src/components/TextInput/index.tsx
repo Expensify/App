@@ -2,7 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileChrome} from '@libs/Browser';
+import * as Browser from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
 import BaseTextInput from './BaseTextInput';
@@ -15,7 +15,6 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
     const styles = useThemeStyles();
     const textInputRef = useRef<HTMLFormElement | null>(null);
     const removeVisibilityListenerRef = useRef<RemoveVisibilityListener>(null);
-    const isAutoFocusEnabled = typeof ref === 'function' || props.autoFocus;
 
     useEffect(() => {
         let removeVisibilityListener = removeVisibilityListenerRef.current;
@@ -28,7 +27,7 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
         }
 
         removeVisibilityListener = Visibility.onVisibilityChange(() => {
-            if (!isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
+            if (!Browser.isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
                 return;
             }
             textInputRef.current.blur();
@@ -58,7 +57,6 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
         <BaseTextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            autoFocus={isAutoFocusEnabled}
             ref={(element) => {
                 textInputRef.current = element as HTMLFormElement;
 

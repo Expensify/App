@@ -32,21 +32,24 @@ runs:
           desktop/package-lock.json
 
     - id: cache-node-modules
-      uses: actions/cache@v4
+      # v4
+      uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
       with:
         path: node_modules
         key: ${{ inputs.IS_HYBRID_BUILD == 'true' && format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**', 'Mobile-Expensify/patches/**')) || format('{0}-node-modules-{1}', runner.os, hashFiles('package-lock.json', 'patches/**'))}}
     
     - id: cache-old-dot-node-modules
       if: inputs.IS_HYBRID_BUILD == 'true'
-      uses: actions/cache@v4
+      # v4
+      uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
       with:
         path: Mobile-Expensify/node_modules
         key: ${{ runner.os }}-node-modules-${{ hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**') }}
 
     - id: cache-desktop-node-modules
       if: inputs.IS_DESKTOP_BUILD == 'true'
-      uses: actions/cache@v4
+      # v4
+      uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
       with:
         path: desktop/node_modules
         key: ${{ runner.os }}-desktop-node-modules-${{ hashFiles('desktop/package-lock.json', 'desktop/patches/**') }}

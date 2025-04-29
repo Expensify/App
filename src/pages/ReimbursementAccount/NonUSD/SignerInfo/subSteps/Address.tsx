@@ -7,7 +7,6 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 type NameProps = SubStepProps;
 
@@ -16,7 +15,6 @@ const {STREET, CITY, STATE, ZIP_CODE, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.SIGN
 function Address({onNext, isEditing, onMove}: NameProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
     const countryInputKey = COUNTRY;
     const inputKeys = {
@@ -64,12 +62,9 @@ function Address({onNext, isEditing, onMove}: NameProps) {
         // owner is US based we need to gather last four digits of his SSN
         if (reimbursementAccountDraft?.[inputKeys.country] === CONST.COUNTRY.US) {
             onNext();
-            // currency is set to GBP and owner is UK based, so we skip SSN and Documents step
-        } else if (countryStepCountryValue === CONST.COUNTRY.GB && reimbursementAccountDraft?.[inputKeys.country] === CONST.COUNTRY.GB) {
-            onMove(6, false);
             // owner is not US based so we skip SSN step
         } else {
-            onMove(5, false);
+            onMove(4, false);
         }
     };
 

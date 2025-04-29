@@ -43,7 +43,7 @@ const darkTheme = {
     // Additional keys
     overlay: colors.productDark400,
     inverse: colors.productDark900,
-    shadow: colors.black,
+    shadow: '0px 4px 12px 0px rgba(2,18,4,0.24)',
     componentBG: colors.productDark100,
     hoverComponentBG: colors.productDark300,
     messageHighlightBG: colors.messageHighlightDark,
@@ -154,7 +154,7 @@ const darkTheme = {
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
     navigationBarButtonsStyle: CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT,
-    navigationBarBackgroundColor: `${colors.productDark100}CD`, // CD is 80% opacity (80% of 0xFF)
+    translucentNavigationBarBackgroundColor: `${colors.productDark100}CD`, // CD is 80% opacity (80% of 0xFF)
     colorScheme: CONST.COLOR_SCHEME.DARK,
 } satisfies ThemeColors;
 

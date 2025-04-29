@@ -31,15 +31,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
-import type {ApprovalRule, Attributes, Rate} from '@src/types/onyx/Policy';
+import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-type NewCustomUnit = {
-    customUnitID: string;
-    name: string;
-    attributes: Attributes;
-    rates: Rate;
-};
 
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
@@ -209,7 +202,6 @@ function createPolicyTag(policyID: string, tagName: string) {
                         tags: {
                             [newTagName]: {
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
-                                pendingAction: null,
                             },
                         },
                     },
@@ -1067,5 +1059,3 @@ export {
     downloadTagsCSV,
     getPolicyTagsData,
 };
-
-export type {NewCustomUnit};

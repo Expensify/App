@@ -5,7 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForSignerInfo';
 import getValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForSignerInfo';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -19,26 +18,18 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
-    const values = useMemo(() => getValuesForSignerInfo(['currentUser'], reimbursementAccountDraft), [reimbursementAccountDraft]);
+    const values = useMemo(() => getValuesForSignerInfo(reimbursementAccountDraft), [reimbursementAccountDraft]);
 
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
-    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+    const countryStepCountryValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
 
     const summaryItems = [
         {
             title: values.jobTitle,
             description: translate('signerInfoStep.jobTitle'),
-            shouldShowRightIcon: true,
-            onPress: () => {
-                onMove(0);
-            },
-        },
-        {
-            title: String(values.directors.find((director) => director.directorID === CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY)?.occupation),
-            description: translate('signerInfoStep.occupation'),
             shouldShowRightIcon: true,
             onPress: () => {
                 onMove(1);
@@ -52,7 +43,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             description: translate('signerInfoStep.id'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(5);
+                onMove(4);
             },
         });
     }
@@ -63,7 +54,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             description: translate('signerInfoStep.proofOf'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(5);
+                onMove(4);
             },
         });
     }
@@ -74,29 +65,18 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             description: translate('signerInfoStep.proofOfDirectors'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(5);
+                onMove(4);
             },
         });
     }
 
-    if (isDocumentNeededStatus.isCodiceFiscaleNeeded && values.codiceFisclaleTaxID.length > 0) {
+    if (isDocumentNeededStatus.isCodiceFiscaleNeeded && values.codiceFiscale.length > 0) {
         summaryItems.push({
-            title: values.proofOfDirectors.map((proof) => proof.name).join(', '),
+            title: values.codiceFiscale.map((fiscale) => fiscale.name).join(', '),
             description: translate('signerInfoStep.codiceFiscale'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(5);
-            },
-        });
-    }
-
-    if (isDocumentNeededStatus.isPRDandFSGNeeded && values.PRDandFSG.length > 0) {
-        summaryItems.push({
-            title: values.proofOfDirectors.map((proof) => proof.name).join(', '),
-            description: translate('signerInfoStep.PRDandSFD'),
-            shouldShowRightIcon: true,
-            onPress: () => {
-                onMove(5);
+                onMove(4);
             },
         });
     }
@@ -111,21 +91,21 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             },
         });
 
-        summaryItems.splice(3, 0, {
+        summaryItems.splice(2, 0, {
             title: values.dateOfBirth,
             description: translate('common.dob'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(3);
+                onMove(2);
             },
         });
 
-        summaryItems.splice(4, 0, {
+        summaryItems.splice(3, 0, {
             title: `${values.street}, ${values.city}, ${values.state}, ${values.zipCode}`,
             description: translate('ownershipInfoStep.address'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(4);
+                onMove(3);
             },
         });
     }
@@ -138,6 +118,8 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             pageTitle={translate('signerInfoStep.letsDoubleCheck')}
             summaryItems={summaryItems}
             showOnfidoLinks={false}
+            isLoading={reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation}
+            error={Object.values(reimbursementAccount?.errors ?? []).at(0) ?? ''}
         />
     );
 }

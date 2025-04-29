@@ -1,5 +1,4 @@
 import type {ValueOf} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
@@ -91,16 +90,6 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL]: string;
     /** Signer full address */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
-    /** URL to uploaded copy of signer ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COPY_OF_ID]: FileObject[];
-    /** URL to uploaded proof of signer address */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_ADDRESS_PROOF]: FileObject[];
-    /** URL to proof of directors */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PROOF_OF_DIRECTORS]: FileObject[];
-    /** URL to codice fiscale proof */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_CODICE_FISCALE]: FileObject[];
-    /** URL to PRD and SFG */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PRD_AND_SFG]: FileObject[];
     /** Checkbox - provided truthful information */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION]: boolean;
     /** Checkbox - agrees to terms and conditions */
@@ -210,17 +199,20 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
 
-    /** Whether we create corpay bank account */
+    /** Whether we create corpay bank account (non USD flow Step 2) */
     isCreateCorpayBankAccount?: boolean;
 
-    /** Whether we are saving the company data via the API */
+    /** Whether we are saving the company data via the API (non USD flow Step 3) */
     isSavingCorpayOnboardingCompanyFields?: boolean;
 
-    /** Whether we are saving the beneficial owners data via the API */
+    /** Whether we are saving the beneficial owners data via the API (non USD flow Step 4) */
     isSavingCorpayOnboardingBeneficialOwnersFields?: boolean;
 
     /** Whether we are saving the signer info data via the API */
     isSavingCorpayOnboardingDirectorInformation?: boolean;
+
+    /** Whether we are saving agreements accepted by user via the API (non USD flow Step 6) */
+    isFinishingCorpayBankAccountOnboarding?: boolean;
 
     /** Where the request is successful */
     isSuccess?: boolean;

@@ -9,13 +9,14 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -33,12 +34,12 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const defaultFundID = useDefaultFundID(policyID);
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
-    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`);
+    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${defaultFundID}`);
 
     const connectionName = reconciliationConnection ?? '';
     const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
@@ -47,6 +48,8 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const paymentBankAccountNumber = paymentBankAccountID ? bankAccountsList?.[paymentBankAccountID.toString()]?.accountData?.accountNumber ?? '' : '';
 
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList ?? {});
+
+    const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
 
     const data = useMemo(() => {
         const options = eligibleBankAccounts.map((bankAccount) => {
@@ -78,7 +81,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     }, [eligibleBankAccounts, paymentBankAccountID, styles, translate]);
 
     const updateSettlementAccount = (value: number) => {
-        updateSettlementAccountCard(workspaceAccountID, policyID, value, paymentBankAccountID);
+        updateSettlementAccountCard(domainName, defaultFundID, policyID, value, paymentBankAccountID);
         Navigation.goBack();
     };
 
@@ -90,7 +93,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
         >
             <ScreenWrapper
                 testID={WorkspaceSettlementAccountPage.displayName}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -104,6 +107,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     }}
                 />
                 <SelectionList
+                    addBottomSafeAreaPadding
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}

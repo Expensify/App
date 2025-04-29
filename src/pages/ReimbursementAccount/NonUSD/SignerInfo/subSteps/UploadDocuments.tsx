@@ -18,11 +18,10 @@ import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/For
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import Button from '@components/Button';
 
 type UploadDocumentsProps = SubStepProps;
 
-const {ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID, CODICE_FISCALE, PRD_AND_SFG, SIGNER_PREFIX} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const {ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID, CODICE_FISCALE} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
 function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const {translate} = useLocalize();
@@ -32,22 +31,21 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [downloadPressed, setDownloadPressed] = useState<boolean>(false);
 
     const currency = policy?.outputCurrency ?? '';
     const countryStepCountryValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
 
-    const copyOfIDInputID = `${SIGNER_PREFIX}_${COPY_OF_ID}` as const;
-    const addressProofInputID = `${SIGNER_PREFIX}_${ADDRESS_PROOF}` as const;
-    const directorsProofInputID = `${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}` as const;
-    const codiceFiscaleInputID = `${SIGNER_PREFIX}_${CODICE_FISCALE}` as const;
+    const copyOfIDInputID = COPY_OF_ID;
+    const addressProofInputID = ADDRESS_PROOF;
+    const directorsProofInputID = PROOF_OF_DIRECTORS;
+    const codiceFiscaleInputID = CODICE_FISCALE;
 
     const defaultValues: Record<string, FileObject[]> = {
-        [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? reimbursementAccountDraft?.[copyOfIDInputID] : [],
-        [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? reimbursementAccountDraft?.[addressProofInputID] : [],
-        [directorsProofInputID]: Array.isArray(reimbursementAccountDraft?.[directorsProofInputID]) ? reimbursementAccountDraft?.[directorsProofInputID] : [],
-        [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? reimbursementAccountDraft?.[codiceFiscaleInputID] : [],
+        [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? reimbursementAccountDraft?.[copyOfIDInputID] ?? [] : [],
+        [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? reimbursementAccountDraft?.[addressProofInputID] ?? [] : [],
+        [directorsProofInputID]: Array.isArray(reimbursementAccountDraft?.[directorsProofInputID]) ? reimbursementAccountDraft?.[directorsProofInputID] ?? [] : [],
+        [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? reimbursementAccountDraft?.[codiceFiscaleInputID] ?? [] : [],
     };
 
     const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[copyOfIDInputID]);
@@ -93,11 +91,6 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
         setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: {onUpload: error}});
     };
 
-    const handleDownloadPress = () => {
-        // TODO: perform file download
-        setDownloadPressed(true);
-    };
-
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -118,17 +111,18 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         buttonText={translate('signerInfoStep.chooseFile')}
                         uploadedFiles={uploadedIDs}
                         onUpload={(files) => {
-                            handleSelectFile(files, uploadedIDs, `${SIGNER_PREFIX}_${COPY_OF_ID}`, setUploadedID);
+                            handleSelectFile(files, uploadedIDs, copyOfIDInputID, setUploadedID);
                         }}
                         onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedIDs, `${SIGNER_PREFIX}_${COPY_OF_ID}`, setUploadedID);
+                            handleRemoveFile(fileName, uploadedIDs, copyOfIDInputID, setUploadedID);
                         }}
                         acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                         value={uploadedIDs}
-                        inputID={`${SIGNER_PREFIX}_${COPY_OF_ID}`}
+                        inputID={copyOfIDInputID}
                         setError={(error) => {
-                            setUploadError(error, `${SIGNER_PREFIX}_${COPY_OF_ID}`);
+                            setUploadError(error, copyOfIDInputID);
                         }}
+                        fileLimit={1}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
                     {(isDocumentNeededStatus.isAddressProofNeeded ||
@@ -145,17 +139,18 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         buttonText={translate('signerInfoStep.chooseFile')}
                         uploadedFiles={uploadedProofsOfAddress}
                         onUpload={(files) => {
-                            handleSelectFile(files, uploadedProofsOfAddress, `${SIGNER_PREFIX}_${ADDRESS_PROOF}`, setUploadedProofOfAddress);
+                            handleSelectFile(files, uploadedProofsOfAddress, addressProofInputID, setUploadedProofOfAddress);
                         }}
                         onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedProofsOfAddress, `${SIGNER_PREFIX}_${ADDRESS_PROOF}`, setUploadedProofOfAddress);
+                            handleRemoveFile(fileName, uploadedProofsOfAddress, addressProofInputID, setUploadedProofOfAddress);
                         }}
                         acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                         value={uploadedProofsOfAddress}
-                        inputID={`${SIGNER_PREFIX}_${ADDRESS_PROOF}`}
+                        inputID={addressProofInputID}
                         setError={(error) => {
-                            setUploadError(error, `${SIGNER_PREFIX}_${ADDRESS_PROOF}`);
+                            setUploadError(error, addressProofInputID);
                         }}
+                        fileLimit={1}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
                     {(isDocumentNeededStatus.isProofOfDirecorsNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDandFSGNeeded) && (
@@ -171,17 +166,18 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         buttonText={translate('signerInfoStep.chooseFile')}
                         uploadedFiles={uploadedProofsOfDirectors}
                         onUpload={(files) => {
-                            handleSelectFile(files, uploadedProofsOfDirectors, `${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`, setUploadedProofsOfDirectors);
+                            handleSelectFile(files, uploadedProofsOfDirectors, directorsProofInputID, setUploadedProofsOfDirectors);
                         }}
                         onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedProofsOfDirectors, `${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`, setUploadedProofsOfDirectors);
+                            handleRemoveFile(fileName, uploadedProofsOfDirectors, directorsProofInputID, setUploadedProofsOfDirectors);
                         }}
                         acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                         value={uploadedProofsOfDirectors}
-                        inputID={`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`}
+                        inputID={directorsProofInputID}
                         setError={(error) => {
-                            setUploadError(error, `${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`);
+                            setUploadError(error, directorsProofInputID);
                         }}
+                        fileLimit={1}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.proofOfDirectorsDescription')}</Text>
                     {(isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDandFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
@@ -195,31 +191,21 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         buttonText={translate('signerInfoStep.chooseFile')}
                         uploadedFiles={uploadedCodiceFiscale}
                         onUpload={(files) => {
-                            handleSelectFile(files, uploadedCodiceFiscale, `${SIGNER_PREFIX}_${CODICE_FISCALE}`, setUploadedCodiceFiscale);
+                            handleSelectFile(files, uploadedCodiceFiscale, codiceFiscaleInputID, setUploadedCodiceFiscale);
                         }}
                         onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedCodiceFiscale, `${SIGNER_PREFIX}_${CODICE_FISCALE}`, setUploadedCodiceFiscale);
+                            handleRemoveFile(fileName, uploadedCodiceFiscale, codiceFiscaleInputID, setUploadedCodiceFiscale);
                         }}
                         acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                         value={uploadedCodiceFiscale}
-                        inputID={`${SIGNER_PREFIX}_${CODICE_FISCALE}`}
+                        inputID={codiceFiscaleInputID}
                         setError={(error) => {
-                            setUploadError(error, `${SIGNER_PREFIX}_${CODICE_FISCALE}`);
+                            setUploadError(error, codiceFiscaleInputID);
                         }}
+                        fileLimit={1}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.codiceFiscaleDescription')}</Text>
                     {isDocumentNeededStatus.isPRDandFSGNeeded && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
-                </View>
-            )}
-            {isDocumentNeededStatus.isPRDandFSGNeeded && (
-                <View style={styles.alignItemsStart}>
-                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PDSandFSG')}</Text>
-                    <Button
-                        medium
-                        text={translate('common.download')}
-                        onPress={handleDownloadPress}
-                    />
-                    <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.PDSandFSGDescription')}</Text>
                 </View>
             )}
             <WhyLink containerStyles={[styles.mt6]} />

@@ -90,7 +90,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={PolicyDistanceRatesSettingsPage.displayName}
             >
@@ -99,6 +99,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                     <ScrollView
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="always"
+                        addBottomSafeAreaPadding
                     >
                         <View>
                             {!!defaultUnit && (
@@ -155,7 +156,14 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     <View style={[styles.mh5]}>
                                         <Text style={styles.colorMuted}>
                                             {translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
-                                            <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}>
+                                            <TextLink
+                                                onPress={() => {
+                                                    Navigation.dismissModal();
+                                                    Navigation.isNavigationReady().then(() => {
+                                                        Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                                                    });
+                                                }}
+                                            >
                                                 {translate('workspace.common.moreFeatures')}
                                             </TextLink>
                                             {translate('workspace.distanceRates.changePromptMessage')}

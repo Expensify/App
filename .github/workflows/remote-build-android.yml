@@ -1,0 +1,43 @@
+name: Remote Build Android
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  build:
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'ubuntu-latest-xl' || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project_root: ./
+            variant: 'developmentDebug'
+
+          - project_root: Mobile-Expensify/
+            is_hybrid_build: true
+            variant: 'Debug'
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          submodules: ${{ matrix.is_hybrid_build || false }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
+
+      - name: RNEF Remote Build - Android
+        uses: callstackincubator/android@333f590005be752c28f07e36fa7151be3b2e18da
+        env:
+          PROJECT_ROOT_PATH: ${{ matrix.project_root }}
+        with:
+          variant: ${{ matrix.variant }}
+          github-token: ${{ github.token }}
+          comment-bot: false

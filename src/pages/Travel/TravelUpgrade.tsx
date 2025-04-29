@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import useLocalize from '@hooks/useLocalize';
@@ -51,11 +52,13 @@ function TravelUpgrade() {
                 hideModalContentWhileAnimating
                 useNativeDriver
                 onBackdropPress={Navigation.dismissModal}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
                     includePaddingTop={false}
-                    includeSafeAreaPaddingBottom={false}
+                    enableEdgeToEdgeBottomSafeAreaPadding
+                    shouldKeyboardOffsetBottomSafeAreaPadding
                     testID={TravelUpgrade.displayName}
                 >
                     <WorkspaceConfirmationForm
@@ -64,21 +67,23 @@ function TravelUpgrade() {
                     />
                 </ScreenWrapper>
             </Modal>
-            {isUpgraded ? (
-                <UpgradeConfirmation
-                    onConfirmUpgrade={() => Navigation.goBack()}
-                    policyName=""
-                    isTravelUpgrade
-                />
-            ) : (
-                <UpgradeIntro
-                    feature={feature}
-                    onUpgrade={() => setShouldShowConfirmation(true)}
-                    buttonDisabled={isOffline}
-                    loading={false}
-                    isCategorizing
-                />
-            )}
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                {isUpgraded ? (
+                    <UpgradeConfirmation
+                        onConfirmUpgrade={() => Navigation.goBack()}
+                        policyName=""
+                        isTravelUpgrade
+                    />
+                ) : (
+                    <UpgradeIntro
+                        feature={feature}
+                        onUpgrade={() => setShouldShowConfirmation(true)}
+                        buttonDisabled={isOffline}
+                        loading={false}
+                        isCategorizing
+                    />
+                )}
+            </ScrollView>
         </ScreenWrapper>
     );
 }
