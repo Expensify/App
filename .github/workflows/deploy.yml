@@ -781,12 +781,12 @@ jobs:
           git switch staging
           git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
           git commit --amend -m "$(git log -1 --pretty=%B)" -m "(cherry-picked to staging by ${{ github.actor }})"
-          git push origin staging
 
       - name: Update the Mobile-Expensify submodule on E/App staging
         run: |
           git add Mobile-Expensify
           git commit -m "Update Mobile-Expensify submodule version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
+          git push origin staging
 
   updateChecklistWithVersionBump:
     name: Update deploy checklist with the new version bump
