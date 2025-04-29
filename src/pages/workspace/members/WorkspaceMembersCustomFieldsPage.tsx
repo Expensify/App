@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -13,6 +13,7 @@ import {updateCustomField} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
@@ -40,41 +41,49 @@ function MembersCustomFieldsPage({policy, route, personalDetails}: MembersCustom
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
     const [customField, setCustomField] = useState(member?.[customFieldKey ?? '']);
     const customFieldText = translate(`workspace.common.${customFieldType}`);
-    const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(params.policyID, accountID));
+    const policyID = params.policyID;
+    const goBack = useCallback(() => {
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+    }, [accountID, policyID]);
 
     return (
-        <ScreenWrapper
-            testID="MembersCustomFieldsPage"
-            shouldEnableMaxHeight
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
-            <HeaderWithBackButton
-                title={customFieldText}
-                onBackButtonPress={goBack}
-            />
-            <View style={[styles.ph5, styles.pb5]}>
-                <Text>{translate('workspace.common.customFieldHint')}</Text>
-            </View>
-            <FormProvider
-                formID={ONYXKEYS.FORMS.WORKSPACE_CUSTOM_FIELD_FORM}
-                style={[styles.flexGrow1, styles.ph5]}
-                enabledWhenOffline
-                submitButtonText={translate('common.save')}
-                onSubmit={() => {
-                    updateCustomField(params.policyID, memberLogin, customFieldType, customField ?? '');
-                    goBack();
-                }}
+            <ScreenWrapper
+                testID="MembersCustomFieldsPage"
+                shouldEnableMaxHeight
             >
-                <InputWrapper
-                    autoFocus
-                    InputComponent={TextInput}
-                    label={customFieldText}
-                    role={CONST.ROLE.PRESENTATION}
-                    inputID="customField"
-                    value={customField}
-                    onChangeText={setCustomField}
+                <HeaderWithBackButton
+                    title={customFieldText}
+                    onBackButtonPress={goBack}
                 />
-            </FormProvider>
-        </ScreenWrapper>
+                <View style={[styles.ph5, styles.pb5]}>
+                    <Text>{translate('workspace.common.customFieldHint')}</Text>
+                </View>
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.WORKSPACE_CUSTOM_FIELD_FORM}
+                    style={[styles.flexGrow1, styles.ph5]}
+                    enabledWhenOffline
+                    submitButtonText={translate('common.save')}
+                    onSubmit={() => {
+                        updateCustomField(params.policyID, memberLogin, customFieldType, customField ?? '');
+                        goBack();
+                    }}
+                >
+                    <InputWrapper
+                        autoFocus
+                        InputComponent={TextInput}
+                        label={customFieldText}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputID="customField"
+                        value={customField}
+                        onChangeText={setCustomField}
+                    />
+                </FormProvider>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

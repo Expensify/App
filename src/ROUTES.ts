@@ -1505,8 +1505,8 @@ const ROUTES = {
         getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}` as const,
     },
     WORKSPACE_CUSTOM_FIELDS: {
-        route: 'settings/workspace/:policyID/:accountID/:customFieldType',
-        getRoute: (policyID: string, accountID: number, customFieldType: CustomFieldType) => `/settings/workspace/${policyID}/${accountID}/${customFieldType}` as const,
+        route: 'settings/workspaces/:policyID/members/:accountID/:customFieldType',
+        getRoute: (policyID: string, accountID: number, customFieldType: CustomFieldType) => `/settings/workspaces/${policyID}/members/${accountID}/${customFieldType}` as const,
     },
     WORKSPACE_MEMBER_NEW_CARD: {
         route: 'settings/workspaces/:policyID/members/:accountID/new-card',
