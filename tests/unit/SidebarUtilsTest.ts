@@ -212,6 +212,7 @@ describe('SidebarUtils', () => {
 
             const optionDataPinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_PINNED,
+                reportAttributes: {},
                 reportNameValuePairs: {},
                 reportActions: {},
                 personalDetails: {},
@@ -223,6 +224,7 @@ describe('SidebarUtils', () => {
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
+                reportAttributes: {},
                 reportNameValuePairs: {},
                 reportActions: {},
                 personalDetails: {},
@@ -564,6 +566,7 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.getOptionData({
                 report,
                 reportActions,
+                reportAttributes: {},
                 reportNameValuePairs: {},
                 hasViolations: false,
                 personalDetails: {},
@@ -604,6 +607,7 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
+                    reportAttributes: {},
                     reportNameValuePairs,
                     reportActions: {},
                     personalDetails: {},
@@ -640,6 +644,7 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
+                    reportAttributes: {},
                     reportNameValuePairs,
                     reportActions: {},
                     personalDetails: LHNTestUtils.fakePersonalDetails,
@@ -673,6 +678,7 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
+                    reportAttributes: {},
                     reportNameValuePairs,
                     reportActions: {},
                     personalDetails: {},
@@ -710,6 +716,7 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
+                    reportAttributes: {},
                     reportNameValuePairs,
                     reportActions: {},
                     personalDetails: {},
@@ -777,6 +784,7 @@ describe('SidebarUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
                 const result = SidebarUtils.getOptionData({
                     report,
+                    reportAttributes: {},
                     reportActions,
                     reportNameValuePairs: {},
                     hasViolations: false,
