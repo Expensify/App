@@ -225,10 +225,6 @@ function getTransactionPreviewTextAndTranslationPaths({
         isPreviewHeaderTextComplete = true;
     }
 
-    if (shouldShowRBR && transaction) {
-        isPreviewHeaderTextComplete = true;
-    }
-
     if (!isPreviewHeaderTextComplete) {
         if (hasViolationsOfTypeNotice && transaction && !isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID)) {
             previewHeaderText.push(dotSeparator, {translationPath: 'violations.reviewRequired'});

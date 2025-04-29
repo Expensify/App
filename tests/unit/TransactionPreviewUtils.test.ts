@@ -1,4 +1,5 @@
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -117,6 +118,19 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.canceled'});
+        });
+
+        it('should include "approved" in the preview when the report is approved, regardless of whether RBR is shown', () => {
+            const functionArgs = {
+                ...basicProps,
+                iouReport: {...basicProps.iouReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                transactionDetails: {comment: 'A valid comment', merchant: ''},
+            };
+            jest.spyOn(ReportUtils, 'isPaidGroupPolicyExpenseReport').mockReturnValue(true);
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            console.log(result);
+
+            expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.approved'});
         });
     });
 
