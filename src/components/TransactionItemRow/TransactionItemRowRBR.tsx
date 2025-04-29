@@ -36,8 +36,7 @@ function TransactionItemRowRBR({transaction, containerStyles}: {transaction: Tra
                     width={variables.iconSizeExtraSmall}
                 />
                 <Text
-                    numberOfLines={1}
-                    style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}]}
+                    style={[styles.textMicroSupporting, {color: theme.danger}]}
                 >
                     <RenderHTML html={`<alert-text>${RBRmessages}</alert-text>`} />
                 </Text>
