@@ -164,6 +164,8 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** Disable press on enter for submit button */
     disablePressOnEnter?: boolean;
 
+    /** Render extra button above submit button */
+    shouldRenderFooterAboveSubmit?: boolean;
     /**
      * Determines whether the form should automatically scroll to the end upon rendering or when the value changes.
      * If `true`, the form will smoothly scroll to the bottom after interactions have completed.
@@ -182,17 +184,4 @@ type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
 
 type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, string | undefined>>;
 
-export type {
-    FormProps,
-    ValidInputs,
-    InputComponentValueProps,
-    FormValue,
-    ValueTypeKey,
-    FormOnyxValues,
-    FormOnyxKeys,
-    FormInputErrors,
-    InputRefs,
-    InputComponentBaseProps,
-    ValueTypeMap,
-    FormRef,
-};
+export type {FormProps, ValidInputs, InputComponentValueProps, FormValue, ValueTypeKey, FormOnyxValues, FormOnyxKeys, FormInputErrors, InputRefs, InputComponentBaseProps, FormRef};
