@@ -3,6 +3,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
 import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
@@ -28,6 +29,7 @@ import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem;
@@ -60,7 +62,7 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
+    /** Whether to prevent default focusing of options and focus the text input when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Whether to prevent long press of options */
@@ -125,6 +127,10 @@ function SearchList(
     // Keep track of the number of selected items to determine if we should turn off selection mode
     const selectionRef = useRef(0);
 
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+    });
+
     useEffect(() => {
         selectionRef.current = selectedItemsLength;
 
@@ -163,10 +169,14 @@ function SearchList(
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
                 return;
             }
+            if (selectionMode?.isEnabled) {
+                onCheckboxPress(item);
+                return;
+            }
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [isFocused, isSmallScreenWidth, shouldPreventLongPressRow],
+        [isFocused, isSmallScreenWidth, onCheckboxPress, selectionMode?.isEnabled, shouldPreventLongPressRow],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -311,10 +321,23 @@ function SearchList(
                     }}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     queryJSONHash={queryJSONHash}
+                    policies={policies}
                 />
             );
         },
-        [ListItem, canSelectMultiple, focusedIndex, handleLongPressRow, itemsToHighlight, onCheckboxPress, onSelectRow, queryJSONHash, setFocusedIndex, shouldPreventDefaultFocusOnSelectRow],
+        [
+            ListItem,
+            canSelectMultiple,
+            focusedIndex,
+            handleLongPressRow,
+            itemsToHighlight,
+            onCheckboxPress,
+            onSelectRow,
+            policies,
+            queryJSONHash,
+            setFocusedIndex,
+            shouldPreventDefaultFocusOnSelectRow,
+        ],
     );
 
     return (
@@ -366,7 +389,7 @@ function SearchList(
             >
                 <MenuItem
                     title={translate('common.select')}
-                    icon={Expensicons.Checkmark}
+                    icon={Expensicons.CheckSquare}
                     onPress={turnOnSelectionMode}
                 />
             </Modal>
