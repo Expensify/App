@@ -70,6 +70,10 @@ function canUseGlobalReimbursementsOnND(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) || canUseAllBetas(betas);
 }
 
+function canUseRetractNewDot(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.RETRACT_NEWDOT) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -86,4 +90,5 @@ export default {
     canUseLeftHandBar,
     canUseInAppProvisioning,
     canUseGlobalReimbursementsOnND,
+    canUseRetractNewDot,
 };
