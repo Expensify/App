@@ -426,7 +426,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
                         return;
                     }
-                    confirmExport();
+                    exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
                 }}
             />
         ),
@@ -557,7 +557,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
                     return;
                 }
-                confirmExport();
+                exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED]: {
@@ -565,11 +565,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.CheckCircle,
             value: CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED,
             onSelected: () => {
+                if (!connectedIntegration || !moneyRequestReport) {
+                    throw new Error('Missing data');
+                }
                 if (isExported) {
                     setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
                     return;
                 }
-                confirmExport();
+                markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.HOLD]: {
