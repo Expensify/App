@@ -66,9 +66,9 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {isOnSearch} = useSearchContext();
     const navigation = useNavigation();
 
-    const didUserNavigatedOutOfReportScreen = useCheckIfRouteHasRemainedUnchanged();
+    const didUserNavigateOutOfReportScreen = useCheckIfRouteHasRemainedUnchanged();
     // We want to play the video only when the user is on the page where it was rendered
-    const firstRenderRoute = useFirstRenderRoute(didUserNavigatedOutOfReportScreen);
+    const firstRenderRoute = useFirstRenderRoute(didUserNavigateOutOfReportScreen);
 
     // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
