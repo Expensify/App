@@ -600,7 +600,9 @@ function MoneyRequestReportPreviewContent({
                                             </View>
                                             {!shouldUseNarrowLayout && transactions.length > 2 && (
                                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                                    <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{supportText}</Text>
+                                                    {reportPreviewStyles.expenseCountVisible && (
+                                                        <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{supportText}</Text>
+                                                    )}
                                                     <PressableWithFeedback
                                                         accessibilityRole="button"
                                                         accessible
