@@ -80,11 +80,8 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
     return isExpense && isApprover && isProcessing && isApprovalEnabled && !hasAnyViolations && reportTransactions.length > 0;
 }
 
-function canPay(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
-    const reportNameValuePairs = getReportNameValuePairs(report.chatReportID);
-    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
-
-    if (isChatReportArchived) {
+function canPay(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, isReportArchived = false) {
+    if (isReportArchived) {
         return false;
     }
 
@@ -180,6 +177,7 @@ function getReportPreviewAction(
     report?: Report,
     policy?: Policy,
     transactions?: Transaction[],
+    isReportArchived = false,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -190,7 +188,7 @@ function getReportPreviewAction(
     if (canApprove(report, violations, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, violations, policy)) {
+    if (canPay(report, violations, policy, isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
     if (canExport(report, violations, policy)) {
