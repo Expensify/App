@@ -94,7 +94,7 @@ const backendOnboardingChoices = {
     ADMIN: 'newDotAdmin',
     SUBMIT: 'newDotSubmit',
     TRACK_WORKSPACE: 'newDotTrackWorkspace',
-    TEST_DRIVE_RECEIVER: 'newDotTestDriveReceiver',
+    TEST_DRIVE_RECEIVER: 'testDriveReceiver',
 } as const;
 
 const onboardingChoices = {
