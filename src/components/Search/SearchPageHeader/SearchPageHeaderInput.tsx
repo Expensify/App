@@ -35,6 +35,7 @@ import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@
 import {
     buildUserReadableQueryString,
     buildUserReadableQueryStringWithPolicyID,
+    getQueryWithoutFilters,
     getQueryWithUpdatedValues,
     getQueryWithUpdatedValuesWithoutPolicy,
     isDefaultExpensesQuery,
@@ -145,14 +146,23 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const prevQueryRef = useRef('');
+
     const handleSearchAction = useCallback(
         (value: string) => {
-            if (!isAutocompleteListVisible || !handleSearch) {
+            const queryWithoutFilters = getQueryWithoutFilters(value);
+            const prevQueryWithoutFilters = getQueryWithoutFilters(prevQueryRef.current);
+
+            // Only call handleSearch if the query (without filters) has changed or if there's no previous query
+            if (!handleSearch || (prevQueryRef.current && queryWithoutFilters === prevQueryWithoutFilters)) {
                 return;
             }
+
+            // Update the reference to the current query
+            prevQueryRef.current = value;
             handleSearch(value);
         },
-        [handleSearch, isAutocompleteListVisible],
+        [handleSearch],
     );
 
     const onSearchQueryChange = useCallback(

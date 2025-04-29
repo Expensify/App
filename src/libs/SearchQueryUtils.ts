@@ -25,6 +25,7 @@ import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
+import {parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
 
 type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
@@ -955,6 +956,25 @@ function getCurrentSearchQueryJSON() {
 }
 
 /**
+ * Extracts the query text without the filter parts.
+ * This is used to determine if a user's core search terms have changed,
+ * ignoring any filter modifications.
+ *
+ * @param searchQuery - The complete search query string
+ * @returns The query without filters (core search terms only)
+ */
+function getQueryWithoutFilters(searchQuery: string) {
+    const parsedQuery = parseForAutocomplete(searchQuery);
+    const lastFilter = parsedQuery?.ranges.at(-1);
+
+    if (!lastFilter) {
+        return searchQuery.trim();
+    }
+
+    return searchQuery.slice(lastFilter.start + lastFilter.length).trim();
+}
+
+/**
  * Converts a filter key from old naming (camelCase) to user friendly naming (kebab-case).
  *
  * There are two types of keys used in the context of Search.
@@ -1000,6 +1020,7 @@ export {
     getQueryWithUpdatedValues,
     getQueryWithUpdatedValuesWithoutPolicy,
     getCurrentSearchQueryJSON,
+    getQueryWithoutFilters,
     getUserFriendlyKey,
     isDefaultExpensesQuery,
     shouldHighlight,

@@ -34,7 +34,13 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildUserReadableQueryString,
+    getQueryWithoutFilters,
+    sanitizeSearchValue,
+    shouldHighlight,
+} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -503,12 +509,20 @@ function SearchAutocompleteList(
         return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
-    // Only call search when input value changes, not on focus
+    // Only call search when the query without filters has changed
     const prevQueryRef = useRef(autocompleteQueryValue);
 
     useEffect(() => {
-        // Only proceed if handleSearch exists and query has changed
-        if (!handleSearch || prevQueryRef.current === autocompleteQueryValue) {
+        // Only proceed if handleSearch exists
+        if (!handleSearch) {
+            return;
+        }
+
+        const currentQueryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
+        const prevQueryWithoutFilters = getQueryWithoutFilters(prevQueryRef.current);
+
+        // Skip the search if the query (without filters) hasn't changed
+        if (prevQueryRef.current && currentQueryWithoutFilters === prevQueryWithoutFilters) {
             return;
         }
 
