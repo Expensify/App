@@ -780,7 +780,7 @@ jobs:
         run: |
           git switch staging
           git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
-          git commit --amend -m "$(git log -1 --pretty=%B)" -m "(cherry-picked to ${{ inputs.TARGET }} by ${{ github.actor }})"
+          git commit --amend -m "$(git log -1 --pretty=%B)" -m "(cherry-picked to staging by ${{ github.actor }})"
           git push origin staging
 
       - name: Update the Mobile-Expensify submodule on E/App staging
