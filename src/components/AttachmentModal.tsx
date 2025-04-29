@@ -487,7 +487,7 @@ function AttachmentModal({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isReceiptAttachment, transaction, file, sourceState, iouType]);
 
-    const headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
+    const headerTitleNew = headerTitle ?? translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
     const shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     let shouldShowDownloadButton = false;
     if (!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) {
