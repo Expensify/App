@@ -1,13 +1,15 @@
 ---
-title: NetSuite-Integration.md
+title: Connect to NetSuite
 description: Connect NetSuite to Expensify for streamlined expense reporting and accounting integration.
-keywords: [NetSuite, integration, Expensify, expense reporting, accounting, automated reporting]
+keywords: [NetSuite, integration, Expensify Classic, expense reporting, accounting, automated reporting]
 order: 1
 ---
 
+<div id="expensify-classic" markdown="1">
+
 Expensify integrates directly with NetSuite to automate report exports, customize your coding preferences, and leverage NetSuite's advanced features. Follow the steps below to set up the integration.
 
-## Before You Connect NetSuite to Expensify
+# Before You Connect NetSuite to Expensify
 
 - **Token-based authentication** ensures each request to NetSuite is signed and verified for authenticity.
 - You must have **administrator access** in NetSuite to initiate the connection.
@@ -39,13 +41,13 @@ Expensify integrates directly with NetSuite to automate report exports, customiz
 
 # Step 3: Add Expensify Integration Role to a User
 
-The user you assign this role to must have the required permissions but does not need to be an administrator.
+The user you assign this role to must have the required permissions, but does not need to be an administrator.
 
 1. Go to **Lists > Employees** in NetSuite and find the employee you wish to add the Expensify Integration role to.
 2. Click **Edit > Access**, select the **Expensify Integration** role from the dropdown, and assign it to the user.
 3. Click **Save**.
 
-**Note:** Tokens are tied to both the user and role. You cannot change the role once the token-based connection has been established. Always use the same user/role combination for syncing or exporting.
+**Note:** Tokens are tied to both the user and role. Once the token-based connection has been established, you cannot change the role. Always use the same user/role combination for syncing or exporting.
 
 ---
 
@@ -131,7 +133,7 @@ Ensure **Tax Groups** can be applied to expenses by setting the **Tax Code Lists
 
 # Step 12: Connect Expensify and NetSuite
 
-1. Log into Expensify as a **Workspace Admin** and go to **Settings > Workspaces > [Workspace Name] > Connections > NetSuite**.
+1. Log into Expensify as a **Workspace Admin** and go to **Settings > Workspaces > [Workspace Name] > Accounting > NetSuite**.
 2. Click **Connect to NetSuite**.
 3. Enter your **Account ID** (found in NetSuite under **Setup > Integration > Web Services Preferences**).
 4. Enter the **token** and **token secret**.
@@ -147,7 +149,7 @@ After connecting, the NetSuite connection will sync, and the configuration dialo
 
 ## Can negative expenses be exported to NetSuite? 
 
-Yes, you can export reports with negative totals to NetSuite by selecting **Vendor Bill** as your export option. A Vendor Credit will be created in NetSuite instead of a bill. 
+Yes, you can export reports with negative totals to NetSuite by selecting **Vendor Bill** as your export option. Instead of a bill, a vendor credit will be created in NetSuite. 
 
 **Important**: Only enable this if you pay employees/vendors outside of Expensify.
 
@@ -156,10 +158,12 @@ Yes, you can export reports with negative totals to NetSuite by selecting **Vend
 ## How do you switch the owner of the connection between NetSuite and Expensify?
 
 To transfer the connection ownership:
-1. Navigate to **Settings > Workspaces > Workspace Name > Connections > NetSuite**.
+1. Navigate to **Settings > Workspaces > Workspace Name > Accounting > NetSuite**.
 2. Click **Configure** to review the current settings.
 3. Select **Do not connect to NetSuite**, then **Connect to NetSuite** again.
 4. Enter the new admin's email address and NetSuite account ID.
 5. Follow the steps to reconfigure the connection.
 
 ---
+
+</div>

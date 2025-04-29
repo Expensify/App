@@ -1,13 +1,16 @@
 ---
 title: Configure Certinia
 description: Learn how to configure Certinia's export, coding, and advanced settings in Expensify.
-keywords: [Certinia, export settings, coding, advanced settings, Expensify integration]
+keywords: [Certinia, export settings, coding, advanced settings, Expensify Classic]
 ---
 <div id="expensify-classic" markdown="1">
 
-After connecting Certinia with Expensify, navigate to **Settings > Workspaces > [Workspace Name] > Connections > Certinia > Configure** to set up export, coding, and advanced settings.
+After connecting Certinia with Expensify, navigate to **Settings > Workspaces > [Workspace Name] > Accounting > Certinia > Configure** to set up export, coding, and advanced settings.
+
+---
 
 # Configure Export Settings  
+
 ## Preferred Exporter  
 Assign a preferred exporter—this member will be responsible for exporting reports and receiving error notifications.  
 
@@ -24,7 +27,10 @@ Both types of reports are exported as either **Payable Invoices (FFA)** or **Exp
 ## Default Vendor (FFA)  
 Select a vendor from your Certinia FFA account. This vendor will be assigned to non-reimbursable payable invoices.  
 
+---
+
 # Configure Coding Settings  
+
 ## Company  
 Choose the FinancialForce company for importing and exporting data.  
 
@@ -52,7 +58,10 @@ Projects and assignments can be imported as tags.
 ## Tax  
 Import tax rates from Certinia to apply to expenses.  
 
+---
+
 # Configure Advanced Settings  
+
 ## Auto Sync  
 Auto Sync performs daily updates to your coding and automatically exports reports upon final approval.  
 - **Non-Reimbursable expenses**: Export occurs immediately after final approval.  
@@ -66,6 +75,8 @@ When employees submit expenses in multiple currencies, Certinia may display up t
 - **Summary Total Reimbursement Amount**: Uses the project currency.  
 - **Amount field on Expense Line**: Uses the Expensify workspace default report currency.  
 - **Reimbursable Amount on Expense Line**: Uses the submitter’s resource currency.  
+
+---
 
 # FAQ  
 
