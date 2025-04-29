@@ -16,7 +16,7 @@ import type EmojiTrie from './EmojiTrie';
 import type {SupportedLanguage} from './EmojiTrie';
 import memoize from './memoize';
 
-type HeaderIndice = {code: string; index: number; icon: IconAsset};
+type HeaderIndices = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
 type EmojiPickerList = EmojiPickerListItem[];
@@ -194,8 +194,8 @@ function containsOnlyEmojis(message: string): boolean {
 /**
  * Get the header emojis with their code, icon and index
  */
-function getHeaderEmojis(emojis: EmojiPickerList): HeaderIndice[] {
-    const headerIndices: HeaderIndice[] = [];
+function getHeaderEmojis(emojis: EmojiPickerList): HeaderIndices[] {
+    const headerIndices: HeaderIndices[] = [];
     emojis.forEach((emoji, index) => {
         if (!('header' in emoji)) {
             return;
@@ -667,7 +667,7 @@ function getProcessedText(processedTextArray: TextWithEmoji[], style: StyleProp<
     );
 }
 
-export type {HeaderIndice, EmojiPickerList, EmojiSpacer, EmojiPickerListItem};
+export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 
 export {
     findEmojiByName,

@@ -29,6 +29,7 @@ import {
     getCurrency as getTransactionCurrency,
     getDescription as getTransactionDescription,
     hasReceipt,
+    hasReceiptSource,
     isExpensifyCardTransaction,
     isPending,
     isReceiptBeingScanned,
@@ -113,7 +114,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
         >
             <ReceiptImage
                 source={source}
-                isEReceipt={transactionItem.hasEReceipt}
+                isEReceipt={transactionItem.hasEReceipt && !hasReceiptSource(transactionItem)}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
