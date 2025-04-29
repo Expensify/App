@@ -22,7 +22,7 @@ function TextInputClearButton({onPressButton, shouldAddMarginTop = true, additio
     return (
         <Tooltip text={translate('common.clear')}>
             <PressableWithoutFeedback
-                style={[shouldAddMarginTop && styles.mt4, styles.ml1, additionalStyles]}
+                style={[shouldAddMarginTop && styles.mt4, !shouldAddMarginTop && styles.mr2, styles.ml1, additionalStyles]}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.clear')}
                 onMouseDown={(e) => {
