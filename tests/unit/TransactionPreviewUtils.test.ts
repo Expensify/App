@@ -1,8 +1,8 @@
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import * as ReportUtils from '@src/libs/ReportUtils';
 
 const basicProps = {
     iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
