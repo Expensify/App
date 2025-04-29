@@ -6525,7 +6525,7 @@ function buildOptimisticChatReport({
     writeCapability,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
-    parentReportID = '',
+    parentReportID = undefined,
     description = '',
     avatarUrl = '',
     optimisticReportID = '',
