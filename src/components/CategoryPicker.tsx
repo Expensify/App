@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -17,9 +18,15 @@ type CategoryPickerProps = {
     policyID: string | undefined;
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
+    contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function CategoryPicker({selectedCategory, policyID, onSubmit}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false, contentContainerStyle}: CategoryPickerProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
@@ -76,6 +83,8 @@ function CategoryPicker({selectedCategory, policyID, onSubmit}: CategoryPickerPr
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            contentContainerStyle={contentContainerStyle}
         />
     );
 }

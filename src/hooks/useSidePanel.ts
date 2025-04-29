@@ -3,9 +3,8 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import {triggerSidePanel} from '@libs/actions/SidePanel';
+import SidePanelActions from '@libs/actions/SidePanel';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import Permissions from '@libs/Permissions';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -19,12 +18,12 @@ import useWindowDimensions from './useWindowDimensions';
  */
 function useSidePanelDisplayStatus() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const [sidePanelNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL);
-    const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const [canUseHelpSidePanel = false] = useOnyx(ONYXKEYS.BETAS, {selector: Permissions.canUseHelpSidePanel});
+    const [sidePanelNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL, {canBeMissing: true});
+    const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
+        canBeMissing: true,
         selector: (modal) =>
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT ||
+            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT ||
             modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
             modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL ||
             modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED,
@@ -37,14 +36,14 @@ function useSidePanelDisplayStatus() {
     // - NVP is not set or it is false
     // - language is unsupported
     // - modal centered is visible
-    const shouldHideSidePanel = !isSidePanelVisible || isLanguageUnsupported || isModalCenteredVisible || !canUseHelpSidePanel;
-    const isSidePanelHiddenOrLargeScreen = !isSidePanelVisible || isLanguageUnsupported || isExtraLargeScreenWidth || !canUseHelpSidePanel;
+    const shouldHideSidePanel = !isSidePanelVisible || isLanguageUnsupported || isModalCenteredVisible || !sidePanelNVP;
+    const isSidePanelHiddenOrLargeScreen = !isSidePanelVisible || isLanguageUnsupported || isExtraLargeScreenWidth || !sidePanelNVP;
 
     // The help button is hidden when:
-    // - the user is not part of the corresponding beta
+    // - side pane nvp is not set
     // - Side Panel is displayed currently
     // - language is unsupported
-    const shouldHideHelpButton = !canUseHelpSidePanel || !shouldHideSidePanel || isLanguageUnsupported;
+    const shouldHideHelpButton = !sidePanelNVP || !shouldHideSidePanel || isLanguageUnsupported;
     const shouldHideSidePanelBackdrop = shouldHideSidePanel || isExtraLargeScreenWidth || shouldUseNarrowLayout;
 
     return {
@@ -92,21 +91,13 @@ function useSidePanel() {
     const openSidePanel = useCallback(() => {
         setIsSidePanelTransitionEnded(false);
         KeyboardUtils.dismiss();
-
-        triggerSidePanel({
-            isOpen: true,
-            isOpenNarrowScreen: isExtraLargeScreenWidth ? undefined : true,
-        });
+        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth);
     }, [isExtraLargeScreenWidth]);
 
     const closeSidePanel = useCallback(
         (shouldUpdateNarrow = false) => {
             setIsSidePanelTransitionEnded(false);
-            const shouldOnlyUpdateNarrowLayout = !isExtraLargeScreenWidth || shouldUpdateNarrow;
-            triggerSidePanel({
-                isOpen: shouldOnlyUpdateNarrowLayout ? undefined : false,
-                isOpenNarrowScreen: shouldOnlyUpdateNarrowLayout ? false : undefined,
-            });
+            SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow);
 
             // Focus the composer after closing the Side Panel
             focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);

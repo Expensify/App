@@ -38,7 +38,7 @@ type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
      * it will display pending map icon */
     requireRouteToDisplayMap?: boolean;
 
-    /** Whether the map is interactable or not */
+    /** Whether the map is interactive or not */
     interactive?: boolean;
 };
 

@@ -3,6 +3,7 @@ title: Invite members and assign roles
 description: Invite new members to your workspace and assign them a role
 keywords: [Expensify Classic, invite members, member roles]
 ---
+
 <div id="expensify-classic" markdown="1">
 
 **Workspace Admins can invite new members to a workspace by:**
@@ -20,11 +21,9 @@ Each option is outlined below in more detail.
 Enabling pre-approvals allows members to automatically join your workspace when they create an Expensify account using their domain email address (e.g., yourname@yourcompany.com). 
 
 Follow these steps to enable automatic access to your workspace:
-1. Hover over **Settings**, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
-3. Click the desired workspace name. 
-4. Click the **Members** tab on the left. 
-5. Below your Workspace Joining Link, enable **Pre-approve join requests from validated users at {domain name}**.
+1. Under **Setting > Workspace > [Workspace Name] > Overview**
+2. Scroll to the **Workspace Joining Link** section.
+3. Below the Workspace Joining Link, enable **Pre-approve join requests from validated users at {domain name}**.
 
 ---
 
@@ -33,11 +32,9 @@ Follow these steps to enable automatic access to your workspace:
 You can copy your workspace’s unique link and share it with someone you want to invite to your workspace. 
 
 To find your workspace’s unique link:
-1. Hover over **Settings**, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
-3. Click the desired workspace name. 
-4. Click the **Members** tab on the left.
-5. Copy your Workspace Joining Link and send it via Slack, Teams, or any other communication method. 
+1. Head to **Setting > Workspace > [Workspace Name] > Overview**.
+2. Scroll down to **Workspace Joining Link**.
+3. Copy the Workspace Joining Link and send it via Slack, Teams, or any other communication method. 
 
 ---
 
@@ -45,16 +42,13 @@ To find your workspace’s unique link:
 
 To send an email invitation to your workspace:
 
-1. Hover over **Settings**, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
-3. Click the desired workspace name. 
-4. Click the **Members** tab on the left.
-5. Click **Invite**. 
-6. Enter the phone number or email address of the person you’re inviting. 
-7. Select a role for the new member (see table below).
-8. If your workspace uses Advanced Approvals, select **Approves to**. This determines who the member’s reports must be approved by, if applicable. If no one is selected, then if the member submits a report, anyone with the **Auditor** or **Workspace Admin** role can approve their reports. 
-9. Add a personal message, if desired. This message will appear in the invitation email or message.
-10. Click **Invite**. 
+1. Navigate to **Setting > Workspace > [Workspace Name] > Members**.
+2. Click **Invite**. 
+3. Enter the phone number or email address of the person you’re inviting. 
+4. Select a role for the new member (see table below).
+5. If your workspace uses Advanced Approvals, select **Approves to**. This determines, if applicable, who the member’s reports must be approved by. If no one is selected, then if the member submits a report, anyone with the **Auditor** or **Workspace Admin** role can approve it. 
+6. Add a personal message, if desired. This message will appear in the invitation email or message.
+7. Click **Invite**. 
 
 **Note:** If you’re inviting multiple people who will be assigned the same role, you can enter multiple email addresses or phone numbers by separating them with a comma.
 
@@ -82,14 +76,10 @@ To add members in bulk:
    - **Approves To**
    - **Approval Limit**
    - **Over Limit Forward To**
-2. Hover over **Settings**, then click **Workspaces**. 
-3. Click the **Group** tab on the left. 
-4. Click the desired workspace name. 
-5. Click the **Members** tab on the left.
-6. Click **Import from spreadsheet**.  
-7. Match the columns in your spreadsheet with the Expensify data they correspond to. 
-8. Click **Import**. 
+2. Under **Setting > Workspace > [Workspace Name] > Members**, click **Import from spreadsheet**.  
+3. Match the columns in your spreadsheet with the Expensify data they correspond to. 
+4. Click **Import**. 
 
-**Note:** If you are utilizing the **Advanced Approval** feature, you can specify to who each member should submit their expense reports and who an approver should send approved reports for the next step in the approval process. If someone is the final
+**Note:** If you are utilizing the **Advanced Approval** feature, you can specify to whom each member should submit their expense reports and who an approver should send approved reports for the next step in the approval process. If someone is the final
 
 </div>
