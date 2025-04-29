@@ -66,7 +66,7 @@ jobs:
         uses: actions/github-script@e7aeb8c663f696059ebb5f9ab1425ed2ef511bdb
         with:
           script: |
-            const commitMessages = github.context.payload.commits.map((commit) => commit.message);
+            const commitMessages = context.payload.commits.map((commit) => commit.message);
             core.setOutput(
                 'IS_CHERRY_PICK',
                 commitMessages.some((message) => /.*\(cherry-picked to .* by .*\)$/.test(message)),
