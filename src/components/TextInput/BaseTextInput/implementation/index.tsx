@@ -234,7 +234,7 @@ function BaseTextInput(
         }
         if (newValue && newValue.length > 0) {
             hasValueRef.current = true;
-            // When the componment is uncontrolled, we need to manually activate the label:
+            // When the component is uncontrolled, we need to manually activate the label:
             if (value === undefined) {
                 activateLabel();
             }
@@ -282,8 +282,8 @@ function BaseTextInput(
                     onPress={onPress}
                     tabIndex={-1}
                     accessibilityLabel={label}
-                    // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
-                    // or if multiline is not supplied we calculate the textinput height, using onLayout.
+                    // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
+                    // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
                     style={[
                         autoGrowHeight &&
