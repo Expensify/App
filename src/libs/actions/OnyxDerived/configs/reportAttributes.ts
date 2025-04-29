@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportAttributesDerivedValue, ReportMetadata} from '@src/types/onyx';
 
 let isFullyComputed = false;
+let recentlyUpdated: string[] = [];
 
 /**
  * This derived value is used to get the report attributes for the report.
@@ -40,7 +41,7 @@ export default createOnyxDerivedValueConfig({
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
         const reportMetadataUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_METADATA];
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
-
+        const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         // if we already computed the report attributes and there is no new reports data, return the current value
         if ((isFullyComputed && !sourceValues) || !reports) {
             return currentValue ?? {reports: {}, locale: null};
@@ -50,10 +51,22 @@ export default createOnyxDerivedValueConfig({
         if (isFullyComputed) {
             if (reportUpdates) {
                 dataToIterate = reportUpdates;
+                recentlyUpdated = Object.keys(reportUpdates);
             } else if (reportMetadataUpdates) {
                 dataToIterate = reportMetadataUpdates;
+                recentlyUpdated = Object.keys(reportMetadataUpdates);
             } else if (reportActionsUpdates) {
                 dataToIterate = reportActionsUpdates;
+                recentlyUpdated = Object.keys(reportActionsUpdates);
+            } else if (transactionsUpdates) {
+                // if transactions are updated, we need to get the report actions that are associated with the transactions and recompute reports that have those report actions
+                const recentReportActionsKeys = recentlyUpdated.map((key) =>
+                    key.replace(ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS).replace(ONYXKEYS.COLLECTION.REPORT_METADATA, ONYXKEYS.COLLECTION.REPORT_ACTIONS),
+                );
+                dataToIterate = {};
+                for (const key of recentReportActionsKeys) {
+                    dataToIterate[key] = {};
+                }
             }
         }
         const reportAttributes = Object.keys(dataToIterate).reduce<ReportAttributesDerivedValue['reports']>((acc, key) => {
