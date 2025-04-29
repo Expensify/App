@@ -85,7 +85,7 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
 
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(addSMSDomainIfPhoneNumber(prevPendingContactAction?.contactMethod ?? ''), navigateBackTo, true));
         clearUnvalidatedNewContactMethodAction();
-    }, [pendingContactAction?.actionVerified, prevPendingContactAction?.contactMethod]);
+    }, [pendingContactAction?.actionVerified, prevPendingContactAction?.contactMethod, navigateBackTo]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
