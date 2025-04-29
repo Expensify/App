@@ -47,6 +47,7 @@ type OnyxData = {
     successData?: OnyxUpdate[];
     failureData?: OnyxUpdate[];
     finallyData?: OnyxUpdate[];
+    queueFlushedData?: OnyxUpdate[];
 };
 
 /**
