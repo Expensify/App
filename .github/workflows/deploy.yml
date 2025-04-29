@@ -701,6 +701,7 @@ jobs:
 
   cherryPickVersionBump:
     needs: [createNewVersion]
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     runs-on: ubuntu-latest
     steps:
       # v4.2.2
@@ -790,6 +791,7 @@ jobs:
   updateChecklistWithVersionBump:
     name: Update deploy checklist with the new version bump
     needs: cherryPickVersionBump
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     uses: ./.github/workflows/createDeployChecklist.yml
     secrets: inherit
 
