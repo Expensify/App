@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
-index 7fa12b4..def7140 100644
+index 7fa12b4..fbad638 100644
 --- a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
 +++ b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
 @@ -323,6 +323,7 @@ class VirtualizedList extends StateSafePureComponent {
@@ -21,8 +21,8 @@ index 7fa12b4..def7140 100644
 +              if (this._frames[key].index >= index) {
 +                this._frames[key] = {
 +                  ...this._frames[key],
-+                  offset: this._frames[key].offset  next.length,
-+                  index: this._frames[key].index  1,
++                  offset: this._frames[key].offset + next.length,
++                  index: this._frames[key].index + 1,
 +                }
 +              }
 +            });
