@@ -11,7 +11,6 @@ import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {useSearchContext} from '@components/Search/SearchContext';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import type {PlaybackSpeed} from '@components/VideoPlayerContexts/types';
@@ -65,10 +64,9 @@ function BaseVideoPlayer({
         originalParent,
         shareVideoPlayerElements,
         currentVideoPlayerRef,
-        updateCurrentlyPlayingURL,
+        updateCurrentURLAndReportID,
         videoResumeTryNumberRef,
         setCurrentlyPlayingURL,
-        currentlyPlayingURLReportID,
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
@@ -107,19 +105,18 @@ function BaseVideoPlayer({
     const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
     const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
     const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
-    const {isOnSearch} = useSearchContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
         setIsEnded(false);
         videoResumeTryNumberRef.current = 0;
         if (!isCurrentlyURLSet) {
-            updateCurrentlyPlayingURL(url);
+            updateCurrentURLAndReportID(url, reportID);
         } else if (isPlaying) {
             pauseVideo();
         } else {
             playVideo();
         }
-    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, reportID, updateCurrentURLAndReportID, url, videoResumeTryNumberRef]);
 
     const hideControl = useCallback(() => {
         if (isEnded) {
@@ -227,7 +224,7 @@ function BaseVideoPlayer({
 
             // These two conditions are essential for the mute and unmute functionality to work properly during
             // fullscreen playback on the web
-            if (prevIsMuted.get() && prevVolume.get() === 0 && !status.isMuted) {
+            if (prevIsMuted.get() && prevVolume.get() === 0 && !status.isMuted && status.volume === 0) {
                 updateVolume(lastNonZeroVolume.get());
             }
 
@@ -355,18 +352,15 @@ function BaseVideoPlayer({
 
     // update shared video elements
     useEffect(() => {
-        // in search page, we don't have active report id, so comparing reportID is not necessary
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || (reportID !== currentlyPlayingURLReportID && !isOnSearch)) {
-            return;
-        }
         // On mobile safari, we need to auto-play when sharing video element here
         shareVideoPlayerElements(
             videoPlayerRef.current,
             videoPlayerElementParentRef.current,
             videoPlayerElementRef.current,
             isUploading || isFullScreenRef.current || (!isReadyForDisplayRef.current && !isMobileSafari()),
+            {shouldUseSharedVideoElement, url, reportID},
         );
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef, reportID, currentlyPlayingURLReportID, isOnSearch]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef, reportID]);
 
     // Call bindFunctions() through the refs to avoid adding it to the dependency array of the DOM mutation effect, as doing so would change the DOM when the functions update.
     const bindFunctionsRef = useRef<(() => void) | null>(null);
@@ -413,14 +407,14 @@ function BaseVideoPlayer({
             }
             newParentRef.childNodes[0]?.remove();
         };
-    }, [currentVideoPlayerRef, currentlyPlayingURL, currentlyPlayingURLReportID, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {
             return;
         }
-        updateCurrentlyPlayingURL(url);
-    }, [shouldPlay, updateCurrentlyPlayingURL, url]);
+        updateCurrentURLAndReportID(url, reportID);
+    }, [reportID, shouldPlay, updateCurrentURLAndReportID, url]);
 
     useEffect(() => {
         videoPlayerRef.current?.setStatusAsync({isMuted: true});
@@ -531,6 +525,7 @@ function BaseVideoPlayer({
                                     togglePlayCurrentVideo={togglePlayCurrentVideo}
                                     controlsStatus={controlStatusState}
                                     showPopoverMenu={showPopoverMenu}
+                                    reportID={reportID}
                                 />
                             )}
                         </View>

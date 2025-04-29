@@ -284,7 +284,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceViewTagsPage.displayName}
             >
@@ -360,6 +360,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         customListHeader={getCustomListHeader()}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        addBottomSafeAreaPadding
                         onDismissError={(item) => {
                             clearPolicyTagErrors(policyID, item.value, route.params.orderWeight);
                         }}

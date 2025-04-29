@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
@@ -12,13 +13,15 @@ import {addBusinessWebsiteForDraft} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const COMPANY_WEBSITE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE;
 const STEP_FIELDS = [COMPANY_WEBSITE_KEY];
 
 function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [user] = useOnyx(ONYXKEYS.USER);
 
@@ -46,6 +49,10 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
         },
         shouldSaveDraft: true,
     });
+
+    if (isLoadingReimbursementAccount) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>

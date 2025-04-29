@@ -1,24 +1,24 @@
 PODS:
-  - Airship (18.7.2):
-    - Airship/Automation (= 18.7.2)
-    - Airship/Basement (= 18.7.2)
-    - Airship/Core (= 18.7.2)
-    - Airship/FeatureFlags (= 18.7.2)
-    - Airship/MessageCenter (= 18.7.2)
-    - Airship/PreferenceCenter (= 18.7.2)
-  - Airship/Automation (18.7.2):
+  - Airship (19.2.0):
+    - Airship/Automation (= 19.2.0)
+    - Airship/Basement (= 19.2.0)
+    - Airship/Core (= 19.2.0)
+    - Airship/FeatureFlags (= 19.2.0)
+    - Airship/MessageCenter (= 19.2.0)
+    - Airship/PreferenceCenter (= 19.2.0)
+  - Airship/Automation (19.2.0):
     - Airship/Core
-  - Airship/Basement (18.7.2)
-  - Airship/Core (18.7.2):
+  - Airship/Basement (19.2.0)
+  - Airship/Core (19.2.0):
     - Airship/Basement
-  - Airship/FeatureFlags (18.7.2):
+  - Airship/FeatureFlags (19.2.0):
     - Airship/Core
-  - Airship/MessageCenter (18.7.2):
+  - Airship/MessageCenter (19.2.0):
     - Airship/Core
-  - Airship/PreferenceCenter (18.7.2):
+  - Airship/PreferenceCenter (19.2.0):
     - Airship/Core
-  - AirshipFrameworkProxy (7.1.2):
-    - Airship (= 18.7.2)
+  - AirshipFrameworkProxy (14.1.0):
+    - Airship (= 19.2.0)
   - AirshipServiceExtension (18.7.2)
   - AppAuth (1.7.5):
     - AppAuth/Core (= 1.7.5)
@@ -1606,8 +1606,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-airship (19.2.1):
-    - AirshipFrameworkProxy (= 7.1.2)
+  - react-native-airship (21.4.1):
+    - AirshipFrameworkProxy (= 14.1.0)
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2793,7 +2793,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.35.0):
+  - RNScreens (3.37.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2814,9 +2814,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 3.35.0)
+    - RNScreens/common (= 3.37.0)
     - Yoga
-  - RNScreens/common (3.35.0):
+  - RNScreens/common (3.37.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3376,8 +3376,8 @@ CHECKOUT OPTIONS:
     :http: https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz
 
 SPEC CHECKSUMS:
-  Airship: bb32ff2c5a811352da074480357d9f02dbb8f327
-  AirshipFrameworkProxy: dbd862dc6fb21b13e8b196458d626123e2a43a50
+  Airship: 4f4dc8dc616703787bdf73869437ccd0a52c6db7
+  AirshipFrameworkProxy: 6b6bee0ef983258931a67f701f1171e9ded2d8c5
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
@@ -3464,7 +3464,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 212171f037e3b22e6c2df839aa826806da480b85
   React-microtasksnativemodule: 72564d5469003687d39bfc4efad281df8efc0684
   react-native-advanced-input-mask: 7783a35343e2f0ec4b726d526bda4665e8fc11c9
-  react-native-airship: 8debc21d80534128d87269cb309164e2941b068a
+  react-native-airship: 2ff893d451520832e447fcce7f3f5ed9d3645f6a
   react-native-app-logs: 70fb83d2fe260d3911e5bb222496ef1f7a2bfef9
   react-native-blob-util: d65692a2acce17b7a836805114828142a3634033
   react-native-cameraroll: 78710a5d35b0c6f41899a193e714564d8fd648b0
@@ -3535,7 +3535,7 @@ SPEC CHECKSUMS:
   RNPermissions: ae4949b7250af8edc4791e440490c0f96237b329
   RNReactNativeHapticFeedback: 5fdbbaedabc1698dc3bb2a72105fadf63136a451
   RNReanimated: 67d8eda35002543abb656f25fa1a457ceeab6807
-  RNScreens: 520a873712f4a9822e18004d6959ed0daba38367
+  RNScreens: 9b9bb7f9dc3eb218d79d84e0ac15df65d0e349f2
   RNShare: c91b5757e92391206939fdf8fce0a3d966e2b6d6
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: 297c578f1fa3f8b749137ead32435b7bd8fa9136

@@ -386,6 +386,9 @@ const CONST = {
         horizontal: 12,
         vertical: 80,
     },
+    POPOVER_DATE_WIDTH: 338,
+    POPOVER_DATE_MAX_HEIGHT: 366,
+    POPOVER_DATE_MIN_HEIGHT: 322,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
@@ -677,9 +680,10 @@ const CONST = {
     },
     NON_USD_BANK_ACCOUNT: {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
-        FILE_LIMIT: 10,
+        FILE_LIMIT: 1,
         TOTAL_FILES_SIZE_LIMIT: 5242880,
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
+        CURRENT_USER_KEY: 'currentUser',
         STEP: {
             COUNTRY: 'CountryStep',
             BANK_INFO: 'BankInfoStep',
@@ -734,7 +738,6 @@ const CONST = {
                 FULL_NAME: 'fullName',
                 RESIDENTIAL_ADDRESS: 'residentialAddress',
             },
-            CURRENT_USER_KEY: 'currentUser',
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEP_HEADER_HEIGHT: 40,
@@ -743,7 +746,26 @@ const CONST = {
                 IS_DIRECTOR: 1,
                 ENTER_EMAIL: 2,
                 SIGNER_DETAILS_FORM: 3,
-                HANG_TIGHT: 4,
+                DIRECTOR_DETAILS_FORM: 4,
+                HANG_TIGHT: 5,
+            },
+            SIGNER_INFO_DATA: {
+                SIGNER_PREFIX: 'signer',
+                FULL_NAME: 'signerFullName',
+                DATE_OF_BIRTH: 'signerDateOfBirth',
+                JOB_TITLE: 'signerJobTitle',
+                EMAIL: 'signerEmail',
+                ADDRESS: 'signerCompleteResidentialAddress',
+                STREET: 'signer_street',
+                CITY: 'signer_city',
+                STATE: 'signer_state',
+                ZIP_CODE: 'signer_zipCode',
+                COUNTRY: 'signer_nationality',
+                PROOF_OF_DIRECTORS: 'proofOfDirectors',
+                COPY_OF_ID: 'signerCopyOfID',
+                ADDRESS_PROOF: 'signerAddressProof',
+                CODICE_FISCALE: 'signerCodiceFiscale',
+                DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
             },
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
@@ -771,10 +793,10 @@ const CONST = {
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
-        HELP_SIDE_PANEL: 'newDotHelpSidePanel',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
         LEFT_HAND_BAR: 'leftHandBar',
         WALLET: 'newdotWallet',
+        GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1063,6 +1085,7 @@ const CONST = {
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/settings/Merge-accounts',
+    CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1207,6 +1230,8 @@ const CONST = {
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
+                MOVED_TRANSACTION: 'MOVEDTRANSACTION',
+                UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
@@ -1321,7 +1346,7 @@ const CONST = {
                 },
             },
             THREAD_DISABLED: ['CREATED'],
-            // Used when displaying reportActions list to handle of unread messages icon/button
+            // Used when displaying reportActions list to handle unread messages icon/button
             SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
             ACTION_VISIBLE_THRESHOLD: 250,
         },
@@ -1532,6 +1557,7 @@ const CONST = {
         PUSHER_PING_PONG: 'pusher_ping_pong',
         LOCATION_UPDATE_INTERVAL: 5000,
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
+        SKELETON_ANIMATION_SPEED: 3,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1708,9 +1734,8 @@ const CONST = {
     // 8 alphanumeric characters
     RECOVERY_CODE_REGEX_STRING: /^[a-zA-Z0-9]{8}$/,
 
-    // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
-    // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
-    VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
+    // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags.
+    VALIDATE_FOR_HTML_TAG_REGEX: /<\/?\w*((\s+\w+(\s*=\s*(?:"(.|\n)*?"|'(.|\n)*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g,
 
     // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
     // so when we are using search, we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
@@ -2036,6 +2061,7 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
+        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     XERO_CONFIG: {
@@ -2090,6 +2116,7 @@ const CONST = {
         },
         SYNC_ITEMS: 'syncItems',
         TAX: 'tax',
+        TAX_SOLUTION_ID: 'taxSolutionID',
         EXPORT: 'export',
         EXPORT_DATE: 'exportDate',
         NON_REIMBURSABLE_CREDIT_CARD_VENDOR: 'nonReimbursableCreditCardChargeDefaultVendor',
@@ -3315,6 +3342,8 @@ const CONST = {
         DEFAULT: 'default',
     },
     SUBSCRIPTION: {
+        TEAM_2025_PRICING_START_DATE: new Date(2025, 3, 1),
+        PRICING_TYPE_2025: 'team2025Pricing',
         TYPE: {
             ANNUAL: 'yearly2018',
             PAYPERUSE: 'monthly2018',
@@ -3330,6 +3359,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1000,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.AUD]: {
@@ -3340,6 +3370,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 800,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.GBP]: {
@@ -3350,6 +3381,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 800,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.NZD]: {
@@ -3360,6 +3392,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1600,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
                 },
             },
         };
@@ -3957,61 +3990,34 @@ const CONST = {
         ZW: 'Zimbabwe',
     },
 
-    ALL_EUROPEAN_COUNTRIES: {
-        AL: 'Albania',
-        AD: 'Andorra',
+    ALL_EUROPEAN_UNION_COUNTRIES: {
         AT: 'Austria',
-        BY: 'Belarus',
         BE: 'Belgium',
-        BA: 'Bosnia & Herzegovina',
         BG: 'Bulgaria',
         HR: 'Croatia',
         CY: 'Cyprus',
         CZ: 'Czech Republic',
         DK: 'Denmark',
         EE: 'Estonia',
-        FO: 'Faroe Islands',
         FI: 'Finland',
         FR: 'France',
-        GE: 'Georgia',
         DE: 'Germany',
-        GI: 'Gibraltar',
         GR: 'Greece',
-        GL: 'Greenland',
         HU: 'Hungary',
-        IS: 'Iceland',
         IE: 'Ireland',
-        IM: 'Isle of Man',
         IT: 'Italy',
-        JE: 'Jersey',
-        XK: 'Kosovo',
-        LV: 'Latvia',
-        LI: 'Liechtenstein',
         LT: 'Lithuania',
         LU: 'Luxembourg',
+        LV: 'Latvia',
         MT: 'Malta',
-        MD: 'Moldova',
-        MC: 'Monaco',
-        ME: 'Montenegro',
         NL: 'Netherlands',
-        MK: 'North Macedonia',
-        NO: 'Norway',
         PL: 'Poland',
         PT: 'Portugal',
         RO: 'Romania',
-        RU: 'Russia',
-        SM: 'San Marino',
-        RS: 'Serbia',
         SK: 'Slovakia',
         SI: 'Slovenia',
         ES: 'Spain',
-        SJ: 'Svalbard & Jan Mayen',
         SE: 'Sweden',
-        CH: 'Switzerland',
-        TR: 'Turkey',
-        UA: 'Ukraine',
-        GB: 'United Kingdom',
-        VA: 'Vatican City',
     },
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
@@ -5245,6 +5251,7 @@ const CONST = {
         TAX_RATE_CHANGED: 'taxRateChanged',
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
+        RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
@@ -5584,6 +5591,9 @@ const CONST = {
             DEBUG: 'DEBUG',
         },
     },
+
+    // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
+    MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
@@ -6396,6 +6406,10 @@ const CONST = {
         GROUP_BY: {
             REPORTS: 'reports',
         },
+        BOOLEAN: {
+            YES: 'yes',
+            NO: 'no',
+        },
         TABLE_COLUMN_SIZES: {
             NORMAL: 'normal',
             WIDE: 'wide',
@@ -6403,6 +6417,7 @@ const CONST = {
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
+                UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
@@ -6481,6 +6496,8 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            REIMBURSABLE: 'reimbursable',
+            BILLABLE: 'billable',
             POLICY_ID: 'policyID',
         },
         EMPTY_VALUE: 'none',
@@ -6517,6 +6534,8 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            REIMBURSABLE: 'reimbursable',
+            BILLABLE: 'billable',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
@@ -6934,6 +6953,10 @@ const CONST = {
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
+
+    CALENDAR_PICKER_DAY_HEIGHT: 45,
+    MAX_CALENDAR_PICKER_ROWS: 6,
+
     ILLUSTRATION_ASPECT_RATIO: 39 / 22,
 
     OFFLINE_INDICATOR_HEIGHT: 25,
