@@ -258,9 +258,9 @@ function ComposerWithSuggestions(
 
     const commentRef = useRef(value);
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: getPreferredSkinToneIndex});
-    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: getPreferredSkinToneIndex, canBeMissing: true});
+    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: false});
 
     const lastTextRef = useRef(value);
     useEffect(() => {
