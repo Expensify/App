@@ -87,13 +87,10 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
  * @returns company card name
  */
 function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards: CardList = allCards) {
-    if (!cardID || isExpensifyCard(cardID)) {
+    if (!cardID || isExpensifyCard(cardID) || !cards[cardID]) {
         return transactionCardName;
     }
     const card = cards[cardID];
-    if (!card) {
-        return transactionCardName;
-    }
 
     return card.cardName;
 }
