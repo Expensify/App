@@ -202,7 +202,7 @@ function ScreenWrapper(
     const {initialURL} = useContext(InitialURLContext);
 
     const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {
-        canBeMissing: false,
+        canBeMissing: true,
     });
 
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
@@ -373,6 +373,7 @@ function ScreenWrapper(
             return undefined;
         }
 
+        // Override the prop on purpose to ensure the background is consistent with the address bar and navigation bar on mWeb
         if (isOfflineIndicatorTranslucent && isMobile()) {
             return styles.appBG;
         }
