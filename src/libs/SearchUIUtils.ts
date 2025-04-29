@@ -267,43 +267,103 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
 
 /**
  * @private
+ * Cache for processed transactions to avoid duplicate processing
+ */
+const processedTransactionsCache = new Map<string, TransactionListItemType>();
+
+/**
+ * @private
+ * Get or process a transaction
+ */
+function getProcessedTransaction(
+    data: OnyxTypes.SearchResults['data'],
+    key: string,
+    metadata: OnyxTypes.SearchResults['search'],
+    shouldShowMerchant: boolean,
+    doesDataContainAPastYearTransaction: boolean,
+    shouldShowBlankTo: boolean,
+): TransactionListItemType {
+    if (!isTransactionEntry(key)) {
+        throw new Error(`Invalid transaction key format: ${key}. Expected key to start with ${ONYXKEYS.COLLECTION.TRANSACTION}`);
+    }
+
+    const transactionItem = data[key];
+    const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`] as SearchReport | undefined;
+    const action = getAction(data, key);
+    const cacheKey = `${key}-${shouldShowMerchant}-${doesDataContainAPastYearTransaction}-${shouldShowBlankTo}-${action}-${report?.stateNum}`;
+    const cachedTransaction = processedTransactionsCache.get(cacheKey);
+    if (cachedTransaction) {
+        return cachedTransaction;
+    }
+    const processed = processTransaction(data, key, metadata, shouldShowMerchant, doesDataContainAPastYearTransaction, shouldShowBlankTo);
+    processedTransactionsCache.set(cacheKey, processed);
+    return processed;
+}
+
+/**
+ * @private
+ * Shared transaction processor that can be used by both getTransactionsSections and getReportSections
+ */
+function processTransaction(
+    data: OnyxTypes.SearchResults['data'],
+    key: string,
+    metadata: OnyxTypes.SearchResults['search'],
+    shouldShowMerchant: boolean,
+    doesDataContainAPastYearTransaction: boolean,
+    shouldShowBlankTo: boolean,
+): TransactionListItemType {
+    if (!isTransactionEntry(key)) {
+        throw new Error(`Invalid transaction key format: ${key}. Expected key to start with ${ONYXKEYS.COLLECTION.TRANSACTION}`);
+    }
+
+    const transactionItem = data[key];
+    if (!transactionItem) {
+        throw new Error(`Transaction not found for key: ${key}`);
+    }
+
+    const from = data.personalDetailsList?.[transactionItem.accountID];
+    const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
+
+    const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
+
+    return {
+        ...transactionItem,
+        action: getAction(data, key),
+        from,
+        to,
+        formattedFrom,
+        formattedTo: shouldShowBlankTo ? '' : formattedTo,
+        formattedTotal,
+        formattedMerchant,
+        date,
+        shouldShowMerchant,
+        shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
+        shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
+        shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
+        keyForList: transactionItem.transactionID,
+        shouldShowYear: doesDataContainAPastYearTransaction,
+    };
+}
+
+/**
+ * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
  *
  * Do not use directly, use only via `getSections()` facade.
  */
 function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionListItemType[] {
+    const dataKeys = Object.keys(data);
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
+    const transactionKeys = dataKeys.filter(isTransactionEntry);
 
-    return Object.keys(data)
-        .filter(isTransactionEntry)
-        .map((key) => {
-            const transactionItem = data[key];
-            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
-            const shouldShowBlankTo = isOpenExpenseReport(report);
-            const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
+    return transactionKeys.map((key) => {
+        const transaction = data[key];
+        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const shouldShowBlankTo = isOpenExpenseReport(report);
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
-
-            return {
-                ...transactionItem,
-                action: getAction(data, key),
-                from,
-                to,
-                formattedFrom,
-                formattedTo: shouldShowBlankTo ? '' : formattedTo,
-                formattedTotal,
-                formattedMerchant,
-                date,
-                shouldShowMerchant,
-                shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
-                shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
-                shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
-                keyForList: transactionItem.transactionID,
-                shouldShowYear: doesDataContainAPastYearTransaction,
-            };
-        });
+        return getProcessedTransaction(data, key, metadata, shouldShowMerchant, doesDataContainAPastYearTransaction, shouldShowBlankTo);
+    });
 }
 
 /**
@@ -496,28 +556,8 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
             const shouldShowBlankTo = isOpenExpenseReport(report);
 
-            const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
+            const transaction = getProcessedTransaction(data, key, metadata, shouldShowMerchant, doesDataContainAPastYearTransaction, shouldShowBlankTo);
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
-
-            const transaction = {
-                ...transactionItem,
-                action: getAction(data, key),
-                from,
-                to,
-                formattedFrom,
-                formattedTo: shouldShowBlankTo ? '' : formattedTo,
-                formattedTotal,
-                formattedMerchant,
-                date,
-                shouldShowMerchant,
-                shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
-                shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
-                shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
-                keyForList: transactionItem.transactionID,
-                shouldShowYear: doesDataContainAPastYearTransaction,
-            };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
             } else if (reportIDToTransactions[reportKey]) {
@@ -837,5 +877,6 @@ export {
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
+    processedTransactionsCache,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuItem};
