@@ -417,7 +417,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
     useLayoutEffect(parseFSAttributes, []);
 
     return (
-        <View style={[styles.flex1]}>
+        <View style={[styles.flex1, styles.pv4]}>
             {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
                 <>
                     <ButtonWithDropdownMenu
@@ -441,7 +441,6 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                                 }
                             }}
                         />
-
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={() => {
@@ -466,7 +465,6 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
-
                 {isEmpty(visibleReportActions) && isEmpty(transactions) ? (
                     <>
                         <MoneyRequestViewReportFields
