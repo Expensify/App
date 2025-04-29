@@ -169,6 +169,8 @@ function SettlementButton({
                     icon: formattedPaymentMethod?.icon,
                     onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType),
                     iconStyles: formattedPaymentMethod.iconStyles,
+                    iconHeight: formattedPaymentMethod.iconSize,
+                    iconWidth: formattedPaymentMethod.iconSize,
                 }));
 
             if (isIndividualInvoiceRoomUtil(chatReport)) {
@@ -178,7 +180,7 @@ function SettlementButton({
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: [
-                        ...(isCurrencySupported ? getPaymentSubitems(false) : []),
+                        ...(true ? getPaymentSubitems(false) : []),
                         {
                             text: translate('workspace.invoices.paymentMethods.addBankAccount'),
                             icon: Expensicons.Bank,
