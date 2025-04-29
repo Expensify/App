@@ -127,7 +127,7 @@ function isPayAction(report: Report, policy?: Policy, reportNameValuePairs?: Rep
 
     const isIOUReport = isIOUReportUtils(report);
 
-    if (isIOUReport && isReportPayer) {
+    if (isIOUReport && isReportPayer && reimbursableSpend > 0) {
         return true;
     }
 

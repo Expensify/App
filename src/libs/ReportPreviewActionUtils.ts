@@ -113,7 +113,7 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
 
     const isIOU = isIOUReport(report);
 
-    if (isIOU && isReportPayer && !isReimbursed) {
+    if (isIOU && isReportPayer && !isReimbursed && reimbursableSpend > 0) {
         return true;
     }
 
