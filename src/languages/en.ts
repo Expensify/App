@@ -1111,7 +1111,7 @@ const translations = {
         heldExpense: 'held this expense',
         unheldExpense: 'unheld this expense',
         explainHold: "Explain why you're holding this expense.",
-        retract: 'Retract',
+        undoSubmit: 'Undo submit',
         retracted: 'retracted',
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
