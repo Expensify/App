@@ -15,6 +15,7 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
 const FILTER_KEYS = {
     TYPE: 'type',
     STATUS: 'status',
+    GROUP_BY: 'groupBy',
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
     SUBMITTED_AFTER: 'submittedAfter',
@@ -44,9 +45,6 @@ const FILTER_KEYS = {
     FROM: 'from',
     TO: 'to',
     IN: 'in',
-    TITLE: 'title',
-    ASSIGNEE: 'assignee',
-    CREATED_BY: 'createdBy',
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
 } as const;
@@ -58,6 +56,7 @@ type SearchAdvancedFiltersForm = Form<
     {
         [FILTER_KEYS.TYPE]: string;
         [FILTER_KEYS.STATUS]: string;
+        [FILTER_KEYS.GROUP_BY]: string;
         [FILTER_KEYS.DATE_AFTER]: string;
         [FILTER_KEYS.DATE_BEFORE]: string;
         [FILTER_KEYS.SUBMITTED_AFTER]: string;
@@ -87,9 +86,6 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.FROM]: string[];
         [FILTER_KEYS.TO]: string[];
         [FILTER_KEYS.IN]: string[];
-        [FILTER_KEYS.TITLE]: string;
-        [FILTER_KEYS.ASSIGNEE]: string[];
-        [FILTER_KEYS.CREATED_BY]: string[];
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
     }
