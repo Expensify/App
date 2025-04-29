@@ -1,5 +1,5 @@
 import type {ComponentType} from 'react';
-import {useCallback, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {SubStepProps, UseSubStep} from './types';
 
 function calculateLastIndex(bodyContentLength: number, skipSteps: number[] = []) {
@@ -22,6 +22,10 @@ function calculateLastIndex(bodyContentLength: number, skipSteps: number[] = [])
 export default function useSubStep<TProps extends SubStepProps>({bodyContent, onFinished, startFrom = 0, skipSteps = [], onNextSubStep = () => {}}: UseSubStep<TProps>) {
     const [screenIndex, setScreenIndex] = useState(startFrom);
     const isEditing = useRef(false);
+
+    useEffect(() => {
+        setScreenIndex(startFrom);
+    }, [startFrom]);
 
     if (bodyContent.length === skipSteps.length) {
         throw new Error('All steps are skipped');
