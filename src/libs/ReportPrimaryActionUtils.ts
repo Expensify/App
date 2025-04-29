@@ -242,8 +242,13 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
         return true;
     }
 
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-    return shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) && !isReportApprovedUtils({report}) && !isReportManuallyReimbursed(report);
+    const userControlsReport = isReportSubmitter || isReportApprover || isAdmin;
+    return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
 function getReportPrimaryAction(
