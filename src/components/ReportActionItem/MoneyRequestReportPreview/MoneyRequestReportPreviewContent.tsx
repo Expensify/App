@@ -530,6 +530,26 @@ function MoneyRequestReportPreviewContent({
         ),
     };
 
+    useEffect(() => {
+        const node = carouselRef.current?.getScrollableNode?.() as HTMLElement;
+        if (node) {
+            const horizontalWheel = (ev: WheelEvent) => {
+                const deltaX = ev.deltaX || 0;
+                const deltaY = ev.deltaY || 0;
+                if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    node.scrollLeft += deltaX;
+                }
+            };
+            node.addEventListener('wheel', horizontalWheel, {capture: true});
+
+            return () => {
+                node.removeEventListener('wheel', horizontalWheel, {capture: true});
+            };
+        }
+    }, []);
+
     return (
         transactions.length > 0 && (
             <OfflineWithFeedback
