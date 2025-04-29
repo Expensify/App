@@ -4,7 +4,7 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 import hasKeyTriggeredCompute from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAttributesDerivedValue, ReportMetadata} from '@src/types/onyx';
+import type {Report, ReportAction, ReportAttributesDerivedValue, ReportMetadata} from '@src/types/onyx';
 
 let isFullyComputed = false;
 
@@ -39,23 +39,32 @@ export default createOnyxDerivedValueConfig({
 
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
         const reportMetadataUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_METADATA];
+        const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
+
         // if we already computed the report attributes and there is no new reports data, return the current value
         if ((isFullyComputed && !sourceValues) || !reports) {
             return currentValue ?? {reports: {}, locale: null};
         }
 
-        let dataToIterate: Record<string, Report | ReportMetadata | undefined> = reports;
+        let dataToIterate: Record<string, Report | ReportMetadata | ReportAction | undefined> = reports;
         if (isFullyComputed) {
             if (reportUpdates) {
                 dataToIterate = reportUpdates;
             } else if (reportMetadataUpdates) {
                 dataToIterate = reportMetadataUpdates;
+            } else if (reportActionsUpdates) {
+                dataToIterate = reportActionsUpdates;
             }
         }
-
         const reportAttributes = Object.keys(dataToIterate).reduce<ReportAttributesDerivedValue['reports']>((acc, key) => {
             // source value sends partial data, so we need an entire report object to do computations
-            const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${key.replace(ONYXKEYS.COLLECTION.REPORT, '').replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '')}`];
+            const report =
+                reports[
+                    `${ONYXKEYS.COLLECTION.REPORT}${key
+                        .replace(ONYXKEYS.COLLECTION.REPORT, '')
+                        .replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '')
+                        .replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')}`
+                ];
             if (!report || !isValidReport(report)) {
                 return acc;
             }
