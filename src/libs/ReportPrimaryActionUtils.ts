@@ -11,7 +11,6 @@ import {
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
-    isPolicyAdmin,
     isPrefferedExporter,
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID} from './ReportActionsUtils';
@@ -30,7 +29,6 @@ import {
     isPayer,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
-    isReportManuallyReimbursed,
     isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
