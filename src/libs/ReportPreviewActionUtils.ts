@@ -16,13 +16,11 @@ import {
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
-    getReportNameValuePairs,
     getReportTransactions,
     hasMissingSmartscanFields,
     hasNoticeTypeViolations,
     hasViolations,
     hasWarningTypeViolations,
-    isArchivedReport,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
