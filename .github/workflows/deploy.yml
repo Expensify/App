@@ -790,10 +790,7 @@ jobs:
 
   updateChecklistWithVersionBump:
     name: Update deploy checklist with the new version bump
-    needs:
-      - cherryPickVersionBump
-      - checkDeploymentSuccess
-      - prep
+    needs: [prep, checkDeploymentSuccess, cherryPickVersionBump]
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     uses: ./.github/workflows/createDeployChecklist.yml
     secrets: inherit
