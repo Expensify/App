@@ -6,6 +6,8 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
+jest.mock('@components/ConfirmedRoute.tsx');
+
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
@@ -54,16 +56,18 @@ describe('ReportActionItemSingle', () => {
             };
 
             function setup() {
-                LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
                 const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [fakePolicy], (item) => item.id);
-
-                return waitForBatchedUpdates().then(() =>
-                    Onyx.multiSet({
-                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
-                        [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-                        ...policyCollectionDataSet,
-                    }),
-                );
+                return waitForBatchedUpdates()
+                    .then(() =>
+                        Onyx.multiSet({
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            ...policyCollectionDataSet,
+                        }),
+                    )
+                    .then(() => {
+                        LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
+                    });
             }
 
             it('renders secondary Avatar properly', async () => {
@@ -75,10 +79,11 @@ describe('ReportActionItemSingle', () => {
                 });
             });
 
-            it('renders Person information', () => {
+            it('renders Person information', async () => {
                 const [expectedPerson] = fakeReportAction.person ?? [];
 
-                return setup().then(() => {
+                await setup();
+                await waitFor(() => {
                     expect(screen.getByText(expectedPerson.text ?? '')).toBeOnTheScreen();
                 });
             });

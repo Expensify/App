@@ -46,6 +46,7 @@ import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWo
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatPhoneNumber as formatPhoneNumberUtil} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -108,9 +109,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
     );
 
-    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
     const {selectionMode} = useMobileSelectionMode();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
@@ -290,9 +291,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
      */
     const toggleAllUsers = (memberList: MemberOption[]) => {
         const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
-        const everyoneSelected = enabledAccounts.every((member) => selectedEmployees.includes(member.accountID));
+        const someSelected = enabledAccounts.some((member) => selectedEmployees.includes(member.accountID));
 
-        if (everyoneSelected) {
+        if (someSelected) {
             setSelectedEmployees([]);
         } else {
             const everyAccountId = enabledAccounts.map((member) => member.accountID);
@@ -669,6 +670,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
+            shouldUseHeadlineHeader={!selectionModeHeader}
             shouldShowOfflineIndicatorInWideScreen
             shouldShowThreeDotsButton={isPolicyAdmin}
             threeDotsMenuItems={threeDotsMenuItems}
@@ -680,7 +682,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                     turnOffMobileSelectionMode();
                     return;
                 }
-                Navigation.goBack();
+                goBackFromWorkspaceCentralScreen(policyID);
             }}
         >
             {() => (
@@ -693,6 +695,8 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         prompt={translate('common.thisFeatureRequiresInternet')}
                         confirmText={translate('common.buttonConfirm')}
                         shouldShowCancelButton={false}
+                        onCancel={() => setIsOfflineModalVisible(false)}
+                        shouldHandleNavigationBack
                     />
 
                     <ConfirmModal
@@ -746,6 +750,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                             listHeaderContent={shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : null}
                             showScrollIndicator={false}
+                            addBottomSafeAreaPadding
                         />
                     </View>
                 </>

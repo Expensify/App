@@ -14,6 +14,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import type Nullable from '@src/types/utils/Nullable';
 import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
@@ -31,8 +32,8 @@ import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import getSearchBottomTabHeaderStyles from './searchBottomTabHeaderStyles.ts';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
+import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
 import type {
     AllStyles,
     AvatarSize,
@@ -97,7 +98,7 @@ const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
-    [CONST.AVATAR_SIZE.XLARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.X_LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.componentBorderRadiusMedium,
 };
@@ -110,7 +111,7 @@ const avatarSizes: Record<AvatarSizeName, AvatarSizeValue> = {
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
     [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
-    [CONST.AVATAR_SIZE.XLARGE]: variables.avatarSizeXLarge,
+    [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarSizeXLarge,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
@@ -138,7 +139,7 @@ const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.SMALL]: 2,
     [CONST.AVATAR_SIZE.SMALLER]: 2,
     [CONST.AVATAR_SIZE.LARGE]: 4,
-    [CONST.AVATAR_SIZE.XLARGE]: 4,
+    [CONST.AVATAR_SIZE.X_LARGE]: 4,
     [CONST.AVATAR_SIZE.MEDIUM]: 3,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
 };
@@ -610,7 +611,7 @@ function getModalPaddingStyles({
         marginTop: getCombinedSpacing(modalContainerStyle.marginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
         marginBottom: getCombinedSpacing(modalContainerStyle.marginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
         paddingTop: getCombinedSpacing(modalContainerStyle.paddingTop, safeAreaPaddingTop, shouldAddTopSafeAreaPadding),
-        paddingBottom: getCombinedSpacing(modalContainerStyle.paddingBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaPadding),
+        paddingBottom: getCombinedSpacing(modalContainerStyle.paddingBottom, safeAreaPaddingBottom, shouldAddBottomSafeAreaPadding),
         paddingLeft: safeAreaPaddingLeft ?? 0,
         paddingRight: safeAreaPaddingRight ?? 0,
     };
@@ -1248,7 +1249,7 @@ const staticStyleUtils = {
     getFileExtensionColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
-    getSearchBottomTabHeaderStyles,
+    getSearchPageNarrowHeaderStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getSignInBgStyles,
@@ -1449,8 +1450,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         const computedStyleForPM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.PM ? {backgroundColor: theme.componentBG} : {};
 
         return {
-            styleForAM: [styles.timePickerWidth100, computedStyleForAM],
-            styleForPM: [styles.timePickerWidth100, computedStyleForPM],
+            styleForAM: [styles.timePickerWidth72, computedStyleForAM],
+            styleForPM: [styles.timePickerWidth72, computedStyleForPM],
         };
     },
 
@@ -1766,6 +1767,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : [],
         {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
     ],
+
+    getResetStyle: <K extends TextStyle | ViewStyle>(keys: Array<keyof K>) =>
+        keys.reduce((styleobj: Nullable<K>, key) => {
+            // eslint-disable-next-line no-param-reassign
+            styleobj[key] = null;
+            return styleobj;
+        }, {} as Nullable<K>) as K,
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

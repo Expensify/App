@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,8 +41,8 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [cardFeeds, cardFeedsResult] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+    const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const feedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
 
@@ -82,7 +83,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceCompanyCardsSettingsFeedNamePage.displayName}
                 style={styles.defaultModalContainer}
@@ -100,6 +101,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
                     validate={validate}
                     onSubmit={submit}
                     shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

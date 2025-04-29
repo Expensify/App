@@ -19,6 +19,10 @@ function isBlockedFromSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 }
 
+function isTravelVerified(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.IS_TRAVEL_VERIFIED) || canUseAllBetas(betas);
+}
+
 function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
@@ -34,16 +38,8 @@ function canUseMergeAccounts(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS) || canUseAllBetas(betas);
 }
 
-function canUsePDFExport(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_PDF_EXPORT) || canUseAllBetas(betas);
-}
-
 function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MANAGER_MCTEST) || canUseAllBetas(betas);
-}
-
-function canUseInternationalBankAccount(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT) || canUseAllBetas(betas);
 }
 
 function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
@@ -52,10 +48,6 @@ function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
 
 function canUseTableReportView(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
-}
-
-function canUseHelpSidePanel(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.HELP_SIDE_PANEL) || canUseAllBetas(betas);
 }
 
 function canUseTalkToAISales(betas: OnyxEntry<Beta[]>): boolean {
@@ -70,20 +62,33 @@ function canUseLeftHandBar(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.LEFT_HAND_BAR) || canUseAllBetas(betas);
 }
 
+function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WALLET) || canUseAllBetas(betas);
+}
+
+function canUseGlobalReimbursementsOnND(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) || canUseAllBetas(betas);
+}
+
+function canUsePrivateDomainOnboarding(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.PRIVATE_DOMAIN_ONBOARDING) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
     canUseSpotnanaTravel,
     isBlockedFromSpotnanaTravel,
+    isTravelVerified,
     canUseNetSuiteUSATax,
-    canUsePDFExport,
     canUseMergeAccounts,
     canUseManagerMcTest,
-    canUseInternationalBankAccount,
     canUseCustomRules,
     canUseTableReportView,
-    canUseHelpSidePanel,
     canUseTalkToAISales,
     canUseProhibitedExpenses,
     canUseLeftHandBar,
+    canUseInAppProvisioning,
+    canUseGlobalReimbursementsOnND,
+    canUsePrivateDomainOnboarding,
 };

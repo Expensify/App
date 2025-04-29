@@ -17,6 +17,12 @@ type IntroSelected = {
 
     /** Task reportID for 'createWorkspace' type */
     createWorkspace?: string;
+
+    /** Company size selected during onboarding */
+    companySize?: string;
+
+    /** Task reportID for 'setupCategories' type */
+    setupCategories?: string;
 };
 
 export default IntroSelected;

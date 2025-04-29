@@ -3,7 +3,15 @@ import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo} from 'react-native';
+import type {
+    LayoutChangeEvent,
+    NativeSyntheticEvent,
+    SectionList as RNSectionList,
+    TextInput as RNTextInput,
+    SectionListData,
+    SectionListRenderItemInfo,
+    TextInputKeyPressEventData,
+} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -23,6 +31,7 @@ import usePrevious from '@hooks/usePrevious';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
+import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
@@ -120,6 +129,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldDebounceScrolling = false,
         shouldPreventActiveCellVirtualization = false,
         shouldScrollToFocusedIndex = true,
+        isSmallScreenWidth,
         onContentSizeChange,
         listItemTitleStyles,
         initialNumToRender = 12,
@@ -128,6 +138,9 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldSubscribeToArrowKeyEvents = true,
         addBottomSafeAreaPadding = false,
         addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+        fixedNumItemsForLoader,
+        loaderSpeed,
+        errorText,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -170,7 +183,7 @@ function BaseSelectionList<TItem extends ListItem>(
      * Iterates through the sections and items inside each section, and builds 4 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
      * - `disabledOptionsIndexes`: Contains the indexes of all the unselectable and disabled items in the list
-     * - `disabledArrowKeyOptionsIndexes`: Contains the indexes of item that is not navigatable by the arrow key. The list is separated from disabledOptionsIndexes because unselectable item is still navigatable by the arrow key.
+     * - `disabledArrowKeyOptionsIndexes`: Contains the indexes of item that is not navigable by the arrow key. The list is separated from disabledOptionsIndexes because unselectable item is still navigable by the arrow key.
      * - `itemLayouts`: Contains the layout information for each item, header and footer in the list,
      * so we can calculate the position of any given item when scrolling programmatically
      */
@@ -235,6 +248,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 'Dev error: SelectionList - multiple items are selected but prop `canSelectMultiple` is false. Please enable `canSelectMultiple` or make your list have only 1 item with `isSelected: true`.',
             );
         }
+        const totalSelectable = allOptions.length - disabledOptionsIndexes.length;
 
         return {
             allOptions,
@@ -242,7 +256,8 @@ function BaseSelectionList<TItem extends ListItem>(
             disabledOptionsIndexes,
             disabledArrowKeyOptionsIndexes,
             itemLayouts,
-            allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
+            allSelected: selectedOptions.length > 0 && selectedOptions.length === totalSelectable,
+            someSelected: selectedOptions.length > 0 && selectedOptions.length < totalSelectable,
         };
     }, [canSelectMultiple, sections, customListHeader, customListHeaderHeight, itemHeights, getItemHeight]);
 
@@ -271,7 +286,7 @@ function BaseSelectionList<TItem extends ListItem>(
         ) : null;
         return [processedSections, showMoreButton];
         // we don't need to add styles here as they change
-        // we don't need to add flattendedSections here as they will change along with sections
+        // we don't need to add flattenedSections here as they will change along with sections
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [sections, currentPage]);
 
@@ -398,6 +413,9 @@ function BaseSelectionList<TItem extends ListItem>(
 
                 if (shouldShowTextInput) {
                     clearInputAfterSelect();
+                } else if (isSmallScreenWidth) {
+                    onCheckboxPress?.(item);
+                    return;
                 }
             }
 
@@ -423,6 +441,8 @@ function BaseSelectionList<TItem extends ListItem>(
             shouldPreventDefaultFocusOnSelectRow,
             isFocused,
             isScreenFocused,
+            isSmallScreenWidth,
+            onCheckboxPress,
         ],
     );
 
@@ -514,6 +534,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={flattenedSections.allSelected}
+                            isIndeterminate={flattenedSections.someSelected}
                             onPress={selectAllRow}
                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                         />
@@ -583,7 +604,13 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
-            return <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
+            return (
+                <OptionsListSkeletonView
+                    fixedNumItems={fixedNumItemsForLoader}
+                    shouldStyleAsTable={shouldUseUserSkeletonView}
+                    speed={loaderSpeed}
+                />
+            );
         }
         if (shouldShowListEmptyContent) {
             return listEmptyContent;
@@ -591,10 +618,18 @@ function BaseSelectionList<TItem extends ListItem>(
         return null;
     };
 
+    const textInputKeyPress = useCallback((event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+        const key = event.nativeEvent.key;
+        if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+            focusedItemRef?.focus();
+        }
+    }, []);
+
     const renderInput = () => {
         return (
             <View style={[styles.ph5, styles.pb3]}>
                 <TextInput
+                    onKeyPress={textInputKeyPress}
                     ref={(element) => {
                         innerTextInputRef.current = element as RNTextInput;
 
@@ -628,6 +663,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     isLoading={isLoadingNewOptions}
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
+                    errorText={errorText}
                 />
             </View>
         );
@@ -713,7 +749,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 ? -1
                 : 0;
 
-        // reseting the currrent page to 1 when the user types something
+        // Reset the current page to 1 when the user types something
         setCurrentPage(1);
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
@@ -774,7 +810,7 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     /**
-     * Handles isTextInputFocusedRef value when using external TextInput, so external TextInput is not defocused when typing in it.
+     * Handles isTextInputFocusedRef value when using external TextInput, so external TextInput does not lose focus when typing in it.
      *
      * @param isTextInputFocused - Is external TextInput focused.
      */
