@@ -28,12 +28,13 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
     data: T[];
     renderItem: ListRenderItem<T>;
     initialScrollKey?: string | null;
+    onInitiallyLoaded?: () => void;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
 function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
-    const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
+    const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, onInitiallyLoaded, ...rest} = props;
     // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
     // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
     // previous items, until everything is rendered. We also progressively render new data that is added at the start of the
@@ -82,6 +83,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
         setShouldInitiallyScrollToFirstMessage(false);
     }, [data.length, displayedData.length, shouldInitiallyScrollToFirstMessage]);
+        onInitiallyLoaded?.();
 
     const isLoadingData = data.length > displayedData.length;
     const wasLoadingData = usePrevious(isLoadingData);

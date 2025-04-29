@@ -344,27 +344,33 @@ function ReportActionsList({
         prevReportID = report.reportID;
     }, [report.reportID]);
 
+    const [isListInitiallyLoaded, setIsListInitiallyLoaded] = useState(false);
+    const [isScrolledToStart, setIsScrolledToStart] = useState(false);
     useEffect(() => {
         if (report.reportID !== prevReportID) {
             return;
         }
 
-        if (isUnread(report, transactionThreadReport)) {
-            // On desktop, when the notification center is displayed, isVisible will return false.
-            // Currently, there's no programmatic way to dismiss the notification center panel.
-            // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
-            const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
-                readNewestAction(report.reportID);
-                if (isFromNotification) {
-                    Navigation.setParams({referrer: undefined});
-                }
-            } else {
-                readActionSkipped.current = true;
+        if (!isUnread(report, transactionThreadReport) || !isListInitiallyLoaded) {
+            return;
+        }
+
+        // On desktop, when the notification center is displayed, isVisible will return false.
+        // Currently, there's no programmatic way to dismiss the notification center panel.
+        // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
+        const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
+
+        if ((isVisible || isFromNotification) && isScrolledToStart) {
+            readNewestAction(report.reportID);
+
+            if (isFromNotification) {
+                Navigation.setParams({referrer: undefined});
             }
+        } else {
+            readActionSkipped.current = true;
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible]);
+    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, isScrolledToStart, isListInitiallyLoaded]);
 
     useEffect(() => {
         if (linkedReportActionID || unreadMarkerReportActionID) {
@@ -482,6 +488,16 @@ function ReportActionsList({
 
     const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+
+        // Once we hit the start of the list, we want to trigger the read last message logic, if the message is unread
+        if (scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD) {
+            if (!isScrolledToStart) {
+                setIsScrolledToStart(true);
+            }
+        } else if (isScrolledToStart) {
+            setIsScrolledToStart(false);
+        }
+
         handleUnreadFloatingButton();
         onScroll?.(event);
     };
@@ -673,7 +689,7 @@ function ReportActionsList({
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }, [shouldShowSkeleton]);
 
-    const onStartReached = useCallback(() => {
+    const handleStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
             return;
@@ -715,11 +731,12 @@ function ReportActionsList({
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
-                    onStartReached={onStartReached}
+                    onStartReached={handleStartReached}
                     onStartReachedThreshold={0.75}
                     ListHeaderComponent={listHeaderComponent}
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
+                    onInitiallyLoaded={() => setIsListInitiallyLoaded(true)}
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     onScrollToIndexFailed={onScrollToIndexFailed}
