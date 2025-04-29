@@ -12,6 +12,7 @@ import {
     hasAccountingConnections,
     hasIntegrationAutoSync,
     isPrefferedExporter,
+    isPolicyAdmin,
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID} from './ReportActionsUtils';
 import {
@@ -30,6 +31,8 @@ import {
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
     isSettled,
+    isReportApproved,
+    isReportManuallyReimbursed,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {
@@ -233,14 +236,8 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
         return true;
     }
 
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-
-    const userControlsReport = isReportSubmitter || isReportApprover || isAdmin;
-    return userControlsReport && shouldShowBrokenConnectionViolation;
+    return shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) && !isReportApproved({report}) && !isReportManuallyReimbursed(report)
 }
 
 function getReportPrimaryAction(
