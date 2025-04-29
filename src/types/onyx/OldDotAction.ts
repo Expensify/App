@@ -13,33 +13,6 @@ import type {
 /**
  *
  */
-type OldDotOriginalMessageActionName =
-    | 'CHANGEFIELD'
-    | 'CHANGEPOLICY'
-    | 'CHANGETYPE'
-    | 'DELEGATESUBMIT'
-    | 'EXPORTCSV'
-    | 'EXPORTINTEGRATION'
-    | 'INTEGRATIONSMESSAGE'
-    | 'MANAGERATTACHRECEIPT'
-    | 'MANAGERDETACHRECEIPT'
-    | 'MARKEDREIMBURSED'
-    | 'MARKREIMBURSEDFROMINTEGRATION'
-    | 'OUTDATEDBANKACCOUNT'
-    | 'REIMBURSEMENTACHBOUNCE'
-    | 'REIMBURSEMENTACHCANCELLED'
-    | 'REIMBURSEMENTACCOUNTCHANGED'
-    | 'REIMBURSEMENTDELAYED'
-    | 'SELECTEDFORRANDOMAUDIT'
-    | 'SHARE'
-    | 'STRIPEPAID'
-    | 'TAKECONTROL'
-    | 'UNAPPROVED'
-    | 'UNSHARE';
-
-/**
- *
- */
 type OriginalMessageChangeField = {
     /**
      *
@@ -208,7 +181,7 @@ type OriginalMessageReimbursementACHCancelled = {
     /**
      *
      */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED;
     /**
      *
      */
@@ -370,7 +343,7 @@ type OldDotOriginalMessageMap = {
     /**
      *
      */
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED]: OriginalMessageReimbursementACHCancelled;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED]: OriginalMessageReimbursementACHCancelled;
     /**
      *
      */
@@ -427,25 +400,4 @@ type OldDotLegacyAction = {
 type OldDotAction = ValueOf<OldDotOriginalMessageMap>;
 
 export default OldDotAction;
-export type {
-    OriginalMessageChangeField,
-    OldDotOriginalMessageActionName,
-    OriginalMessageDelegateSubmit,
-    OriginalMessageExportedToCSV,
-    OriginalMessageExportedToIntegration,
-    OriginalMessageIntegrationsMessage,
-    OriginalMessageManagerAttachReceipt,
-    OriginalMessageManagerDetachReceipt,
-    OriginalMessageMarkReimbursedFromIntegration,
-    OriginalMessageOutdatedBankAccount,
-    OriginalMessageReimbursementACHBounce,
-    OriginalMessageReimbursementACHCancelled,
-    OriginalMessageReimbursementAccountChanged,
-    OriginalMessageReimbursementDelayed,
-    OriginalMessageSelectedForRandomAudit,
-    OriginalMessageShare,
-    OriginalMessageUnshare,
-    OriginalMessageTakeControl,
-    OldDotOriginalMessageMap,
-    OldDotLegacyAction,
-};
+export type {OldDotLegacyAction, OldDotOriginalMessageMap, OriginalMessageExportedToIntegration};

@@ -7,6 +7,10 @@ RCT_EXPORT_MODULE()
     return @false;
 }
 
+- (void)shouldUseStaging:(BOOL)isStaging {
+    NSLog(@"[ReactNativeHybridApp] `shouldUseStaging` should never be called in standalone `New Expensify` app");
+}
+
 - (void)closeReactNativeApp:(BOOL)shouldSignOut shouldSetNVP:(BOOL)shouldSetNVP {
     NSLog(@"[ReactNativeHybridApp] `closeReactNativeApp` should never be called in standalone `New Expensify` app");
 }

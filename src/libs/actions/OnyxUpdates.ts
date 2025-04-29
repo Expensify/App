@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {queueOnyxOptimisticUpdates, queueOnyxUpdates} from './QueuedOnyxUpdates';
+import {queueOnyxUpdates} from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -33,9 +33,6 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
     const updateHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
 
-    // Push the front-end data like optimisticData, successData, failureData, finallyData of write requests to another queue to apply them after the responses are updated in onyx. This ensures that data like `isLoading` is only applied after the API response is written to local storage.
-    const updateOptimisticHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxOptimisticUpdates : Onyx.update;
-
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
     // in successData/failureData until after the component has received and API data.
@@ -44,7 +41,7 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
         .then(() => {
             // Handle the request's success/failure data (client-side data)
             if (response.jsonCode === 200 && request.successData) {
-                return updateOptimisticHandler(request.successData);
+                return updateHandler(request.successData);
             }
             if (response.jsonCode !== 200 && request.failureData) {
                 // 460 jsonCode in Expensify world means "admin required".
@@ -55,13 +52,13 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
                     Log.info('[OnyxUpdateManager] Received 460 status code, not applying failure data');
                     return Promise.resolve();
                 }
-                return updateOptimisticHandler(request.failureData);
+                return updateHandler(request.failureData);
             }
             return Promise.resolve();
         })
         .then(() => {
             if (request.finallyData) {
-                return updateOptimisticHandler(request.finallyData);
+                return updateHandler(request.finallyData);
             }
             return Promise.resolve();
         })

@@ -1,5 +1,5 @@
 ---
-title: Manage Your Expensify Subscription
+title: Manage Expensify Subscription
 description: Learn how to manage your subscription, update billing details, cancel early, or delete a workspace in New Expensify.
 keywords: [New Expensify, subscription, billing, payment card, cancel subscription, delete workspace, remove workspace, subscription settings]
 ---
@@ -7,7 +7,9 @@ keywords: [New Expensify, subscription, billing, payment card, cancel subscripti
 
 Easily manage your subscription in New Expensify—update payment details, adjust your plan, request early cancellation, or delete a workspace if needed.
 
-# Manage your subscription
+---
+
+# Manage Subscription
 
 To view or manage your subscription in New Expensify:
 
@@ -18,15 +20,15 @@ To view or manage your subscription in New Expensify:
 
 ---
 
-## Add a payment card
+## Add Payment Card
 
 Click **Add Payment Card** and enter your card details to ensure uninterrupted billing.
 
-![Screenshot of Add Payment Card option]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Default.png){:width="100%"}
+![Screenshot of Add Payment Card option]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Default-Update.png){:width="100%"}
 
 ---
 
-## Manage your subscription plan
+## Manage Subscription Plan
 
 In the Subscription section, you can view and update your plan details, including:
 
@@ -37,28 +39,28 @@ In the Subscription section, you can view and update your plan details, includin
 
 **Note:** Enabling auto-increase will extend your annual subscription end date.
 
-![Screenshot of subscription details]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Details.png){:width="100%"}
+![Screenshot of subscription details]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Details-Update.png){:width="100%"}
 
 ---
 
-## Request early cancellation
+## Request Early Cancellation
 
 To request an early cancellation:
 
-- Go to the **Subscription** section.
-- Click **Request Early Cancellation**.
+1. Go to the **Subscription** section.
+2. Click **Request Early Cancellation**.
 
 **Note:** Early cancellations aren’t available to all customers.
 
-![Screenshot of cancellation button]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Billing.png){:width="100%"}
+![Screenshot of cancellation button]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Billing-Update-2.png){:width="100%"}
 
 ---
 
-## Delete a workspace
+## Delete a Workspace
 
 To permanently delete a workspace:
 
-1. Go to `Settings > Workspaces`.
+1. Go to **Settings > Workspaces**.
 2. Click the three dots next to the workspace name.
 3. Select **Delete workspace** from the dropdown.
 4. Confirm the deletion when prompted.
@@ -67,7 +69,7 @@ To permanently delete a workspace:
 
 ---
 
-## Pricing information
+## Pricing Information
 
 Visit our [Billing page](https://help.expensify.com/new-expensify/hubs/billing-and-subscriptions/) for full pricing details.
 

@@ -23,6 +23,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -49,6 +50,7 @@ function SecuritySettingsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
+    const {canUseMergeAccounts} = usePermissions();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
@@ -117,13 +119,21 @@ function SecuritySettingsPage() {
                 icon: Expensicons.Shield,
                 action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute())),
             },
-            {
-                translationKey: 'closeAccountPage.closeAccount',
-                icon: Expensicons.ClosedSign,
-                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE)),
-            },
         ];
 
+        if (canUseMergeAccounts) {
+            baseMenuItems.push({
+                translationKey: 'mergeAccountsPage.mergeAccount',
+                icon: Expensicons.ArrowCollapse,
+                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route)),
+            });
+        }
+
+        baseMenuItems.push({
+            translationKey: 'closeAccountPage.closeAccount',
+            icon: Expensicons.ClosedSign,
+            action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE)),
+        });
         return baseMenuItems.map((item) => ({
             key: item.translationKey,
             title: translate(item.translationKey as TranslationPaths),
@@ -133,7 +143,7 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate]);
+    }, [translate, waitForNavigate, styles, isActingAsDelegate, canUseMergeAccounts]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
@@ -255,7 +265,7 @@ function SecuritySettingsPage() {
                     <HeaderWithBackButton
                         title={translate('initialSettingsPage.security')}
                         shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={() => Navigation.goBack()}
+                        onBackButtonPress={() => Navigation.goBack(undefined, {shouldPopToTop: true})}
                         icon={Illustrations.LockClosed}
                         shouldUseHeadlineHeader
                         shouldDisplaySearchRouter

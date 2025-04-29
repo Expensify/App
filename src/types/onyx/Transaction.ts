@@ -54,6 +54,9 @@ type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
 
 /** Model of transaction comment */
 type Comment = {
+    /** Selected attendees */
+    attendees?: Attendee[];
+
     /** Content of the transaction comment */
     comment?: string;
 
@@ -176,6 +179,9 @@ type Receipt = {
 
     /** Collection of reservations */
     reservationList?: Reservation[];
+
+    /** Receipt is manager_mctest@expensify.com testing receipt */
+    isTestReceipt?: true;
 };
 
 /** Model of route */
@@ -207,27 +213,6 @@ type ReceiptError = {
 
 /** Collection of receipt errors, indexed by a UNIX timestamp of when the error occurred */
 type ReceiptErrors = Record<string, ReceiptError>;
-
-/** Tax rate data */
-type TaxRateData = {
-    /** Tax rate percentage */
-    value: string;
-
-    /** Tax rate code */
-    code?: string;
-};
-
-/** Model of tax rate */
-type TaxRate = {
-    /** Default name of the tax rate */
-    text: string;
-
-    /** Key of the tax rate to index it on options list */
-    keyForList: string;
-
-    /** Data of the tax rate */
-    data?: TaxRateData;
-};
 
 /** This represents the details of the traveler */
 type TravelerPersonalDetails = {
@@ -391,9 +376,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The original transaction amount */
         amount: number;
 
-        /** Selected attendees */
-        attendees?: Attendee[];
-
         /** The transaction tax amount */
         taxAmount?: number;
 
@@ -476,7 +458,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         isFromGlobalCreate?: boolean;
 
         /** The transaction tax rate */
-        taxRate?: TaxRate;
+        taxRate?: string | undefined;
 
         /** Card Transactions */
 
@@ -560,6 +542,9 @@ type AdditionalTransactionChanges = {
     /** Collection of modified waypoints */
     waypoints?: WaypointCollection;
 
+    /** Collection of modified attendees */
+    attendees?: Attendee[];
+
     /** The ID of the distance rate */
     customUnitRateID?: string;
 
@@ -587,13 +572,11 @@ export type {
     ReceiptErrors,
     TransactionPendingFieldsKey,
     TransactionChanges,
-    TaxRate,
     Reservation,
     ReservationTimeDetails,
     ReservationType,
     ReceiptSource,
     TransactionCollectionDataSet,
-    SplitShare,
     SplitShares,
     TransactionCustomUnit,
 };

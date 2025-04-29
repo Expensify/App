@@ -1,4 +1,6 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {isBefore} from 'date-fns';
+import debounce from 'lodash/debounce';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -19,7 +21,6 @@ import type {
     UpdatePreferredEmojiSkinToneParams,
     UpdateStatusParams,
     UpdateThemeParams,
-    ValidateLoginParams,
     ValidateSecondaryLoginParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -38,8 +39,8 @@ import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import Visibility from '@libs/Visibility';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -334,6 +335,12 @@ function clearUnvalidatedNewContactMethodAction() {
     Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, null);
 }
 
+function clearPendingContactActionErrors() {
+    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
+        errorFields: null,
+    });
+}
+
 /**
  * When user adds a new contact method, they need to verify the magic code first
  * So we add the temporary contact method to Onyx to use it later, after user verified magic code.
@@ -342,76 +349,6 @@ function addPendingContactMethod(contactMethod: string) {
     Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
         contactMethod,
     });
-}
-
-/**
- * Validates the action to add secondary contact method
- */
-function saveNewContactMethodAndRequestValidationCode(contactMethod: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                contactMethod,
-                errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
-                    actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: true},
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                validateCodeSent: true,
-                errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
-                    actionVerified: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                validateCodeSent: null,
-                errorFields: {
-                    actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
-                },
-                pendingFields: {
-                    actionVerified: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
 }
 
 /**
@@ -429,9 +366,6 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
                     errorFields: {
                         addedLogin: null,
                     },
-                    pendingFields: {
-                        addedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
                 },
             },
         },
@@ -444,26 +378,12 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
-            value: {
-                [contactMethod]: {
-                    pendingFields: {
-                        addedLogin: null,
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
                 contactMethod: null,
                 validateCodeSent: null,
                 actionVerified: true,
                 errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
                     actionVerified: null,
                 },
             },
@@ -477,26 +397,12 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
-            value: {
-                [contactMethod]: {
-                    errorFields: {
-                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
-                    },
-                    pendingFields: {
-                        addedLogin: null,
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {isLoading: false},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {validateCodeSent: null},
         },
     ];
@@ -561,38 +467,6 @@ function requestValidateCodeAction() {
     ];
 
     API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
-}
-
-/**
- * Validates a login given an accountID and validation code
- */
-function validateLogin(accountID: number, validateCode: string) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const finallyData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const parameters: ValidateLoginParams = {accountID, validateCode};
-
-    API.write(WRITE_COMMANDS.VALIDATE_LOGIN, parameters, {optimisticData, finallyData});
-    Navigation.navigate(ROUTES.HOME);
 }
 
 /**
@@ -853,12 +727,12 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
                 // mention user
                 if ('html' in message && typeof message.html === 'string' && message.html.includes(`<mention-user>@${currentEmail}</mention-user>`)) {
-                    return playSoundExcludingMobile(SOUNDS.ATTENTION);
+                    return playSound(SOUNDS.ATTENTION);
                 }
 
                 // mention @here
                 if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-here>')) {
-                    return playSoundExcludingMobile(SOUNDS.ATTENTION);
+                    return playSound(SOUNDS.ATTENTION);
                 }
 
                 // assign a task
@@ -878,7 +752,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
                 // plain message
                 if ('html' in message) {
-                    return playSoundExcludingMobile(SOUNDS.RECEIVE);
+                    return playSound(SOUNDS.RECEIVE);
                 }
             }
         } catch (e) {
@@ -1041,9 +915,19 @@ function subscribeToUserEvents() {
         applyOnyxUpdatesReliably(updates);
     });
 
+    // Debounce the playSoundForMessageType function to avoid playing sounds too often, for example when a user comeback after offline and alot of messages come in
+    // See https://github.com/Expensify/App/issues/57961 for more details
+    const debouncedPlaySoundForMessageType = debounce(
+        (pushJSONMessage: OnyxServerUpdate[]) => {
+            playSoundForMessageType(pushJSONMessage);
+        },
+        CONST.TIMING.PLAY_SOUND_MESSAGE_DEBOUNCE_TIME,
+        {trailing: true},
+    );
+
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: OnyxServerUpdate[]) => {
-        playSoundForMessageType(pushJSON);
+        debouncedPlaySoundForMessageType(pushJSON);
 
         return SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) or this is not the
@@ -1131,11 +1015,10 @@ function clearFocusModeNotification() {
 }
 
 function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
+    if (CONFIG.IS_HYBRID_APP) {
+        HybridAppModule.shouldUseStaging(shouldUseStagingServer);
+    }
     Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
-}
-
-function clearUserErrorMessage() {
-    Onyx.merge(ONYXKEYS.USER, {error: ''});
 }
 
 function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<Platform, true>>) {
@@ -1516,14 +1399,12 @@ export {
     clearContactMethodErrors,
     clearContactMethod,
     addNewContactMethod,
-    validateLogin,
     validateSecondaryLogin,
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
     setShouldUseStagingServer,
     togglePlatformMute,
-    clearUserErrorMessage,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
@@ -1536,8 +1417,8 @@ export {
     updateDraftCustomStatus,
     clearDraftCustomStatus,
     requestRefund,
-    saveNewContactMethodAndRequestValidationCode,
     clearUnvalidatedNewContactMethodAction,
+    clearPendingContactActionErrors,
     requestValidateCodeAction,
     addPendingContactMethod,
     clearValidateCodeActionError,

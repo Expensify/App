@@ -57,6 +57,7 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     taxOutOfPolicy: () => 'tax',
     taxRequired: () => 'tax',
     hold: () => 'none',
+    receiptGeneratedWithAI: () => 'receipt',
 };
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
@@ -76,7 +77,7 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
 
         const violationGroups = new Map<ViolationField, TransactionViolation[]>();
         for (const violation of filteredViolations) {
-            const field = violationNameToField[violation.name](violation);
+            const field = violationNameToField[violation.name]?.(violation);
             const existingViolations = violationGroups.get(field) ?? [];
             violationGroups.set(field, [...existingViolations, violation]);
         }

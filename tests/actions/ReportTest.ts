@@ -5,8 +5,11 @@ import {toZonedTime} from 'date-fns-tz';
 import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
+import {getOriginalMessage} from '@libs/ReportActionsUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -21,10 +24,19 @@ import type * as OnyxTypes from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+
+jest.mock('@libs/ReportUtils', () => {
+    const originalModule = jest.requireActual<Report>('@libs/ReportUtils');
+    return {
+        ...originalModule,
+        getPolicyExpenseChat: jest.fn().mockReturnValue({reportID: '1234'}),
+    };
+});
 
 const UTC = 'UTC';
 jest.mock('@src/libs/actions/Report', () => {
@@ -41,6 +53,7 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
         didScreenTransitionEnd: true,
     }),
 }));
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
@@ -162,6 +175,36 @@ describe('actions/Report', () => {
                 // Verify that our action is no longer in the loading state
                 expect(resultAction?.pendingAction).toBeUndefined();
             });
+    });
+
+    it('clearCreateChatError should not delete the report if it is not optimistic report', () => {
+        const REPORT: OnyxTypes.Report = {...createRandomReport(1), errorFields: {createChat: {error: 'error'}}};
+        const REPORT_METADATA: OnyxTypes.ReportMetadata = {isOptimisticReport: false};
+
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`, REPORT);
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT.reportID}`, REPORT_METADATA);
+
+        return waitForBatchedUpdates()
+            .then(() => {
+                Report.clearCreateChatError(REPORT);
+                return waitForBatchedUpdates();
+            })
+            .then(
+                () =>
+                    new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`,
+                            callback: (report) => {
+                                Onyx.disconnect(connection);
+                                resolve();
+
+                                // The report should exist but the create chat error field should be cleared.
+                                expect(report?.reportID).toBeDefined();
+                                expect(report?.errorFields?.createChat).toBeUndefined();
+                            },
+                        });
+                    }),
+            );
     });
 
     it('should update pins in Onyx when togglePinned is called', () => {
@@ -1484,5 +1527,83 @@ describe('actions/Report', () => {
         });
 
         expect(report?.lastMentionedTime).toBeUndefined();
+    });
+
+    it('should create new report and "create report" quick action, when createNewReport gets called', async () => {
+        const accountID = 1234;
+        const policyID = '5678';
+        const reportID = Report.createNewReport({accountID}, policyID);
+        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+        const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
+                callback: (reportActions) => {
+                    Onyx.disconnect(connection);
+                    const action = Object.values(reportActions ?? {}).at(0);
+                    resolve(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>);
+                },
+            });
+        });
+        expect(getOriginalMessage(reportPreviewAction)?.linkedReportID).toBe(reportID);
+
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (reports) => {
+                    Onyx.disconnect(connection);
+                    const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+                    // assert correctness of crucial onyx data
+                    expect(createdReport?.reportID).toBe(reportID);
+                    expect(createdReport?.total).toBe(0);
+                    expect(createdReport?.parentReportActionID).toBe(reportPreviewAction?.reportActionID);
+
+                    resolve();
+                },
+            });
+        });
+
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                callback: (quickAction) => {
+                    Onyx.disconnect(connection);
+
+                    // Then the quickAction.action should be set to CREATE_REPORT
+                    expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.CREATE_REPORT);
+                    expect(quickAction?.chatReportID).toBe('1234');
+                    resolve();
+                },
+            });
+        });
+    });
+    describe('isConciergeChatReport', () => {
+        const accountID = 2;
+        const conciergeChatReport1 = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
+        const conciergeChatReport2 = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
+
+        beforeAll(async () => {
+            Onyx.init({keys: ONYXKEYS});
+            await waitForBatchedUpdates();
+        });
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('should not return archived Concierge chat report', async () => {
+            initOnyxDerivedValues();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport1.reportID}`, conciergeChatReport1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport2.reportID}`, conciergeChatReport2);
+
+            // Set First conciergeChatReport1 to archived state
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${conciergeChatReport1.reportID}`, {
+                private_isArchived: new Date().toString(),
+            });
+            const derivedConciergeChatReportID = await OnyxUtils.get(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID);
+            expect(derivedConciergeChatReportID).toBe(conciergeChatReport2.reportID);
+        });
     });
 });

@@ -19,13 +19,14 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {scrollToRight} from '@libs/InputUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {getQueryWithUpdatedValues, getQueryWithUpdatedValuesWithoutPolicy, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -37,7 +38,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Report from '@src/types/onyx/Report';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import KeyboardUtils from '@src/utils/keyboard';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
@@ -74,14 +74,16 @@ function getContextualSearchQuery(item: SearchQueryItem) {
 type SearchRouterProps = {
     onRouterClose: () => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
+    isSearchRouterDisplayed?: boolean;
 };
 
-function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, ref: React.Ref<View>) {
+function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed}: SearchRouterProps, ref: React.Ref<View>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {activeWorkspaceID} = useActiveWorkspace();
+    const {canUseLeftHandBar} = usePermissions();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
@@ -110,6 +112,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
 
             // We will only show the contextual search suggestion if the user has not typed anything
             if (textInputValue) {
+                return undefined;
+            }
+
+            if (!isSearchRouterDisplayed) {
                 return undefined;
             }
 
@@ -159,7 +165,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, translate],
+        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed],
     );
 
     const searchQueryItem = textInputValue
@@ -211,7 +217,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, activeWorkspaceID);
+            const updatedQuery = canUseLeftHandBar ? getQueryWithUpdatedValuesWithoutPolicy(queryWithSubstitutions) : getQueryWithUpdatedValues(queryWithSubstitutions, activeWorkspaceID);
             if (!updatedQuery) {
                 return;
             }
@@ -222,7 +228,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, onRouterClose, setTextInputValue, activeWorkspaceID],
+        [autocompleteSubstitutions, onRouterClose, setTextInputValue, activeWorkspaceID, canUseLeftHandBar],
     );
 
     const setTextAndUpdateSelection = useCallback(
@@ -270,14 +276,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                 }
             } else {
                 onRouterClose();
-
-                KeyboardUtils.dismiss().then(() => {
-                    if (item?.reportID) {
-                        Navigation.navigateToReportWithPolicyCheck({reportID: item?.reportID});
-                    } else if ('login' in item) {
-                        navigateToAndOpenReport(item.login ? [item.login] : [], false);
-                    }
-                });
+                if (item?.reportID) {
+                    Navigation.navigateToReportWithPolicyCheck({reportID: item?.reportID});
+                } else if ('login' in item) {
+                    navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                }
             }
         },
         [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue],
@@ -349,6 +352,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                         onListItemPress={onListItemPress}
                         setTextQuery={setTextAndUpdateSelection}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                        onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
                         ref={listRef}
                     />
                 </>

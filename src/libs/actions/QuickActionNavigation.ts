@@ -1,9 +1,13 @@
+import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import type {IOURequestType} from './IOU';
 import {startMoneyRequest} from './IOU';
+import {createNewReport} from './Report';
 import {startOutCreateTaskQuickAction} from './Task';
 
 function getQuickActionRequestType(action: QuickActionName | undefined): IOURequestType | undefined {
@@ -25,8 +29,14 @@ function getQuickActionRequestType(action: QuickActionName | undefined): IOURequ
     return requestType;
 }
 
-function navigateToQuickAction(isValidReport: boolean, quickActionReportID: string, quickAction: QuickAction, selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void) {
-    const reportID = isValidReport ? quickActionReportID : generateReportID();
+function navigateToQuickAction(
+    isValidReport: boolean,
+    quickAction: QuickAction,
+    currentUserPersonalDetails: PersonalDetails,
+    policyID: string | undefined,
+    selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void,
+) {
+    const reportID = isValidReport && quickAction?.chatReportID ? quickAction?.chatReportID : generateReportID();
     const requestType = getQuickActionRequestType(quickAction?.action);
 
     switch (quickAction?.action) {
@@ -35,15 +45,15 @@ function navigateToQuickAction(isValidReport: boolean, quickActionReportID: stri
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
         case CONST.QUICK_ACTIONS.PER_DIEM:
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), true);
-            return;
+            break;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, reportID, requestType, true), true);
-            return;
+            break;
         case CONST.QUICK_ACTIONS.SEND_MONEY:
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, undefined, true), false);
-            return;
+            break;
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             selectOption(() => startOutCreateTaskQuickAction(isValidReport ? reportID : '', quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID), false);
             break;
@@ -51,6 +61,14 @@ function navigateToQuickAction(isValidReport: boolean, quickActionReportID: stri
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
+            break;
+        case CONST.QUICK_ACTIONS.CREATE_REPORT:
+            selectOption(() => {
+                const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}));
+                });
+            }, true);
             break;
         default:
     }

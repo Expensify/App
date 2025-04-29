@@ -117,8 +117,8 @@ const basePRList = [
 
 const baseIssueList = [`https://github.com/${process.env.GITHUB_REPOSITORY}/issues/11`, `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/12`];
 // eslint-disable-next-line max-len
-const baseExpectedOutput = (tag = '1.0.2-1') =>
-    `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
+const baseExpectedOutput = (version = '1.0.2-1') =>
+    `**Release Version:** \`${version}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
 const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
 const deployerVerificationsHeader = '**Deployer verifications:**';
@@ -173,7 +173,7 @@ describe('createOrUpdateStagingDeployCash', () => {
         });
 
         mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-            if (fromRef === '1.0.1-0' && toRef === '1.0.2-1') {
+            if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                 return [...baseNewPullRequests];
             }
             return [];
@@ -270,7 +270,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             // New pull requests to add to open StagingDeployCash
             const newPullRequests = [9, 10];
             mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-                if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-2-staging') {
                     return [...baseNewPullRequests, ...newPullRequests];
                 }
                 return [];
@@ -347,7 +347,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 return 'fake_token';
             });
             mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-                if (fromRef === '1.0.1-0' && toRef === '1.0.2-1') {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                     return [...baseNewPullRequests];
                 }
                 return [];

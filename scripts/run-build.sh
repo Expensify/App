@@ -54,16 +54,16 @@ fi
 # Check if the argument is one of the desired values
 case "$BUILD" in
     --ios)
-        npx react-native run-ios --list-devices --mode $IOS_MODE --scheme "$SCHEME"
+        npx rnef run:ios --configuration $IOS_MODE --scheme "$SCHEME"
         ;;
     --ipad)
-        npx react-native run-ios --simulator "iPad Pro (12.9-inch) (6th generation)" --mode $IOS_MODE --scheme "$SCHEME"
+        npx rnef run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME"
         ;;
     --ipad-sm)
-        npx react-native run-ios --simulator "iPad Pro (11-inch) (4th generation)" --mode $IOS_MODE --scheme "$SCHEME"
+        npx rnef run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME"
         ;;
     --android)
-        npx react-native run-android --mode $ANDROID_MODE --appId $APP_ID --active-arch-only
+        npx rnef run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only
         ;;
     *)
         print_error_and_exit
