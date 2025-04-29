@@ -42,15 +42,13 @@ function useSearchPusherUpdates({
         // For chat, check if there are new report actions
         if (isChat) {
             const currentReportActionsIDs = Object.values(reportActions ?? {})
-                .map((actions) => Object.keys(actions ?? {}))
-                .flat();
+                .flatMap((actions) => Object.keys(actions ?? {}));
 
-            const previousReportActionsIDs = Object.values(previousReportActions ?? {})
-                .map((actions) => Object.keys(actions ?? {}))
-                .flat();
+            const previousReportActionsIDs = new Set(Object.values(previousReportActions ?? {})
+                .flatMap((actions) => Object.keys(actions ?? {})));
 
             // Only trigger search if Pusher added new report actions
-            const hasNewReportActions = currentReportActionsIDs.length > previousReportActionsIDs.length && currentReportActionsIDs.some((id) => !previousReportActionsIDs.includes(id));
+            const hasNewReportActions = currentReportActionsIDs.length > previousReportActionsIDs.size && currentReportActionsIDs.some((id) => !previousReportActionsIDs.has(id));
 
             if (hasNewReportActions) {
                 search({queryJSON, offset: 0});
