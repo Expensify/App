@@ -124,6 +124,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 iouReport: {...basicProps.iouReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                shouldShowRBR: true,
             };
             jest.spyOn(ReportUtils, 'isPaidGroupPolicyExpenseReport').mockReturnValue(true);
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
@@ -137,7 +138,6 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 violations: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, transactionID: 123, showInReview: true}],
-                shouldShowRBR: true,
             };
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowRBR).toBeTruthy();
