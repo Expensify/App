@@ -740,6 +740,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // only one we will have in cache.
     const isInitiallyLoadingReport = isUnread(report, transactionThreadReport) && (reportMetadata.isLoadingInitialReportActions ?? false) && reportActions.length <= 1;
     const isInitiallyLoadingReportWhileOffline = isUnread(report, transactionThreadReport) && (reportMetadata.isLoadingInitialReportActions ?? false) && isOffline;
+    const isReportReady = !isInitiallyLoadingReport && !isInitiallyLoadingReportWhileOffline;
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
@@ -750,7 +751,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
-    const shouldDisplayMoneyRequestActionsList = canUseTableReportView && isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
+    const shouldDisplayMoneyRequestActionsList = (canUseTableReportView && isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions)) ?? false;
 
     return (
         <ActionListContext.Provider value={actionListValue}>
@@ -797,8 +798,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {(!report || isInitiallyLoadingReport || isInitiallyLoadingReportWhileOffline) && <ReportActionsSkeletonView />}
-                                {!!report && !shouldDisplayMoneyRequestActionsList ? (
+                                {(!report || !isReportReady) && <ReportActionsSkeletonView />}
+                                {!!report && isReportReady && !shouldDisplayMoneyRequestActionsList && (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
@@ -808,8 +809,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
-                                ) : null}
-                                {!!report && shouldDisplayMoneyRequestActionsList ? (
+                                )}
+                                {!!report && isReportReady && shouldDisplayMoneyRequestActionsList && (
                                     <MoneyRequestReportActionsList
                                         report={report}
                                         policy={policy}
@@ -818,8 +819,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
                                     />
-                                ) : null}
-                                {isCurrentReportLoadedFromOnyx ? (
+                                )}
+                                {isCurrentReportLoadedFromOnyx && (
                                     <ReportFooter
                                         onComposerFocus={onComposerFocus}
                                         onComposerBlur={onComposerBlur}
@@ -830,7 +831,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         isComposerFullSize={!!isComposerFullSize}
                                         lastReportAction={lastReportAction}
                                     />
-                                ) : null}
+                                )}
                             </View>
                             <PortalHost name="suggestions" />
                         </DragAndDropProvider>
