@@ -18,6 +18,7 @@ import {
 } from './PolicyUtils';
 import {getIOUActionForReportID, getReportActions, isPayAction} from './ReportActionsUtils';
 import {
+    canAddTransaction,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -34,6 +35,16 @@ import {
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+
+    if (!isReportSubmitter || reportTransactions.length === 0) {
+        return false;
+    }
+
+    return canAddTransaction(report);
+}
+
 function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
@@ -49,25 +60,21 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
-
     if (!isReportSubmitter && !isReportApprover) {
         return false;
     }
 
     const isOpenReport = isOpenReportUtils(report);
-
     if (!isOpenReport) {
         return false;
     }
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
-
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-
     if (isAdmin) {
         return true;
     }
@@ -397,6 +404,10 @@ function getSecondaryReportActions(
     policy?: Policy,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
+
+    if (isAddExpenseAction(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
+    }
 
     if (isSubmitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
