@@ -57,7 +57,7 @@ function ShareTab() {
         const filteredOptions = filterOptions(textInputValue);
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, textInputValue, {
             sortByReportTypeInSearch: true,
-            preferChatroomsOverThreads: true,
+            preferChatRoomsOverThreads: true,
         });
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];

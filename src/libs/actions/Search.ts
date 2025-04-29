@@ -420,7 +420,7 @@ function clearAllFilters() {
 function clearAdvancedFilters() {
     const values: Partial<Record<ValueOf<typeof FILTER_KEYS>, null>> = {};
     Object.values(FILTER_KEYS)
-        .filter((key) => key !== FILTER_KEYS.TYPE && key !== FILTER_KEYS.STATUS)
+        .filter((key) => !([FILTER_KEYS.TYPE, FILTER_KEYS.STATUS, FILTER_KEYS.GROUP_BY] as string[]).includes(key))
         .forEach((key) => {
             values[key] = null;
         });

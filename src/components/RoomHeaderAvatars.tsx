@@ -53,7 +53,7 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
                 <Avatar
                     source={icon.source}
                     imageStyles={styles.avatarXLarge}
-                    size={CONST.AVATAR_SIZE.XLARGE}
+                    size={CONST.AVATAR_SIZE.X_LARGE}
                     name={icon.name}
                     avatarID={icon.id}
                     type={icon.type}
