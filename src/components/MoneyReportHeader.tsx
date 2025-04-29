@@ -551,7 +551,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING,
             onSelected: () => {
                 if (!connectedIntegration || !moneyRequestReport) {
-                    throw new Error('Missing data');
+                    return;
                 }
                 if (isExported) {
                     setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
@@ -566,7 +566,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED,
             onSelected: () => {
                 if (!connectedIntegration || !moneyRequestReport) {
-                    throw new Error('Missing data');
+                    return;
                 }
                 if (isExported) {
                     setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
