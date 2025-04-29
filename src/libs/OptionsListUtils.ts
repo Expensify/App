@@ -49,6 +49,7 @@ import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
+    getLeaveRoomMessage,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
@@ -282,7 +283,7 @@ type OrderOptionsConfig =
       };
 
 type OrderReportOptionsConfig = {
-    preferChatroomsOverThreads?: boolean;
+    preferChatRoomsOverThreads?: boolean;
     preferPolicyExpenseChat?: boolean;
     preferRecentExpenseReports?: boolean;
 };
@@ -790,10 +791,12 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getDowngradeWorkspaceMessage();
     } else if (isActionableAddPaymentCard(lastReportAction) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
-    } else if (lastReportAction?.actionName === 'EXPORTINTEGRATION') {
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
+        lastMessageTextFromReport = getLeaveRoomMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
@@ -1200,7 +1203,7 @@ function orderReportOptions(options: OptionData[]) {
 function orderReportOptionsWithSearch(
     options: OptionData[],
     searchValue: string,
-    {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderReportOptionsConfig = {},
+    {preferChatRoomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderReportOptionsConfig = {},
 ) {
     const orderedByDate = orderReportOptions(options);
 
@@ -1222,7 +1225,7 @@ function orderReportOptionsWithSearch(
                 if (preferRecentExpenseReports && option.isPolicyExpenseChat) {
                     return 1;
                 }
-                if (preferChatroomsOverThreads && option.isThread) {
+                if (preferChatRoomsOverThreads && option.isThread) {
                     return 4;
                 }
                 if (!!option.isChatRoom || option.private_isArchived) {
@@ -1544,6 +1547,18 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         };
 
         if (shouldSeparateWorkspaceChat && newReportOption.isOwnPolicyExpenseChat && !newReportOption.private_isArchived) {
+            newReportOption.text = getPolicyName({report});
+            newReportOption.alternateText = translateLocal('workspace.common.workspace');
+            if (report?.policyID) {
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const submitToAccountID = getSubmitToAccountID(policy, report);
+                const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
+                const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
+
+                if (subtitle) {
+                    newReportOption.alternateText = translateLocal('iou.submitsTo', {name: subtitle ?? ''});
+                }
+            }
             workspaceChats.push(newReportOption);
         } else if (shouldSeparateSelfDMChat && newReportOption.isSelfDM) {
             selfDMChat = newReportOption;

@@ -109,9 +109,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
     );
 
-    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
     const {selectionMode} = useMobileSelectionMode();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
@@ -695,6 +695,8 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         prompt={translate('common.thisFeatureRequiresInternet')}
                         confirmText={translate('common.buttonConfirm')}
                         shouldShowCancelButton={false}
+                        onCancel={() => setIsOfflineModalVisible(false)}
+                        shouldHandleNavigationBack
                     />
 
                     <ConfirmModal

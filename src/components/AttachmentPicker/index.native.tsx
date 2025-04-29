@@ -168,8 +168,8 @@ function AttachmentPicker({
                                     ImageManipulator.manipulate(targetAssetUri)
                                         .renderAsync()
                                         .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-                                        .then((manipResult) => {
-                                            const uri = manipResult.uri;
+                                        .then((manipulationResult) => {
+                                            const uri = manipulationResult.uri;
                                             const convertedAsset = {
                                                 uri,
                                                 name: uri
@@ -177,8 +177,8 @@ function AttachmentPicker({
                                                     .split('?')
                                                     .at(0),
                                                 type: 'image/jpeg',
-                                                width: manipResult.width,
-                                                height: manipResult.height,
+                                                width: manipulationResult.width,
+                                                height: manipulationResult.height,
                                             };
 
                                             return resolve([convertedAsset]);
