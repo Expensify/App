@@ -24,6 +24,9 @@ class RenderTaskQueue {
     }
 
     start() {
+        if (this.isRendering) {
+            return;
+        }
         this.render();
     }
 
