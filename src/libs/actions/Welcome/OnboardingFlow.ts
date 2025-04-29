@@ -49,9 +49,9 @@ Onyx.connect({
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
-function startOnboardingFlow() {
+function startOnboardingFlow(canUsePrivateDomainOnboarding?: boolean) {
     const currentRoute = navigationRef.getCurrentRoute();
-    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config, false);
+    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(canUsePrivateDomainOnboarding), linkingConfig.config, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
@@ -63,7 +63,7 @@ function startOnboardingFlow() {
     } as PartialState<NavigationState>);
 }
 
-function getOnboardingInitialPath(): string {
+function getOnboardingInitialPath(canUsePrivateDomainOnboarding = true): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const isUserFromPublicDomain = user?.isFromPublicDomain;
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -85,7 +85,7 @@ function getOnboardingInitialPath(): string {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 
-    if (!isUserFromPublicDomain) {
+    if (!isUserFromPublicDomain && canUsePrivateDomainOnboarding) {
         return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
 
