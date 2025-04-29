@@ -4,11 +4,8 @@ import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFl
 import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
+import type {RenderInfo} from './RenderTaskQueue';
 import RenderTaskQueue from './RenderTaskQueue';
-
-// For new reports, we only want to scroll to the top if the unread message is within the first 2 items.
-// The first action within a report is usually a "CREATED" action, while the second item is the first message/action.
-const FIRST_MESSAGE_SCROLL_THRESHOLD = 2;
 
 // Adapted from https://github.com/facebook/react-native/blob/29a0d7c3b201318a873db0d1b62923f4ce720049/packages/virtualized-lists/Lists/VirtualizeUtils.js#L237
 function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: number): string {
@@ -47,43 +44,46 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     });
     const [isInitialData, setIsInitialData] = useState(true);
     const currentDataIndex = useMemo(() => (currentDataId === null ? 0 : data.findIndex((item, index) => keyExtractor(item, index) === currentDataId)), [currentDataId, data, keyExtractor]);
+
+    const isMessageWithinMinItemsToRender = currentDataIndex > Math.max(0, data.length - CONST.MIN_ITEMS_TO_RENDER);
     const displayedData = useMemo(() => {
         if (currentDataIndex <= 0) {
             return data;
         }
+
+        if (isMessageWithinMinItemsToRender) {
+            return data.slice(-CONST.MIN_ITEMS_TO_RENDER);
+        }
+
         return data.slice(Math.max(0, currentDataIndex - (isInitialData ? 0 : CONST.PAGINATION_SIZE)));
-    }, [currentDataIndex, data, isInitialData]);
+    }, [currentDataIndex, data, isInitialData, isMessageWithinMinItemsToRender]);
 
     const listRef = useRef<RNFlatList | null>(null);
 
-    // If the unread message is within the first pagination items, we need to manually scroll to the top,
-    // because otherwise the content would shift up by new messages loading and filling up the page.
-    const isFirstMessageUnread = useCallback(
-        () => data.length >= FIRST_MESSAGE_SCROLL_THRESHOLD && currentDataIndex >= Math.max(0, data.length - FIRST_MESSAGE_SCROLL_THRESHOLD),
-        [data.length, currentDataIndex],
-    );
+    // Whether we should or should not scroll to the top and whether we have already scrolled to the top.
+    const [initialScrollState, setInitialScrollState] = useState<'shouldScroll' | 'shouldNotScroll' | 'done'>(isMessageWithinMinItemsToRender ? 'shouldScroll' : 'shouldNotScroll');
 
-    const [shouldInitiallyScrollToFirstMessage, setShouldInitiallyScrollToFirstMessage] = useState(isFirstMessageUnread);
+    // If the first message becomes unread later and we haven't scrolled to the top yet, we want to scroll to the top.
     useEffect(() => {
-        if (shouldInitiallyScrollToFirstMessage !== undefined || !isFirstMessageUnread) {
+        if (initialScrollState !== 'shouldNotScroll' || !isMessageWithinMinItemsToRender) {
             return;
         }
-        setShouldInitiallyScrollToFirstMessage(true);
-    }, [currentDataIndex, isFirstMessageUnread, shouldInitiallyScrollToFirstMessage]);
+        setInitialScrollState('shouldScroll');
+    }, [currentDataIndex, initialScrollState, isMessageWithinMinItemsToRender]);
 
     useEffect(() => {
-        // Scroll to the end once the first page of items or the whole list is loaded, if there not that many items.
-        if (!shouldInitiallyScrollToFirstMessage || (displayedData.length !== data.length && displayedData.length < CONST.PAGINATION_SIZE)) {
+        // Scroll to the end once the initial data is loaded.
+        if (isInitialData || initialScrollState === 'done') {
             return;
         }
 
-        requestAnimationFrame(() => {
-            listRef.current?.scrollToEnd();
-        });
+        if (initialScrollState === 'shouldScroll') {
+            listRef.current?.scrollToEnd({animated: false});
+        }
 
-        setShouldInitiallyScrollToFirstMessage(false);
-    }, [data.length, displayedData.length, shouldInitiallyScrollToFirstMessage]);
         onInitiallyLoaded?.();
+        setInitialScrollState('done');
+    }, [data.length, displayedData.length, initialScrollState, isInitialData, onInitiallyLoaded]);
 
     const isLoadingData = data.length > displayedData.length;
     const wasLoadingData = usePrevious(isLoadingData);
@@ -97,17 +97,25 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         };
     }, [renderQueue]);
 
-    renderQueue.setHandler((info) => {
-        if (!isLoadingData) {
-            onStartReached?.(info);
-        }
-        setIsInitialData(false);
-        const firstDisplayedItem = displayedData.at(0);
-        setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, currentDataIndex) : '');
-    });
+    const handleRender = useCallback(
+        (info: RenderInfo) => {
+            if (!isLoadingData) {
+                onStartReached?.(info);
+            }
+
+            if (isInitialData) {
+                console.log('set is initial data to false');
+                setIsInitialData(false);
+            }
+            const firstDisplayedItem = displayedData.at(0);
+            setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, currentDataIndex) : '');
+        },
+        [isLoadingData, isInitialData, displayedData, keyExtractor, currentDataIndex, onStartReached],
+    );
+    renderQueue.setHandler(handleRender);
 
     const handleStartReached = useCallback(
-        (info: {distanceFromStart: number}) => {
+        (info: RenderInfo) => {
             renderQueue.add(info);
         },
         [renderQueue],
