@@ -69,14 +69,14 @@ jobs:
       - name: Check if patches changed
         id: didPatchesChange
         run: |
-          if git diff --exit-code --name-only ${{ steps.getOldAppHash.outputs.HASH }}..${{ steps.getNewAppHash.outputs.HASH }} -- patches/react-native+*.patch patches/@react-native+*.patch; then
+          if ! git diff --exit-code --name-only ${{ steps.getOldAppHash.outputs.HASH }}..${{ steps.getNewAppHash.outputs.HASH }} -- patches/react-native+*.patch patches/@react-native+*.patch; then
             echo "::notice::Detected changes in patches"
             echo "DID_PATCHES_CHANGE=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           if [[ '${{ matrix.is_hybrid }}' == 'true' ]]; then
-            if git -C Mobile-Expensify diff --exit-code --name-only ${{ steps.getOldMobileExpensifyHash.outputs.HASH }}..${{ steps.getNewMobileExpensifyHash.outputs.HASH }} -- patches/react-native+*.patch patches/@react-native+*.patch; then
+            if ! git -C Mobile-Expensify diff --exit-code --name-only ${{ steps.getOldMobileExpensifyHash.outputs.HASH }}..${{ steps.getNewMobileExpensifyHash.outputs.HASH }} -- patches/react-native+*.patch patches/@react-native+*.patch; then
               echo "::notice::Detected changes in patches"
               echo "DID_PATCHES_CHANGE=true" >> "$GITHUB_OUTPUT"
               exit 0
