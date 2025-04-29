@@ -13,7 +13,7 @@ Your financial institution may require ABA files to include a self-balancing tra
 
 ---
 
-# Reimburse a single report
+# Reimburse a Single Report
 
 1. Open the report, invoice, or bill from the email or Concierge notification, or from the **Reports** tab.
 2. Click the **Reimburse** dropdown and select **Via ABA File**.
@@ -29,18 +29,19 @@ Your financial institution may require ABA files to include a self-balancing tra
 
 ---
 
-# Send batch payments
+# Send Batch Payments
 
 Once employees submit their expense reports, a Workspace Admin exports the reports (which contain the employees’ bank account information) and uploads the .aba file to the bank.
 
-## Step 1: Verify currency & reimbursement settings
+## Step 1: Verify Currency and Reimbursement Settings
 
-1. Go to **Settings > Workspaces > [Workspace Name] > Reports**
+1. Go to **Settings > Workspaces > [Workspace Name] > Overview**
 2. Click the Report Currency dropdown and select **AUD A$**. 
-3. Click the **Reimbursement** tab on the left. 
-4. Verify that **Indirect** is selected as the Reimbursement type or select it if not.
+3. Head to **Settings > Workspaces [Workspace Name] Workflows**.
+4. Scroll to **Make or track payments**.
+5. Verify that **Indirect** is selected as the Reimbursement type or select it if not.
 
-## Step 2: Download and upload the ABA file
+## Step 2: Upload the ABA File
 
 1. Click the **Reports** tab.
 2. Use the checkbox on the left to select all the reports needing payment.
@@ -61,6 +62,8 @@ Once employees submit their expense reports, a Workspace Admin exports the repor
 
 ## Can I use direct deposit for an AUD bank account?** 
 
-No, AUD bank accounts do not rely on direct deposit or ACH. 
+Yes, you can set up global reimbursement to issue direct deposits from your Australian bank account. 
+
+More information on that feature can be found here -- [Global Reimbursement Australia](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-Australia).  
 
 </div>
