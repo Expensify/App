@@ -88,7 +88,6 @@ function useSidePanel() {
         ]).start(() => setIsSidePanelTransitionEnded(true));
     }, [shouldHideSidePanel, shouldApplySidePanelOffset, sidePanelWidth]);
 
-
     const openSidePanel = useCallback(() => {
         setIsSidePanelTransitionEnded(false);
         KeyboardUtils.dismiss();
