@@ -11,8 +11,8 @@ import {
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
-    isPrefferedExporter,
     isPolicyAdmin,
+    isPrefferedExporter,
 } from './PolicyUtils';
 import {
     getMoneyRequestSpendBreakdown,
@@ -33,11 +33,11 @@ import {
     isPayer,
     isProcessingReport,
     isReportApproved,
-    isSettled,
     isReportManuallyReimbursed,
+    isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {isReceiptBeingScanned, allHavePendingRTERViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import {allHavePendingRTERViolation, isReceiptBeingScanned, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
 function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[]) {
     const isExpense = isExpenseReport(report);
