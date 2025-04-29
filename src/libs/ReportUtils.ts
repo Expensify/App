@@ -6818,9 +6818,9 @@ function buildOptimisticRetractedReportAction(created = DateUtils.getDBTime()): 
         ],
         person: [
             {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
+                style: 'strong',
                 text: getCurrentUserDisplayNameOrEmail(),
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             },
         ],
         automatic: false,

@@ -9155,6 +9155,7 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
 
     const parameters: RetractReportParams = {
         reportID: expenseReport.reportID,
+        reportActionID: optimisticRetractReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.RETRACT_REPORT, parameters, {optimisticData, successData, failureData});
