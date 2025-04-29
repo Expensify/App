@@ -15,6 +15,8 @@ const CONFIRM_TEXT = 'Start';
 jest.mock('@libs/Navigation/Navigation', () => ({
     isTopmostRouteModalScreen: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
+    getActiveRouteWithoutParams: jest.fn(() => '/'),
+    getActiveRoute: jest.fn(() => '/'),
 }));
 
 jest.mock('@libs/Fullstory');
@@ -34,6 +36,8 @@ jest.mock('@components/ImageSVG', () => {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return (props: ViewProps) => <View {...props} />;
 });
+
+jest.unmock('react-native-reanimated');
 
 describe('FeatureTrainingModal', () => {
     describe('renderIllustration', () => {
