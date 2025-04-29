@@ -73,8 +73,6 @@ function HeaderWithBackButton({
     progressBarPercentage,
     style,
     subTitleLink = '',
-    useCustomSearchTitleName = false,
-    transactions,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -105,8 +103,6 @@ function HeaderWithBackButton({
                     report={report}
                     policy={policy}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
-                    transactions={transactions}
-                    useCustomSearchTitleName={useCustomSearchTitleName}
                 />
             );
         }
