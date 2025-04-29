@@ -68,9 +68,10 @@ export default createOnyxDerivedValueConfig({
                 reportActions: reportActionsList,
                 transactionViolations,
             });
+
             let brickRoadStatus;
             // if report has errors or violations, show red dot
-            if (SidebarUtils.hasAnyErrorsOrViolations(report, reportActionsList, hasAnyViolations, hasErrors, oneTransactionThreadReportID)) {
+            if (SidebarUtils.getReportBrickRoadReason(report, reportActionsList, hasAnyViolations, hasErrors, oneTransactionThreadReportID)) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             }
             // if report does not have error, check if it should show green dot

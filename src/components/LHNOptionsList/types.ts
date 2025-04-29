@@ -59,7 +59,7 @@ type OptionRowLHNDataProps = {
     fullReport: OnyxEntry<Report>;
 
     /** The report derived attributes */
-    reportAttributes?: ReportAttributesDerivedValue['reports'];
+    reportAttributes: ReportAttributesDerivedValue['reports'];
 
     /** The transaction thread report associated with the current report, if any */
     oneTransactionThreadReport: OnyxEntry<Report>;

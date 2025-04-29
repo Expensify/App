@@ -32,7 +32,6 @@ function init() {
                 Log.info(`Derived value for ${key} restored from disk`);
             } else {
                 OnyxUtils.tupleGet(dependencies).then((values) => {
-                    // Perform the initial computation
                     const initialContext: DerivedValueContext<typeof key, typeof dependencies> = {
                         currentValue: derivedValue,
                         sourceValues: undefined,

@@ -348,7 +348,7 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
-function hasAnyErrorsOrViolations(report: Report, reportActions: OnyxEntry<ReportActions>, hasAnyViolations: boolean, hasErrors: boolean, singleTransactionThread?: string) {
+function getReportBrickRoadReason(report: Report, reportActions: OnyxEntry<ReportActions>, hasAnyViolations: boolean, hasErrors: boolean, singleTransactionThread?: string) {
     const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
     if (isArchivedReportWithID(report.reportID)) {
         return false;
@@ -870,5 +870,5 @@ export default {
     getWelcomeMessage,
     getReasonAndReportActionThatHasRedBrickRoad,
     shouldShowRedBrickRoad,
-    hasAnyErrorsOrViolations,
+    getReportBrickRoadReason,
 };
