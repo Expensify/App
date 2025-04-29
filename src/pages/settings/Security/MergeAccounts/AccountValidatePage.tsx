@@ -137,7 +137,7 @@ function AccountValidatePage() {
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute(email));
+                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
                 }}
                 shouldDisplayHelpButton={false}
             />

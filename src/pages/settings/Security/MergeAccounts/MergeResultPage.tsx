@@ -265,7 +265,7 @@ function MergeResultPage() {
                 title={translate('mergeAccountsPage.mergeAccount')}
                 shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute(login));
+                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
                 }}
                 shouldDisplayHelpButton={false}
             />
