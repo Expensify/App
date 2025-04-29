@@ -13,7 +13,6 @@ type SearchReportHeaderProps = {
     displayNamesWithTooltips: DisplayNameWithTooltips;
     shouldUseFullTitle: boolean;
     transactions: TransactionListItemType[];
-    tooltipEnabled: boolean;
 };
 
 function SearchReportHeader({report, title, displayNamesWithTooltips, shouldUseFullTitle, transactions}: SearchReportHeaderProps) {

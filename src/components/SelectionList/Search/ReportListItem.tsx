@@ -86,7 +86,6 @@ function ReportListItem<TItem extends ListItem>({
                 <ReportListItemHeader
                     report={reportItem}
                     policy={policy}
-                    onBackButtonPress={() => {}}
                     item={item}
                     onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
