@@ -35,7 +35,7 @@ jobs:
 
       - name: Verify repository
         run: |
-          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != ${{ github.repository }} ]] && [[ ! "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" =~ "Expensify/Mobile-Expensify*" ]]; then
+          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != ${{ github.repository }} ]] && [[ ! "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" =~ Expensify/Mobile-Expensify* ]]; then
             echo "::error::❌ Cherry picks are only supported for the Expensify/App and Expensify/Mobile-Expensify repositories. Found: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}"
             exit 1
           fi
@@ -172,7 +172,7 @@ jobs:
             git checkout -b ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
             git push --set-upstream origin ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
           else
-            if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" =~ "Expensify/Mobile-Expensify*" ]]; then
+            if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" =~ Expensify/Mobile-Expensify* ]]; then
               # Push Mobile-Expensify changes first
               cd Mobile-Expensify
               git push origin ${{ inputs.TARGET }}
