@@ -194,11 +194,13 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
     commits.forEach((commit) => {
         const author = commit.authorName;
         if (author === CONST.OS_BOTIFY) {
+            console.log(`[jules] -botify Ignoring ${commit.subject} by ${author}`);
             return;
         }
 
         const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
         if (!Array.isArray(match) || match.length < 2) {
+            console.log(`[jules] cherry-pickI gnoring ${commit.subject} by ${author}`);
             return;
         }
 
