@@ -4,15 +4,12 @@ import ConfirmModal from '@components/ConfirmModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import navigationRef from '@libs/Navigation/navigationRef';
-
-type DiscardChangesConfirmationProps = {
-    getHasUnsavedChanges: () => boolean;
-};
+import type DiscardChangesConfirmationProps from './types';
 
 function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfirmationProps) {
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
-    const blockedNavigationAction = useRef<NavigationAction>();
+    const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
 
     useBeforeRemove(
         useCallback(
