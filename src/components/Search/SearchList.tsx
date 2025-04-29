@@ -62,7 +62,7 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
+    /** Whether to prevent default focusing of options and focus the text input when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Whether to prevent long press of options */
@@ -163,19 +163,21 @@ function SearchList(
         [],
     );
 
-    const handleLongPressRow = (item: SearchListItem) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
-            return;
-        }
-        if (isSmallScreenWidth && selectionMode?.isEnabled) {
-            onCheckboxPress?.(item);
-            return;
-        }
-
-        setLongPressedItem(item);
-        setIsModalVisible(true);
-    };
+    const handleLongPressRow = useCallback(
+        (item: SearchListItem) => {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
+                return;
+            }
+            if (selectionMode?.isEnabled) {
+                onCheckboxPress(item);
+                return;
+            }
+            setLongPressedItem(item);
+            setIsModalVisible(true);
+        },
+        [isFocused, isSmallScreenWidth, onCheckboxPress, selectionMode?.isEnabled, shouldPreventLongPressRow],
+    );
 
     const turnOnSelectionMode = useCallback(() => {
         turnOnMobileSelectionMode();
@@ -387,7 +389,7 @@ function SearchList(
             >
                 <MenuItem
                     title={translate('common.select')}
-                    icon={Expensicons.Checkmark}
+                    icon={Expensicons.CheckSquare}
                     onPress={turnOnSelectionMode}
                 />
             </Modal>

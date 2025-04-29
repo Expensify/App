@@ -12,6 +12,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,8 +21,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
-import * as Welcome from '@userActions/Welcome';
+import {completeOnboarding} from '@userActions/Report';
+import {setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -52,20 +53,25 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
+    const {canUsePrivateDomainOnboarding} = usePermissions();
+    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
 
-    const isPrivateDomain = Session.isUserOnPrivateDomain();
+    const isPrivateDomainAndHasAccesiblePolicies = canUsePrivateDomainOnboarding && !user?.isFromPublicDomain && !!user?.hasAccessibleDomainPolicies;
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const theme = useTheme();
-    const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
+    const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, {canBeMissing: true});
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
+    const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {canBeMissing: true});
 
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
-    const [customChoices = []] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
+    const [customChoices = []] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, {canBeMissing: true});
 
     const onboardingChoices = getOnboardingChoices(customChoices);
 
@@ -82,12 +88,25 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             wrapperStyle: [styles.purposeMenuItem],
             numberOfLinesTitle: 0,
             onPress: () => {
-                Welcome.setOnboardingPurposeSelected(choice);
-                Welcome.setOnboardingErrorMessage('');
+                setOnboardingPurposeSelected(choice);
+                setOnboardingErrorMessage('');
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
                 }
+
+                if (isPrivateDomainAndHasAccesiblePolicies && personalDetailsForm?.firstName && personalDetailsForm?.lastName) {
+                    completeOnboarding({
+                        engagementChoice: choice,
+                        onboardingMessage: CONST.ONBOARDING_MESSAGES[choice],
+                        firstName: personalDetailsForm.firstName,
+                        lastName: personalDetailsForm.lastName,
+                        adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
+                        onboardingPolicyID,
+                    });
+                    return;
+                }
+
                 Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
             },
         };
@@ -95,7 +114,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const isFocused = useIsFocused();
 
     const handleOuterClick = useCallback(() => {
-        Welcome.setOnboardingErrorMessage(translate('onboarding.errorSelection'));
+        setOnboardingErrorMessage(translate('onboarding.errorSelection'));
     }, [translate]);
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
@@ -112,7 +131,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         <HeaderWithBackButton
                             shouldShowBackButton={false}
                             iconFill={theme.iconColorfulBackground}
-                            progressBarPercentage={isPrivateDomain ? 60 : 20}
+                            progressBarPercentage={isPrivateDomainAndHasAccesiblePolicies ? 60 : 20}
                         />
                     </View>
                     <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
@@ -139,5 +158,3 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
 BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
 
 export default BaseOnboardingPurpose;
-
-export type {BaseOnboardingPurposeProps};

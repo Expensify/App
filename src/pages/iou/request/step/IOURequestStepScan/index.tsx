@@ -42,8 +42,8 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isPaidGroupPolicy, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
+import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
@@ -111,13 +111,13 @@ function IOURequestStepScan({
     const [elementTop, setElementTop] = useState(0);
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
@@ -279,7 +279,7 @@ function IOURequestStepScan({
     }, [iouType, reportID, transactionID]);
 
     const navigateToConfirmationPage = useCallback(
-        (isTestTransaction = false) => {
+        (isTestTransaction = false, reportIDParam: string | undefined = undefined) => {
             switch (iouType) {
                 case CONST.IOU.TYPE.REQUEST:
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
@@ -289,7 +289,13 @@ function IOURequestStepScan({
                     break;
                 default:
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, isTestTransaction ? CONST.IOU.TYPE.SUBMIT : iouType, transactionID, reportID),
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CREATE,
+                            isTestTransaction ? CONST.IOU.TYPE.SUBMIT : iouType,
+                            transactionID,
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            reportIDParam || reportID,
+                        ),
                     );
             }
         },
@@ -340,6 +346,18 @@ function IOURequestStepScan({
         (file: FileObject, source: string, locationPermissionGranted = false, isTestTransaction = false) => {
             if (backTo) {
                 Navigation.goBack(backTo);
+                return;
+            }
+
+            if (isTestTransaction) {
+                const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+                let reportIDParam = managerMcTestParticipant.reportID;
+                if (!managerMcTestParticipant.reportID && report?.reportID) {
+                    reportIDParam = generateReportID();
+                }
+                setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, reportID: reportIDParam, selected: true}], true).then(() => {
+                    navigateToConfirmationPage(true, reportIDParam);
+                });
                 return;
             }
 
@@ -475,12 +493,6 @@ function IOURequestStepScan({
                     );
                 });
             } else {
-                if (isTestTransaction) {
-                    const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
-                    setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, selected: true}]);
-                    navigateToConfirmationPage(true);
-                    return;
-                }
                 navigateToParticipantPage();
             }
         },
@@ -592,7 +604,7 @@ function IOURequestStepScan({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive,
+        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive && !isUserInvitedToWorkspace(),
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
@@ -905,7 +917,7 @@ function IOURequestStepScan({
                             wrapperStyle={styles.productTrainingTooltipWrapper}
                             shiftVertical={-elementTop}
                         >
-                            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                                 {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                             </View>
                         </EducationalTooltip>

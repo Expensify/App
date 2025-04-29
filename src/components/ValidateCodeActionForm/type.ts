@@ -1,4 +1,5 @@
 import type {ForwardedRef, ReactNode} from 'react';
+import type {TextStyle} from 'react-native';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -6,8 +7,14 @@ type ValidateCodeActionFormProps = {
     /** Primary description of the modal */
     descriptionPrimary: ReactNode;
 
+    /** Primary description styles */
+    descriptionPrimaryStyles?: TextStyle;
+
     /** Secondary description of the modal */
     descriptionSecondary?: ReactNode;
+
+    /** Secondary description styles */
+    descriptionSecondaryStyles?: TextStyle;
 
     /** The pending action for submitting form */
     validatePendingAction?: PendingAction | null;

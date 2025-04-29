@@ -16,7 +16,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import AccountHolderDetails from './subSteps/AccountHolderDetails';
 import BankAccountDetails from './subSteps/BankAccountDetails';
 import Confirmation from './subSteps/Confirmation';
-import type {BankInfoSubStepProps} from './types';
+import type BankInfoSubStepProps from './types';
 
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
@@ -51,18 +51,18 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     };
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (reimbursementAccount?.errors || reimbursementAccount?.isLoading || !reimbursementAccount?.isSuccess) {
+        if (reimbursementAccount?.isLoading === true || !!reimbursementAccount?.errors) {
             return;
         }
 
-        if (reimbursementAccount?.isSuccess) {
+        if (reimbursementAccount?.isSuccess === true) {
             onSubmit();
-            clearReimbursementAccountBankCreation();
         }
+    }, [onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
 
+    useEffect(() => {
         return () => clearReimbursementAccountBankCreation();
-    }, [onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isCreateCorpayBankAccount, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
+    }, []);
 
     useEffect(() => {
         if (country === '') {
