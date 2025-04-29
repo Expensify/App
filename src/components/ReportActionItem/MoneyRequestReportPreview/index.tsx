@@ -95,9 +95,11 @@ function MoneyRequestReportPreview({
             isHovered={isHovered}
             iouReportID={iouReportID}
             containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle, containerStyles]}
+            shouldDisplayContextMenu={shouldDisplayContextMenu}
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
+            onPreviewPressed={openReportFromPreview}
             shouldShowIOUData={shouldShowIOUData}
         />
     );
