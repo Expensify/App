@@ -430,17 +430,14 @@ const translations = {
         conciergeHelp: 'Please reach out to Concierge for help.',
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection.',
-        attachementWillBeAvailableOnceBackOnline: 'Attachment will become available once back online.',
-        errorOccuredWhileTryingToPlayVideo: 'An error occurred while trying to play this video.',
+        attachmentWillBeAvailableOnceBackOnline: 'Attachment will become available once back online.',
+        errorOccurredWhileTryingToPlayVideo: 'An error occurred while trying to play this video.',
         areYouSure: 'Are you sure?',
         verify: 'Verify',
         yesContinue: 'Yes, continue',
         websiteExample: 'e.g. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
-        title: 'Title',
-        assignee: 'Assignee',
-        createdBy: 'Created by',
         with: 'with',
         shareCode: 'Share code',
         share: 'Share',
@@ -527,7 +524,6 @@ const translations = {
         offlinePrompt: "You can't take this action right now.",
         outstanding: 'Outstanding',
         chats: 'Chats',
-        tasks: 'Tasks',
         unread: 'Unread',
         sent: 'Sent',
         links: 'Links',
@@ -552,7 +548,6 @@ const translations = {
         reimbursable: 'Reimbursable',
         editYourProfile: 'Edit your profile',
         comments: 'Comments',
-        sharedIn: 'Shared in',
         unreported: 'Unreported',
     },
     supportalNoAccess: {
@@ -928,6 +923,7 @@ const translations = {
         share: 'Share',
         participants: 'Participants',
         createExpense: 'Create expense',
+        addExpense: 'Add expense',
         chooseRecipient: 'Choose recipient',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Create ${amount} expense`,
         confirmDetails: 'Confirm details',
@@ -1370,7 +1366,7 @@ const translations = {
             useStagingServer: 'Use Staging Server',
             forceOffline: 'Force offline',
             simulatePoorConnection: 'Simulate poor internet connection',
-            simulatFailingNetworkRequests: 'Simulate failing network requests',
+            simulateFailingNetworkRequests: 'Simulate failing network requests',
             authenticationStatus: 'Authentication status',
             deviceCredentials: 'Device credentials',
             invalidate: 'Invalidate',
@@ -2174,7 +2170,7 @@ const translations = {
         goBackHome: 'Go back to home page',
     },
     errorPage: {
-        title: ({isBreakline}: {isBreakline: boolean}) => `Oops... ${isBreakline ? '\n' : ''}Something went wrong`,
+        title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Something went wrong`,
         subtitle: 'Your request could not be completed. Please try again later.',
     },
     setPasswordPage: {
@@ -2879,6 +2875,10 @@ const translations = {
         blockedFeatureModal: {
             title: 'Expensify Travel has been disabled',
             message: `Your admin has turned off Expensify Travel. Please follow your company's booking policy for travel arrangements.`,
+        },
+        verifyCompany: {
+            title: 'Get started with travel today!',
+            message: `Please contact your Account manager or salesteam@expensify.com to get a demo of travel and have it enabled for your company.`,
         },
     },
     workspace: {
@@ -5144,7 +5144,6 @@ const translations = {
         description: 'Description',
         assignee: 'Assignee',
         completed: 'Completed',
-        action: 'Complete',
         messages: {
             created: ({title}: TaskCreatedActionParams) => `task for ${title}`,
             completed: 'marked as complete',
@@ -5189,12 +5188,12 @@ const translations = {
             },
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",
-                subtitle: 'Create an expense or take a tour of Expensify to learn more.',
+                subtitle: 'Create an expense or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to create an expense.',
             },
             emptyInvoiceResults: {
                 title: "You haven't created any \ninvoices yet",
-                subtitle: 'Send an invoice or take a tour of Expensify to learn more.',
+                subtitle: 'Send an invoice or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to send an invoice.',
             },
             emptyTripResults: {
@@ -5230,7 +5229,6 @@ const translations = {
             link: 'Link',
             pinned: 'Pinned',
             unread: 'Unread',
-            completed: 'Completed',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Less than ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Greater than ${amount ?? ''}`,
@@ -5419,6 +5417,7 @@ const translations = {
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} left the workspace`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                leftTheChat: 'left the chat',
             },
         },
     },
@@ -5467,7 +5466,7 @@ const translations = {
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat member display names',
         scrollToNewestMessages: 'Scroll to newest messages',
-        prestyledText: 'Prestyled text',
+        preStyledText: 'Prestyled text',
         viewAttachment: 'View attachment',
     },
     parentReportAction: {
@@ -5681,7 +5680,7 @@ const translations = {
             return message;
         },
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
-            const preMessage = 'Prohibited Expense: ';
+            const preMessage = 'Prohibited expense:';
             switch (prohibitedExpenseType) {
                 case 'alcohol':
                     return `${preMessage} Alcohol`;
@@ -5690,9 +5689,9 @@ const translations = {
                 case 'tobacco':
                     return `${preMessage} Tobacco`;
                 case 'adultEntertainment':
-                    return `${preMessage} Adult Entertainment`;
+                    return `${preMessage} Adult entertainment`;
                 case 'hotelIncidentals':
-                    return `${preMessage} Hotel Incidentals`;
+                    return `${preMessage} Hotel incidentals`;
                 default:
                     return `${preMessage}${prohibitedExpenseType}`;
             }
@@ -6190,11 +6189,7 @@ const translations = {
         },
     },
     emptySearchView: {
-        takeATour: 'Take a tour',
-    },
-    tour: {
-        takeATwoMinuteTour: 'Take a 2-minute tour',
-        exploreExpensify: 'Explore everything Expensify has to offer',
+        takeATestDrive: 'Take a test drive',
     },
     migratedUserWelcomeModal: {
         title: 'Travel and expense, at the speed of chat',
@@ -6207,9 +6202,9 @@ const translations = {
         },
     },
     productTrainingTooltip: {
-        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
+        conciergeLHNGbr: {
             part1: 'Get started',
             part2: ' here!',
         },
@@ -6263,6 +6258,10 @@ const translations = {
         hangUp: 'Hang up',
     },
     testDrive: {
+        quickAction: {
+            takeATwoMinuteTestDrive: 'Take a 2-minute test drive',
+            exploreExpensify: 'Explore everything Expensify has to offer',
+        },
         modal: {
             title: 'Take us for a test drive',
             description: 'Take a quick product tour to get up to speed fast. No pit stops required!',

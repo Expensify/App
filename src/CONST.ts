@@ -405,8 +405,8 @@ const CONST = {
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
     ANIMATION_PAID_CHECKMARK_DELAY: 300,
-    ANIMATION_THUMBSUP_DURATION: 250,
-    ANIMATION_THUMBSUP_DELAY: 200,
+    ANIMATION_THUMBS_UP_DURATION: 250,
+    ANIMATION_THUMBS_UP_DELAY: 200,
     ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
@@ -801,7 +801,6 @@ const CONST = {
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
-        NEWDOT_PDF_EXPORT: 'newDotPDFExport',
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
@@ -810,6 +809,7 @@ const CONST = {
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
+        IS_TRAVEL_VERIFIED: 'isTravelVerified',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1182,7 +1182,7 @@ const CONST = {
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
-        UNREPORTED_REPORTID: '0',
+        UNREPORTED_REPORT_ID: '0',
         SPLIT_REPORTID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1196,6 +1196,7 @@ const CONST = {
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+            ADD_EXPENSE: 'addExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1205,6 +1206,7 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+            ADD_EXPENSE: 'addExpense',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
@@ -1526,7 +1528,7 @@ const CONST = {
         MODAL_TYPE: {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
-            CENTERED_SWIPABLE_TO_RIGHT: 'centered_swipable_to_right',
+            CENTERED_SWIPEABLE_TO_RIGHT: 'centered_swipable_to_right',
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
             CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
@@ -1778,7 +1780,7 @@ const CONST = {
     // More info https://github.com/Expensify/App/issues/8007
     EMAIL_SEARCH_REGEX: /\.(?=[^\s@]*@)/g,
 
-    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
+    VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
 
@@ -3141,7 +3143,7 @@ const CONST = {
     },
 
     AVATAR_SIZE: {
-        XLARGE: 'xlarge',
+        X_LARGE: 'xlarge',
         LARGE: 'large',
         MEDIUM: 'medium',
         DEFAULT: 'default',
@@ -5060,7 +5062,7 @@ const CONST = {
             SUBMITTER: 'submitter',
         },
     },
-    DELEGATE_ROLE_HELPDOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
+    DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
@@ -6438,7 +6440,6 @@ const CONST = {
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
-            TASK: 'task',
             TRIP: 'trip',
             CHAT: 'chat',
         },
@@ -6507,11 +6508,6 @@ const CONST = {
                 LINKS: 'links',
                 PINNED: 'pinned',
             },
-            TASK: {
-                ALL: 'all',
-                OUTSTANDING: 'outstanding',
-                COMPLETED: 'completed',
-            },
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -6526,10 +6522,6 @@ const CONST = {
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
-            TITLE: 'title',
-            ASSIGNEE: 'assignee',
-            CREATED_BY: 'createdBy',
-            IN: 'in',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -6570,9 +6562,6 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
-            TITLE: 'title',
-            ASSIGNEE: 'assignee',
-            CREATED_BY: 'createdBy',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
@@ -6611,9 +6600,6 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
-            TITLE: 'title',
-            ASSIGNEE: 'assignee',
-            CREATED_BY: 'created-by',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
         },
@@ -6990,9 +6976,9 @@ const CONST = {
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
-        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
+        CONCIERGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
         BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
