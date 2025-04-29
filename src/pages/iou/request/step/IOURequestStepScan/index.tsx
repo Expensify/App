@@ -917,7 +917,7 @@ function IOURequestStepScan({
                             wrapperStyle={styles.productTrainingTooltipWrapper}
                             shiftVertical={-elementTop}
                         >
-                            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                                 {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                             </View>
                         </EducationalTooltip>

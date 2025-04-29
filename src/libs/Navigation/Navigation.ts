@@ -1,4 +1,4 @@
-import {getActionFromState} from '@react-navigation/core';
+import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
@@ -24,7 +24,7 @@ import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getPolicyIDFromState from './helpers/getPolicyIDFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
-import {isFullScreenName} from './helpers/isNavigatorName';
+import {isFullScreenName, isOnboardingFlowName} from './helpers/isNavigatorName';
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
@@ -630,6 +630,12 @@ function removeScreenByKey(key: string) {
     });
 }
 
+function isOnboardingFlow() {
+    const state = navigationRef.getRootState();
+    const currentFocusedRoute = findFocusedRoute(state);
+    return isOnboardingFlowName(currentFocusedRoute?.name);
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -661,6 +667,7 @@ export default {
     switchPolicyID,
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
+    isOnboardingFlow,
 };
 
 export {navigationRef};
