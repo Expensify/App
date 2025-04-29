@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import Button from '@components/Button';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
@@ -90,6 +91,10 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
 
         setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: {onUpload: error}});
     };
+
+    const handleDownload = () => {
+        console.log('download');
+    }
 
     return (
         <FormProvider
@@ -206,6 +211,13 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.codiceFiscaleDescription')}</Text>
                     {isDocumentNeededStatus.isPRDandFSGNeeded && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
+                </View>
+            )}
+            {isDocumentNeededStatus.isPRDandFSGNeeded && (
+                <View style={[styles.alignItemsStart]}>
+                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PDSandFSG')}</Text>
+                    <Button onPress={handleDownload} text={translate('common.download')} />
+                    <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.PDSandFSGDescription')}</Text>
                 </View>
             )}
             <WhyLink containerStyles={[styles.mt6]} />
