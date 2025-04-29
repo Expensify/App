@@ -38,6 +38,7 @@ jest.mock('@libs/ReportUtils', () => ({
     generateReportName: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportName,
     getAllPolicyReports: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllPolicyReports,
     isValidReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isValidReport,
+    generateReportAttributes: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportAttributes,
 }));
 
 jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
