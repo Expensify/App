@@ -601,7 +601,12 @@ function getFilterDisplayValueWithPolicyID(
     cardFeedNamesWithType: CardFeedNamesWithType,
     policies: OnyxCollection<OnyxTypes.Policy>,
 ) {
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+    if (
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY
+    ) {
         // login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return personalDetails?.[filterValue]?.displayName || filterValue;
