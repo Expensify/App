@@ -168,6 +168,7 @@ function SettlementButton({
                     description: formattedPaymentMethod?.description ?? '',
                     icon: formattedPaymentMethod?.icon,
                     onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType),
+                    iconStyles: formattedPaymentMethod.iconStyles
                 }));
 
             if (isIndividualInvoiceRoomUtil(chatReport)) {
