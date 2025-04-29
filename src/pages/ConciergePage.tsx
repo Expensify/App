@@ -22,13 +22,13 @@ import ROUTES from '@src/ROUTES';
 function ConciergePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true, canBeMissing: true});
     const route = useRoute();
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: false});
     const viewTourTaskReportID = introSelected?.viewTour;
-    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`, {canBeMissing: false});
 
     useFocusEffect(
         useCallback(() => {

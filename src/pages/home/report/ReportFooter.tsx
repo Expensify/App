@@ -85,8 +85,8 @@ function ReportFooter({
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: false});
-    const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+    const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: false, canBeMissing: true});
+    const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS, canBeMissing: true});
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: (dateString) => {
             if (!dateString) {
@@ -100,6 +100,7 @@ function ReportFooter({
                 return false;
             }
         },
+        canBeMissing: true,
     });
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
 

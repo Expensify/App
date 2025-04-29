@@ -49,7 +49,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const platform = getPlatform();
     const isNarrowScreenOnWeb = shouldUseNarrowLayout && platform === CONST.PLATFORM.WEB;
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false});
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false, canBeMissing: true});
     const isHomeRouteActive = useIsHomeRouteActive(shouldUseNarrowLayout);
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP,
