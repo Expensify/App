@@ -85,7 +85,7 @@ export default createOnyxDerivedValueConfig({
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
             const {hasAnyViolations, hasErrors, oneTransactionThreadReportID, requiresAttention} = generateReportAttributes({
                 report,
-                reportActions: reportActionsList,
+                reportActions,
                 transactionViolations,
             });
 

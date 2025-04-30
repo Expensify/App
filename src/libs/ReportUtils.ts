@@ -10447,18 +10447,20 @@ function generateReportAttributes({
     transactionViolations,
 }: {
     report: OnyxEntry<Report>;
-    reportActions?: ReportActions;
+    reportActions?: OnyxCollection<ReportActions>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
 }) {
+    const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
+    const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
     const isReportSettled = isSettled(report);
     const isCurrentUserReportOwner = isReportOwner(report);
     const doesReportHasViolations = hasReportViolations(report?.reportID);
     const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
     const hasAnyViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
-    const reportErrors = getAllReportErrors(report, reportActions);
+    const reportErrors = getAllReportErrors(report, reportActionsList);
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
-    const oneTransactionThreadReportID = getOneTransactionThreadReportID(report?.reportID, reportActions);
-    const parentReportAction = report?.parentReportActionID ? reportActions?.[report.parentReportActionID] : undefined;
+    const oneTransactionThreadReportID = getOneTransactionThreadReportID(report?.reportID, reportActionsList);
+    const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
     const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction);
 
     return {
