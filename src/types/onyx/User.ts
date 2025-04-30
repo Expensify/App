@@ -41,4 +41,5 @@ type User = {
     hasAccessibleDomainPolicies?: boolean;
 };
 
+// eslint-disable-next-line deprecation/deprecation
 export default User;
