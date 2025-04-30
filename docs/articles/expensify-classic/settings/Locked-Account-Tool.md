@@ -24,7 +24,7 @@ The following actions are restricted when an account is locked in Expensify Clas
 
 ### Profile settings
 - Adding a secondary login
-- Adding or remove Two Factor Authentication (2FA)
+- Adding or removing Two Factor Authentication (2FA)
 - Domain Admins cannot reset Two Factor Authentication for Domain Members  
 - Inviting Copilots  
 
