@@ -211,7 +211,7 @@ function AttachmentModal({
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const [file, setFile] = useState<FileObject | undefined>(
@@ -245,7 +245,7 @@ function AttachmentModal({
     );
 
     /**
-     * If our attachment is a PDF, return the unswipeablge Modal type.
+     * If our attachment is a PDF, return the unswipeable Modal type.
      */
     const getModalType = useCallback(
         (sourceURL: string, fileObject: FileObject) =>
@@ -703,4 +703,4 @@ AttachmentModal.displayName = 'AttachmentModal';
 
 export default memo(AttachmentModal);
 
-export type {Attachment, FileObject, ImagePickerResponse};
+export type {FileObject, ImagePickerResponse};

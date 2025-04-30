@@ -1,5 +1,5 @@
 import type {RouteProp} from '@react-navigation/native';
-import {findFocusedRoute, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
@@ -25,8 +25,7 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -60,7 +59,7 @@ import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import createRootStackNavigator from './createRootStackNavigator';
-import {reportsSplitsWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
+import {reportsSplitsWithEnteringAnimation, settingsSplitWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
@@ -71,6 +70,7 @@ import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
+import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 
 type AuthScreensProps = {
@@ -364,6 +364,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             shortcutsOverviewShortcutConfig.shortcutKey,
             () => {
                 Modal.close(() => {
+                    if (Navigation.isOnboardingFlow()) {
+                        return;
+                    }
+
                     if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS)) {
                         return;
                     }
@@ -382,9 +386,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             searchShortcutConfig.shortcutKey,
             () => {
                 Session.callFunctionIfActionIsAllowed(() => {
-                    const state = navigationRef.getRootState();
-                    const currentFocusedRoute = findFocusedRoute(state);
-                    if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                    if (Navigation.isOnboardingFlow()) {
                         return;
                     }
                     toggleSearch();
@@ -398,6 +400,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
+                if (Navigation.isOnboardingFlow()) {
+                    return;
+                }
                 Modal.close(Session.callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
             },
             chatShortcutConfig.descriptionKey,
@@ -440,21 +445,27 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         };
     };
 
-    // Animation is enabled when navigating to the report screen
-    const getReportsSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
-        // We don't need to do anything special for the wide screen.
-        if (!shouldUseNarrowLayout) {
-            return rootNavigatorScreenOptions.splitNavigator;
-        }
+    const getSplitNavigatorOptions =
+        (routesWithEnteringAnimation: Set<string>) =>
+        ({route}: {route: RouteProp<AuthScreensParamList>}) => {
+            // We don't need to do anything special for the wide screen.
+            if (!shouldUseNarrowLayout) {
+                return rootNavigatorScreenOptions.splitNavigator;
+            }
+            // On the narrow screen, we want to animate this navigator if pushed SplitNavigator includes desired screen
+            const animationEnabled = routesWithEnteringAnimation.has(route.key);
 
-        // On the narrow screen, we want to animate this navigator if pushed ReportsSplitNavigator includes ReportScreen
-        const animationEnabled = reportsSplitsWithEnteringAnimation.has(route.key);
-
-        return {
-            ...rootNavigatorScreenOptions.splitNavigator,
-            animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            return {
+                ...rootNavigatorScreenOptions.splitNavigator,
+                animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            };
         };
-    };
+
+    // Animation is enabled when navigating to the report screen
+    const getReportsSplitNavigatorOptions = getSplitNavigatorOptions(reportsSplitsWithEnteringAnimation);
+
+    // Animation is enabled when navigating to any screen different than SCREENS.SETTINGS.ROOT
+    const getSettingsSplitNavigatorOptions = getSplitNavigatorOptions(settingsSplitWithEnteringAnimation);
 
     const clearStatus = () => {
         User.clearCustomStatus();
@@ -500,7 +511,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.splitNavigator}
+                    options={getSettingsSplitNavigatorOptions}
                     getComponent={loadSettingsSplitNavigator}
                 />
                 <RootStack.Screen
@@ -635,6 +646,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={TestDriveModalNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR}
+                    options={rootNavigatorScreenOptions.basicModalNavigator}
+                    component={TestDriveDemoNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
