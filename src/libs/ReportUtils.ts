@@ -5749,7 +5749,7 @@ function getDeletedTransactionMessage(action: ReportAction) {
 function getReportDetails(reportID: string): {reportName: string; reportUrl: string} {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     return {
-        reportName: report?.reportName ?? '',
+        reportName: getReportName(report) ?? report?.reportName ?? '',
         reportUrl: `${environmentURL}/r/${reportID}`,
     };
 }
@@ -6538,7 +6538,7 @@ function buildOptimisticChatReport({
     writeCapability,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
-    parentReportID = '',
+    parentReportID = undefined,
     description = '',
     avatarUrl = '',
     optimisticReportID = '',
@@ -8498,9 +8498,9 @@ function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, 
     return requestOptions.includes(iouType);
 }
 
-function getWorkspaceChats(policyID: string, accountIDs: number[], reports: OnyxCollection<Report> = allReports): Array<OnyxEntry<Report>> {
+function getWorkspaceChats(policyID: string | undefined, accountIDs: number[], reports: OnyxCollection<Report> = allReports): Array<OnyxEntry<Report>> {
     return Object.values(reports ?? {}).filter(
-        (report) => isPolicyExpenseChat(report) && report?.policyID === policyID && report?.ownerAccountID && accountIDs.includes(report?.ownerAccountID),
+        (report) => isPolicyExpenseChat(report) && !!policyID && report?.policyID === policyID && report?.ownerAccountID && accountIDs.includes(report?.ownerAccountID),
     );
 }
 

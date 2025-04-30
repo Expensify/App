@@ -31,6 +31,7 @@ import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import LoginForm from './LoginForm';
 import type {InputHandle} from './LoginForm/types';
+import {LoginProvider} from './SignInLoginContext';
 import SignInPageLayout from './SignInPageLayout';
 import type {SignInPageLayoutRef} from './SignInPageLayout/types';
 import SignUpWelcomeForm from './SignUpWelcomeForm';
@@ -153,9 +154,9 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     const loginFormRef = useRef<InputHandle>(null);
     const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isAccountValidated = useAccountValidation();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     /**
       This variable is only added to make sure the component is re-rendered
       whenever the activeClients change, so that we call the
@@ -163,8 +164,8 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
       everytime the leader client changes.
       We use that function to prevent repeating code that checks which client is the leader.
     */
-    const [activeClients = []] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS);
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const [activeClients = []] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
 
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
@@ -177,8 +178,6 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     /** This state is needed to keep track of whether the user has been directed to their SSO provider's login page and
      *  if we need to clear their sign in details so they can enter a login */
     const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
-
-    const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
 
     const isClientTheLeader = !!activeClients && isClientTheLeaderActiveClientManager();
     // We need to show "Another login page is opened" message if the page isn't active and visible
@@ -308,7 +307,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
-            testID={SignInPageThemeWrapper.displayName}
+            testID={SignInPageWrapper.displayName}
         >
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
@@ -323,8 +322,6 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
                 <LoginForm
                     ref={loginFormRef}
                     isVisible={shouldShowLoginForm}
-                    login={login}
-                    onLoginChanged={setLogin}
                     blurOnSubmit={isAccountValidated === false}
                     // eslint-disable-next-line react-compiler/react-compiler
                     scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
@@ -354,25 +351,27 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
 type SignInPageProps = SignInPageInnerProps;
 const SignInPageWithRef = forwardRef(SignInPage);
 
-function SignInPageThemeWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
+function SignInPageWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
                 <ColorSchemeWrapper>
                     <CustomStatusBarAndBackground isNested />
-                    <SignInPageWithRef
-                        ref={ref}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
-                    />
+                    <LoginProvider>
+                        <SignInPageWithRef
+                            ref={ref}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...props}
+                        />
+                    </LoginProvider>
                 </ColorSchemeWrapper>
             </ThemeStylesProvider>
         </ThemeProvider>
     );
 }
 
-SignInPageThemeWrapper.displayName = 'SignInPage';
+SignInPageWrapper.displayName = 'SignInPage';
 
-export default forwardRef(SignInPageThemeWrapper);
+export default forwardRef(SignInPageWrapper);
 
 export type {SignInPageRef};
