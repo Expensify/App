@@ -903,6 +903,8 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
         },
     ];
 
+    // We suggest specific filters for users based on their access in specific policies. Show the todo section
+    // only if any of these items are available
     const showSubmitSuggestion = getAllSharedPolicies().length > 0;
     const showApproveSuggestion = getApproverPolicies().length > 0;
     const showPaySuggestion = getAdminPolicies().length > 0;
