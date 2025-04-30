@@ -35,8 +35,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
     const {translate} = useLocalize();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const oldPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
@@ -48,22 +47,22 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
             if (isIOUReport(reportID) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
                 moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID);
-            } else if (isIOUReport(reportID) && isPolicyMember(currentUserLogin, policyID)) {
+            } else if (isIOUReport(reportID) && isPolicyMember(session?.email, policyID)) {
                 moveIOUReportToPolicy(reportID, policyID);
             } else {
                 changeReportPolicy(reportID, policyID);
             }
         },
-        [currentUserLogin, report, reportID],
+        [session?.email, report, reportID],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
-        currentUserLogin,
+        currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
         selectedPolicyID: report.policyID,
         searchTerm: debouncedSearchTerm,
-        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin),
+        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session),
     });
 
     if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report) || (!report.total && !report.unheldTotal)) {
