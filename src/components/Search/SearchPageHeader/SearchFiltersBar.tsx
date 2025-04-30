@@ -9,7 +9,11 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
+import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
+import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
@@ -27,10 +31,6 @@ import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import DateSelectPopup from '../FilterDropdowns/DateSelectPopup';
-import MultiSelectPopup from '../FilterDropdowns/MultiSelectPopup';
-import SingleSelectPopup from '../FilterDropdowns/SingleSelectPopup';
-import UserSelectPopup from '../FilterDropdowns/UserSelectPopup';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 type SearchFiltersBarProps = {
@@ -122,33 +122,34 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     horizontal
                     showsHorizontalScrollIndicator={false}
                 >
+                    {/* JACK_TODO: Turn this into a map once dropdown testing is done */}
                     <DropdownButton
                         label="Type"
                         value={null}
                         items={[]}
                         onChange={() => {}}
-                        listItem={SingleSelectPopup}
+                        PopoverComponent={SingleSelectPopup}
                     />
                     <DropdownButton
                         label="Status"
                         value={null}
                         items={[]}
                         onChange={() => {}}
-                        listItem={MultiSelectPopup}
+                        PopoverComponent={MultiSelectPopup}
                     />
                     <DropdownButton
                         label="Date"
                         value={null}
                         items={[]}
                         onChange={() => {}}
-                        listItem={DateSelectPopup}
+                        PopoverComponent={DateSelectPopup}
                     />
                     <DropdownButton
                         label="From"
                         value={null}
                         items={[]}
                         onChange={() => {}}
-                        listItem={UserSelectPopup}
+                        PopoverComponent={UserSelectPopup}
                     />
 
                     <Button

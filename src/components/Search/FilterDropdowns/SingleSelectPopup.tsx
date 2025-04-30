@@ -1,5 +1,8 @@
+import React from 'react';
+import {View} from 'react-native';
+
 function SingleSelectPopup() {
-    return null;
+    return <View style={{padding: 40}}></View>;
 }
 
 SingleSelectPopup.displayName = 'SingleSelectPopup';
