@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
+import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import {
@@ -12,7 +13,7 @@ import {
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
 } from '@libs/actions/IOU';
-import {setTestDriveReceiptAndNavigate} from '@libs/actions/TestDrive';
+import {setTestReceipt} from '@libs/actions/setTestReceipt';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import {generateAccountID} from '@libs/UserUtils';
@@ -50,7 +51,7 @@ function EmployeeTestDriveModal() {
         }
 
         const filename = `${CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.FILENAME}_${Date.now()}.png`;
-        setTestDriveReceiptAndNavigate(filename, (source) => {
+        setTestReceipt(TestReceipt, (source) => {
             const transactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
             const reportID = generateReportID();
             initMoneyRequest(reportID, undefined, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);

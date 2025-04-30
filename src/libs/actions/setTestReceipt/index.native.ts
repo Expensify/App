@@ -1,15 +1,15 @@
 import {Image} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
 import type {FileObject} from '@components/AttachmentModal';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import type {SetTestDriveReceiptAndNavigate} from './types';
+import type {SetTestReceipt} from './types';
 
-const setTestDriveReceiptAndNavigate: SetTestDriveReceiptAndNavigate = (filename, onFileCreation) => {
+const setTestReceipt: SetTestReceipt = (asset, onFileRead) => {
     try {
+        const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.png`;
         const path = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${filename}`;
-        const source = Image.resolveAssetSource(TestReceipt).uri;
+        const source = Image.resolveAssetSource(asset).uri;
 
         ReactNativeBlobUtil.config({
             fileCache: true,
@@ -21,7 +21,7 @@ const setTestDriveReceiptAndNavigate: SetTestDriveReceiptAndNavigate = (filename
                 const file: FileObject = {
                     uri: `file://${path}`,
                     name: filename,
-                    type: CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.FILE_TYPE,
+                    type: CONST.TEST_RECEIPT.FILE_TYPE,
                     size: 0,
                 };
 
@@ -30,15 +30,15 @@ const setTestDriveReceiptAndNavigate: SetTestDriveReceiptAndNavigate = (filename
                     return;
                 }
 
-                onFileCreation(file.uri);
+                onFileRead(file.uri, file, filename);
             })
             .catch((error) => {
                 Log.warn('Error reading test receipt:', {message: error});
             });
     } catch (error) {
-        Log.warn('Error in setTestDriveReceiptAndNavigate:', {message: error});
+        Log.warn('Error in setTestReceipt:', {message: error});
     }
 };
 
 // eslint-disable-next-line import/prefer-default-export
-export {setTestDriveReceiptAndNavigate};
+export {setTestReceipt};

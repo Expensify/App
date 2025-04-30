@@ -31,10 +31,11 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setTestReceipt} from '@libs/actions/setTestReceipt';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
-import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
+import {base64ToFile, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
@@ -581,25 +582,10 @@ function IOURequestStepScan({
      * Sets a test receipt from CONST.TEST_RECEIPT_URL and navigates to the confirmation step
      */
     const setTestReceiptAndNavigate = useCallback(() => {
-        try {
-            const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.png`;
-
-            readFileAsync(
-                TestReceipt as string,
-                filename,
-                (file) => {
-                    const source = URL.createObjectURL(file);
-                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
-                    navigateToConfirmationStep(file, source, false, true);
-                },
-                (error) => {
-                    console.error('Error reading test receipt:', error);
-                },
-                CONST.TEST_RECEIPT.FILE_TYPE,
-            );
-        } catch (error) {
-            console.error('Error in setTestReceiptAndNavigate:', error);
-        }
+        setTestReceipt(TestReceipt, (source, file, filename) => {
+            setMoneyRequestReceipt(transactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
+            navigateToConfirmationStep(file, source, false, true);
+        });
     }, [transactionID, isEditing, navigateToConfirmationStep]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
