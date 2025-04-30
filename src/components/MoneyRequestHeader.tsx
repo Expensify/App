@@ -92,7 +92,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const reportID = report?.reportID;
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
-    const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
 
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
@@ -251,7 +250,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 }
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter={shouldDisplaySearchRouter}
+                shouldDisplaySearchRouter={!isReportInRHP}
                 shouldDisplayHelpButton={!isReportInRHP}
                 onBackButtonPress={onBackButtonPress}
                 shouldEnableDetailPageNavigation
