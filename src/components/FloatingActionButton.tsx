@@ -56,15 +56,15 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
         // On Home screen, We need to wait for the sidebar to load before showing the tooltip because there is the Concierge tooltip which is higher priority
         isTooltipAllowed && (!isHomeRouteActive || isSidebarLoaded),
     );
-    const isLhbVisible = !shouldUseNarrowLayout;
+    const isLHBVisible = !shouldUseNarrowLayout;
 
-    const fabSize = isLhbVisible ? variables.iconSizeSmall : variables.iconSizeNormal;
+    const fabSize = isLHBVisible ? variables.iconSizeSmall : variables.iconSizeNormal;
 
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
 
-    const tooltipHorizontalAnchorAlignment = isLhbVisible ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT;
-    const tooltipShiftHorizontal = isLhbVisible ? variables.lhbFabTooltipShiftHorizontal : variables.fabTooltipShiftHorizontal;
+    const tooltipHorizontalAnchorAlignment = isLHBVisible ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT;
+    const tooltipShiftHorizontal = isLHBVisible ? variables.lhbFabTooltipShiftHorizontal : variables.fabTooltipShiftHorizontal;
 
     useEffect(() => {
         sharedValue.set(
@@ -119,13 +119,13 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
                 shouldUseHapticsOnLongPress={false}
                 testID="floating-action-button"
             >
-                <Animated.View style={[styles.floatingActionButton, {borderRadius}, isLhbVisible && styles.floatingActionButtonSmall, animatedStyle]}>
+                <Animated.View style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle]}>
                     <Svg
                         width={fabSize}
                         height={fabSize}
                     >
                         <AnimatedPath
-                            d={isLhbVisible ? SMALL_FAB_PATH : FAB_PATH}
+                            d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
                             fill={textLight}
                         />
                     </Svg>
