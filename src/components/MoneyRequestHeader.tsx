@@ -249,6 +249,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter={shouldDisplaySearchRouter}
+                shouldDisplayHelpButton={!isReportInRHP}
                 onBackButtonPress={onBackButtonPress}
                 shouldEnableDetailPageNavigation
             >

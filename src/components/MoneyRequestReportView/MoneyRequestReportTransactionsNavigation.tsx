@@ -51,8 +51,7 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
         }, []),
     );
 
-    const shouldShow = reportIDsList.length > 1;
-    if (!shouldShow) {
+    if (reportIDsList.length < 2) {
         return;
     }
 
