@@ -177,14 +177,16 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedEmployees, policy?.owner, session?.accountID]);
 
-    // useFocus would make getWorkspaceMembers get called twice on fresh login because policyEmployee is a dependency of getWorkspaceMembers.
+    // Fetch members only once when the component mounts, like in Categories page
+    useEffect(() => {
+        getWorkspaceMembers();
+    }, [getWorkspaceMembers]);
+
+    // Clear selected employees when losing focus
     useEffect(() => {
         if (!isFocused) {
             setSelectedEmployees([]);
-            return;
         }
-        getWorkspaceMembers();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused]);
 
     useEffect(() => {
