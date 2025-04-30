@@ -761,6 +761,7 @@ describe('PolicyUtils', () => {
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approver: approverEmail,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
                     [submitterLogin]: {email: submitterLogin, role: CONST.POLICY.ROLE.USER},

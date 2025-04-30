@@ -71,6 +71,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
 import {createDraftWorkspace} from './actions/Policy/Policy';
+import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {handleReportChanged} from './actions/Report';
@@ -10300,6 +10301,10 @@ function verifyStatus(report: OnyxEntry<Report>, validStatuses: Array<ValueOf<ty
  * Determines whether the report can be moved to the workspace.
  */
 function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, session: OnyxEntry<Session>): boolean {
+    if (!session?.accountID) {
+        return false;
+    }
+
     const isIOU = isIOUReport(report);
     const submitterLogin = report?.ownerAccountID && getLoginByAccountID(report?.ownerAccountID);
     const isSubmitterMember = !!submitterLogin && !!newPolicy?.employeeList?.[submitterLogin];
@@ -10313,6 +10318,7 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
     // 1. The sender AND receiver are both members of the new policy OR
     // 2. The sender OR receiver is an admin of the new policy. In this case, changing the policy also invites the non-member to the policy
     if (isIOU && isReportOpenOrSubmitted && isPaidGroupPolicyType && ((isSubmitterMember && isManagerMember) || isCurrentUserAdmin)) {
+        console.log('over here 1');
         return true;
     }
 
@@ -10323,18 +10329,21 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
         return false;
     }
 
-    const isCurrentUserReportSubmitter = session?.accountID === report?.ownerAccountID;
+    const isCurrentUserReportSubmitter = session.accountID === report?.ownerAccountID;
     if (isCurrentUserReportSubmitter && isReportOpenOrSubmitted) {
+        console.log('over here 2');
         return true;
     }
 
-    const isCurrentUserReportApprover = session?.accountID === report?.managerID;
+    const isCurrentUserReportApprover = isApproverMember(newPolicy, session.accountID);
     if (isCurrentUserReportApprover && verifyState(report, [CONST.REPORT.STATE_NUM.SUBMITTED])) {
+        console.log('over here 3');
         return true;
     }
 
     const isCurrentUserReportPayer = isPayer(session, report, false, newPolicy);
     if (isCurrentUserReportPayer && verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED])) {
+        console.log('over here 4');
         return true;
     }
 
@@ -10343,6 +10352,7 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
         verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED]) &&
         verifyStatus(report, [CONST.REPORT.STATUS_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED, CONST.REPORT.STATUS_NUM.CLOSED])
     ) {
+        console.log('over here 5');
         return true;
     }
 
