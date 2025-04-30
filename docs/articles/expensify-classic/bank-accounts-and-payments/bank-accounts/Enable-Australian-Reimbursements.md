@@ -15,14 +15,13 @@ If you'd like an option for direct international payments, consider setting up [
 
 # Setting Up ABA Payments
 
-1. Go to **Settings > Workspaces**.
-2. Select the workspace you want to configure.
-3. Click the **Reports** tab.
-4. In the **Report Currency** dropdown, select **AUD A$**.
-5. Click the **Reimbursement** tab.
-6. Set **Reimbursement Type** to **Indirect**.
-7. Enable the toggle.
+1. Go to **Settings > Workspaces [Workspace Name] > Overview**.
+2. In the **Report Currency** dropdown, select **AUD A$**.
+3. Navigate to **Settings > Workspaces [Workspace Name] > Workflows**.
+4. Scroll to **Make or track payments**
+5. Set **Reimbursement Type** to **Indirect**.
+6. Toggle **Collect bank account details** on.
 
-Once enabled, employees can submit expenses in AUD, and you can process reimbursements via ABA files.
+Once the setup is complete, employees can submit expenses in AUD, and you can process reimbursements via ABA files.
 
 </div>
