@@ -4,14 +4,14 @@ import {Dimensions, useWindowDimensions} from 'react-native';
 import type {ResponsiveLayoutProperties} from '@components/VideoPlayerContexts/FullScreenContext';
 import {FullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import useDebouncedState from '@hooks/useDebouncedState';
-import * as Browser from '@libs/Browser';
+import {isMobile as isMobileBrowser, isMobileWebKit} from '@libs/Browser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type WindowDimensions from './types';
 
 const initalViewportHeight = window.visualViewport?.height ?? window.innerHeight;
-const tagNamesOpenKeyboard = ['INPUT', 'TEXTAREA'];
-const isMobile = Browser.isMobile();
+const tagNamesOpenKeyboard = [CONST.ELEMENT_NAME.INPUT, CONST.ELEMENT_NAME.TEXTAREA] as string[];
+const isMobile = isMobileBrowser();
 
 /**
  * A wrapper around React Native's useWindowDimensions hook.
@@ -24,7 +24,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         unlockWindowDimensions: () => {},
     };
 
-    const isCachedViewportHeight = useCachedViewportHeight && Browser.isMobileWebKit();
+    const isCachedViewportHeight = useCachedViewportHeight && isMobileWebKit();
     const cachedViewportHeightWithKeyboardRef = useRef(initalViewportHeight);
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
 

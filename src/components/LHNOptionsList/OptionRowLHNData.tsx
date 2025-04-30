@@ -17,6 +17,7 @@ import type {OptionRowLHNDataProps} from './types';
 function OptionRowLHNData({
     isFocused = false,
     fullReport,
+    reportAttributes,
     oneTransactionThreadReport,
     reportNameValuePairs,
     reportActions,
@@ -38,7 +39,7 @@ function OptionRowLHNData({
     const currentReportIDValue = useCurrentReportID();
     const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
 
-    const optionItemRef = useRef<OptionData>();
+    const optionItemRef = useRef<OptionData | undefined>(undefined);
 
     const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(fullReport, transactionViolations);
     const isReportSettled = isSettled(fullReport);
@@ -48,6 +49,7 @@ function OptionRowLHNData({
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
             report: fullReport,
+            reportAttributes,
             oneTransactionThreadReport,
             reportNameValuePairs,
             reportActions,
@@ -75,6 +77,7 @@ function OptionRowLHNData({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
         fullReport,
+        reportAttributes,
         oneTransactionThreadReport,
         reportNameValuePairs,
         lastReportActionTransaction,

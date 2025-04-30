@@ -1,3 +1,4 @@
+import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {OnboardingCompanySize} from './CONST';
@@ -130,7 +131,7 @@ const ONYXKEYS = {
     NVP_ONBOARDING: 'nvp_onboarding',
 
     /** This NVP contains data associated with HybridApp */
-    NVP_TRYNEWDOT: 'nvp_tryNewDot',
+    NVP_TRY_NEW_DOT: 'nvp_tryNewDot',
 
     /** Contains the platforms for which the user muted the sounds */
     NVP_MUTED_PLATFORMS: 'nvp_mutedPlatforms',
@@ -502,6 +503,9 @@ const ONYXKEYS = {
 
     /** Information about loading states while talking with AI sales */
     TALK_TO_AI_SALES: 'talkToAISales',
+
+    /** Onyx updates that should be stored after sequential queue is flushed */
+    QUEUE_FLUSHED_DATA: 'queueFlushedData',
 
     /** Set when we are loading bill when downgrade */
     IS_LOADING_BILL_WHEN_DOWNGRADE: 'isLoadingBillWhenDowngrade',
@@ -977,8 +981,8 @@ type OnyxValuesMapping = {
 
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding;
 
-    // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
-    [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;
+    // ONYXKEYS.NVP_TRY_NEW_DOT is HybridApp onboarding data
+    [ONYXKEYS.NVP_TRY_NEW_DOT]: OnyxTypes.TryNewDot;
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
@@ -1020,6 +1024,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.TALK_TO_AI_SALES]: OnyxTypes.TalkToAISales;
+    [ONYXKEYS.QUEUE_FLUSHED_DATA]: OnyxUpdate[];
 
     // The value of this nvp is a string representation of the date when the block expires, or an empty string if the user is not blocked
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;

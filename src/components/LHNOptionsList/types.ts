@@ -5,8 +5,18 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {
+    Locale,
+    PersonalDetailsList,
+    Policy,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    ReportNameValuePairs,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -47,6 +57,9 @@ type OptionRowLHNDataProps = {
 
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
+
+    /** The report derived attributes */
+    reportAttributes: ReportAttributesDerivedValue['reports'];
 
     /** The transaction thread report associated with the current report, if any */
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -103,9 +116,6 @@ type OptionRowLHNDataProps = {
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
-
-    /** The report attributes for the report */
-    reportAttributes: OnyxEntry<ReportAttributes>;
 };
 
 type OptionRowLHNProps = {
