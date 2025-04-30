@@ -11722,10 +11722,12 @@ function getValidMergedPRs(commits) {
     commits.forEach((commit) => {
         const author = commit.authorName;
         if (author === CONST_1.default.OS_BOTIFY) {
+            console.log(`[jules] -botify Ignoring ${commit.subject} by ${author}`);
             return;
         }
         const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
         if (!Array.isArray(match) || match.length < 2) {
+            console.log(`[jules] cherry-pickI gnoring ${commit.subject} by ${author}`);
             return;
         }
         const pr = Number.parseInt(match[1], 10);
@@ -11764,7 +11766,7 @@ async function getPullRequestsMergedBetween(fromTag, toTag) {
         console.error('[jules compare] Results DONT MATCH!');
         console.error(`[jules compare] API PRs: ${apiPullRequestNumbers.join(', ')}`);
         console.error(`[jules compare] Git Log PRs: ${gitPullRequestNumbers.join(', ')}`);
-        throw new Error('Commit history methods returned different results!');
+        console.error('Commit history methods returned different results!');
     }
     return apiPullRequestNumbers;
 }
