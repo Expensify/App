@@ -25,7 +25,7 @@ type SearchableData<T> = {
 };
 
 // There are certain characters appear very often in our search data (email addresses), which we don't need to search for.
-const charSetToSkip = new Set(['@', '.', '#', '$', '%', '&', '*', '+', '-', '/', ':', ';', '<', '=', '>', '?', '_', '~', '!', ',', '(', ')']);
+const charSetToSkip = new Set(['@', '.', '#', '$', '%', '&', '*', '+', '-', '/', ':', ';', '<', '=', '>', '?', '_', '~', '!', ' ', ',', '(', ')']);
 // For an account with 12k+ personal details the average search value length was ~60 characters.
 const averageSearchValueLength = 60;
 
