@@ -93,8 +93,9 @@ function useSearchHighlightAndScroll<T extends SearchListItem = SearchListItem>(
      * Callback to handle scrolling to the new search result.
      */
     const handleSelectionListScroll = useCallback(
-        (data: T[]) => (ref: SelectionListHandle | null) => {
-            // Early return if there's no ref or no new search result key
+        (data: SearchListItem[]) => (ref: SelectionListHandle | null) => {
+            // Early return if there's no ref, new transaction wasn't brought in by this hook
+            // or there's no new search result key
             if (!ref || newSearchResultKey === null) {
                 return;
             }

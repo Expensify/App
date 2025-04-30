@@ -1,10 +1,4 @@
 type LoginFormProps = {
-    /** The login input value */
-    login: string;
-
-    /** A callback to notify that the login input value is changed */
-    onLoginChanged: (login: string) => void;
-
     /** Function used to scroll to the top of the page */
     scrollPageToTop?: () => void;
 

@@ -34,7 +34,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
+import {selectAllTransactionsForReport, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
@@ -307,7 +307,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
     const isTransactionThreadView = isReportTransactionThread(report);
-
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
 
     useEffect(() => {
@@ -335,8 +334,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.goBack(backTo as Route, {shouldPopToTop: true});
             return;
         }
+
+        if (report?.parentReportID && !isMoneyRequestReportPendingDeletion(report?.parentReportID)) {
+            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report?.parentReportID), {shouldPopToTop: true});
+            return;
+        }
+
         Navigation.goBack(undefined, {shouldPopToTop: true});
-    }, [isInNarrowPaneModal, backTo]);
+    }, [isInNarrowPaneModal, backTo, report?.parentReportID]);
 
     let headerView = (
         <HeaderView
@@ -744,7 +749,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
-    const shouldDisplayMoneyRequestReport = canUseTableReportView && isMoneyRequestOrInvoiceReport && !isTransactionThreadView;
+    const shouldDisplayMoneyRequestActionsList = canUseTableReportView && isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
 
     return (
         <ActionListContext.Provider value={actionListValue}>
@@ -792,7 +797,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 testID="report-actions-view-wrapper"
                             >
                                 {!report && <ReportActionsSkeletonView />}
-                                {!!report && !shouldDisplayMoneyRequestReport ? (
+                                {!!report && !shouldDisplayMoneyRequestActionsList ? (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
@@ -803,7 +808,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
                                 ) : null}
-                                {!!report && shouldDisplayMoneyRequestReport ? (
+                                {!!report && shouldDisplayMoneyRequestActionsList ? (
                                     <MoneyRequestReportActionsList
                                         report={report}
                                         policy={policy}
