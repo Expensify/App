@@ -106,6 +106,9 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether the modal will be closed on confirm */
     shouldCloseOnConfirm?: boolean;
+
+    /** Whether the modal should avoid the keyboard */
+    avoidKeyboard?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -165,6 +168,7 @@ function FeatureTrainingModal({
     shouldRenderSVG = true,
     shouldRenderHTMLDescription = false,
     shouldCloseOnConfirm = true,
+    avoidKeyboard = false,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -329,6 +333,7 @@ function FeatureTrainingModal({
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
                 <Modal
+                    avoidKeyboard={avoidKeyboard}
                     isVisible={isModalVisible}
                     type={onboardingIsMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                     onClose={closeModal}
