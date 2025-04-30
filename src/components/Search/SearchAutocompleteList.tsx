@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -31,8 +31,7 @@ import {
     getAutocompleteRecentTags,
     getAutocompleteTags,
     getAutocompleteTaxList,
-    getQueryWithoutAutocompletedPart,
-    parseForAutocomplete,
+    getQueryWithoutAutocompletedPart, parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
@@ -245,8 +244,14 @@ function SearchAutocompleteList(
     }, [activeWorkspaceID, allPoliciesTags]);
     const recentTagsAutocompleteList = getAutocompleteRecentTags(allRecentTags, activeWorkspaceID);
 
+    const [autocompleteParsedQuery, autocompleteQueryWithoutFilters] = useMemo(() => {
+        const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
+        const queryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
+        return [parsedQuery, queryWithoutFilters];
+    }, [autocompleteQueryValue]);
+
+
     const autocompleteSuggestions = useMemo<AutocompleteItemData[]>(() => {
-        const autocompleteParsedQuery = parseForAutocomplete(autocompleteQueryValue);
         const {autocomplete, ranges = []} = autocompleteParsedQuery ?? {};
         const autocompleteKey = autocomplete?.key;
         const autocompleteValue = autocomplete?.value ?? '';
@@ -440,7 +445,7 @@ function SearchAutocompleteList(
             }
         }
     }, [
-        autocompleteQueryValue,
+        autocompleteParsedQuery,
         tagAutocompleteList,
         recentTagsAutocompleteList,
         categoryAutocompleteList,
@@ -503,27 +508,13 @@ function SearchAutocompleteList(
         return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
-    // Only call search when the query without filters has changed
-    const prevQueryRef = useRef(autocompleteQueryValue);
-
     useEffect(() => {
-        // Only proceed if handleSearch exists
         if (!handleSearch) {
             return;
         }
 
-        const currentQueryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
-        const prevQueryWithoutFilters = getQueryWithoutFilters(prevQueryRef.current);
-
-        // Skip the search if the query (without filters) hasn't changed
-        if (prevQueryRef.current && currentQueryWithoutFilters === prevQueryWithoutFilters) {
-            return;
-        }
-
-        // Update reference and call search API
-        prevQueryRef.current = autocompleteQueryValue;
-        handleSearch(autocompleteQueryValue);
-    }, [autocompleteQueryValue, handleSearch]);
+        handleSearch(autocompleteQueryWithoutFilters);
+    }, [autocompleteQueryWithoutFilters, handleSearch]);
 
     /* Sections generation */
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
