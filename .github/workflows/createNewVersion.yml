@@ -79,7 +79,6 @@ jobs:
         id: bumpVersion
         uses: ./.github/actions/javascript/bumpVersion
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
           SEMVER_LEVEL: ${{ inputs.SEMVER_LEVEL }}
 
       - name: Commit new Mobile-Expensify version
