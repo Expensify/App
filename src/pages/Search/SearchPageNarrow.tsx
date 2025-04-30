@@ -40,13 +40,12 @@ const ANIMATION_DURATION_IN_MS = 300;
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     policyID?: string;
-    searchName?: string;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     currentSearchResults?: SearchResults;
     lastNonEmptySearchResults?: SearchResults;
 };
 
-function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions, currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, policyID, headerButtonsOptions, currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -203,7 +202,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
                         />
                         <SearchPageHeader
                             queryJSON={queryJSON}
-                            searchName={searchName}
                             headerButtonsOptions={headerButtonsOptions}
                         />
                     </>

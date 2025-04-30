@@ -170,7 +170,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
     const renderSavedSearchesSection = useCallback(
         (menuItems: MenuItemWithLink[]) => (
-            <View style={[styles.pb4, styles.mh3]}>
+            <View style={[styles.pb4]}>
                 <MenuItemList
                     menuItems={menuItems}
                     wrapperStyle={styles.sectionMenuItem}
@@ -246,7 +246,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 ))}
                 {shouldShowSavedSearchesMenuItemTitle && (
                     <View>
-                        <Text style={[styles.sectionTitle, styles.pb1, styles.mh3, styles.mt3]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
+                        <Text style={[styles.sectionTitle, styles.pb1, styles.mt3]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
                         {renderSavedSearchesSection(savedSearchesMenuItems)}
                         <DeleteConfirmModal />
                     </View>

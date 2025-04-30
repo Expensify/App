@@ -71,7 +71,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
 
-    const {q, name} = route.params;
+    const {q} = route.params;
 
     const {queryJSON, policyID} = useMemo(() => {
         const parsedQuery = buildSearchQueryJSON(q);
@@ -366,9 +366,6 @@ function SearchPage({route}: SearchPageProps) {
     const {resetVideoPlayerData} = usePlaybackContext();
     const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults;
 
-    const isSearchNameModified = name === q;
-    const searchName = isSearchNameModified ? undefined : name;
-
     const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
 
@@ -397,7 +394,6 @@ function SearchPage({route}: SearchPageProps) {
                 <SearchPageNarrow
                     queryJSON={queryJSON}
                     policyID={policyID}
-                    searchName={searchName}
                     headerButtonsOptions={headerButtonsOptions}
                     lastNonEmptySearchResults={lastNonEmptySearchResults}
                     currentSearchResults={currentSearchResults}
