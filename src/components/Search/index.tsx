@@ -207,7 +207,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         reportActions,
     });
 
-    const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll<SearchListItem>({
+    const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
         queryJSON,
     });
