@@ -102,7 +102,6 @@ import {
     getAccountIDsByLogins,
     getDisplayNameOrDefault,
     getEffectiveDisplayName,
-    getLoginByAccountID,
     getLoginsByAccountIDs,
     getPersonalDetailByEmail,
     getPersonalDetailsByIDs,
@@ -10282,48 +10281,55 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
 }
 
+function verifyState(report: OnyxEntry<Report>, validStates: Array<ValueOf<typeof CONST.REPORT.STATE_NUM>>): boolean {
+    return !!report?.stateNum && validStates.includes(report?.stateNum);
+}
+
+function verifyStatus(report: OnyxEntry<Report>, validStatuses: Array<ValueOf<typeof CONST.REPORT.STATUS_NUM>>): boolean {
+    return !!report?.statusNum && validStatuses.includes(report?.statusNum);
+}
+
 /**
  * Determines whether the report can be moved to the workspace.
  */
-const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, oldPolicy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean => {
+function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, session: OnyxEntry<Session>): boolean {
     const isIOU = isIOUReport(report);
+    const isCurrentUserMember = !!session?.email && !!newPolicy?.employeeList?.[session?.email];
+    const isCurrentUserAdmin = isPolicyAdminPolicyUtils(newPolicy, session?.email);
+    const isPaidGroupPolicyType = isPaidGroupPolicyPolicyUtils(newPolicy);
+    const isReportOpenOrSubmitted = verifyState(report, [CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATE_NUM.SUBMITTED]);
 
-    if (isIOU && (currentUserAccountID !== report?.ownerAccountID || currentUserAccountID !== report?.managerID)) {
+    if (isIOU && isReportOpenOrSubmitted && isPaidGroupPolicyType && (isCurrentUserMember || isCurrentUserAdmin)) {
+        return true;
+    }
+
+    // From this point on, reports must be of type Expense and a member of a paid policy, so return early here otherwise.
+    const isExpenseReportType = isExpenseReport(report);
+    if (!isExpenseReportType || !isCurrentUserMember || !isPaidGroupPolicyType) {
         return false;
     }
 
-    const payerLogin = report?.managerID ? getLoginByAccountID(report?.managerID) : undefined;
-    if (isIOU && !isPolicyAdminPolicyUtils(newPolicy, payerLogin) && newPolicy?.achAccount?.reimburser !== payerLogin) {
-        return false;
+    // Expense report case
+    const isSubmitter = currentUserAccountID === report?.ownerAccountID;
+    if (isSubmitter && isReportOpenOrSubmitted) {
+        return true;
     }
 
-    if (isIOU && report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED) {
-        return false;
+    const isCurrentUserApprover = currentUserAccountID === report?.managerID;
+    if (isCurrentUserApprover && verifyState(report, [CONST.REPORT.STATE_NUM.SUBMITTED])) {
+        return true;
     }
 
-    const isCurrentUserMember = !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
-    if (!isCurrentUserMember) {
-        return false;
+    const isCurrentUserPayer = isPayer(session, report, false, newPolicy);
+    if (isCurrentUserPayer && verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED])) {
+        return true;
     }
 
-    const submitterLogin = report?.ownerAccountID ? getLoginByAccountID(report?.ownerAccountID) : undefined;
-    const isCurrentUserAdmin = isPolicyAdminPolicyUtils(newPolicy, currentUserLogin);
-    const isSubmitterMember = !!submitterLogin && !!newPolicy?.employeeList?.[submitterLogin];
-
-    if (!isSubmitterMember && !isCurrentUserAdmin) {
-        return false;
+    if (isCurrentUserAdmin && verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED]) && verifyStatus(report, [CONST.REPORT.STATUS_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED, CONST.REPORT.STATUS_NUM.CLOSED])) {
+        return true;
     }
 
-    if (report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isCurrentUserAdmin) {
-        return false;
-    }
-
-    const reportActions = getAllReportActions(report?.reportID);
-    if (isExported(reportActions)) {
-        return false;
-    }
-
-    return true;
+    return false;
 };
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {

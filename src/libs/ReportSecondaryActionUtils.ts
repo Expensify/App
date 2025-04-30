@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
-import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
+import {getCurrentUserAccountID} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getAllPolicies,
@@ -302,10 +302,10 @@ function isHoldActionForTransation(report: Report, reportTransaction: Transactio
     return isProcessingReport;
 }
 
-function isChangeWorkspaceAction(report: Report, policy?: Policy): boolean {
+function isChangeWorkspaceAction(report: Report): boolean {
     const policies = getAllPolicies();
-    const currentUserEmail = getCurrentUserEmail();
-    return policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policy, currentUserEmail)).length > 0;
+    const session = getSession();
+    return policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session)).length > 0;
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[]): boolean {
@@ -378,7 +378,7 @@ function getSecondaryReportActions(
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD);
 
-    if (isChangeWorkspaceAction(report, policy)) {
+    if (isChangeWorkspaceAction(report)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
