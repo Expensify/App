@@ -360,7 +360,13 @@ function FeatureTrainingModal({
                             {!!title && !!description && (
                                 <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentInnerContainerStyles]}>
                                     {typeof title === 'string' ? <Text style={[styles.textHeadlineH1]}>{title}</Text> : title}
-                                    {shouldRenderHTMLDescription ? <RenderHTML html={description} /> : <Text style={styles.textSupporting}>{description}</Text>}
+                                    {shouldRenderHTMLDescription ? (
+                                        <Text>
+                                            <RenderHTML html={description} />
+                                        </Text>
+                                    ) : (
+                                        <Text style={styles.textSupporting}>{description}</Text>
+                                    )}
                                     {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
                                     {children}
                                 </View>

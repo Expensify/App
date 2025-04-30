@@ -83,6 +83,7 @@ function EmployeeTestDriveModal() {
             description={translate('testDrive.modal.employee.description')}
             onConfirm={navigate}
             shouldCloseOnConfirm={isValidBossEmail}
+            shouldRenderHTMLDescription
         >
             <TextInput
                 placeholder={translate('testDrive.modal.employee.email')}

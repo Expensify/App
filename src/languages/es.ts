@@ -6798,7 +6798,7 @@ const translations = {
             helpText: 'Saltar',
             employee: {
                 description:
-                    '<br/><muted-text>Consigue <strong>3 meses gratis</strong>  de Expensify para tu equipo. Solo introduce el correo electrónico de tu jefe abajo y le enviaremos un gasto escaneado de prueba — sin entrada manual.</muted-text>',
+                    '<br/><muted-text>Consigue <strong>3 meses gratis</strong>  de Expensify para tu equipo. Solo introduce el correo electrónico de tu jefe abajo y le enviaremos un gasto escaneado de prueba — sin entrada manual.</muted-text><br/>',
                 email: 'Introduce el correo electrónico de tu jefe',
             },
         },

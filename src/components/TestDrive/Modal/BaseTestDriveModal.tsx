@@ -8,9 +8,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
-type BaseTestDriveModalProps = Pick<FeatureTrainingModalProps, 'children' | 'description' | 'onConfirm' | 'onClose' | 'shouldCloseOnConfirm'>;
+type BaseTestDriveModalProps = Pick<
+    FeatureTrainingModalProps,
+    'children' | 'description' | 'onConfirm' | 'onClose' | 'shouldCloseOnConfirm' | 'shouldRenderHTMLDescription' | 'contentInnerContainerStyles'
+>;
 
-function BaseTestDriveModal({description, onConfirm, onClose, children, shouldCloseOnConfirm}: BaseTestDriveModalProps) {
+function BaseTestDriveModal({description, onConfirm, onClose, children, shouldCloseOnConfirm, shouldRenderHTMLDescription, contentInnerContainerStyles}: BaseTestDriveModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -34,8 +37,9 @@ function BaseTestDriveModal({description, onConfirm, onClose, children, shouldCl
             onClose={onClose}
             shouldRenderSVG={false}
             modalInnerContainerStyle={styles.testDriveModalContainer}
+            contentInnerContainerStyles={contentInnerContainerStyles}
             shouldCloseOnConfirm={shouldCloseOnConfirm}
-            shouldRenderHTMLDescription
+            shouldRenderHTMLDescription={shouldRenderHTMLDescription}
         >
             {children}
         </FeatureTrainingModal>
