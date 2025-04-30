@@ -28,7 +28,7 @@ import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {hasAccountingConnections, isControlPolicy} from '@libs/PolicyUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -58,6 +58,7 @@ function WorkspaceReportFieldsPage({
     const {translate} = useLocalize();
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const policy = usePolicy(policyID);
+    const hasReportAccountingConnections = hasAccountingConnections(policy);
     const filteredPolicyFieldList = useMemo(() => {
         if (!policy?.fieldList) {
             return {};
@@ -236,12 +237,14 @@ function WorkspaceReportFieldsPage({
                                                 style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6]}
                                                 scrollEnabled={false}
                                             />
-                                            <MenuItem
-                                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
-                                                title={translate('workspace.reportFields.addField')}
-                                                icon={Plus}
-                                                style={[styles.sectionMenuItemTopDescription]}
-                                            />
+                                            {!hasReportAccountingConnections && (
+                                                <MenuItem
+                                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
+                                                    title={translate('workspace.reportFields.addField')}
+                                                    icon={Plus}
+                                                    style={[styles.sectionMenuItemTopDescription]}
+                                                />
+                                            )}
                                         </>
                                     )
                                 }
