@@ -165,7 +165,7 @@ async function updateConfigJSON(version: string) {
         console.log(`Updating ${MOBILE_EXPENSIFY_CONFIG_JSON_PATH} to ${version}`);
         const fileContent = JSON.parse(await fs.readFile(MOBILE_EXPENSIFY_CONFIG_JSON_PATH, {encoding: 'utf8'})) as ConfigJSON;
         fileContent.meta.version = version;
-        await fs.writeFile(MOBILE_EXPENSIFY_CONFIG_JSON_PATH, JSON.stringify(fileContent), {encoding: 'utf8'});
+        await fs.writeFile(MOBILE_EXPENSIFY_CONFIG_JSON_PATH, JSON.stringify(fileContent, null, 4), {encoding: 'utf8'});
         console.log(`Updated ${MOBILE_EXPENSIFY_CONFIG_JSON_PATH}`);
     } catch (err) {
         // Log errors and fail gracefully
