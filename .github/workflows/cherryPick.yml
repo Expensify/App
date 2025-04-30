@@ -48,7 +48,7 @@ jobs:
           echo "REPO_FULL_NAME=$(echo '${{ inputs.PULL_REQUEST_URL }}' | sed -E 's|https?://github.com/([^/]+/[^/]+)/pull/.*|\1|')" >> "$GITHUB_OUTPUT"
           echo "PR_NUMBER=$(echo '${{ inputs.PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')" >> "$GITHUB_OUTPUT"
 
-      - name: Verify repository
+      - name: Verify pull request URL
         if: ${{ inputs.PULL_REQUEST_URL != '' }}
         run: |
           if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != ${{ github.repository }} ]] && [[ ! "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" =~ Expensify/Mobile-Expensify* ]]; then
