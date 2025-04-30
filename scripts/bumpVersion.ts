@@ -195,10 +195,10 @@ async function run(semanticVersionLevel: SemverLevel) {
 if (require.main === module) {
     // Get and validate SEMVER_LEVEL input
     const semanticVersionLevel = process.argv.at(2) ?? 'BUILD';
-    if (!(Object.values(versionUpdater.SEMANTIC_VERSION_LEVELS) as string[]).includes(semanticVersionLevel)) {
+    if (!versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
         throw new Error(`Invalid semver level ${semanticVersionLevel}. Must be one of: ${Object.values(versionUpdater.SEMANTIC_VERSION_LEVELS).join(', ')}`);
     }
-    run(semanticVersionLevel as SemverLevel);
+    run(semanticVersionLevel);
 }
 
 export default run;
