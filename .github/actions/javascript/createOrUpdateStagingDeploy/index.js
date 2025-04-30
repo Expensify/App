@@ -11494,6 +11494,7 @@ async function run() {
         }
         // Parse the data from the previous and current checklists into the format used to generate the checklist
         const previousChecklistData = GithubUtils_1.default.getStagingDeployCashData(previousChecklist);
+        console.log(`[jules] previousChecklistData: ${JSON.stringify(previousChecklistData)}`);
         const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
         // Find the list of PRs merged between the current checklist and the previous checklist
         // Jules hardcoded tag to known version for testing
@@ -11831,7 +11832,8 @@ function getValidMergedPRs(commits) {
     commits.forEach((commit) => {
         const author = commit.authorName;
         if (author === CONST_1.default.OS_BOTIFY) {
-            console.log(`[jules] -botify Ignoring ${commit.subject} by ${author}`);
+            // look for `Merge pull request #61192 from Expensify/revert-60630...
+            console.log(`[jules] botify commit: ${commit.subject} >> ${commit}`);
             return;
         }
         const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
@@ -11844,6 +11846,7 @@ function getValidMergedPRs(commits) {
             // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
             // That also means that we don't want to include it in the current checklist, so we remove it now.
             mergedPRs.delete(pr);
+            console.log(`[jules] appears twice ${pr}`);
             return;
         }
         mergedPRs.add(pr);
