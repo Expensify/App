@@ -8,11 +8,11 @@ keywords: [Expensify Classic, Expensify Card reconciliation]
 To manage unapproved Expensify Card expenses after closing your books for the month, you can set up **Continuous Reconciliation** with an accounting integration or **manually reconcile** the expenses. 
 
 ---
-# How does Continuous Reconciliation work?
+# How Continuous Reconciliation works
 
 Continuous Reconciliation automates the accounting process for Expensify Card activity by syncing settled amounts and exported expenses through your connected accounting software.
 
-## What gets reconciled?
+## What gets reconciled
 
 When using the Expensify Card, reconciliation involves two components:
 
@@ -25,8 +25,8 @@ When using the Expensify Card, reconciliation involves two components:
 When daily settlement is enabled:
 
 1. The total amount is pulled from your checking account and posted to a **clearing account**.
-2. When an expense is exported, that amount moves from the clearing account to a **liability account**.
-3. Finally, it is moved from the liability account to the appropriate **expense account**.
+2. When an expense is exported, the expense amount moves from the clearing account to a **liability account**.
+3. At the same time, the expense amount is moved from the liability account to the appropriate **expense account**.
 
 This ensures expenses can be tracked and matched even if their approval/export happens later.
 
