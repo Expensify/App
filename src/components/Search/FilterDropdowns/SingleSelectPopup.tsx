@@ -2,7 +2,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,7 +46,7 @@ function SingleSelectPopup({items, onChange}: SingleSelectPopupProps) {
             <SelectionList
                 shouldSingleExecuteRowSelect
                 sections={[{data: listData}]}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={updateSelectedItem}
             />
             <View style={[styles.flexRow, styles.gap2, styles.ph5]}>

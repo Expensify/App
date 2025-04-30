@@ -386,6 +386,8 @@ type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem
 
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
+type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -776,6 +778,7 @@ export type {
     ListItem,
     ListItemFocusEventHandler,
     RadioListItemProps,
+    SingleSelectListItemProps,
     ReportListItemProps,
     ReportListItemType,
     Section,
