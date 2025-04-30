@@ -69,7 +69,7 @@ type BaseFeatureTrainingModalProps = {
     confirmText: string;
 
     /** A callback to call when user confirms the tutorial */
-    onConfirm?: (closeModal: () => void) => void;
+    onConfirm?: () => void;
 
     /** A callback to call when modal closes */
     onClose?: () => void;
@@ -78,7 +78,7 @@ type BaseFeatureTrainingModalProps = {
     helpText?: string;
 
     /** Link to navigate to when user wants to learn more */
-    onHelp?: (closeModal: () => void) => void;
+    onHelp?: () => void;
 
     /** Styles for the content container */
     contentInnerContainerStyles?: StyleProp<ViewStyle>;
@@ -310,11 +310,11 @@ function FeatureTrainingModal({
         if (shouldCloseOnConfirm) {
             closeModal();
         }
-        onConfirm?.(closeModal);
+        onConfirm?.();
     }, [shouldCloseOnConfirm, onConfirm, closeModal]);
 
     const onHelpPress = () => {
-        onHelp?.(closeModal);
+        onHelp?.();
     };
 
     /**
@@ -398,3 +398,5 @@ function FeatureTrainingModal({
 }
 
 export default FeatureTrainingModal;
+
+export type {FeatureTrainingModalProps};

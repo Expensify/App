@@ -1,21 +1,24 @@
-import React from 'react';
+import React, {useCallback} from 'react';
+import {InteractionManager} from 'react-native';
 import FastTrack from '@assets/images/fast-track-cover.jpg';
+import type {FeatureTrainingModalProps} from '@components/FeatureTrainingModal';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type BaseTestDriveModalProps = Partial<ChildrenProps> & {
-    description: string;
-    onHelp: (closeModal: () => void) => void;
-    onConfirm: (closeModal: () => void) => void;
-    onClose: (() => void) | undefined;
-};
+type BaseTestDriveModalProps = Pick<FeatureTrainingModalProps, 'children' | 'description' | 'onConfirm' | 'onClose' | 'shouldCloseOnConfirm'>;
 
-function BaseTestDriveModal({description, onHelp, onConfirm, onClose, children}: BaseTestDriveModalProps) {
+function BaseTestDriveModal({description, onConfirm, onClose, children, shouldCloseOnConfirm}: BaseTestDriveModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const skipTestDrive = useCallback(() => {
+        InteractionManager.runAfterInteractions(() => {
+            Navigation.dismissModal();
+        });
+    }, []);
 
     return (
         <FeatureTrainingModal
@@ -26,12 +29,13 @@ function BaseTestDriveModal({description, onHelp, onConfirm, onClose, children}:
             description={description}
             helpText={translate('testDrive.modal.helpText')}
             confirmText={translate('testDrive.modal.confirmText')}
-            onHelp={onHelp}
+            onHelp={skipTestDrive}
             onConfirm={onConfirm}
             onClose={onClose}
             shouldRenderSVG={false}
             modalInnerContainerStyle={styles.testDriveModalContainer}
-            shouldCloseOnConfirm={false}
+            shouldCloseOnConfirm={shouldCloseOnConfirm}
+            shouldRenderHTMLDescription
         >
             {children}
         </FeatureTrainingModal>
