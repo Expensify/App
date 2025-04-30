@@ -5394,6 +5394,10 @@ const CONST = {
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
+    NEW_DOT_SUPPORTED_COMPANY_SIZES: [
+        onboardingCompanySize.MICRO,
+        onboardingCompanySize.SMALL,
+    ] as string[],
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_ACCOUNTING_MAPPING,
     ONBOARDING_MESSAGES: {
