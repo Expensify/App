@@ -127,7 +127,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const {canUseLeftHandBar} = usePermissions();
-    const shouldDisplayLHB = canUseLeftHandBar && !shouldUseNarrowLayout;
+    const shouldDisplayLHB = !!canUseLeftHandBar && !shouldUseNarrowLayout;
     const policyFeatureStates = useMemo(
         () => ({
             [CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]: policy?.areDistanceRatesEnabled,
@@ -433,8 +433,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            extraContent={shouldShowNavigationTabBar ? <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} /> : null}
-            extraContentStyles={shouldDisplayLHB && styles.leftNavigationTabBarPosition}
+            bottomContent={shouldShowNavigationTabBar && !shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
         >
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
@@ -500,6 +499,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         </View>
                     )}
                 </ScrollView>
+                {shouldShowNavigationTabBar && shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
