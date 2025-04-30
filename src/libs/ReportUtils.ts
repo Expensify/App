@@ -102,6 +102,7 @@ import {
     getAccountIDsByLogins,
     getDisplayNameOrDefault,
     getEffectiveDisplayName,
+    getLoginByAccountID,
     getLoginsByAccountIDs,
     getPersonalDetailByEmail,
     getPersonalDetailsByIDs,
@@ -10282,11 +10283,17 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
 }
 
 function verifyState(report: OnyxEntry<Report>, validStates: Array<ValueOf<typeof CONST.REPORT.STATE_NUM>>): boolean {
-    return !!report?.stateNum && validStates.includes(report?.stateNum);
+    if (report?.stateNum === undefined || report?.stateNum === null) {
+        return false;
+    }
+    return validStates.includes(report?.stateNum);
 }
 
 function verifyStatus(report: OnyxEntry<Report>, validStatuses: Array<ValueOf<typeof CONST.REPORT.STATUS_NUM>>): boolean {
-    return !!report?.statusNum && validStatuses.includes(report?.statusNum);
+    if (report?.statusNum === undefined || report?.statusNum === null) {
+        return false;
+    }
+    return validStatuses.includes(report?.statusNum);
 }
 
 /**
@@ -10294,34 +10301,40 @@ function verifyStatus(report: OnyxEntry<Report>, validStatuses: Array<ValueOf<ty
  */
 function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, session: OnyxEntry<Session>): boolean {
     const isIOU = isIOUReport(report);
-    const isCurrentUserMember = !!session?.email && !!newPolicy?.employeeList?.[session?.email];
+    const submitterLogin = report?.ownerAccountID && getLoginByAccountID(report?.ownerAccountID);
+    const isSubmitterMember = !!submitterLogin && !!newPolicy?.employeeList?.[submitterLogin];
+    const managerLogin = report?.managerID && getLoginByAccountID(report?.managerID);
+    const isManagerMember = !!managerLogin && !!newPolicy?.employeeList?.[managerLogin];
     const isCurrentUserAdmin = isPolicyAdminPolicyUtils(newPolicy, session?.email);
     const isPaidGroupPolicyType = isPaidGroupPolicyPolicyUtils(newPolicy);
     const isReportOpenOrSubmitted = verifyState(report, [CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATE_NUM.SUBMITTED]);
 
-    if (isIOU && isReportOpenOrSubmitted && isPaidGroupPolicyType && (isCurrentUserMember || isCurrentUserAdmin)) {
+    // For IOUs, the sender and receiver can only change the workspace if:
+    // 1. The sender AND receiver are both members of the new policy OR
+    // 2. The sender OR receiver is an admin of the new policy. In this case, changing the policy also invites the non-member to the policy
+    if (isIOU && isReportOpenOrSubmitted && isPaidGroupPolicyType && ((isSubmitterMember && isManagerMember) || isCurrentUserAdmin)) {
         return true;
     }
 
-    // From this point on, reports must be of type Expense and a member of a paid policy, so return early here otherwise.
+    // From this point on, reports must be of type Expense, the policy must be a paid type.
+    // The submitter and manager must also be policy members OR the current user is an admin so they can invite the non-members to the policy.
     const isExpenseReportType = isExpenseReport(report);
-    if (!isExpenseReportType || !isCurrentUserMember || !isPaidGroupPolicyType) {
+    if (!isExpenseReportType || !isPaidGroupPolicyType || !((isSubmitterMember && isManagerMember) || isCurrentUserAdmin)) {
         return false;
     }
 
-    // Expense report case
-    const isSubmitter = currentUserAccountID === report?.ownerAccountID;
-    if (isSubmitter && isReportOpenOrSubmitted) {
+    const isCurrentUserReportSubmitter = session?.accountID === report?.ownerAccountID;
+    if (isCurrentUserReportSubmitter && isReportOpenOrSubmitted) {
         return true;
     }
 
-    const isCurrentUserApprover = currentUserAccountID === report?.managerID;
-    if (isCurrentUserApprover && verifyState(report, [CONST.REPORT.STATE_NUM.SUBMITTED])) {
+    const isCurrentUserReportApprover = session?.accountID === report?.managerID;
+    if (isCurrentUserReportApprover && verifyState(report, [CONST.REPORT.STATE_NUM.SUBMITTED])) {
         return true;
     }
 
-    const isCurrentUserPayer = isPayer(session, report, false, newPolicy);
-    if (isCurrentUserPayer && verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED])) {
+    const isCurrentUserReportPayer = isPayer(session, report, false, newPolicy);
+    if (isCurrentUserReportPayer && verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED])) {
         return true;
     }
 
