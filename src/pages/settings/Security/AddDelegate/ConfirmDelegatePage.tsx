@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -13,13 +13,14 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {useCustomHistory} from '@libs/Navigation/AppNavigator/customHistory';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import DelegateMagicCodeModal from './DelegateMagicCodeModal';
 
 type ConfirmDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
@@ -45,6 +46,22 @@ function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
     const formattedLogin = formatPhoneNumber(login ?? '');
     const displayName = personalDetails?.displayName ?? formattedLogin;
 
+    const showModal = useCallback(() => {
+        setShouldDisableModalAnimation(false);
+        setIsValidateCodeActionModalVisible(true);
+    }, []);
+
+    const hideModal = useCallback(() => {
+        setIsValidateCodeActionModalVisible(false);
+        setShouldShowLoading(false);
+    }, []);
+
+    const {pushHistoryEntry, popHistoryEntry} = useCustomHistory({
+        id: SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM,
+        onPush: showModal,
+        onPop: hideModal,
+    });
+
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     const submitButton = (
@@ -55,10 +72,7 @@ function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
             text={translate('delegate.addCopilot')}
             style={styles.mt6}
             pressOnEnter
-            onPress={() => {
-                setShouldDisableModalAnimation(false);
-                setIsValidateCodeActionModalVisible(true);
-            }}
+            onPress={pushHistoryEntry}
         />
     );
 
@@ -93,13 +107,9 @@ function ConfirmDelegatePage({route, navigation}: ConfirmDelegatePageProps) {
                         // We should disable the animation initially and only enable it when the user manually opens the modal
                         // to ensure it appears immediately when refreshing the page.
                         disableAnimation={shouldDisableModalAnimation}
-                        shouldHandleNavigationBack
                         login={login}
                         role={role}
-                        onClose={() => {
-                            setShouldShowLoading(false);
-                            setIsValidateCodeActionModalVisible(false);
-                        }}
+                        onClose={popHistoryEntry}
                         isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
                     />
                 </DelegateNoAccessWrapper>

@@ -630,6 +630,28 @@ function removeScreenByKey(key: string) {
     });
 }
 
+function pushHistoryEntry(id: string) {
+    isNavigationReady().then(() => {
+        navigationRef.current?.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.PUSH_HISTORY_ENTRY,
+            payload: {
+                id,
+            },
+        });
+    });
+}
+
+function popHistoryEntry(id: string) {
+    isNavigationReady().then(() => {
+        navigationRef.current?.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.POP_HISTORY_ENTRY,
+            payload: {
+                id,
+            },
+        });
+    });
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -661,6 +683,8 @@ export default {
     switchPolicyID,
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
+    pushHistoryEntry,
+    popHistoryEntry,
 };
 
 export {navigationRef};

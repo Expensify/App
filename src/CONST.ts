@@ -5063,11 +5063,14 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+            SET_PARAMS: 'SET_PARAMS',
 
             /** These action types are custom for RootNavigator */
             SWITCH_POLICY_ID: 'SWITCH_POLICY_ID',
             DISMISS_MODAL: 'DISMISS_MODAL',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
+            PUSH_HISTORY_ENTRY: 'PUSH_HISTORY_ENTRY',
+            POP_HISTORY_ENTRY: 'POP_HISTORY_ENTRY',
         },
     },
     TIME_PERIOD: {
