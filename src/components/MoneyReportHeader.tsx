@@ -60,6 +60,7 @@ import {
     getNextApproverAccountID,
     payInvoice,
     payMoneyRequest,
+    startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
 } from '@userActions/IOU';
@@ -184,6 +185,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason, canBeMissing: true});
+
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
             canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere, undefined, undefined, shouldCheckApprovedState),
@@ -216,7 +219,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowStatusBar =
         hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions || hasDuplicates;
 
-    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to theirself, we need to show the optimistic next step
+    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
@@ -359,8 +362,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!moneyRequestReport) {
             return '';
         }
-        return getReportPrimaryAction(moneyRequestReport, transactions, violations, policy);
-    }, [isPaidAnimationRunning, moneyRequestReport, policy, transactions, violations]);
+        return getReportPrimaryAction(moneyRequestReport, transactions, violations, policy, reportNameValuePairs);
+    }, [isPaidAnimationRunning, moneyRequestReport, policy, reportNameValuePairs, transactions, violations]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
@@ -450,6 +453,18 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         return;
                     }
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
+                }}
+            />
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE]: (
+            <Button
+                success
+                text={translate('iou.addExpense')}
+                onPress={() => {
+                    if (!moneyRequestReport?.reportID) {
+                        return;
+                    }
+                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
                 }}
             />
         ),
@@ -586,6 +601,17 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
                 setIsDeleteModalVisible(true);
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE]: {
+            text: translate('iou.addExpense'),
+            icon: Expensicons.Plus,
+            value: CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE,
+            onSelected: () => {
+                if (!moneyRequestReport?.reportID) {
+                    return;
+                }
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
             },
         },
     };
