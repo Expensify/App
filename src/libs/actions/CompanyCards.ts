@@ -801,7 +801,7 @@ function openPolicyAddCardFeedPage(policyID: string | undefined) {
         policyID,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_ADD_CARD_FEED_PAGE, parameters);
+    API.write(WRITE_COMMANDS.OPEN_POLICY_ADD_CARD_FEED_PAGE, parameters);
 }
 
 export {
