@@ -632,13 +632,6 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        leftNavigationTabBarPosition: {
-            height: '100%',
-            width: variables.navigationTabBarSize,
-            position: 'fixed',
-            left: 0,
-        },
-
         leftNavigationTabBarContainer: {
             height: '100%',
             width: variables.navigationTabBarSize,
