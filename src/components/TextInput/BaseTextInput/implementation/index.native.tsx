@@ -273,8 +273,8 @@ function BaseTextInput(
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
-                    // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
-                    // or if multiline is not supplied we calculate the textinput height, using onLayout.
+                    // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
+                    // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
                     accessibilityLabel={label}
                     style={[
@@ -322,6 +322,9 @@ function BaseTextInput(
                                 <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
                                     <Text
                                         onLayout={(event) => {
+                                            if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
+                                                return;
+                                            }
                                             setPrefixCharacterPadding(event?.nativeEvent?.layout.width);
                                             setIsPrefixCharacterPaddingCalculated(true);
                                         }}

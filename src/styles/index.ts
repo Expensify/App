@@ -505,7 +505,7 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             ...whiteSpace.preWrap,
             color: theme.heading,
-            fontSize: variables.fontSizeh2,
+            fontSize: variables.fontSizeH2,
             lineHeight: variables.lineHeightSizeh2,
         },
 
@@ -1817,7 +1817,7 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
         },
 
-        breadcrumsContainer: {
+        breadcrumbsContainer: {
             minHeight: 24,
         },
 
@@ -2723,7 +2723,7 @@ const styles = (theme: ThemeColors) =>
         searchResultsHeaderBar: {
             display: 'flex',
             height: variables.contentHeaderDesktopHeight,
-            zIndex: variables.popoverzIndex,
+            zIndex: variables.popoverZIndex,
             position: 'relative',
             paddingLeft: 20,
             paddingRight: 12,
@@ -3405,7 +3405,7 @@ const styles = (theme: ThemeColors) =>
 
         moneyRequestConfirmationAmount: {
             ...headlineFont,
-            fontSize: variables.fontSizeh1,
+            fontSize: variables.fontSizeH1,
         },
 
         moneyRequestMenuItem: {
@@ -5666,8 +5666,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        navigationBarBG: {
-            backgroundColor: theme.navigationBarBackgroundColor,
+        translucentNavigationBarBG: {
+            backgroundColor: theme.translucentNavigationBarBackgroundColor,
         },
 
         stickToBottom: {
