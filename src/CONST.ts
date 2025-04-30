@@ -394,6 +394,10 @@ const CONST = {
         IN: 'in',
         OUT: 'out',
     },
+    ELEMENT_NAME: {
+        INPUT: 'INPUT',
+        TEXTAREA: 'TEXTAREA',
+    },
     POPOVER_ACCOUNT_SWITCHER_POSITION: {
         horizontal: 12,
         vertical: 80,
@@ -1198,6 +1202,7 @@ const CONST = {
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             RETRACT: 'retract',
+            ADD_EXPENSE: 'addExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1207,6 +1212,7 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+            ADD_EXPENSE: 'addExpense',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
@@ -5311,6 +5317,7 @@ const CONST = {
 
     REPORT_VIOLATIONS: {
         FIELD_REQUIRED: 'fieldRequired',
+        RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW: 40,
     },
 
     REPORT_VIOLATIONS_EXCLUDED_FIELDS: {
