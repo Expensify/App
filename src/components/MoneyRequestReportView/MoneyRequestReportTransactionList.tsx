@@ -36,7 +36,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
-import {setActiveTransactionReportIDs} from './TransactionReportIDRepository';
+import {setActiveTransactionThreadIDs} from './TransactionThreadReportIDRepository';
 
 type MoneyRequestReportTransactionListProps = {
     report: OnyxTypes.Report;
@@ -134,7 +134,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigating between transactions
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
-            setActiveTransactionReportIDs(sortedSiblingTransactionReportIDs);
+            setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs);
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
         },
