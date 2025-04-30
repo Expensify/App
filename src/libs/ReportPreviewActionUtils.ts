@@ -58,12 +58,13 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
 }
 
 function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[]) {
+    const currentUserID = getCurrentUserAccountID();
     const isExpense = isExpenseReport(report);
-    const isApprover = isApproverMember(policy, getCurrentUserAccountID());
+    const isApprover = isApproverMember(policy, currentUserID);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === getCurrentUserAccountID();
+    const isCurrentUserManager = managerID === currentUserID;
     const hasAnyViolations =
         hasMissingSmartscanFields(report.reportID, transactions) ||
         hasViolations(report.reportID, violations) ||
