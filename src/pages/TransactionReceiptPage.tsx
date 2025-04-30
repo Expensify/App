@@ -1,3 +1,4 @@
+import {findFocusedRoute} from '@react-navigation/core';
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
@@ -5,7 +6,7 @@ import {navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList, RootNavigatorParamList, State} from '@libs/Navigation/types';
+import type {AuthScreensParamList, NavigationRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from '@libs/Navigation/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction as isTrackExpenseReportReportActionsUtils} from '@libs/ReportActionsUtils';
 import {
@@ -21,18 +22,36 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 type TransactionReceiptProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSACTION_RECEIPT>;
+
+/**
+ * Retrieves the Report ID for an IOU report screen when navigated to attachment route from fullscreen search route.
+ *
+ * This function examines the current navigation route and determines if it corresponds to a fullscreen search
+ * navigator with a focused IOU report screen. If these conditions are met, it retrieves and returns the report ID.
+ * If the route is not as expected or the report ID is not present, it returns false.
+ */
+function getIOUFullscreenReportIDWhenOnAttachmentRoute(route: NavigationRoute | undefined) {
+    if (route?.name !== NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR || !route.state) {
+        return false;
+    }
+
+    const secondToLastNavigatorFocusedRoute = findFocusedRoute(route.state);
+    const isReportScreen = secondToLastNavigatorFocusedRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
+    const params = secondToLastNavigatorFocusedRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+    return isReportScreen && params.reportID;
+}
 
 function TransactionReceipt({route}: TransactionReceiptProps) {
     const reportID = route.params.reportID;
     const transactionID = route.params.transactionID;
     const action = route.params.action;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
 
     const isDraftTransaction = !!action;
     const transaction = isDraftTransaction ? transactionDraft : transactionMain;
@@ -103,7 +122,12 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
         } else {
             const isOneTransactionThread = isOneTransactionThreadReportUtils(report?.reportID, report?.parentReportID, parentReportAction);
             const dismissModalReportID = isOneTransactionThread ? report?.parentReportID : report?.reportID;
-            if (!dismissModalReportID) {
+
+            // In case we close the attachment modal with an e-receipt opened from search fullscreen, we want to go back to the correct route.
+            // This guarantees that we end up in search route if we opened it from there.
+            const nestedReportID = getIOUFullscreenReportIDWhenOnAttachmentRoute(secondToLastRoute);
+
+            if (!dismissModalReportID || (nestedReportID && [reportID, dismissModalReportID].includes(nestedReportID))) {
                 Navigation.dismissModal();
                 return;
             }
