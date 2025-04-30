@@ -59,13 +59,21 @@ async function run(): Promise<IssuesCreateResponse | void> {
         // Jules hardcoded tag to known version for testing
         const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
 
+        // Filter out PRs that were already included in the previous checklist
+        const previousPRNumbers = new Set(previousChecklistData.PRList.map(pr => pr.number));
+        const newPRs = mergedPRs.filter(prNum => !previousPRNumbers.has(prNum));
+
+        console.log(`Original PRs found between tags: ${mergedPRs.join(', ')}`);
+        console.log(`PRs from previous checklist: ${Array.from(previousPRNumbers).join(', ')}`);
+        console.log(`Final list of new PRs for current checklist: ${newPRs.join(', ')}`);
+
         // Next, we generate the checklist body
         let checklistBody = '';
         let checklistAssignees: string[] = [];
         if (shouldCreateNewDeployChecklist) {
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
-                mergedPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
+                newPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
             );
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
@@ -73,7 +81,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             }
         } else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
-            const PRList = mergedPRs.map((prNum) => {
+            const PRList = newPRs.map((prNum) => {
                 const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum) ?? -1;
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
