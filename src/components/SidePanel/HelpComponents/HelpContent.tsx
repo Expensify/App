@@ -44,7 +44,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         };
     });
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`, {canBeMissing: true});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {
         canEvict: false,
