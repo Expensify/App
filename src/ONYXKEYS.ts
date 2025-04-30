@@ -131,7 +131,7 @@ const ONYXKEYS = {
     NVP_ONBOARDING: 'nvp_onboarding',
 
     /** This NVP contains data associated with HybridApp */
-    NVP_TRY_NEW_DOT: 'NVP_TRY_NEW_DOT',
+    NVP_TRY_NEW_DOT: 'nvp_tryNewDot',
 
     /** Contains the platforms for which the user muted the sounds */
     NVP_MUTED_PLATFORMS: 'nvp_mutedPlatforms',
