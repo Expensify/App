@@ -96,6 +96,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
             <ScrollView
                 style={[styles.ph5, styles.pb5]}
                 userSelect="auto"
+                scrollIndicatorInsets={{right: Number.MIN_VALUE}}
             >
                 {getHelpContent(styles, route, isProduction, expandedIndex, setExpandedIndex)}
             </ScrollView>
