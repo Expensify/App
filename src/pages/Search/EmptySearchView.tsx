@@ -1,13 +1,16 @@
 import React, {useMemo, useState} from 'react';
+import type {TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
 import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -41,6 +44,19 @@ type EmptySearchViewProps = {
     hash: number;
     type: SearchDataTypes;
     hasResults: boolean;
+};
+
+type EmptySearchViewItem = {
+    headerMedia: DotLottieAnimation;
+    title: string;
+    subtitle?: string;
+    headerContentStyles: Array<Pick<ViewStyle, 'width' | 'height'>>;
+    lottieWebViewStyles?: React.CSSProperties | undefined;
+    buttons?: EmptyStateButton[];
+    headerStyle?: ViewStyle;
+    titleStyles?: TextStyle;
+    subtitleStyle?: TextStyle;
+    children?: React.ReactNode;
 };
 
 const tripsFeatures: FeatureListItem[] = [
@@ -128,7 +144,7 @@ function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
     const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isReportArchived);
     const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
-    const content = useMemo(() => {
+    const content: EmptySearchViewItem = useMemo(() => {
         // Begin by going through all of our To-do searches, and returning their empty state
         // if it exists
         for (const menuItem of typeMenuItems) {
@@ -140,7 +156,10 @@ function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
                     subtitle: translate(menuItem.emptyState.subtitle),
                     headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.todoBG)],
                     lottieWebViewStyles: {backgroundColor: theme.todoBG, ...styles.emptyStateFolderWebStyles},
-                    buttons: menuItem.emptyState.buttons,
+                    buttons: menuItem.emptyState.buttons?.map((button) => ({
+                        ...button,
+                        buttonText: translate(button.buttonText),
+                    })),
                 };
             }
         }

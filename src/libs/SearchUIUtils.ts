@@ -2,7 +2,6 @@ import type {TextStyle, ViewStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import DotLottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -132,8 +131,8 @@ type SearchTypeMenuItem = {
         title: TranslationPaths;
         subtitle: TranslationPaths;
         buttons?: Array<{
-            buttonText?: TranslationPaths;
-            buttonAction?: () => void;
+            buttonText: TranslationPaths;
+            buttonAction: () => void;
             success?: boolean;
             icon?: IconAsset;
             isDisabled?: boolean;
