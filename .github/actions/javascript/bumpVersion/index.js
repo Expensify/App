@@ -4,7 +4,7 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 7351:
+/***/ 351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -30,8 +30,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.issue = exports.issueCommand = void 0;
-const os = __importStar(__nccwpck_require__(2037));
-const utils_1 = __nccwpck_require__(5278);
+const os = __importStar(__nccwpck_require__(37));
+const utils_1 = __nccwpck_require__(278);
 /**
  * Commands
  *
@@ -103,7 +103,7 @@ function escapeProperty(s) {
 
 /***/ }),
 
-/***/ 2186:
+/***/ 186:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -138,12 +138,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getIDToken = exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
-const command_1 = __nccwpck_require__(7351);
+const command_1 = __nccwpck_require__(351);
 const file_command_1 = __nccwpck_require__(717);
-const utils_1 = __nccwpck_require__(5278);
-const os = __importStar(__nccwpck_require__(2037));
-const path = __importStar(__nccwpck_require__(1017));
-const oidc_utils_1 = __nccwpck_require__(8041);
+const utils_1 = __nccwpck_require__(278);
+const os = __importStar(__nccwpck_require__(37));
+const path = __importStar(__nccwpck_require__(17));
+const oidc_utils_1 = __nccwpck_require__(41);
 /**
  * The code to exit an action
  */
@@ -428,17 +428,17 @@ exports.getIDToken = getIDToken;
 /**
  * Summary exports
  */
-var summary_1 = __nccwpck_require__(1327);
+var summary_1 = __nccwpck_require__(327);
 Object.defineProperty(exports, "summary", ({ enumerable: true, get: function () { return summary_1.summary; } }));
 /**
  * @deprecated use core.summary
  */
-var summary_2 = __nccwpck_require__(1327);
+var summary_2 = __nccwpck_require__(327);
 Object.defineProperty(exports, "markdownSummary", ({ enumerable: true, get: function () { return summary_2.markdownSummary; } }));
 /**
  * Path exports
  */
-var path_utils_1 = __nccwpck_require__(2981);
+var path_utils_1 = __nccwpck_require__(981);
 Object.defineProperty(exports, "toPosixPath", ({ enumerable: true, get: function () { return path_utils_1.toPosixPath; } }));
 Object.defineProperty(exports, "toWin32Path", ({ enumerable: true, get: function () { return path_utils_1.toWin32Path; } }));
 Object.defineProperty(exports, "toPlatformPath", ({ enumerable: true, get: function () { return path_utils_1.toPlatformPath; } }));
@@ -475,10 +475,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.prepareKeyValueMessage = exports.issueFileCommand = void 0;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const fs = __importStar(__nccwpck_require__(7147));
-const os = __importStar(__nccwpck_require__(2037));
-const uuid_1 = __nccwpck_require__(5840);
-const utils_1 = __nccwpck_require__(5278);
+const fs = __importStar(__nccwpck_require__(147));
+const os = __importStar(__nccwpck_require__(37));
+const uuid_1 = __nccwpck_require__(840);
+const utils_1 = __nccwpck_require__(278);
 function issueFileCommand(command, message) {
     const filePath = process.env[`GITHUB_${command}`];
     if (!filePath) {
@@ -511,7 +511,7 @@ exports.prepareKeyValueMessage = prepareKeyValueMessage;
 
 /***/ }),
 
-/***/ 8041:
+/***/ 41:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -527,9 +527,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OidcClient = void 0;
-const http_client_1 = __nccwpck_require__(6255);
-const auth_1 = __nccwpck_require__(5526);
-const core_1 = __nccwpck_require__(2186);
+const http_client_1 = __nccwpck_require__(255);
+const auth_1 = __nccwpck_require__(526);
+const core_1 = __nccwpck_require__(186);
 class OidcClient {
     static createHttpClient(allowRetry = true, maxRetry = 10) {
         const requestOptions = {
@@ -595,7 +595,7 @@ exports.OidcClient = OidcClient;
 
 /***/ }),
 
-/***/ 2981:
+/***/ 981:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -621,7 +621,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.toPlatformPath = exports.toWin32Path = exports.toPosixPath = void 0;
-const path = __importStar(__nccwpck_require__(1017));
+const path = __importStar(__nccwpck_require__(17));
 /**
  * toPosixPath converts the given path to the posix form. On Windows, \\ will be
  * replaced with /.
@@ -660,7 +660,7 @@ exports.toPlatformPath = toPlatformPath;
 
 /***/ }),
 
-/***/ 1327:
+/***/ 327:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -676,8 +676,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.summary = exports.markdownSummary = exports.SUMMARY_DOCS_URL = exports.SUMMARY_ENV_VAR = void 0;
-const os_1 = __nccwpck_require__(2037);
-const fs_1 = __nccwpck_require__(7147);
+const os_1 = __nccwpck_require__(37);
+const fs_1 = __nccwpck_require__(147);
 const { access, appendFile, writeFile } = fs_1.promises;
 exports.SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY';
 exports.SUMMARY_DOCS_URL = 'https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary';
@@ -950,7 +950,7 @@ exports.summary = _summary;
 
 /***/ }),
 
-/***/ 5278:
+/***/ 278:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -997,7 +997,7 @@ exports.toCommandProperties = toCommandProperties;
 
 /***/ }),
 
-/***/ 5526:
+/***/ 526:
 /***/ (function(__unused_webpack_module, exports) {
 
 "use strict";
@@ -1085,7 +1085,7 @@ exports.PersonalAccessTokenCredentialHandler = PersonalAccessTokenCredentialHand
 
 /***/ }),
 
-/***/ 6255:
+/***/ 255:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1121,10 +1121,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.HttpClient = exports.isHttps = exports.HttpClientResponse = exports.HttpClientError = exports.getProxyUrl = exports.MediaTypes = exports.Headers = exports.HttpCodes = void 0;
-const http = __importStar(__nccwpck_require__(3685));
-const https = __importStar(__nccwpck_require__(5687));
-const pm = __importStar(__nccwpck_require__(9835));
-const tunnel = __importStar(__nccwpck_require__(4294));
+const http = __importStar(__nccwpck_require__(685));
+const https = __importStar(__nccwpck_require__(687));
+const pm = __importStar(__nccwpck_require__(835));
+const tunnel = __importStar(__nccwpck_require__(294));
 var HttpCodes;
 (function (HttpCodes) {
     HttpCodes[HttpCodes["OK"] = 200] = "OK";
@@ -1697,7 +1697,7 @@ const lowercaseKeys = (obj) => Object.keys(obj).reduce((c, k) => ((c[k.toLowerCa
 
 /***/ }),
 
-/***/ 9835:
+/***/ 835:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1765,707 +1765,27 @@ exports.checkBypass = checkBypass;
 
 /***/ }),
 
-/***/ 8088:
+/***/ 294:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const debug = __nccwpck_require__(427)
-const { MAX_LENGTH, MAX_SAFE_INTEGER } = __nccwpck_require__(2293)
-const { safeRe: re, t } = __nccwpck_require__(9523)
-
-const parseOptions = __nccwpck_require__(785)
-const { compareIdentifiers } = __nccwpck_require__(2463)
-class SemVer {
-  constructor (version, options) {
-    options = parseOptions(options)
-
-    if (version instanceof SemVer) {
-      if (version.loose === !!options.loose &&
-          version.includePrerelease === !!options.includePrerelease) {
-        return version
-      } else {
-        version = version.version
-      }
-    } else if (typeof version !== 'string') {
-      throw new TypeError(`Invalid version. Must be a string. Got type "${typeof version}".`)
-    }
-
-    if (version.length > MAX_LENGTH) {
-      throw new TypeError(
-        `version is longer than ${MAX_LENGTH} characters`
-      )
-    }
-
-    debug('SemVer', version, options)
-    this.options = options
-    this.loose = !!options.loose
-    // this isn't actually relevant for versions, but keep it so that we
-    // don't run into trouble passing this.options around.
-    this.includePrerelease = !!options.includePrerelease
-
-    const m = version.trim().match(options.loose ? re[t.LOOSE] : re[t.FULL])
-
-    if (!m) {
-      throw new TypeError(`Invalid Version: ${version}`)
-    }
-
-    this.raw = version
-
-    // these are actually numbers
-    this.major = +m[1]
-    this.minor = +m[2]
-    this.patch = +m[3]
-
-    if (this.major > MAX_SAFE_INTEGER || this.major < 0) {
-      throw new TypeError('Invalid major version')
-    }
-
-    if (this.minor > MAX_SAFE_INTEGER || this.minor < 0) {
-      throw new TypeError('Invalid minor version')
-    }
-
-    if (this.patch > MAX_SAFE_INTEGER || this.patch < 0) {
-      throw new TypeError('Invalid patch version')
-    }
-
-    // numberify any prerelease numeric ids
-    if (!m[4]) {
-      this.prerelease = []
-    } else {
-      this.prerelease = m[4].split('.').map((id) => {
-        if (/^[0-9]+$/.test(id)) {
-          const num = +id
-          if (num >= 0 && num < MAX_SAFE_INTEGER) {
-            return num
-          }
-        }
-        return id
-      })
-    }
-
-    this.build = m[5] ? m[5].split('.') : []
-    this.format()
-  }
-
-  format () {
-    this.version = `${this.major}.${this.minor}.${this.patch}`
-    if (this.prerelease.length) {
-      this.version += `-${this.prerelease.join('.')}`
-    }
-    return this.version
-  }
-
-  toString () {
-    return this.version
-  }
-
-  compare (other) {
-    debug('SemVer.compare', this.version, this.options, other)
-    if (!(other instanceof SemVer)) {
-      if (typeof other === 'string' && other === this.version) {
-        return 0
-      }
-      other = new SemVer(other, this.options)
-    }
-
-    if (other.version === this.version) {
-      return 0
-    }
-
-    return this.compareMain(other) || this.comparePre(other)
-  }
-
-  compareMain (other) {
-    if (!(other instanceof SemVer)) {
-      other = new SemVer(other, this.options)
-    }
-
-    return (
-      compareIdentifiers(this.major, other.major) ||
-      compareIdentifiers(this.minor, other.minor) ||
-      compareIdentifiers(this.patch, other.patch)
-    )
-  }
-
-  comparePre (other) {
-    if (!(other instanceof SemVer)) {
-      other = new SemVer(other, this.options)
-    }
-
-    // NOT having a prerelease is > having one
-    if (this.prerelease.length && !other.prerelease.length) {
-      return -1
-    } else if (!this.prerelease.length && other.prerelease.length) {
-      return 1
-    } else if (!this.prerelease.length && !other.prerelease.length) {
-      return 0
-    }
-
-    let i = 0
-    do {
-      const a = this.prerelease[i]
-      const b = other.prerelease[i]
-      debug('prerelease compare', i, a, b)
-      if (a === undefined && b === undefined) {
-        return 0
-      } else if (b === undefined) {
-        return 1
-      } else if (a === undefined) {
-        return -1
-      } else if (a === b) {
-        continue
-      } else {
-        return compareIdentifiers(a, b)
-      }
-    } while (++i)
-  }
-
-  compareBuild (other) {
-    if (!(other instanceof SemVer)) {
-      other = new SemVer(other, this.options)
-    }
-
-    let i = 0
-    do {
-      const a = this.build[i]
-      const b = other.build[i]
-      debug('prerelease compare', i, a, b)
-      if (a === undefined && b === undefined) {
-        return 0
-      } else if (b === undefined) {
-        return 1
-      } else if (a === undefined) {
-        return -1
-      } else if (a === b) {
-        continue
-      } else {
-        return compareIdentifiers(a, b)
-      }
-    } while (++i)
-  }
-
-  // preminor will bump the version up to the next minor release, and immediately
-  // down to pre-release. premajor and prepatch work the same way.
-  inc (release, identifier, identifierBase) {
-    switch (release) {
-      case 'premajor':
-        this.prerelease.length = 0
-        this.patch = 0
-        this.minor = 0
-        this.major++
-        this.inc('pre', identifier, identifierBase)
-        break
-      case 'preminor':
-        this.prerelease.length = 0
-        this.patch = 0
-        this.minor++
-        this.inc('pre', identifier, identifierBase)
-        break
-      case 'prepatch':
-        // If this is already a prerelease, it will bump to the next version
-        // drop any prereleases that might already exist, since they are not
-        // relevant at this point.
-        this.prerelease.length = 0
-        this.inc('patch', identifier, identifierBase)
-        this.inc('pre', identifier, identifierBase)
-        break
-      // If the input is a non-prerelease version, this acts the same as
-      // prepatch.
-      case 'prerelease':
-        if (this.prerelease.length === 0) {
-          this.inc('patch', identifier, identifierBase)
-        }
-        this.inc('pre', identifier, identifierBase)
-        break
-
-      case 'major':
-        // If this is a pre-major version, bump up to the same major version.
-        // Otherwise increment major.
-        // 1.0.0-5 bumps to 1.0.0
-        // 1.1.0 bumps to 2.0.0
-        if (
-          this.minor !== 0 ||
-          this.patch !== 0 ||
-          this.prerelease.length === 0
-        ) {
-          this.major++
-        }
-        this.minor = 0
-        this.patch = 0
-        this.prerelease = []
-        break
-      case 'minor':
-        // If this is a pre-minor version, bump up to the same minor version.
-        // Otherwise increment minor.
-        // 1.2.0-5 bumps to 1.2.0
-        // 1.2.1 bumps to 1.3.0
-        if (this.patch !== 0 || this.prerelease.length === 0) {
-          this.minor++
-        }
-        this.patch = 0
-        this.prerelease = []
-        break
-      case 'patch':
-        // If this is not a pre-release version, it will increment the patch.
-        // If it is a pre-release it will bump up to the same patch version.
-        // 1.2.0-5 patches to 1.2.0
-        // 1.2.0 patches to 1.2.1
-        if (this.prerelease.length === 0) {
-          this.patch++
-        }
-        this.prerelease = []
-        break
-      // This probably shouldn't be used publicly.
-      // 1.0.0 'pre' would become 1.0.0-0 which is the wrong direction.
-      case 'pre': {
-        const base = Number(identifierBase) ? 1 : 0
-
-        if (!identifier && identifierBase === false) {
-          throw new Error('invalid increment argument: identifier is empty')
-        }
-
-        if (this.prerelease.length === 0) {
-          this.prerelease = [base]
-        } else {
-          let i = this.prerelease.length
-          while (--i >= 0) {
-            if (typeof this.prerelease[i] === 'number') {
-              this.prerelease[i]++
-              i = -2
-            }
-          }
-          if (i === -1) {
-            // didn't increment anything
-            if (identifier === this.prerelease.join('.') && identifierBase === false) {
-              throw new Error('invalid increment argument: identifier already exists')
-            }
-            this.prerelease.push(base)
-          }
-        }
-        if (identifier) {
-          // 1.2.0-beta.1 bumps to 1.2.0-beta.2,
-          // 1.2.0-beta.fooblz or 1.2.0-beta bumps to 1.2.0-beta.0
-          let prerelease = [identifier, base]
-          if (identifierBase === false) {
-            prerelease = [identifier]
-          }
-          if (compareIdentifiers(this.prerelease[0], identifier) === 0) {
-            if (isNaN(this.prerelease[1])) {
-              this.prerelease = prerelease
-            }
-          } else {
-            this.prerelease = prerelease
-          }
-        }
-        break
-      }
-      default:
-        throw new Error(`invalid increment argument: ${release}`)
-    }
-    this.raw = this.format()
-    if (this.build.length) {
-      this.raw += `+${this.build.join('.')}`
-    }
-    return this
-  }
-}
-
-module.exports = SemVer
+module.exports = __nccwpck_require__(219);
 
 
 /***/ }),
 
-/***/ 6688:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const SemVer = __nccwpck_require__(8088)
-const major = (a, loose) => new SemVer(a, loose).major
-module.exports = major
-
-
-/***/ }),
-
-/***/ 8447:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const SemVer = __nccwpck_require__(8088)
-const minor = (a, loose) => new SemVer(a, loose).minor
-module.exports = minor
-
-
-/***/ }),
-
-/***/ 5925:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const SemVer = __nccwpck_require__(8088)
-const parse = (version, options, throwErrors = false) => {
-  if (version instanceof SemVer) {
-    return version
-  }
-  try {
-    return new SemVer(version, options)
-  } catch (er) {
-    if (!throwErrors) {
-      return null
-    }
-    throw er
-  }
-}
-
-module.exports = parse
-
-
-/***/ }),
-
-/***/ 2866:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const SemVer = __nccwpck_require__(8088)
-const patch = (a, loose) => new SemVer(a, loose).patch
-module.exports = patch
-
-
-/***/ }),
-
-/***/ 4016:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const parse = __nccwpck_require__(5925)
-const prerelease = (version, options) => {
-  const parsed = parse(version, options)
-  return (parsed && parsed.prerelease.length) ? parsed.prerelease : null
-}
-module.exports = prerelease
-
-
-/***/ }),
-
-/***/ 2293:
-/***/ ((module) => {
-
-// Note: this is the semver.org version of the spec that it implements
-// Not necessarily the package version of this code.
-const SEMVER_SPEC_VERSION = '2.0.0'
-
-const MAX_LENGTH = 256
-const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER ||
-/* istanbul ignore next */ 9007199254740991
-
-// Max safe segment length for coercion.
-const MAX_SAFE_COMPONENT_LENGTH = 16
-
-const RELEASE_TYPES = [
-  'major',
-  'premajor',
-  'minor',
-  'preminor',
-  'patch',
-  'prepatch',
-  'prerelease',
-]
-
-module.exports = {
-  MAX_LENGTH,
-  MAX_SAFE_COMPONENT_LENGTH,
-  MAX_SAFE_INTEGER,
-  RELEASE_TYPES,
-  SEMVER_SPEC_VERSION,
-  FLAG_INCLUDE_PRERELEASE: 0b001,
-  FLAG_LOOSE: 0b010,
-}
-
-
-/***/ }),
-
-/***/ 427:
-/***/ ((module) => {
-
-const debug = (
-  typeof process === 'object' &&
-  process.env &&
-  process.env.NODE_DEBUG &&
-  /\bsemver\b/i.test(process.env.NODE_DEBUG)
-) ? (...args) => console.error('SEMVER', ...args)
-  : () => {}
-
-module.exports = debug
-
-
-/***/ }),
-
-/***/ 2463:
-/***/ ((module) => {
-
-const numeric = /^[0-9]+$/
-const compareIdentifiers = (a, b) => {
-  const anum = numeric.test(a)
-  const bnum = numeric.test(b)
-
-  if (anum && bnum) {
-    a = +a
-    b = +b
-  }
-
-  return a === b ? 0
-    : (anum && !bnum) ? -1
-    : (bnum && !anum) ? 1
-    : a < b ? -1
-    : 1
-}
-
-const rcompareIdentifiers = (a, b) => compareIdentifiers(b, a)
-
-module.exports = {
-  compareIdentifiers,
-  rcompareIdentifiers,
-}
-
-
-/***/ }),
-
-/***/ 785:
-/***/ ((module) => {
-
-// parse out just the options we care about
-const looseOption = Object.freeze({ loose: true })
-const emptyOpts = Object.freeze({ })
-const parseOptions = options => {
-  if (!options) {
-    return emptyOpts
-  }
-
-  if (typeof options !== 'object') {
-    return looseOption
-  }
-
-  return options
-}
-module.exports = parseOptions
-
-
-/***/ }),
-
-/***/ 9523:
-/***/ ((module, exports, __nccwpck_require__) => {
-
-const { MAX_SAFE_COMPONENT_LENGTH } = __nccwpck_require__(2293)
-const debug = __nccwpck_require__(427)
-exports = module.exports = {}
-
-// The actual regexps go on exports.re
-const re = exports.re = []
-const safeRe = exports.safeRe = []
-const src = exports.src = []
-const t = exports.t = {}
-let R = 0
-
-const createToken = (name, value, isGlobal) => {
-  // Replace all greedy whitespace to prevent regex dos issues. These regex are
-  // used internally via the safeRe object since all inputs in this library get
-  // normalized first to trim and collapse all extra whitespace. The original
-  // regexes are exported for userland consumption and lower level usage. A
-  // future breaking change could export the safer regex only with a note that
-  // all input should have extra whitespace removed.
-  const safe = value
-    .split('\\s*').join('\\s{0,1}')
-    .split('\\s+').join('\\s')
-  const index = R++
-  debug(name, index, value)
-  t[name] = index
-  src[index] = value
-  re[index] = new RegExp(value, isGlobal ? 'g' : undefined)
-  safeRe[index] = new RegExp(safe, isGlobal ? 'g' : undefined)
-}
-
-// The following Regular Expressions can be used for tokenizing,
-// validating, and parsing SemVer version strings.
-
-// ## Numeric Identifier
-// A single `0`, or a non-zero digit followed by zero or more digits.
-
-createToken('NUMERICIDENTIFIER', '0|[1-9]\\d*')
-createToken('NUMERICIDENTIFIERLOOSE', '[0-9]+')
-
-// ## Non-numeric Identifier
-// Zero or more digits, followed by a letter or hyphen, and then zero or
-// more letters, digits, or hyphens.
-
-createToken('NONNUMERICIDENTIFIER', '\\d*[a-zA-Z-][a-zA-Z0-9-]*')
-
-// ## Main Version
-// Three dot-separated numeric identifiers.
-
-createToken('MAINVERSION', `(${src[t.NUMERICIDENTIFIER]})\\.` +
-                   `(${src[t.NUMERICIDENTIFIER]})\\.` +
-                   `(${src[t.NUMERICIDENTIFIER]})`)
-
-createToken('MAINVERSIONLOOSE', `(${src[t.NUMERICIDENTIFIERLOOSE]})\\.` +
-                        `(${src[t.NUMERICIDENTIFIERLOOSE]})\\.` +
-                        `(${src[t.NUMERICIDENTIFIERLOOSE]})`)
-
-// ## Pre-release Version Identifier
-// A numeric identifier, or a non-numeric identifier.
-
-createToken('PRERELEASEIDENTIFIER', `(?:${src[t.NUMERICIDENTIFIER]
-}|${src[t.NONNUMERICIDENTIFIER]})`)
-
-createToken('PRERELEASEIDENTIFIERLOOSE', `(?:${src[t.NUMERICIDENTIFIERLOOSE]
-}|${src[t.NONNUMERICIDENTIFIER]})`)
-
-// ## Pre-release Version
-// Hyphen, followed by one or more dot-separated pre-release version
-// identifiers.
-
-createToken('PRERELEASE', `(?:-(${src[t.PRERELEASEIDENTIFIER]
-}(?:\\.${src[t.PRERELEASEIDENTIFIER]})*))`)
-
-createToken('PRERELEASELOOSE', `(?:-?(${src[t.PRERELEASEIDENTIFIERLOOSE]
-}(?:\\.${src[t.PRERELEASEIDENTIFIERLOOSE]})*))`)
-
-// ## Build Metadata Identifier
-// Any combination of digits, letters, or hyphens.
-
-createToken('BUILDIDENTIFIER', '[0-9A-Za-z-]+')
-
-// ## Build Metadata
-// Plus sign, followed by one or more period-separated build metadata
-// identifiers.
-
-createToken('BUILD', `(?:\\+(${src[t.BUILDIDENTIFIER]
-}(?:\\.${src[t.BUILDIDENTIFIER]})*))`)
-
-// ## Full Version String
-// A main version, followed optionally by a pre-release version and
-// build metadata.
-
-// Note that the only major, minor, patch, and pre-release sections of
-// the version string are capturing groups.  The build metadata is not a
-// capturing group, because it should not ever be used in version
-// comparison.
-
-createToken('FULLPLAIN', `v?${src[t.MAINVERSION]
-}${src[t.PRERELEASE]}?${
-  src[t.BUILD]}?`)
-
-createToken('FULL', `^${src[t.FULLPLAIN]}$`)
-
-// like full, but allows v1.2.3 and =1.2.3, which people do sometimes.
-// also, 1.0.0alpha1 (prerelease without the hyphen) which is pretty
-// common in the npm registry.
-createToken('LOOSEPLAIN', `[v=\\s]*${src[t.MAINVERSIONLOOSE]
-}${src[t.PRERELEASELOOSE]}?${
-  src[t.BUILD]}?`)
-
-createToken('LOOSE', `^${src[t.LOOSEPLAIN]}$`)
-
-createToken('GTLT', '((?:<|>)?=?)')
-
-// Something like "2.*" or "1.2.x".
-// Note that "x.x" is a valid xRange identifer, meaning "any version"
-// Only the first item is strictly required.
-createToken('XRANGEIDENTIFIERLOOSE', `${src[t.NUMERICIDENTIFIERLOOSE]}|x|X|\\*`)
-createToken('XRANGEIDENTIFIER', `${src[t.NUMERICIDENTIFIER]}|x|X|\\*`)
-
-createToken('XRANGEPLAIN', `[v=\\s]*(${src[t.XRANGEIDENTIFIER]})` +
-                   `(?:\\.(${src[t.XRANGEIDENTIFIER]})` +
-                   `(?:\\.(${src[t.XRANGEIDENTIFIER]})` +
-                   `(?:${src[t.PRERELEASE]})?${
-                     src[t.BUILD]}?` +
-                   `)?)?`)
-
-createToken('XRANGEPLAINLOOSE', `[v=\\s]*(${src[t.XRANGEIDENTIFIERLOOSE]})` +
-                        `(?:\\.(${src[t.XRANGEIDENTIFIERLOOSE]})` +
-                        `(?:\\.(${src[t.XRANGEIDENTIFIERLOOSE]})` +
-                        `(?:${src[t.PRERELEASELOOSE]})?${
-                          src[t.BUILD]}?` +
-                        `)?)?`)
-
-createToken('XRANGE', `^${src[t.GTLT]}\\s*${src[t.XRANGEPLAIN]}$`)
-createToken('XRANGELOOSE', `^${src[t.GTLT]}\\s*${src[t.XRANGEPLAINLOOSE]}$`)
-
-// Coercion.
-// Extract anything that could conceivably be a part of a valid semver
-createToken('COERCE', `${'(^|[^\\d])' +
-              '(\\d{1,'}${MAX_SAFE_COMPONENT_LENGTH}})` +
-              `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?` +
-              `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?` +
-              `(?:$|[^\\d])`)
-createToken('COERCERTL', src[t.COERCE], true)
-
-// Tilde ranges.
-// Meaning is "reasonably at or greater than"
-createToken('LONETILDE', '(?:~>?)')
-
-createToken('TILDETRIM', `(\\s*)${src[t.LONETILDE]}\\s+`, true)
-exports.tildeTrimReplace = '$1~'
-
-createToken('TILDE', `^${src[t.LONETILDE]}${src[t.XRANGEPLAIN]}$`)
-createToken('TILDELOOSE', `^${src[t.LONETILDE]}${src[t.XRANGEPLAINLOOSE]}$`)
-
-// Caret ranges.
-// Meaning is "at least and backwards compatible with"
-createToken('LONECARET', '(?:\\^)')
-
-createToken('CARETTRIM', `(\\s*)${src[t.LONECARET]}\\s+`, true)
-exports.caretTrimReplace = '$1^'
-
-createToken('CARET', `^${src[t.LONECARET]}${src[t.XRANGEPLAIN]}$`)
-createToken('CARETLOOSE', `^${src[t.LONECARET]}${src[t.XRANGEPLAINLOOSE]}$`)
-
-// A simple gt/lt/eq thing, or just "" to indicate "any version"
-createToken('COMPARATORLOOSE', `^${src[t.GTLT]}\\s*(${src[t.LOOSEPLAIN]})$|^$`)
-createToken('COMPARATOR', `^${src[t.GTLT]}\\s*(${src[t.FULLPLAIN]})$|^$`)
-
-// An expression to strip any whitespace between the gtlt and the thing
-// it modifies, so that `> 1.2.3` ==> `>1.2.3`
-createToken('COMPARATORTRIM', `(\\s*)${src[t.GTLT]
-}\\s*(${src[t.LOOSEPLAIN]}|${src[t.XRANGEPLAIN]})`, true)
-exports.comparatorTrimReplace = '$1$2$3'
-
-// Something like `1.2.3 - 1.2.4`
-// Note that these all use the loose form, because they'll be
-// checked against either the strict or loose comparator form
-// later.
-createToken('HYPHENRANGE', `^\\s*(${src[t.XRANGEPLAIN]})` +
-                   `\\s+-\\s+` +
-                   `(${src[t.XRANGEPLAIN]})` +
-                   `\\s*$`)
-
-createToken('HYPHENRANGELOOSE', `^\\s*(${src[t.XRANGEPLAINLOOSE]})` +
-                        `\\s+-\\s+` +
-                        `(${src[t.XRANGEPLAINLOOSE]})` +
-                        `\\s*$`)
-
-// Star ranges basically just allow anything at all.
-createToken('STAR', '(<|>)?=?\\s*\\*')
-// >=0.0.0 is like a star
-createToken('GTE0', '^\\s*>=\\s*0\\.0\\.0\\s*$')
-createToken('GTE0PRE', '^\\s*>=\\s*0\\.0\\.0-0\\s*$')
-
-
-/***/ }),
-
-/***/ 4294:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-module.exports = __nccwpck_require__(4219);
-
-
-/***/ }),
-
-/***/ 4219:
+/***/ 219:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 
-var net = __nccwpck_require__(1808);
-var tls = __nccwpck_require__(4404);
-var http = __nccwpck_require__(3685);
-var https = __nccwpck_require__(5687);
-var events = __nccwpck_require__(2361);
-var assert = __nccwpck_require__(9491);
-var util = __nccwpck_require__(3837);
+var net = __nccwpck_require__(808);
+var tls = __nccwpck_require__(404);
+var http = __nccwpck_require__(685);
+var https = __nccwpck_require__(687);
+var events = __nccwpck_require__(820);
+var assert = __nccwpck_require__(491);
+var util = __nccwpck_require__(837);
 
 
 exports.httpOverHttp = httpOverHttp;
@@ -2725,7 +2045,7 @@ exports.debug = debug; // for test
 
 /***/ }),
 
-/***/ 5840:
+/***/ 840:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -2789,29 +2109,29 @@ Object.defineProperty(exports, "parse", ({
   }
 }));
 
-var _v = _interopRequireDefault(__nccwpck_require__(8628));
+var _v = _interopRequireDefault(__nccwpck_require__(628));
 
-var _v2 = _interopRequireDefault(__nccwpck_require__(6409));
+var _v2 = _interopRequireDefault(__nccwpck_require__(409));
 
-var _v3 = _interopRequireDefault(__nccwpck_require__(5122));
+var _v3 = _interopRequireDefault(__nccwpck_require__(122));
 
-var _v4 = _interopRequireDefault(__nccwpck_require__(9120));
+var _v4 = _interopRequireDefault(__nccwpck_require__(120));
 
-var _nil = _interopRequireDefault(__nccwpck_require__(5332));
+var _nil = _interopRequireDefault(__nccwpck_require__(332));
 
-var _version = _interopRequireDefault(__nccwpck_require__(1595));
+var _version = _interopRequireDefault(__nccwpck_require__(595));
 
-var _validate = _interopRequireDefault(__nccwpck_require__(6900));
+var _validate = _interopRequireDefault(__nccwpck_require__(900));
 
-var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
+var _stringify = _interopRequireDefault(__nccwpck_require__(950));
 
-var _parse = _interopRequireDefault(__nccwpck_require__(2746));
+var _parse = _interopRequireDefault(__nccwpck_require__(746));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ }),
 
-/***/ 4569:
+/***/ 569:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -2822,7 +2142,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = void 0;
 
-var _crypto = _interopRequireDefault(__nccwpck_require__(6113));
+var _crypto = _interopRequireDefault(__nccwpck_require__(113));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2841,7 +2161,7 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 5332:
+/***/ 332:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -2856,7 +2176,7 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 2746:
+/***/ 746:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -2867,7 +2187,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = void 0;
 
-var _validate = _interopRequireDefault(__nccwpck_require__(6900));
+var _validate = _interopRequireDefault(__nccwpck_require__(900));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2934,7 +2254,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = rng;
 
-var _crypto = _interopRequireDefault(__nccwpck_require__(6113));
+var _crypto = _interopRequireDefault(__nccwpck_require__(113));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2954,7 +2274,7 @@ function rng() {
 
 /***/ }),
 
-/***/ 5274:
+/***/ 274:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -2965,7 +2285,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = void 0;
 
-var _crypto = _interopRequireDefault(__nccwpck_require__(6113));
+var _crypto = _interopRequireDefault(__nccwpck_require__(113));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2984,7 +2304,7 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 8950:
+/***/ 950:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -2995,7 +2315,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = void 0;
 
-var _validate = _interopRequireDefault(__nccwpck_require__(6900));
+var _validate = _interopRequireDefault(__nccwpck_require__(900));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3030,7 +2350,7 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 8628:
+/***/ 628:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3043,7 +2363,7 @@ exports["default"] = void 0;
 
 var _rng = _interopRequireDefault(__nccwpck_require__(807));
 
-var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
+var _stringify = _interopRequireDefault(__nccwpck_require__(950));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3144,7 +2464,7 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 6409:
+/***/ 409:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3155,9 +2475,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = void 0;
 
-var _v = _interopRequireDefault(__nccwpck_require__(5998));
+var _v = _interopRequireDefault(__nccwpck_require__(998));
 
-var _md = _interopRequireDefault(__nccwpck_require__(4569));
+var _md = _interopRequireDefault(__nccwpck_require__(569));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3167,7 +2487,7 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 5998:
+/***/ 998:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3179,9 +2499,9 @@ Object.defineProperty(exports, "__esModule", ({
 exports["default"] = _default;
 exports.URL = exports.DNS = void 0;
 
-var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
+var _stringify = _interopRequireDefault(__nccwpck_require__(950));
 
-var _parse = _interopRequireDefault(__nccwpck_require__(2746));
+var _parse = _interopRequireDefault(__nccwpck_require__(746));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3252,7 +2572,7 @@ function _default(name, version, hashfunc) {
 
 /***/ }),
 
-/***/ 5122:
+/***/ 122:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3265,7 +2585,7 @@ exports["default"] = void 0;
 
 var _rng = _interopRequireDefault(__nccwpck_require__(807));
 
-var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
+var _stringify = _interopRequireDefault(__nccwpck_require__(950));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3296,7 +2616,7 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 9120:
+/***/ 120:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3307,9 +2627,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = void 0;
 
-var _v = _interopRequireDefault(__nccwpck_require__(5998));
+var _v = _interopRequireDefault(__nccwpck_require__(998));
 
-var _sha = _interopRequireDefault(__nccwpck_require__(5274));
+var _sha = _interopRequireDefault(__nccwpck_require__(274));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3319,7 +2639,7 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 6900:
+/***/ 900:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3343,7 +2663,7 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 1595:
+/***/ 595:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3354,7 +2674,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = void 0;
 
-var _validate = _interopRequireDefault(__nccwpck_require__(6900));
+var _validate = _interopRequireDefault(__nccwpck_require__(900));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3371,7 +2691,7 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 7361:
+/***/ 361:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -3403,180 +2723,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.generateAndroidVersionCode = exports.updateAndroid = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-const child_process_1 = __nccwpck_require__(2081);
-const fs_1 = __nccwpck_require__(7147);
-const path_1 = __importDefault(__nccwpck_require__(1017));
-const major_1 = __importDefault(__nccwpck_require__(6688));
-const minor_1 = __importDefault(__nccwpck_require__(8447));
-const patch_1 = __importDefault(__nccwpck_require__(2866));
-const prerelease_1 = __importDefault(__nccwpck_require__(4016));
-const util_1 = __nccwpck_require__(3837);
-const versionUpdater = __importStar(__nccwpck_require__(8982));
-const exec = (0, util_1.promisify)(child_process_1.exec);
-// PlistBuddy executable path
-const PLIST_BUDDY = '/usr/libexec/PlistBuddy';
-// Filepath constants
-const ROOT_DIR = path_1.default.resolve(__dirname, '../../../..');
-const PACKAGE_JSON_PATH = path_1.default.resolve(ROOT_DIR, 'package.json');
-const BUILD_GRADLE_PATH = path_1.default.resolve(ROOT_DIR, 'android/app/build.gradle');
-const PLIST_PATH = path_1.default.resolve(ROOT_DIR, 'ios/NewExpensify/Info.plist');
-const PLIST_PATH_NSE = path_1.default.resolve(ROOT_DIR, 'ios/NotificationServiceExtension/Info.plist');
-const PLIST_PATH_SHARE = path_1.default.resolve(ROOT_DIR, 'ios/ShareViewController/Info.plist');
-// Filepath constants (submodule)
-const MOBILE_EXPENSIFY_DIR = path_1.default.resolve(ROOT_DIR, 'Mobile-Expensify');
-const MOBILE_EXPENSIFY_CONFIG_JSON_PATH = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'app/config/config.json');
-const MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'Android/AndroidManifest.xml');
-const MOBILE_EXPENSIFY_PLIST_PATH = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/Expensify/Expensify-Info.plist');
-const MOBILE_EXPENSIFY_PLIST_PATH_NSE = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/NotificationServiceExtension/Info.plist');
-const MOBILE_EXPENSIFY_PLIST_PATH_SS = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/SmartScanExtension/Info.plist');
-/**
- * Pad a number to be two digits (with leading zeros if necessary).
- */
-function padToTwoDigits(value) {
-    if (value >= 10) {
-        return value.toString();
-    }
-    return `0${value.toString()}`;
-}
-/**
- * Generate the 10-digit versionCode for android.
- * This version code allocates two digits each for PREFIX, MAJOR, MINOR, PATCH, and BUILD versions.
- * As a result, our max version is 99.99.99-99.
- */
-function generateAndroidVersionCode(npmVersion, prefix) {
-    return ''.concat(prefix, padToTwoDigits((0, major_1.default)(npmVersion) ?? 0), padToTwoDigits((0, minor_1.default)(npmVersion) ?? 0), padToTwoDigits((0, patch_1.default)(npmVersion) ?? 0), padToTwoDigits(Number((0, prerelease_1.default)(npmVersion)) ?? 0));
-}
-exports.generateAndroidVersionCode = generateAndroidVersionCode;
-/**
- * Update the Android native versions in E/App and the Mobile-Expensify submodule.
- */
-async function updateAndroid(version) {
-    console.log(`Updating Android versions to ${version}`);
-    try {
-        const versionNamePattern = '([0-9.-]*)';
-        const versionCodePattern = '([0-9]*)';
-        const updateBuildGradle = async () => {
-            // build.gradle versions will be prefixed with '10' due to previous versioning
-            const versionCode = generateAndroidVersionCode(version, '10');
-            console.log(`Updating ${BUILD_GRADLE_PATH}:`, { version, versionCode });
-            const fileContent = await fs_1.promises.readFile(BUILD_GRADLE_PATH, { encoding: 'utf8' });
-            const updatedContent = fileContent
-                .replace(new RegExp(`versionName "${versionNamePattern}"`), `versionName "${version}"`)
-                .replace(new RegExp(`versionCode ${versionCodePattern}`), `versionCode ${versionCode}`);
-            await fs_1.promises.writeFile(BUILD_GRADLE_PATH, updatedContent, { encoding: 'utf8' });
-            console.log(`Updated ${BUILD_GRADLE_PATH}`);
-        };
-        const updateAndroidManifest = async () => {
-            // AndroidManifest.xml versions will be prefixed with '05' due to previous versioning
-            const versionCode = generateAndroidVersionCode(version, '05');
-            console.log(`Updating ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}:`, { version, versionCode });
-            const fileContent = await fs_1.promises.readFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, { encoding: 'utf8' });
-            const updatedContent = fileContent
-                .replace(new RegExp(`android:versionName="${versionNamePattern}"`), `android:versionName="${version}"`)
-                .replace(new RegExp(`android:versionCode="${versionCodePattern}"`), `android:versionCode="${versionCode}"`);
-            await fs_1.promises.writeFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, updatedContent, { encoding: 'utf8' });
-            console.log(`Updated ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}`);
-        };
-        await Promise.all([updateBuildGradle(), updateAndroidManifest()]);
-        console.log('Successfully updated Android');
-    }
-    catch (err) {
-        console.error('Error updating Android');
-        if (err instanceof Error) {
-            core.setFailed(err);
-        }
-    }
-}
-exports.updateAndroid = updateAndroid;
-/**
- * Update the iOS native versions in E/App and the Mobile-Expensify submodule.
- */
-async function updateIOS(version) {
-    console.log(`Updating native versions to ${version}`);
-    try {
-        const PLIST_KEYS = {
-            CF_BUNDLE_SHORT_VERSION: 'CFBundleShortVersionString',
-            CF_BUNDLE_VERSION: 'CFBundleVersion',
-        };
-        const shortVersion = version.split('-').at(0);
-        const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
-        console.log('Updating iOS', {
-            [PLIST_KEYS.CF_BUNDLE_SHORT_VERSION]: shortVersion,
-            [PLIST_KEYS.CF_BUNDLE_VERSION]: cfVersion,
-        });
-        // Update plists
-        await Promise.all([PLIST_PATH, PLIST_PATH_NSE, PLIST_PATH_SHARE, MOBILE_EXPENSIFY_PLIST_PATH, MOBILE_EXPENSIFY_PLIST_PATH_NSE, MOBILE_EXPENSIFY_PLIST_PATH_SS].map(async (file) => {
-            console.log(`Updating ${file}`);
-            await exec(`${PLIST_BUDDY} -c "Set :${PLIST_KEYS.CF_BUNDLE_SHORT_VERSION} ${shortVersion}" ${file}`);
-            await exec(`${PLIST_BUDDY} -c "Set :${PLIST_KEYS.CF_BUNDLE_VERSION} ${cfVersion}" ${file}`);
-            console.log(`Updated ${file}`);
-        }));
-        console.log('Successfully updated iOS');
-    }
-    catch (err) {
-        console.error('Error updating iOS');
-        if (err instanceof Error) {
-            core.setFailed(err);
-        }
-    }
-}
-/**
- * Update package.json and package-lock.json
- */
-async function updateNPM(version) {
-    console.log(`Setting npm version to ${version}`);
-    try {
-        const { stdout } = await exec(`npm --no-git-tag-version version ${version} -m "Update version to ${version}"`);
-        // NPM and native versions successfully updated, output new version
-        console.log(stdout);
-        core.setOutput('NEW_VERSION', version);
-    }
-    catch (err) {
-        // Log errors and fail gracefully
-        if (err instanceof Error) {
-            console.error('Error:', err.message);
-        }
-        core.setFailed('An error occurred in the `npm version` command');
-    }
-}
-/**
- * Update Mobile-Expensify config.json.
- */
-async function updateConfigJSON(version) {
-    try {
-        console.log(`Updating ${MOBILE_EXPENSIFY_CONFIG_JSON_PATH} to ${version}`);
-        const fileContent = JSON.parse(await fs_1.promises.readFile(MOBILE_EXPENSIFY_CONFIG_JSON_PATH, { encoding: 'utf8' }));
-        fileContent.meta.version = version;
-        await fs_1.promises.writeFile(MOBILE_EXPENSIFY_CONFIG_JSON_PATH, JSON.stringify(fileContent), { encoding: 'utf8' });
-        console.log(`Updated ${MOBILE_EXPENSIFY_CONFIG_JSON_PATH}`);
-    }
-    catch (err) {
-        // Log errors and fail gracefully
-        if (err instanceof Error) {
-            console.error('Error:', err.message);
-        }
-        core.setFailed('An error occurred updating Mobile-Expensify config.json');
-    }
-}
+const core = __importStar(__nccwpck_require__(186));
+const bumpVersion_1 = __importDefault(__nccwpck_require__(773));
 async function run() {
-    // Get and validate SEMVER_LEVEL input
-    let semanticVersionLevel = core.getInput('SEMVER_LEVEL', { required: true });
-    if (!semanticVersionLevel || !versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
-        semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
-        console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
+    try {
+        const semverLevel = core.getInput('SEMVER_LEVEL', { required: true });
+        const newVersion = await (0, bumpVersion_1.default)(semverLevel);
+        core.setOutput('NEW_VERSION', newVersion);
     }
-    // Parse the current version from package.json
-    const { version: previousVersion } = JSON.parse(await fs_1.promises.readFile(PACKAGE_JSON_PATH, { encoding: 'utf8' }));
-    if (!previousVersion) {
-        core.setFailed('Error: Could not read package.json');
+    catch (e) {
+        if (e instanceof Error) {
+            core.setFailed(e);
+            return;
+        }
+        core.setFailed('An unknown error occurred.');
     }
-    // Figure out the next version
-    const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel);
-    console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
-    // Apply the version changes in Android, iOS, and JS config files (E/App and Mobile-Expensify)
-    await Promise.all([updateAndroid(newVersion), updateIOS(newVersion), updateNPM(newVersion), updateConfigJSON(newVersion)]);
 }
 if (require.main === require.cache[eval('__filename')]) {
     run();
@@ -3586,112 +2747,15 @@ exports["default"] = run;
 
 /***/ }),
 
-/***/ 8982:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ 773:
+/***/ ((module) => {
 
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = exports.isValidSemverLevel = void 0;
-const SEMANTIC_VERSION_LEVELS = {
-    MAJOR: 'MAJOR',
-    MINOR: 'MINOR',
-    PATCH: 'PATCH',
-    BUILD: 'BUILD',
-};
-exports.SEMANTIC_VERSION_LEVELS = SEMANTIC_VERSION_LEVELS;
-const MAX_INCREMENTS = 99;
-exports.MAX_INCREMENTS = MAX_INCREMENTS;
-function isValidSemverLevel(str) {
-    return Object.keys(SEMANTIC_VERSION_LEVELS).includes(str);
-}
-exports.isValidSemverLevel = isValidSemverLevel;
-/**
- * Transforms a versions string into a number
- */
-const getVersionNumberFromString = (versionString) => {
-    const [version, build] = versionString.split('-');
-    const [major, minor, patch] = version.split('.').map((n) => Number(n));
-    return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
-};
-exports.getVersionNumberFromString = getVersionNumberFromString;
-/**
- * Transforms version numbers components into a version string
- */
-const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
-exports.getVersionStringFromNumber = getVersionStringFromNumber;
-/**
- * Increments a minor version
- */
-const incrementMinor = (major, minor) => {
-    if (minor < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor + 1, 0, 0);
-    }
-    return getVersionStringFromNumber(major + 1, 0, 0, 0);
-};
-exports.incrementMinor = incrementMinor;
-/**
- * Increments a Patch version
- */
-const incrementPatch = (major, minor, patch) => {
-    if (patch < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor, patch + 1, 0);
-    }
-    return incrementMinor(major, minor);
-};
-exports.incrementPatch = incrementPatch;
-/**
- * Increments a build version
- */
-const incrementVersion = (version, level) => {
-    const [major, minor, patch, build] = getVersionNumberFromString(version);
-    // Majors will always be incremented
-    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
-        return getVersionStringFromNumber(major + 1, 0, 0, 0);
-    }
-    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
-        return incrementMinor(major, minor);
-    }
-    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
-        return incrementPatch(major, minor, patch);
-    }
-    if (build < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor, patch, build + 1);
-    }
-    return incrementPatch(major, minor, patch);
-};
-exports.incrementVersion = incrementVersion;
-function getPreviousVersion(currentVersion, level) {
-    const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
-    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
-        if (major === 1) {
-            return getVersionStringFromNumber(1, 0, 0, 0);
-        }
-        return getVersionStringFromNumber(major - 1, 0, 0, 0);
-    }
-    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
-        if (minor === 0) {
-            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MAJOR);
-        }
-        return getVersionStringFromNumber(major, minor - 1, 0, 0);
-    }
-    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
-        if (patch === 0) {
-            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
-        }
-        return getVersionStringFromNumber(major, minor, patch - 1, 0);
-    }
-    if (build === 0) {
-        return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.PATCH);
-    }
-    return getVersionStringFromNumber(major, minor, patch, build - 1);
-}
-exports.getPreviousVersion = getPreviousVersion;
+module.exports = eval("require")("../../../scripts/bumpVersion");
 
 
 /***/ }),
 
-/***/ 9491:
+/***/ 491:
 /***/ ((module) => {
 
 "use strict";
@@ -3699,15 +2763,7 @@ module.exports = require("assert");
 
 /***/ }),
 
-/***/ 2081:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("child_process");
-
-/***/ }),
-
-/***/ 6113:
+/***/ 113:
 /***/ ((module) => {
 
 "use strict";
@@ -3715,7 +2771,7 @@ module.exports = require("crypto");
 
 /***/ }),
 
-/***/ 2361:
+/***/ 820:
 /***/ ((module) => {
 
 "use strict";
@@ -3723,7 +2779,7 @@ module.exports = require("events");
 
 /***/ }),
 
-/***/ 7147:
+/***/ 147:
 /***/ ((module) => {
 
 "use strict";
@@ -3731,7 +2787,7 @@ module.exports = require("fs");
 
 /***/ }),
 
-/***/ 3685:
+/***/ 685:
 /***/ ((module) => {
 
 "use strict";
@@ -3739,7 +2795,7 @@ module.exports = require("http");
 
 /***/ }),
 
-/***/ 5687:
+/***/ 687:
 /***/ ((module) => {
 
 "use strict";
@@ -3747,7 +2803,7 @@ module.exports = require("https");
 
 /***/ }),
 
-/***/ 1808:
+/***/ 808:
 /***/ ((module) => {
 
 "use strict";
@@ -3755,7 +2811,7 @@ module.exports = require("net");
 
 /***/ }),
 
-/***/ 2037:
+/***/ 37:
 /***/ ((module) => {
 
 "use strict";
@@ -3763,7 +2819,7 @@ module.exports = require("os");
 
 /***/ }),
 
-/***/ 1017:
+/***/ 17:
 /***/ ((module) => {
 
 "use strict";
@@ -3771,7 +2827,7 @@ module.exports = require("path");
 
 /***/ }),
 
-/***/ 4404:
+/***/ 404:
 /***/ ((module) => {
 
 "use strict";
@@ -3779,7 +2835,7 @@ module.exports = require("tls");
 
 /***/ }),
 
-/***/ 3837:
+/***/ 837:
 /***/ ((module) => {
 
 "use strict";
@@ -3829,7 +2885,7 @@ module.exports = require("util");
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(7361);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(361);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
