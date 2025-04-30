@@ -104,7 +104,6 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs, workspaceInviteRoleDraft);
         setWorkspaceInviteMessageDraft(route.params.policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
-        clearWorkspaceInviteRoleDraft(route.params.policyID);
         if ((route.params?.backTo as string)?.endsWith('members')) {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
             return;
