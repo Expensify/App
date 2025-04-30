@@ -174,7 +174,7 @@ describe('ProductTrainingContextProvider', () => {
         it('should not show tooltips for migrated users before welcome modal dismissal', async () => {
             // When user is a migrated user and welcome modal is not dismissed
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {nudgeMigration: {timestamp: new Date()}});
+            Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {nudgeMigration: {timestamp: new Date()}});
             await waitForBatchedUpdatesWithAct();
 
             // Then tooltips should not show
@@ -188,7 +188,7 @@ describe('ProductTrainingContextProvider', () => {
         it('should show tooltips for migrated users after welcome modal dismissal', async () => {
             // When migrated user has dismissed welcome modal
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {nudgeMigration: {timestamp: new Date()}});
+            Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {nudgeMigration: {timestamp: new Date()}});
             const date = new Date();
             Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {
@@ -229,7 +229,7 @@ describe('ProductTrainingContextProvider', () => {
         it('should hide tooltip when hideProductTrainingTooltip is called', async () => {
             // When migrated user has dismissed welcome modal
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {nudgeMigration: {timestamp: new Date()}});
+            Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {nudgeMigration: {timestamp: new Date()}});
             const date = new Date();
             Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {

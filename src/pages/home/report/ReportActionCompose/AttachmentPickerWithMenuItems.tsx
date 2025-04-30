@@ -131,19 +131,21 @@ function AttachmentPickerWithMenuItems({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const {canUseTableReportView, canUseLeftHandBar} = usePermissions();
 
-    /**
-     * Returns the list of IOU Options
-     */
-    const moneyRequestOptions = useMemo(() => {
-        const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
+    const selectOption = useCallback(
+        (onSelected: () => void, shouldRestrictAction: boolean) => {
             if (shouldRestrictAction && policy && shouldRestrictUserBillableActions(policy.id)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
 
             onSelected();
-        };
-
+        },
+        [policy],
+    );
+    /**
+     * Returns the list of IOU Options
+     */
+    const moneyRequestOptions = useMemo(() => {
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Transfer,
@@ -190,7 +192,7 @@ function AttachmentPickerWithMenuItems({
         }));
 
         return moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
-    }, [translate, report, policy, reportParticipantIDs, isDelegateAccessRestricted, shouldUseNarrowLayout]);
+    }, [translate, shouldUseNarrowLayout, report, policy, reportParticipantIDs, selectOption, isDelegateAccessRestricted]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
         if (!canUseTableReportView || !isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
@@ -201,12 +203,10 @@ function AttachmentPickerWithMenuItems({
             {
                 icon: Expensicons.Document,
                 text: translate('report.newReport.createReport'),
-                onSelected: () => {
-                    createNewReport(currentUserPersonalDetails, report?.policyID);
-                },
+                onSelected: () => selectOption(() => createNewReport(currentUserPersonalDetails, report?.policyID), true),
             },
         ];
-    }, [canUseTableReportView, currentUserPersonalDetails, report, translate]);
+    }, [canUseTableReportView, currentUserPersonalDetails, report, selectOption, translate]);
 
     /**
      * Determines if we can show the task option
