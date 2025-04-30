@@ -161,7 +161,7 @@ function ConfirmModal({
             shouldSetModalVisibility={shouldSetModalVisibility}
             onModalHide={onModalHide}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-            innerContainerStyle={{...(image ? styles.pt0 : {}), ...(isSmallScreenWidth ? styles.pb0 : {})}}
+            innerContainerStyle={{...(image ? styles.pt0 : {}), ...styles.pb0}}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
