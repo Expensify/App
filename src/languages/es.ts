@@ -552,6 +552,7 @@ const translations = {
         chat: 'Chat',
         task: 'Tarea',
         trip: 'Viaje',
+        apply: 'Aplicar',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

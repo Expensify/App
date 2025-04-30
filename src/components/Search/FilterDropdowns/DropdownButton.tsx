@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -39,6 +40,10 @@ const ANCHOR_ORIGIN = {
 };
 
 function DropdownButton<T>({label, value, PopoverComponent, items, onChange}: DropdownButtonProps<T>) {
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+
     const styles = useThemeStyles();
     const triggerRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
@@ -102,6 +107,7 @@ function DropdownButton<T>({label, value, PopoverComponent, items, onChange}: Dr
                 shoudSwitchPositionIfOverflow
                 shouldEnableNewFocusManagement
                 shouldMeasureAnchorPositionFromTop={false}
+                innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}}
                 popoverDimensions={{
                     width: CONST.POPOVER_DROPDOWN_WIDTH,
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,

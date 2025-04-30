@@ -561,6 +561,7 @@ const translations = {
         chat: 'Chat',
         task: 'Task',
         trip: 'Trip',
+        apply: 'Apply',
     },
     supportalNoAccess: {
         title: 'Not so fast',
