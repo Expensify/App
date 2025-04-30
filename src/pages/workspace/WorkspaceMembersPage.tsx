@@ -184,9 +184,10 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     // Clear selected employees when losing focus
     useEffect(() => {
-        if (!isFocused) {
-            setSelectedEmployees([]);
+        if (isFocused) {
+            return;
         }
+        setSelectedEmployees([]);
     }, [isFocused]);
 
     useEffect(() => {
