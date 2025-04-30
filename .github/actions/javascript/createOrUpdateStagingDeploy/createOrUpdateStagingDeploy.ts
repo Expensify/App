@@ -52,6 +52,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
 
         // Parse the data from the previous and current checklists into the format used to generate the checklist
         const previousChecklistData = GithubUtils.getStagingDeployCashData(previousChecklist);
+        console.log(`[jules] previousChecklistData: ${JSON.stringify(previousChecklistData)}`);
         const currentChecklistData: StagingDeployCashData | undefined = shouldCreateNewDeployChecklist ? undefined : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
