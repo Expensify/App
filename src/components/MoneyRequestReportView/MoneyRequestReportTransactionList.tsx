@@ -125,29 +125,28 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
     const {sortBy, sortOrder} = sortConfig;
 
-    const newTransactionsIDs = useMemo(() => {
+    const newTransactionsID = useMemo(() => {
         if (!prevTransactions || transactions.length === prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as string[];
         }
 
-        const lastInsertedTime = transactions.reduce((max, t) => (new Date(t.inserted ?? 0) > new Date(max ?? 0) ? t.inserted : max), transactions.at(0)?.inserted);
-
         return transactions
             .filter((transaction) => !prevTransactions.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID))
-            .filter((transaction) => transaction.inserted === lastInsertedTime)
-            .map((transaction) => transaction.transactionID);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactions]);
+            .reduce((latest, t) => {
+                const inserted = t?.inserted ?? 0;
+                const latestInserted = latest?.inserted ?? 0;
+                return inserted > latestInserted ? t : latest;
+            }, transactions.at(0))?.transactionID;
+    }, [prevTransactions, transactions]);
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions]
             .sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy))
             .map((transaction) => ({
                 ...transaction,
-                shouldBeHighlighted: newTransactionsIDs.includes(transaction.transactionID),
+                shouldBeHighlighted: newTransactionsID === transaction.transactionID,
             }));
-    }, [newTransactionsIDs, sortBy, sortOrder, transactions]);
+    }, [newTransactionsID, sortBy, sortOrder, transactions]);
 
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
