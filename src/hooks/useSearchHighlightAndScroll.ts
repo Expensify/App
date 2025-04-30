@@ -16,7 +16,7 @@ type UseSearchHighlightAndScroll = {
 /**
  * Hook used to handle highlighting and scrolling for new search results.
  */
-function useSearchHighlightAndScroll<T extends SearchListItem = SearchListItem>({searchResults, queryJSON}: UseSearchHighlightAndScroll) {
+function useSearchHighlightAndScroll({searchResults, queryJSON}: UseSearchHighlightAndScroll) {
     const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
