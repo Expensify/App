@@ -639,7 +639,7 @@ const styles = (theme: ThemeColors) =>
             left: 0,
         },
 
-        leftNavigationTabBar: {
+        leftNavigationTabBarContainer: {
             height: '100%',
             width: variables.navigationTabBarSize,
             position: 'fixed',
@@ -647,6 +647,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderRightColor: theme.border,
+            backgroundColor: theme.appBG,
         },
 
         leftNavigationTabBarItem: {

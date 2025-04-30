@@ -203,7 +203,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                         activeWorkspaceID={activeWorkspaceID}
                     />
                 )}
-                <View style={styles.leftNavigationTabBar}>
+                <View style={styles.leftNavigationTabBarContainer}>
                     <HeaderGap />
                     <View style={styles.flex1}>
                         <PressableWithFeedback
