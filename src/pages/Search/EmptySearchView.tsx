@@ -137,7 +137,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                             ...(!hasSeenTour
                                 ? [
                                       {
-                                          buttonText: translate('emptySearchView.takeATour'),
+                                          buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();
@@ -177,7 +177,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                             ...(!hasSeenTour
                                 ? [
                                       {
-                                          buttonText: translate('emptySearchView.takeATour'),
+                                          buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();
