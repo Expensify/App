@@ -26,6 +26,9 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
 
     useEffect(() => {
+        // If the user only has a domain feed, a workspace account may not have been created yet.
+        // However, adding a workspace feed requires a workspace account.
+        // Calling openPolicyAddCardFeedPage will trigger the creation of a workspace account.
         if (workspaceAccountID) {
             return;
         }
