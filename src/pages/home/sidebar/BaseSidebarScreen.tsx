@@ -31,11 +31,11 @@ function BaseSidebarScreen() {
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [activeWorkspace, activeWorkspaceResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [activeWorkspace, activeWorkspaceResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`, {canBeMissing: true});
     const currentRoute = useRoute();
     const isLoading = isLoadingOnyxValue(activeWorkspaceResult);
     const {canUseLeftHandBar} = usePermissions();
-    const shouldDisplayLHB = canUseLeftHandBar && !shouldUseNarrowLayout;
+    const shouldDisplayLHB = !!canUseLeftHandBar && !shouldUseNarrowLayout;
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -74,8 +74,7 @@ function BaseSidebarScreen() {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
-            extraContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
-            extraContentStyles={shouldDisplayLHB && styles.leftNavigationTabBarPosition}
+            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
         >
             {({insets}) => (
                 <>
@@ -88,6 +87,7 @@ function BaseSidebarScreen() {
                     <View style={[styles.flex1]}>
                         <SidebarLinksData insets={insets} />
                     </View>
+                    {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
                 </>
             )}
         </ScreenWrapper>
