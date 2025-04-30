@@ -7,6 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
+import type {DropdownValue} from './DropdownButton';
 
 type MultiSelectItem = {
     translation: TranslationPaths;
@@ -15,10 +16,11 @@ type MultiSelectItem = {
 
 type MultiSelectPopupProps = {
     items: MultiSelectItem[];
-    onChange: (item: MultiSelectItem[]) => void;
+    value: DropdownValue<MultiSelectItem>;
+    onChange: (item: DropdownValue<MultiSelectItem>) => void;
 };
 
-function MultiSelectPopup({items, onChange}: MultiSelectPopupProps) {
+function MultiSelectPopup({value, items, onChange}: MultiSelectPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

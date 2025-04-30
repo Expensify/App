@@ -7,6 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
+import type {DropdownValue} from './DropdownButton';
 
 type SingleSelectItem = {
     translation: TranslationPaths;
@@ -15,31 +16,39 @@ type SingleSelectItem = {
 
 type SingleSelectPopupProps = {
     items: SingleSelectItem[];
-    onChange: (item: SingleSelectItem) => void;
+    value: DropdownValue<SingleSelectItem>;
+    onChange: (item: DropdownValue<SingleSelectItem>) => void;
 };
 
-function SingleSelectPopup({items, onChange}: SingleSelectPopupProps) {
+function SingleSelectPopup({value, items, onChange}: SingleSelectPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    // JACK_TODO: Make this actually work
-    const [selectedItem, setSelectedItem] = useState(items.at(0)?.value);
+    const [selectedItem, setSelectedItem] = useState(value);
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((item) => ({
             text: translate(item.translation),
             keyForList: item.value,
-            isSelected: item.value === selectedItem,
+            isSelected: !Array.isArray(selectedItem) && item.value === selectedItem?.value,
         }));
     }, [items, translate, selectedItem]);
 
-    const updateSelectedItem = useCallback((item: ListItem) => {
-        if (!item.keyForList) {
-            return;
-        }
+    const updateSelectedItem = useCallback(
+        (item: ListItem) => {
+            const newItem = items.find((i) => i.value === item.keyForList) ?? null;
+            setSelectedItem(newItem);
+        },
+        [items],
+    );
 
-        setSelectedItem(item.keyForList);
-    }, []);
+    const applyChanges = useCallback(() => {
+        onChange(selectedItem);
+    }, [onChange, selectedItem]);
+
+    const resetChanges = useCallback(() => {
+        setSelectedItem(value);
+        onChange(null);
+    }, [onChange, value]);
 
     return (
         <View style={[styles.pv4, styles.gap2]}>
@@ -54,12 +63,14 @@ function SingleSelectPopup({items, onChange}: SingleSelectPopupProps) {
                     medium
                     style={[styles.flex1]}
                     text={translate('common.reset')}
+                    onPress={resetChanges}
                 />
                 <Button
                     success
                     medium
                     style={[styles.flex1]}
                     text={translate('common.apply')}
+                    onPress={applyChanges}
                 />
             </View>
         </View>

@@ -16,7 +16,7 @@ import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSe
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
+import type {SearchGroupBy, SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -28,7 +28,7 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
+import {buildFilterFormValuesFromQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -152,28 +152,34 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         const filterList = [
             {
                 label: translate('common.type'),
-                value: '',
+                value: typeOptions.find((option) => option.value === type),
                 options: typeOptions,
                 PopoverComponent: SingleSelectPopup,
-                onChange: () => {},
+                onChange: (value: any) => {
+                    const query = buildSearchQueryString({...queryJSON, type: value.value});
+                    Navigation.setParams({q: query});
+                },
             },
             {
                 label: translate('common.status'),
-                value: '',
+                value: null,
                 options: getStatusOptions(type, groupBy),
                 PopoverComponent: MultiSelectPopup,
-                onChange: () => {},
+                onChange: (value: SearchStatus) => {
+                    const query = buildSearchQueryString({...queryJSON, status: value});
+                    Navigation.setParams({q: query});
+                },
             },
             {
                 label: translate('common.date'),
-                value: '',
+                value: null,
                 options: [],
                 PopoverComponent: DateSelectPopup,
                 onChange: () => {},
             },
             {
                 label: translate('common.from'),
-                value: '',
+                value: null,
                 options: [],
                 PopoverComponent: UserSelectPopup,
                 onChange: () => {},
@@ -181,7 +187,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         ];
 
         return filterList;
-    }, [groupBy, translate, type]);
+    }, [groupBy, translate, type, queryJSON]);
 
     if (hasErrors) {
         return null;
