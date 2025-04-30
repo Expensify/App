@@ -388,6 +388,8 @@ type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
+type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -779,6 +781,7 @@ export type {
     ListItemFocusEventHandler,
     RadioListItemProps,
     SingleSelectListItemProps,
+    MultiSelectListItemProps,
     ReportListItemProps,
     ReportListItemType,
     Section,

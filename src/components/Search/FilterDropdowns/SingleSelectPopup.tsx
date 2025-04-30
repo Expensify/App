@@ -67,4 +67,5 @@ function SingleSelectPopup({items, onChange}: SingleSelectPopupProps) {
 }
 
 SingleSelectPopup.displayName = 'SingleSelectPopup';
+export type {SingleSelectPopupProps, SingleSelectItem};
 export default SingleSelectPopup;

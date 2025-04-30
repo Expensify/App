@@ -553,6 +553,7 @@ const translations = {
         task: 'Tarea',
         trip: 'Viaje',
         apply: 'Aplicar',
+        status: 'Estado',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

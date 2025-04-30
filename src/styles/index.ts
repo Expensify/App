@@ -5058,7 +5058,7 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
-        searchStatusBarContainer: {
+        searchFiltersBarContainer: {
             flexDirection: 'row',
             alignItems: 'center',
         },

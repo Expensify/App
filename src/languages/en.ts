@@ -562,6 +562,7 @@ const translations = {
         task: 'Task',
         trip: 'Trip',
         apply: 'Apply',
+        status: 'Status',
     },
     supportalNoAccess: {
         title: 'Not so fast',

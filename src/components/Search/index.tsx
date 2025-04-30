@@ -142,7 +142,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         selectedTransactions,
         clearSelectedTransactions,
         shouldTurnOffSelectionMode,
-        setShouldShowStatusBarLoading,
+        setShouldShowFiltersBarLoading,
         lastSearchType,
         setShouldShowExportModeOption,
         isExportMode,
@@ -229,8 +229,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
-        setShouldShowStatusBarLoading(shouldShowLoadingState && lastSearchType !== type);
-    }, [lastSearchType, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
+        setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
+    }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);

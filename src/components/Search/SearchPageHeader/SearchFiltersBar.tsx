@@ -12,10 +12,11 @@ import ScrollView from '@components/ScrollView';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
+import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -31,6 +32,7 @@ import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 type SearchFiltersBarProps = {
@@ -38,8 +40,79 @@ type SearchFiltersBarProps = {
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
 };
 
+const typeOptions: SingleSelectItem[] = [
+    {translation: 'common.expense', value: CONST.SEARCH.DATA_TYPES.EXPENSE},
+    {translation: 'common.chat', value: CONST.SEARCH.DATA_TYPES.CHAT},
+    {translation: 'common.invoice', value: CONST.SEARCH.DATA_TYPES.INVOICE},
+    {translation: 'common.trip', value: CONST.SEARCH.DATA_TYPES.TRIP},
+    {translation: 'common.task', value: CONST.SEARCH.DATA_TYPES.TASK},
+];
+
+const expenseStatusOptions: SingleSelectItem[] = [
+    {translation: 'common.all', value: CONST.SEARCH.STATUS.EXPENSE.ALL},
+    {translation: 'common.unreported', value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
+    {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
+    {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
+    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
+    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+];
+
+const expenseReportStatusOptions: SingleSelectItem[] = [
+    {translation: 'common.all', value: CONST.SEARCH.STATUS.EXPENSE.ALL},
+    {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
+    {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
+    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
+    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+];
+
+const chatStatusOptions: SingleSelectItem[] = [
+    {translation: 'common.all', value: CONST.SEARCH.STATUS.CHAT.ALL},
+    {translation: 'common.unread', value: CONST.SEARCH.STATUS.CHAT.UNREAD},
+    {translation: 'common.sent', value: CONST.SEARCH.STATUS.CHAT.SENT},
+    {translation: 'common.attachments', value: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS},
+    {translation: 'common.links', value: CONST.SEARCH.STATUS.CHAT.LINKS},
+    {translation: 'search.filters.pinned', value: CONST.SEARCH.STATUS.CHAT.PINNED},
+];
+
+const invoiceStatusOptions: SingleSelectItem[] = [
+    {translation: 'common.all', value: CONST.SEARCH.STATUS.INVOICE.ALL},
+    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING},
+    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.INVOICE.PAID},
+];
+
+const tripStatusOptions: SingleSelectItem[] = [
+    {translation: 'common.all', value: CONST.SEARCH.STATUS.TRIP.ALL},
+    {translation: 'search.filters.current', value: CONST.SEARCH.STATUS.TRIP.CURRENT},
+    {translation: 'search.filters.past', value: CONST.SEARCH.STATUS.TRIP.PAST},
+];
+
+const taskStatusOptions: SingleSelectItem[] = [
+    {translation: 'common.all', value: CONST.SEARCH.STATUS.TASK.ALL},
+    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
+    {translation: 'search.filters.completed', value: CONST.SEARCH.STATUS.TASK.COMPLETED},
+];
+
+function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            return expenseStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return chatStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return invoiceStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return tripStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return taskStatusOptions;
+        default:
+            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? expenseReportStatusOptions : expenseStatusOptions;
+    }
+}
+
 function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarProps) {
-    const {hash} = queryJSON;
+    const {hash, type, groupBy} = queryJSON;
     const scrollRef = useRef<RNScrollView>(null);
 
     const theme = useTheme();
@@ -50,7 +123,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowStatusBarLoading} = useSearchContext();
+    const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading} = useSearchContext();
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -75,18 +148,53 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
+    const filters = useMemo(() => {
+        const filterList = [
+            {
+                label: translate('common.type'),
+                value: '',
+                options: typeOptions,
+                PopoverComponent: SingleSelectPopup,
+                onChange: () => {},
+            },
+            {
+                label: translate('common.status'),
+                value: '',
+                options: getStatusOptions(type, groupBy),
+                PopoverComponent: MultiSelectPopup,
+                onChange: () => {},
+            },
+            {
+                label: translate('common.date'),
+                value: '',
+                options: [],
+                PopoverComponent: DateSelectPopup,
+                onChange: () => {},
+            },
+            {
+                label: translate('common.from'),
+                value: '',
+                options: [],
+                PopoverComponent: UserSelectPopup,
+                onChange: () => {},
+            },
+        ];
+
+        return filterList;
+    }, [groupBy, translate, type]);
+
     if (hasErrors) {
         return null;
     }
 
-    if (shouldShowStatusBarLoading) {
+    if (shouldShowFiltersBarLoading) {
         return <SearchStatusSkeleton shouldAnimate />;
     }
 
     const selectionButtonText = isExportMode ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
 
     return (
-        <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchStatusBarContainer]}>
+        <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
             {shouldShowSelectedDropdown ? (
                 <View style={styles.flexRow}>
                     <ButtonWithDropdownMenu
@@ -122,46 +230,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     horizontal
                     showsHorizontalScrollIndicator={false}
                 >
-                    {/* JACK_TODO: Turn this into a map once dropdown testing is done */}
-                    <DropdownButton
-                        label="Type"
-                        value={null}
-                        items={[
-                            {translation: 'common.expense', value: 'expense'},
-                            {translation: 'common.chat', value: 'chat'},
-                            {translation: 'common.invoice', value: 'invoice'},
-                            {translation: 'common.trip', value: 'trip'},
-                            {translation: 'common.task', value: 'task'},
-                        ]}
-                        onChange={() => {}}
-                        PopoverComponent={SingleSelectPopup}
-                    />
-                    <DropdownButton
-                        label="Status"
-                        value={null}
-                        items={[
-                            {translation: 'common.unread', value: 'unread'},
-                            {translation: 'common.sent', value: 'sent'},
-                            {translation: 'common.attachments', value: 'attachments'},
-                            {translation: 'common.links', value: 'links'},
-                        ]}
-                        onChange={() => {}}
-                        PopoverComponent={MultiSelectPopup}
-                    />
-                    <DropdownButton
-                        label="Date"
-                        value={null}
-                        items={[]}
-                        onChange={() => {}}
-                        PopoverComponent={DateSelectPopup}
-                    />
-                    <DropdownButton
-                        label="From"
-                        value={null}
-                        items={[]}
-                        onChange={() => {}}
-                        PopoverComponent={UserSelectPopup}
-                    />
+                    {filters.map((filter) => (
+                        <DropdownButton
+                            key={filter.label}
+                            label={filter.label}
+                            value={filter.value}
+                            items={filter.options}
+                            onChange={filter.onChange}
+                            PopoverComponent={filter.PopoverComponent}
+                        />
+                    ))}
 
                     <Button
                         link
