@@ -21,7 +21,7 @@ function TotalCell({shouldShowTooltip, transactionItem}: TransactionDataCellProp
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={amountToDisplay}
-            style={[styles.optionDisplayName, styles.justifyContentCenter]}
+            style={[styles.optionDisplayName, styles.justifyContentCenter, styles.flexShrink0]}
         />
     );
 }
