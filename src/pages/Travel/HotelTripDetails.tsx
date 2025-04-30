@@ -70,6 +70,7 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                     description={translate('travel.hotelDetails.cancellation')}
                     title={cancellationText}
                     interactive={false}
+                    numberOfLinesTitle={2}
                 />
             )}
             {!!reservation.confirmations?.at(0)?.value && (
