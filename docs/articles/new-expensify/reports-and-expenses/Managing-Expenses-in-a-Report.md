@@ -1,5 +1,5 @@
 ---
-title: Managing-Expense-in-a-Report.md
+title: Managing-Expenses-in-a-Report.md
 description: Learn how to add, remove, and move expenses within a report in New Expensify, and how they interact with comments and system messages.
 keywords: [manage expenses, add expense, remove expense, delete expense, move expense, expense table, expense comments, audit trail, report troubleshooting, New Expensify]
 ---
