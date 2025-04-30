@@ -9,6 +9,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
+import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
@@ -16,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -25,6 +27,10 @@ import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import DateSelectPopup from '../FilterDropdowns/DateSelectPopup';
+import MultiSelectPopup from '../FilterDropdowns/MultiSelectPopup';
+import SingleSelectPopup from '../FilterDropdowns/SingleSelectPopup';
+import UserSelectPopup from '../FilterDropdowns/UserSelectPopup';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 type SearchFiltersBarProps = {
@@ -36,6 +42,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const {hash} = queryJSON;
     const scrollRef = useRef<RNScrollView>(null);
 
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -110,15 +117,47 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             ) : (
                 <ScrollView
                     style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
+                    contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
                     ref={scrollRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                 >
+                    <DropdownButton
+                        label="Type"
+                        value={null}
+                        items={[]}
+                        onChange={() => {}}
+                        listItem={SingleSelectPopup}
+                    />
+                    <DropdownButton
+                        label="Status"
+                        value={null}
+                        items={[]}
+                        onChange={() => {}}
+                        listItem={MultiSelectPopup}
+                    />
+                    <DropdownButton
+                        label="Date"
+                        value={null}
+                        items={[]}
+                        onChange={() => {}}
+                        listItem={DateSelectPopup}
+                    />
+                    <DropdownButton
+                        label="From"
+                        value={null}
+                        items={[]}
+                        onChange={() => {}}
+                        listItem={UserSelectPopup}
+                    />
+
                     <Button
                         link
                         small
                         text={translate('search.filtersHeader')}
                         textStyles={[styles.textMicroBold]}
+                        iconFill={theme.link}
+                        iconHoverFill={theme.linkHover}
                         icon={Expensicons.Filter}
                         onPress={openAdvancedFilters}
                     />
