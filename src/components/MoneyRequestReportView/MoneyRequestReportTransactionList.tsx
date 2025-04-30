@@ -125,7 +125,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
     const {sortBy, sortOrder} = sortConfig;
 
-    const newTransactionsID = useMemo(() => {
+    const newTransactionID = useMemo(() => {
         if (!prevTransactions || transactions.length === prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as string[];
         }
@@ -144,9 +144,9 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
             .sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy))
             .map((transaction) => ({
                 ...transaction,
-                shouldBeHighlighted: newTransactionsID === transaction.transactionID,
+                shouldBeHighlighted: newTransactionID === transaction.transactionID,
             }));
-    }, [newTransactionsID, sortBy, sortOrder, transactions]);
+    }, [newTransactionID, sortBy, sortOrder, transactions]);
 
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
