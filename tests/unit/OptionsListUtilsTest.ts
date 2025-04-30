@@ -230,129 +230,6 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const activePolicyID = 'DEF456';
-
-    // And a set of personalDetails some with existing reports and some without
-    const PERSONAL_DETAILS: PersonalDetailsList = {
-        // These exist in our reports
-        '1': {
-            accountID: 1,
-            displayName: 'Mister Fantastic',
-            login: 'reedrichards@expensify.com',
-            isSelected: true,
-            reportID: '1',
-        },
-        '2': {
-            accountID: 2,
-            displayName: 'Iron Man',
-            login: 'tonystark@expensify.com',
-            reportID: '1',
-        },
-        '3': {
-            accountID: 3,
-            displayName: 'Spider-Man',
-            login: 'peterparker@expensify.com',
-            reportID: '1',
-        },
-        '4': {
-            accountID: 4,
-            displayName: 'Black Panther',
-            login: 'tchalla@expensify.com',
-            reportID: '1',
-        },
-        '5': {
-            accountID: 5,
-            displayName: 'Invisible Woman',
-            login: 'suestorm@expensify.com',
-            reportID: '1',
-        },
-        '6': {
-            accountID: 6,
-            displayName: 'Thor',
-            login: 'thor@expensify.com',
-            reportID: '1',
-        },
-        '7': {
-            accountID: 7,
-            displayName: 'Captain America',
-            login: 'steverogers@expensify.com',
-            reportID: '1',
-        },
-        '8': {
-            accountID: 8,
-            displayName: 'Mr Sinister',
-            login: 'mistersinister@marauders.com',
-            reportID: '1',
-        },
-
-        // These do not exist in reports at all
-        '9': {
-            accountID: 9,
-            displayName: 'Black Widow',
-            login: 'natasharomanoff@expensify.com',
-            reportID: '',
-        },
-        '10': {
-            accountID: 10,
-            displayName: 'The Incredible Hulk',
-            login: 'brucebanner@expensify.com',
-            reportID: '',
-        },
-    };
-
-    const PERSONAL_DETAILS_WITH_CONCIERGE: PersonalDetailsList = {
-        ...PERSONAL_DETAILS,
-        '999': {
-            accountID: 999,
-            displayName: 'Concierge',
-            login: 'concierge@expensify.com',
-            reportID: '',
-        },
-    };
-
-    const PERSONAL_DETAILS_WITH_CHRONOS: PersonalDetailsList = {
-        ...PERSONAL_DETAILS,
-
-        '1000': {
-            accountID: 1000,
-            displayName: 'Chronos',
-            login: 'chronos@expensify.com',
-            reportID: '',
-        },
-    };
-
-    const PERSONAL_DETAILS_WITH_RECEIPTS: PersonalDetailsList = {
-        ...PERSONAL_DETAILS,
-
-        '1001': {
-            accountID: 1001,
-            displayName: 'Receipts',
-            login: 'receipts@expensify.com',
-            reportID: '',
-        },
-    };
-
-    const PERSONAL_DETAILS_WITH_MANAGER_MCTEST: PersonalDetailsList = {
-        ...PERSONAL_DETAILS,
-        '1003': {
-            accountID: 1003,
-            displayName: 'Manager McTest',
-            login: CONST.EMAIL.MANAGER_MCTEST,
-            reportID: '',
-        },
-    };
-
-    const PERSONAL_DETAILS_WITH_PERIODS: PersonalDetailsList = {
-        ...PERSONAL_DETAILS,
-
-        '1002': {
-            accountID: 1002,
-            displayName: 'The Flash',
-            login: 'barry.allen@expensify.com',
-            reportID: '',
-        },
-    };
-
     const REPORTS_WITH_CONCIERGE: OnyxCollection<Report> = {
         ...REPORTS,
 
@@ -484,29 +361,128 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const reportNameValuePairs = {
-        private_isArchived: DateUtils.getDBTime(),
+    const activePolicyID = 'DEF456';
+
+    // And a set of personalDetails some with existing reports and some without
+    const PERSONAL_DETAILS: PersonalDetailsList = {
+        // These exist in our reports
+        '1': {
+            accountID: 1,
+            displayName: 'Mister Fantastic',
+            login: 'reedrichards@expensify.com',
+            isSelected: true,
+            reportID: '1',
+        },
+        '2': {
+            accountID: 2,
+            displayName: 'Iron Man',
+            login: 'tonystark@expensify.com',
+            reportID: '1',
+        },
+        '3': {
+            accountID: 3,
+            displayName: 'Spider-Man',
+            login: 'peterparker@expensify.com',
+            reportID: '1',
+        },
+        '4': {
+            accountID: 4,
+            displayName: 'Black Panther',
+            login: 'tchalla@expensify.com',
+            reportID: '1',
+        },
+        '5': {
+            accountID: 5,
+            displayName: 'Invisible Woman',
+            login: 'suestorm@expensify.com',
+            reportID: '1',
+        },
+        '6': {
+            accountID: 6,
+            displayName: 'Thor',
+            login: 'thor@expensify.com',
+            reportID: '1',
+        },
+        '7': {
+            accountID: 7,
+            displayName: 'Captain America',
+            login: 'steverogers@expensify.com',
+            reportID: '1',
+        },
+        '8': {
+            accountID: 8,
+            displayName: 'Mr Sinister',
+            login: 'mistersinister@marauders.com',
+            reportID: '1',
+        },
+
+        // These do not exist in reports at all
+        '9': {
+            accountID: 9,
+            displayName: 'Black Widow',
+            login: 'natasharomanoff@expensify.com',
+            reportID: '',
+        },
+        '10': {
+            accountID: 10,
+            displayName: 'The Incredible Hulk',
+            login: 'brucebanner@expensify.com',
+            reportID: '',
+        },
     };
 
-    // Set the currently logged in user, report data, and personal details
-    beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-            initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: 2, email: 'tonystark@expensify.com'},
-                [`${ONYXKEYS.COLLECTION.REPORT}100` as const]: {
-                    reportID: '',
-                    ownerAccountID: 8,
-                    total: 1000,
-                },
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: POLICY,
-                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activePolicyID,
-                [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: {},
-            },
-        });
-        Onyx.registerLogger(() => {});
-        return waitForBatchedUpdates().then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS));
-    });
+    const PERSONAL_DETAILS_WITH_CONCIERGE: PersonalDetailsList = {
+        ...PERSONAL_DETAILS,
+        '999': {
+            accountID: 999,
+            displayName: 'Concierge',
+            login: 'concierge@expensify.com',
+            reportID: '',
+        },
+    };
+
+    const PERSONAL_DETAILS_WITH_CHRONOS: PersonalDetailsList = {
+        ...PERSONAL_DETAILS,
+
+        '1000': {
+            accountID: 1000,
+            displayName: 'Chronos',
+            login: 'chronos@expensify.com',
+            reportID: '',
+        },
+    };
+
+    const PERSONAL_DETAILS_WITH_RECEIPTS: PersonalDetailsList = {
+        ...PERSONAL_DETAILS,
+
+        '1001': {
+            accountID: 1001,
+            displayName: 'Receipts',
+            login: 'receipts@expensify.com',
+            reportID: '',
+        },
+    };
+
+    const PERSONAL_DETAILS_WITH_MANAGER_MCTEST: PersonalDetailsList = {
+        ...PERSONAL_DETAILS,
+        '1003': {
+            accountID: 1003,
+            displayName: 'Manager McTest',
+            login: CONST.EMAIL.MANAGER_MCTEST,
+            reportID: '',
+        },
+    };
+
+    const PERSONAL_DETAILS_WITH_PERIODS: PersonalDetailsList = {
+        ...PERSONAL_DETAILS,
+
+        '1002': {
+            accountID: 1002,
+            displayName: 'The Flash',
+            login: 'barry.allen@expensify.com',
+            reportID: '',
+        },
+    };
 
     const WORKSPACE_CHATS: OptionData[] = [
         {
@@ -571,6 +547,30 @@ describe('OptionsListUtils', () => {
         },
     ];
 
+    const reportNameValuePairs = {
+        private_isArchived: DateUtils.getDBTime(),
+    };
+
+    // Set the currently logged in user, report data, and personal details
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: {accountID: 2, email: 'tonystark@expensify.com'},
+                [`${ONYXKEYS.COLLECTION.REPORT}100` as const]: {
+                    reportID: '',
+                    ownerAccountID: 8,
+                    total: 1000,
+                },
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: POLICY,
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activePolicyID,
+                [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: {},
+            },
+        });
+        Onyx.registerLogger(() => {});
+        return waitForBatchedUpdates().then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS));
+    });
+
     let OPTIONS: OptionList;
     let OPTIONS_WITH_CONCIERGE: OptionList;
     let OPTIONS_WITH_CHRONOS: OptionList;
@@ -604,43 +604,46 @@ describe('OptionsListUtils', () => {
 
     describe('orderOptions()', () => {
         it('should sort all options correctly', () => {
-            // When we call getValidOptions() with no search value
+            // Given a set of reports and personalDetails
+            // When we call getValidOptions()
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = getValidOptions({
                 reports: OPTIONS.reports,
                 personalDetails: OPTIONS.personalDetails,
             });
+            // When we call orderOptions()
             results = orderOptions(results);
 
-            // We should expect all personalDetails except the currently logged in user to be returned
-            // Filtering of personalDetails that have reports is done in filterOptions
+            // Then all personalDetails except the currently logged in user should be returned
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1);
 
-            // All personal details including those that have reports should be returned
-            // We should expect personal details sorted alphabetically
             const expected = ['Black Panther', 'Black Widow', 'Captain America', 'Invisible Woman', 'Mister Fantastic', 'Mr Sinister', 'Spider-Man', 'The Incredible Hulk', 'Thor'];
             const actual = results.personalDetails?.map((item) => item.text);
 
+            // Then the results should be sorted alphabetically
             expect(actual).toEqual(expected);
 
-            // Then the result which has an existing report should also have the reportID attached
             const personalDetailWithExistingReport = results.personalDetails.find((personalDetail) => personalDetail.login === 'peterparker@expensify.com');
+            // Then the result which has an existing report should also have the reportID attached
             expect(personalDetailWithExistingReport?.reportID).toBe('2');
         });
 
         it('should sort all options correctly with no reports', () => {
+            // Given a set of personalDetails and an empty reports array
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = getValidOptions({personalDetails: OPTIONS.personalDetails, reports: []});
+            // When we call orderOptions()
             results = orderOptions(results);
 
             const expected = ['Black Panther', 'Black Widow', 'Captain America', 'Invisible Woman', 'Mister Fantastic', 'Mr Sinister', 'Spider-Man', 'The Incredible Hulk', 'Thor'];
             const actual = results.personalDetails?.map((item) => item.text);
 
+            // Then the results should be sorted alphabetically
             expect(actual).toEqual(expected);
         });
     });
 
     describe('getValidOptions()', () => {
         it('should correctly filter when there are no reports or personalDetails', () => {
-            // Given empty arrays for reports and personalDetails
+            // Given empty arrays of reports and personalDetails
             // When we call getValidOptions()
             const results = getValidOptions({reports: [], personalDetails: []});
 
@@ -978,10 +981,8 @@ describe('OptionsListUtils', () => {
 
             // Then only the first item should be selected
             expect(formattedMembers.at(0)?.isSelected).toBe(true);
-
             // Then all remaining items should be unselected
             expect(formattedMembers.slice(1).every((personalDetail) => !personalDetail.isSelected)).toBe(true);
-
             // Then all items should be enabled
             expect(formattedMembers.every((personalDetail) => !personalDetail.isDisabled)).toBe(true);
         });
@@ -1009,10 +1010,8 @@ describe('OptionsListUtils', () => {
 
             // Then we expect all options to be part of the recentReports list and reports should be first:
             expect(filteredOptions.personalDetails.length).toBe(0);
-
             // Then returned reports should match the search text
             expect(filteredOptions.recentReports.length).toBe(4);
-
             // Then the returned reports should be ordered by most recent action (and other criteria such as whether they are archived)
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Invisible Woman'); // '2022-11-22 03:26:02.019'
             expect(filteredOptions.recentReports.at(1)?.text).toBe('Spider-Man'); // '2022-11-22 03:26:02.016'
@@ -1122,18 +1121,23 @@ describe('OptionsListUtils', () => {
 
         it('should return the user to invite when the search value is a valid, non-existent email', () => {
             const searchText = 'test@email.com';
-
+            // Given a set of options
             const options = getSearchOptions(OPTIONS);
+            // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText);
 
+            // Then the user to invite should be returned
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
         });
 
         it('should not return any results if the search value is on an exluded logins list', () => {
             const searchText = 'admin@expensify.com';
-
+            // Given a set of options with excluded logins list
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
+            // When we call filterAndOrderOptions with a search value and excluded logins list
             const filterOptions = filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
+
+            // Then no personal details should be returned
             expect(filterOptions.recentReports.length).toBe(0);
         });
 
@@ -1168,10 +1172,14 @@ describe('OptionsListUtils', () => {
 
         it('should not return any user to invite if email exists on the personal details list', () => {
             const searchText = 'natasharomanoff@expensify.com';
+            // Given a set of options with all betas
             const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
-
+            // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText);
+
+            // Then there should be one matching result
             expect(filteredOptions.personalDetails.length).toBe(1);
+            // Then the user to invite should be null
             expect(filteredOptions.userToInvite).toBe(null);
         });
 
@@ -1390,11 +1398,16 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return all matching reports and personal details', () => {
+            // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            // When we call filterAndOrderOptions with a search value that matches both reports and personal details and maxRecentReportsToShow param
             const filteredOptions = filterAndOrderOptions(options, '.com', {maxRecentReportsToShow: 5});
 
+            // Then there should be 4 matching personal details
             expect(filteredOptions.personalDetails.length).toBe(4);
+            // Then the first personal detail should match the search text
             expect(filteredOptions.personalDetails.at(0)?.login).toBe('natasharomanoff@expensify.com');
+            // Then there should be 5 matching recent reports
             expect(filteredOptions.recentReports.length).toBe(5);
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Captain America');
             expect(filteredOptions.recentReports.at(1)?.text).toBe('Mr Sinister');
@@ -1402,10 +1415,14 @@ describe('OptionsListUtils', () => {
         });
 
         it('should return matching option when searching (getSearchOptions)', () => {
+            // Given a set of options
             const options = getSearchOptions(OPTIONS);
+            // When we call filterAndOrderOptions with a search value that matches a personal detail
             const filteredOptions = filterAndOrderOptions(options, 'spider');
 
+            // Then one personal detail should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
+            // Then the returned personal detail should match the search text
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Spider-Man');
         });
 
