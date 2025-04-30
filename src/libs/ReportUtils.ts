@@ -5736,7 +5736,7 @@ function getDeletedTransactionMessage(action: ReportAction) {
 function getReportDetails(reportID: string): {reportName: string; reportUrl: string} {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     return {
-        reportName: report?.reportName ?? '',
+        reportName: getReportName(report) ?? report?.reportName ?? '',
         reportUrl: `${environmentURL}/r/${reportID}`,
     };
 }
