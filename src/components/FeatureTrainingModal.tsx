@@ -16,6 +16,7 @@ import variables from '@styles/variables';
 import {dismissTrackTrainingModal} from '@userActions/User';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import KeyboardUtils from '@src/utils/keyboard';
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
 import ImageSVG from './ImageSVG';
@@ -23,6 +24,7 @@ import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
 import type DotLottieAnimation from './LottieAnimations/types';
 import Modal from './Modal';
+import {PressableWithoutFeedback} from './Pressable';
 import RenderHTML from './RenderHTML';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import Text from './Text';
@@ -353,55 +355,62 @@ function FeatureTrainingModal({
                     }}
                     shouldUseNewModal
                 >
-                    <View
-                        style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), safeAreaPaddingBottomStyle]}
-                        fsClass={CONST.FULL_STORY.UNMASK}
-                        testID={CONST.FULL_STORY.UNMASK}
+                    <PressableWithoutFeedback
+                        onPress={() => {
+                            KeyboardUtils.dismiss();
+                        }}
+                        accessible={false}
                     >
-                        <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
-                            {renderIllustration()}
-                        </View>
-                        <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
-                            {!!title && !!description && (
-                                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentInnerContainerStyles]}>
-                                    {typeof title === 'string' ? <Text style={[styles.textHeadlineH1]}>{title}</Text> : title}
-                                    {shouldRenderHTMLDescription ? (
-                                        <Text>
-                                            <RenderHTML html={description} />
-                                        </Text>
-                                    ) : (
-                                        <Text style={styles.textSupporting}>{description}</Text>
-                                    )}
-                                    {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
-                                    {children}
-                                </View>
-                            )}
-                            {shouldShowDismissModalOption && (
-                                <CheckboxWithLabel
-                                    label={translate('featureTraining.doNotShowAgain')}
-                                    accessibilityLabel={translate('featureTraining.doNotShowAgain')}
-                                    style={[styles.mb5]}
-                                    isChecked={!willShowAgain}
-                                    onInputChange={toggleWillShowAgain}
-                                />
-                            )}
-                            {!!helpText && (
+                        <View
+                            style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), safeAreaPaddingBottomStyle]}
+                            fsClass={CONST.FULL_STORY.UNMASK}
+                            testID={CONST.FULL_STORY.UNMASK}
+                        >
+                            <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
+                                {renderIllustration()}
+                            </View>
+                            <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
+                                {!!title && !!description && (
+                                    <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentInnerContainerStyles]}>
+                                        {typeof title === 'string' ? <Text style={[styles.textHeadlineH1]}>{title}</Text> : title}
+                                        {shouldRenderHTMLDescription ? (
+                                            <Text>
+                                                <RenderHTML html={description} />
+                                            </Text>
+                                        ) : (
+                                            <Text style={styles.textSupporting}>{description}</Text>
+                                        )}
+                                        {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
+                                        {children}
+                                    </View>
+                                )}
+                                {shouldShowDismissModalOption && (
+                                    <CheckboxWithLabel
+                                        label={translate('featureTraining.doNotShowAgain')}
+                                        accessibilityLabel={translate('featureTraining.doNotShowAgain')}
+                                        style={[styles.mb5]}
+                                        isChecked={!willShowAgain}
+                                        onInputChange={toggleWillShowAgain}
+                                    />
+                                )}
+                                {!!helpText && (
+                                    <Button
+                                        large
+                                        style={[styles.mb3]}
+                                        onPress={onHelpPress}
+                                        text={helpText}
+                                    />
+                                )}
                                 <Button
                                     large
-                                    style={[styles.mb3]}
-                                    onPress={onHelpPress}
-                                    text={helpText}
+                                    success
+                                    pressOnEnter
+                                    onPress={closeAndConfirmModal}
+                                    text={confirmText}
                                 />
-                            )}
-                            <Button
-                                large
-                                success
-                                pressOnEnter
-                                onPress={closeAndConfirmModal}
-                                text={confirmText}
-                            />
+                            </View>
                         </View>
-                    </View>
+                    </PressableWithoutFeedback>
                 </Modal>
             )}
         </SafeAreaConsumer>
