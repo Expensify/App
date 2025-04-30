@@ -44,9 +44,10 @@ import NAVIGATION_TABS from './NAVIGATION_TABS';
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isTooltipAllowed?: boolean;
+    isTopLevelBar?: boolean;
 };
 
-function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar = false}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -68,6 +69,9 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
     );
     const StyleUtils = useStyleUtils();
     const {canUseLeftHandBar} = usePermissions();
+
+    // On a wide layout DebugTabView should be rendered only within the navigation tab bar displayed directly on screens.
+    const shouldRenderDebugTabViewOnWideLayout = !!user?.isDebugModeEnabled && !isTopLevelBar;
 
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, reports));
@@ -202,7 +206,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
     if (!shouldUseNarrowLayout && canUseLeftHandBar) {
         return (
             <>
-                {!!user?.isDebugModeEnabled && (
+                {shouldRenderDebugTabViewOnWideLayout && (
                     <DebugTabView
                         selectedTab={selectedTab}
                         chatTabBrickRoad={chatTabBrickRoad}

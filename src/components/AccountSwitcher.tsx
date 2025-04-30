@@ -165,6 +165,11 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         return [currentUserMenuItem, ...delegatorMenuItems];
     };
 
+    const hideDelegatorMenu = () => {
+        setShouldShowDelegatorMenu(false);
+        clearDelegatorErrors();
+    };
+
     return (
         <>
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
@@ -227,10 +232,8 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             {!!canSwitchAccounts && (
                 <PopoverMenu
                     isVisible={shouldShowDelegatorMenu}
-                    onClose={() => {
-                        setShouldShowDelegatorMenu(false);
-                        clearDelegatorErrors();
-                    }}
+                    onClose={hideDelegatorMenu}
+                    onItemSelected={hideDelegatorMenu}
                     anchorRef={buttonRef}
                     anchorPosition={CONST.POPOVER_ACCOUNT_SWITCHER_POSITION}
                     anchorAlignment={{

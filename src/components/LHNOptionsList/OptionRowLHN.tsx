@@ -73,7 +73,7 @@ function OptionRowLHN({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
     const session = useSession();
-    const shouldShowWokspaceChatTooltip = isPolicyExpenseChat(report) && !isThread(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
+    const shouldShowWorkspaceChatTooltip = isPolicyExpenseChat(report) && !isThread(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, introSelected?.choice);
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
@@ -123,7 +123,7 @@ function OptionRowLHN({
 
     if (!optionItem && !isFocused) {
         // rendering null as a render item causes the FlashList to render all
-        // its children and consume signficant memory on the first render. We can avoid this by
+        // its children and consume significant memory on the first render. We can avoid this by
         // rendering a placeholder view instead. This behaviour is only observed when we
         // first sign in to the App.
         // We can fix this by checking if the optionItem is null and the component is not focused.
