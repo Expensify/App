@@ -599,47 +599,47 @@ function MoneyRequestReportPreviewContent({
                                                 )}
                                             </Animated.View>
                                         </View>
-                                        {/* {!shouldUseNarrowLayout && transactions.length > 2 && ( */}
-                                        {/*     <View style={[styles.flexRow, styles.alignItemsCenter]}> */}
-                                        {/*         <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{supportText}</Text> */}
-                                        {/*         <PressableWithFeedback */}
-                                        {/*             accessibilityRole="button" */}
-                                        {/*             accessible */}
-                                        {/*             accessibilityLabel="button" */}
-                                        {/*             style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]} */}
-                                        {/*             onPress={() => handleChange(currentIndex - 1)} */}
-                                        {/*             disabled={optimisticIndex !== undefined ? optimisticIndex === 0 : currentIndex === 0 && currentVisibleItems.at(0) === 0} */}
-                                        {/*             disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]} */}
-                                        {/*         > */}
-                                        {/*             <Icon */}
-                                        {/*                 src={Expensicons.BackArrow} */}
-                                        {/*                 small */}
-                                        {/*                 fill={theme.icon} */}
-                                        {/*                 isButtonIcon */}
-                                        {/*             /> */}
-                                        {/*         </PressableWithFeedback> */}
-                                        {/*         <PressableWithFeedback */}
-                                        {/*             accessibilityRole="button" */}
-                                        {/*             accessible */}
-                                        {/*             accessibilityLabel="button" */}
-                                        {/*             style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]} */}
-                                        {/*             onPress={() => handleChange(currentIndex + 1)} */}
-                                        {/*             disabled={ */}
-                                        {/*                 optimisticIndex */}
-                                        {/*                     ? optimisticIndex + visibleItemsOnEndCount >= carouselTransactions.length */}
-                                        {/*                     : currentVisibleItems.at(-1) === carouselTransactions.length - 1 */}
-                                        {/*             } */}
-                                        {/*             disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]} */}
-                                        {/*         > */}
-                                        {/*             <Icon */}
-                                        {/*                 src={Expensicons.ArrowRight} */}
-                                        {/*                 small */}
-                                        {/*                 fill={theme.icon} */}
-                                        {/*                 isButtonIcon */}
-                                        {/*             /> */}
-                                        {/*         </PressableWithFeedback> */}
-                                        {/*     </View> */}
-                                        {/* )} */}
+                                        {!shouldUseNarrowLayout && transactions.length > 2 && (
+                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                                <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{supportText}</Text>
+                                                <PressableWithFeedback
+                                                    accessibilityRole="button"
+                                                    accessible
+                                                    accessibilityLabel="button"
+                                                    style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
+                                                    onPress={() => handleChange(currentIndex - 1)}
+                                                    disabled={optimisticIndex !== undefined ? optimisticIndex === 0 : currentIndex === 0 && currentVisibleItems.at(0) === 0}
+                                                    disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
+                                                >
+                                                    <Icon
+                                                        src={Expensicons.BackArrow}
+                                                        small
+                                                        fill={theme.icon}
+                                                        isButtonIcon
+                                                    />
+                                                </PressableWithFeedback>
+                                                <PressableWithFeedback
+                                                    accessibilityRole="button"
+                                                    accessible
+                                                    accessibilityLabel="button"
+                                                    style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
+                                                    onPress={() => handleChange(currentIndex + 1)}
+                                                    disabled={
+                                                        optimisticIndex
+                                                            ? optimisticIndex + visibleItemsOnEndCount >= carouselTransactions.length
+                                                            : currentVisibleItems.at(-1) === carouselTransactions.length - 1
+                                                    }
+                                                    disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
+                                                >
+                                                    <Icon
+                                                        src={Expensicons.ArrowRight}
+                                                        small
+                                                        fill={theme.icon}
+                                                        isButtonIcon
+                                                    />
+                                                </PressableWithFeedback>
+                                            </View>
+                                        )}
                                     </View>
                                 </View>
                                 <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
