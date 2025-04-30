@@ -216,6 +216,7 @@ function IOURequestStepConfirmation({
     useEffect(() => {
         setMoneyRequestReimbursable(transactionID, defaultReimbursable);
     }, [transactionID, defaultReimbursable]);
+    console.log(policy, defaultReimbursable, transaction?.reimbursable);
 
     useEffect(() => {
         // Exit early if the transaction is still loading
