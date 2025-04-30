@@ -1,5 +1,5 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
-import {findFocusedRoute,getStateFromPath} from '@react-navigation/native';
+import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import lodashEscape from 'lodash/escape';
