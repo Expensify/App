@@ -194,7 +194,8 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
     commits.forEach((commit) => {
         const author = commit.authorName;
         if (author === CONST.OS_BOTIFY) {
-            console.log(`[jules] -botify Ignoring ${commit.subject} by ${author}`);
+            // look for `Merge pull request #61192 from Expensify/revert-60630...
+            console.log(`[jules] botify commit: ${commit.subject} >> ${commit}`);
             return;
         }
 
