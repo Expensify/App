@@ -12,9 +12,9 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
+import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {PaymentData} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -482,7 +482,7 @@ function SearchPage({route}: SearchPageProps) {
                                 queryJSON={queryJSON}
                                 headerButtonsOptions={headerButtonsOptions}
                             />
-                            <SearchStatusBar
+                            <SearchFiltersBar
                                 queryJSON={queryJSON}
                                 headerButtonsOptions={headerButtonsOptions}
                             />

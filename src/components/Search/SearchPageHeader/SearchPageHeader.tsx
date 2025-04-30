@@ -8,9 +8,13 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearAdvancedFilters} from '@libs/actions/Search';
+import Navigation from '@libs/Navigation/Navigation';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 
@@ -32,17 +36,24 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, hideSearchRouterL
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
-    const clearSearchQuery = useCallback(() => {}, []);
+    const clearFilters = useCallback(() => {
+        clearAdvancedFilters();
+        Navigation.navigate(
+            ROUTES.SEARCH_ROOT.getRoute({
+                query: buildCannedSearchQuery(),
+            }),
+        );
+    }, []);
 
     const InputRightComponent = useMemo(() => {
         return (
             <Button
                 innerStyles={[styles.searchAutocompleteInputResults, styles.borderNone, styles.bgTransparent]}
                 icon={Expensicons.Close}
-                onPress={clearSearchQuery}
+                onPress={clearFilters}
             />
         );
-    }, [clearSearchQuery, styles.bgTransparent, styles.borderNone, styles.searchAutocompleteInputResults]);
+    }, [clearFilters, styles.bgTransparent, styles.borderNone, styles.searchAutocompleteInputResults]);
 
     if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
         return (
