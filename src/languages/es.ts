@@ -6743,14 +6743,14 @@ const translations = {
             part4: 'chatea sobre los gastos.',
         },
         workspaceChatTooltip: {
-            part1: 'Envía gastos',
-            part2: ' y chatea con',
-            part3: '\naprobadores aquí!',
+            part1: 'Chatea con ',
+            part2: 'los aprobadores',
         },
         globalCreateTooltip: {
             part1: 'Crea gastos',
-            part2: ', comienza a chatear,',
-            part3: '\ny mucho más!',
+            part2: ', empieza a chatear',
+            part3: '\ny más.',
+            part4: ' ¡Pruébalo!',
         },
         GBRRBRChat: {
             part1: 'Verás 🟢 en ',
