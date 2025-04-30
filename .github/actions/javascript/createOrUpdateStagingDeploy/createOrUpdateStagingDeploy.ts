@@ -52,20 +52,21 @@ async function run(): Promise<IssuesCreateResponse | void> {
 
         // Parse the data from the previous and current checklists into the format used to generate the checklist
         const previousChecklistData = GithubUtils.getStagingDeployCashData(previousChecklist);
-        console.log(`[jules] previousChecklistData: ${JSON.stringify(previousChecklistData)}`);
         const currentChecklistData: StagingDeployCashData | undefined = shouldCreateNewDeployChecklist ? undefined : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
-        // Jules hardcoded tag to known version for testing
         const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
 
-        // Filter out PRs that were already included in the previous checklist
+        // Filter out cherry-picked PRs that appear on the previous checklist
         const previousPRNumbers = new Set(previousChecklistData.PRList.map(pr => pr.number));
         const newPRs = mergedPRs.filter(prNum => !previousPRNumbers.has(prNum));
 
-        console.log(`Original PRs found between tags: ${mergedPRs.join(', ')}`);
-        console.log(`PRs from previous checklist: ${Array.from(previousPRNumbers).join(', ')}`);
-        console.log(`Final list of new PRs for current checklist: ${newPRs.join(', ')}`);
+        // Log the PRs that were filtered out
+        const removedPRs = mergedPRs.filter(prNum => previousPRNumbers.has(prNum));
+        if (removedPRs.length > 0) {
+            console.log(`Filter out cherry-picked PRs from previous release: ${removedPRs.join(', ')}`);
+        }
+        console.log(`Final list of PRs for current checklist: ${newPRs.join(', ')}`);
 
         // Next, we generate the checklist body
         let checklistBody = '';
