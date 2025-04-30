@@ -24,7 +24,7 @@ When using the Expensify Card, reconciliation involves two components:
 
 When daily settlement is enabled:
 
-1. The total amount is pulled from your checking account and posted to a **clearing account**.
+1. The total settlement amount is pulled from your checking account and posted to a **clearing account**.
 2. When an expense is exported, the expense amount moves from the clearing account to a **liability account**.
 3. At the same time, the expense amount is moved from the liability account to the appropriate **expense account**.
 
