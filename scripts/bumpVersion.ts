@@ -1,5 +1,5 @@
 #!/usr/bin/env ts-node
-import {exec as originalExec} from 'child_process';
+import {execSync, exec as originalExec} from 'child_process';
 import {promises as fs} from 'fs';
 import path from 'path';
 import type {SemVer} from 'semver';
@@ -23,8 +23,21 @@ type ConfigJSON = {
 // PlistBuddy executable path
 const PLIST_BUDDY = '/usr/libexec/PlistBuddy';
 
+/**
+ * This is a utility function to get the repo root.
+ * It's a helpful alternative to __dirname, which doesn't work with ncc-compiled scripts.
+ * __dirname doesn't work, because:
+ *   - if it's evaluated at compile time it will include an absolute path in the computer in which the file was compiled
+ *   - if it's evaluated at runtime, it won't refer to the directory of the imported module, because the code will have moved to wherever it's bundled
+ */
+function getRepoRoot(): string {
+    return execSync('git rev-parse --show-toplevel', {
+        encoding: 'utf8',
+    }).trim();
+}
+
 // Filepath constants
-const ROOT_DIR = path.resolve(__dirname, '..');
+const ROOT_DIR = getRepoRoot();
 const PACKAGE_JSON_PATH = path.resolve(ROOT_DIR, 'package.json');
 const BUILD_GRADLE_PATH = path.resolve(ROOT_DIR, 'android/app/build.gradle');
 const PLIST_PATH = path.resolve(ROOT_DIR, 'ios/NewExpensify/Info.plist');
