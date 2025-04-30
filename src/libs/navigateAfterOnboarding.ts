@@ -14,29 +14,31 @@ const navigateAfterOnboarding = (
 ) => {
     Navigation.dismissModal();
 
-    InteractionManager.runAfterInteractions(() => {
-        Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT);
-    });
+    let reportID: string | undefined;
 
     // When hasCompletedGuidedSetupFlow is true, OnboardingModalNavigator in AuthScreen is removed from the navigation stack.
     // On small screens, this removal redirects navigation to HOME. Dismissing the modal doesn't work properly,
     // so we need to specifically navigate to the last accessed report.
     if (!isSmallScreenWidth) {
         if (onboardingAdminsChatReportID && !shouldPreventOpenAdminRoom) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingAdminsChatReportID));
+            reportID = onboardingAdminsChatReportID;
         }
-        return;
+    } else {
+        const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, activeWorkspaceID);
+        const lastAccessedReportID = lastAccessedReport?.reportID;
+        // we don't want to navigate to newly created workspaces after onboarding is completed.
+        if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport)) {
+            reportID = lastAccessedReportID;
+        }
     }
 
-    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, activeWorkspaceID);
-    const lastAccessedReportID = lastAccessedReport?.reportID;
-    // we don't want to navigate to newly created workspaces after onboarding is completed.
-    if (!lastAccessedReportID || lastAccessedReport.policyID === onboardingPolicyID || isConciergeChatReport(lastAccessedReport)) {
-        return;
+    if (reportID) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
 
-    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-    Navigation.navigate(lastAccessedReportRoute);
+    InteractionManager.runAfterInteractions(() => {
+        Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT);
+    });
 };
 
 export default navigateAfterOnboarding;

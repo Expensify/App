@@ -66,12 +66,12 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 
-    it('should not navigate if onboardingAdminsChatReportID is not provided', () => {
+    it('should not navigate to LHN if onboardingAdminsChatReportID is not provided on larger screens', () => {
         navigateAfterOnboarding(false, true, undefined, undefined);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(undefined));
     });
 
-    it('should navigate to LHN if it is a concierge chat on small screens', async () => {
+    it('should not navigate to LHN if it is a concierge chat on small screens', async () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const lastAccessedReport = {
             reportID: REPORT_ID,
@@ -87,16 +87,16 @@ describe('navigateAfterOnboarding', () => {
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
         navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
-        expect(navigate).not.toHaveBeenCalled();
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
-    it('should navigate to LHN if it is onboarding workspace chat on small screens', () => {
+    it('should not navigate to LHN if it is onboarding workspace chat on small screens', () => {
         const lastAccessedReport = {reportID: REPORT_ID, policyID: ONBOARDING_POLICY_ID};
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
         navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
     it('should navigate to last accessed report if shouldOpenOnAdminRoom is true on small screens', () => {
