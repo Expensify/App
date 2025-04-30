@@ -688,7 +688,8 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View>
-                                <View style={styles.pt4}>{reportPreviewActions[reportPreviewAction]}</View>
+                                {/* height is needed to avoid flickering on animation */}
+                                <View style={(styles.pt4, {height: variables.h40})}>{reportPreviewActions[reportPreviewAction]}</View>
                             </View>
                         </View>
                     </View>

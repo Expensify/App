@@ -15,6 +15,7 @@ import {
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID} from './ReportActionsUtils';
 import {
+    canAddTransaction as canAddTransactionUtil,
     getMoneyRequestSpendBreakdown,
     getParentReport,
     isArchivedReport,
@@ -40,6 +41,14 @@ import {
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from './TransactionUtils';
+
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const canAddTransaction = canAddTransactionUtil(report);
+
+    return isExpenseReport && canAddTransaction && isReportSubmitter && reportTransactions.length === 0;
+}
 
 function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
     const isExpenseReport = isExpenseReportUtils(report);
@@ -254,6 +263,10 @@ function getReportPrimaryAction(
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+    if (isAddExpenseAction(report, reportTransactions)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
+    }
+
     if (isReviewDuplicatesAction(report, reportTransactions, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }

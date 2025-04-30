@@ -61,6 +61,7 @@ import {
     getNextApproverAccountID,
     payInvoice,
     payMoneyRequest,
+    startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
 } from '@userActions/IOU';
@@ -186,6 +187,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason, canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`, {canBeMissing: true});
 
     const getCanIOUBePaid = useCallback(
@@ -465,6 +467,18 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 }}
             />
         ),
+        [CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE]: (
+            <Button
+                success
+                text={translate('iou.addExpense')}
+                onPress={() => {
+                    if (!moneyRequestReport?.reportID) {
+                        return;
+                    }
+                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
+                }}
+            />
+        ),
     };
 
     const secondaryActions = useMemo(() => {
@@ -604,6 +618,17 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
                 setIsDeleteModalVisible(true);
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE]: {
+            text: translate('iou.addExpense'),
+            icon: Expensicons.Plus,
+            value: CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE,
+            onSelected: () => {
+                if (!moneyRequestReport?.reportID) {
+                    return;
+                }
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
             },
         },
     };

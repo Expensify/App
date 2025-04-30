@@ -682,7 +682,8 @@ function MoneyRequestReportPreviewContent({
                                             ))}
                                         </View>
                                     )}
-                                    <View style={[buttonMaxWidth]}>{reportPreviewActions[reportPreviewAction]}</View>
+                                    {/* height is needed to avoid flickering on animation */}
+                                    <View style={[buttonMaxWidth, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>
                                 </View>
                             </View>
                         </View>
