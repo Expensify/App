@@ -365,13 +365,13 @@ describe('getSecondaryAction', () => {
         const personalDetails = {
             [EMPLOYEE_ACCOUNT_ID]: {login: EMPLOYEE_EMAIL},
             [MANAGER_ACCOUNT_ID]: {login: MANAGER_EMAIL},
-        }
+        };
         const policy = {
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
             employeeList: {
                 [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
-                [MANAGER_EMAIL]: {email: MANAGER_EMAIL, role: CONST.POLICY.ROLE.USER}
+                [MANAGER_EMAIL]: {email: MANAGER_EMAIL, role: CONST.POLICY.ROLE.USER},
             },
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
@@ -394,7 +394,7 @@ describe('getSecondaryAction', () => {
         const personalDetails = {
             [ADMIN_ACCOUNT_ID]: {login: ADMIN_EMAIL},
             [MANAGER_ACCOUNT_ID]: {login: MANAGER_EMAIL},
-        }
+        };
         const policy = {
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
@@ -424,7 +424,7 @@ describe('getSecondaryAction', () => {
         const personalDetails = {
             [ADMIN_ACCOUNT_ID]: {login: ADMIN_EMAIL},
             [MANAGER_ACCOUNT_ID]: {login: MANAGER_EMAIL},
-        }
+        };
 
         const policy = {
             id: POLICY_ID,
@@ -457,7 +457,7 @@ describe('getSecondaryAction', () => {
         const personalDetails = {
             [EMPLOYEE_ACCOUNT_ID]: {login: EMPLOYEE_EMAIL},
             [MANAGER_ACCOUNT_ID]: {login: MANAGER_EMAIL},
-        }
+        };
 
         const policy = {
             id: POLICY_ID,
@@ -491,7 +491,7 @@ describe('getSecondaryAction', () => {
             [EMPLOYEE_ACCOUNT_ID]: {login: EMPLOYEE_EMAIL},
             [MANAGER_ACCOUNT_ID]: {login: MANAGER_EMAIL},
             [APPROVER_ACCOUNT_ID]: {login: APPROVER_EMAIL},
-        }
+        };
 
         const policy = {
             id: POLICY_ID,
@@ -526,7 +526,7 @@ describe('getSecondaryAction', () => {
             [EMPLOYEE_ACCOUNT_ID]: {login: EMPLOYEE_EMAIL},
             [MANAGER_ACCOUNT_ID]: {login: MANAGER_EMAIL},
             [APPROVER_ACCOUNT_ID]: {login: APPROVER_EMAIL},
-        }
+        };
 
         const policy = {
             id: POLICY_ID,
@@ -565,7 +565,7 @@ describe('getSecondaryAction', () => {
         const personalDetails = {
             [EMPLOYEE_ACCOUNT_ID]: {login: EMPLOYEE_EMAIL},
             [ADMIN_ACCOUNT_ID]: {login: ADMIN_EMAIL},
-        }
+        };
 
         const policy = {
             id: POLICY_ID,
