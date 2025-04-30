@@ -1,20 +1,26 @@
-import React, {useCallback} from 'react';
+import {PortalHost} from '@gorhom/portal';
+import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyReportHeader from '@components/MoneyReportHeader';
+import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
+import {selectAllTransactionsForReport, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
@@ -29,6 +35,7 @@ import ROUTES from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
+import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 
 type MoneyRequestReportViewProps = {
     /** The report */
@@ -87,6 +94,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const {translate} = useLocalize();
 
     const reportID = report?.reportID;
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
@@ -114,6 +122,49 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         goBackFromSearchMoneyRequest(activeWorkspaceID);
         InteractionManager.runAfterInteractions(() => removeFailedReport(reportID));
     }, [activeWorkspaceID, reportID]);
+
+    const {selectionMode} = useMobileSelectionMode();
+
+    const {setSelectedTransactionsID} = useMoneyRequestReportContext();
+
+    // Special case handling a report that is a transaction thread
+    // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
+    const isTransactionThreadView = isReportTransactionThread(report);
+    const shouldDisplayMoneyRequestActionsList = shouldDisplayReportTableView(report, transactions);
+
+    const reportHeaderView = useMemo(
+        () =>
+            isTransactionThreadView ? (
+                <MoneyRequestHeader
+                    report={report}
+                    policy={policy}
+                    parentReportAction={parentReportAction}
+                    onBackButtonPress={() => {
+                        if (!backToRoute) {
+                            goBackFromSearchMoneyRequest(activeWorkspaceID);
+                            return;
+                        }
+                        Navigation.goBack(backToRoute);
+                    }}
+                />
+            ) : (
+                <MoneyReportHeader
+                    report={report}
+                    policy={policy}
+                    reportActions={reportActions}
+                    transactionThreadReportID={transactionThreadReportID}
+                    shouldDisplayBackButton
+                    onBackButtonPress={() => {
+                        if (!backToRoute) {
+                            goBackFromSearchMoneyRequest(activeWorkspaceID);
+                            return;
+                        }
+                        Navigation.goBack(backToRoute);
+                    }}
+                />
+            ),
+        [activeWorkspaceID, backToRoute, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
+    );
 
     if (isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) {
         return <InitialLoadingSkeleton styles={styles} />;
@@ -147,10 +198,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         );
     }
 
-    // Special case handling a report that is a transaction thread
-    // If true we will use standard `ReportActionsView` to display report data, anything else is handled via `MoneyRequestReportActionsList`
-    const isTransactionThreadView = isReportTransactionThread(report);
-
     return (
         <View style={styles.flex1}>
             <OfflineWithFeedback
@@ -163,22 +210,28 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 errorRowStyles={[styles.ph5, styles.mv2]}
             >
                 <HeaderGap />
-                <MoneyReportHeader
-                    report={report}
-                    policy={policy}
-                    reportActions={reportActions}
-                    transactionThreadReportID={transactionThreadReportID}
-                    shouldDisplayBackButton
-                    onBackButtonPress={() => {
-                        if (!backToRoute) {
-                            goBackFromSearchMoneyRequest(activeWorkspaceID);
-                            return;
-                        }
-                        Navigation.goBack(backToRoute);
-                    }}
-                />
+                {selectionMode?.isEnabled ? (
+                    <HeaderWithBackButton
+                        title={translate('common.selectMultiple')}
+                        onBackButtonPress={() => {
+                            setSelectedTransactionsID([]);
+                            turnOffMobileSelectionMode();
+                        }}
+                    />
+                ) : (
+                    reportHeaderView
+                )}
                 <View style={[styles.overflowHidden, styles.flex1]}>
-                    {isTransactionThreadView ? (
+                    {shouldDisplayMoneyRequestActionsList ? (
+                        <MoneyRequestReportActionsList
+                            report={report}
+                            policy={policy}
+                            transactions={transactions}
+                            reportActions={reportActions}
+                            hasOlderActions={hasOlderActions}
+                            hasNewerActions={hasNewerActions}
+                        />
+                    ) : (
                         <ReportActionsView
                             report={report}
                             reportActions={reportActions}
@@ -188,25 +241,19 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             parentReportAction={parentReportAction}
                             transactionThreadReportID={transactionThreadReportID}
                         />
-                    ) : (
-                        <MoneyRequestReportActionsList
-                            report={report}
-                            policy={policy}
-                            transactions={transactions}
-                            reportActions={reportActions}
-                            hasOlderActions={hasOlderActions}
-                            hasNewerActions={hasNewerActions}
-                        />
                     )}
                     {shouldDisplayReportFooter ? (
-                        <ReportFooter
-                            report={report}
-                            reportMetadata={reportMetadata}
-                            policy={policy}
-                            pendingAction={reportPendingAction}
-                            isComposerFullSize={!!isComposerFullSize}
-                            lastReportAction={lastReportAction}
-                        />
+                        <>
+                            <ReportFooter
+                                report={report}
+                                reportMetadata={reportMetadata}
+                                policy={policy}
+                                pendingAction={reportPendingAction}
+                                isComposerFullSize={!!isComposerFullSize}
+                                lastReportAction={lastReportAction}
+                            />
+                            <PortalHost name="suggestions" />
+                        </>
                     ) : null}
                 </View>
             </OfflineWithFeedback>

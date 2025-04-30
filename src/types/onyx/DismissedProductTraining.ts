@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 
 const {
-    CONCEIRGE_LHN_GBR,
+    CONCIERGE_LHN_GBR,
     RENAME_SAVED_SEARCH,
     BOTTOM_NAV_INBOX_TOOLTIP,
     LHN_WORKSPACE_CHAT_TOOLTIP,
@@ -12,6 +12,7 @@ const {
     OUTSANDING_FILTER,
     SETTINGS_TAB,
     WORKSPACES_SETTINGS,
+    EXPENSE_REPORTS_FILTER,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 /**
@@ -33,12 +34,12 @@ type DismissedProductTraining = {
      */
     [CONST.MIGRATED_USER_WELCOME_MODAL]: DismissedProductTrainingElement;
 
-    // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+    // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
     // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
     /**
      * When user dismisses the conciergeLHNGBR product training tooltip, we store the timestamp here.
      */
-    [CONCEIRGE_LHN_GBR]: DismissedProductTrainingElement;
+    [CONCIERGE_LHN_GBR]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the renameSavedSearch product training tooltip, we store the timestamp here.
@@ -84,10 +85,16 @@ type DismissedProductTraining = {
      * When user dismisses the settings tab product training tooltip, we store the timestamp here.
      */
     [SETTINGS_TAB]: DismissedProductTrainingElement;
+
     /**
      * When user dismisses the workspaces settings product training tooltip, we store the timestamp here.
      */
     [WORKSPACES_SETTINGS]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the expenseReportsFilter product training tooltip, we store the timestamp here.
+     */
+    [EXPENSE_REPORTS_FILTER]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.

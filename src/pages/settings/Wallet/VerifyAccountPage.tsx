@@ -8,11 +8,11 @@ import useAccountValidation from '@hooks/useAccountValidation';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
@@ -20,14 +20,13 @@ type VerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamLis
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const styles = useThemeStyles();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const contactMethod = account?.primaryLogin ?? '';
     const {translate} = useLocalize();
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const isUserValidated = useAccountValidation();
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
     const navigateForwardTo = route.params?.forwardTo;
@@ -91,7 +90,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             sendValidateCode={requestValidateCodeAction}
             handleSubmitForm={handleSubmitForm}
             validateError={validateLoginError}
-            hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
+            validateCodeActionErrorField="validateLogin"
             isVisible={isValidateCodeActionModalVisible}
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
