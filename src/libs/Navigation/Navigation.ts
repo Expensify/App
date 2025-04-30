@@ -492,18 +492,6 @@ function navigateToReportWithPolicyCheck(
     const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
     const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
-    const routes = ref.getRootState().routes;
-
-    const isPreviousNavigatorFullscreenSearch = routes?.at(-2)?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
-    const isCurrentScreenReceipt = routes?.at(-1)?.name === SCREENS.TRANSACTION_RECEIPT;
-
-    // In case we close the attachment modal with an e-receipt opened from search fullscreen, we want to go back to the correct route.
-    // This guarantees that we end up in search route if we opened it from there.
-    if (isPreviousNavigatorFullscreenSearch && isCurrentScreenReceipt && ref.canGoBack()) {
-        ref.goBack();
-        return;
-    }
-
     if ((shouldOpenAllWorkspace && !policyID) || !shouldOpenAllWorkspace) {
         linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID, reportActionID, referrer, undefined, undefined, backTo), {forceReplace: !!forceReplace});
         return;
