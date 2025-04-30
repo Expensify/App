@@ -68,9 +68,6 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_PAID: 'search/filters/paid',
     SEARCH_ADVANCED_FILTERS_EXPORTED: 'search/filters/exported',
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
-    SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
-    SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
-    SEARCH_ADVANCED_FILTERS_CREATED_BY: 'search/filters/createdBy',
     SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
     SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
     SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
@@ -1322,7 +1319,8 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: {
         route: 'settings/workspaces/:policyID/connections/quickbooks-online/advanced/autosync/accounting-method',
-        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync/accounting-method` as const,
+        getRoute: (policyID: string | undefined, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync/accounting-method` as const, backTo),
     },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
@@ -2280,11 +2278,11 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync/accounting-method',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD route');
             }
-            return `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const;
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
