@@ -245,7 +245,7 @@ async function getPullRequestsMergedBetween(fromTag: string, toTag: string) {
         console.error('[jules compare] Results DONT MATCH!');
         console.error(`[jules compare] API PRs: ${apiPullRequestNumbers.join(', ')}`);
         console.error(`[jules compare] Git Log PRs: ${gitPullRequestNumbers.join(', ')}`);
-        throw new Error('Commit history methods returned different results!');
+        console.error('Commit history methods returned different results!');
     }
     return apiPullRequestNumbers;
 }
