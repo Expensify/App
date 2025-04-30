@@ -120,7 +120,7 @@ describe('TransactionPreviewUtils', () => {
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.canceled'});
         });
 
-        it('should include "approved" in the preview when the report is approved, regardless of whether RBR is shown', () => {
+        it('should include "Approved" in the preview when the report is approved, regardless of whether RBR is shown', () => {
             const functionArgs = {
                 ...basicProps,
                 iouReport: {...basicProps.iouReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
