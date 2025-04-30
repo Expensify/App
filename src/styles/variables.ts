@@ -312,4 +312,13 @@ export default {
     w96: 96,
     w184: 184,
     w191: 191,
+
+    optionRowTransactionItemMobileHeight: 104,
+    optionRowMobileItemHeightWithButton: 104,
+    optionRowMobileItemHeight: 92,
+    optionRowWebItemHeightWithButton: 104,
+    optionRowWebItemHeight: 96,
+    optionRowWebItemHeightCompact: 64,
+    optionRowListItemPadding: 8,
+    optionRowSearchHeaderHeight: 54,
 } as const;
