@@ -55,7 +55,8 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const currentChecklistData: StagingDeployCashData | undefined = shouldCreateNewDeployChecklist ? undefined : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
+        // Jules hardcoded to 9.1.37-2-staging for testing
+        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, '9.1.37-2-staging');
 
         // Next, we generate the checklist body
         let checklistBody = '';
