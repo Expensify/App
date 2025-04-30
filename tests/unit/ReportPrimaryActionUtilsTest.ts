@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import getPrimaryAction from '@libs/ReportPrimaryActionUtils';
+import {getReportPrimaryAction, getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -46,7 +46,7 @@ describe('getPrimaryAction', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(getPrimaryAction(report, policy as Policy, [], {})).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+        expect(getReportPrimaryAction(report, [{} as Transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
 
     it('should return Approve for report being processed', async () => {
@@ -69,7 +69,7 @@ describe('getPrimaryAction', () => {
             },
         } as unknown as Transaction;
 
-        expect(getPrimaryAction(report, policy as Policy, [transaction], {})).toBe(CONST.REPORT.PRIMARY_ACTIONS.APPROVE);
+        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.APPROVE);
     });
 
     it('should return PAY for submitted invoice report', async () => {
@@ -85,7 +85,7 @@ describe('getPrimaryAction', () => {
             role: CONST.POLICY.ROLE.ADMIN,
         };
 
-        expect(getPrimaryAction(report, policy as Policy, [], {})).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        expect(getReportPrimaryAction(report, [], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('should return PAY for expense report with payments enabled', async () => {
@@ -94,13 +94,14 @@ describe('getPrimaryAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: -300,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
         };
 
-        expect(getPrimaryAction(report, policy as Policy, [], {})).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        expect(getReportPrimaryAction(report, [], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('should return EXPORT TO ACCOUNTING for finished reports', async () => {
@@ -123,64 +124,60 @@ describe('getPrimaryAction', () => {
             },
         };
 
-        expect(getPrimaryAction(report, policy as Policy, [], {})).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
+        expect(getReportPrimaryAction(report, [], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
     it('should return REMOVE HOLD for reports with transactions on hold', async () => {
         const report = {
             reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = {};
+        const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
         const REPORT_ACTION_ID = 'REPORT_ACTION_ID';
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const CHILD_REPORT_ID = 'CHILD_REPORT_ID';
         const transaction = {
+            transactionID: TRANSACTION_ID,
             comment: {
-                hold: REPORT_ACTION_ID,
+                hold: HOLD_ACTION_ID,
             },
         } as unknown as Transaction;
 
         const reportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            type: CONST.REPORT.ACTIONS.TYPE.IOU,
             reportActionID: REPORT_ACTION_ID,
             actorAccountID: CURRENT_USER_ACCOUNT_ID,
+            childReportID: CHILD_REPORT_ID,
+            message: [
+                {
+                    html: 'html',
+                },
+            ],
+            originalMessage: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                IOUTransactionID: TRANSACTION_ID,
+            },
         } as unknown as ReportAction;
 
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {REPORT_ACTION_ID: reportAction});
+        const holdAction = {
+            reportActionID: HOLD_ACTION_ID,
+            reportID: CHILD_REPORT_ID,
+            actorAccountID: CURRENT_USER_ACCOUNT_ID,
+        };
 
-        expect(getPrimaryAction(report, policy as Policy, [transaction], {})).toBe(CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD);
-    });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: reportAction});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
 
-    it('should return REVIEW DUPLICATES when there are duplicated transactions', async () => {
-        const report = {
-            reportID: REPORT_ID,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        } as unknown as Report;
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
-        const REPORT_ACTION_ID = 'REPORT_ACTION_ID';
-        const TRANSACTION_ID = 'TRANSACTION_ID';
-        const transaction = {
-            transactionID: TRANSACTION_ID,
-            comment: {
-                hold: REPORT_ACTION_ID,
-            },
-        } as unknown as Transaction;
-
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
-
-        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, [
-            {
-                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-            } as TransactionViolation,
-        ]);
-
-        expect(getPrimaryAction(report, policy as Policy, [transaction], {})).toBe(CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES);
+        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD);
     });
 
     it('should return MARK AS CASH if has all RTER violations', async () => {
         const report = {
             reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
@@ -201,7 +198,7 @@ describe('getPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        expect(getPrimaryAction(report, policy as Policy, [transaction], {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]})).toBe(
+        expect(getReportPrimaryAction(report, [transaction], {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]}, policy as Policy)).toBe(
             CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH,
         );
     });
@@ -229,8 +226,133 @@ describe('getPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        expect(getPrimaryAction(report, policy as Policy, [transaction], {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]})).toBe(
+        expect(getReportPrimaryAction(report, [transaction], {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]}, policy as Policy)).toBe(
             CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH,
         );
+    });
+});
+
+describe('getTransactionThreadPrimaryAction', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        Onyx.clear();
+        await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
+    });
+
+    it('should return REMOVE HOLD for transaction thread being on hold', async () => {
+        const policy = {};
+        const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const CHILD_REPORT_ID = 'CHILD_REPORT_ID';
+        const report = {
+            reportID: CHILD_REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            comment: {
+                hold: HOLD_ACTION_ID,
+            },
+        } as unknown as Transaction;
+
+        const holdAction = {
+            reportActionID: HOLD_ACTION_ID,
+            reportID: CHILD_REPORT_ID,
+            actorAccountID: CURRENT_USER_ACCOUNT_ID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
+
+        expect(getTransactionThreadPrimaryAction(report, {} as Report, transaction, [], policy as Policy)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD);
+    });
+
+    it('should return REVIEW DUPLICATES when there are duplicated transactions', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {};
+        const REPORT_ACTION_ID = 'REPORT_ACTION_ID';
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            comment: {
+                hold: REPORT_ACTION_ID,
+            },
+        } as unknown as Transaction;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, [
+            {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            } as TransactionViolation,
+        ]);
+
+        expect(getTransactionThreadPrimaryAction({} as Report, report, transaction, [], policy as Policy)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES);
+    });
+
+    it('should return MARK AS CASH if has all RTER violations', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {};
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+        } as unknown as Transaction;
+
+        const violation = {
+            name: CONST.VIOLATIONS.RTER,
+            data: {
+                pendingPattern: true,
+                rterType: CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD,
+            },
+        } as unknown as TransactionViolation;
+
+        getTransactionThreadPrimaryAction({} as Report, report, transaction, [violation], policy as Policy);
+        expect(getTransactionThreadPrimaryAction({} as Report, report, transaction, [violation], policy as Policy)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
+    });
+
+    it('should return MARK AS CASH for broken connection', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {};
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+        } as unknown as Transaction;
+
+        const violation = {
+            name: CONST.VIOLATIONS.RTER,
+            data: {
+                rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION,
+            },
+        } as unknown as TransactionViolation;
+
+        expect(getTransactionThreadPrimaryAction({} as Report, report, transaction, [violation], policy as Policy)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
     });
 });

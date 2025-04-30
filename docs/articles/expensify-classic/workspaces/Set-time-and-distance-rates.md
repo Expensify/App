@@ -11,10 +11,7 @@ You can set default rates at the workspace level to track employees' billable ti
 
 # Set Time and Distance Rates  
 
-1. Hover over **Settings**, then **Workspaces > Group**.
-2. Click the desired workspace name.  
-3. Click the **Expenses** tab on the left.  
-4. Scroll to the **Time & Distance** section and set your rates.  
+Head to **Settings > Workspace > [Workspace Name] > Distance rates:** 
    - **For distance:**  
       - If desired, adjust your **unit** (miles or kilometers) and your **default category**. These options will apply to all of your distance rates.  
       - To add a new rate, click **Add a Mileage Rate**.  

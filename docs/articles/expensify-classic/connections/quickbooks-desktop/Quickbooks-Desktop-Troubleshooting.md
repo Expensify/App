@@ -1,6 +1,13 @@
 ---
 title: QuickBooks Desktop Troubleshooting
 description: Troubleshoot common QuickBooks Desktop issues, including connection problems, import/export errors, and sync failures.
+keywords: [Expensify Classic, troubleshooting QuickBooks Desktop]
+---
+
+<div id="expensify-classic" markdown="1">
+
+QuickBooks Desktop integration issues can sometimes disrupt your workflow. This guide walks you through the most common connection, sync, and export problems and how to quickly resolve them to keep your Workspace connection running smoothly.
+
 ---
 
 # The Web Connector Cannot Be Reached
@@ -25,9 +32,11 @@ Final troubleshooting steps:
 1. Restart QuickBooks Desktop.
 2. In Expensify, go to **Settings** > **Workspaces**.
 3. Select the connected Workspace.
-4. Click the **Connections** tab and select **QuickBooks Desktop**.
+4. Click the **Accounting** tab and select **QuickBooks Desktop**.
 5. Click **Sync Now**.
 6. If the issue persists, reinstall the Web Connector.
+
+---
 
 # Connection or Authentication Issues
 
@@ -56,18 +65,20 @@ If the issue persists, contact Concierge with:
 - Web Connector installation location
 - Remote environment provider (if applicable)
 
+---
+
 # Import Issues or Missing Categories/Tags
 
-If data is not importing, the integration may need updating.
+If the data is not importing, the integration may need updating.
 
 ## How to Resolve
 
-1. Re-sync Expensify and QuickBooks Desktop.
+1. Resync Expensify and QuickBooks Desktop.
 2. Check your QuickBooks Desktop configuration:
    - The Chart of Accounts imports as categories.
-   - Projects, customers, and jobs import as tags.
+   - Projects, customers, and jobs are imported as tags.
 
-If the issue persists, contact Concierge with missing data details and screenshots.
+---
 
 # Export or "Can't Find Category/Class/Location/Account" Issues
 
@@ -75,11 +86,13 @@ Errors during export are noted in the **Report Comments** section.
 
 ## How to Resolve
 
-1. Re-sync Expensify and QuickBooks Desktop.
-2. Re-apply coding to expenses and re-export the report.
+1. Resync Expensify and QuickBooks Desktop.
+2. Reapply coding to expenses and re-export the report.
 3. Verify that your QuickBooks Desktop version supports the selected export option.
 
 If the issue persists, contact Concierge with the Report ID and a screenshot of the error message.
+
+---
 
 # "Oops!" Error When Syncing or Exporting
 
@@ -92,9 +105,9 @@ This error may be temporary or a false flag.
 
 If the problem persists, download the QuickBooks Desktop log file from the Web Connector and contact Concierge.
 
-{% include info.html %}
-If you use a remote server (e.g., RightNetworks), you may need to contact their support team for logs.
-{% include end-info.html %}
+**Note:** If you use a remote server (e.g., RightNetworks), you may need to contact their support team for logs.
+
+---
 
 # Reports Not Exporting to QuickBooks Desktop
 
@@ -111,4 +124,4 @@ This usually occurs when the QuickBooks Web Connector or Company File is not ope
 
    ![Expensify Exported Report](https://help.expensify.com/assets/images/quickbooks-desktop-exported-report-comments.png){:width="100%"}
 
-If the issue persists, contact Concierge with your Expensify Report ID and a screenshot of your QuickBooks Web Connector.
+</div>

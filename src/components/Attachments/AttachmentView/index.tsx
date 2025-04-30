@@ -214,7 +214,7 @@ function AttachmentView({
 
         // We need the following View component on android native
         // So that the event will propagate properly and
-        // the Password protected preview will be shown for pdf attachement we are about to send.
+        // the Password protected preview will be shown for pdf attachment we are about to send.
         return (
             <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
                 <AttachmentViewPdf

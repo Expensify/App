@@ -33,7 +33,7 @@ type SelectedTransactionInfo = {
     amount: number;
 };
 
-/** Model of selected transactons */
+/** Model of selected transactions */
 type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
 /** Model of selected reports */
@@ -154,7 +154,6 @@ export type {
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchStatus,
-    SearchQueryAST,
     SearchQueryJSON,
     SearchQueryString,
     SortOrder,
@@ -172,4 +171,5 @@ export type {
     PaymentData,
     SearchAutocompleteQueryRange,
     TableColumnSize,
+    SearchGroupBy,
 };
