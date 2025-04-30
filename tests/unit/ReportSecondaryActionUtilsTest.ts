@@ -6,7 +6,7 @@ import type {Policy, Report, ReportAction, Transaction, TransactionViolation} fr
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'tester@mail.com';
-const OTHER_USER_EMAIL = 'tester1@mail.com'
+const OTHER_USER_EMAIL = 'tester1@mail.com';
 
 const SESSION = {
     email: CURRENT_USER_EMAIL,
@@ -343,7 +343,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Report;
         const policy = {
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {export: {exporter: OTHER_USER_EMAIL}, autoSync: {enabled: true}}}},
-            role: CONST.POLICY.ROLE.ADMIN
+            role: CONST.POLICY.ROLE.ADMIN,
         } as unknown as Policy;
 
         const result = getSecondaryReportActions(report, [], {}, policy);
