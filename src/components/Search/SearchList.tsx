@@ -14,9 +14,8 @@ import {PressableWithFeedback} from '@components/Pressable';
 import getPlatformHeight, {ITEM_HEIGHTS} from '@components/Search/getPlatformHeight';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
-import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ExtendedTargetedEvent, ReportActionListItemType, ReportListItemType, SearchListItem, TransactionListItemType} from '@components/SelectionList/types';
+import type {ExtendedTargetedEvent, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -34,7 +33,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem | typeof TaskListItem;
+type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType;
+type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem;
 
 type SearchListHandle = {
     scrollAndHighlightItem?: (items: string[]) => void;
@@ -411,25 +411,19 @@ function SearchList(
         ],
     );
 
-    const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
-    const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
-            {tableHeaderVisible && (
+            {canSelectMultiple && (
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
-                    {canSelectMultiple && (
-                        <Checkbox
-                            accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={selectedItemsLength === flattenedTransactions.length}
-                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
-                            onPress={onAllCheckboxPress}
-                        />
-                    )}
-
-                    {SearchTableHeader}
-
-                    {selectAllButtonVisible && (
+                    <Checkbox
+                        accessibilityLabel={translate('workspace.people.selectAll')}
+                        isChecked={selectedItemsLength === flattenedTransactions.length}
+                        isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
+                        onPress={() => {
+                            onAllCheckboxPress();
+                        }}
+                    />
+                    {SearchTableHeader ?? (
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={onAllCheckboxPress}
@@ -443,7 +437,6 @@ function SearchList(
                     )}
                 </View>
             )}
-
             <FlashList
                 ref={listRef}
                 data={data}
