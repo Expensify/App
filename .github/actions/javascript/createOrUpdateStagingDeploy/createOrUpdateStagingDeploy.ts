@@ -56,7 +56,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
 
         // Find the list of PRs merged between the current checklist and the previous checklist
         // Jules hardcoded tag to known version for testing
-        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, '9.1.37-11-staging');
+        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
 
         // Next, we generate the checklist body
         let checklistBody = '';
