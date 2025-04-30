@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {SortOrder, TableColumnSize} from '@components/Search/types';
 import SortableTableHeader from '@components/SelectionList/SortableTableHeader';
