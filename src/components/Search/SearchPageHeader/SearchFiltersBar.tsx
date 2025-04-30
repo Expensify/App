@@ -126,14 +126,25 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     <DropdownButton
                         label="Type"
                         value={null}
-                        items={[]}
+                        items={[
+                            {translation: 'common.expense', value: 'expense'},
+                            {translation: 'common.chat', value: 'chat'},
+                            {translation: 'common.invoice', value: 'invoice'},
+                            {translation: 'common.trip', value: 'trip'},
+                            {translation: 'common.task', value: 'task'},
+                        ]}
                         onChange={() => {}}
                         PopoverComponent={SingleSelectPopup}
                     />
                     <DropdownButton
                         label="Status"
                         value={null}
-                        items={[]}
+                        items={[
+                            {translation: 'common.unread', value: 'unread'},
+                            {translation: 'common.sent', value: 'sent'},
+                            {translation: 'common.attachments', value: 'attachments'},
+                            {translation: 'common.links', value: 'links'},
+                        ]}
                         onChange={() => {}}
                         PopoverComponent={MultiSelectPopup}
                     />
