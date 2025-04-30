@@ -17,7 +17,6 @@ import {
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
-    getReportNameValuePairs,
     getReportTransactions,
     hasMissingSmartscanFields,
     hasNoticeTypeViolations,
