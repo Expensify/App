@@ -33,16 +33,10 @@ function EmployeeTestDriveModal() {
         return !!loginTrim && Str.isValidEmail(loginTrim);
     }, [bossEmail]);
 
-    const onBossEmailChange = useCallback(
-        (value: string) => {
-            setBossEmail(value);
-
-            if (formError) {
-                setFormError(undefined);
-            }
-        },
-        [formError],
-    );
+    const onBossEmailChange = useCallback((value: string) => {
+        setBossEmail(value);
+        setFormError(undefined);
+    }, []);
 
     const navigate = () => {
         if (!isValidBossEmail) {
@@ -50,8 +44,7 @@ function EmployeeTestDriveModal() {
             return;
         }
 
-        const filename = `${CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.FILENAME}_${Date.now()}.png`;
-        setTestReceipt(TestReceipt, (source) => {
+        setTestReceipt(TestReceipt, 'jpg', (source, _, filename) => {
             const transactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
             const reportID = generateReportID();
             initMoneyRequest(reportID, undefined, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
@@ -93,6 +86,7 @@ function EmployeeTestDriveModal() {
                 onChangeText={onBossEmailChange}
                 autoCapitalize="none"
                 errorText={formError ? translate(formError) : undefined}
+                inputMode={CONST.INPUT_MODE.EMAIL}
             />
         </BaseTestDriveModal>
     );

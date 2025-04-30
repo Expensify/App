@@ -3,9 +3,9 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {SetTestReceipt} from './types';
 
-const setTestReceipt: SetTestReceipt = (asset, onFileRead) => {
+const setTestReceipt: SetTestReceipt = (asset, assetExtension, onFileRead) => {
     try {
-        const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.png`;
+        const filename = `${CONST.TEST_RECEIPT.FILENAME}_${Date.now()}.${assetExtension}`;
         readFileAsync(
             asset as string,
             filename,

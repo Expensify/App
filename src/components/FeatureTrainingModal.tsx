@@ -319,10 +319,6 @@ function FeatureTrainingModal({
         onConfirm?.();
     }, [shouldCloseOnConfirm, onConfirm, closeModal]);
 
-    const onHelpPress = () => {
-        onHelp?.();
-    };
-
     /**
      * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
      * to ensure necessary properties are available for further processing.
@@ -397,7 +393,7 @@ function FeatureTrainingModal({
                                     <Button
                                         large
                                         style={[styles.mb3]}
-                                        onPress={onHelpPress}
+                                        onPress={onHelp}
                                         text={helpText}
                                     />
                                 )}

@@ -582,7 +582,7 @@ function IOURequestStepScan({
      * Sets a test receipt from CONST.TEST_RECEIPT_URL and navigates to the confirmation step
      */
     const setTestReceiptAndNavigate = useCallback(() => {
-        setTestReceipt(TestReceipt, (source, file, filename) => {
+        setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
             setMoneyRequestReceipt(transactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
             navigateToConfirmationStep(file, source, false, true);
         });

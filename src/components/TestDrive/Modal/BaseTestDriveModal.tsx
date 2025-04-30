@@ -1,5 +1,4 @@
 import React, {useCallback} from 'react';
-import {InteractionManager} from 'react-native';
 import FastTrack from '@assets/images/fast-track-cover.jpg';
 import type {FeatureTrainingModalProps} from '@components/FeatureTrainingModal';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
@@ -11,27 +10,16 @@ import CONST from '@src/CONST';
 
 type BaseTestDriveModalProps = Pick<
     FeatureTrainingModalProps,
-    'children' | 'description' | 'onConfirm' | 'onClose' | 'shouldCloseOnConfirm' | 'shouldRenderHTMLDescription' | 'contentInnerContainerStyles' | 'avoidKeyboard'
+    'children' | 'description' | 'onConfirm' | 'shouldCloseOnConfirm' | 'shouldRenderHTMLDescription' | 'contentInnerContainerStyles' | 'avoidKeyboard'
 >;
 
-function BaseTestDriveModal({
-    description,
-    onConfirm,
-    onClose,
-    children,
-    shouldCloseOnConfirm,
-    shouldRenderHTMLDescription,
-    contentInnerContainerStyles,
-    avoidKeyboard,
-}: BaseTestDriveModalProps) {
+function BaseTestDriveModal({description, onConfirm, children, shouldCloseOnConfirm, shouldRenderHTMLDescription, contentInnerContainerStyles, avoidKeyboard}: BaseTestDriveModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const skipTestDrive = useCallback(() => {
-        InteractionManager.runAfterInteractions(() => {
-            Navigation.dismissModal();
-        });
+        Navigation.dismissModal();
     }, []);
 
     return (
@@ -45,7 +33,6 @@ function BaseTestDriveModal({
             confirmText={translate('testDrive.modal.confirmText')}
             onHelp={skipTestDrive}
             onConfirm={onConfirm}
-            onClose={onClose}
             shouldRenderSVG={false}
             modalInnerContainerStyle={shouldUseNarrowLayout ? styles.pt0 : styles.testDriveModalContainer}
             contentInnerContainerStyles={contentInnerContainerStyles}
