@@ -1,16 +1,16 @@
-import { useIsFocused } from '@react-navigation/native';
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import type { ForwardedRef } from 'react';
-import { View } from 'react-native';
-import type { FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken } from 'react-native';
-import { useOnyx } from 'react-native-onyx';
+import {useIsFocused} from '@react-navigation/native';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
+import {View} from 'react-native';
+import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
-import type { FlatListPropsWithLayout } from 'react-native-reanimated';
+import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import { PressableWithFeedback } from '@components/Pressable';
+import {PressableWithFeedback} from '@components/Pressable';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
@@ -24,13 +24,12 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { turnOffMobileSelectionMode, turnOnMobileSelectionMode } from '@libs/actions/MobileSelectionMode';
-import { isMobileChrome } from '@libs/Browser';
-import { addKeyDownPressListener, removeKeyDownPressListener } from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {isMobileChrome} from '@libs/Browser';
+import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
 
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem;
 
