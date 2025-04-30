@@ -4,10 +4,19 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 import hasKeyTriggeredCompute from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportAttributesDerivedValue, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 let isFullyComputed = false;
 let recentlyUpdated: string[] = [];
+
+const prepareReportKeys = (keys: string[]) => {
+    return keys.map((key) =>
+        key
+            .replace(ONYXKEYS.COLLECTION.REPORT_METADATA, ONYXKEYS.COLLECTION.REPORT)
+            .replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT)
+            .replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT),
+    );
+};
 
 /**
  * This derived value is used to get the report attributes for the report.
@@ -38,10 +47,10 @@ export default createOnyxDerivedValueConfig({
             isFullyComputed = false;
         }
 
-        const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
-        const reportMetadataUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_METADATA];
-        const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
-        const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS];
+        const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT] ?? {};
+        const reportMetadataUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_METADATA] ?? {};
+        const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS] ?? {};
+        const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
         // if we already computed the report attributes and there is no new reports data, return the current value
@@ -49,44 +58,26 @@ export default createOnyxDerivedValueConfig({
             return currentValue ?? {reports: {}, locale: null};
         }
 
-        let dataToIterate: Record<string, Report | ReportMetadata | ReportAction | ReportNameValuePairs | undefined> = reports;
+        let dataToIterate = Object.keys(reports);
+        // check if there are any report-related updates
+        const updates = [...Object.keys(reportUpdates), ...Object.keys(reportMetadataUpdates), ...Object.keys(reportActionsUpdates), ...Object.keys(reportNameValuePairsUpdates)];
+
         if (isFullyComputed) {
-            if (reportUpdates) {
-                dataToIterate = reportUpdates;
-                recentlyUpdated = Object.keys(reportUpdates);
-            } else if (reportMetadataUpdates) {
-                dataToIterate = reportMetadataUpdates;
-                recentlyUpdated = Object.keys(reportMetadataUpdates);
-            } else if (reportActionsUpdates) {
-                dataToIterate = reportActionsUpdates;
-                recentlyUpdated = Object.keys(reportActionsUpdates);
-            } else if (reportNameValuePairsUpdates) {
-                dataToIterate = reportNameValuePairsUpdates;
-                recentlyUpdated = Object.keys(reportNameValuePairsUpdates);
+            // if there are report-related updates, iterate over the updates
+            if (updates.length > 0) {
+                dataToIterate = prepareReportKeys(updates);
+                recentlyUpdated = updates;
             } else if (!!transactionsUpdates || !!transactionViolationsUpdates) {
-                // if transactions are updated, we need to get the report actions that are associated with the transactions and recompute reports that have those report actions
-                const recentReportActionsKeys = recentlyUpdated.map((key) =>
-                    key
-                        .replace(ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_ACTIONS)
-                        .replace(ONYXKEYS.COLLECTION.REPORT_METADATA, ONYXKEYS.COLLECTION.REPORT_ACTIONS)
-                        .replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT_ACTIONS),
-                );
-                dataToIterate = {};
-                for (const key of recentReportActionsKeys) {
-                    dataToIterate[key] = {};
-                }
+                // if transactions are updated, they might not be directly related to the reports yet (e.g. transaction is optimistically created)
+                // so we use report keys that were updated before to recompute the reports
+                const recentReportKeys = prepareReportKeys(recentlyUpdated);
+                dataToIterate = recentReportKeys;
             }
         }
-        const reportAttributes = Object.keys(dataToIterate).reduce<ReportAttributesDerivedValue['reports']>((acc, key) => {
+        const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>((acc, key) => {
             // source value sends partial data, so we need an entire report object to do computations
-            const report =
-                reports[
-                    `${ONYXKEYS.COLLECTION.REPORT}${key
-                        .replace(ONYXKEYS.COLLECTION.REPORT, '')
-                        .replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '')
-                        .replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')
-                        .replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, '')}`
-                ];
+            const report = reports[key];
+
             if (!report || !isValidReport(report)) {
                 return acc;
             }
@@ -115,9 +106,8 @@ export default createOnyxDerivedValueConfig({
 
             return acc;
         }, currentValue?.reports ?? {});
-
         // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputations on all objects
-        if (reportUpdates === undefined && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
+        if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
             isFullyComputed = true;
         }
 
