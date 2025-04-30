@@ -21,7 +21,7 @@ function EmptyMoneyRequestReportPreview({reportPreviewStyles, reportId}: {report
     const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
 
     return (
-        <View style={[styles.alignItemsCenter, styles.highlightBG, styles.ml0, styles.mr0, styles.gap4, styles.pb4, styles.mtn2, styles.reportContainerBorderRadius]}>
+        <View style={[styles.alignItemsCenter, styles.highlightBG, styles.ml0, styles.mr0, styles.gap4, styles.reportContainerBorderRadius]}>
             <View style={[styles.emptyStateMoneyRequestPreviewReport, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <View style={[styles.m1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <ImageSVG

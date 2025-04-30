@@ -666,6 +666,12 @@ function MoneyRequestReportPreviewContent({
                                         ListFooterComponent={<View style={styles.pl2} />}
                                         ListHeaderComponent={<View style={styles.pr2} />}
                                     />
+                                    {shouldShowEmptyPlaceholder && (
+                                        <EmptyMoneyRequestReportPreview
+                                            reportPreviewStyles={reportPreviewStyles}
+                                            reportId={iouReportID}
+                                        />
+                                    )}
                                 </View>
                                 {shouldUseNarrowLayout && transactions.length > 1 && (
                                     <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
@@ -683,14 +689,6 @@ function MoneyRequestReportPreviewContent({
                                 {/* height is needed to avoid flickering on animation */}
                                 {!shouldShowEmptyPlaceholder && <View style={[buttonMaxWidth, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>}
                             </View>
-                        </View>
-                        <View style={[styles.pl4, styles.pr4]}>
-                            {shouldShowEmptyPlaceholder && (
-                                <EmptyMoneyRequestReportPreview
-                                    reportPreviewStyles={reportPreviewStyles}
-                                    reportId={iouReportID}
-                                />
-                            )}
                         </View>
                     </View>
                 </PressableWithoutFeedback>
