@@ -28,6 +28,8 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import {getNavatticURL} from '@libs/TourUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -36,6 +38,7 @@ import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
+    hash: number;
     type: SearchDataTypes;
     hasResults: boolean;
 };
@@ -51,16 +54,25 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
-function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
+function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [modalVisible, setModalVisible] = useState(false);
+
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
+
+    const typeMenuItems = useMemo(() => {
+        return createTypeMenuSections(session)
+            .map((section) => section.menuItems)
+            .flat();
+    }, [session]);
 
     const tripViewChildren = useMemo(() => {
         return (
@@ -117,6 +129,24 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const content = useMemo(() => {
+        // Begin by going through all of our To-do searches, and returning their empty state
+        // if it exists
+        for (const menuItem of typeMenuItems) {
+            const menuHash = buildSearchQueryJSON(menuItem.getSearchQuery())?.hash;
+            if (menuHash === hash && menuItem.emptyState) {
+                return {
+                    headerMedia: menuItem.emptyState.headerMedia,
+                    title: translate(menuItem.emptyState.title),
+                    subtitle: translate(menuItem.emptyState.subtitle),
+                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.todoBG)],
+                    lottieWebViewStyles: {backgroundColor: theme.todoBG, ...styles.emptyStateFolderWebStyles},
+                    buttons: menuItem.emptyState.buttons,
+                };
+            }
+        }
+
+        // If we didn't match a specific search hash, show a specific message
+        // based on the type of the data
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
@@ -218,20 +248,23 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         }
     }, [
         type,
+        typeMenuItems,
+        hash,
+        translate,
         StyleUtils,
+        theme.todoBG,
         theme.travelBG,
         theme.emptyFolderBG,
-        translate,
-        styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
+        styles.textAlignLeft,
         tripViewChildren,
+        hasResults,
         hasSeenTour,
         navatticURL,
-        shouldRedirectToExpensifyClassic,
-        hasResults,
         viewTourTaskReport,
         canModifyTheTask,
         canActionTheTask,
+        shouldRedirectToExpensifyClassic,
     ]);
 
     return (

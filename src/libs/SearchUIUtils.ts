@@ -2,6 +2,9 @@ import type {TextStyle, ViewStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
+import DotLottieAnimations from '@components/LottieAnimations';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
@@ -124,6 +127,18 @@ type SearchTypeMenuItem = {
     translationPath: TranslationPaths;
     type: SearchDataTypes;
     icon: IconAsset;
+    emptyState?: {
+        headerMedia: DotLottieAnimation;
+        title: TranslationPaths;
+        subtitle: TranslationPaths;
+        buttons?: Array<{
+            buttonText?: TranslationPaths;
+            buttonAction?: () => void;
+            success?: boolean;
+            icon?: IconAsset;
+            isDisabled?: boolean;
+        }>;
+    };
     getSearchQuery: (policyID?: string) => SearchQueryString;
 };
 
@@ -907,7 +922,18 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                 translationPath: 'common.submit',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.Pencil,
-
+                emptyState: {
+                    headerMedia: DotLottieAnimations.Fireworks,
+                    title: 'search.searchResults.emptySubmitResults.title',
+                    subtitle: 'search.searchResults.emptySubmitResults.subtitle',
+                    buttons: [
+                        {
+                            success: true,
+                            buttonText: 'report.newReport.createReport',
+                            buttonAction: () => {},
+                        },
+                    ],
+                },
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -925,6 +951,11 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                 translationPath: 'search.bulkActions.approve',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.ThumbsUp,
+                emptyState: {
+                    headerMedia: DotLottieAnimations.Fireworks,
+                    title: 'search.searchResults.emptyApproveResults.title',
+                    subtitle: 'search.searchResults.emptyApproveResults.subtitle',
+                },
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -942,6 +973,11 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                 translationPath: 'search.bulkActions.pay',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.MoneyBag,
+                emptyState: {
+                    headerMedia: DotLottieAnimations.Fireworks,
+                    title: 'search.searchResults.emptyPayResults.title',
+                    subtitle: 'search.searchResults.emptyPayResults.subtitle',
+                },
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -959,6 +995,11 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                 translationPath: 'common.export',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.CheckCircle,
+                emptyState: {
+                    headerMedia: DotLottieAnimations.Fireworks,
+                    title: 'search.searchResults.emptyExportResults.title',
+                    subtitle: 'search.searchResults.emptyExportResults.subtitle',
+                },
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
