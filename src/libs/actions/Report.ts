@@ -470,7 +470,6 @@ function openUnreportedExpense(reportID: string | undefined) {
     if (!reportID) {
         return;
     }
-    clearGroupChat();
     Navigation.navigate(ROUTES.ADD_UNREPORTED_EXPENSE.getRoute(reportID));
 }
 

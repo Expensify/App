@@ -221,7 +221,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE}
-                        component={ModalStackNavigators.AddingUnreportedExpenseModalStackNavigator}
+                        component={ModalStackNavigators.AddUnreportedExpenseModalStackNavigator}
                     />
                 </Stack.Navigator>
             </View>
