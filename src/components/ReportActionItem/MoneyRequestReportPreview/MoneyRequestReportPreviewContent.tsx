@@ -684,7 +684,14 @@ function MoneyRequestReportPreviewContent({
                                 {!shouldShowEmptyPlaceholder && <View style={[buttonMaxWidth, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>}
                             </View>
                         </View>
-                        <View style={[styles.pl4, styles.pr4]}>{shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview reportPreviewStyles={reportPreviewStyles} />}</View>
+                        <View style={[styles.pl4, styles.pr4]}>
+                            {shouldShowEmptyPlaceholder && (
+                                <EmptyMoneyRequestReportPreview
+                                    reportPreviewStyles={reportPreviewStyles}
+                                    reportId={iouReportID}
+                                />
+                            )}
+                        </View>
                     </View>
                 </PressableWithoutFeedback>
             </View>

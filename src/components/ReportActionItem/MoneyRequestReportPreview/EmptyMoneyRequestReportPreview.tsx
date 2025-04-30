@@ -8,9 +8,11 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {startMoneyRequest} from '@userActions/IOU';
+import CONST from '@src/CONST';
 import type {MoneyRequestReportPreviewStyleType} from './types';
 
-function EmptyMoneyRequestReportPreview({reportPreviewStyles}: {reportPreviewStyles: MoneyRequestReportPreviewStyleType}) {
+function EmptyMoneyRequestReportPreview({reportPreviewStyles, reportId}: {reportPreviewStyles: MoneyRequestReportPreviewStyleType; reportId: string | undefined}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -19,7 +21,7 @@ function EmptyMoneyRequestReportPreview({reportPreviewStyles}: {reportPreviewSty
     const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
 
     return (
-        <View style={[styles.alignItemsCenter, styles.highlightBG, styles.ml0, styles.mr0, styles.gap4, styles.pb4, styles.reportContainerBorderRadius]}>
+        <View style={[styles.alignItemsCenter, styles.highlightBG, styles.ml0, styles.mr0, styles.gap4, styles.pb4, styles.mtn2, styles.reportContainerBorderRadius]}>
             <View style={[styles.emptyStateMoneyRequestPreviewReport, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <View style={[styles.m1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <ImageSVG
@@ -34,10 +36,14 @@ function EmptyMoneyRequestReportPreview({reportPreviewStyles}: {reportPreviewSty
             <View style={[buttonMaxWidth]}>
                 <Button
                     success
-                    text="PLACEHOLDER BUTTON"
+                    text={translate('iou.addExpense')}
+                    onPress={() => {
+                        if (!reportId) {
+                            return;
+                        }
+                        startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId);
+                    }}
                     style={[{width: shouldUseNarrowLayout ? '100%' : 303, height: 40}]}
-                    onPress={() => {}}
-                    isDisabled={false}
                 />
             </View>
         </View>
