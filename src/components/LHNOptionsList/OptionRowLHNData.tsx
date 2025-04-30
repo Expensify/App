@@ -38,12 +38,11 @@ function OptionRowLHNData({
     const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
 
     const optionItemRef = useRef<OptionData | undefined>(undefined);
-
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
             report: fullReport,
-            reportAttributesParam: reportAttributes ?? {},
+            reportAttributes,
             oneTransactionThreadReport,
             reportNameValuePairs,
             reportActions,
@@ -69,7 +68,8 @@ function OptionRowLHNData({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
         fullReport,
-        reportAttributes,
+        reportAttributes?.brickRoadStatus,
+        reportAttributes?.reportName,
         oneTransactionThreadReport,
         reportNameValuePairs,
         lastReportActionTransaction,
