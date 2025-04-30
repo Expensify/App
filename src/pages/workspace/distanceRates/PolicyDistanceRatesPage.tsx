@@ -70,9 +70,6 @@ function PolicyDistanceRatesPage({
     const selectableRates = useMemo(
         () =>
             Object.values(customUnitRates).reduce<Record<string, Rate>>((acc, rate) => {
-                if (rate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    return acc;
-                }
                 acc[rate.customUnitRateID] = rate;
                 return acc;
             }, {}),
