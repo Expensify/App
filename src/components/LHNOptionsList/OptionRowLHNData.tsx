@@ -32,7 +32,6 @@ function OptionRowLHNData({
     lastReportActionTransaction,
     transactionViolations,
     lastMessageTextFromReport,
-    reportAttributes,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
