@@ -57,7 +57,7 @@ function stringToNumeric(
     input: string,
     options?: {
         // A set of characters that should be skipped and not included in the numeric representation
-        charSetToSkip?: RegExp;
+        charSetToSkip?: Set<string>;
         // When out is provided, the function will write the result to the provided arrays instead of creating new ones (performance)
         out?: {
             array: DynamicArrayBuffer<Uint8Array>;
@@ -84,7 +84,7 @@ function stringToNumeric(
     for (let i = 0; i < input.length; i++) {
         const char = input[i];
 
-        if (options?.charSetToSkip?.test(char)) {
+        if (options?.charSetToSkip?.has(char)) {
             continue;
         }
 
