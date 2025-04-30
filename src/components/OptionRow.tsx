@@ -39,13 +39,13 @@ type OptionRowProps = {
     /** Whether we should show the selected state */
     showSelectedState?: boolean;
 
-    /** Whether to show a button pill instead of a tickbox */
+    /** Whether to show a button pill instead of a checkbox */
     shouldShowSelectedStateAsButton?: boolean;
 
     /** Text for button pill */
     selectedStateButtonText?: string;
 
-    /** Callback to fire when the multiple selector (tickbox or button) is clicked */
+    /** Callback to fire when the multiple selector (checkbox or button) is clicked */
     onSelectedStatePressed?: (option: OptionData) => void;
 
     /** Whether we highlight selected option */
