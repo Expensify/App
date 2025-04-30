@@ -9,8 +9,11 @@ import getPatchVersion from 'semver/functions/patch';
 import getBuildVersion from 'semver/functions/prerelease';
 import type {PackageJson} from 'type-fest';
 import {promisify} from 'util';
-import * as versionUpdater from '../.github/libs/versionUpdater';
-import type {SemverLevel} from '../.github/libs/versionUpdater';
+// Disabling lint on the next two imports due to a bug in @dword-design/import-alias/prefer-alias
+// eslint-disable-next-line
+import * as versionUpdater from '@github/libs/versionUpdater';
+// eslint-disable-next-line
+import type {SemverLevel} from '@github/libs/versionUpdater';
 
 const exec = promisify(originalExec);
 

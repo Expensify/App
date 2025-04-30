@@ -3577,6 +3577,8 @@ const minor_1 = __importDefault(__nccwpck_require__(8447));
 const patch_1 = __importDefault(__nccwpck_require__(2866));
 const prerelease_1 = __importDefault(__nccwpck_require__(4016));
 const util_1 = __nccwpck_require__(3837);
+// Disabling lint on the next two imports due to a bug in @dword-design/import-alias/prefer-alias
+// eslint-disable-next-line
 const versionUpdater = __importStar(__nccwpck_require__(8982));
 const exec = (0, util_1.promisify)(child_process_1.exec);
 // PlistBuddy executable path
