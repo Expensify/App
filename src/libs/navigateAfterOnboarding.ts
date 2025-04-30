@@ -1,4 +1,3 @@
-import {InteractionManager} from 'react-native';
 import ROUTES from '@src/ROUTES';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
@@ -36,7 +35,10 @@ const navigateAfterOnboarding = (
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
 
-    InteractionManager.runAfterInteractions(() => {
+    // We're using Navigation.isNavigationReady here because without it, on iOS,
+    // Navigation.dismissModal runs after Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT)
+    // And dismisses the modal before it even shows
+    Navigation.isNavigationReady().then(() => {
         Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT);
     });
 };
