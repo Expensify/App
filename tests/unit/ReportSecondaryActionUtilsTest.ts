@@ -558,21 +558,18 @@ describe('getSecondaryAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             managerID: MANAGER_ACCOUNT_ID,
-            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
         } as unknown as Report;
 
         const personalDetails = {
             [EMPLOYEE_ACCOUNT_ID]: {login: EMPLOYEE_EMAIL},
-            [MANAGER_ACCOUNT_ID]: {login: MANAGER_EMAIL},
-            [APPROVER_ACCOUNT_ID]: {login: APPROVER_EMAIL},
             [ADMIN_ACCOUNT_ID]: {login: ADMIN_EMAIL},
         }
 
         const policy = {
             id: POLICY_ID,
             type: CONST.POLICY.TYPE.TEAM,
-            approver: APPROVER_EMAIL,
             role: CONST.POLICY.ROLE.ADMIN,
             employeeList: {
                 [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
