@@ -228,7 +228,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     });
                 }}
                 isLoading={isLoading}
-                isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
+                isDisabled={isOffline && !CONST.NEW_DOT_SUPPORTED_COMPANY_SIZES.includes(onboardingCompanySize ?? '') && CONFIG.IS_HYBRID_APP}
                 pressOnEnter
             />
         </>
