@@ -17,7 +17,9 @@ With Expensify Travel, you can:
 
 There is a flat fee of $15 per trip booked. A single trip can include multiple bookings, such as a flight, a hotel, and a car rental.
 
-Contact your Account manager or salesteam@expensify.com to get a demo of travel and have it enabled for your company!
+# Enable travel
+
+Contact your Account manager or salesteam@expensify.com to get a demo of travel and have it enabled for your company.
 
 # Book travel
 
