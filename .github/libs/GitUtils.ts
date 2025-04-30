@@ -194,14 +194,11 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
     commits.forEach((commit) => {
         const author = commit.authorName;
         if (author === CONST.OS_BOTIFY) {
-            // look for `Merge pull request #61192 from Expensify/revert-60630...
-            console.log(`[jules] botify commit: ${commit.subject} >> ${commit}`);
             return;
         }
 
         const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
         if (!Array.isArray(match) || match.length < 2) {
-            console.log(`[jules] cherry-pickI gnoring ${commit.subject} by ${author}`);
             return;
         }
 
@@ -210,7 +207,6 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
             // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
             // That also means that we don't want to include it in the current checklist, so we remove it now.
             mergedPRs.delete(pr);
-            console.log(`[jules] appears twice ${pr}`);
             return;
         }
 
