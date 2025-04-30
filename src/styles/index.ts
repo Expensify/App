@@ -5659,8 +5659,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        navigationBarBG: {
-            backgroundColor: theme.navigationBarBackgroundColor,
+        translucentNavigationBarBG: {
+            backgroundColor: theme.translucentNavigationBarBackgroundColor,
         },
 
         stickToBottom: {

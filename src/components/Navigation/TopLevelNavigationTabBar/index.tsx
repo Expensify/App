@@ -73,6 +73,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
             <NavigationTabBar
                 selectedTab={selectedTab}
                 isTooltipAllowed={isReadyToDisplayBottomBar}
+                isTopLevelBar
             />
         </View>
     );

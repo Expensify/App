@@ -496,7 +496,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     const getHeaderContent = () => (
         <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
-            <Text style={[styles.pl5, styles.mb4, styles.mt3, styles.textSupporting]}>{translate('workspace.people.membersListTitle')}</Text>
+            <Text style={[styles.pl5, styles.mb5, styles.mt3, styles.textSupporting]}>{translate('workspace.people.membersListTitle')}</Text>
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow
                     type="success"
@@ -714,6 +714,8 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         prompt={translate('common.thisFeatureRequiresInternet')}
                         confirmText={translate('common.buttonConfirm')}
                         shouldShowCancelButton={false}
+                        onCancel={() => setIsOfflineModalVisible(false)}
+                        shouldHandleNavigationBack
                     />
 
                     <ConfirmModal

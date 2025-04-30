@@ -5,7 +5,6 @@ on:
     branches: [staging, production]
 
 env:
-  SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/production' }}
   IS_APP_REPO: ${{ github.repository == 'Expensify/App' }}
 
 concurrency:
@@ -18,6 +17,8 @@ jobs:
     outputs:
       APP_VERSION: ${{ steps.getAppVersion.outputs.VERSION }}
       TAG: ${{ steps.getTagName.outputs.TAG }}
+      # Is this deploy for a cherry-pick?
+      IS_CHERRY_PICK: ${{ steps.isCherryPick.outputs.IS_CHERRY_PICK }}
     steps:
       - name: Checkout
         # v4
@@ -47,7 +48,7 @@ jobs:
 
       - name: Get tag
         id: getTagName
-        run: echo "TAG=${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && steps.getAppVersion.outputs.VERSION || format('{0}-staging', steps.getAppVersion.outputs.VERSION) }}" >> "$GITHUB_OUTPUT"
+        run: echo "TAG=${{ github.ref == 'refs/heads/production' && steps.getAppVersion.outputs.VERSION || format('{0}-staging', steps.getAppVersion.outputs.VERSION) }}" >> "$GITHUB_OUTPUT"
 
       - name: Create and push tag
         run: |
@@ -56,6 +57,21 @@ jobs:
           cd Mobile-Expensify
           git tag ${{ steps.getTagName.outputs.TAG }}
           git push origin --tags
+
+        # We use JS here instead of bash/jq because inlining potentially large json into a bash command is non-trivial.
+        # JS is better at handling JSON: https://stackoverflow.com/questions/72953526/github-actions-how-to-pass-tojson-result-to-shell-commands
+      - name: Check if this deploy was triggered by a cherry-pick
+        id: isCherryPick
+        uses: actions/github-script@e7aeb8c663f696059ebb5f9ab1425ed2ef511bdb
+        with:
+          script: |
+            const commitMessages = context.payload.commits.map((commit) => commit.message);
+            const isCherryPick = commitMessages.some((message) => /.*\(cherry-picked to .* by .*\)$/.test(message));
+            console.log('Is cherry pick?', isCherryPick);
+            core.setOutput(
+                'IS_CHERRY_PICK',
+                isCherryPick,
+            );
 
   # Note: we're updating the checklist before running the deploys and assuming that it will succeed on at least one platform
   deployChecklist:
@@ -139,7 +155,7 @@ jobs:
         run: echo "VERSION_CODE=$(grep -oP 'android:versionCode="\K[0-9]+' Mobile-Expensify/Android/AndroidManifest.xml)" >> "$GITHUB_OUTPUT"
 
       - name: Build Android app
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         run: bundle exec fastlane android build_hybrid
         env:
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
@@ -148,14 +164,14 @@ jobs:
           ANDROID_BUILD_TYPE: ${{ vars.ANDROID_BUILD_TYPE }}
 
       - name: Upload Android app to Google Play
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         run: bundle exec fastlane android ${{ vars.ANDROID_UPLOAD_COMMAND }}
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
           ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
 
       - name: Get current Android rollout percentage
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/production' }}
         id: getAndroidRolloutPercentage
         uses: ./.github/actions/javascript/getAndroidRolloutPercentage
         with:
@@ -163,7 +179,7 @@ jobs:
           PACKAGE_NAME: org.me.mobiexpensifyg
 
       - name: Submit production build for Google Play review and a slow rollout
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/production' }}
         run: |
           # Complete the previous version rollout if the current rollout percentage is not -1 (no rollout in progress) or 1 (fully rolled out)
           echo "Current rollout percentage: ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }}"
@@ -180,7 +196,7 @@ jobs:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
       - name: Upload Android build to Browser Stack
-        if: ${{ fromJSON(env.IS_APP_REPO) && !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && (github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK)) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.aabPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
@@ -200,7 +216,7 @@ jobs:
           unzip -p Expensify.apks universal.apk > Expensify.apk
 
       - name: Upload Android APK build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -208,7 +224,7 @@ jobs:
           path: Expensify.apk
 
       - name: Upload Android build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -216,7 +232,7 @@ jobs:
           path: ${{ env.aabPath }}
 
       - name: Upload Android sourcemap artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -227,7 +243,7 @@ jobs:
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: Warn deployers if Android production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ failure() && github.ref == 'refs/heads/production' }}
         # v3
         uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         with:
@@ -271,7 +287,7 @@ jobs:
           DESKTOP_CERTIFICATE_PASSWORD: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_KEY_PASSWORD"
 
       - name: Build desktop app
-        run: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && 'npm run desktop-build' || 'npm run desktop-build-staging' }}
+        run: ${{ github.ref == 'refs/heads/production' && 'npm run desktop-build' || 'npm run desktop-build-staging' }}
         env:
           CSC_LINK: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_BASE64 }}
           CSC_KEY_PASSWORD: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_PASSWORD }}
@@ -281,7 +297,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           GCP_GEOLOCATION_API_KEY: ${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
-          S3_BUCKET: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && vars.PRODUCTION_S3_BUCKET || vars.STAGING_S3_BUCKET }}
+          S3_BUCKET: ${{ github.ref == 'refs/heads/production' && vars.PRODUCTION_S3_BUCKET || vars.STAGING_S3_BUCKET }}
 
       - name: Upload desktop sourcemaps artifact
         # v4
@@ -312,8 +328,7 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Configure MapBox SDK
-        run: |
-          ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
         id: setup-node
@@ -373,7 +388,7 @@ jobs:
         run: echo "IOS_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')" >> "$GITHUB_OUTPUT"
 
       - name: Build iOS HybridApp
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         run: bundle exec fastlane ios build_hybrid
         env:
           APPLE_ID: ${{ vars.APPLE_ID }}
@@ -385,7 +400,7 @@ jobs:
           APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME }}
 
       - name: Upload release build to TestFlight
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         run: bundle exec fastlane ios upload_testflight_hybrid
         env:
           APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
@@ -395,11 +410,11 @@ jobs:
           APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Upload DSYMs to Firebase for HybridApp
-        if: ${{ fromJSON(env.IS_APP_REPO) && !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && (github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK)) }}
         run: bundle exec fastlane ios upload_dsyms_hybrid
 
       - name: Submit production build for App Store review and a slow rollout
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/production' }}
         run: |
           # Complete the previous version rollout
           bundle exec fastlane ios complete_hybrid_rollout
@@ -411,13 +426,13 @@ jobs:
           APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Upload iOS build to Browser Stack
-        if: ${{ fromJSON(env.IS_APP_REPO) && !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && (github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK)) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.ipaPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
       - name: Upload iOS build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -425,7 +440,7 @@ jobs:
           path: ${{ env.ipaPath }}
 
       - name: Upload iOS sourcemap artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -433,7 +448,7 @@ jobs:
           path: /Users/runner/work/App/App/Mobile-Expensify/main.jsbundle.map
 
       - name: Warn deployers if iOS production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ failure() && github.ref == 'refs/heads/production' }}
         # v3
         uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         with:
@@ -476,7 +491,7 @@ jobs:
 
       - name: Build web
         run: |
-          if [[ ${{ env.SHOULD_DEPLOY_PRODUCTION }} == 'true' ]]; then
+          if [[ '${{ github.ref }}' == 'refs/heads/production' ]]; then
             npm run build
           else
             npm run build-staging
@@ -485,7 +500,7 @@ jobs:
       - name: Build storybook docs
         continue-on-error: true
         run: |
-          if [[ ${{ env.SHOULD_DEPLOY_PRODUCTION }} == 'true' ]]; then
+          if [[ ${{ github.ref }} == 'refs/heads/production' ]]; then
             npm run storybook-build
           else
             npm run storybook-build-staging
@@ -497,22 +512,20 @@ jobs:
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{ env.S3_URL }}/.well-known/apple-app-site-association
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{env.S3_URL }}/apple-app-site-association
         env:
-          S3_URL: s3://${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging-' || '' }}${{ vars.PRODUCTION_S3_BUCKET }}
+          S3_URL: s3://${{ github.ref == 'refs/heads/staging' && 'staging-' || '' }}${{ vars.PRODUCTION_S3_BUCKET }}
 
       - name: Purge Cloudflare cache
         run: |
           /home/runner/.local/bin/cli4 --verbose --delete hosts=["$HOST"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
-          SHOULD_DEPLOY_PRODUCTION: ${{ env.SHOULD_DEPLOY_PRODUCTION }}
-          HOST: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
+          HOST: ${{ github.ref == 'refs/heads/production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
       - name: Verify deploy
         run: |
           ./.github/scripts/verifyDeploy.sh "$HOST" "${{ needs.prep.outputs.APP_VERSION }}"
         env:
-          SHOULD_DEPLOY_PRODUCTION: ${{ env.SHOULD_DEPLOY_PRODUCTION }}
-          HOST: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
+          HOST: ${{ github.ref == 'refs/heads/production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
       - name: Upload web sourcemaps artifact
         # v4
@@ -670,6 +683,118 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
+  # Why is this necessary for CP-to-prod? Consider this scenario:
+  #   1. You close a checklist and we create a new staging version `9.0.34-0` and a new checklist
+  #   2. You then CP a PR to production, and in the process create `9.0.35-0`
+  #   3. You close the new checklist, and we try to ship `9.0.34-0` to production. This won't work, because we already submitted a higher version `9.0-35-0`
+  #
+  # To address this, we'll:
+  #   1. Bump the version on main again
+  #   2. CP that version bump to staging
+  createNewVersion:
+    needs: [prep, checkDeploymentSuccess]
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+    uses: ./.github/workflows/createNewVersion.yml
+    secrets: inherit
+    with:
+      SEMVER_LEVEL: BUILD
+
+  cherryPickVersionBump:
+    needs: [createNewVersion, checkDeploymentSuccess, prep]
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+    runs-on: ubuntu-latest
+    steps:
+      # v4.2.2
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: staging
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          submodules: true
+
+      # This command is necessary to fetch any branch other than main in the submodule.
+      # See https://github.com/actions/checkout/issues/1815#issuecomment-2777836442 for further context.
+      - name: Enable branch-switching in submodules
+        run: |
+          git submodule foreach '\
+            git config --add remote.origin.fetch "+refs/heads/staging:refs/remotes/origin/staging" && \
+            git config --add remote.origin.fetch "+refs/heads/production:refs/remotes/origin/production"'
+
+      - name: Set up git for OSBotify
+        id: setupGitForOSBotify
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
+        with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+
+      - name: Get previous app version
+        id: getPreviousVersion
+        uses: ./.github/actions/javascript/getPreviousVersion
+        with:
+          SEMVER_LEVEL: 'PATCH'
+
+      - name: Fetch history of relevant refs
+        run: |
+          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+          cd Mobile-Expensify
+          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+
+      - name: Get E/App version bump commit
+        id: getVersionBumpCommit
+        run: |
+          git switch main
+          VERSION_BUMP_COMMIT="$(git log -1 --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
+          if [ -z "$VERSION_BUMP_COMMIT" ]; then
+            echo "::error::❌ Could not find E/App version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
+            git log --oneline
+          else
+            echo "::notice::👀 Found E/App version bump commit $VERSION_BUMP_COMMIT"
+          fi
+          echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
+
+      - name: Get Mobile-Expensify version bump commit
+        id: getMobileExpensifyVersionBumpCommit
+        working-directory: Mobile-Expensify
+        run: |
+          git switch main
+          VERSION_BUMP_COMMIT="$(git log -1 --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
+          if [ -z "$VERSION_BUMP_COMMIT" ]; then
+            echo "::error::❌ Could not find Mobile-Expensify version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
+            git log --oneline
+          else
+            echo "::notice::👀 Found Mobile-Expensify version bump commit $VERSION_BUMP_COMMIT"
+          fi
+          echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
+
+      - name: Cherry-pick the Mobile-Expensify version bump to Mobile-Expensify staging
+        working-directory: Mobile-Expensify
+        run: |
+          git switch staging
+          git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getMobileExpensifyVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
+          git commit --amend -m "$(git log -1 --pretty=%B)" -m "(cherry-picked to staging by ${{ github.actor }})"
+          git push origin staging
+
+      - name: Cherry-pick the E/App version-bump to target branch
+        run: |
+          git switch staging
+          git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
+          git commit --amend -m "$(git log -1 --pretty=%B)" -m "(cherry-picked to staging by ${{ github.actor }})"
+
+      - name: Update the Mobile-Expensify submodule on E/App staging
+        run: |
+          git add Mobile-Expensify
+          git commit -m "Update Mobile-Expensify submodule version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
+          git push origin staging
+
+  updateChecklistWithVersionBump:
+    name: Update deploy checklist with the new version bump
+    needs: [prep, checkDeploymentSuccess, cherryPickVersionBump]
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+    uses: ./.github/workflows/createDeployChecklist.yml
+    secrets: inherit
+
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
@@ -686,7 +811,7 @@ jobs:
               channel: '#announce',
               attachments: [{
                 color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.APP_VERSION }}|${{ needs.prep.outputs.APP_VERSION }}> to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.APP_VERSION }}|${{ needs.prep.outputs.APP_VERSION }}> to ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }} 🎉️`,
               }]
             }
         env:
@@ -703,7 +828,7 @@ jobs:
               channel: '#deployer',
               attachments: [{
                 color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.APP_VERSION }}|${{ needs.prep.outputs.APP_VERSION }}> to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.APP_VERSION }}|${{ needs.prep.outputs.APP_VERSION }}> to ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }} 🎉️`,
               }]
             }
         env:
@@ -713,7 +838,7 @@ jobs:
       - name: 'Announces a production deploy in the #expensify-open-source Slack room'
         # v3
         uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/production' }}
         with:
           status: custom
           custom_payload: |
