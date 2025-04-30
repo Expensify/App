@@ -10325,12 +10325,16 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
         return true;
     }
 
-    if (isCurrentUserAdmin && verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED]) && verifyStatus(report, [CONST.REPORT.STATUS_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED, CONST.REPORT.STATUS_NUM.CLOSED])) {
+    if (
+        isCurrentUserAdmin &&
+        verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED]) &&
+        verifyStatus(report, [CONST.REPORT.STATUS_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED, CONST.REPORT.STATUS_NUM.CLOSED])
+    ) {
         return true;
     }
 
     return false;
-};
+}
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
     const approvalChain: string[] = [];
