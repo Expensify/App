@@ -5660,7 +5660,7 @@ function getIOUSubmittedMessage(
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>,
 ) {
-    return translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction)});
+    return translateLocal('iou.submittedWithDisplayName', {displayName: getActorDisplayName(reportAction)});
 }
 
 function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
