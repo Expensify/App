@@ -834,22 +834,20 @@ function IOURequestStepScan({
                             height={CONST.RECEIPT.SHUTTER_SIZE}
                         />
                     </PressableWithFeedback>
-                    {hasFlash && (
-                        <PressableWithFeedback
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('receipt.flash')}
-                            style={[styles.alignItemsEnd]}
-                            disabled={cameraPermissionStatus !== RESULTS.GRANTED}
-                            onPress={() => setFlash((prevFlash) => !prevFlash)}
-                        >
-                            <Icon
-                                height={32}
-                                width={32}
-                                src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
-                                fill={theme.textSupporting}
-                            />
-                        </PressableWithFeedback>
-                    )}
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.flash')}
+                        style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
+                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                        onPress={() => setFlash((prevFlash) => !prevFlash)}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
+                            fill={theme.textSupporting}
+                        />
+                    </PressableWithFeedback>
                 </View>
                 {startLocationPermissionFlow && !!fileResize && (
                     <LocationPermissionModal
