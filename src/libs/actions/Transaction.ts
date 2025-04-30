@@ -641,19 +641,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`,
                 value: {
-                    [oldIOUAction.reportActionID]: {
-                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                        originalMessage: {
-                            deleted: DateUtils.getDBTime(),
-                        },
-                        message: [
-                            {
-                                deleted: DateUtils.getDBTime(),
-                                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                                text: '',
-                            },
-                        ],
-                    },
+                    [oldIOUAction.reportActionID]: null,
                 },
             },
         );
