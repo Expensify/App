@@ -12,6 +12,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,9 +53,10 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
+    const {canUsePrivateDomainOnboarding} = usePermissions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
-    const isPrivateDomainAndHasAccesiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
+    const isPrivateDomainAndHasAccesiblePolicies = canUsePrivateDomainOnboarding && !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth

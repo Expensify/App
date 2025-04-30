@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -39,8 +40,9 @@ function OnboardingModalNavigator() {
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const {canUsePrivateDomainOnboarding} = usePermissions();
 
-    const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
+    const isOnPrivateDomainAndHasAccessiblePolicies = canUsePrivateDomainOnboarding && !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
