@@ -4,6 +4,7 @@ apply plugin: "com.facebook.react"
 apply plugin: "com.google.firebase.firebase-perf"
 apply plugin: "fullstory"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
+apply from: "${rootDir}/../gradle-utils/patched-react-native-artifacts.gradle"
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -16,6 +17,10 @@ fullstory {
     enabledVariants 'production'
     logcatLevel 'debug'
     recordOnStart false
+}
+
+patchedReactNativeArtifacts {
+    packageName = 'react-standalone'
 }
 
 react {
@@ -197,22 +202,22 @@ android {
     }
 }
 
-afterEvaluate {
-    // As the App is building from source, we need to make sure hermesc is built before the JS bundle is created.
-    // Otherwise the release version of the app will fail to build due to missing hermesc.
-    def hermesCTask = gradle.includedBuild("react-native").task(":packages:react-native:ReactAndroid:hermes-engine:buildHermesC")
+// afterEvaluate {
+//     // As the App is building from source, we need to make sure hermesc is built before the JS bundle is created.
+//     // Otherwise the release version of the app will fail to build due to missing hermesc.
+//     def hermesCTask = gradle.includedBuild("react-native").task(":packages:react-native:ReactAndroid:hermes-engine:buildHermesC")
 
-    android.applicationVariants.configureEach { variant ->
-        if (variant.buildType.name == "release" || variant.buildType.name == "adhoc") {
-            def variantName = variant.name.capitalize()
-            def bundleTask = tasks.named("createBundle${variantName}JsAndAssets").getOrNull()
+//     android.applicationVariants.configureEach { variant ->
+//         if (variant.buildType.name == "release" || variant.buildType.name == "adhoc") {
+//             def variantName = variant.name.capitalize()
+//             def bundleTask = tasks.named("createBundle${variantName}JsAndAssets").getOrNull()
 
-            if (bundleTask != null) {
-                bundleTask.dependsOn(hermesCTask)
-            }
-        }
-    }
-}
+//             if (bundleTask != null) {
+//                 bundleTask.dependsOn(hermesCTask)
+//             }
+//         }
+//     }
+// }
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
