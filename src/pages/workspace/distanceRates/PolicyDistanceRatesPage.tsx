@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
@@ -45,7 +45,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Rate} from '@src/types/onyx/Policy';
 
-type RateForList = ListItem & {value: string};
+type RateForList = ListItem & {value: string; rate?: number};
 
 type PolicyDistanceRatesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES>;
 
@@ -148,43 +148,45 @@ function PolicyDistanceRatesPage({
 
     const distanceRatesList = useMemo<RateForList[]>(
         () =>
-            Object.values(customUnitRates)
-                .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
-                .map((value) => ({
-                    value: value.customUnitRateID,
-                    text: `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
-                        `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
-                    )}`,
-                    keyForList: value.customUnitRateID,
-                    isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined && canSelectMultiple,
-                    isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    pendingAction:
-                        value.pendingAction ??
-                        value.pendingFields?.rate ??
-                        value.pendingFields?.enabled ??
-                        value.pendingFields?.currency ??
-                        value.pendingFields?.taxRateExternalID ??
-                        value.pendingFields?.taxClaimablePercentage ??
-                        (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
-                    errors: value.errors ?? undefined,
-                    rightElement: (
-                        <Switch
-                            isOn={!!value?.enabled}
-                            accessibilityLabel={translate('workspace.distanceRates.trackTax')}
-                            onToggle={(newValue: boolean) => updateDistanceRateEnabled(newValue, value.customUnitRateID)}
-                            disabled={value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                        />
-                    ),
-                })),
+            Object.values(customUnitRates).map((value) => ({
+                rate: value.rate,
+                value: value.customUnitRateID,
+                text: `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
+                    `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
+                )}`,
+                keyForList: value.customUnitRateID,
+                isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined && canSelectMultiple,
+                isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                pendingAction:
+                    value.pendingAction ??
+                    value.pendingFields?.rate ??
+                    value.pendingFields?.enabled ??
+                    value.pendingFields?.currency ??
+                    value.pendingFields?.taxRateExternalID ??
+                    value.pendingFields?.taxClaimablePercentage ??
+                    (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
+                errors: value.errors ?? undefined,
+                rightElement: (
+                    <Switch
+                        isOn={!!value?.enabled}
+                        accessibilityLabel={translate('workspace.distanceRates.trackTax')}
+                        onToggle={(newValue: boolean) => updateDistanceRateEnabled(newValue, value.customUnitRateID)}
+                        disabled={value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                    />
+                ),
+            })),
         [customUnitRates, translate, customUnit, selectedDistanceRates, canSelectMultiple, policy?.pendingAction, updateDistanceRateEnabled],
     );
 
-    const filteredDistanceRatesList = useMemo<RateForList[]>(() => {
-        if (!inputValue.trim()) {
-            return distanceRatesList;
-        }
-        const lowerQuery = inputValue.trim().toLowerCase();
-        return distanceRatesList.filter((rate) => rate.text?.toLowerCase().includes(lowerQuery));
+    const [, startTransition] = useTransition();
+    const [filteredDistanceRatesList, setFilteredDistanceRatesList] = useState<RateForList[]>([]);
+
+    useEffect(() => {
+        startTransition(() => {
+            const normalizedSearchQuery = inputValue.trim().toLowerCase();
+            const filtered = normalizedSearchQuery ? distanceRatesList.filter((rate) => rate.text?.toLowerCase().includes(normalizedSearchQuery)) : distanceRatesList;
+            setFilteredDistanceRatesList(filtered.sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0)));
+        });
     }, [distanceRatesList, inputValue]);
 
     const hasVisibleRates = useMemo(() => Object.values(customUnitRates).some((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [customUnitRates]);

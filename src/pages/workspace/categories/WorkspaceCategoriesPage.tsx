@@ -1,5 +1,5 @@
 import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -52,7 +52,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyCategory} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -141,7 +140,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
-        const categories = lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[];
+        const categories = Object.values(policyCategories ?? {});
         return categories.reduce<PolicyOption[]>((acc, value) => {
             const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -170,12 +169,17 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }, []);
     }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceRequiresCategory]);
 
-    const filteredCategoryList = useMemo(() => {
-        if (!inputValue.trim()) {
-            return categoryList;
-        }
-        const lowerQuery = inputValue.trim().toLowerCase();
-        return categoryList.filter((cat) => cat.text?.toLowerCase().includes(lowerQuery));
+    const [, startTransition] = useTransition();
+    const [filteredCategoryList, setFilteredCategoryList] = useState<PolicyOption[]>([]);
+
+    useEffect(() => {
+        startTransition(() => {
+            const normalizedSearchQuery = inputValue.trim().toLowerCase();
+            const filtered = normalizedSearchQuery
+                ? categoryList.filter((item) => !!item.text?.toLowerCase().includes(normalizedSearchQuery) || !!item.alternateText?.toLowerCase().includes(normalizedSearchQuery))
+                : categoryList;
+            setFilteredCategoryList(lodashSortBy(Object.values(filtered ?? {}), 'text', localeCompare) as PolicyOption[]);
+        });
     }, [inputValue, categoryList]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(filteredCategoryList);

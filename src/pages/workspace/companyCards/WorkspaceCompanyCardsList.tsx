@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -9,7 +9,7 @@ import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
+import {filterCards, getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,17 +41,15 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
     const sortedCards = useMemo(() => sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
 
     const [inputValue, setInputValue] = useState('');
-    const filteredSortedCards = useMemo(() => {
-        if (!inputValue) {
-            return sortedCards;
-        }
-        const lowerValue = inputValue.toLowerCase();
-        return sortedCards.filter((card) => {
-            const cardTitle = card.nameValuePairs?.cardTitle?.toLowerCase() ?? '';
-            const lastFourPAN = card?.lastFourPAN?.toLowerCase() ?? '';
-            const accountLogin = personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login?.toLowerCase() ?? '';
-            const accountName = personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName?.toLowerCase() ?? '';
-            return cardTitle.includes(lowerValue) || lastFourPAN.includes(lowerValue) || accountLogin.includes(lowerValue) || accountName.includes(lowerValue);
+
+    const [, startTransition] = useTransition();
+    const [filteredSortedCards, setFilteredSortedCards] = useState<Card[]>([]);
+
+    useEffect(() => {
+        startTransition(() => {
+            const normalizedSearchQuery = inputValue.trim().toLowerCase();
+            const filtered = normalizedSearchQuery ? sortedCards.filter((card) => filterCards(normalizedSearchQuery, card, personalDetails)) : sortedCards;
+            setFilteredSortedCards(filtered);
         });
     }, [inputValue, personalDetails, sortedCards]);
 

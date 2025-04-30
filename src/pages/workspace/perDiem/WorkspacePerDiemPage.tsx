@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -160,7 +160,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const subRatesList = useMemo<PolicyOption[]>(
         () =>
-            (lodashSortBy(allSubRates, 'destination', localeCompare) as SubRateData[]).map((value) => {
+            allSubRates.map((value) => {
                 const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 return {
                     text: value.destination,
@@ -195,12 +195,15 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         [allSubRates, selectedPerDiem, canSelectMultiple, styles.flex2, styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2, styles.alignSelfEnd],
     );
 
-    const filteredSubRatesList = useMemo(() => {
-        if (!inputValue) {
-            return subRatesList;
-        }
-        const lowerQuery = inputValue.trim().toLowerCase();
-        return subRatesList.filter((subRate) => subRate.text?.toLowerCase()?.includes(lowerQuery));
+    const [, startTransition] = useTransition();
+    const [filteredSubRatesList, setFilteredSubRatesList] = useState<PolicyOption[]>([]);
+
+    useEffect(() => {
+        startTransition(() => {
+            const normalizedSearchQuery = inputValue.trim().toLowerCase();
+            const filtered = normalizedSearchQuery ? subRatesList.filter((subRate) => subRate.text?.toLowerCase()?.includes(normalizedSearchQuery)) : subRatesList;
+            setFilteredSubRatesList(lodashSortBy(filtered, 'text', localeCompare) as PolicyOption[]);
+        });
     }, [inputValue, subRatesList]);
 
     // Filter out rates that will be deleted

@@ -1,5 +1,5 @@
 import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -190,8 +190,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 };
             });
         }
-        const sortedTags = lodashSortBy(Object.values(policyTagLists.at(0)?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
-        return sortedTags.map((tag) => ({
+        return Object.values(policyTagLists?.at(0)?.tags ?? {}).map((tag) => ({
             value: tag.name,
             text: getCleanedTagName(tag.name),
             keyForList: tag.name,
@@ -211,12 +210,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }));
     }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
-    const filteredTagList = useMemo<TagListItem[]>(() => {
-        if (!inputValue.trim()) {
-            return tagList;
-        }
-        const lowerQuery = inputValue.trim().toLowerCase();
-        return tagList.filter((item) => !!item.text?.toLowerCase().includes(lowerQuery) || !!item.value?.toLowerCase().includes(lowerQuery));
+    const [, startTransition] = useTransition();
+    const [filteredTagList, setFilteredTagList] = useState<TagListItem[]>([]);
+
+    useEffect(() => {
+        startTransition(() => {
+            const normalizedSearchQuery = inputValue.trim().toLowerCase();
+            const filtered = normalizedSearchQuery
+                ? tagList.filter((item) => !!item.text?.toLowerCase().includes(normalizedSearchQuery) || !!item.value?.toLowerCase().includes(normalizedSearchQuery))
+                : tagList;
+            setFilteredTagList(lodashSortBy(filtered, 'value', localeCompare) as TagListItem[]);
+        });
     }, [tagList, inputValue]);
 
     const filteredTagListKeyedByName = useMemo(

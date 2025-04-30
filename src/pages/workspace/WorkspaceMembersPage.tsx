@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState, useTransition} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -380,8 +380,8 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
     const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
-    const getUsers = useCallback((): MemberOption[] => {
-        let result: MemberOption[] = [];
+    const data: MemberOption[] = useMemo(() => {
+        const result: MemberOption[] = [];
 
         Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
             const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
@@ -443,7 +443,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 invitedSecondaryLogin: details?.login ? invitedPrimaryToSecondaryLogins[details.login] ?? '' : '',
             });
         });
-        result = sortAlphabetically(result, 'text');
         return result;
     }, [
         isOffline,
@@ -464,14 +463,17 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         isPolicyAdmin,
     ]);
 
-    const data = useMemo(() => getUsers(), [getUsers]);
+    const [, startTransition] = useTransition();
+    const [filteredData, setFilteredData] = useState<MemberOption[]>([]);
 
-    const filteredData = useMemo(() => {
-        if (!inputValue.trim()) {
-            return data;
-        }
-        const lowerQuery = inputValue.trim().toLowerCase();
-        return data.filter((item) => !!item.text?.toLowerCase().includes(lowerQuery) || !!item.alternateText?.toLowerCase().includes(lowerQuery));
+    useEffect(() => {
+        startTransition(() => {
+            const normalizedSearchQuery = inputValue.trim().toLowerCase();
+            const filtered = normalizedSearchQuery
+                ? data.filter((item) => !!item.text?.toLowerCase().includes(normalizedSearchQuery) || !!item.alternateText?.toLowerCase().includes(normalizedSearchQuery))
+                : data;
+            setFilteredData(sortAlphabetically(filtered, 'text'));
+        });
     }, [data, inputValue]);
 
     useEffect(() => {

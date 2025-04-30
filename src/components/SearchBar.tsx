@@ -11,7 +11,7 @@ import Text from './Text';
 import TextInput from './TextInput';
 
 type SearchBarProps = {
-    label?: string;
+    label: string;
     icon?: IconAsset;
     inputValue: string;
     onChangeText?: (text: string) => void;
@@ -45,7 +45,7 @@ function SearchBar({label, style, icon = MagnifyingGlass, inputValue, onChangeTe
                 />
             </View>
             {!!shouldShowEmptyState && inputValue.length !== 0 && (
-                <View style={[styles.ph5, styles.pv3, styles.pb5]}>
+                <View style={[styles.ph5, styles.pt3, styles.pb5]}>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', {searchString: inputValue})}</Text>
                 </View>
             )}

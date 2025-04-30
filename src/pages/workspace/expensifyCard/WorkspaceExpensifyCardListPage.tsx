@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -21,7 +21,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {sortCardsByCardholderName} from '@libs/CardUtils';
+import {filterCards, sortCardsByCardholderName} from '@libs/CardUtils';
 import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
@@ -77,19 +77,16 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const [inputValue, setInputValue] = useState('');
 
-    const filteredSortedCards = useMemo(() => {
-        if (!inputValue) {
-            return sortedCards;
-        }
-        const lowerValue = inputValue.toLowerCase();
-        return sortedCards.filter((card) => {
-            const cardTitle = card.nameValuePairs?.cardTitle?.toLowerCase() ?? '';
-            const lastFourPAN = card?.lastFourPAN?.toLowerCase() ?? '';
-            const accountLogin = personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login?.toLowerCase() ?? '';
-            const accountName = personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName?.toLowerCase() ?? '';
-            return cardTitle.includes(lowerValue) || lastFourPAN.includes(lowerValue) || accountLogin.includes(lowerValue) || accountName.includes(lowerValue);
+    const [, startTransition] = useTransition();
+    const [filteredSortedCards, setFilteredSortedCards] = useState<Card[]>([]);
+
+    useEffect(() => {
+        startTransition(() => {
+            const normalizedSearchQuery = inputValue.trim().toLowerCase();
+            const filtered = normalizedSearchQuery ? sortedCards.filter((card) => filterCards(normalizedSearchQuery, card, personalDetails)) : sortedCards;
+            setFilteredSortedCards(filtered);
         });
-    }, [inputValue, sortedCards, personalDetails]);
+    }, [inputValue, personalDetails, sortedCards]);
 
     const handleIssueCardPress = () => {
         if (isActingAsDelegate) {

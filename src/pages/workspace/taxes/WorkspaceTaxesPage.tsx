@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -159,41 +159,44 @@ function WorkspaceTaxesPage({
         if (!policy) {
             return [];
         }
-        return Object.entries(policy.taxRates?.taxes ?? {})
-            .map(([key, value]) => {
-                const canEditTaxRate = policy && canEditTaxRatePolicyUtils(policy, key);
+        return Object.entries(policy.taxRates?.taxes ?? {}).map(([key, value]) => {
+            const canEditTaxRate = policy && canEditTaxRatePolicyUtils(policy, key);
 
-                return {
-                    text: value.name,
-                    alternateText: textForDefault(key, value),
-                    keyForList: key,
-                    isSelected: !!selectedTaxesIDs.includes(key) && canSelectMultiple,
-                    isDisabledCheckbox: !canEditTaxRatePolicyUtils(policy, key),
-                    isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
-                    errors: value.errors ?? getLatestErrorFieldForAnyField(value),
-                    rightElement: (
-                        <Switch
-                            isOn={!value.isDisabled}
-                            disabled={!canEditTaxRate || value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                            accessibilityLabel={translate('workspace.taxes.actions.enable')}
-                            onToggle={(newValue: boolean) => updateWorkspaceTaxEnabled(newValue, key)}
-                        />
-                    ),
-                };
-            })
-            .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
+            return {
+                text: value.name,
+                alternateText: textForDefault(key, value),
+                keyForList: key,
+                isSelected: !!selectedTaxesIDs.includes(key) && canSelectMultiple,
+                isDisabledCheckbox: !canEditTaxRatePolicyUtils(policy, key),
+                isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
+                errors: value.errors ?? getLatestErrorFieldForAnyField(value),
+                rightElement: (
+                    <Switch
+                        isOn={!value.isDisabled}
+                        disabled={!canEditTaxRate || value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                        accessibilityLabel={translate('workspace.taxes.actions.enable')}
+                        onToggle={(newValue: boolean) => updateWorkspaceTaxEnabled(newValue, key)}
+                    />
+                ),
+            };
+        });
     }, [policy, textForDefault, selectedTaxesIDs, canSelectMultiple, translate, updateWorkspaceTaxEnabled]);
 
-    const filteredTaxesList = useMemo(() => {
-        if (!inputValue) {
-            return taxesList;
-        }
-        const lowerQuery = inputValue.toLowerCase();
-        return taxesList.filter((tax) => {
-            const taxName = tax.text?.toLowerCase() ?? '';
-            const taxAlternateText = tax.alternateText?.toLowerCase() ?? '';
-            return taxName.includes(lowerQuery) || taxAlternateText.includes(lowerQuery);
+    const [, startTransition] = useTransition();
+    const [filteredTaxesList, setFilteredTaxesList] = useState<ListItem[]>([]);
+
+    useEffect(() => {
+        startTransition(() => {
+            const normalizedSearchQuery = inputValue.trim().toLowerCase();
+            const filtered = normalizedSearchQuery
+                ? taxesList.filter((tax) => {
+                      const taxName = tax.text?.toLowerCase() ?? '';
+                      const taxAlternateText = tax.alternateText?.toLowerCase() ?? '';
+                      return taxName.includes(normalizedSearchQuery) || taxAlternateText.includes(normalizedSearchQuery);
+                  })
+                : taxesList;
+            setFilteredTaxesList(filtered.sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? '')));
         });
     }, [inputValue, taxesList]);
 

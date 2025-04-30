@@ -253,6 +253,14 @@ function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, per
     });
 }
 
+function filterCards(searchQuery: string, card: Card, personalDetails?: PersonalDetailsList) {
+    const cardTitle = card.nameValuePairs?.cardTitle?.toLowerCase() ?? '';
+    const lastFourPAN = card?.lastFourPAN?.toLowerCase() ?? '';
+    const accountLogin = personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login?.toLowerCase() ?? '';
+    const accountName = personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName?.toLowerCase() ?? '';
+    return cardTitle.includes(searchQuery) || lastFourPAN.includes(searchQuery) || accountLogin.includes(searchQuery) || accountName.includes(searchQuery);
+}
+
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, illustrations: IllustrationsType): IconAsset {
     const feedIcons = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: Illustrations.VisaCompanyCardDetailLarge,
@@ -619,4 +627,5 @@ export {
     isExpensifyCardFullySetUp,
     filterInactiveCards,
     getFundIdFromSettingsKey,
+    filterCards,
 };
