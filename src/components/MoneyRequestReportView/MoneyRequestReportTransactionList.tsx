@@ -129,8 +129,12 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         if (!prevTransactions || transactions.length === prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as string[];
         }
+
+        const lastInsertedTime = transactions.reduce((max, t) => (new Date(t.inserted ?? 0) > new Date(max ?? 0) ? t.inserted : max), transactions.at(0)?.inserted);
+
         return transactions
             .filter((transaction) => !prevTransactions.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID))
+            .filter((transaction) => transaction.inserted === lastInsertedTime)
             .map((transaction) => transaction.transactionID);
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
