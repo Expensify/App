@@ -24,7 +24,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
@@ -179,6 +179,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
                             setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                         }}
+                        isIOUReport={isIOUReport(report)}
                     />
                 </View>
             )}
