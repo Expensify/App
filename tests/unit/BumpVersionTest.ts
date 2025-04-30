@@ -1,7 +1,7 @@
 import fs from 'fs';
 import {vol} from 'memfs';
 import path from 'path';
-import {generateAndroidVersionCode, updateAndroid} from '@github/actions/javascript/bumpVersion/bumpVersion';
+import {generateAndroidVersionCode, updateAndroid} from '../../scripts/bumpVersion';
 
 const BUILD_GRADLE_PATH = path.resolve(__dirname, '../../android/app/build.gradle');
 const ANDROID_MANIFEST_PATH = path.resolve(__dirname, '../../Mobile-Expensify/Android/AndroidManifest.xml');
