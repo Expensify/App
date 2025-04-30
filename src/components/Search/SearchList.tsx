@@ -349,12 +349,10 @@ function SearchList(
     const overrideItemLayout = useCallback(
         (layout: {span?: number; size?: number}, item: SearchListItem) => {
             const height = getItemHeight(item);
-            if (layout) {
-                // Ensure height is a positive number before assigning, fallback to estimatedItemSize if <= 0
-                layout.size = height > 0 ? height : estimatedItemSize;
-            } else {
-                console.warn('SearchList: Layout object missing in overrideItemLayout for item:', item);
+            if (!layout) {
+                return;
             }
+            layout.size = height > 0 ? height : estimatedItemSize;
         },
         [getItemHeight, estimatedItemSize],
     );

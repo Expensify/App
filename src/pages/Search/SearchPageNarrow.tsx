@@ -1,7 +1,8 @@
 import React, {useCallback, useRef, useState} from 'react';
-import {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {clamp, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
