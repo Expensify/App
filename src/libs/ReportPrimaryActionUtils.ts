@@ -163,10 +163,16 @@ function isExportAction(report: Report, policy?: Policy) {
         return false;
     }
 
+    const reportActions = getAllReportActions(report.reportID);
+    const hasExportedIntegrationAction = Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION);
+    if (hasExportedIntegrationAction) {
+        return false;
+    }
+
     const connectedIntegration = getConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const hasFailedToExport = Object.values(getAllReportActions(report.reportID, (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE)).length > 0;
-    if (syncEnabled && !hasFailedToExport) {
+    const hasFailedExportedAction = Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE);
+    if (syncEnabled && !hasFailedExportedAction) {
         return false;
     }
 
