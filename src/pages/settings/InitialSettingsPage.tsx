@@ -137,8 +137,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const freeTrialText = getFreeTrialText(policies);
     const shouldOpenBookACall = tryNewDot?.classicRedirect?.dismissed === false;
 
-    const isScreenFocused = useIsAccountSettingsRouteActive(shouldUseNarrowLayout);
-
     useEffect(() => {
         openInitialSettingsPage();
         confirmReadyToOpenApp();
