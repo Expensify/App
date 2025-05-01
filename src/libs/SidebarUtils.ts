@@ -346,12 +346,13 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
+    isReportArchived = false,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
     const errors = getAllReportErrors(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
 
-    if (isArchivedReportWithID(report.reportID)) {
+    if (isReportArchived) {
         return null;
     }
 
@@ -395,8 +396,14 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     return null;
 }
 
-function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, transactionViolations?: OnyxCollection<TransactionViolation[]>) {
-    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations);
+function shouldShowRedBrickRoad(
+    report: Report,
+    reportActions: OnyxEntry<ReportActions>,
+    hasViolations: boolean,
+    transactionViolations?: OnyxCollection<TransactionViolation[]>,
+    isReportArchived = false,
+) {
+    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isReportArchived);
 }
 
 /**
@@ -488,7 +495,7 @@ function getOptionData({
     result.isMoneyRequestReport = isMoneyRequestReport(report);
     result.shouldShowSubscript = shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
-    result.brickRoadIndicator = shouldShowRedBrickRoad(report, reportActions, hasViolations, transactionViolations) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    result.brickRoadIndicator = shouldShowRedBrickRoad(report, reportActions, hasViolations, transactionViolations, result.private_isArchived) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
