@@ -645,7 +645,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                         previousMessage: oldIOUAction.message,
                         message: [
                             {
-                                type: 'COMMENT',
+                                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                                 html: '',
                                 text: '',
                                 isEdited: true,
