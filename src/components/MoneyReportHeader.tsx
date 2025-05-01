@@ -559,6 +559,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
                 exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
             },
+            additionalIconStyles: styles.integrationIcon,
             displayInDefaultIconColor: true,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED]: {
