@@ -4102,9 +4102,7 @@ function getTransactionReportName({
     const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
-    if (isTrackExpenseAction(reportAction)) {
-        return translateLocal('iou.threadTrackReportName', {formattedAmount, comment});
-    }
+
     return translateLocal('iou.threadExpenseReportName', {formattedAmount, comment});
 }
 
