@@ -5000,6 +5000,8 @@ const translations = {
         scheduleADemo: 'Schedule demo',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
+        registerForWebinar: 'Register for webinar',
+        onboardingHelp: 'Onboarding help',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',

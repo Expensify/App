@@ -5054,6 +5054,8 @@ const translations = {
         scheduleADemo: 'Programa una demostración',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
+        registerForWebinar: 'Registrarse para el seminario web',
+        onboardingHelp: 'Ayuda de incorporación',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
