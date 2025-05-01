@@ -43,7 +43,7 @@ import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import Performance from './Performance';
 import Permissions from './Permissions';
-import {getDisplayNameOrDefault, getPersonalDetailsByIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {canSendInvoiceFromWorkspace, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
 import {
