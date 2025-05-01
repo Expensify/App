@@ -10269,16 +10269,28 @@ function canBeExported(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && isCorrectState;
 }
 
+// function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
+//     if (!reportActions) {
+//         return false;
+//     }
+
+//     if (Array.isArray(reportActions)) {
+//         return reportActions.some((action) => isExportIntegrationAction(action));
+//     }
+
+//     return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
+// }
+
 function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     if (!reportActions) {
         return false;
     }
 
     if (Array.isArray(reportActions)) {
-        return reportActions.some((action) => isExportIntegrationAction(action));
+        return reportActions.some((action) => (isExportIntegrationAction(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD));
     }
 
-    return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
+    return Object.values(reportActions).some((action) => (isExportIntegrationAction(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD));
 }
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
