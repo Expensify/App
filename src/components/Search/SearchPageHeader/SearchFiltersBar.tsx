@@ -9,15 +9,17 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
+import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchGroupBy, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
-import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
+import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -186,6 +188,14 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         [groupBy, queryJSON, status, type],
     );
 
+    const datePickerComponent = useCallback(({closeOverlay}: PopoverComponentProps) => {
+        return <DateSelectPopup />;
+    }, []);
+
+    const userPickerComponent = useCallback(({closeOverlay}: PopoverComponentProps) => {
+        return <UserSelectPopup />;
+    }, []);
+
     const filters = useMemo(() => {
         const typeValue = typeOptions.find((option) => option.value === type) ?? null;
         const statusValue = getStatusOptions(type, groupBy).filter((option) => status.includes(option.value));
@@ -201,46 +211,27 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 PopoverComponent: statusComponent,
                 value: statusValue.map((option) => translate(option.translation)),
             },
-            // {
-            //     label: translate('common.status'),
-            //     value: (() => {
-            //         if (Array.isArray(status)) {
-            //             return getStatusOptions(type, groupBy).filter((option) => status.includes(option.value as any));
-            //         }
-            //         return [getStatusOptions(type, groupBy).find((option) => option.value === status)];
-            //     })(),
-            //     options: getStatusOptions(type, groupBy),
-            //     PopoverComponent: MultiSelectPopup,
-            //     onChange: (value: SearchStatus) => {
-            //         const query = buildSearchQueryString({...queryJSON, status: value});
-            //         Navigation.setParams({q: query});
-            //     },
-            // },
-            // {
-            //     label: translate('common.date'),
-            //     value: null,
-            //     options: [],
-            //     PopoverComponent: DateSelectPopup,
-            //     onChange: () => {},
-            // },
-            // {
-            //     label: translate('common.from'),
-            //     value: null,
-            //     options: [],
-            //     PopoverComponent: UserSelectPopup,
-            //     onChange: () => {},
-            // },
+            {
+                label: translate('common.date'),
+                PopoverComponent: datePickerComponent,
+                value: null,
+            },
+            {
+                label: translate('common.from'),
+                PopoverComponent: userPickerComponent,
+                value: null,
+            },
         ];
 
         return filterList;
-    }, [type, groupBy, translate, typeComponent, statusComponent, status]);
+    }, [type, groupBy, translate, typeComponent, statusComponent, datePickerComponent, userPickerComponent, status]);
 
     if (hasErrors) {
         return null;
     }
 
     if (shouldShowFiltersBarLoading) {
-        return <SearchStatusSkeleton shouldAnimate />;
+        return <SearchFiltersSkeleton shouldAnimate />;
     }
 
     const selectionButtonText = isExportMode ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});

@@ -5059,6 +5059,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchFiltersBarContainer: {
+            marginTop: 8,
             flexDirection: 'row',
             alignItems: 'center',
         },

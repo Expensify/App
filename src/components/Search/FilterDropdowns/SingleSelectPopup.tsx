@@ -14,9 +14,16 @@ type SingleSelectItem<T> = {
 };
 
 type SingleSelectPopupProps<T> = {
+    /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
+
+    /** The currently selected item */
     value: SingleSelectItem<T> | null;
+
+    /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
+
+    /** Function to call when changes are applied */
     onChange: (item: SingleSelectItem<T> | null) => void;
 };
 
