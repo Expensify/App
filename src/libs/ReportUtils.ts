@@ -1933,6 +1933,7 @@ function isArchivedNonExpenseReportWithID(report?: OnyxInputOrEntry<Report>, isR
 
 /**
  * Whether the report with the provided reportID is an archived report
+ * @deprecated Use isArchivedReport instead and get the rNVPs from Onyx first
  */
 function isArchivedReportWithID(reportOrID?: string | SearchReport) {
     if (!reportOrID) {
