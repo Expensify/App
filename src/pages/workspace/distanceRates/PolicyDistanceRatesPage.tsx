@@ -244,7 +244,11 @@ function PolicyDistanceRatesPage({
         if (selectedDistanceRates.length > 0) {
             setSelectedDistanceRates([]);
         } else {
-            setSelectedDistanceRates(Object.keys(selectableRates));
+            setSelectedDistanceRates(
+                Object.entries(selectableRates)
+                    .filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    .map(([key]) => key),
+            );
         }
     };
 
