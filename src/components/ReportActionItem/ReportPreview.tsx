@@ -2,6 +2,7 @@ import truncate from 'lodash/truncate';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
@@ -20,7 +21,6 @@ import Text from '@components/Text';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
@@ -203,6 +203,7 @@ function ReportPreview({
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const {totalDisplaySpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
     const [reports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
+
     const iouSettled = isSettled(iouReportID, isOnSearch ? reports : undefined) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const previewMessageOpacity = useSharedValue(1);
     const previewMessageStyle = useAnimatedStyle(() => ({
@@ -257,6 +258,8 @@ function ReportPreview({
 
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`, {canBeMissing: true});
 
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
@@ -512,8 +515,8 @@ function ReportPreview({
         if (isPaidAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
-        return getReportPreviewAction(violations, iouReport, policy, transactions);
-    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions]);
+        return getReportPreviewAction(violations, iouReport, policy, transactions, reportNameValuePairs);
+    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, reportNameValuePairs]);
 
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
