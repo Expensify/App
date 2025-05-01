@@ -351,7 +351,7 @@ type MenuItemBaseProps = {
     onEducationTooltipPress?: () => void;
 
     /** Whether the tooltip should hide on scroll */
-    shouldHideOnScroll?: boolean
+    shouldHideOnScroll?: boolean;
 
     shouldShowLoadingSpinnerIcon?: boolean;
 
