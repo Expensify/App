@@ -8,7 +8,7 @@ function useIsAccountSettingsRouteActive(isNarrowLayout: boolean) {
     const navigationState = useRootNavigationState((x) => x);
 
     const isSettingsSplitNavigator = navigationState?.routes.at(-1)?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
-    const isAccountSettings = focusedRoute?.name === SCREENS.SETTINGS.ROOT || focusedRoute?.name === SCREENS.SETTINGS.PROFILE.ROOT;
+    const isAccountSettings = focusedRoute?.name === SCREENS.SETTINGS.ROOT;
 
     return isNarrowLayout ? isAccountSettings && isSettingsSplitNavigator : isSettingsSplitNavigator;
 }
