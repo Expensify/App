@@ -116,7 +116,7 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction, User} from '@src/types/onyx';
+import type {Account, Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
@@ -159,7 +159,7 @@ type ShouldShow = (args: {
     isProduction: boolean;
     moneyRequestAction: ReportAction | undefined;
     areHoldRequirementsMet: boolean;
-    user: OnyxEntry<User>;
+    account: OnyxEntry<Account>;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -757,7 +757,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: true,
         textTranslateKey: 'debug.debug',
         icon: Expensicons.Bug,
-        shouldShow: ({type, user}) => [CONST.CONTEXT_MENU_TYPES.REPORT_ACTION, CONST.CONTEXT_MENU_TYPES.REPORT].some((value) => value === type) && !!user?.isDebugModeEnabled,
+        shouldShow: ({type, account}) => [CONST.CONTEXT_MENU_TYPES.REPORT_ACTION, CONST.CONTEXT_MENU_TYPES.REPORT].some((value) => value === type) && !!account?.isDebugModeEnabled,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (reportAction) {
                 Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, reportAction.reportActionID));
