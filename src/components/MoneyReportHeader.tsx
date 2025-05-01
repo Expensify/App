@@ -228,10 +228,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     // Check if the report state imply approval is needed by the current user
     const wasSubmittedToCurrentUser = isProcessingReport(moneyRequestReport) && moneyRequestReport?.managerID === session?.accountID;
-    
+
     // Determine if the approval message is stale by seeing if the button is missing when it should be needed
     const isStaleApprovalMessage = wasSubmittedToCurrentUser && !shouldShowApproveButton;
-    
+
     const shouldShowNextStep = isFromPaidPolicy && !!optimisticNextStep?.message?.length && !shouldShowStatusBar && !isStaleApprovalMessage;
     const bankAccountRoute = getBankAccountRoute(chatReport);
     const formattedAmount = convertToDisplayString(reimbursableSpend, moneyRequestReport?.currency);
