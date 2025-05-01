@@ -36,6 +36,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import useIsAccountSettingsRouteActive from '@libs/Navigation/helpers/useRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
@@ -111,11 +112,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {canUseLeftHandBar} = usePermissions();
 
+    const isScreenFocused = useIsAccountSettingsRouteActive(shouldUseNarrowLayout);
+
     const {
         renderProductTrainingTooltip: renderWorkspaceSettingsTooltip,
         shouldShowProductTrainingTooltip: shouldShowWorkspaceSettingsTooltip,
         hideProductTrainingTooltip: hideWorkspaceSettingsTooltip,
-    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACES_SETTINGS, true);
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACES_SETTINGS, isScreenFocused);
 
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
