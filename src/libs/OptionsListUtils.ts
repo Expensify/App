@@ -42,7 +42,7 @@ import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import Performance from './Performance';
 import Permissions from './Permissions';
-import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {canSendInvoiceFromWorkspace, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
 import {
@@ -50,9 +50,11 @@ import {
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
     getLeaveRoomMessage,
+    getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReportActionHtml,
     getReportActionMessageText,
     getSortedReportActions,
     getUpdateRoomDescriptionMessage,
@@ -634,7 +636,7 @@ function getAlternateText(option: OptionData, {showChatPreviewLine = false, forc
  * Searches for a match when provided with a value
  */
 function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isReportChatRoom = false): boolean {
-    const searchWords = new Set(searchValue.replace(/,/g, ' ').split(' '));
+    const searchWords = new Set(searchValue.replace(/,/g, ' ').split(/\s+/));
     const valueToSearch = searchText?.replace(new RegExp(/&nbsp;/g), '');
     let matching = true;
     searchWords.forEach((word) => {
@@ -680,6 +682,10 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
         return;
     }
     return getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastAction))?.reportID;
+}
+
+function hasHiddenDisplayNames(accountIDs: number[]) {
+    return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
 /**
@@ -807,6 +813,13 @@ function getLastMessageTextForReport(
     if (reportID && !isArchivedReport(reportNameValuePairs) && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
     }
+
+    // When the last report action has unkown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
+    // so we reconstruct the last message text of the report from the last report action.
+    if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction))) {
+        lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));
+    }
+
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 

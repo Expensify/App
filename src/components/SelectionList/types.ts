@@ -568,9 +568,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
 
-    /** Whether the layout is narrow */
-    isSmallScreenWidth?: boolean;
-
     /** Callback to fire when the text input changes */
     onArrowFocus?: (focusedItem: TItem) => void;
 
@@ -729,6 +726,8 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
+type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType;
+
 export type {
     BaseListItemProps,
     SelectionListProps,
@@ -751,5 +750,6 @@ export type {
     UserListItemProps,
     ReportActionListItemType,
     ChatListItemProps,
+    SearchListItem,
     SortableColumnName,
 };

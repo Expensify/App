@@ -6177,10 +6177,10 @@ const translations = {
         },
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
-        overAutoApprovalLimit: ({formattedLimit}: ViolationsOverAutoApprovalLimitParams) =>
-            `Importe supera el límite de aprobación automática${formattedLimit ? ` de ${formattedLimit}` : ''}`,
+        overAutoApprovalLimit: ({formattedLimit}: ViolationsOverAutoApprovalLimitParams) => `El importe supera${formattedLimit ? ` de ${formattedLimit}/viaje` : ''}`,
         overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Importe supera el límite para la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
+        overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/viaje` : ''}`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Escaneo de recibo incompleto. Por favor, verifica los detalles manualmente.',
@@ -6743,14 +6743,14 @@ const translations = {
             part4: 'chatea sobre los gastos.',
         },
         workspaceChatTooltip: {
-            part1: 'Envía gastos',
-            part2: ' y chatea con',
-            part3: '\naprobadores aquí!',
+            part1: 'Chatea con ',
+            part2: 'los aprobadores',
         },
         globalCreateTooltip: {
             part1: 'Crea gastos',
-            part2: ', comienza a chatear,',
-            part3: '\ny mucho más!',
+            part2: ', empieza a chatear',
+            part3: '\ny más.',
+            part4: ' ¡Pruébalo!',
         },
         expenseReportsFilter: {
             part1: '¡Bienvenido! Aquí encontrarás todos los',
