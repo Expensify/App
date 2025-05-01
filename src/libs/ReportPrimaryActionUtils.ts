@@ -165,7 +165,7 @@ function isExportAction(report: Report, policy?: Policy) {
 
     const connectedIntegration = getConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const hasFailedToExport = Object.values(getAllReportActions(report.reportID, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE)).length > 0;
+    const hasFailedToExport = Object.values(getAllReportActions(report.reportID, (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE)).length > 0;
     if (syncEnabled && !hasFailedToExport) {
         return false;
     }
