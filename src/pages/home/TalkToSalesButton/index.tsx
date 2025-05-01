@@ -15,10 +15,10 @@ type TalkToSalesButtonProps = {
 
 function TalkToSalesButton({shouldUseNarrowLayout, reportID}: TalkToSalesButtonProps) {
     const {translate} = useLocalize();
-    const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES);
+    const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES, {canBeMissing: true});
     const styles = useThemeStyles();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
 
     if (!reportID || !accountID) {
         return;

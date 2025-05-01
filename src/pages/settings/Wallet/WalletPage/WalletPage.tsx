@@ -62,9 +62,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}, canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const isUserValidated = account?.validated ?? false;
-    const isActingAsDelegate =  !!account?.delegatedAccess?.delegate || false;
+    const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isUserValidated = userAccount?.validated ?? false;
+    const isActingAsDelegate = !!userAccount?.delegatedAccess?.delegate || false;
 
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
