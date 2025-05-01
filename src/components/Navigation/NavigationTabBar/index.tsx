@@ -53,7 +53,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {orderedReportIDs} = useSidebarOrderedReportIDs();
-    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]),
@@ -77,7 +77,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const {canUseLeftHandBar} = usePermissions();
 
     // On a wide layout DebugTabView should be rendered only within the navigation tab bar displayed directly on screens.
-    const shouldRenderDebugTabViewOnWideLayout = !!user?.isDebugModeEnabled && !isTopLevelBar;
+    const shouldRenderDebugTabViewOnWideLayout = !!account?.isDebugModeEnabled && !isTopLevelBar;
 
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, reports));
@@ -325,7 +325,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
 
     return (
         <>
-            {!!user?.isDebugModeEnabled && (
+            {!!account?.isDebugModeEnabled && (
                 <DebugTabView
                     selectedTab={selectedTab}
                     chatTabBrickRoad={chatTabBrickRoad}

@@ -1,4 +1,8 @@
 /** Model of user data */
+/**
+ * @deprecated This Model is currently being deprecated in favor of using the Account Key. Please use that instead.
+ * See the following Github issue for more info: https://github.com/Expensify/App/issues/59277
+ */
 type User = {
     /** Whether or not the user is subscribed to news updates */
     isSubscribedToNewsletter: boolean;
@@ -37,4 +41,5 @@ type User = {
     hasAccessibleDomainPolicies?: boolean;
 };
 
+// eslint-disable-next-line deprecation/deprecation
 export default User;
