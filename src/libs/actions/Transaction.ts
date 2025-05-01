@@ -641,7 +641,22 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`,
                 value: {
-                    [oldIOUAction.reportActionID]: null,
+                    [oldIOUAction.reportActionID]: {
+                        previousMessage: oldIOUAction.message,
+                        message: [
+                            {
+                                type: 'COMMENT',
+                                html: '',
+                                text: '',
+                                isEdited: true,
+                                isDeletedParentAction: false,
+                            },
+                        ],
+                        originalMessage: {
+                            IOUTransactionID: null,
+                        },
+                        errors: undefined,
+                    },
                 },
             },
         );
