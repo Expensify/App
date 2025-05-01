@@ -1,5 +1,5 @@
 ---
-title: Rippling-Integration.md
+title: Rippling
 description: Learn how to sync employee and expense data between Expensify and Rippling for seamless management.
 keywords: [Rippling, Expensify integration, employee sync, expense reports, payroll]
 ---

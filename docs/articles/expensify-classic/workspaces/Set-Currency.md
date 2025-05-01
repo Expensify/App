@@ -3,8 +3,8 @@ title: Setting Up Report Currency
 description: Define a currency in your workspace's settings.
 keywords: [Expensify Classic, workspace currency, expense conversion, report output currency]
 ---
-<div id="new-expensify" markdown="1">
-
+<div id="expensify-classic" markdown="1">
+  
 As a workspace admin, you can choose a default currency for your employees' expense reports, and Expensify will automatically convert any expenses into that currency.  
 
 **Key Considerations:**
@@ -14,34 +14,37 @@ As a workspace admin, you can choose a default currency for your employees' expe
 
 ---
 
-# Select or Update the Currency for a Workspace
+# Select or Update the Currency on a Workspace
 
 ## As an Admin on a Company Workspace
+
 You must be a Workspace Admin to update the currency settings for a company workspace. 
 
-1. Sign into your Expensify web account.
-2. Go to **Settings > Workspaces > Group > _[Workspace Name]_ > Reports**.
-3. Adjust the **Report Output Currency**.
+1. Sign in to your Expensify web account.
+2. Go to **Settings > Workspace > [Workspace Name] > Overview > Default currency**.
+3. Adjust the **Report Output Currency** using the drop-down menu.
 
 ## On an Individual Workspace
 
-1. Sign into your Expensify web account.
-2. Go to **Settings > Workspaces > Individual > _[Workspace Name]_ > Reports**.
-3. Adjust the **Report Output Currency**.
+1. Sign in to your Expensify web account.
+2. Go to **Settings > Workspaces > [Workspace Name] > Overview > Report Currency**.
+3. Adjust the **Report Output Currency** using the drop-down menu.
 
 **Note:** The currency setting on an individual workspace is overridden when a report is submitted on a company workspace.
 
 ---
 
 # Currency Conversion Rates
+
 - Expensify uses **Open Exchange Rates** to convert expenses.
 - Expenses are converted using the **daily average rate** on the date of purchase.
-- If the markets are closed (e.g., weekends), the most recent available rate is used.
+- If the markets are closed (e.g., on weekends), the most recent available rate is used.
 - Future-dated expenses will reflect the latest available exchange rate until the transaction occurs.
 
 ---
 
 # Managing Multiple Currencies Across Locations
+
 If your employees submit reports in various currencies, the best approach is to:
 
 - **Create separate workspaces** for different regions or currencies.
