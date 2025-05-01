@@ -7554,6 +7554,7 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: O
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
     const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+    console.log('timddd', reportNameValuePairs);
 
     if (!isArchivedReport(reportNameValuePairs)) {
         if (wasActionTakenByCurrentUser(parentReportAction) && isTransactionThread(parentReportAction)) {

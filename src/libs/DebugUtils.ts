@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment} from '@src/types/onyx/Transaction';
 import {getLinkedTransactionID} from './ReportActionsUtils';
-import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
+import {getReasonAndReportActionThatRequiresAttention, getReportNameValuePairs, isArchivedReport, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
 import {getTransactionID as TransactionUtilsGetTransactionID} from './TransactionUtils';
 
@@ -1356,7 +1356,12 @@ type RBRReasonAndReportAction = {
  * Gets the report action that is causing the RBR to show up in LHN
  */
 function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean): RBRReasonAndReportAction | null {
-    const {reason, reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations) ?? {};
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
+    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+
+    const {reason, reportAction} =
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isArchivedReport(reportNameValuePairs)) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};
