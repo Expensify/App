@@ -6245,7 +6245,7 @@ const translations = {
             noThanks: 'No thanks',
         },
         outstandingFilter: {
-            part1: 'Filter for expenses that ',
+            part1: 'Filter for expenses\nthat ',
             part2: 'need approval',
         },
         settingsTab: {

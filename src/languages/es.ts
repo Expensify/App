@@ -6770,16 +6770,16 @@ const translations = {
             noThanks: 'No, gracias',
         },
         outstandingFilter: {
-            part1: 'Filter for expenses that ',
-            part2: 'need approval',
+            part1: 'Filtra los gastos\nque ',
+            part2: 'necesitan aprobación',
         },
         settingsTab: {
-            part1: 'Explore your ',
-            part2: 'workspace and account settings',
+            part1: 'Explora ',
+            part2: 'tu espacio de trabajo y la configuración de tu cuenta',
         },
         workspacesSettings: {
-            part1: 'Explore your ',
-            part2: 'workspaces',
+            part1: 'Ver tus ',
+            part2: 'espacios de trabajo',
         },
     },
     discardChangesConfirmation: {
