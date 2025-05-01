@@ -1271,8 +1271,20 @@ function doesReportHaveVisibleActions(reportID: string, canUserPerformWriteActio
     return visibleReportActionsWithoutTaskSystemMessage.length > 0;
 }
 
-function getAllReportActions(reportID: string | undefined): ReportActions {
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {};
+function getAllReportActions(reportID: string | undefined, selector?: (action: ReportAction) => boolean): ReportActions {
+    const actions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {};
+    if (!selector) {
+        return actions;
+    }
+
+    const filteredActions: ReportActions = {};
+    for (const [reportActionID, action] of Object.entries(actions)) {
+        if (selector(action)) {
+            filteredActions[reportActionID] = action;
+        }
+    }
+
+    return filteredActions;
 }
 
 /**
