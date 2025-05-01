@@ -174,7 +174,7 @@ jobs:
 
       - name: Push changes
         run: |
-          if [[ '${{ steps.cherryPick.outputs.HAS_CONFLICTS && 'true' || 'false' }}' == 'true' ]]; then
+          if [[ '${{ steps.cherryPick.outputs.HAS_CONFLICTS }}' == 'true' ]]; then
             git checkout -b ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
             git push --set-upstream origin ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
           else
@@ -194,7 +194,7 @@ jobs:
           fi
 
       - name: Create Pull Request to manually finish CP
-        if: fromJSON(steps.cherryPick.outputs.HAS_CONFLICTS)
+        if: steps.cherryPick.outputs.HAS_CONFLICTS == 'true'
         id: createPullRequest
         run: |
           AUTHOR_CHECKLIST=$(sed -n '/### PR Author Checklist/,$p' .github/PULL_REQUEST_TEMPLATE.md)
@@ -237,7 +237,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
       - name: Add assignees to conflict PRs
-        if: fromJSON(steps.cherryPick.outputs.HAS_CONFLICTS)
+        if: steps.cherryPick.outputs.HAS_CONFLICTS == 'true'
         run: |
           gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}"
           ORIGINAL_PR_AUTHOR="$(gh pr view ${{ inputs.PULL_REQUEST_URL }} --json author --jq .author.login)"
