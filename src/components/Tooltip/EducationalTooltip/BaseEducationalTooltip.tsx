@@ -59,12 +59,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
             const availableWidthForRight = dimensions.width - (right - offset);
 
             // Hide if the element scrolled out vertically or horizontally
-            if (
-                availableHeightForTop < 0 ||
-                availableHeightForBottom < 0 ||
-                availableWidthForLeft < 0 ||
-                availableWidthForRight < 0
-            ) {
+            if (availableHeightForTop < 0 || availableHeightForBottom < 0 || availableWidthForLeft < 0 || availableWidthForRight < 0) {
                 hideTooltip();
             } else {
                 showTooltip();
