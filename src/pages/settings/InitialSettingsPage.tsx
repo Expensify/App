@@ -28,6 +28,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -115,6 +116,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         shouldShowProductTrainingTooltip: shouldShowWorkspaceSettingsTooltip,
         hideProductTrainingTooltip: hideWorkspaceSettingsTooltip,
     } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACES_SETTINGS, true);
+
+    // Controls the visibility of the educational tooltip based on user scrolling.
+    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
+    const triggerScrollEvent = useScrollEventEmitter();
 
     const shouldDisplayLHB = !!canUseLeftHandBar && !shouldUseNarrowLayout;
 
@@ -407,6 +412,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 tooltipShiftHorizontal={variables.workspacesSettingsTooltipShiftHorizontal}
                                 tooltipShiftVertical={variables.workspacesSettingsTooltipShiftVertical}
                                 tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
+                                shouldHideOnScroll
                             />
                         );
                     })}
@@ -476,8 +482,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 return;
             }
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+            triggerScrollEvent();
         },
-        [route, saveScrollOffset],
+        [route, saveScrollOffset, triggerScrollEvent],
     );
 
     useLayoutEffect(() => {
