@@ -384,6 +384,8 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
+type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
@@ -794,6 +796,7 @@ export type {
     TransactionListItemProps,
     TransactionListItemType,
     UserListItemProps,
+    UserSelectionListItemProps,
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,

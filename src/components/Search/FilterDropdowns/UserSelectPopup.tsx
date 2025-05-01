@@ -4,7 +4,7 @@ import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -130,7 +130,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             headerMessage={headerMessage}
             sections={sections}
             containerStyle={[styles.pt4, styles.mh65vh]}
-            ListItem={UserListItem}
+            ListItem={UserSelectionListItem}
             showScrollIndicator={false}
             textInputLabel={translate('selectionList.searchForSomeone')}
             textInputValue={searchTerm}
