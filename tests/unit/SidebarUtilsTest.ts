@@ -606,6 +606,7 @@ describe('SidebarUtils', () => {
                     lastModified: '2025-05-01 13:23:25.209',
                     mentionedAccountIDs: [mentionedAccountID],
                 },
+                pendingAction: undefined,
                 previousMessage: undefined,
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 actorAccountID: 119086,

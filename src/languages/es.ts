@@ -6752,6 +6752,17 @@ const translations = {
             part3: '\ny más.',
             part4: ' ¡Pruébalo!',
         },
+        GBRRBRChat: {
+            part1: 'Verás 🟢 en ',
+            part2: 'las acciones a realizar',
+            part3: '\ny 🔴 en ',
+            part4: 'los errores que debes revisar.',
+        },
+        accountSwitcher: {
+            part1: 'Accede a tus ',
+            part2: 'cuentas copiloto',
+            part3: ' aquí',
+        },
         expenseReportsFilter: {
             part1: '¡Bienvenido! Aquí encontrarás todos los',
             part2: '\ninformes de tu empresa',
