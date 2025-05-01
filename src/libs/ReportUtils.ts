@@ -1939,21 +1939,6 @@ function isArchivedNonExpenseReportWithID(report?: OnyxInputOrEntry<Report>, isR
 }
 
 /**
- * Whether the report with the provided reportID is an archived report
- * @deprecated Use isArchivedReport instead and get the rNVPs from Onyx first
- */
-function isArchivedReportWithID(reportOrID?: string | SearchReport) {
-    if (!reportOrID) {
-        return false;
-    }
-
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = typeof reportOrID === 'string' ? getReportNameValuePairs(reportOrID) : getReportNameValuePairs(reportOrID.reportID);
-    return isArchivedReport(reportNameValuePairs);
-}
-
-/**
  * Whether the provided report is a closed report
  */
 function isClosedReport(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
@@ -10657,7 +10642,6 @@ export {
     isArchivedNonExpenseReport,
     isArchivedReport,
     isArchivedNonExpenseReportWithID,
-    isArchivedReportWithID,
     isClosedReport,
     isCanceledTaskReport,
     isChatReport,
