@@ -928,6 +928,7 @@ const translations = {
         share: 'Share',
         participants: 'Participants',
         createExpense: 'Create expense',
+        addExpense: 'Add expense',
         chooseRecipient: 'Choose recipient',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Create ${amount} expense`,
         confirmDetails: 'Confirm details',
@@ -6224,14 +6225,14 @@ const translations = {
             part4: 'chat about expenses.',
         },
         workspaceChatTooltip: {
-            part1: 'Submit expenses',
-            part2: ' and chat with',
-            part3: '\napprovers here!',
+            part1: 'Chat with ',
+            part2: 'approvers',
         },
         globalCreateTooltip: {
             part1: 'Create expenses',
             part2: ', start chatting,',
-            part3: '\nand more!',
+            part3: '\nand more.',
+            part4: ' Try it out!',
         },
         expenseReportsFilter: {
             part1: 'Welcome! Find all of your',

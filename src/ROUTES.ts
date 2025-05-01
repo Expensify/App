@@ -946,6 +946,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/invite-message',
         getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite-message`, backTo)}` as const,
     },
+    WORKSPACE_INVITE_MESSAGE_ROLE: {
+        route: 'settings/workspaces/:policyID/invite-message/role',
+        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite-message/role`, backTo)}` as const,
+    },
     WORKSPACE_OVERVIEW: {
         route: 'settings/workspaces/:policyID/overview',
         getRoute: (policyID: string | undefined, backTo?: string) => {
@@ -1322,7 +1326,8 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: {
         route: 'settings/workspaces/:policyID/connections/quickbooks-online/advanced/autosync/accounting-method',
-        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync/accounting-method` as const,
+        getRoute: (policyID: string | undefined, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync/accounting-method` as const, backTo),
     },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
@@ -2280,11 +2285,11 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync/accounting-method',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD route');
             }
-            return `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const;
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
