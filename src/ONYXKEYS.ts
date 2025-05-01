@@ -1009,7 +1009,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
     [ONYXKEYS.COUNTRY_CODE]: number;
     [ONYXKEYS.COUNTRY]: string;
-    [ONYXKEYS.USER]: OnyxTypes.User;
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
