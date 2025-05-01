@@ -123,7 +123,7 @@ const selfGuidedTourTask: OnboardingTask = {
 
 const getTestDriveTaskName = (testDriveURL?: string) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive');
 const testDriveTask: OnboardingTask = {
-    type: 'viewTour',
+    type: 'testDrive',
     autoCompleted: false,
     mediaAttributes: {},
     title: ({testDriveURL}) => getTestDriveTaskName(testDriveURL),
