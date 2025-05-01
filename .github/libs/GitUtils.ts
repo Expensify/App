@@ -243,7 +243,7 @@ async function getPullRequestsMergedBetween(fromTag: string, toTag: string) {
     console.log(`[git log] Found ${gitCommitList.length} commits.`);
     console.error(`[git log] Parsed PRs: ${gitLogPullRequestNumbers.join(', ')}`);
 
-    return apiPullRequestNumbers;
+    return gitLogPullRequestNumbers;
 }
 
 export default {

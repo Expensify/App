@@ -65,7 +65,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         // Log the PRs that were filtered out
         const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
         if (removedPRs.length > 0) {
-            console.log(`Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')}`);
+            console.log(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
         }
 
         // Next, we generate the checklist body

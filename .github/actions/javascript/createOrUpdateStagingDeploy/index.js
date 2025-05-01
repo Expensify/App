@@ -11577,7 +11577,7 @@ async function run() {
         // Log the PRs that were filtered out
         const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
         if (removedPRs.length > 0) {
-            console.log(`Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')}`);
+            console.log(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
         }
         // Next, we generate the checklist body
         let checklistBody = '';
@@ -11952,7 +11952,7 @@ async function getPullRequestsMergedBetween(fromTag, toTag) {
     const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
     console.log(`[git log] Found ${gitCommitList.length} commits.`);
     console.error(`[git log] Parsed PRs: ${gitLogPullRequestNumbers.join(', ')}`);
-    return apiPullRequestNumbers;
+    return gitLogPullRequestNumbers;
 }
 exports["default"] = {
     getPreviousExistingTag,

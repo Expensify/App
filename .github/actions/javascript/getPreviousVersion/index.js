@@ -11835,7 +11835,7 @@ async function getPullRequestsMergedBetween(fromTag, toTag) {
     const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
     console.log(`[git log] Found ${gitCommitList.length} commits.`);
     console.error(`[git log] Parsed PRs: ${gitLogPullRequestNumbers.join(', ')}`);
-    return apiPullRequestNumbers;
+    return gitLogPullRequestNumbers;
 }
 exports["default"] = {
     getPreviousExistingTag,
