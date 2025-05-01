@@ -92,6 +92,7 @@ function sanitizeSearchValue(str: string) {
 /**
  * @private
  * Returns date filter value for QueryString.
+ * JACK_TODO
  */
 function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, filterKey: SearchDateFilterKeys) {
     const dateBefore = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`];

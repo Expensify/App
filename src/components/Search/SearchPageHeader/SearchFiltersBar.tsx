@@ -137,12 +137,14 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
 
-    const openAdvancedFilters = useCallback(() => {
-        const filterFormValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
-        updateAdvancedFilters(filterFormValues);
-
-        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+    const filterFormValues = useMemo(() => {
+        return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
+
+    const openAdvancedFilters = useCallback(() => {
+        updateAdvancedFilters(filterFormValues);
+        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+    }, [filterFormValues]);
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
@@ -188,19 +190,22 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         [groupBy, queryJSON, status, type],
     );
 
-    const datePickerComponent = useCallback(({closeOverlay}: PopoverComponentProps) => {
-        return (
-            <DateSelectPopup
-                closeOverlay={closeOverlay}
-                value={{
-                    after: null,
-                    before: null,
-                    on: null,
-                }}
-                onChange={() => {}}
-            />
-        );
-    }, []);
+    const datePickerComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            return (
+                <DateSelectPopup
+                    closeOverlay={closeOverlay}
+                    value={{
+                        after: filterFormValues.dateAfter ?? null,
+                        before: filterFormValues.dateBefore ?? null,
+                        on: null,
+                    }}
+                    onChange={() => {}}
+                />
+            );
+        },
+        [filterFormValues],
+    );
 
     const userPickerComponent = useCallback(({closeOverlay}: PopoverComponentProps) => {
         return <UserSelectPopup closeOverlay={closeOverlay} />;

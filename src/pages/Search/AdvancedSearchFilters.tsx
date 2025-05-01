@@ -169,16 +169,6 @@ const baseFilterConfig = {
         description: 'workspace.common.workspace' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_WORKSPACE,
     },
-    status: {
-        getTitle: getFilterDisplayTitle,
-        description: 'search.filters.status' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
-    },
-    type: {
-        getTitle: getFilterDisplayTitle,
-        description: 'common.type' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE,
-    },
 };
 
 /**
@@ -187,16 +177,9 @@ const baseFilterConfig = {
  */
 const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>>> = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-        ],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
