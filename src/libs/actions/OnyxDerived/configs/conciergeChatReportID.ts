@@ -18,7 +18,7 @@ export default createOnyxDerivedValueConfig({
                 return;
             }
 
-            const reportNameValuePairs = (allReportNameValuePair[report?.reportID] ?? {}) as OnyxInputOrEntry<ReportNameValuePairs>;
+            const reportNameValuePairs = (allReportNameValuePair[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`] ?? {}) as OnyxInputOrEntry<ReportNameValuePairs>;
             const isReportArchived = isArchivedReport(reportNameValuePairs);
 
             // Merged accounts can have multiple conceirge chats, exclude archived chats.
