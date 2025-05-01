@@ -1,6 +1,5 @@
 require 'nokogiri'
 require 'cgi'
-require 'json'
 
 module Jekyll
   class SitePostRender
