@@ -22,6 +22,7 @@ import {
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
+    isExported as isExportedUtil,
     isHoldCreator,
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
@@ -163,16 +164,15 @@ function isExportAction(report: Report, policy?: Policy) {
         return false;
     }
 
+    const connectedIntegration = getConnectedIntegration(policy);
+    const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
     const reportActions = getAllReportActions(report.reportID);
-    const hasExportedIntegrationAction = Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION);
-    if (hasExportedIntegrationAction) {
+    const isExported = isExportedUtil(reportActions);
+    if (isExported) {
         return false;
     }
 
-    const connectedIntegration = getConnectedIntegration(policy);
-    const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const hasFailedExportedAction = Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE);
-    if (syncEnabled && !hasFailedExportedAction) {
+    if (syncEnabled) {
         return false;
     }
 
