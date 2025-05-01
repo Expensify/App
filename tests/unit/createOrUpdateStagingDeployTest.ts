@@ -438,8 +438,8 @@ describe('createOrUpdateStagingDeploy', () => {
 
         // Mock the previous checklist data directly, including the PRs we want to filter out (9, 11)
         const mockGetStagingDeployCashData = jest.spyOn(GithubUtils, 'getStagingDeployCashData');
+        // @ts-expect-error this is a simplified mock implementation
         mockGetStagingDeployCashData.mockImplementation((issue) => {
-            // Mock response for the previous checklist
             if (issue.number === 29) {
                 return {
                     title: 'Previous Checklist',
@@ -484,15 +484,15 @@ describe('createOrUpdateStagingDeploy', () => {
                     tag: '1.0.3-1-staging',
                 };
             }
-            // Default empty return if needed
-            return {PRList: [], deployBlockers: [], internalQAPRList: []} as any;
+            return {PRList: [], deployBlockers: [], internalQAPRList: []};
         });
 
         // Mock the listIssues response to provide the current and previous checklists
         const openChecklistForFiltering = {number: 30, state: 'open', labels: [LABELS.STAGING_DEPLOY_CASH]};
         const previousChecklistForFiltering = {number: 29, state: 'closed', labels: [LABELS.STAGING_DEPLOY_CASH]};
 
-        mockListIssues.mockImplementation((args: Arguments) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        mockListIssues.mockImplementation((_args: Arguments) => {
             return {data: [openChecklistForFiltering, previousChecklistForFiltering]};
         });
 
@@ -501,7 +501,8 @@ describe('createOrUpdateStagingDeploy', () => {
         await run();
 
         // Verify that the previously cherry-picked PRs are filtered out from the current checklist (9, 11)
-        const finalLogCall = consoleSpy.mock.calls.find((call) => call[0]?.startsWith('Final list of PRs for current checklist:'));
+        // Use type assertion to assure TypeScript call[0] is a string
+        const finalLogCall = consoleSpy.mock.calls.find((call) => (call[0] as string)?.startsWith('Final list of PRs for current checklist:'));
         expect(finalLogCall?.[0]).toBe('Final list of PRs for current checklist: 10, 12');
 
         // Restore mocks

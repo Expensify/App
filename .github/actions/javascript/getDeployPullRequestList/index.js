@@ -11937,6 +11937,8 @@ async function getCommitHistoryBetweenTags(fromTag, toTag) {
         else {
             console.error('Error getting commit history from GitHub API:', error);
         }
+        // Re-throw the error after logging
+        throw error;
     }
 }
 /**
