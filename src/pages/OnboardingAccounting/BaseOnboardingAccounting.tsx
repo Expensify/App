@@ -200,7 +200,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         userReportedIntegration,
                     });
 
-                    if (onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP) {
+                    if (!CONST.NEW_DOT_SUPPORTED_COMPANY_SIZES.includes(onboardingCompanySize) && getPlatform() !== CONST.PLATFORM.DESKTOP) {
                         if (CONFIG.IS_HYBRID_APP) {
                             return;
                         }
@@ -215,6 +215,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     // We need to wait the policy is created before navigating out the onboarding flow
                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                         navigateAfterOnboarding(
+                            onboardingPurposeSelected,
                             isSmallScreenWidth,
                             canUseDefaultRooms,
                             policyID,
@@ -227,7 +228,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     });
                 }}
                 isLoading={isLoading}
-                isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
+                isDisabled={isOffline && !CONST.NEW_DOT_SUPPORTED_COMPANY_SIZES.includes(onboardingCompanySize ?? '') && CONFIG.IS_HYBRID_APP}
                 pressOnEnter
             />
         </>
