@@ -5304,6 +5304,7 @@ const CONST = {
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
+        OVER_TRIP_LIMIT: 'overTripLimit',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
@@ -6994,6 +6995,8 @@ const CONST = {
         OUTSANDING_FILTER: 'outstandingFilter',
         SETTINGS_TAB: 'settingsTab',
         WORKSPACES_SETTINGS: 'workspacesSettings',
+        GBR_RBR_CHAT: 'chatGBRRBR',
+        ACCOUNT_SWITCHER: 'accountSwitcher',
         EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',

@@ -278,6 +278,8 @@ export default {
     savedSearchShiftVertical: 6,
     navigationTabBarInboxTooltipShiftHorizontal: 36,
     navigationTabBarSettingsTooltipShiftHorizontal: -36,
+    accountSwitcherTooltipShiftVertical: 7,
+    accountSwitcherTooltipShiftHorizontal: 4,
     expenseReportsTypeTooltipShiftHorizontal: 10,
     workspacesSettingsTooltipShiftHorizontal: 8,
     workspacesSettingsTooltipShiftVertical: -8,
