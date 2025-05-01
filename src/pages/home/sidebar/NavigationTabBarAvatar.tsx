@@ -3,9 +3,11 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AvatarWithDelegateAvatar from './AvatarWithDelegateAvatar';
@@ -21,9 +23,18 @@ type NavigationTabBarAvatarProps = {
 
     /** Additional styles to add to the button */
     style?: StyleProp<ViewStyle>;
+
+    /** Should tooltip be visible */
+    shouldShowTooltip: boolean;
+
+    /** Whether the layout is for Web/Desktop */
+    isWebOrDesktop: boolean;
+
+    /** Tooltip content to render */
+    renderTooltipContent: () => React.JSX.Element;
 };
 
-function NavigationTabBarAvatar({onPress, isSelected = false, style}: NavigationTabBarAvatarProps) {
+function NavigationTabBarAvatar({onPress, isSelected = false, style, shouldShowTooltip, isWebOrDesktop, renderTooltipContent}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -59,18 +70,31 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     }
 
     return (
-        <PressableWithFeedback
-            onPress={onPress}
-            role={CONST.ROLE.BUTTON}
-            accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-            wrapperStyle={styles.flex1}
-            style={style}
+        <EducationalTooltip
+            shouldRender={shouldShowTooltip}
+            anchorAlignment={{
+                horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+            }}
+            shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarInboxTooltipShiftHorizontal}
+            renderTooltipContent={renderTooltipContent}
+            wrapperStyle={styles.productTrainingTooltipWrapper}
+            shouldHideOnNavigate={false}
+            onTooltipPress={onPress}
         >
-            {children}
-            <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}>
-                {translate('initialSettingsPage.account')}
-            </Text>
-        </PressableWithFeedback>
+            <PressableWithFeedback
+                onPress={onPress}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
+                wrapperStyle={styles.flex1}
+                style={style}
+            >
+                {children}
+                <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}>
+                    {translate('initialSettingsPage.account')}
+                </Text>
+            </PressableWithFeedback>
+        </EducationalTooltip>
     );
 }
 

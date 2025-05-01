@@ -63,10 +63,16 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
-    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
-        isTooltipAllowed && selectedTab !== NAVIGATION_TABS.HOME,
-    );
+    const {
+        renderProductTrainingTooltip: renderInboxTooltip,
+        shouldShowProductTrainingTooltip: shouldShowInboxTooltip,
+        hideProductTrainingTooltip: hideInboxTooltip,
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP, isTooltipAllowed && selectedTab !== NAVIGATION_TABS.HOME);
+    const {
+        renderProductTrainingTooltip: renderSettingsTooltip,
+        shouldShowProductTrainingTooltip: shouldShowSettingsTooltip,
+        hideProductTrainingTooltip: hideSettingsTooltip,
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SETTINGS_TAB, isTooltipAllowed && selectedTab !== NAVIGATION_TABS.SETTINGS);
     const StyleUtils = useStyleUtils();
     const {canUseLeftHandBar} = usePermissions();
 
@@ -84,9 +90,9 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             return;
         }
 
-        hideProductTrainingTooltip();
+        hideInboxTooltip();
         Navigation.navigate(ROUTES.HOME);
-    }, [hideProductTrainingTooltip, selectedTab]);
+    }, [hideInboxTooltip, selectedTab]);
 
     // When users do not have access to the leftHandBar beta, then we should take into account the activeWorkspaceID.
     // Since the introduction of LHB, the workspace switcher is no longer available.
@@ -133,6 +139,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
      * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
      */
     const showSettingsPage = useCallback(() => {
+        hideSettingsTooltip();
         const rootState = navigationRef.getRootState();
         const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
         if (!topmostFullScreenRoute) {
@@ -201,7 +208,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             // Otherwise we should simply open the settings navigator.
             Navigation.navigate(ROUTES.SETTINGS);
         });
-    }, [shouldUseNarrowLayout]);
+    }, [hideSettingsTooltip, shouldUseNarrowLayout]);
 
     if (!shouldUseNarrowLayout && canUseLeftHandBar) {
         return (
@@ -230,13 +237,13 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             />
                         </PressableWithFeedback>
                         <EducationalTooltip
-                            shouldRender={shouldShowProductTrainingTooltip}
+                            shouldRender={shouldShowInboxTooltip}
                             anchorAlignment={{
                                 horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                             }}
                             shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarInboxTooltipShiftHorizontal}
-                            renderTooltipContent={renderProductTrainingTooltip}
+                            renderTooltipContent={renderInboxTooltip}
                             wrapperStyle={styles.productTrainingTooltipWrapper}
                             shouldHideOnNavigate={false}
                             onTooltipPress={navigateToChats}
@@ -303,6 +310,9 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             style={styles.leftNavigationTabBarItem}
                             isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                             onPress={showSettingsPage}
+                            isWebOrDesktop={isWebOrDesktop}
+                            shouldShowTooltip={shouldShowSettingsTooltip}
+                            renderTooltipContent={renderSettingsTooltip}
                         />
                     </View>
                     <View style={styles.leftNavigationTabBarItem}>
@@ -324,13 +334,13 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             )}
             <View style={styles.navigationTabBarContainer}>
                 <EducationalTooltip
-                    shouldRender={shouldShowProductTrainingTooltip}
+                    shouldRender={shouldShowInboxTooltip}
                     anchorAlignment={{
                         horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     }}
                     shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarInboxTooltipShiftHorizontal}
-                    renderTooltipContent={renderProductTrainingTooltip}
+                    renderTooltipContent={renderInboxTooltip}
                     wrapperStyle={styles.productTrainingTooltipWrapper}
                     shouldHideOnNavigate={false}
                     onTooltipPress={navigateToChats}
@@ -397,6 +407,9 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                     style={styles.navigationTabBarItem}
                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                     onPress={showSettingsPage}
+                    isWebOrDesktop={isWebOrDesktop}
+                    shouldShowTooltip={shouldShowSettingsTooltip}
+                    renderTooltipContent={renderSettingsTooltip}
                 />
                 <View style={[styles.flex1, styles.navigationTabBarItem]}>
                     <NavigationTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />

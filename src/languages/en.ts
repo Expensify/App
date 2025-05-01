@@ -6249,11 +6249,11 @@ const translations = {
             part2: 'need approval',
         },
         settingsTab: {
-            part1: 'View your ',
+            part1: 'Explore your ',
             part2: 'workspace and account settings',
         },
         workspacesSettings: {
-            part1: 'Explore your ',
+            part1: 'View your ',
             part2: 'workspaces',
         },
     },
