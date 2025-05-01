@@ -278,6 +278,8 @@ export default {
     savedSearchShiftVertical: 6,
     navigationTabBarInboxTooltipShiftHorizontal: 36,
     expenseReportsTypeTooltipShiftHorizontal: 10,
+    workspacesSettingsTooltipShiftHorizontal: 8,
+    workspacesSettingsTooltipShiftVertical: -8,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
