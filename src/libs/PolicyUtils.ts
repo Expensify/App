@@ -1567,6 +1567,7 @@ export {
     areAllGroupPoliciesExpenseChatDisabled,
     getActiveEmployeeWorkspaces,
     isUserInvitedToWorkspace,
+    getPolicyRole,
 };
 
 export type {MemberEmailsToAccountIDs};
