@@ -19,6 +19,7 @@ import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
+import {isSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -172,6 +173,9 @@ function IOURequestStepWaypoint({
     };
 
     const onScroll = useCallback(() => {
+        if (!isSafari()) {
+            return;
+        }
         // eslint-disable-next-line react-compiler/react-compiler
         textInput.current?.measureInWindow((x, y) => {
             if (y < variables.contentHeaderHeight) {
