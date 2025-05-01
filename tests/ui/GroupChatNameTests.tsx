@@ -221,20 +221,26 @@ describe('Tests for group chat name', () => {
     it('Should show only 5 names with ellipsis when there are 8 participants in the report header', () =>
         signInAndGetApp('', participantAccountIDs8)
             .then(async () => {
-                // Wait for sidebar to be rendered to ensure all asynchronous updates are completed
+                // Wait for sidebar to be rendered
                 await waitForBatchedUpdatesWithAct();
-                
-                // Verify the sidebar links are rendered
+
                 const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
+                const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+
+                // Check sidebar links
                 await waitFor(() => {
                     const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
                     expect(sidebarLinks).toHaveLength(1);
+                });
 
-                    // Verify there is only one option in the sidebar
+                // Check option rows
+                await waitFor(() => {
                     const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                     expect(optionRows).toHaveLength(1);
+                });
 
-                    const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+                // Check display name
+                await waitFor(() => {
                     const displayNameText = screen.queryByLabelText(displayNameHintText);
                     expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E...');
                 });
