@@ -45,12 +45,12 @@ type Extras = {
 };
 
 class ExpensiMarkWithContext extends ExpensiMark {
-    htmlToMarkdown(htmlString: string, extras?: Extras): string {
+    htmlToMarkdown(htmlString: string, extras?: Extras, maxBodyLength?: number): string {
         return super.htmlToMarkdown(htmlString, {
             reportIDToName: extras?.reportIDToName ?? reportIDToNameMap,
             accountIDToName: extras?.accountIDToName ?? accountIDToNameMap,
             cacheVideoAttributes: extras?.cacheVideoAttributes,
-        });
+        }, maxBodyLength);
     }
 
     htmlToText(htmlString: string, extras?: Extras): string {
