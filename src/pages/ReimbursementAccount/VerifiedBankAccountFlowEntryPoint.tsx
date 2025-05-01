@@ -97,7 +97,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const pendingAction = reimbursementAccount?.pendingAction ?? null;
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const optionPressed = useRef('');
-    const [isAccountValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const isAccountValidated = account?.validated ?? false;
 
     const contactMethod = account?.primaryLogin ?? '';
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);

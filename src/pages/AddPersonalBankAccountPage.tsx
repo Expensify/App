@@ -26,9 +26,9 @@ function AddPersonalBankAccountPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
-    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
-    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: false});
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
 

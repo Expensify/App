@@ -37,9 +37,9 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const addPaymentMethodAnchorRef = useRef(null);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);

@@ -93,9 +93,6 @@ const ONYXKEYS = {
      * It is expected to provide a two-letter country code such as US for United States, and so on. */
     COUNTRY: 'country',
 
-    /** Contains all the users settings for the Settings page and sub pages */
-    USER: 'user',
-
     /** Contains latitude and longitude of user's last known location */
     USER_LOCATION: 'userLocation',
 

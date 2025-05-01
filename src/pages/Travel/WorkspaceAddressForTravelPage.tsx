@@ -17,7 +17,7 @@ type WorkspaceAddressForTravelPageProps = PlatformStackScreenProps<TravelNavigat
 
 function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPageProps) {
     const {translate} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
 

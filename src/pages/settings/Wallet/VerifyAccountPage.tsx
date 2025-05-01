@@ -25,7 +25,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const {translate} = useLocalize();
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const isUserValidated = account?.validated ?? false;
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
     const navigateForwardTo = route.params?.forwardTo;
