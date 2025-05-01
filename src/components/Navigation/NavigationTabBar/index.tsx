@@ -44,15 +44,16 @@ import NAVIGATION_TABS from './NAVIGATION_TABS';
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isTooltipAllowed?: boolean;
+    isTopLevelBar?: boolean;
 };
 
-function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar = false}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {orderedReportIDs} = useSidebarOrderedReportIDs();
-    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]),
@@ -68,6 +69,9 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
     );
     const StyleUtils = useStyleUtils();
     const {canUseLeftHandBar} = usePermissions();
+
+    // On a wide layout DebugTabView should be rendered only within the navigation tab bar displayed directly on screens.
+    const shouldRenderDebugTabViewOnWideLayout = !!account?.isDebugModeEnabled && !isTopLevelBar;
 
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, reports));
@@ -202,7 +206,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
     if (!shouldUseNarrowLayout && canUseLeftHandBar) {
         return (
             <>
-                {!!user?.isDebugModeEnabled && (
+                {shouldRenderDebugTabViewOnWideLayout && (
                     <DebugTabView
                         selectedTab={selectedTab}
                         chatTabBrickRoad={chatTabBrickRoad}
@@ -311,7 +315,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
 
     return (
         <>
-            {!!user?.isDebugModeEnabled && (
+            {!!account?.isDebugModeEnabled && (
                 <DebugTabView
                     selectedTab={selectedTab}
                     chatTabBrickRoad={chatTabBrickRoad}
