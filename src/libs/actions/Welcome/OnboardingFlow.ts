@@ -9,8 +9,8 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type Account from '@src/types/onyx/Account';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type User from '@src/types/onyx/User';
 
 let onboardingInitialPath = '';
 const onboardingLastVisitedPathConnection = Onyx.connect({
@@ -35,14 +35,14 @@ Onyx.connect({
     },
 });
 
-let user: User;
+let userAccount: Account;
 Onyx.connect({
-    key: ONYXKEYS.USER,
+    key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         if (value === undefined) {
             return;
         }
-        user = value;
+        userAccount = value;
     },
 });
 
@@ -63,9 +63,9 @@ function startOnboardingFlow(canUsePrivateDomainOnboarding?: boolean) {
     } as PartialState<NavigationState>);
 }
 
-function getOnboardingInitialPath(canUsePrivateDomainOnboarding = true): string {
+function getOnboardingInitialPath(canUsePrivateDomainOnboarding = false): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
-    const isUserFromPublicDomain = user?.isFromPublicDomain;
+    const isUserFromPublicDomain = userAccount?.isFromPublicDomain;
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const isIndividual = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;

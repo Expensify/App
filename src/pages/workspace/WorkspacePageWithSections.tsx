@@ -132,14 +132,17 @@ function WorkspacePageWithSections({
     const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
     const {canUseLeftHandBar} = usePermissions();
 
-    const [user] = useOnyx(ONYXKEYS.USER);
-    const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {
+        selector: (session) => session?.email,
+        canBeMissing: true,
+    });
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
     const achState = reimbursementAccount?.achData?.state;
-    const isUsingECard = user?.isUsingExpensifyCard ?? false;
+    const isUsingECard = account?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
