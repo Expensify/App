@@ -11572,7 +11572,7 @@ async function run() {
         const mergedPRs = await GitUtils_1.default.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
         // mergedPRs includes cherry-picked PRs that have already been releases with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
-        console.log(`PRs from previous checklist: ${previousPRNumbers}`);
+        console.log(`PRs from previous checklist: ${Array.from(previousPRNumbers).join(', ')}`);
         const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
         console.log(`Final list of PRs for current checklist: ${newPRNumbers.join(', ')}`);
         // Log the PRs that were filtered out
