@@ -1288,24 +1288,7 @@ function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected
     return {};
 }
 function completeTestDriveTask() {
-    const onboardingReport = ReportUtils.getChatUsedForOnboarding();
-    if (!onboardingReport) {
-        return;
-    }
-
-    const onboardingReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${onboardingReport.reportID}`];
-    if (!onboardingReportActions) {
-        return;
-    }
-
-    const testDriveTaskParentReport = Object.values(onboardingReportActions).find(
-        (reportAction) => reportAction.childType === CONST.REPORT.TYPE.TASK && Str.stripHTML(reportAction.childReportName ?? '') === CONST.TEST_DRIVE.ONBOARDING_TASK_NAME,
-    );
-
-    const testDriveTaskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${testDriveTaskParentReport?.childReportID}`];
-    if (testDriveTaskReport?.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || testDriveTaskReport?.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-        completeTask(testDriveTaskReport);
-    }
+    getFinishOnboardingTaskOnyxData('testDrive');
 }
 
 export {

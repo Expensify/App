@@ -121,16 +121,11 @@ describe('actions/Task', () => {
             await Onyx.multiSet({
                 ...reportCollectionDataSet,
                 ...reportActionsCollectionDataSet,
+                [ONYXKEYS.NVP_INTRO_SELECTED]: {
+                    testDrive: testDriveTaskReport.reportID,
+                },
             });
             await waitForBatchedUpdates();
-        });
-
-        it('Uses concierge room', () => {
-            const getChatUsedForOnboardingSpy = jest.spyOn(ReportUtils, 'getChatUsedForOnboarding');
-
-            completeTestDriveTask();
-
-            expect(getChatUsedForOnboardingSpy).toHaveReturnedWith(conciergeChatReport);
         });
 
         it('Completes test drive task', () => {
