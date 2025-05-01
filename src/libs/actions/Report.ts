@@ -4064,7 +4064,7 @@ function completeOnboarding({
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
-    if (companySize && companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP) {
+    if (companySize && !CONST.NEW_DOT_SUPPORTED_COMPANY_SIZES.includes(companySize) && getPlatform() !== CONST.PLATFORM.DESKTOP) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
