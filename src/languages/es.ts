@@ -998,7 +998,7 @@ const translations = {
         submitAmount: ({amount}: RequestAmountParams) => `Solicitar ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         automaticallySubmittedAmount: ({formattedAmount}: RequestedAmountMessageParams) =>
-            `envió ${formattedAmount} mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">envíos diferidos</a>`,
+            `envió ${formattedAmount} mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -1014,11 +1014,11 @@ const translations = {
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `pagó ${amount}. Agrega una cuenta bancaria para recibir tu pago.`,
         automaticallyApprovedAmount: ({amount}: ApprovedAmountParams) =>
-            `aprobó ${amount} según las <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
+            `aprobó ${amount} mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
         unapprovedAmount: ({amount}: UnapprovedParams) => `desaprobó ${amount}`,
         automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
-            `aprobó ${amount} según las <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
+            `aprobó ${amount} mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
         rejectedThisReport: 'rechazó este informe',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
@@ -5347,8 +5347,8 @@ const translations = {
                     automaticActionOne: ({label}: ExportedToIntegrationParams) => `exportado a ${label} mediante`,
                     automaticActionTwo: 'configuración contable',
                     manual: ({label}: ExportedToIntegrationParams) => `marcó este informe como exportado manualmente a ${label}.`,
-                    automaticActionThree: 'y creó correctamente un registro para',
-                    reimburseableLink: 'gastos por cuenta propia',
+                    automaticActionThree: 'y creó un registro con éxito para',
+                    reimburseableLink: 'Exportar gastos por cuenta propia como',
                     nonReimbursableLink: 'gastos de la tarjeta de empresa.',
                     pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
                 },
