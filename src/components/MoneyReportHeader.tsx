@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -42,6 +43,7 @@ import {
 import {
     allHavePendingRTERViolation,
     hasDuplicateTransactions,
+    isDuplicate,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
@@ -343,6 +345,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
     };
 
+    const getFirstDuplicateThreadID = (reportTransactions: OnyxTypes.Transaction[], allReportActions: OnyxTypes.ReportAction[]) => {
+        const duplicateTransaction = reportTransactions.find(reportTransaction => isDuplicate(reportTransaction.transactionID));
+        if (!duplicateTransaction) {
+            return null;
+        }
+    
+        return getThreadReportIDsForTransactions(allReportActions, [duplicateTransaction]).at(0);
+    };
+    
     const statusBarProps = getStatusBarProps();
     const shouldAddGapToContents = shouldUseNarrowLayout && (!!statusBarProps || shouldShowNextStep);
 
@@ -449,10 +460,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 success
                 text={translate('iou.reviewDuplicates')}
                 onPress={() => {
-                    if (!transactionThreadReportID) {
+                    const threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
+                    if (!threadID) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
+                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID, Navigation.getReportRHPActiveRoute()));
                 }}
             />
         ),
