@@ -662,6 +662,7 @@ const translations = {
     selectionList: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
+        searchForSomeone: 'Search for someone',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {

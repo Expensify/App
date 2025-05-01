@@ -62,9 +62,8 @@ function MultiSelectPopup<T extends string>({value, items, closeOverlay, onChang
     }, [closeOverlay, onChange, selectedItems]);
 
     const resetChanges = useCallback(() => {
-        onChange([]);
-        closeOverlay();
-    }, [closeOverlay, onChange]);
+        setSelectedItems([]);
+    }, []);
 
     return (
         <View style={[styles.pv4, styles.gap2]}>
