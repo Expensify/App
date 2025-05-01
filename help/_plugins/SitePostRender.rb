@@ -1,5 +1,6 @@
 require 'nokogiri'
 require 'cgi'
+require 'json'
 
 module Jekyll
   class SitePostRender
@@ -21,49 +22,234 @@ module Jekyll
       # Parse the page's content for header elements
       doc = Nokogiri::HTML(page.output)
 
-      # Create an array to store the prefix for each level of header (h2, h3, h4, etc.)
-      prefix = {}
 
-      # Process all <h2>, <h3>, and <h4> elements in order
-      doc.css('h2, h3, h4, h5').each do |header|
-        # Check if the header starts with a short title in square brackets
-        header_text = header.text.strip
-        if header_text.match(/^\[(.*?)\]/)
-          # Extract the short title from the square brackets
-          short_title = header_text.match(/^\[(.*?)\]/)[1]
+      # Check if the page is a reference page
+      if page.path.start_with?("ref/")
+        @help_mapping ||= {}
+        @help_mapping[page.path.chomp('index.md')] = doc.at('.product-content')
+      else
+        # Create an array to store the prefix for each level of header (h2, h3, h4, etc.)
+        prefix = {}
 
-          # Set the `data-toc-title` attribute on the header
-          header['data-toc-title'] = short_title
+        # Process all <h2>, <h3>, and <h4> elements in order
+        doc.css('h2, h3, h4, h5').each do |header|
+          # Check if the header starts with a short title in square brackets
+          header_text = header.text.strip
+          if header_text.match(/^\[(.*?)\]/)
+            # Extract the short title from the square brackets
+            short_title = header_text.match(/^\[(.*?)\]/)[1]
 
-          # Remove the short title from the visible header text
-          header_text = header_text.sub(/^\[.*?\]\s*/, '')
-          header.content = header_text
+            # Set the `data-toc-title` attribute on the header
+            header['data-toc-title'] = short_title
+
+            # Remove the short title from the visible header text
+            header_text = header_text.sub(/^\[.*?\]\s*/, '')
+            header.content = header_text
+          end
+
+          # Determine the level of the header (h2, h3, h4, or h5)
+          level = header.name[1].to_i  # 'h2' -> 2, 'h3' -> 3, etc.
+
+          # Generate the ID for the current header based on its (cleaned) text
+          clean_text = header_text.downcase.strip
+          header_id = CGI.escape(clean_text.gsub(/\s+/, '-').gsub(/[^\w\-]/, ''))
+
+          # Store the current header's ID in the prefix array
+          prefix[level] = header_id
+
+          # Construct the full hierarchical ID by concatenating IDs for all levels up to the current level
+          full_id = (2..level).map { |l| prefix[l] }.join('--')
+
+          # Assign the generated ID to the header element
+          header['id'] = full_id
+
+          puts "    Found h#{level}: '#{header_text}' -> ID: '#{full_id}'"
         end
 
-        # Determine the level of the header (h2, h3, h4, or h5)
-        level = header.name[1].to_i  # 'h2' -> 2, 'h3' -> 3, etc.
+        # Log the final output being written
+        puts "  Writing updated HTML for page: #{page.path}"
 
-        # Generate the ID for the current header based on its (cleaned) text
-        clean_text = header_text.downcase.strip
-        header_id = CGI.escape(clean_text.gsub(/\s+/, '-').gsub(/[^\w\-]/, ''))
-
-        # Store the current header's ID in the prefix array
-        prefix[level] = header_id
-
-        # Construct the full hierarchical ID by concatenating IDs for all levels up to the current level
-        full_id = (2..level).map { |l| prefix[l] }.join('--')
-
-        # Assign the generated ID to the header element
-        header['id'] = full_id
-
-        puts "    Found h#{level}: '#{header_text}' -> ID: '#{full_id}'"
+        # Write the updated HTML back to the page
+        page.output = doc.to_html
       end
+    end
 
-      # Log the final output being written
-      puts "  Writing updated HTML for page: #{page.path}"
 
-      # Write the updated HTML back to the page
-      page.output = doc.to_html
+    # Generate helpContent.tsx once all pages have been processed
+    Jekyll::Hooks.register :site, :post_render do |site|
+      generate_help_content(site)
+    end
+
+    def self.generate_help_content(site)
+      puts "  Generating helpContent.tsx from rendered HTML pages..."
+
+      output_dir = File.join(site.source, "_src")
+      FileUtils.mkdir_p(output_dir) unless Dir.exist?(output_dir)
+      
+      output_file = File.join(output_dir, "helpContentMap.tsx")
+
+      help_content_tree = generate_help_content_tree()
+
+      help_content_string = to_ts_object(help_content_tree)
+
+      imports = [
+        "import type {ReactNode} from 'react';",
+        "import React from 'react';",
+        "import {View} from 'react-native';",
+      ]
+
+      # Add conditional imports based on component usage
+      imports << "import BulletList from '@components/SidePanel/HelpComponents/HelpBulletList';" if help_content_string.include?("<BulletList")
+      imports << "import Text from '@components/Text';" if help_content_string.include?("<Text")
+      imports << "import TextLink from '@components/TextLink';" if help_content_string.include?("<TextLink")
+      imports << "import type {ThemeStyles} from '@styles/index';"
+
+      # Join the imports
+      import_block = imports.join("\n")
+
+      ts_output = <<~TS
+        /* eslint-disable react/no-unescaped-entities */
+        /* eslint-disable @typescript-eslint/naming-convention */
+        #{import_block}
+
+        type ContentComponent = (props: {styles: ThemeStyles}) => ReactNode;
+
+        type HelpContent = {
+            /** The content to display for this route */
+            content: ContentComponent;
+
+            /** Any children routes that this route has */
+            children?: Record<string, HelpContent>;
+
+            /** Whether this route is an exact match or displays parent content */
+            isExact?: boolean;
+        };
+
+        const helpContentMap: HelpContent = #{help_content_string}
+
+        export default helpContentMap;
+        export type {ContentComponent};
+      TS
+            
+      File.write(output_file, ts_output)
+
+      puts "✅ Successfully generated helpContent.tsx"
+    end
+
+    def self.generate_help_content_tree()
+      tree = {}
+    
+      @help_mapping.each do |route, node|
+        parts = route.sub(/^ref\//, '').sub(/\.md$/, '').split('/') # remove .md and split
+        current = tree
+    
+        parts.each_with_index do |part, i|
+          is_dynamic = part.start_with?(':') || part.match?(/^\[.*\]$/)
+          part_key = is_dynamic ? part : part.to_sym
+    
+          current[:children] ||= {}
+          current[:children][part_key] ||= {}
+    
+          if i == parts.length - 1
+            jsx_content = html_node_to_RN(node, 2).rstrip
+            indented_jsx = jsx_content.lines.map { |line| '  ' + line }.join # indent by 2 more spaces
+    
+            current[:children][part_key][:content] = <<~TS.chomp
+              ({styles}: {styles: ThemeStyles}) => (
+                #{indented_jsx}
+              )
+            TS
+          end
+    
+          current = current[:children][part_key]
+        end
+      end
+    
+      tree[:content] = '() => null'
+      tree
+    end
+    
+    def self.html_node_to_RN(node, indent_level = 0)
+      indent = '  ' * indent_level
+    
+      case node.name
+      when 'div'
+        children = node.children.map.with_index do |child, i|
+          next if child.text? && child.text.strip.empty?
+    
+          child_output = html_node_to_RN(child, indent_level + 2).rstrip
+          mb_view_indent = '  ' * (indent_level + 1)
+    
+          "#{mb_view_indent}<View style={[styles.mb4]}>\n#{child_output}\n#{mb_view_indent}</View>"
+        end.compact.join("\n")
+    
+        "#{indent}<View>\n#{children}\n#{indent}</View>"
+    
+      when 'h1' then "#{indent}<Text style={[styles.textHeadlineH1]}>#{node.text.strip}</Text>"
+      when 'h2' then "#{indent}<Text style={[styles.textHeadlineH2]}>#{node.text.strip}</Text>"
+      when 'h3' then "#{indent}<Text style={[styles.textHeadlineH3]}>#{node.text.strip}</Text>"
+      when 'h4' then "#{indent}<Text style={[styles.textHeadlineH4]}>#{node.text.strip}</Text>"
+      when 'h5' then "#{indent}<Text style={[styles.textHeadlineH5]}>#{node.text.strip}</Text>"
+      when 'h6' then "#{indent}<Text style={[styles.textHeadlineH6]}>#{node.text.strip}</Text>"
+    
+      when 'p'
+        inner = node.children.map { |c| html_node_to_RN(c, indent_level + 1) }.join.strip
+        "#{indent}<Text style={styles.textNormal}>#{inner}</Text>"
+    
+      when 'ul'
+        items = node.xpath('./li').map do |li|
+          li_text = li.children.map { |child| html_node_to_RN(child, indent_level + 3) }.join.strip
+          "#{'  ' * (indent_level + 2)}<Text style={styles.textNormal}>#{li_text}</Text>"
+        end
+    
+        bullet_indent = '  ' * indent_level
+        <<~TS
+          #{bullet_indent}<BulletList
+          #{bullet_indent}  styles={styles}
+          #{bullet_indent}  items={[
+          #{items.join(",\n")}
+          #{bullet_indent}  ]}
+          #{bullet_indent}/>
+        TS
+    
+      when 'li'
+        '' # already handled in <ul>
+    
+      when 'strong', 'b'
+        "<Text style={styles.textBold}>#{node.text.strip}</Text>"
+      when 'em', 'i'
+        "<Text style={styles.textItalic}>#{node.text.strip}</Text>"
+      when 'a'
+        href = node['href']
+        link_text = node.children.map { |child| html_node_to_RN(child, 0) }.join.strip
+        "#{indent}<TextLink href=\"#{href}\" style={styles.link}>#{link_text}</TextLink>"
+      when 'text'
+        node.text.strip
+      else
+        node.children.map { |child| html_node_to_RN(child, indent_level) }.join
+      end
+    end
+    
+    def self.to_ts_object(obj, indent = 0)
+      spacing = '  ' * indent
+      lines = ["{"]
+      
+      # Handle all key-value pairs
+      obj.each do |key, value|
+        line = "#{spacing}  "
+        key_str = key.is_a?(Symbol) ? key.to_s : key.inspect
+    
+        if value.is_a?(Hash)
+          line += "#{key_str}: #{to_ts_object(value, indent + 1)}"
+        else
+          line += "#{key_str}: #{value}"
+        end
+    
+        lines << line + ","
+      end
+    
+      lines << "#{spacing}}"
+      lines.join("\n")
     end
   end
 end
