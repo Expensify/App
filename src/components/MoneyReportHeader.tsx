@@ -16,7 +16,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -226,7 +226,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
     const optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
 
-    const shouldShowNextStep = isFromPaidPolicy && !!optimisticNextStep?.message?.length && !shouldShowStatusBar;
+    // Check if the report state imply approval is needed by the current user
+    const wasSubmittedToCurrentUser = isProcessingReport(moneyRequestReport) && moneyRequestReport?.managerID === session?.accountID;
+    
+    // Determine if the approval message is stale by seeing if the button is missing when it should be needed
+    const isStaleApprovalMessage = wasSubmittedToCurrentUser && !shouldShowApproveButton;
+    
+    const shouldShowNextStep = isFromPaidPolicy && !!optimisticNextStep?.message?.length && !shouldShowStatusBar && !isStaleApprovalMessage;
     const bankAccountRoute = getBankAccountRoute(chatReport);
     const formattedAmount = convertToDisplayString(reimbursableSpend, moneyRequestReport?.currency);
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
