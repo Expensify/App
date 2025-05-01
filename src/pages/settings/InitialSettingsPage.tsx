@@ -313,6 +313,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             const getWalletBalance = (isPaymentItem: boolean): string | undefined => (isPaymentItem ? convertToDisplayString(userWallet?.currentBalance) : undefined);
 
             const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
+                if (Navigation.getActiveRoute() !== '/settings') {
+                    return;
+                }
+
                 if (typeof link === 'function') {
                     link?.()?.then((url) =>
                         showContextMenu({
