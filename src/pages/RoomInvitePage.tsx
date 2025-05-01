@@ -22,6 +22,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
@@ -215,6 +216,10 @@ function RoomInvitePage({
 
     const goBack = useCallback(() => {
         if (role === CONST.IOU.SHARE.ROLE.ACCOUNTANT) {
+            if (isSearchTopmostFullScreenRoute()) {
+                Navigation.goBack();
+                return;
+            }
             Navigation.dismissModalWithReport({reportID});
             return;
         }
