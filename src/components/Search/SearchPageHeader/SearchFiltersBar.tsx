@@ -189,11 +189,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     );
 
     const datePickerComponent = useCallback(({closeOverlay}: PopoverComponentProps) => {
-        return <DateSelectPopup />;
+        return <DateSelectPopup closeOverlay={closeOverlay} />;
     }, []);
 
     const userPickerComponent = useCallback(({closeOverlay}: PopoverComponentProps) => {
-        return <UserSelectPopup />;
+        return <UserSelectPopup closeOverlay={closeOverlay} />;
     }, []);
 
     const filters = useMemo(() => {

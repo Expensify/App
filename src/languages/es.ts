@@ -554,6 +554,9 @@ const translations = {
         trip: 'Viaje',
         apply: 'Aplicar',
         status: 'Estado',
+        on: 'El',
+        before: 'Antes',
+        after: 'Después',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

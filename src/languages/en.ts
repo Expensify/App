@@ -563,6 +563,9 @@ const translations = {
         trip: 'Trip',
         apply: 'Apply',
         status: 'Status',
+        on: 'On',
+        before: 'Before',
+        after: 'After',
     },
     supportalNoAccess: {
         title: 'Not so fast',
