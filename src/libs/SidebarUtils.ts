@@ -242,7 +242,7 @@ function getOrderedReportIDs(
             isSystemChat ||
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
-            (!isInFocusMode && isArchivedReportWithID(report.reportID)) ||
+            (!isInFocusMode && isArchivedReport(reportNameValuePairs)) ||
             requiresAttentionFromCurrentUser(report, parentReportAction);
         if (isHidden && !shouldOverrideHidden) {
             return;
