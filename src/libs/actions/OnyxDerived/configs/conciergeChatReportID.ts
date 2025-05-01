@@ -1,8 +1,9 @@
 import Log from '@libs/Log';
-import {isArchivedReportWithID, isThread} from '@libs/ReportUtils';
+import {isArchivedReport, isThread} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxInputOrEntry, ReportNameValuePairs} from '@src/types/onyx';
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID,
@@ -13,8 +14,15 @@ export default createOnyxDerivedValueConfig({
         }
 
         const conciergeReport = Object.values(reports).find((report) => {
+            if (!report) {
+                return;
+            }
+
+            const reportNameValuePairs = (allReportNameValuePair[report?.reportID] ?? {}) as OnyxInputOrEntry<ReportNameValuePairs>;
+            const isReportArchived = isArchivedReport(reportNameValuePairs);
+
             // Merged accounts can have multiple conceirge chats, exclude archived chats.
-            if (!report?.participants || isThread(report) || isArchivedReportWithID(report?.reportID)) {
+            if (!report?.participants || isThread(report) || isReportArchived) {
                 return false;
             }
 
