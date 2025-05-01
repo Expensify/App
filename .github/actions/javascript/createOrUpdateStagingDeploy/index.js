@@ -11498,10 +11498,10 @@ async function run() {
         // Find the list of PRs merged between the current checklist and the previous checklist
         const mergedPRs = await GitUtils_1.default.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
         // Filter out cherry-picked PRs that appear on the previous checklist
-        const previousPRNumbers = new Set(previousChecklistData.PRList.map(pr => pr.number));
-        const newPRs = mergedPRs.filter(prNum => !previousPRNumbers.has(prNum));
+        const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
+        const newPRs = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
         // Log the PRs that were filtered out
-        const removedPRs = mergedPRs.filter(prNum => previousPRNumbers.has(prNum));
+        const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
         if (removedPRs.length > 0) {
             console.log(`Filter out cherry-picked PRs from previous release: ${removedPRs.join(', ')}`);
         }
@@ -11867,6 +11867,7 @@ async function getPullRequestsMergedBetween(fromTag, toTag) {
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
     console.log(`[API] Found ${apiCommitList.length} commits.`);
     console.error(`[API] Parsed PRs: ${apiPullRequestNumbers.join(', ')}`);
+    // eslint-disable-next-line deprecation/deprecation
     const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
     const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
     console.log(`[git log] Found ${gitCommitList.length} commits.`);

@@ -23,6 +23,9 @@ jest.mock('fs');
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
 const mockGetPullRequestsMergedBetween = jest.fn();
+const mockIssuesUpdate = jest.fn();
+let mockFetchAllPullRequests: jest.SpyInstance;
+let mockGetPullRequestMergerLogin: jest.SpyInstance;
 
 beforeAll(() => {
     // Mock core module
@@ -42,7 +45,7 @@ beforeAll(() => {
                         },
                     }),
                 ),
-                update: jest.fn().mockImplementation((arg: Arguments) =>
+                update: mockIssuesUpdate.mockImplementation((arg: Arguments) =>
                     Promise.resolve({
                         data: {
                             ...arg,
@@ -65,6 +68,10 @@ beforeAll(() => {
     // Mock GitUtils
     GitUtils.getPullRequestsMergedBetween = mockGetPullRequestsMergedBetween;
 
+    // Mock internal GithubUtils methods used by generateStagingDeployCashBodyAndAssignees
+    mockFetchAllPullRequests = jest.spyOn(GithubUtils, 'fetchAllPullRequests');
+    mockGetPullRequestMergerLogin = jest.spyOn(GithubUtils, 'getPullRequestMergerLogin');
+
     vol.reset();
     vol.fromJSON({
         [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.2-1'}),
@@ -75,6 +82,9 @@ afterEach(() => {
     mockGetInput.mockClear();
     mockListIssues.mockClear();
     mockGetPullRequestsMergedBetween.mockClear();
+    mockIssuesUpdate.mockClear();
+    mockFetchAllPullRequests.mockClear();
+    mockGetPullRequestMergerLogin.mockClear();
 });
 
 afterAll(() => {
@@ -138,7 +148,7 @@ const deployBlockerHeader = '**Deploy Blockers:**';
 const lineBreak = '\r\n';
 const lineBreakDouble = '\r\n\r\n';
 
-describe('createOrUpdateStagingDeployCash', () => {
+describe('createOrUpdateStagingDeploy', () => {
     const closedStagingDeployCash = {
         url: `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/issues/28`,
         title: 'Test StagingDeployCash',
@@ -409,5 +419,93 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreakDouble}${ccApplauseLeads}`,
             });
         });
+    });
+
+    test('PRs that were cherry-picked to previous checklist should be filtered out from new checklist PRs', async () => {
+        vol.reset();
+        vol.fromJSON({
+            [PATH_TO_PACKAGE_JSON]: JSON.stringify({version: '1.0.3-0'}),
+        });
+        mockGetInput.mockImplementation((arg) => {
+            if (arg !== 'GITHUB_TOKEN') {
+                return;
+            }
+            return 'fake_token';
+        });
+
+        // Mock the response from GitUtils to include value PRs and some which were cherry-picked to prior release (9, 11)
+        mockGetPullRequestsMergedBetween.mockResolvedValue([9, 10, 11, 12]);
+
+        // Mock the previous checklist data directly, including the PRs we want to filter out (9, 11)
+        const mockGetStagingDeployCashData = jest.spyOn(GithubUtils, 'getStagingDeployCashData');
+        mockGetStagingDeployCashData.mockImplementation((issue) => {
+            // Mock response for the previous checklist
+            if (issue.number === 29) {
+                return {
+                    title: 'Previous Checklist',
+                    url: 'url1',
+                    number: 29,
+                    labels: [LABELS.STAGING_DEPLOY_CASH],
+                    PRList: [
+                        {url: 'url6', number: 6, isVerified: true},
+                        {url: 'url7', number: 7, isVerified: true},
+                        {url: 'url8', number: 8, isVerified: true},
+                        {url: 'url9', number: 9, isVerified: true},
+                        {url: 'url11', number: 11, isVerified: true},
+                    ],
+                    deployBlockers: [],
+                    internalQAPRList: [],
+                    isTimingDashboardChecked: true,
+                    isFirebaseChecked: true,
+                    isGHStatusChecked: true,
+                    version: '1.0.2-1',
+                    tag: '1.0.2-1-staging',
+                };
+            }
+            // Mock response for the current checklist
+            if (issue.number === 30) {
+                return {
+                    title: 'Current Checklist',
+                    url: 'url2',
+                    number: 30,
+                    labels: [LABELS.STAGING_DEPLOY_CASH],
+                    PRList: [
+                        {url: 'url9', number: 9, isVerified: false},
+                        {url: 'url10', number: 10, isVerified: false},
+                        {url: 'url11', number: 11, isVerified: false},
+                        {url: 'url12', number: 12, isVerified: false},
+                    ],
+                    deployBlockers: [],
+                    internalQAPRList: [],
+                    isTimingDashboardChecked: false,
+                    isFirebaseChecked: false,
+                    isGHStatusChecked: false,
+                    version: '1.0.3-1',
+                    tag: '1.0.3-1-staging',
+                };
+            }
+            // Default empty return if needed
+            return {PRList: [], deployBlockers: [], internalQAPRList: []} as any;
+        });
+
+        // Mock the listIssues response to provide the current and previous checklists
+        const openChecklistForFiltering = {number: 30, state: 'open', labels: [LABELS.STAGING_DEPLOY_CASH]};
+        const previousChecklistForFiltering = {number: 29, state: 'closed', labels: [LABELS.STAGING_DEPLOY_CASH]};
+
+        mockListIssues.mockImplementation((args: Arguments) => {
+            return {data: [openChecklistForFiltering, previousChecklistForFiltering]};
+        });
+
+        // Run the createOrUpdateStagingDeploy function
+        const consoleSpy = jest.spyOn(console, 'log');
+        await run();
+
+        // Verify that the previously cherry-picked PRs are filtered out from the current checklist (9, 11)
+        const finalLogCall = consoleSpy.mock.calls.find((call) => call[0]?.startsWith('Final list of PRs for current checklist:'));
+        expect(finalLogCall?.[0]).toBe('Final list of PRs for current checklist: 10, 12');
+
+        // Restore mocks
+        mockGetStagingDeployCashData.mockRestore();
+        consoleSpy.mockRestore();
     });
 });
