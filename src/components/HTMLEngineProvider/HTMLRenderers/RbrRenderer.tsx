@@ -8,6 +8,10 @@ function RbrRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const shouldShowEllipsis = htmlAttribs?.shouldshowellipsis !== undefined;
 
     return (
+        // <Text
+        //     numberOfLines={shouldShowEllipsis ? 1 : 0}
+        //     ellipsizeMode="tail"
+        // >
         <TNodeChildrenRenderer
             tnode={tnode}
             renderChild={(props) => {
@@ -22,6 +26,7 @@ function RbrRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
                 );
             }}
         />
+        // </Text>
     );
 }
 

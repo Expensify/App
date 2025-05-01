@@ -28,7 +28,7 @@ function TransactionItemRowRBR({transaction, containerStyles}: {transaction: Tra
 
     return (
         transactionViolations.length > 0 && (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles, styles.w100]}>
                 <Icon
                     src={DotIndicator}
                     fill={theme.danger}
