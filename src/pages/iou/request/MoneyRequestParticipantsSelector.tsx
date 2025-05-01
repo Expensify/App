@@ -87,7 +87,6 @@ function MoneyRequestParticipantsSelector({
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [softPermissionModalVisible, setSoftPermissionModalVisible] = useState(false);
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
     const showImportContacts = !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -105,7 +104,7 @@ function MoneyRequestParticipantsSelector({
         shouldInitialize: didScreenTransitionEnd,
     });
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
-    const [textInputAutoFocus, setTextInputAutoFocus] = useState(softPermissionModalVisible);
+    const [textInputAutoFocus, setTextInputAutoFocus] = useState(false);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -122,6 +121,10 @@ function MoneyRequestParticipantsSelector({
         // e.g. if the approver was changed in the policy, we need to update the options list
         initializeOptions();
     }, [initializeOptions]);
+
+    useEffect(() => {
+        importAndSaveContacts();
+    }, []);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
@@ -303,15 +306,6 @@ function MoneyRequestParticipantsSelector({
         });
     }, []);
 
-    useEffect(() => {
-        getContactPermission().then((status) => {
-            setContactPermissionState(status);
-            if (status !== RESULTS.BLOCKED && status !== RESULTS.UNAVAILABLE) {
-                setSoftPermissionModalVisible(true);
-            }
-        });
-    }, []);
-
     /**
      * Adds a single participant to the expense
      *
@@ -458,12 +452,8 @@ function MoneyRequestParticipantsSelector({
         ) : null;
     }, [showImportContacts, inputHelperText, translate, styles, goToSettings]);
 
-    const handleSoftPermissionDeny = useCallback(() => {
-        setSoftPermissionModalVisible(false);
-    }, []);
-
-    const handleSoftPermissionGrant = useCallback(() => {
-        setSoftPermissionModalVisible(false);
+    const initiateContactImportAndSetState = useCallback(() => {
+        setContactPermissionState(RESULTS.GRANTED);
         InteractionManager.runAfterInteractions(importAndSaveContacts);
         setTextInputAutoFocus(true);
     }, [importAndSaveContacts]);
@@ -562,14 +552,10 @@ function MoneyRequestParticipantsSelector({
 
     return (
         <>
-            {softPermissionModalVisible && (
-                <ContactPermissionModal
-                    startPermissionFlow={softPermissionModalVisible}
-                    resetPermissionFlow={handleSoftPermissionDeny}
-                    onGrant={handleSoftPermissionGrant}
-                    onDeny={handleSoftPermissionDeny}
-                />
-            )}
+            <ContactPermissionModal
+                onGrant={initiateContactImportAndSetState}
+                onDeny={setContactPermissionState}
+            />
             <SelectionList
                 onConfirm={handleConfirmSelection}
                 sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}

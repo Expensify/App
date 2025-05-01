@@ -5,34 +5,35 @@ import ConfirmModal from '@components/ConfirmModal';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getContactPermission} from '@libs/ContactPermission';
+import {getContactPermission, requestContactPermission} from '@libs/ContactPermission';
 import type {ContactPermissionModalProps} from './types';
 
-function ContactPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: ContactPermissionModalProps) {
+function ContactPermissionModal({onDeny, onGrant}: ContactPermissionModalProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     useEffect(() => {
-        if (!startPermissionFlow) {
-            return;
-        }
         getContactPermission().then((status) => {
-            if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
-                return onGrant();
-            }
-            if (status === RESULTS.BLOCKED) {
+            if (status === RESULTS.DENIED) {
+                // Permission hasn't been asked yet, show the soft permission modal
+                setIsModalVisible(true);
                 return;
             }
-            setIsModalVisible(true);
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
-    }, [startPermissionFlow]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     const handleGrantPermission = () => {
         setIsModalVisible(false);
-        InteractionManager.runAfterInteractions(onGrant);
+        InteractionManager.runAfterInteractions(() => {
+            requestContactPermission().then((status) => {
+                if (status === RESULTS.GRANTED) {
+                    onGrant();
+                }
+            });
+        });
     };
 
     const handleDenyPermission = () => {
@@ -42,8 +43,12 @@ function ContactPermissionModal({startPermissionFlow, resetPermissionFlow, onDen
 
     const handleCloseModal = () => {
         setIsModalVisible(false);
-        resetPermissionFlow();
+        onDeny(RESULTS.DENIED);
     };
+
+    if (!isModalVisible) {
+        return null;
+    }
 
     return (
         <ConfirmModal
