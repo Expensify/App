@@ -59,7 +59,7 @@ function OptionRowLHN({
     style,
     onLayout = () => {},
     hasDraftComment,
-    shouldShowRBRorGPRTooltip,
+    shouldShowRBRorGBRTooltip,
 }: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -86,19 +86,19 @@ function OptionRowLHN({
         let tooltip: ProductTrainingTooltipName = shouldShowGetStartedTooltip
             ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR
             : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
-        if (shouldShowRBRorGPRTooltip) {
+        if (shouldShowRBRorGBRTooltip) {
             tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GBR_RBR_CHAT;
         }
-        const shouldShowTooltips = shouldShowRBRorGPRTooltip || shouldShowWorkspaceChatTooltip || shouldShowGetStartedTooltip;
+        const shouldShowTooltips = shouldShowRBRorGBRTooltip || shouldShowWorkspaceChatTooltip || shouldShowGetStartedTooltip;
         const shouldTooltipBeVisible = shouldUseNarrowLayout ? isScreenFocused && isReportsSplitNavigatorLast : isReportsSplitNavigatorLast && !isFullscreenVisible;
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return {
             tooltipToRender: tooltip,
             shouldShowTooltip: shouldShowTooltips && shouldTooltipBeVisible,
-            shouldTooltipBeLeftAligned: shouldShowWorkspaceChatTooltip && !shouldShowRBRorGPRTooltip && !shouldShowGetStartedTooltip,
+            shouldTooltipBeLeftAligned: shouldShowWorkspaceChatTooltip && !shouldShowRBRorGBRTooltip && !shouldShowGetStartedTooltip,
         };
-    }, [shouldShowRBRorGPRTooltip, shouldShowGetStartedTooltip, shouldShowWorkspaceChatTooltip, isScreenFocused, shouldUseNarrowLayout, isReportsSplitNavigatorLast, isFullscreenVisible]);
+    }, [shouldShowRBRorGBRTooltip, shouldShowGetStartedTooltip, shouldShowWorkspaceChatTooltip, isScreenFocused, shouldUseNarrowLayout, isReportsSplitNavigatorLast, isFullscreenVisible]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
 

@@ -61,7 +61,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
 
     const {shouldShowProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GBR_RBR_CHAT, true);
-    const firstReportIDWithGBRorRGR = useMemo(() => {
+    const firstReportIDWithGBRorRBR = useMemo(() => {
         if (!shouldShowProductTrainingTooltip) {
             return undefined;
         }
@@ -203,7 +203,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             const lastMessageTextFromReport = getLastMessageTextForReport(itemFullReport, lastActorDetails, itemPolicy, itemReportNameValuePairs);
 
-            const shouldShowRBRorGPRTooltip = firstReportIDWithGBRorRGR === reportID;
+            const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
             return (
                 <OptionRowLHNData
@@ -229,7 +229,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     hasDraftComment={hasDraftComment}
                     transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
-                    shouldShowRBRorGPRTooltip={shouldShowRBRorGPRTooltip}
+                    shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
                 />
             );
         },
@@ -249,7 +249,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             transactionViolations,
             onLayoutItem,
             isOffline,
-            firstReportIDWithGBRorRGR,
+            firstReportIDWithGBRorRBR,
         ],
     );
 

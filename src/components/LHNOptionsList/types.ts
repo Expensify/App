@@ -118,7 +118,7 @@ type OptionRowLHNDataProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Whether to show the educational tooltip for the GBR or RBR */
-    shouldShowRBRorGPRTooltip: boolean;
+    shouldShowRBRorGBRTooltip: boolean;
 };
 
 type OptionRowLHNProps = {
@@ -146,7 +146,7 @@ type OptionRowLHNProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Whether to show the educational tooltip on the GBR or RBR */
-    shouldShowRBRorGPRTooltip: boolean;
+    shouldShowRBRorGBRTooltip: boolean;
 };
 
 type RenderItemProps = {item: string};
