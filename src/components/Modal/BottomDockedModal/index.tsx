@@ -42,7 +42,7 @@ function BottomDockedModal({
     const [deviceWidth, setDeviceWidth] = useState(() => Dimensions.get('window').width);
     const [deviceHeight, setDeviceHeight] = useState(() => Dimensions.get('window').height);
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
-    const handleRef = useRef<number>();
+    const handleRef = useRef<number | undefined>(undefined);
 
     const styles = useThemeStyles();
 
@@ -61,12 +61,12 @@ function BottomDockedModal({
     }, [deviceWidth, deviceWidthProp, deviceHeight, deviceHeightProp]);
 
     const onBackButtonPressHandler = useCallback(() => {
-        if (isVisible) {
+        if (isVisibleState) {
             onBackButtonPress();
             return true;
         }
         return false;
-    }, [isVisible, onBackButtonPress]);
+    }, [isVisibleState, onBackButtonPress]);
 
     const handleEscape = useCallback(
         (e: KeyboardEvent) => {
@@ -79,7 +79,6 @@ function BottomDockedModal({
     );
 
     useEffect(() => {
-        const deviceEventListener = DeviceEventEmitter.addListener('didUpdateDimensions', handleDimensionsUpdate);
         if (getPlatform() === CONST.PLATFORM.WEB) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
         } else {
@@ -92,10 +91,13 @@ function BottomDockedModal({
             } else {
                 backHandlerListener.current?.remove();
             }
-            deviceEventListener.remove();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [handleEscape, onBackButtonPressHandler]);
+
+    useEffect(() => {
+        const deviceEventListener = DeviceEventEmitter.addListener('didUpdateDimensions', handleDimensionsUpdate);
+        return () => deviceEventListener.remove();
+    }, [handleDimensionsUpdate]);
 
     useEffect(
         () => () => {

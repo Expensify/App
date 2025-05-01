@@ -36,9 +36,11 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
     useEffect(() => {
         const keyboardDidShowListener = KeyboardEvents.addListener('keyboardDidShow', (e) => {
             setKeyboardHeight(getKeyboardHeight(e.height, bottom));
+            setIsKeyboardActive(true);
         });
         const keyboardDidHideListener = KeyboardEvents.addListener('keyboardDidHide', () => {
             setKeyboardHeight(0);
+            setIsKeyboardActive(false);
         });
         const keyboardWillShowListener = KeyboardEvents.addListener('keyboardWillShow', () => {
             setIsKeyboardActive(true);
