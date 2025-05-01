@@ -67,7 +67,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                         >
                             <MultipleAvatars
                                 icons={icons}
-                                size={CONST.AVATAR_SIZE.XLARGE}
+                                size={CONST.AVATAR_SIZE.X_LARGE}
                                 overlapDivider={4}
                                 shouldStackHorizontally
                                 shouldDisplayAvatarsInRows={shouldUseNarrowLayout}

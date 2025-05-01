@@ -25,7 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
-import {setOnboardingAdminsChatReportID, setOnboardingPolicyID, switchToOldDotOnNonMicroCompanySize} from '@libs/actions/Welcome';
+import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import getPlatform from '@libs/getPlatform';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
@@ -178,8 +178,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         return;
                     }
 
-                    switchToOldDotOnNonMicroCompanySize(onboardingCompanySize);
-
                     const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
 
                     // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
@@ -202,7 +200,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         userReportedIntegration,
                     });
 
-                    if (onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP) {
+                    if (!CONST.NEW_DOT_SUPPORTED_COMPANY_SIZES.includes(onboardingCompanySize) && getPlatform() !== CONST.PLATFORM.DESKTOP) {
                         if (CONFIG.IS_HYBRID_APP) {
                             return;
                         }
@@ -217,6 +215,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     // We need to wait the policy is created before navigating out the onboarding flow
                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                         navigateAfterOnboarding(
+                            onboardingPurposeSelected,
                             isSmallScreenWidth,
                             canUseDefaultRooms,
                             policyID,
@@ -229,7 +228,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     });
                 }}
                 isLoading={isLoading}
-                isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
+                isDisabled={isOffline && !CONST.NEW_DOT_SUPPORTED_COMPANY_SIZES.includes(onboardingCompanySize ?? '') && CONFIG.IS_HYBRID_APP}
                 pressOnEnter
             />
         </>

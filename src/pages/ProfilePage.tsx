@@ -65,13 +65,17 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
     };
 
 function ProfilePage({route}: ProfilePageProps) {
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, chatReportSelector)});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, chatReportSelector), canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (account) => !!account?.isDebugModeEnabled,
+        canBeMissing: true,
+    });
     const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (account) => account?.guideCalendarLink,
+        canBeMissing: true,
     });
 
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
@@ -84,7 +88,7 @@ function ProfilePage({route}: ProfilePageProps) {
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
     }, [accountID, isCurrentUser, reports, session]);
-    const [report] = useOnyx(reportKey);
+    const [report] = useOnyx(reportKey, {canBeMissing: true});
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -111,7 +115,7 @@ function ProfilePage({route}: ProfilePageProps) {
         return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
     }, [personalDetails, accountID, loginParams, isValidAccountID]);
 
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser));
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser, translate('common.you').toLowerCase()));
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
@@ -195,7 +199,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         source={details?.avatar}
                                         avatarID={accountID}
                                         type={CONST.ICON_TYPE_AVATAR}
-                                        size={CONST.AVATAR_SIZE.XLARGE}
+                                        size={CONST.AVATAR_SIZE.X_LARGE}
                                         fallbackIcon={fallbackIcon}
                                     />
                                 </OfflineWithFeedback>

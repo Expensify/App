@@ -29,7 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
-import type {ApprovalRule, Attributes, Rate} from '@src/types/onyx/Policy';
+import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {Participant} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -39,13 +39,6 @@ type OnyxDataReturnType = {
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
-};
-
-type NewCustomUnit = {
-    customUnitID: string;
-    name: string;
-    attributes: Attributes;
-    rates: Rate;
 };
 
 type WorkspaceMembersRoleData = {
@@ -883,7 +876,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
 
-            // Convert to object with each key containing {pendingAction: ‘add’}
+            // Convert to object with each key containing {pendingAction: 'add'}
             value: {
                 employeeList: optimisticMembersState,
             },
@@ -919,7 +912,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
 
-            // Convert to object with each key containing the error. We don’t
+            // Convert to object with each key containing the error. We don't
             // need to remove the members since that is handled by onClose of OfflineWithFeedback.
             value: {
                 employeeList: failureMembersState,
@@ -978,7 +971,7 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
  * Invite member to the specified policyID
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function inviteMemberToWorkspace(policyID: string, inviterEmail: string) {
+function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
 
     const optimisticMembersState = {policyID, inviterEmail};
@@ -1028,6 +1021,31 @@ function joinAccessiblePolicy(policyID: string) {
     ];
 
     API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, {policyID}, {optimisticData, failureData});
+}
+
+/**
+ * Ask the policy admin to add member to the selected private domain workspace based on policyID
+ */
+function askToJoinPolicy(policyID: string) {
+    const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {policyID},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {policyID, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd')},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.ASK_TO_JOIN_POLICY, {policyID}, {optimisticData, failureData});
 }
 
 /**
@@ -1085,6 +1103,14 @@ function openPolicyMemberProfilePage(policyID: string, accountID: number) {
 
 function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
+}
+
+function setWorkspaceInviteRoleDraft(policyID: string, role: ValueOf<typeof CONST.POLICY.ROLE>) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, role);
+}
+
+function clearWorkspaceInviteRoleDraft(policyID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, null);
 }
 
 /**
@@ -1242,6 +1268,7 @@ export {
     setWorkspaceInviteMembersDraft,
     inviteMemberToWorkspace,
     joinAccessiblePolicy,
+    askToJoinPolicy,
     acceptJoinRequest,
     declineJoinRequest,
     isApprover,
@@ -1250,6 +1277,6 @@ export {
     clearInviteDraft,
     buildRoomMembersOnyxData,
     openPolicyMemberProfilePage,
+    setWorkspaceInviteRoleDraft,
+    clearWorkspaceInviteRoleDraft,
 };
-
-export type {NewCustomUnit};

@@ -316,7 +316,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Styles applied for the title */
     titleStyles?: StyleProp<TextStyle>;
 
-    /** Styles applid for the title container of the list item */
+    /** Styles applied for the title container of the list item */
     titleContainerStyles?: StyleProp<ViewStyle>;
 };
 
@@ -401,10 +401,6 @@ type Section<TItem extends ListItem> = {
 type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     /** The initial index of this section given the total number of options in each section's data array */
     indexOffset?: number;
-};
-
-type SkeletonViewProps = {
-    shouldAnimate: boolean;
 };
 
 type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
@@ -533,7 +529,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to call preventDefault() on pressing enter key or not */
     shouldPreventDefault?: boolean;
 
-    /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
+    /** Whether to prevent default focusing of options and focus the text input when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
@@ -605,10 +601,10 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles for the section title */
     sectionTitleStyles?: StyleProp<ViewStyle>;
 
-    /** Styles applid for the title of the list item */
+    /** Styles applied for the title of the list item */
     listItemTitleStyles?: StyleProp<TextStyle>;
 
-    /** Styles applid for the title container of the list item */
+    /** Styles applied for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
 
     /** This may improve scroll performance for large lists */
@@ -730,23 +726,21 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
+type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType;
+
 export type {
     BaseListItemProps,
     SelectionListProps,
     ButtonOrCheckBoxRoles,
-    CommonListItemProps,
     ExtendedTargetedEvent,
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
-    ItemLayout,
     ListItem,
     ListItemFocusEventHandler,
-    ListItemProps,
     RadioListItemProps,
     ReportListItemProps,
     ReportListItemType,
     Section,
-    SkeletonViewProps,
     SectionListDataType,
     SectionWithIndexOffset,
     SelectionListHandle,
@@ -754,8 +748,8 @@ export type {
     TransactionListItemProps,
     TransactionListItemType,
     UserListItemProps,
-    ValidListItem,
     ReportActionListItemType,
     ChatListItemProps,
+    SearchListItem,
     SortableColumnName,
 };

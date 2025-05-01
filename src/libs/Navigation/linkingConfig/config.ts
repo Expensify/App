@@ -92,6 +92,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
+        [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: {
+            screens: {
+                [SCREENS.TEST_DRIVE_DEMO.ROOT]: {
+                    path: ROUTES.TEST_DRIVE_DEMO_ROOT,
+                    exact: true,
+                },
+            },
+        },
+
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
             // Don't set the initialRouteName, because when the user continues from the last visited onboarding page,
             // the onboarding purpose page will be briefly visible.
@@ -683,6 +692,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
+                        },
+                        [SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE]: {
+                            path: ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.route,
                         },
                         [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORY_SETTINGS.route,
