@@ -73,10 +73,10 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style, shouldShowT
         <EducationalTooltip
             shouldRender={shouldShowTooltip}
             anchorAlignment={{
-                horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
-            shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarInboxTooltipShiftHorizontal}
+            shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarSettingsTooltipShiftHorizontal}
             renderTooltipContent={renderTooltipContent}
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shouldHideOnNavigate={false}

@@ -6250,7 +6250,7 @@ const translations = {
         },
         settingsTab: {
             part1: 'Explore your ',
-            part2: 'workspace and account settings',
+            part2: 'workspace\nand account settings',
         },
         workspacesSettings: {
             part1: 'View your ',
