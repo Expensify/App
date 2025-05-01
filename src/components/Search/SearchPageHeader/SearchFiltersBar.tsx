@@ -189,7 +189,17 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     );
 
     const datePickerComponent = useCallback(({closeOverlay}: PopoverComponentProps) => {
-        return <DateSelectPopup closeOverlay={closeOverlay} />;
+        return (
+            <DateSelectPopup
+                closeOverlay={closeOverlay}
+                value={{
+                    after: null,
+                    before: null,
+                    on: null,
+                }}
+                onChange={() => {}}
+            />
+        );
     }, []);
 
     const userPickerComponent = useCallback(({closeOverlay}: PopoverComponentProps) => {

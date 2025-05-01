@@ -6634,6 +6634,11 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
+        DATE_FILTERS: {
+            BEFORE: 'before',
+            AFTER: 'after',
+            ON: 'on',
+        },
     },
 
     EXPENSE: {
