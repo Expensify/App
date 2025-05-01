@@ -229,6 +229,7 @@ async function getPullRequestsMergedBetween(fromTag: string, toTag: string) {
     console.log(`[API] Found ${apiCommitList.length} commits.`);
     console.error(`[API] Parsed PRs: ${apiPullRequestNumbers.join(', ')}`);
 
+    // eslint-disable-next-line deprecation/deprecation
     const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
     const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
     console.log(`[git log] Found ${gitCommitList.length} commits.`);
