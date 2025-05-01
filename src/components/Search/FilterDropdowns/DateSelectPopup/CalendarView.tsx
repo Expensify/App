@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
-import DatePicker from '@components/DatePicker';
+import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,22 +31,19 @@ function CalendarView({view, value, navigateBack, setValue}: CalendarViewProps) 
     };
 
     return (
-        <View style={[styles.pv4, styles.gap4]}>
+        <View style={[styles.pv4]}>
             <HeaderWithBackButton
-                style={[styles.h10]}
+                style={[styles.h10, styles.pb3]}
+                subtitle={translate(`common.${view}`)}
                 onBackButtonPress={navigateBack}
             />
 
-            <View style={[styles.ph5]}>
-                <DatePicker
-                    inputID="dateSelectPopup"
-                    value={localDateValue ?? undefined}
-                    label={translate(`common.${view}`)}
-                    onInputChange={(date) => setLocalDateValue(date)}
-                />
-            </View>
+            <CalendarPicker
+                value={localDateValue ?? undefined}
+                onSelected={setLocalDateValue}
+            />
 
-            <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
+            <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pt2]}>
                 <Button
                     medium
                     style={[styles.flex1]}

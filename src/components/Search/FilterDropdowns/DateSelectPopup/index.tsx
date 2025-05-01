@@ -42,9 +42,9 @@ function DateSelectPopup({value, closeOverlay, onChange}: DateSelectPopupProps) 
     }, []);
 
     const applyChanges = useCallback(() => {
-        // JACK_TODO Send the onchange
+        onChange(localDateValues);
         closeOverlay();
-    }, [closeOverlay]);
+    }, [closeOverlay, localDateValues, onChange]);
 
     if (!view) {
         return (

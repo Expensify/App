@@ -28,9 +28,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildFilterFormValuesFromQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -156,10 +157,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     items={typeOptions}
                     closeOverlay={closeOverlay}
                     onChange={(item) => {
-                        if (!item) {
-                            return;
-                        }
-                        const query = buildSearchQueryString({...queryJSON, type: item?.value});
+                        const newType = item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+                        const query = buildSearchQueryString({...queryJSON, type: newType});
                         Navigation.setParams({q: query});
                     }}
                 />
@@ -200,7 +199,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                         before: filterFormValues.dateBefore ?? null,
                         on: null,
                     }}
-                    onChange={() => {}}
+                    onChange={(value) => {
+                        const newFilterFormValues = {...filterFormValues, dateAfter: value.after ?? undefined, dateBefore: value.before ?? undefined};
+                        const queryString = buildQueryStringFromFilterFormValues(newFilterFormValues);
+                        Navigation.setParams({q: queryString});
+                    }}
                 />
             );
         },
@@ -214,6 +217,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const filters = useMemo(() => {
         const typeValue = typeOptions.find((option) => option.value === type) ?? null;
         const statusValue = getStatusOptions(type, groupBy).filter((option) => status.includes(option.value));
+        const dateValue = [
+            filterFormValues.dateAfter ? `${translate('common.after')} ${DateUtils.formatToReadableString(filterFormValues.dateAfter)}` : null,
+            filterFormValues.dateBefore ? `${translate('common.before')} ${DateUtils.formatToReadableString(filterFormValues.dateBefore)}` : null,
+        ].filter((date): date is string => !!date);
 
         const filterList = [
             {
@@ -229,7 +236,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             {
                 label: translate('common.date'),
                 PopoverComponent: datePickerComponent,
-                value: null,
+                value: dateValue.length ? dateValue : null,
             },
             {
                 label: translate('common.from'),
@@ -239,7 +246,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         ];
 
         return filterList;
-    }, [type, groupBy, translate, typeComponent, statusComponent, datePickerComponent, userPickerComponent, status]);
+    }, [type, groupBy, translate, typeComponent, statusComponent, datePickerComponent, userPickerComponent, status, filterFormValues.dateAfter, filterFormValues.dateBefore]);
 
     if (hasErrors) {
         return null;

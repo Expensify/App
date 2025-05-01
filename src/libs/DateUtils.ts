@@ -951,11 +951,17 @@ const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean =
     return isAfter(now, new Date(startTime)) && isBefore(now, new Date(endTime));
 };
 
+/**
+ * Converts a date to a string in the format MMMM d, yyyy
+ */
+const formatToReadableString = (date: string): string => format(date, 'MMMM d, yyyy');
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
     formatToLocalTime,
+    formatToReadableString,
     getZoneAbbreviation,
     datetimeToRelative,
     datetimeToCalendarTime,
