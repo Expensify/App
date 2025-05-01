@@ -7,41 +7,64 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
-import type {DropdownValue} from './DropdownButton';
 
-type MultiSelectItem = {
+type MultiSelectItem<T> = {
     translation: TranslationPaths;
-    value: string;
+    value: T;
 };
 
-type MultiSelectPopupProps = {
-    items: MultiSelectItem[];
-    value: DropdownValue<MultiSelectItem>;
-    onChange: (item: DropdownValue<MultiSelectItem>) => void;
+type MultiSelectPopupProps<T> = {
+    /** The list of all items to show up in the list */
+    items: Array<MultiSelectItem<T>>;
+
+    /** The currently selected items */
+    value: Array<MultiSelectItem<T>>;
+
+    /** Function to call to close the overlay when changes are applied */
+    closeOverlay: () => void;
+
+    /** Function to call when changes are applied */
+    onChange: (item: Array<MultiSelectItem<T>>) => void;
 };
 
-function MultiSelectPopup({value, items, onChange}: MultiSelectPopupProps) {
+function MultiSelectPopup<T extends string>({value, items, closeOverlay, onChange}: MultiSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    // JACK_TODO: Make this actually work
-    const [selectedItem, setSelectedItem] = useState(items.at(0)?.value);
+    const [selectedItems, setSelectedItems] = useState(value);
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((item) => ({
             text: translate(item.translation),
             keyForList: item.value,
-            isSelected: item.value === selectedItem,
+            isSelected: !!selectedItems.find((i) => i.value === item.value),
         }));
-    }, [items, translate, selectedItem]);
+    }, [items, selectedItems, translate]);
 
-    const updateSelectedItem = useCallback((item: ListItem) => {
-        if (!item.keyForList) {
-            return;
-        }
+    const updateSelectedItems = useCallback(
+        (item: ListItem) => {
+            if (item.isSelected) {
+                setSelectedItems(selectedItems.filter((i) => i.value !== item.keyForList));
+                return;
+            }
 
-        setSelectedItem(item.keyForList);
-    }, []);
+            const newItem = items.find((i) => i.value === item.keyForList);
+
+            if (newItem) {
+                setSelectedItems([...selectedItems, newItem]);
+            }
+        },
+        [items, selectedItems],
+    );
+
+    const applyChanges = useCallback(() => {
+        onChange(selectedItems);
+        closeOverlay();
+    }, [closeOverlay, onChange, selectedItems]);
+
+    const resetChanges = useCallback(() => {
+        onChange([]);
+        closeOverlay();
+    }, [closeOverlay, onChange]);
 
     return (
         <View style={[styles.pv4, styles.gap2]}>
@@ -49,19 +72,21 @@ function MultiSelectPopup({value, items, onChange}: MultiSelectPopupProps) {
                 shouldSingleExecuteRowSelect
                 sections={[{data: listData}]}
                 ListItem={MultiSelectListItem}
-                onSelectRow={updateSelectedItem}
+                onSelectRow={updateSelectedItems}
             />
             <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
                 <Button
                     medium
                     style={[styles.flex1]}
                     text={translate('common.reset')}
+                    onPress={resetChanges}
                 />
                 <Button
                     success
                     medium
                     style={[styles.flex1]}
                     text={translate('common.apply')}
+                    onPress={applyChanges}
                 />
             </View>
         </View>
@@ -69,4 +94,5 @@ function MultiSelectPopup({value, items, onChange}: MultiSelectPopupProps) {
 }
 
 MultiSelectPopup.displayName = 'MultiSelectPopup';
+export type {MultiSelectItem};
 export default MultiSelectPopup;

@@ -7,29 +7,31 @@ import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
-import type {DropdownValue} from './DropdownButton';
 
-type SingleSelectItem = {
+type SingleSelectItem<T> = {
     translation: TranslationPaths;
-    value: string;
+    value: T;
 };
 
-type SingleSelectPopupProps = {
-    items: SingleSelectItem[];
-    value: DropdownValue<SingleSelectItem>;
-    onChange: (item: DropdownValue<SingleSelectItem>) => void;
+type SingleSelectPopupProps<T> = {
+    items: Array<SingleSelectItem<T>>;
+    value: SingleSelectItem<T> | null;
+    closeOverlay: () => void;
+    onChange: (item: SingleSelectItem<T> | null) => void;
 };
 
-function SingleSelectPopup({value, items, onChange}: SingleSelectPopupProps) {
+function SingleSelectPopup<T extends string>({value, items, closeOverlay, onChange}: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);
+
+    const initiallyFocusedOptionKey = selectedItem?.value;
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((item) => ({
             text: translate(item.translation),
             keyForList: item.value,
-            isSelected: !Array.isArray(selectedItem) && item.value === selectedItem?.value,
+            isSelected: item.value === selectedItem?.value,
         }));
     }, [items, translate, selectedItem]);
 
@@ -43,16 +45,18 @@ function SingleSelectPopup({value, items, onChange}: SingleSelectPopupProps) {
 
     const applyChanges = useCallback(() => {
         onChange(selectedItem);
-    }, [onChange, selectedItem]);
+        closeOverlay();
+    }, [closeOverlay, onChange, selectedItem]);
 
     const resetChanges = useCallback(() => {
-        setSelectedItem(value);
-        onChange(null);
-    }, [onChange, value]);
+        onChange(items.at(0) ?? null);
+        closeOverlay();
+    }, [closeOverlay, items, onChange]);
 
     return (
         <View style={[styles.pv4, styles.gap2]}>
             <SelectionList
+                initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                 shouldSingleExecuteRowSelect
                 sections={[{data: listData}]}
                 ListItem={SingleSelectListItem}

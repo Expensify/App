@@ -4,35 +4,23 @@ import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 
-type DropdownValue<T> = T | T[] | null;
-
-type PopoverComponentProps<T> = {
-    items: T[];
-    value: DropdownValue<T>;
-    onChange: (item: DropdownValue<T>) => void;
+type PopoverComponentProps = {
+    closeOverlay: () => void;
 };
 
-type DropdownButtonProps<T> = {
+type DropdownButtonProps = {
     /** The label to display on the select */
     label: string;
 
     /** The selected value(s) if any */
-    value: DropdownValue<T>;
-
-    /** The items to pass to the popover component to be rendered */
-    items: T[];
-
-    /** Callback to be called when an item is selected */
-    onChange: (item: DropdownValue<T>) => void;
+    value: string | string[] | null;
 
     /** The component to render in the popover */
-    PopoverComponent: React.FC<PopoverComponentProps<T>>;
+    PopoverComponent: React.FC<PopoverComponentProps>;
 };
 
 const PADDING_MODAL_DATE_PICKER = 8;
@@ -42,13 +30,12 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function DropdownButton<T extends {translation: TranslationPaths}>({label, value, PopoverComponent, items, onChange}: DropdownButtonProps<T>) {
+function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const triggerRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
     const [popoverTriggerPosition, setPopoverTriggerPosition] = useState({
@@ -78,13 +65,13 @@ function DropdownButton<T extends {translation: TranslationPaths}>({label, value
      * list of selected items as well
      */
     const buttonText = useMemo(() => {
-        if (!value) {
+        if (!value?.length) {
             return label;
         }
 
-        const selectedItems = Array.isArray(value) ? value.map((item) => translate(item.translation)).join(', ') : translate(value.translation);
+        const selectedItems = Array.isArray(value) ? value.join(', ') : value;
         return `${label}: ${selectedItems}`;
-    }, [label, value, translate]);
+    }, [label, value]);
 
     return (
         <>
@@ -118,16 +105,12 @@ function DropdownButton<T extends {translation: TranslationPaths}>({label, value
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
             >
-                <PopoverComponent
-                    value={value}
-                    items={items}
-                    onChange={onChange}
-                />
+                <PopoverComponent closeOverlay={toggleOverlay} />
             </PopoverWithMeasuredContent>
         </>
     );
 }
 
 DropdownButton.displayName = 'DropdownButton';
-export type {DropdownValue};
+export type {PopoverComponentProps};
 export default DropdownButton;

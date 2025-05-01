@@ -9,14 +9,14 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
-import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchGroupBy, SearchQueryJSON, SearchStatus} from '@components/Search/types';
+import type {SearchGroupBy, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -40,7 +40,7 @@ type SearchFiltersBarProps = {
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
 };
 
-const typeOptions: SingleSelectItem[] = [
+const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
     {translation: 'common.expense', value: CONST.SEARCH.DATA_TYPES.EXPENSE},
     {translation: 'common.chat', value: CONST.SEARCH.DATA_TYPES.CHAT},
     {translation: 'common.invoice', value: CONST.SEARCH.DATA_TYPES.INVOICE},
@@ -48,8 +48,7 @@ const typeOptions: SingleSelectItem[] = [
     {translation: 'common.task', value: CONST.SEARCH.DATA_TYPES.TASK},
 ];
 
-const expenseStatusOptions: SingleSelectItem[] = [
-    {translation: 'common.all', value: CONST.SEARCH.STATUS.EXPENSE.ALL},
+const expenseStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
     {translation: 'common.unreported', value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
     {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
     {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
@@ -58,8 +57,7 @@ const expenseStatusOptions: SingleSelectItem[] = [
     {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
 ];
 
-const expenseReportStatusOptions: SingleSelectItem[] = [
-    {translation: 'common.all', value: CONST.SEARCH.STATUS.EXPENSE.ALL},
+const expenseReportStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
     {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
     {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
     {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
@@ -67,8 +65,7 @@ const expenseReportStatusOptions: SingleSelectItem[] = [
     {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
 ];
 
-const chatStatusOptions: SingleSelectItem[] = [
-    {translation: 'common.all', value: CONST.SEARCH.STATUS.CHAT.ALL},
+const chatStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
     {translation: 'common.unread', value: CONST.SEARCH.STATUS.CHAT.UNREAD},
     {translation: 'common.sent', value: CONST.SEARCH.STATUS.CHAT.SENT},
     {translation: 'common.attachments', value: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS},
@@ -76,20 +73,17 @@ const chatStatusOptions: SingleSelectItem[] = [
     {translation: 'search.filters.pinned', value: CONST.SEARCH.STATUS.CHAT.PINNED},
 ];
 
-const invoiceStatusOptions: SingleSelectItem[] = [
-    {translation: 'common.all', value: CONST.SEARCH.STATUS.INVOICE.ALL},
+const invoiceStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
     {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING},
     {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.INVOICE.PAID},
 ];
 
-const tripStatusOptions: SingleSelectItem[] = [
-    {translation: 'common.all', value: CONST.SEARCH.STATUS.TRIP.ALL},
+const tripStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
     {translation: 'search.filters.current', value: CONST.SEARCH.STATUS.TRIP.CURRENT},
     {translation: 'search.filters.past', value: CONST.SEARCH.STATUS.TRIP.PAST},
 ];
 
-const taskStatusOptions: SingleSelectItem[] = [
-    {translation: 'common.all', value: CONST.SEARCH.STATUS.TASK.ALL},
+const taskStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
     {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
     {translation: 'search.filters.completed', value: CONST.SEARCH.STATUS.TASK.COMPLETED},
 ];
@@ -112,7 +106,7 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
 }
 
 function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarProps) {
-    const {hash, type, groupBy} = queryJSON;
+    const {hash, type, groupBy, status} = queryJSON;
     const scrollRef = useRef<RNScrollView>(null);
 
     const theme = useTheme();
@@ -148,46 +142,98 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
+    const typeComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            const value = typeOptions.find((option) => option.value === type) ?? null;
+
+            return (
+                <SingleSelectPopup
+                    value={value}
+                    items={typeOptions}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => {
+                        if (!item) {
+                            return;
+                        }
+                        const query = buildSearchQueryString({...queryJSON, type: item?.value});
+                        Navigation.setParams({q: query});
+                    }}
+                />
+            );
+        },
+        [queryJSON, type],
+    );
+
+    const statusComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            const items = getStatusOptions(type, groupBy);
+            const selected = Array.isArray(status) ? items.filter((option) => status.includes(option.value)) : items.find((option) => option.value === status) ?? [];
+            const value = [selected].flat();
+
+            return (
+                <MultiSelectPopup
+                    items={items}
+                    value={value}
+                    closeOverlay={closeOverlay}
+                    onChange={(selectedItems) => {
+                        const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
+                        const query = buildSearchQueryString({...queryJSON, status: newStatus});
+                        Navigation.setParams({q: query});
+                    }}
+                />
+            );
+        },
+        [groupBy, queryJSON, status, type],
+    );
+
     const filters = useMemo(() => {
+        const typeValue = typeOptions.find((option) => option.value === type) ?? null;
+        const statusValue = getStatusOptions(type, groupBy).filter((option) => status.includes(option.value));
+
         const filterList = [
             {
                 label: translate('common.type'),
-                value: typeOptions.find((option) => option.value === type),
-                options: typeOptions,
-                PopoverComponent: SingleSelectPopup,
-                onChange: (value: any) => {
-                    const query = buildSearchQueryString({...queryJSON, type: value.value});
-                    Navigation.setParams({q: query});
-                },
+                PopoverComponent: typeComponent,
+                value: typeValue?.translation ? translate(typeValue.translation) : null,
             },
             {
                 label: translate('common.status'),
-                value: null,
-                options: getStatusOptions(type, groupBy),
-                PopoverComponent: MultiSelectPopup,
-                onChange: (value: SearchStatus) => {
-                    const query = buildSearchQueryString({...queryJSON, status: value});
-                    Navigation.setParams({q: query});
-                },
+                PopoverComponent: statusComponent,
+                value: statusValue.map((option) => translate(option.translation)),
             },
-            {
-                label: translate('common.date'),
-                value: null,
-                options: [],
-                PopoverComponent: DateSelectPopup,
-                onChange: () => {},
-            },
-            {
-                label: translate('common.from'),
-                value: null,
-                options: [],
-                PopoverComponent: UserSelectPopup,
-                onChange: () => {},
-            },
+            // {
+            //     label: translate('common.status'),
+            //     value: (() => {
+            //         if (Array.isArray(status)) {
+            //             return getStatusOptions(type, groupBy).filter((option) => status.includes(option.value as any));
+            //         }
+            //         return [getStatusOptions(type, groupBy).find((option) => option.value === status)];
+            //     })(),
+            //     options: getStatusOptions(type, groupBy),
+            //     PopoverComponent: MultiSelectPopup,
+            //     onChange: (value: SearchStatus) => {
+            //         const query = buildSearchQueryString({...queryJSON, status: value});
+            //         Navigation.setParams({q: query});
+            //     },
+            // },
+            // {
+            //     label: translate('common.date'),
+            //     value: null,
+            //     options: [],
+            //     PopoverComponent: DateSelectPopup,
+            //     onChange: () => {},
+            // },
+            // {
+            //     label: translate('common.from'),
+            //     value: null,
+            //     options: [],
+            //     PopoverComponent: UserSelectPopup,
+            //     onChange: () => {},
+            // },
         ];
 
         return filterList;
-    }, [groupBy, translate, type, queryJSON]);
+    }, [type, groupBy, translate, typeComponent, statusComponent, status]);
 
     if (hasErrors) {
         return null;
@@ -241,8 +287,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                             key={filter.label}
                             label={filter.label}
                             value={filter.value}
-                            items={filter.options}
-                            onChange={filter.onChange}
                             PopoverComponent={filter.PopoverComponent}
                         />
                     ))}
