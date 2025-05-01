@@ -121,6 +121,7 @@ describe('GithubUtils', () => {
                 },
             ],
             version: '1.0.1-47',
+            tag: '1.0.1-47-staging',
             title: 'Andrew Test Issue',
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             number: 29,

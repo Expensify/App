@@ -1,6 +1,7 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {PaymentType} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -34,6 +35,8 @@ import type SettlementButtonProps from './types';
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
 type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => void;
+
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function SettlementButton({
     addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -75,12 +78,14 @@ function SettlementButton({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: false});
     const isUserValidated = useAccountValidation();
     const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
     const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+        canBeMissing: true,
         selector: (paymentMethod) => {
             if (typeof paymentMethod?.[policyIDKey] === 'string') {
                 return paymentMethod?.[policyIDKey];
@@ -90,9 +95,9 @@ function SettlementButton({
     });
 
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
 
     useEffect(() => {
@@ -104,7 +109,7 @@ function SettlementButton({
     }, [isLoadingLastPaymentMethod]);
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
-    const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions;
+    const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
@@ -127,7 +132,7 @@ function SettlementButton({
             },
         };
         const approveButtonOption = {
-            text: translate('iou.approve'),
+            text: translate('iou.approve', {formattedAmount}),
             icon: Expensicons.ThumbsUp,
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
@@ -147,7 +152,7 @@ function SettlementButton({
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
-        if (isExpenseReport && shouldShowPaywithExpensifyOption) {
+        if (isExpenseReport && shouldShowPayWithExpensifyOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
         if (shouldShowPayElsewhereOption) {
@@ -156,7 +161,7 @@ function SettlementButton({
 
         if (isInvoiceReport) {
             const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
-            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency);
+            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
             const getPaymentSubitems = (payAsBusiness: boolean) =>
                 formattedPaymentMethods.map((formattedPaymentMethod) => ({
                     text: formattedPaymentMethod?.title ?? '',
@@ -232,7 +237,7 @@ function SettlementButton({
         currency,
         shouldHidePaymentOptions,
         shouldShowApproveButton,
-        shouldShowPaywithExpensifyOption,
+        shouldShowPayWithExpensifyOption,
         shouldShowPayElsewhereOption,
         chatReport,
         onPress,

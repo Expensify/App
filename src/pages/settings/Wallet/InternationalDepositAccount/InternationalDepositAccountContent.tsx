@@ -23,7 +23,7 @@ import BankInformation from './substeps/BankInformation';
 import Confirmation from './substeps/Confirmation';
 import CountrySelection from './substeps/CountrySelection';
 import Success from './substeps/Success';
-import type {CustomSubStepProps} from './types';
+import type CustomSubStepProps from './types';
 import {getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, testValidation} from './utils';
 
 type InternationalDepositAccountContentProps = {

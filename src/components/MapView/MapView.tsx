@@ -5,7 +5,6 @@ import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, 
 import {View} from 'react-native';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -24,6 +23,7 @@ import Direction from './Direction';
 import type {MapViewHandle, MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
+import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
 import utils from './utils';
 
 const MapView = forwardRef<MapViewHandle, MapViewProps>(
@@ -227,7 +227,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
         const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
         const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
 
-        const distanceSymbolCoorinate = useMemo(() => {
+        const distanceSymbolCoordinate = useMemo(() => {
             if (!directionCoordinates?.length || !waypoints?.length) {
                 return;
             }
@@ -310,14 +310,14 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                     })}
 
                     {!!directionCoordinates && <Direction coordinates={directionCoordinates} />}
-                    {!!distanceSymbolCoorinate && !!distanceInMeters && !!distanceUnit && (
+                    {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
                         <MarkerView
-                            coordinate={distanceSymbolCoorinate}
+                            coordinate={distanceSymbolCoordinate}
                             id="distance-label"
                             key="distance-label"
                         >
                             <View style={{zIndex: 1}}>
-                                <PressableWithoutFeedback
+                                <ToggleDistanceUnitButton
                                     accessibilityRole={CONST.ROLE.BUTTON}
                                     accessibilityLabel="distance-label"
                                     onPress={toggleDistanceUnit}
@@ -325,7 +325,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                                     <View style={[styles.distanceLabelWrapper]}>
                                         <Text style={styles.distanceLabelText}> {distanceLabelText}</Text>
                                     </View>
-                                </PressableWithoutFeedback>
+                                </ToggleDistanceUnitButton>
                             </View>
                         </MarkerView>
                     )}

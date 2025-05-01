@@ -17,7 +17,7 @@ Many Expensify customers have one person managing key roles in Expensify Classic
 
 1. [Add the new admin](https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles) to the workspace.
 2. [Assign the Admin role](https://help.expensify.com/articles/expensify-classic/workspaces/Change-member-workspace-roles) to the new admin.
-3. If your company uses **company card feeds, Expensify Cards, domain groups,** or **SAML**, invite the new admin as a [Domain Admin](https://help.expensify.com/articles/expensify-classic/domains/Add-Domain-Members-and-Admins).
+3. If your company uses **company card feeds, Expensify Cards, domain groups, or SAML**, invite the new admin as a [Domain Admin](https://help.expensify.com/articles/expensify-classic/domains/Add-Domain-Members-and-Admins).
 
 **The current admin must add the new admin to all company workspaces, including ones that are no longer active:**
 - The new admin must take ownership of **all company workspaces** to ensure a single **Annual Subscription** continues.
@@ -35,8 +35,8 @@ If you are the only admin with access to the company bank account in Expensify, 
 [Take over workspace ownership and billing](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account) to ensure a smooth financial transition.
 
 ## Re-verify the Company Bank Account
-- **1-2 business days after the bank account is shared with the **, Expensify will send **three test transactions** (two withdrawals, one deposit) to your bank account.
-- Visit **Settings > Account > Payments** or check your **Expensify Inbox** to verify these transactions.
+- One to two business days after the bank account is shared with the new admin, Expensify will send **three test transactions** (two withdrawals, one deposit) to your bank account.
+- Visit **Settings > Account > Wallet** or check your **Expensify Inbox** to verify these transactions.
 
 ## Unshare the Company Bank Account
 Once the previous admin leaves, [remove their access](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Business-Bank-Accounts-USD#how-to-remove-access-to-a-verified-bank-account) from the bank account.
@@ -53,15 +53,15 @@ If the company uses the Expensify Card, make sure the new admin is listed as the
 ⚠️ **Important:** The **settlement account owner** must also be a **Domain Admin**.
 
 ## Update the Default Reimburser Assignment
-1. Go to **Settings > Workspaces**.
-2. Select the appropriate workspace.
-3. Click the **Reimbursement** tab.
-4. Ensure the correct bank account is set as the reimbursement account.
-5. If the previous admin is listed as the **Default Reimburser**, assign the new reimburser.
+1. Go to **Settings > Workspace > [Workspace Name] > Workflows > Make or track payments**
+2. Ensure the correct bank account is set as the reimbursement account.
+3. If the previous admin is listed as the **Default Reimburser**, assign the new reimburser.
 
-## Reconnect Integrations & Set a New Technical Contact
-1. If the workspace is connected to an [accounting integration](https://help.expensify.com/expensify-classic/hubs/connections/) linked to the previous admin’s account, make sure to reestablish the connection to the new admin's account.
-2. If the previous admin is listed as the Technical Contact, [update that role](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-Technical-Contact) to the new admin or someone else in your company. 
+## Reconnect Accounting Integrations & Set a New Technical Contact
+
+Head to **Settings > Workspace > [Workspace Name] > Accounting**:
+- If the workspace is connected to an [accounting integration](https://help.expensify.com/expensify-classic/hubs/connections/) linked to the previous admin’s account, make sure to re-establish the connection to the new admin's account. 
+- If the previous admin is listed as the Technical Contact, [update that role](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-Technical-Contact) to the new admin or someone else in your company. 
 
 ## Remove the Previous Admin
 1. If the previous admin is staying with the company, **downgrade their role** to employee:
