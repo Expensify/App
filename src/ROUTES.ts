@@ -943,6 +943,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/invite-message',
         getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite-message`, backTo)}` as const,
     },
+    WORKSPACE_INVITE_MESSAGE_ROLE: {
+        route: 'settings/workspaces/:policyID/invite-message/role',
+        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite-message/role`, backTo)}` as const,
+    },
     WORKSPACE_OVERVIEW: {
         route: 'settings/workspaces/:policyID/overview',
         getRoute: (policyID: string | undefined, backTo?: string) => {
