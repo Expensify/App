@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef, useState} from 'react';
-import {CheckSquare} from '@components/Icon/Expensicons';
+import {CheckSquare, EmptySquare} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
@@ -123,8 +123,8 @@ function SelectionListWithModal<TItem extends ListItem>(
                 shouldUseNewModal
             >
                 <MenuItem
-                    title={translate('common.select')}
-                    icon={CheckSquare}
+                    title={longPressedItem?.isSelected ? translate('common.deselect') : translate('common.select')}
+                    icon={longPressedItem?.isSelected ? EmptySquare : CheckSquare}
                     onPress={turnOnSelectionMode}
                     pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
                 />
