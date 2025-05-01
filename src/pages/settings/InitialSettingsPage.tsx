@@ -90,7 +90,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`, {canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -116,7 +115,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
     const freeTrialText = getFreeTrialText(policies);
-    const shouldOpenBookACall = tryNewDot?.classicRedirect?.dismissed === false;
 
     useEffect(() => {
         openInitialSettingsPage();
@@ -261,11 +259,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                         : {
                               action() {
                                   resetExitSurveyForm(() => {
-                                      if (shouldOpenBookACall) {
-                                          Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
-                                          return;
-                                      }
-                                      Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
+                                      Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON.route);
                                   });
                               },
                           }),
@@ -297,7 +291,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, setRootStatusBarEnabled, shouldOpenBookACall, signOut]);
+    }, [styles.pt4, setRootStatusBarEnabled, signOut]);
 
     /**
      * Retuns JSX.Element with menu items

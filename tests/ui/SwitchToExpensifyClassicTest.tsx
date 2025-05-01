@@ -75,15 +75,9 @@ describe('Switch to Expensify Classic flow', () => {
         PusherHelper.teardown();
     });
 
-    test('Should navigate to BookACall when dismissed is false', () => {
-        signInAppAndEnterTestFlow(false).then(() => {
-            expect(screen.getAllByText(Localize.translateLocal('exitSurvey.bookACallTitle')).at(0)).toBeOnTheScreen();
-        });
-    });
-
-    test('Should navigate to ConfirmPage when dismissed is true', () => {
+    test('Should navigate to exit survey reason page', () => {
         signInAppAndEnterTestFlow(true).then(() => {
-            expect(screen.getAllByText(Localize.translateLocal('exitSurvey.goToExpensifyClassic')).at(0)).toBeOnTheScreen();
+            expect(screen.getAllByText(Localize.translateLocal('exitSurvey.reasonPage.subtitle')).at(0)).toBeOnTheScreen();
         });
     });
 });
