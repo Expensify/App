@@ -344,7 +344,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     };
 
     const statusBarProps = getStatusBarProps();
-    const shouldAddGapToContents = shouldUseNarrowLayout && (!!statusBarProps || shouldShowNextStep);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -700,7 +699,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 </View>
             )}
             {isMoreContentShown && (
-                <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>
+                <View style={[styles.dFlex, styles.flexColumn, styles.pb3, styles.ph5]}>
                     <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
                         {shouldShowSelectedTransactionsButton && shouldUseNarrowLayout && (
                             <ButtonWithDropdownMenu
