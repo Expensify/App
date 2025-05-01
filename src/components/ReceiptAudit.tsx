@@ -5,6 +5,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import RenderHTML from './RenderHTML';
 import Text from './Text';
 
 type ReceiptAuditProps = {
@@ -58,7 +59,10 @@ function ReceiptAuditMessages({notes = []}: {notes?: string[]}) {
                         style={[styles.textLabelError]}
                         key={message}
                     >
-                        {message}
+                        {/* {message} */}
+                        <RenderHTML
+                            html={`<rbr>${'Expense details and receipt added manually. Please verify the details. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Learn more</a> about automatic auditing for all receipts.'}</rbr>`}
+                        />
                     </Text>
                 ))}
         </View>
