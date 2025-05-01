@@ -57,16 +57,16 @@ async function run(): Promise<IssuesCreateResponse | void> {
         // Find the list of PRs merged between the current checklist and the previous checklist
         const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
 
-        // Filter out cherry-picked PRs that appear on the previous checklist
+        // mergedPRs includes cherry-picked PRs that have already been releases with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
-        const newPRs = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
+        const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
+        console.log(`Final list of PRs for current checklist: ${newPRNumbers.join(', ')}`);
 
         // Log the PRs that were filtered out
         const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
         if (removedPRs.length > 0) {
-            console.log(`Filter out cherry-picked PRs from previous release: ${removedPRs.join(', ')}`);
+            console.log(`Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')}`);
         }
-        console.log(`Final list of PRs for current checklist: ${newPRs.join(', ')}`);
 
         // Next, we generate the checklist body
         let checklistBody = '';
@@ -74,7 +74,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         if (shouldCreateNewDeployChecklist) {
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
-                newPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
+                newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
             );
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
@@ -82,7 +82,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             }
         } else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
-            const PRList = newPRs.map((prNum) => {
+            const PRList = newPRNumbers.map((prNum) => {
                 const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum) ?? -1;
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
                 return {

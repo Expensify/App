@@ -25,26 +25,6 @@ const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 
 // Used to mock the Oktokit GithubAPI
 const mockGetInput = jest.fn<string | undefined, [string]>();
-const mockCompareCommitsResponseBase = {
-    data: {
-        url: '',
-        html_url: '',
-        permalink_url: '',
-        diff_url: '',
-        patch_url: '',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-        base_commit: {} as any,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-        merge_base_commit: {} as any,
-        status: 'ahead' as const,
-        ahead_by: 0,
-        behind_by: 0,
-        total_commits: 0,
-    },
-    status: 200 as const,
-    headers: {},
-    url: '',
-};
 
 type ExecSyncError = {stderr: Buffer};
 
@@ -91,11 +71,12 @@ function initGithubAPIMocking() {
         }
         return mockGetInput(name) ?? '';
     });
+
+    // Mock various compareCommits responses with single mocked function
     jest.spyOn(GithubUtils.octokit.repos, 'compareCommits').mockImplementation((params) => {
         const base = params?.base;
         const head = params?.head;
         const tagPairKey = `${base}...${head}`;
-        console.log(`Mock compareCommits called with: ${tagPairKey}`);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mockCommits: any[] = (() => {
@@ -193,14 +174,25 @@ function initGithubAPIMocking() {
         })();
 
         return Promise.resolve({
-            ...mockCompareCommitsResponseBase,
             data: {
-                ...mockCompareCommitsResponseBase.data,
-                commits: mockCommits,
-                total_commits: mockCommits.length,
+                url: '',
+                html_url: '',
+                permalink_url: '',
+                diff_url: '',
+                patch_url: '',
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+                base_commit: {} as any,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+                merge_base_commit: {} as any,
+                status: mockCommits.length > 0 ? 'ahead' : ('identical' as const),
                 ahead_by: mockCommits.length,
-                status: mockCommits.length > 0 ? 'ahead' : 'identical',
+                behind_by: 0,
+                total_commits: mockCommits.length,
+                commits: mockCommits,
             },
+            status: 200 as const,
+            headers: {},
+            url: '',
         });
     });
 }
