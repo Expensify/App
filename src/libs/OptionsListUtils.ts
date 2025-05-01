@@ -685,7 +685,7 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
 }
 
 function hasHiddenDisplayNames(accountIDs: number[]) {
-    return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => getDisplayNameOrDefault(personalDetail) === translateLocal('common.hidden'));
+    return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
 /**
