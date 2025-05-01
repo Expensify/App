@@ -1,3 +1,4 @@
+import {RequestError} from '@octokit/request-error';
 import {execSync, spawn} from 'child_process';
 import CONST from './CONST';
 import GithubUtils from './GithubUtils';
@@ -183,8 +184,13 @@ async function getCommitHistoryBetweenTags(fromTag: string, toTag: string): Prom
             authorName: commit.commit.author?.name || commit.author?.login || 'Unknown',
         }));
     } catch (error) {
-        console.error('Error getting commit history from GitHub API:', error);
-        throw error;
+        if (error instanceof RequestError && error.status === 404) {
+            console.error(
+                `❓❓ Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`,
+            );
+        } else {
+            console.error('Error getting commit history from GitHub API:', error);
+        }
     }
 }
 
