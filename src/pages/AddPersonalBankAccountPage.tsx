@@ -9,7 +9,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
@@ -27,7 +26,7 @@ function AddPersonalBankAccountPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
-    const isUserValidated = useAccountValidation();
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;

@@ -3,7 +3,6 @@ import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
 import React, {useCallback, useContext, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -51,7 +50,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
-    const isUserValidated = useAccountValidation();
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
 
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');

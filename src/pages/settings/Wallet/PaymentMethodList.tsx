@@ -13,7 +13,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import type {FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
@@ -199,7 +198,7 @@ function PaymentMethodList({
     const {isOffline} = useNetwork();
     const illustrations = useThemeIllustrations();
 
-    const isUserValidated = useAccountValidation();
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [bankAccountList = {}, bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);

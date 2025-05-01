@@ -1,7 +1,6 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,7 +19,7 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const policy = usePolicy(activePolicyID);
-    const isUserValidated = useAccountValidation();
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
 
     const updatePolicyAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
         if (!policy) {
