@@ -46,7 +46,7 @@ const data: ExampleDataType[] = [
     },
 ];
 
-// Example commit history data for tests
+// Example commit history required to test getCommitHistoryBetweenTags
 const commitHistoryData = {
     emptyResponse: {
         data: {
