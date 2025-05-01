@@ -81,24 +81,24 @@ function OptionRowLHN({
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
     const {tooltipToRender, shouldShowTooltip, shouldTooltipBeLeftAligned} = useMemo(() => {
-        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         let tooltip: ProductTrainingTooltipName = shouldShowGetStartedTooltip
-            ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR
+            ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR
             : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
         if (shouldShowRBRorGPRTooltip) {
             tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GBR_RBR_CHAT;
         }
-        const shouldShowTooltips = shouldShowRBRorGPRTooltip || shouldShowWokspaceChatTooltip || shouldShowGetStartedTooltip;
+        const shouldShowTooltips = shouldShowRBRorGPRTooltip || shouldShowWorkspaceChatTooltip || shouldShowGetStartedTooltip;
         const shouldTooltipBeVisible = shouldUseNarrowLayout ? isScreenFocused && isReportsSplitNavigatorLast : isReportsSplitNavigatorLast && !isFullscreenVisible;
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return {
             tooltipToRender: tooltip,
             shouldShowTooltip: shouldShowTooltips && shouldTooltipBeVisible,
-            shouldTooltipBeLeftAligned: shouldShowWokspaceChatTooltip && !shouldShowRBRorGPRTooltip && !shouldShowGetStartedTooltip,
+            shouldTooltipBeLeftAligned: shouldShowWorkspaceChatTooltip && !shouldShowRBRorGPRTooltip && !shouldShowGetStartedTooltip,
         };
-    }, [shouldShowRBRorGPRTooltip, shouldShowGetStartedTooltip, shouldShowWokspaceChatTooltip, isScreenFocused, shouldUseNarrowLayout, isReportsSplitNavigatorLast, isFullscreenVisible]);
+    }, [shouldShowRBRorGPRTooltip, shouldShowGetStartedTooltip, shouldShowWorkspaceChatTooltip, isScreenFocused, shouldUseNarrowLayout, isReportsSplitNavigatorLast, isFullscreenVisible]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
 
