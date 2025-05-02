@@ -112,6 +112,14 @@ function MoneyRequestParticipantsSelector({
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
 
+    const importAndSaveContacts = useCallback(() => {
+        contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
+            setContactPermissionState(permissionStatus);
+            const usersFromContact = getContacts(contactList);
+            setContacts(usersFromContact);
+        });
+    }, []);
+
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
@@ -124,7 +132,7 @@ function MoneyRequestParticipantsSelector({
 
     useEffect(() => {
         importAndSaveContacts();
-    }, []);
+    }, [importAndSaveContacts]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
@@ -297,14 +305,6 @@ function MoneyRequestParticipantsSelector({
         showImportContacts,
         inputHelperText,
     ]);
-
-    const importAndSaveContacts = useCallback(() => {
-        contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
-            setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList);
-            setContacts(usersFromContact);
-        });
-    }, []);
 
     /**
      * Adds a single participant to the expense

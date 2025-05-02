@@ -16,11 +16,11 @@ function ContactPermissionModal({onDeny, onGrant}: ContactPermissionModalProps) 
 
     useEffect(() => {
         getContactPermission().then((status) => {
-            if (status === RESULTS.DENIED) {
-                // Permission hasn't been asked yet, show the soft permission modal
-                setIsModalVisible(true);
+            // Permission hasn't been asked yet, show the soft permission modal
+            if (status !== RESULTS.DENIED) {
                 return;
             }
+            setIsModalVisible(true);
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -29,9 +29,10 @@ function ContactPermissionModal({onDeny, onGrant}: ContactPermissionModalProps) 
         setIsModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
             requestContactPermission().then((status) => {
-                if (status === RESULTS.GRANTED) {
-                    onGrant();
+                if (status !== RESULTS.GRANTED) {
+                    return;
                 }
+                onGrant();
             });
         });
     };
