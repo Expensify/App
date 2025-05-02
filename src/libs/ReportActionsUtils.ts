@@ -273,7 +273,7 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
 }
 
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE && !!getOriginalMessage(reportAction as ReportAction<'INTEGRATIONSMESSAGE'>)?.result?.success;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION;
 }
 
 /**
@@ -2447,6 +2447,7 @@ export {
     isReportActionDeprecated,
     isReportPreviewAction,
     isReversedTransaction,
+    getMentionedAccountIDsFromAction,
     isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction,

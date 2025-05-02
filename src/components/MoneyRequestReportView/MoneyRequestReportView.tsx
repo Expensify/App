@@ -1,3 +1,4 @@
+import {PortalHost} from '@gorhom/portal';
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -242,14 +243,17 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         />
                     )}
                     {shouldDisplayReportFooter ? (
-                        <ReportFooter
-                            report={report}
-                            reportMetadata={reportMetadata}
-                            policy={policy}
-                            pendingAction={reportPendingAction}
-                            isComposerFullSize={!!isComposerFullSize}
-                            lastReportAction={lastReportAction}
-                        />
+                        <>
+                            <ReportFooter
+                                report={report}
+                                reportMetadata={reportMetadata}
+                                policy={policy}
+                                pendingAction={reportPendingAction}
+                                isComposerFullSize={!!isComposerFullSize}
+                                lastReportAction={lastReportAction}
+                            />
+                            <PortalHost name="suggestions" />
+                        </>
                     ) : null}
                 </View>
             </OfflineWithFeedback>
