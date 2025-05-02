@@ -1,16 +1,10 @@
-import {RequestError} from '@octokit/request-error';
 import {execSync, spawn} from 'child_process';
 import CONST from './CONST';
 import GithubUtils from './GithubUtils';
+import type {CommitType} from './GithubUtils';
 import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
 import {getPreviousVersion, SEMANTIC_VERSION_LEVELS} from './versionUpdater';
 import type {SemverLevel} from './versionUpdater';
-
-type CommitType = {
-    commit: string;
-    subject: string;
-    authorName: string;
-};
 
 /**
  * Check if a tag exists locally or in the remote.
@@ -118,7 +112,7 @@ function fetchTag(tag: string, shallowExcludeTag = '') {
 /**
  * Get merge logs between two tags (inclusive) as a JavaScript object.
  *
- * @deprecated Use getCommitHistoryBetweenTags - to be removed after verification of https://github.com/Expensify/App/issues/60687
+ * @deprecated Use GithubUtils.getCommitHistoryBetweenTags - to be removed after verification of https://github.com/Expensify/App/issues/60687
  */
 function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitType[]> {
     // Fetch tags, excluding commits reachable from the previous patch version (or minor for prod) (i.e: previous checklist), so that we don't have to fetch the full history
@@ -163,37 +157,6 @@ function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitT
 }
 
 /**
- * Get commits between two tags via the GitHub API
- */
-async function getCommitHistoryBetweenTags(fromTag: string, toTag: string): Promise<CommitType[]> {
-    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
-
-    try {
-        const {data: comparison} = await GithubUtils.octokit.repos.compareCommits({
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            base: fromTag,
-            head: toTag,
-        });
-
-        // Map API response to our CommitType format
-        return comparison.commits.map((commit) => ({
-            commit: commit.sha,
-            subject: commit.commit.message,
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            authorName: commit.commit.author?.name || 'Unknown',
-        }));
-    } catch (error) {
-        if (error instanceof RequestError && error.status === 404) {
-            console.error(
-                `❓❓ Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`,
-            );
-        }
-        throw error;
-    }
-}
-
-/**
  * Parse merged PRs, excluding those from irrelevant branches.
  */
 function getValidMergedPRs(commits: CommitType[]): number[] {
@@ -229,7 +192,7 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
 async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}`);
 
-    const apiCommitList = await getCommitHistoryBetweenTags(fromTag, toTag);
+    const apiCommitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag);
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
     console.log(`[API] Found ${apiCommitList.length} commits.`);
     console.error(`[API] Parsed PRs: ${apiPullRequestNumbers.join(', ')}`);
@@ -247,6 +210,4 @@ export default {
     getPreviousExistingTag,
     getValidMergedPRs,
     getPullRequestsDeployedBetween,
-    getCommitHistoryBetweenTags,
 };
-export type {CommitType};
