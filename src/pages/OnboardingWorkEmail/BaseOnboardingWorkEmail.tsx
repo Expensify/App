@@ -132,7 +132,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                progressBarPercentage={15}
+                progressBarPercentage={10}
                 shouldShowBackButton={false}
             />
             <FormProvider
