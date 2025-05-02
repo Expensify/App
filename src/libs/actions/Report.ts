@@ -4655,13 +4655,15 @@ function deleteAppReport(reportID: string | undefined) {
     const reportactionID = report?.parentReportActionID;
     const parentReportID = report?.parentReportID;
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-        value: {
-            [reportactionID ?? '']: null,
-        },
-    });
+    if (reportactionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {
+                [reportactionID]: null,
+            },
+        });
+    }
 
     const parameters: DeleteAppReportParams = {
         reportID,
