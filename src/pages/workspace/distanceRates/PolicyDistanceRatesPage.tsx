@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
@@ -21,6 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -64,7 +65,6 @@ function PolicyDistanceRatesPage({
     const isFocused = useIsFocused();
     const policy = usePolicy(policyID);
     const {selectionMode} = useMobileSelectionMode();
-    const [inputValue, setInputValue] = useState('');
 
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
@@ -178,18 +178,9 @@ function PolicyDistanceRatesPage({
         [customUnitRates, translate, customUnit, selectedDistanceRates, canSelectMultiple, policy?.pendingAction, updateDistanceRateEnabled],
     );
 
-    const [, startTransition] = useTransition();
-    const [filteredDistanceRatesList, setFilteredDistanceRatesList] = useState<RateForList[]>([]);
-
-    useEffect(() => {
-        startTransition(() => {
-            const normalizedSearchQuery = inputValue.trim().toLowerCase();
-            const filtered = normalizedSearchQuery ? distanceRatesList.filter((rate) => rate.text?.toLowerCase().includes(normalizedSearchQuery)) : distanceRatesList;
-            setFilteredDistanceRatesList(filtered.sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0)));
-        });
-    }, [distanceRatesList, inputValue]);
-
-    const hasVisibleRates = useMemo(() => Object.values(customUnitRates).some((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [customUnitRates]);
+    const filterRate = useCallback((rate: RateForList, searchInput: string) => !!rate.text?.toLowerCase().includes(searchInput.toLowerCase()), []);
+    const sortRates = useCallback((rates: RateForList[]) => rates.sort((a, b) => (a.rate ?? 0) - (b.rate ?? 0)), []);
+    const [inputValue, setInputValue, filteredDistanceRatesList] = useSearchResults(distanceRatesList, filterRate, sortRates);
 
     const addRate = () => {
         Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
@@ -383,7 +374,7 @@ function PolicyDistanceRatesPage({
                         label={translate('workspace.distanceRates.findRate')}
                         inputValue={inputValue}
                         onChangeText={setInputValue}
-                        shouldShowEmptyState={hasVisibleRates && filteredDistanceRatesList.length === 0}
+                        shouldShowEmptyState={filteredDistanceRatesList.length === 0}
                     />
                 )}
                 {isLoading && (

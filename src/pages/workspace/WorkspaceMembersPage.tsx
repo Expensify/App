@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {useCallback, useEffect, useMemo, useRef, useState, useTransition} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -29,6 +29,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -100,7 +101,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
-    const [inputValue, setInputValue] = useState('');
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -463,18 +463,12 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         isPolicyAdmin,
     ]);
 
-    const [, startTransition] = useTransition();
-    const [filteredData, setFilteredData] = useState<MemberOption[]>([]);
-
-    useEffect(() => {
-        startTransition(() => {
-            const normalizedSearchQuery = inputValue.trim().toLowerCase();
-            const filtered = normalizedSearchQuery
-                ? data.filter((item) => !!item.text?.toLowerCase().includes(normalizedSearchQuery) || !!item.alternateText?.toLowerCase().includes(normalizedSearchQuery))
-                : data;
-            setFilteredData(sortAlphabetically(filtered, 'text'));
-        });
-    }, [data, inputValue]);
+    const filterMember = useCallback(
+        (memberOption: MemberOption, searchQuery: string) => !!memberOption.text?.toLowerCase().includes(searchQuery) || !!memberOption.alternateText?.toLowerCase().includes(searchQuery),
+        [],
+    );
+    const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text'), []);
+    const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
     useEffect(() => {
         if (!isFocused) {

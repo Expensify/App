@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -23,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -98,8 +99,6 @@ function ReportFieldsListValuesPage({
         return [reportFieldValues, reportFieldDisabledValues];
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID]);
 
-    const [inputValue, setInputValue] = useState('');
-
     const updateReportFieldListValueEnabled = useCallback(
         (value: boolean, valueIndex: number) => {
             if (reportFieldID) {
@@ -139,18 +138,11 @@ function ReportFieldsListValuesPage({
         [canSelectMultiple, disabledListValues, listValues, selectedValues, translate, updateReportFieldListValueEnabled],
     );
 
-    const [, startTransition] = useTransition();
-    const [filteredListValuesSections, setFilteredListValuesSections] = useState<ValueListItem[]>([]);
+    const filterListValue = useCallback((item: ValueListItem, searchInput: string) => !!item.text?.toLowerCase().includes(searchInput.toLowerCase()), []);
+    const sortListValues = useCallback((values: ValueListItem[]) => values.sort((a, b) => localeCompare(a.value, b.value)), []);
+    const [inputValue, setInputValue, filteredListValues] = useSearchResults(data, filterListValue, sortListValues);
 
-    useEffect(() => {
-        startTransition(() => {
-            const normalizedSearchQuery = inputValue.trim().toLowerCase();
-            const filtered = normalizedSearchQuery ? data.filter((reportField) => reportField.text?.toLowerCase().includes(normalizedSearchQuery)) : data;
-            setFilteredListValuesSections(filtered.sort((a, b) => localeCompare(a.value, b.value)));
-        });
-    }, [data, inputValue]);
-
-    const filteredListValuesArray = filteredListValuesSections.map((item) => item.value);
+    const filteredListValuesArray = filteredListValues.map((item) => item.value);
 
     const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
@@ -340,12 +332,12 @@ function ReportFieldsListValuesPage({
                 <View style={[styles.ph5, styles.pv4]}>
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
-                {filteredListValuesSections.length > 15 && (
+                {filteredListValues.length > 15 && (
                     <SearchBar
                         label={translate('workspace.reportFields.findReportField')}
                         inputValue={inputValue}
                         onChangeText={setInputValue}
-                        shouldShowEmptyState={!shouldShowEmptyState && filteredListValuesSections.length === 0}
+                        shouldShowEmptyState={!shouldShowEmptyState && filteredListValues.length === 0}
                     />
                 )}
                 {shouldShowEmptyState && (
@@ -367,7 +359,7 @@ function ReportFieldsListValuesPage({
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={!hasAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
-                        sections={[{data: filteredListValuesSections, isDisabled: false}]}
+                        sections={[{data: filteredListValues, isDisabled: false}]}
                         onCheckboxPress={toggleValue}
                         onSelectRow={openListValuePage}
                         onSelectAll={toggleAllValues}

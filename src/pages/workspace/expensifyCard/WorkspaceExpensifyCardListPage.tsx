@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -19,9 +19,10 @@ import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {filterCards, sortCardsByCardholderName} from '@libs/CardUtils';
+import {filterCardsByPersonalDetails, getCardsByCardholderName, sortCardsByCardholderName} from '@libs/CardUtils';
 import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDescriptionForPolicyDomainCard, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -73,23 +74,14 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
-    const sortedCards = useMemo(
-        () => sortCardsByCardholderName(cardsList, personalDetails, Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList))),
-        [cardsList, personalDetails, policy?.employeeList],
-    );
+    const allCards = useMemo(() => {
+        const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
+        return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
+    }, [cardsList, policy?.employeeList]);
 
-    const [inputValue, setInputValue] = useState('');
-
-    const [, startTransition] = useTransition();
-    const [filteredSortedCards, setFilteredSortedCards] = useState<Card[]>([]);
-
-    useEffect(() => {
-        startTransition(() => {
-            const normalizedSearchQuery = inputValue.trim().toLowerCase();
-            const filtered = normalizedSearchQuery ? sortedCards.filter((card) => filterCards(normalizedSearchQuery, card, personalDetails)) : sortedCards;
-            setFilteredSortedCards(filtered);
-        });
-    }, [inputValue, personalDetails, sortedCards]);
+    const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
+    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails), [personalDetails]);
+    const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const handleIssueCardPress = () => {
         if (isActingAsDelegate) {
@@ -192,7 +184,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                             policyID={policyID}
                             cardSettings={cardSettings}
                         />
-                        {sortedCards.length > 15 && (
+                        {allCards.length > 15 && (
                             <SearchBar
                                 label={translate('workspace.expensifyCard.findCard')}
                                 inputValue={inputValue}

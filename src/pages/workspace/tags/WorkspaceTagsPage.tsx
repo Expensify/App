@@ -1,5 +1,5 @@
 import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -31,6 +31,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
@@ -97,8 +98,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isQuickSettingsFlow = !!backTo;
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
-
-    const [inputValue, setInputValue] = useState('');
 
     useEffect(() => {
         fetchTags();
@@ -210,18 +209,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }));
     }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
-    const [, startTransition] = useTransition();
-    const [filteredTagList, setFilteredTagList] = useState<TagListItem[]>([]);
-
-    useEffect(() => {
-        startTransition(() => {
-            const normalizedSearchQuery = inputValue.trim().toLowerCase();
-            const filtered = normalizedSearchQuery
-                ? tagList.filter((item) => !!item.text?.toLowerCase().includes(normalizedSearchQuery) || !!item.value?.toLowerCase().includes(normalizedSearchQuery))
-                : tagList;
-            setFilteredTagList(lodashSortBy(filtered, 'value', localeCompare) as TagListItem[]);
-        });
-    }, [tagList, inputValue]);
+    const filterTag = useCallback((tag: TagListItem, searchInput: string) => !!tag.text?.toLowerCase().includes(searchInput) || !!tag.value?.toLowerCase().includes(searchInput), []);
+    const sortTags = useCallback((tags: TagListItem[]) => lodashSortBy(tags, 'value', localeCompare) as TagListItem[], []);
+    const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
 
     const filteredTagListKeyedByName = useMemo(
         () =>

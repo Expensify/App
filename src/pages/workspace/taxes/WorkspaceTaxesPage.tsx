@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -24,6 +24,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
@@ -83,7 +84,6 @@ function WorkspaceTaxesPage({
 
     const enabledRatesCount = selectedTaxesIDs.filter((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled).length;
     const disabledRatesCount = selectedTaxesIDs.length - enabledRatesCount;
-    const [inputValue, setInputValue] = useState('');
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
@@ -183,22 +183,19 @@ function WorkspaceTaxesPage({
         });
     }, [policy, textForDefault, selectedTaxesIDs, canSelectMultiple, translate, updateWorkspaceTaxEnabled]);
 
-    const [, startTransition] = useTransition();
-    const [filteredTaxesList, setFilteredTaxesList] = useState<ListItem[]>([]);
-
-    useEffect(() => {
-        startTransition(() => {
-            const normalizedSearchQuery = inputValue.trim().toLowerCase();
-            const filtered = normalizedSearchQuery
-                ? taxesList.filter((tax) => {
-                      const taxName = tax.text?.toLowerCase() ?? '';
-                      const taxAlternateText = tax.alternateText?.toLowerCase() ?? '';
-                      return taxName.includes(normalizedSearchQuery) || taxAlternateText.includes(normalizedSearchQuery);
-                  })
-                : taxesList;
-            setFilteredTaxesList(filtered.sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? '')));
+    const filterTax = useCallback((tax: ListItem, searchInput: string) => {
+        const taxName = tax.text?.toLowerCase() ?? '';
+        const taxAlternateText = tax.alternateText?.toLowerCase() ?? '';
+        return taxName.includes(searchInput) || taxAlternateText.includes(searchInput);
+    }, []);
+    const sortTaxes = useCallback((taxes: ListItem[]) => {
+        return taxes.sort((a, b) => {
+            const aText = a.text ?? a.keyForList ?? '';
+            const bText = b.text ?? b.keyForList ?? '';
+            return aText.localeCompare(bText);
         });
-    }, [inputValue, taxesList]);
+    }, []);
+    const [inputValue, setInputValue, filteredTaxesList] = useSearchResults(taxesList, filterTax, sortTaxes);
 
     const isLoading = !isOffline && taxesList === undefined;
 

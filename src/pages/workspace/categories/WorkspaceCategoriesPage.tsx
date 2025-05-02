@@ -1,5 +1,5 @@
 import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -33,6 +33,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
@@ -87,7 +88,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = !!backTo;
-    const [inputValue, setInputValue] = useState('');
     const {canUseLeftHandBar} = usePermissions();
 
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
@@ -169,18 +169,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }, []);
     }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceRequiresCategory]);
 
-    const [, startTransition] = useTransition();
-    const [filteredCategoryList, setFilteredCategoryList] = useState<PolicyOption[]>([]);
-
-    useEffect(() => {
-        startTransition(() => {
-            const normalizedSearchQuery = inputValue.trim().toLowerCase();
-            const filtered = normalizedSearchQuery
-                ? categoryList.filter((item) => !!item.text?.toLowerCase().includes(normalizedSearchQuery) || !!item.alternateText?.toLowerCase().includes(normalizedSearchQuery))
-                : categoryList;
-            setFilteredCategoryList(lodashSortBy(Object.values(filtered ?? {}), 'text', localeCompare) as PolicyOption[]);
-        });
-    }, [inputValue, categoryList]);
+    const filterCategory = useCallback((categoryOption: PolicyOption, searchInput: string) => {
+        return !!categoryOption.text?.toLowerCase().includes(searchInput) || !!categoryOption.alternateText?.toLowerCase().includes(searchInput);
+    }, []);
+    const sortCategories = useCallback((data: PolicyOption[]) => {
+        return lodashSortBy(data, 'text', localeCompare) as PolicyOption[];
+    }, []);
+    const [inputValue, setInputValue, filteredCategoryList] = useSearchResults(categoryList, filterCategory, sortCategories);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(filteredCategoryList);
 

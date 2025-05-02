@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState, useTransition} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -9,8 +9,9 @@ import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterCards, getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
+import {filterCardsByPersonalDetails, getCardsByCardholderName, getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -41,23 +42,14 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
 
-    const sortedCards = useMemo(
-        () => sortCardsByCardholderName(cardsList, personalDetails, Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList))),
-        [cardsList, personalDetails, policy?.employeeList],
-    );
+    const allCards = useMemo(() => {
+        const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
+        return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
+    }, [cardsList, policy?.employeeList]);
 
-    const [inputValue, setInputValue] = useState('');
-
-    const [, startTransition] = useTransition();
-    const [filteredSortedCards, setFilteredSortedCards] = useState<Card[]>([]);
-
-    useEffect(() => {
-        startTransition(() => {
-            const normalizedSearchQuery = inputValue.trim().toLowerCase();
-            const filtered = normalizedSearchQuery ? sortedCards.filter((card) => filterCards(normalizedSearchQuery, card, personalDetails)) : sortedCards;
-            setFilteredSortedCards(filtered);
-        });
-    }, [inputValue, personalDetails, sortedCards]);
+    const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
+    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails), [personalDetails]);
+    const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<Card>) => {
@@ -115,7 +107,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
         [styles, translate],
     );
 
-    if (sortedCards.length === 0) {
+    if (allCards.length === 0) {
         return (
             <WorkspaceCompanyCardsFeedAddedEmptyPage
                 handleAssignCard={handleAssignCard}
@@ -128,7 +120,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
 
     return (
         <>
-            {sortedCards.length > 0 && (
+            {allCards.length > 0 && (
                 <SearchBar
                     label={translate('workspace.companyCards.findCard')}
                     inputValue={inputValue}

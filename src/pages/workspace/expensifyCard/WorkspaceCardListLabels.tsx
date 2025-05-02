@@ -52,7 +52,7 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
                 type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
                 value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
             />
-            <View style={[styles.flexRow, !isLessThanMediumScreen && styles.flex2, isLessThanMediumScreen && styles.mt5]}>
+            <View style={[styles.flexRow, !isLessThanMediumScreen ? styles.flex2 : styles.mt5]}>
                 <WorkspaceCardsListLabel
                     type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
                     value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}

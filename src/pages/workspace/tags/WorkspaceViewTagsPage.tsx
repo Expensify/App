@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState, useTransition} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -21,6 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -70,7 +71,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = !!backTo;
-    const [inputValue, setInputValue] = useState('');
 
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
@@ -130,18 +130,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled],
     );
 
-    const [, startTransition] = useTransition();
-    const [filteredTagList, setFilteredTagList] = useState<TagListItem[]>([]);
-
-    useEffect(() => {
-        startTransition(() => {
-            const normalizedSearchQuery = inputValue.trim().toLowerCase();
-            const filtered = normalizedSearchQuery
-                ? tagList.filter((item) => !!item.text?.toLowerCase().includes(normalizedSearchQuery) || !!item.value?.toLowerCase().includes(normalizedSearchQuery))
-                : tagList;
-            setFilteredTagList(filtered.sort((tagA, tagB) => localeCompare(tagA.value, tagB.value)));
-        });
-    }, [tagList, inputValue]);
+    const filterTag = useCallback((tag: TagListItem, searchInput: string) => !!tag.text?.toLowerCase().includes(searchInput) || !!tag.value?.toLowerCase().includes(searchInput), []);
+    const sortTags = useCallback((tags: TagListItem[]) => tags.sort((tagA, tagB) => localeCompare(tagA.value, tagB.value)), []);
+    const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
 
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
 
