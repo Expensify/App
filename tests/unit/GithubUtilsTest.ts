@@ -11,40 +11,6 @@ import GithubUtils from '@github/libs/GithubUtils';
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
 
-// Moved commitHistoryData back to the top level
-const commitHistoryData = {
-    emptyResponse: {
-        data: {
-            commits: [],
-        },
-    },
-    singleCommit: {
-        data: {
-            commits: [
-                {
-                    sha: 'abc123',
-                    commit: {
-                        message: 'Test commit message',
-                        author: {
-                            name: 'Test Author',
-                        },
-                    },
-                    author: {
-                        login: 'testuser',
-                    },
-                },
-            ],
-        },
-    },
-    expectedFormattedCommit: [
-        {
-            commit: 'abc123',
-            subject: 'Test commit message',
-            authorName: 'Test Author',
-        },
-    ],
-};
-
 type Label = {
     id: number;
     number?: number;
