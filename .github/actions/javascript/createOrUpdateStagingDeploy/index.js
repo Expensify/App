@@ -11573,7 +11573,7 @@ async function run() {
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
         core.startGroup('Filtering PRs:');
-        core.debug('mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out');
+        core.info('mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out');
         core.info(`Found ${previousPRNumbers.size} PRs in the previous checklist:`);
         core.info(JSON.stringify(Array.from(previousPRNumbers)));
         const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
