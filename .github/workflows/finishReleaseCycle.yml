@@ -11,6 +11,7 @@ jobs:
     if: contains(github.event.issue.labels.*.name, 'StagingDeployCash')
     outputs:
       isValid: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && !fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) }}
+      isProdHigherThanStaging: ${{ steps.isProdVersionHigherThanStaging.outputs.IS_PROD_HIGHER_THAN_STAGING }}
     steps:
       - name: Checkout
         # v4
@@ -67,11 +68,63 @@ jobs:
             This issue either has unchecked items or has not yet been marked with the `:shipit:` emoji of approval.
             Reopening!
 
+      - name: Check if prod version is higher than staging version
+        id: isProdVersionHigherThanStaging
+        run: |
+          # Get prod and staging versions from releases
+          PROD_VERSION="$(gh release list --repo ${{ github.repository }} --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName')"
+          STAGING_VERSION="$(gh release list --repo ${{ github.repository }} --json tagName,isPrerelease --jq '[.[] | select(.isPrerelease)][0].tagName')"
+
+          # Strip out the -staging suffix
+          STAGING_VERSION="${LATEST_STAGING_VERSION%-staging}"
+
+          if [[ "$(printf '%s\n%s\n' "$PROD_VERSION" "$STAGING_VERSION" | sort -V | head -n1)" != "$PROD_VERSION" ]]; then
+            echo "Prod version $PROD_VERSION is higher than staging version $STAGING_VERSION, bumping staging version before shipping checklist"
+            echo "IS_PROD_HIGHER_THAN_STAGING=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "IS_PROD_HIGHER_THAN_STAGING=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Edge case for CP-to-prod! Consider this scenario:
+  #   1. You close a checklist and we create a new staging version `9.0.34-0` and a new checklist
+  #   2. You then CP a PR to production, and in the process create `9.0.35-0`
+  #   3. You close the new checklist, and we try to ship `9.0.34-0` to production. This won't work, because we already submitted a higher version `9.0-35-0`
+  #
+  # To address this, we'll:
+  #   1. Bump the version on main again
+  #   2. CP that version bump to staging
+  cherryPickExtraVersionBump:
+    needs: [validate]
+    if: ${{ fromJSON(needs.validate.outputs.isProdHigherThanStaging) }}
+    uses: ./.github/workflows/cherryPick.yml
+    secrets: inherit
+    with:
+      # Note: by omitting PULL_REQUEST_URL, we are just doing a version bump and CP'ing it to staging
+      TARGET: staging
+
+  updateChecklistWithVersionBump:
+    name: Update deploy checklist with the new version bump
+    needs: [cherryPickExtraVersionBump]
+    uses: ./.github/workflows/createDeployChecklist.yml
+    secrets: inherit
+
+  commentOnChecklistForVersionBump:
+    name: Comment on deploy checklist for version bump
+    needs: [cherryPickExtraVersionBump]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post comment
+        run: gh issue comment ${{ github.event.issue.url }} --body "The app version on production is higher than the app version on staging. This is typically the result of a cherry-pick to production. Bumping the app version on staging and cherry-picking that to staging before doing a full deploy."
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   # Update the production branch to trigger the production deploy.
   updateProduction:
