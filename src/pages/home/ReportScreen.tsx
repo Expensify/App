@@ -543,11 +543,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // This function is only triggered when a user is invited to a room after opening the link.
         // When a user opens a room they are not a member of, and the admin then invites them, only the INVITETOROOM action is available, so the background will be empty and room description is not available.
         // See https://github.com/Expensify/App/issues/57769 for more details
-        if (prevReportActions.length !== 0 || reportActions.length !== 1 || reportActions.at(0)?.actionName !== CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) {
+        if (
+            prevReportActions.length !== 0 ||
+            reportActions.length !== 1 ||
+            reportActions.at(0)?.actionName !== CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
+            reportMetadata.isLoadingInitialReportActions
+        ) {
             return;
         }
         fetchReport();
-    }, [prevReportActions, reportActions, fetchReport]);
+    }, [prevReportActions, reportActions, fetchReport, reportMetadata.isLoadingInitialReportActions]);
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
