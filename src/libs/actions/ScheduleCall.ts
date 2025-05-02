@@ -2,7 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetGuideCallAvailabilityScheduleParams} from '@libs/API/parameters';
-import {READ_COMMANDS} from '@libs/API/types';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,7 +62,7 @@ function getGuideCallAvailabilitySchedule(policyID: string | undefined, reportID
         reportID,
     };
 
-    API.read(READ_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE, params, {optimisticData, successData, failureData});
 }
 
 function saveBookingDraft(data: ScheduleCallDraft) {
