@@ -35,16 +35,13 @@ function TransactionItemRowRBR({transaction, containerStyles}: {transaction: Tra
                     height={variables.iconSizeExtraSmall}
                     width={variables.iconSizeExtraSmall}
                 />
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}, styles.mw100]}
-                >
+                <View style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}, styles.mw100]}>
                     {/* {RBRMessages} */}
                     <RenderHTML
                         // html={`<alert-text>${RBRMessages}</alert-text>`}
                         html={`<rbr shouldShowEllipsis="1">${'Expense details and receipt added manually. Please verify the details. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Learn more</a> about automatic auditing for all receipts.'}</rbr>`}
                     />
-                </Text>
+                </View>
             </View>
         )
     );
