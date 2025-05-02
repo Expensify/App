@@ -128,7 +128,8 @@ jobs:
 
   # Update the production branch to trigger the production deploy.
   updateProduction:
-    needs: validate
+    needs: [validate, cherryPickExtraVersionBump]
+    if: ${{ always() && fromJSON(needs.validate.outputs.isValid) }}
     uses: ./.github/workflows/updateProtectedBranch.yml
     secrets: inherit
     with:
@@ -137,6 +138,7 @@ jobs:
   # Remove DeployBlockerCash label from issues that had it since we just deployed production
   cleanupDeployBlockers:
     needs: updateProduction
+    if: ${{ always() && fromJSON(needs.validate.outputs.isValid) }}
     runs-on: ubuntu-latest
     steps:
       - run: |
@@ -153,7 +155,7 @@ jobs:
   # Create a new patch version to prep for next release cycle
   createNewPatchVersion:
     needs: validate
-    if: ${{ fromJSON(needs.validate.outputs.isValid) }}
+    if: ${{ always() && fromJSON(needs.validate.outputs.isValid) }}
     uses: ./.github/workflows/createNewVersion.yml
     secrets: inherit
     with:
@@ -162,6 +164,7 @@ jobs:
   # Update the staging branch to trigger a staging deploy
   updateStaging:
     needs: [cleanupDeployBlockers, createNewPatchVersion]
+    if: ${{ always() && fromJSON(needs.validate.outputs.isValid) }}
     uses: ./.github/workflows/updateProtectedBranch.yml
     secrets: inherit
     with:
