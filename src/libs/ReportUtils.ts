@@ -10433,7 +10433,7 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
         return getInvoiceReportName(properInvoiceReport);
     }
 
-    return action?.reportName ?? '';
+    return action?.reportName ?? getReportName(report);
 }
 
 export {
