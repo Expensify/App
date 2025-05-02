@@ -1163,6 +1163,7 @@ const translations = {
         bookingArchived: 'Esta reserva está archivada',
         bookingArchivedDescription: 'Esta reserva está archivada porque la fecha del viaje ha pasado. Agregue un gasto por el monto final si es necesario.',
         attendees: 'Asistentes',
+        whoIsYourAccountant: '¿Quién es tu contador?',
         paymentComplete: 'Pago completo',
         time: 'Tiempo',
         startDate: 'Fecha de inicio',
@@ -6751,6 +6752,17 @@ const translations = {
             part2: ', empieza a chatear',
             part3: '\ny más.',
             part4: ' ¡Pruébalo!',
+        },
+        GBRRBRChat: {
+            part1: 'Verás 🟢 en ',
+            part2: 'las acciones a realizar',
+            part3: '\ny 🔴 en ',
+            part4: 'los errores que debes revisar.',
+        },
+        accountSwitcher: {
+            part1: 'Accede a tus ',
+            part2: 'cuentas copiloto',
+            part3: ' aquí',
         },
         expenseReportsFilter: {
             part1: '¡Bienvenido! Aquí encontrarás todos los',

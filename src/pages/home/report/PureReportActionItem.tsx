@@ -78,7 +78,6 @@ import {
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
-    getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
@@ -813,6 +812,7 @@ function PureReportActionItem({
                                 chatReportID={reportID}
                                 reportID={reportID}
                                 action={action}
+                                shouldDisplayContextMenu={shouldDisplayContextMenu}
                                 isBillSplit={isSplitBillActionReportActionsUtils(action)}
                                 transactionID={isSplitInGroupChat ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
                                 containerStyles={[shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle, styles.mt1]}
@@ -1038,8 +1038,6 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
             children = <ReportActionItemBasicMessage message={getWorkspaceNameUpdatedMessage(action)} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION) {
-            children = <ReportActionItemBasicMessage message={getWorkspaceDescriptionUpdatedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
             children = <ReportActionItemBasicMessage message={getWorkspaceCurrencyUpdateMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
