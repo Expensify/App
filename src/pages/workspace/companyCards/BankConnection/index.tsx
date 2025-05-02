@@ -106,7 +106,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         };
     }, [backTo, feed, bankName]);
 
-
     // Handle android back button
     useHandleBackButton(() => {
         handleBackButtonPress();

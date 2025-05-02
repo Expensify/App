@@ -1,5 +1,5 @@
 import {format, subDays} from 'date-fns';
-import React, {useEffect, useMemo, useState, useRef} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
@@ -19,7 +20,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
-import Log from '@libs/Log';
 
 type TransactionStartDateStepProps = {
     policyID: string | undefined;

@@ -8,6 +8,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +22,6 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
-import useHandleBackButton from '@hooks/useHandleBackButton';
 
 type ConfirmationStepProps = {
     /** Current policy id */
@@ -92,7 +92,6 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         handleBackButtonPress();
         return true;
     });
-
 
     return (
         <InteractiveStepWrapper

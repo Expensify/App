@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState, useRef} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -72,8 +72,8 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         return true;
     });
 
-       // Handle browser back button
-       const handlePopStateRef = useRef(() => {
+    // Handle browser back button
+    const handlePopStateRef = useRef(() => {
         handleBackButtonPress();
     });
 
