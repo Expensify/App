@@ -87,6 +87,7 @@ import {
     getWorkspaceUpdateFieldMessage,
     isActionableAddPaymentCard,
     isActionableJoinRequest,
+    isActionableMentionConfirmWhisper,
     isActionableMentionWhisper,
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
@@ -424,7 +425,7 @@ function PureReportActionItem({
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
-    const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
+    const isActionableWhisper = isActionableMentionWhisper(action) || isActionableMentionConfirmWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
@@ -740,6 +741,17 @@ function PureReportActionItem({
                     key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING}`,
                     onPress: () => resolveActionableReportMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING),
                 },
+            ];
+        }
+
+        if (isActionableMentionConfirmWhisper(action)) {
+            return [
+                {
+                    text: 'common.buttonConfirm',
+                    key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_CONFIRM_RESOLUTION.DONE}`,
+                    onPress: () => {},
+                    isPrimary: true,
+                }
             ];
         }
 
