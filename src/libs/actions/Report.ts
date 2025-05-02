@@ -4585,13 +4585,15 @@ function deleteAppReport(reportID: string | undefined) {
 
     const transactionIDToMoneyRequestReportActionIDMap: Record<string, string> = {};
     Object.values(reportActionsForReport ?? {})
-        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction)).reverse()
+        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
+        .reverse()
         .forEach((reportAction) => {
             // 3. Move the IOU reportActions to the selfDM
-            const newReportActionID = rand64()
+            const newReportActionID = rand64();
             const updatedReportAction = {
                 ...reportAction,
                 originalMessage: {
+                    // eslint-disable-next-line deprecation/deprecation
                     ...reportAction.originalMessage,
                     IOUReportID: selfDMReportID,
                 },
@@ -4609,7 +4611,7 @@ function deleteAppReport(reportID: string | undefined) {
             if (transactionID) {
                 transactionIDToMoneyRequestReportActionIDMap[transactionID] = newReportActionID;
             }
-            
+
             // 4. Get transaction thread
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -4650,14 +4652,14 @@ function deleteAppReport(reportID: string | undefined) {
     });
 
     // 7. Delete chat report preview
-    const reportactionID = report?.parentReportActionID ?? '';
+    const reportactionID = report?.parentReportActionID;
     const parentReportID = report?.parentReportID;
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
         value: {
-            [reportactionID]: null,
+            [reportactionID ?? '']: null,
         },
     });
 

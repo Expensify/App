@@ -115,8 +115,6 @@ import {
 import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
-    clearReportFieldKeyErrors,
-    deleteAppReport,
     downloadReportPDF,
     exportReportToCSV,
     exportReportToPDF,
@@ -210,6 +208,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [isDeleteReportModalVisible, setIsDeleteReportModalVisible] = useState(false);
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
@@ -307,7 +306,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
-            console.log('transactionThreadReport?.parentReportActionID', transactionThreadReport?.parentReportActionID)
             if (!reportActions || !transactionThreadReport?.parentReportActionID) {
                 return undefined;
             }
@@ -318,7 +316,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
-        console.log('requestParentReportAction.actorAccountID', requestParentReportAction?.actorAccountID, 'session?.accountID', session?.accountID)
     const isDeletedParentAction = isDeletedAction(requestParentReportAction);
 
     const moneyRequestReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => {
@@ -334,7 +331,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowTaskDeleteButton =
         isTaskReport && !isCanceledTaskReport && canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !isClosedReport(report) && canModifyTask && canActionTask;
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
-    console.log('reportID', report?.reportID,"isActionOwner", isActionOwner, 'canDeleteTransaction', canDeleteTransaction(moneyRequestReport), 'isSelfDMTrackExpenseReport', isSelfDMTrackExpenseReport, 'isDeletedParentAction', isDeletedParentAction);
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransactionID);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted);
@@ -1073,8 +1069,18 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         <MenuItem
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
                             icon={Expensicons.Trashcan}
-                            title={(caseID === CASES.DEFAULT || caseID === CASES.MONEY_REPORT)? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
-                            onPress={() => setIsDeleteModalVisible(true)}
+                            title={
+                                caseID === CASES.DEFAULT || caseID === CASES.MONEY_REPORT
+                                    ? translate('common.delete')
+                                    : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})
+                            }
+                            onPress={() => {
+                                if (caseID === CASES.MONEY_REPORT) {
+                                    setIsDeleteReportModalVisible(true);
+                                } else {
+                                    setIsDeleteModalVisible(true);
+                                }
+                            }}
                         />
                     )}
 
@@ -1128,6 +1134,21 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     }}
                     onCancel={() => setIsDeleteModalVisible(false)}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation', {count: 1})}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                    shouldEnableNewFocusManagement
+                    onModalHide={navigateToTargetUrl}
+                />
+                <ConfirmModal
+                    title={translate('iou.deleteReport')}
+                    isVisible={isDeleteReportModalVisible}
+                    onConfirm={() => {
+                        setIsDeleteReportModalVisible(false);
+                        isTransactionDeleted.current = true;
+                    }}
+                    onCancel={() => setIsDeleteReportModalVisible(false)}
+                    prompt={translate('iou.deleteReportConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
