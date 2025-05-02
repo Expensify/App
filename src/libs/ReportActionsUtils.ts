@@ -2458,6 +2458,7 @@ export {
     isReportActionDeprecated,
     isReportPreviewAction,
     isReversedTransaction,
+    getMentionedAccountIDsFromAction,
     isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction,
