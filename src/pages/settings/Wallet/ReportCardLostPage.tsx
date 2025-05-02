@@ -186,13 +186,15 @@ function ReportCardLostPage({
                                 <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardLostOrStolenInfo')}</Text>
                             )}
                         </View>
-                        <FormAlertWithSubmitButton
-                            isAlertVisible={shouldShowAddressError}
-                            onSubmit={handleSubmitSecondStep}
-                            message={translate('reportCardLostOrDamaged.addressError')}
-                            isLoading={formData?.isLoading}
-                            buttonText={isDamaged ? translate('reportCardLostOrDamaged.shipNewCardButton') : translate('reportCardLostOrDamaged.deactivateCardButton')}
-                        />
+                        <View style={[styles.mh5]}>
+                            <FormAlertWithSubmitButton
+                                isAlertVisible={shouldShowAddressError}
+                                onSubmit={handleSubmitSecondStep}
+                                message={translate('reportCardLostOrDamaged.addressError')}
+                                isLoading={formData?.isLoading}
+                                buttonText={isDamaged ? translate('reportCardLostOrDamaged.shipNewCardButton') : translate('reportCardLostOrDamaged.deactivateCardButton')}
+                            />
+                        </View>
                         <ValidateCodeActionModal
                             handleSubmitForm={handleValidateCodeEntered}
                             sendValidateCode={sendValidateCode}
@@ -215,12 +217,14 @@ function ReportCardLostPage({
                                 onSelectOption={handleOptionSelect}
                             />
                         </View>
-                        <FormAlertWithSubmitButton
-                            isAlertVisible={shouldShowReasonError}
-                            onSubmit={handleSubmitFirstStep}
-                            message={translate('reportCardLostOrDamaged.reasonError')}
-                            buttonText={translate('reportCardLostOrDamaged.nextButtonLabel')}
-                        />
+                        <View style={[styles.mh5]}>
+                            <FormAlertWithSubmitButton
+                                isAlertVisible={shouldShowReasonError}
+                                onSubmit={handleSubmitFirstStep}
+                                message={translate('reportCardLostOrDamaged.reasonError')}
+                                buttonText={translate('reportCardLostOrDamaged.nextButtonLabel')}
+                            />
+                        </View>
                     </>
                 )}
             </View>
