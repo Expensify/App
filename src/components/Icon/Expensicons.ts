@@ -439,6 +439,7 @@ export {
     Train,
     boltSlash,
     MagnifyingGlassSpyMouthClosed,
+    EmptySquare,
     CheckSquare,
     Minus,
 };
