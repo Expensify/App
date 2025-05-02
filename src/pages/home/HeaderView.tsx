@@ -256,9 +256,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                     CONST.DATE.MONTH_DAY_YEAR_FORMAT,
                 )}`,
                 value: activeScheduledCall.eventTime,
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 description: `${DateUtils.formatToLocalTime(activeScheduledCall.eventTime)} - ${DateUtils.formatToLocalTime(
                     addMinutes(activeScheduledCall.eventTime, 30),
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 )} ${DateUtils.getZoneAbbreviation(new Date(activeScheduledCall.eventTime), timezone.selected!)}`,
                 descriptionTextStyle: styles.themeTextColor,
                 icon: Illustrations.HeadSet,
@@ -285,7 +285,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
                 pressOnEnter
-                customText={translate('schdeuledCall.callScheduled')}
+                customText={translate('scheduledCall.callScheduled')}
                 icon={CalendarSolid}
                 options={menuItems}
                 isSplitButton={false}
@@ -299,9 +299,10 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         shouldShowGuideBookingButtonInEarlyDiscountBanner,
         shouldUseNarrowLayout,
         styles.borderBottom,
-        styles.flex1,
+        styles.earlyDiscountButton,
         styles.flexGrow1,
         styles.mb4,
+        styles.mw100,
         styles.ph5,
         styles.pv5,
         styles.themeTextColor,
