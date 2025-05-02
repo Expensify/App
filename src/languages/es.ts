@@ -6792,7 +6792,7 @@ const translations = {
         talkToConcierge: 'Habla con Concierge',
         hangUp: 'Colgar',
     },
-    schdeuledCall: {
+    scheduledCall: {
         book: {
             title: 'Programar una llamada',
             description: 'Encuentra un horario que funcione para ti.',

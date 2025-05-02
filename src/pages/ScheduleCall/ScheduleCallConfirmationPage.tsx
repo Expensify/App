@@ -65,16 +65,16 @@ function ScheduleCallConfirmationPage() {
             testID={ScheduleCallConfirmationPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('schdeuledCall.confirmation.title')}
+                title={translate('scheduledCall.confirmation.title')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                <Text style={[styles.mb5, styles.ph5, styles.colorMuted]}>{translate('schdeuledCall.confirmation.description')}</Text>
+                <Text style={[styles.mb5, styles.ph5, styles.colorMuted]}>{translate('scheduledCall.confirmation.description')}</Text>
                 <MenuItem
                     style={styles.mb3}
                     title={guideDetails?.displayName}
                     description={guideDetails?.login}
-                    label={translate('schdeuledCall.confirmation.setupSpecialist')}
+                    label={translate('scheduledCall.confirmation.setupSpecialist')}
                     interactive={false}
                     icon={[
                         {
@@ -87,7 +87,7 @@ function ScheduleCallConfirmationPage() {
                 />
                 <MenuItemWithTopDescription
                     title={dateTimeString}
-                    description={translate('schdeuledCall.confirmation.dateTime')}
+                    description={translate('scheduledCall.confirmation.dateTime')}
                     shouldTruncateTitle={false}
                     numberOfLinesTitle={2}
                     shouldShowRightIcon
@@ -100,8 +100,8 @@ function ScheduleCallConfirmationPage() {
                     }}
                 />
                 <MenuItemWithTopDescription
-                    title={translate('schdeuledCall.confirmation.minutes')}
-                    description={translate('schdeuledCall.confirmation.meetingLength')}
+                    title={translate('scheduledCall.confirmation.minutes')}
+                    description={translate('scheduledCall.confirmation.meetingLength')}
                     interactive={false}
                     style={styles.mb3}
                 />
@@ -110,7 +110,7 @@ function ScheduleCallConfirmationPage() {
                 <Button
                     success
                     large
-                    text={translate('schdeuledCall.confirmation.title')}
+                    text={translate('scheduledCall.confirmation.title')}
                     onPress={confirm}
                 />
             </FixedFooter>

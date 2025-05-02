@@ -6269,7 +6269,7 @@ const translations = {
         talkToConcierge: 'Talk to Concierge',
         hangUp: 'Hang up',
     },
-    schdeuledCall: {
+    scheduledCall: {
         book: {
             title: 'Schedule a Call',
             description: 'Find a time that works for you.',

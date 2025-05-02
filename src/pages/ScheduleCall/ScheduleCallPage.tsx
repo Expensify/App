@@ -121,7 +121,7 @@ function ScheduleCallPage() {
             testID={ScheduleCallPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('schdeuledCall.book.title')}
+                title={translate('scheduledCall.book.title')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             {adminReportNameValuePairs?.calendlySchedule?.isLoading ? (
@@ -129,7 +129,7 @@ function ScheduleCallPage() {
             ) : (
                 <ScrollView style={styles.flexGrow1}>
                     <View style={styles.ph5}>
-                        <Text style={[styles.mb5, styles.colorMuted]}>{translate('schdeuledCall.book.description')}</Text>
+                        <Text style={[styles.mb5, styles.colorMuted]}>{translate('scheduledCall.book.description')}</Text>
                         <View
                             style={[styles.datePickerPopover, styles.border]}
                             collapsable={false}
@@ -159,7 +159,7 @@ function ScheduleCallPage() {
                     {!!scheduleCallDraft?.date && (
                         <View style={[styles.ph5, styles.mb5]}>
                             <Text style={[styles.mb5, styles.colorMuted]}>
-                                {translate('schdeuledCall.book.slots')}
+                                {translate('scheduledCall.book.slots')}
                                 <Text style={[styles.textStrong, styles.colorMuted]}>{format(scheduleCallDraft.date, CONST.DATE.MONTH_DAY_YEAR_FORMAT)}</Text>
                             </Text>
                             <View
