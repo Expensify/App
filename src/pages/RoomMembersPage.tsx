@@ -51,7 +51,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
     const {formatPhoneNumber, translate} = useLocalize();
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
@@ -120,7 +120,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             return;
         }
         setSearchValue('');
-        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report.reportID, undefined, backTo));
+        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report.reportID, backTo));
     }, [report, setSearchValue, backTo]);
 
     /**

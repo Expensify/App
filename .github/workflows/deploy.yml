@@ -612,11 +612,18 @@ jobs:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
 
+      - name: Get last production release
+        id: get_last_prod_version
+        run: echo "LAST_PROD_VERSION=$(gh release list --repo ${{ github.repository }} --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName')" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name:  🚀 Create release 🚀
         run: |
           gh release create ${{ needs.prep.outputs.TAG }} ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
             --repo ${{ github.repository }} \
             --title ${{ needs.prep.outputs.TAG }} \
+            --notes-start-tag ${{ steps.get_last_prod_version.outputs.LAST_PROD_VERSION }} \
             --generate-notes \
             --verify-tag \
             --target ${{ github.ref }}
