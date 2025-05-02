@@ -745,15 +745,23 @@ function PureReportActionItem({
 
         return [
             {
-                text: 'actionableMentionWhisperOptions.invite',
-                key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE),
-                isPrimary: true,
+                text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
+                key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSES}`,
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSES),
+                isMediumSized: true,
+            },
+            {
+                text: 'actionableMentionWhisperOptions.inviteToChat',
+                key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_CHAT}`,
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_CHAT),
+                isMediumSized: true,
+
             },
             {
                 text: 'actionableMentionWhisperOptions.nothing',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
                 onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
+                isMediumSized: true,
             },
         ];
     }, [
@@ -1143,7 +1151,7 @@ function PureReportActionItem({
                                     {actionableItemButtons.length > 0 && (
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
-                                            layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) ? 'vertical' : 'horizontal'}
+                                            layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) || isActionableMentionWhisper(action) ? 'vertical' : 'horizontal'}
                                             shouldUseLocalization={!isConciergeCategoryOptions(action)}
                                         />
                                     )}

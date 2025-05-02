@@ -1401,7 +1401,8 @@ const CONST = {
             USER: 'CANCEL_REASON_USER',
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
-            INVITE: 'invited',
+            INVITE_TO_CHAT: 'inviteToChat',
+            INVITE_TO_SUBMIT_EXPENSES: 'inviteToSubmitExpense',
             NOTHING: 'nothing',
         },
         ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
