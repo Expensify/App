@@ -517,6 +517,8 @@ const ONYXKEYS = {
     /** Billing receipt details */
     BILLING_RECEIPT_DETAILS: 'billingReceiptDetails',
 
+    TECHNICAL_CONTACT: 'technicalContact',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1147,6 +1149,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
+    [ONYXKEYS.TECHNICAL_CONTACT]: string;
 };
 
 type OnyxDerivedValuesMapping = {

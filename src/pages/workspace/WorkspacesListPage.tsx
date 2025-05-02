@@ -138,6 +138,7 @@ function WorkspacesListPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [technicalContact] = useOnyx(ONYXKEYS.TECHNICAL_CONTACT, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.WORKSPACES>>();
 
@@ -205,6 +206,12 @@ function WorkspacesListPage() {
     const getLeaveWorkspaceConfirmation = () => {
         const qboConfig = policyToLeave?.connections?.quickbooksOnline?.config;
         const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
+
+        if (technicalContact === policyOwnerDisplayName) {
+            return translate('common.leaveWorkspaceConfirmationForTechnicalContact', {
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
         if (qboConfig?.export.exporter === session?.email) {
             return translate('common.leaveWorkspaceConfirmationForExporter', {
                 workspaceOwner: policyOwnerDisplayName,

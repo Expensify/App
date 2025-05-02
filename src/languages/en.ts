@@ -555,6 +555,8 @@ const translations = {
             `${memberName} has an outstanding processing report to take action on. Please ask them to complete the required action before removing them from the workspace.`,
         leaveWorkspaceConfirmationForExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
             `If you leave this workspace, you'll be replaced as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
+        leaveWorkspaceConfirmationForTechnicalContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `If you leave this workspace, you'll be replaced as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
         leaveWorkspaceReimburser: "You can't leave this workspace as the reimburser. Please set a new reimburser in Workspaces > Make or track payments, then try again.",
         reimbursable: 'Reimbursable',
         editYourProfile: 'Edit your profile',
