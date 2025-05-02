@@ -5051,7 +5051,7 @@ const translations = {
         description: 'Elige una de las siguientes opciones:',
         chatWithConcierge: 'Chatear con Concierge',
         scheduleSetupCall: 'Concertar una llamada',
-        scheduleADemo: 'Programa una demostración',
+        scheduleACall: 'Programar llamada',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
     },
@@ -6794,7 +6794,7 @@ const translations = {
     },
     scheduledCall: {
         book: {
-            title: 'Programar una llamada',
+            title: 'Programar llamada',
             description: 'Encuentra un horario que funcione para ti.',
             slots: 'Horarios disponibles para el ',
         },

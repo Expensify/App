@@ -218,7 +218,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const guideBookingButton = (
         <Button
             success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
-            text={translate('getAssistancePage.scheduleADemo')}
+            text={translate('getAssistancePage.scheduleACall')}
             onPress={() => {
                 if (!report?.reportID) {
                     return;

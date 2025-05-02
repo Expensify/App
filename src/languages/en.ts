@@ -4997,7 +4997,7 @@ const translations = {
         description: 'Choose from the support options below:',
         chatWithConcierge: 'Chat with Concierge',
         scheduleSetupCall: 'Schedule a setup call',
-        scheduleADemo: 'Schedule demo',
+        scheduleACall: 'Schedule call',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
     },
@@ -6270,12 +6270,12 @@ const translations = {
     },
     scheduledCall: {
         book: {
-            title: 'Schedule a Call',
+            title: 'Schedule call',
             description: 'Find a time that works for you.',
             slots: 'Available times for ',
         },
         confirmation: {
-            title: 'Confirm Call',
+            title: 'Confirm call',
             description: "Make sure the details below look good to you. Once you confirm the call, we'll send an invite with more info.",
             setupSpecialist: 'Your setup specialist',
             meetingLength: 'Meeting length',
