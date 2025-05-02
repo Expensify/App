@@ -28,7 +28,6 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useThemeStyles from '@hooks/useThemeStyles';
 import contactImport from '@libs/ContactImport';
 import type {ContactImportResult} from '@libs/ContactImport/types';
-import {getContactPermission} from '@libs/ContactPermission';
 import getContacts from '@libs/ContactUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
