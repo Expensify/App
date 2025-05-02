@@ -3,18 +3,31 @@ import type {MutableRefObject} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {AddPaymentCardParams, DeletePaymentCardParams, MakeDefaultPaymentMethodParams, PaymentCardParams, TransferWalletBalanceParams} from '@libs/API/parameters';
+import type {
+    AddPaymentCardParams,
+    DeletePaymentCardParams,
+    MakeDefaultPaymentMethodParams,
+    PaymentCardParams,
+    SetInvoicingTransferBankAccountParams,
+    TransferWalletBalanceParams,
+    UpdateBillingCurrencyParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
+import GoogleTagManager from '@libs/GoogleTagManager';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/AddDebitCardForm';
+import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 import type {BankAccountList, FundList} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
 type KYCWallRef = {
@@ -63,15 +76,11 @@ function openWalletPage() {
         },
     ];
 
-    return API.read(
-        READ_COMMANDS.OPEN_PAYMENTS_PAGE,
-        {},
-        {
-            optimisticData,
-            successData,
-            failureData,
-        },
-    );
+    return API.read(READ_COMMANDS.OPEN_PAYMENTS_PAGE, null, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 function getMakeDefaultPaymentOnyxData(
@@ -152,25 +161,25 @@ function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previou
  * Calls the API to add a new card.
  *
  */
-function addPaymentCard(params: PaymentCardParams) {
+function addPaymentCard(accountID: number, params: PaymentCardParams) {
     const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
     const parameters: AddPaymentCardParams = {
-        cardNumber: params.cardNumber,
+        cardNumber: CardUtils.getMCardNumberString(params.cardNumber),
         cardYear,
         cardMonth,
         cardCVV: params.securityCode,
         addressName: params.nameOnCard,
         addressZip: params.addressZipCode,
-        currency: CONST.CURRENCY.USD,
+        currency: CONST.PAYMENT_CARD_CURRENCY.USD,
         isP2PDebitCard: true,
     };
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: true},
         },
     ];
@@ -178,7 +187,7 @@ function addPaymentCard(params: PaymentCardParams) {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: false},
         },
     ];
@@ -186,7 +195,7 @@ function addPaymentCard(params: PaymentCardParams) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: false},
         },
     ];
@@ -196,13 +205,94 @@ function addPaymentCard(params: PaymentCardParams) {
         successData,
         failureData,
     });
+
+    GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
 }
 
 /**
- * Resets the values for the add debit card form back to their initial states
+ * Calls the API to add a new card.
+ *
  */
-function clearDebitCardFormErrorAndSubmit() {
-    Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
+function addSubscriptionPaymentCard(
+    accountID: number,
+    cardData: {
+        cardNumber: string;
+        cardYear: string;
+        cardMonth: string;
+        cardCVV: string;
+        addressName: string;
+        addressZip: string;
+        currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
+    },
+) {
+    const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
+
+    const parameters: AddPaymentCardParams = {
+        cardNumber,
+        cardYear,
+        cardMonth,
+        cardCVV,
+        addressName,
+        addressZip,
+        currency,
+        isP2PDebitCard: false,
+        shouldClaimEarlyDiscountOffer: true,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
+            value: {isLoading: true},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
+            value: {isLoading: false},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
+            value: {isLoading: false},
+        },
+    ];
+
+    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
+        addPaymentCardGBP(parameters, {optimisticData, successData, failureData});
+    } else {
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
+            optimisticData,
+            successData,
+            failureData,
+        });
+    }
+    if (getCardForSubscriptionBilling()) {
+        Log.info(`[GTM] Not logging ${CONST.ANALYTICS.EVENT.PAID_ADOPTION} because a card was already added`);
+    } else {
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+    }
+}
+
+/**
+ * Calls the API to add a new GBP card.
+ * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
+ */
+function addPaymentCardGBP(params: AddPaymentCardParams, onyxData: OnyxData = {}) {
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_GBP, params, onyxData);
+}
+
+/**
+ * Resets the values for the add payment card form back to their initial states
+ */
+function clearPaymentCardFormErrorAndSubmit() {
+    Onyx.set(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
         isLoading: false,
         errors: undefined,
         [INPUT_IDS.SETUP_COMPLETE]: false,
@@ -214,6 +304,33 @@ function clearDebitCardFormErrorAndSubmit() {
         [INPUT_IDS.ADDRESS_ZIP_CODE]: '',
         [INPUT_IDS.ADDRESS_STATE]: '',
         [INPUT_IDS.ACCEPT_TERMS]: '',
+        [INPUT_IDS.CURRENCY]: CONST.PAYMENT_CARD_CURRENCY.USD,
+    });
+}
+
+/**
+ * Clear 3ds flow - when verification will be finished
+ *
+ */
+function clearPaymentCard3dsVerification() {
+    Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, '');
+}
+
+/**
+ * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
+ *
+ */
+function verifySetupIntent(accountID: number, isVerifying = true) {
+    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT, {accountID, isVerifying});
+}
+
+/**
+ * Set currency for payments
+ *
+ */
+function setPaymentMethodCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) {
+    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
+        [INPUT_IDS.CURRENCY]: currency,
     });
 }
 
@@ -280,7 +397,7 @@ function resetWalletTransferData() {
     });
 }
 
-function saveWalletTransferAccountTypeAndID(selectedAccountType: string, selectedAccountID: string) {
+function saveWalletTransferAccountTypeAndID(selectedAccountType: string | undefined, selectedAccountID: string | undefined) {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {selectedAccountType, selectedAccountID});
 }
 
@@ -307,7 +424,11 @@ function hasPaymentMethodError(bankList: OnyxEntry<BankAccountList>, fundList: O
     return Object.values(combinedPaymentMethods).some((item) => Object.keys(item.errors ?? {}).length);
 }
 
-type PaymentListKey = typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST;
+type PaymentListKey =
+    | typeof ONYXKEYS.BANK_ACCOUNT_LIST
+    | typeof ONYXKEYS.FUND_LIST
+    | typeof ONYXKEYS.CARD_LIST
+    | `${typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${string}_${typeof CONST.EXPENSIFY_CARD.BANK}`;
 
 /**
  * Clears the error for the specified payment item
@@ -366,6 +487,98 @@ function deletePaymentCard(fundID: number) {
     });
 }
 
+/**
+ * Call the API to change billing currency.
+ *
+ */
+function updateBillingCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>, cardCVV: string) {
+    const parameters: UpdateBillingCurrencyParams = {
+        cardCVV,
+        currency,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_BILLING_CARD_CURRENCY, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+/**
+ *  Sets the default bank account to use for receiving payouts from
+ *
+ */
+function setInvoicingTransferBankAccount(bankAccountID: number, policyID: string, previousBankAccountID: number) {
+    const parameters: SetInvoicingTransferBankAccountParams = {
+        bankAccountID,
+        policyID,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    bankAccount: {
+                        transferBankAccountID: bankAccountID,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                invoice: {
+                    bankAccount: {
+                        transferBankAccountID: previousBankAccountID,
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_INVOICING_TRANSFER_BANK_ACCOUNT, parameters, {
+        optimisticData,
+        failureData,
+    });
+}
+
 export {
     deletePaymentCard,
     addPaymentCard,
@@ -373,15 +586,22 @@ export {
     makeDefaultPaymentMethod,
     kycWallRef,
     continueSetup,
-    clearDebitCardFormErrorAndSubmit,
+    addSubscriptionPaymentCard,
+    clearPaymentCardFormErrorAndSubmit,
     dismissSuccessfulTransferBalancePage,
     transferWalletBalance,
     resetWalletTransferData,
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
     hasPaymentMethodError,
+    updateBillingCurrency,
     clearDeletePaymentMethodError,
     clearAddPaymentMethodError,
     clearWalletError,
+    setPaymentMethodCurrency,
+    clearPaymentCard3dsVerification,
     clearWalletTermsError,
+    verifySetupIntent,
+    addPaymentCardGBP,
+    setInvoicingTransferBankAccount,
 };

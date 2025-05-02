@@ -8,6 +8,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -30,10 +31,14 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
+import androidx.core.content.pm.ShortcutInfoCompat;
+import androidx.core.content.pm.ShortcutManagerCompat;
 import androidx.core.graphics.drawable.IconCompat;
 import androidx.versionedparcelable.ParcelUtils;
 
 import com.expensify.chat.R;
+import com.expensify.chat.shortcutManagerModule.ShortcutManagerUtils;
+import com.expensify.chat.customairshipextender.PayloadHandler;
 import com.urbanairship.AirshipConfigOptions;
 import com.urbanairship.json.JsonMap;
 import com.urbanairship.json.JsonValue;
@@ -47,6 +52,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -99,7 +105,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         PushMessage message = arguments.getMessage();
         Log.d(TAG, "buildNotification: " + message.toString());
 
-        // Improve notification delivery by categorising as a time-critical message
+        // Improve notification delivery by categorizing as a time-critical message
         builder.setCategory(CATEGORY_MESSAGE);
         builder.setVisibility(NotificationCompat.VISIBILITY_PRIVATE);
 
@@ -114,18 +120,31 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         // Attempt to parse data and apply custom notification styling
-        if (message.containsKey(PAYLOAD_KEY)) {
-            try {
-                JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
-                if (payload.containsKey(ONYX_DATA_KEY)) {
-                    Objects.requireNonNull(payload.get(ONYX_DATA_KEY)).isNull();
-                    Log.d(TAG, "payload contains onxyData");
-                    String alert = message.getExtra(PushMessage.EXTRA_ALERT);
-                    applyMessageStyle(context, builder, payload, arguments.getNotificationId(), alert);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to parse conversation, falling back to default notification style. SendID=" + message.getSendId(), e);
+        if (!message.containsKey(PAYLOAD_KEY)) {
+            return builder;
+        }
+
+        try {
+            String rawPayload = message.getExtra(PAYLOAD_KEY);
+            if (rawPayload == null) {
+              Log.d(TAG, "Failed to parse payload - payload is empty. SendID=" + message.getSendId());
+              return builder;
             }
+
+            PayloadHandler handler = new PayloadHandler();
+            String processedPayload = handler.processPayload(rawPayload);
+            JsonMap payload = JsonValue.parseString(processedPayload).optMap();
+            if (!payload.containsKey(ONYX_DATA_KEY)) {
+                Log.d(TAG, "Failed to process payload - no onyx data. SendID=" + message.getSendId());
+                return builder;
+            }
+
+            Objects.requireNonNull(payload.get(ONYX_DATA_KEY)).isNull();
+            Log.d(TAG, "payload contains onxyData");
+            String alert = message.getExtra(PushMessage.EXTRA_ALERT);
+            applyMessageStyle(context, builder, payload, arguments.getNotificationId(), alert);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to parse conversation, falling back to default notification style. SendID=" + message.getSendId(), e);
         }
 
         return builder;
@@ -202,47 +221,50 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String name = messageData.get("person").getList().get(0).getMap().get("text").getString();
             String avatar = messageData.get("avatar").getString();
             String accountID = Integer.toString(messageData.get("actorAccountID").getInt(-1));
-            
+
             // Use the formatted alert message from the backend. Otherwise fallback on the message in the Onyx data.
             String message = alert != null ? alert : messageData.get("message").getList().get(0).getMap().get("text").getString();
-            String conversationName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
+            String subtitle = payload.get("subtitle") == null ? "" : payload.get("subtitle").getString("");
 
-            // create the Person object who sent the latest report comment
+            // Create the Person object who sent the latest report comment
             Bitmap personIcon = fetchIcon(context, avatar);
             builder.setLargeIcon(personIcon);
 
             Person person = createMessagePersonObject(IconCompat.createWithBitmap(personIcon), accountID, name);
 
+            ShortcutManagerUtils.addDynamicShortcut(context, reportID, name, accountID, personIcon, person);
+
             // Create latest received message object
             long createdTimeInMillis = getMessageTimeInMillis(messageData.get("created").getString(""));
             NotificationCompat.MessagingStyle.Message newMessage = new NotificationCompat.MessagingStyle.Message(message, createdTimeInMillis, person);
 
-            // Conversational styling should be applied to groups chats, rooms, and any 1:1 chats with more than one notification (ensuring the large profile image is always shown)
-            if (!conversationName.isEmpty() || hasExistingNotification) {
-                // Create the messaging style notification builder for this notification, associating it with the person who sent the report comment
-                NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
-                        .setGroupConversation(true)
-                        .setConversationTitle(conversationName);
+            NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person);
 
-
-                // Add all conversation messages to the notification, including the last one we just received.
-                List<NotificationCompat.MessagingStyle.Message> messages;
-                if (hasExistingNotification) {
-                    NotificationCompat.MessagingStyle previousStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(existingReportNotification.getNotification());
-                    messages = previousStyle != null ? previousStyle.getMessages() : new ArrayList<>(List.of(recreatePreviousMessage(existingReportNotification)));
-                } else {
-                    messages = new ArrayList<>();
-                }
-
-                // add the last one message we just received.
-                messages.add(newMessage);
-
-                for (NotificationCompat.MessagingStyle.Message activeMessage : messages) {
-                    messagingStyle.addMessage(activeMessage);
-                }
-
-                builder.setStyle(messagingStyle);
+            // Add all conversation messages to the notification, including the last one we just received.
+            List<NotificationCompat.MessagingStyle.Message> messages;
+            if (hasExistingNotification) {
+                NotificationCompat.MessagingStyle previousStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(existingReportNotification.getNotification());
+                messages = previousStyle != null ? previousStyle.getMessages() : new ArrayList<>(List.of(recreatePreviousMessage(existingReportNotification)));
+            } else {
+                messages = new ArrayList<>();
             }
+
+            // add the last one message we just received.
+            messages.add(newMessage);
+
+            for (NotificationCompat.MessagingStyle.Message activeMessage : messages) {
+                messagingStyle.addMessage(activeMessage);
+            }
+
+            // Conversational styling should be applied to groups chats, rooms, and any 1:1 chats with more than one notification (ensuring the large profile image is always shown)
+            if (!subtitle.isEmpty()) {
+                // Create the messaging style notification builder for this notification, associating it with the person who sent the report comment
+                messagingStyle
+                        .setGroupConversation(true)
+                        .setConversationTitle(subtitle);
+            }
+            builder.setStyle(messagingStyle);
+            builder.setShortcutId(accountID);
 
             // save reportID and person info for future merging
             builder.addExtras(createMessageExtrasBundle(reportID, person));

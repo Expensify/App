@@ -1,34 +1,44 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {
+    getChatRoomSubtitle,
+    getDisplayNamesWithTooltips,
+    getIcons,
+    getParentNavigationSubtitle,
+    getReportName,
+    isChatThread,
+    isExpenseReport,
+    isInvoiceReport,
+    isIOUReport,
+    isMoneyRequest,
+    isMoneyRequestReport,
+    isTrackExpenseReport,
+    navigateToDetailsPage,
+    shouldReportShowSubscript,
+} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
+import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
+import {FallbackAvatar} from './Icon/Expensicons';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 
-type AvatarWithDisplayNamePropsWithOnyx = {
-    /** All of the actions of the report */
-    parentReportActions: OnyxEntry<ReportActions>;
-
-    /** Personal details of all users */
-    personalDetails: OnyxCollection<PersonalDetails>;
-};
-
-type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
+type AvatarWithDisplayNameProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
@@ -45,51 +55,65 @@ type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
     shouldEnableDetailPageNavigation?: boolean;
 };
 
-function AvatarWithDisplayName({
-    policy,
-    report,
-    parentReportActions,
-    isAnonymous = false,
-    size = CONST.AVATAR_SIZE.DEFAULT,
-    shouldEnableDetailPageNavigation = false,
-    personalDetails = CONST.EMPTY_OBJECT,
-}: AvatarWithDisplayNameProps) {
+const fallbackIcon: Icon = {
+    source: FallbackAvatar,
+    type: CONST.ICON_TYPE_AVATAR,
+    name: '',
+    id: -1,
+};
+
+function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONST.AVATAR_SIZE.DEFAULT, shouldEnableDetailPageNavigation = false}: AvatarWithDisplayNameProps) {
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST) ?? CONST.EMPTY_OBJECT;
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const title = ReportUtils.getReportName(report);
-    const subtitle = ReportUtils.getChatRoomSubtitle(report);
-    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
-    const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report);
-    const icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy);
-    const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails) as PersonalDetails[], false);
-    const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
+    );
+    const title = getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy);
+    const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
+    const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
+    const icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
+    const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
+    const shouldShowSubscriptAvatar = shouldReportShowSubscript(report);
     const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
-        const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? ''];
-        actorAccountID.current = parentReportAction?.actorAccountID ?? -1;
+        if (!report?.parentReportActionID) {
+            return;
+        }
+        const parentReportAction = parentReportActions?.[report?.parentReportActionID];
+        actorAccountID.current = parentReportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     }, [parentReportActions, report]);
+
+    const goToDetailsPage = useCallback(() => {
+        navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
+    }, [report]);
 
     const showActorDetails = useCallback(() => {
         // We should navigate to the details page if the report is a IOU/expense report
         if (shouldEnableDetailPageNavigation) {
-            return ReportUtils.navigateToDetailsPage(report);
+            goToDetailsPage();
+            return;
         }
 
-        if (ReportUtils.isExpenseReport(report) && report?.ownerAccountID) {
+        if (isExpenseReport(report) && report?.ownerAccountID) {
             Navigation.navigate(ROUTES.PROFILE.getRoute(report.ownerAccountID));
             return;
         }
 
-        if (ReportUtils.isIOUReport(report) && report?.reportID) {
+        if (isIOUReport(report) && report?.reportID) {
             Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report.reportID));
             return;
         }
 
-        if (ReportUtils.isChatThread(report)) {
+        if (isChatThread(report)) {
             // In an ideal situation account ID won't be 0
             if (actorAccountID.current && actorAccountID.current > 0) {
                 Navigation.navigate(ROUTES.PROFILE.getRoute(actorAccountID.current));
@@ -101,31 +125,33 @@ function AvatarWithDisplayName({
             // Report detail route is added as fallback but based on the current implementation this route won't be executed
             Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         }
-    }, [report, shouldEnableDetailPageNavigation]);
+    }, [report, shouldEnableDetailPageNavigation, goToDetailsPage]);
 
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
-            {report && !!title && (
+            {!!report && !!title && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <PressableWithoutFeedback
                         onPress={showActorDetails}
                         accessibilityLabel={title}
-                        role={CONST.ROLE.BUTTON}
+                        role={getButtonRole(true)}
                     >
-                        {shouldShowSubscriptAvatar ? (
-                            <SubscriptAvatar
-                                backgroundColor={avatarBorderColor}
-                                mainAvatar={icons[0]}
-                                secondaryAvatar={icons[1]}
-                                size={size}
-                            />
-                        ) : (
-                            <MultipleAvatars
-                                icons={icons}
-                                size={size}
-                                secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
-                            />
-                        )}
+                        <View accessibilityLabel={title}>
+                            {shouldShowSubscriptAvatar ? (
+                                <SubscriptAvatar
+                                    backgroundColor={avatarBorderColor}
+                                    mainAvatar={icons.at(0) ?? fallbackIcon}
+                                    secondaryAvatar={icons.at(1)}
+                                    size={size}
+                                />
+                            ) : (
+                                <MultipleAvatars
+                                    icons={icons}
+                                    size={size}
+                                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
+                                />
+                            )}
+                        </View>
                     </PressableWithoutFeedback>
                     <View style={[styles.flex1, styles.flexColumn]}>
                         <DisplayNames
@@ -164,7 +190,7 @@ function AvatarWithDisplayName({
 
     return (
         <PressableWithoutFeedback
-            onPress={() => ReportUtils.navigateToDetailsPage(report)}
+            onPress={goToDetailsPage}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
             role={CONST.ROLE.BUTTON}
@@ -176,12 +202,4 @@ function AvatarWithDisplayName({
 
 AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 
-export default withOnyx<AvatarWithDisplayNameProps, AvatarWithDisplayNamePropsWithOnyx>({
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
-        canEvict: false,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(AvatarWithDisplayName);
+export default AvatarWithDisplayName;

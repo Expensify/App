@@ -6,7 +6,7 @@ import Config from 'react-native-config';
 const useWDYR = Config?.USE_WDYR === 'true';
 
 if (useWDYR) {
-    const whyDidYouRender: typeof WhyDidYouRender = require('@welldone-software/why-did-you-render');
+    const whyDidYouRender = require<typeof WhyDidYouRender>('@welldone-software/why-did-you-render');
     whyDidYouRender(React, {
         // Enable tracking in all pure components by default
         trackAllPureComponents: true,

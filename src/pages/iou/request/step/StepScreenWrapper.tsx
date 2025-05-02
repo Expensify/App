@@ -25,6 +25,9 @@ type StepScreenWrapperProps = {
     /** Whether or not to display not found page */
     shouldShowNotFoundPage?: boolean;
 
+    /** Whether to show offline indicator */
+    shouldShowOfflineIndicator?: boolean;
+
     /** An ID used for unit testing */
     testID: string;
 
@@ -44,6 +47,7 @@ function StepScreenWrapper({
     shouldShowWrapper,
     shouldShowNotFoundPage,
     includeSafeAreaPaddingBottom,
+    shouldShowOfflineIndicator = true,
 }: StepScreenWrapperProps) {
     const styles = useThemeStyles();
 
@@ -57,6 +61,7 @@ function StepScreenWrapper({
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldShowOfflineIndicator={shouldShowOfflineIndicator}
         >
             {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>

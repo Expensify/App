@@ -1,4 +1,3 @@
-import polyfillDateTimeFormat from './polyfillDateTimeFormat';
 import polyfillNumberFormat from './polyfillNumberFormat';
 import type IntlPolyfill from './types';
 
@@ -8,6 +7,5 @@ import type IntlPolyfill from './types';
  */
 const intlPolyfill: IntlPolyfill = () => {
     polyfillNumberFormat();
-    polyfillDateTimeFormat();
 };
 export default intlPolyfill;

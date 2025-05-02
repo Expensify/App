@@ -2,13 +2,14 @@ import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
-import {runOnUI, scrollTo} from 'react-native-reanimated';
+import {InteractionManager, View} from 'react-native';
+import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,7 +24,8 @@ import useEmojiPickerMenu from './useEmojiPickerMenu';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, ref: ForwardedRef<BaseTextInputRef>) {
     const styles = useThemeStyles();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {singleExecution} = useSingleExecution();
     const {
@@ -42,34 +44,33 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     } = useEmojiPickerMenu();
     const StyleUtils = useStyleUtils();
 
+    const updateEmojiList = (emojiData: EmojiUtils.EmojiPickerList | Emoji[], headerData: number[] = []) => {
+        setFilteredEmojis(emojiData);
+        setHeaderIndices(headerData);
+
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
+            });
+        });
+    };
+
     /**
      * Filter the entire list of emojis to only emojis that have the search term in their keywords
      */
     const filterEmojis = lodashDebounce((searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
 
-        if (emojiListRef.current) {
-            emojiListRef.current.scrollToOffset({offset: 0, animated: false});
-        }
-
         if (normalizedSearchTerm === '') {
-            setFilteredEmojis(allEmojis);
-            setHeaderIndices(headerRowIndices);
-
-            return;
+            updateEmojiList(allEmojis, headerRowIndices);
+        } else {
+            updateEmojiList(newFilteredEmojiList ?? [], []);
         }
-
-        setFilteredEmojis(newFilteredEmojiList ?? []);
-        setHeaderIndices([]);
     }, 300);
 
     const scrollToHeader = (headerIndex: number) => {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        runOnUI(() => {
-            'worklet';
-
-            scrollTo(emojiListRef, 0, calculatedOffset, true);
-        })();
+        emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
     };
 
     /**
@@ -94,7 +95,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 );
             }
 
-            const emojiCode = typeof preferredSkinTone === 'number' && types?.[preferredSkinTone] ? types?.[preferredSkinTone] : code;
+            const emojiCode = typeof preferredSkinTone === 'number' && preferredSkinTone !== -1 && types?.at(preferredSkinTone) ? types.at(preferredSkinTone) : code;
             const shouldEmojiBeHighlighted = !!activeEmoji && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji);
 
             return (
@@ -105,7 +106,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                         }
                         onEmojiSelected(emoji, item);
                     })}
-                    emoji={emojiCode}
+                    emoji={emojiCode ?? ''}
                     isHighlighted={shouldEmojiBeHighlighted}
                 />
             );
@@ -114,7 +115,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     );
 
     return (
-        <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(isSmallScreenWidth)]}>
+        <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout)]}>
             <View style={[styles.ph4, styles.pb1, styles.pt2]}>
                 <TextInput
                     label={translate('common.search')}

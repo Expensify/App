@@ -7,11 +7,11 @@ type SendMoneyParams = {
     paymentMethodType: PaymentMethodType;
     transactionID: string;
     newIOUReportDetails: string;
-    createdReportActionID: string;
+    createdReportActionID: string | undefined;
     reportPreviewReportActionID: string;
     createdIOUReportActionID: string;
     transactionThreadReportID: string;
-    createdReportActionIDForThread: string;
+    createdReportActionIDForThread: string | undefined;
 };
 
 export default SendMoneyParams;

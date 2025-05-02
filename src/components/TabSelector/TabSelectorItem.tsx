@@ -1,10 +1,15 @@
-import React from 'react';
-import {Animated, StyleSheet} from 'react-native';
+import React, {useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
+
+const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
 
 type TabSelectorItemProps = {
     /** Function to call when onPress */
@@ -27,32 +32,58 @@ type TabSelectorItemProps = {
 
     /** Whether this tab is active */
     isActive?: boolean;
+
+    /** Whether to show the label when the tab is inactive */
+    shouldShowLabelWhenInactive?: boolean;
+
+    /** Test identifier used to find elements in unit and e2e tests */
+    testID?: string;
 };
 
-function TabSelectorItem({icon, title = '', onPress = () => {}, backgroundColor = '', activeOpacity = 0, inactiveOpacity = 1, isActive = false}: TabSelectorItemProps) {
+function TabSelectorItem({
+    icon,
+    title = '',
+    onPress = () => {},
+    backgroundColor = '',
+    activeOpacity = 0,
+    inactiveOpacity = 1,
+    isActive = false,
+    shouldShowLabelWhenInactive = true,
+    testID,
+}: TabSelectorItemProps) {
     const styles = useThemeStyles();
+    const [isHovered, setIsHovered] = useState(false);
+
     return (
-        <PressableWithFeedback
-            accessibilityLabel={title}
-            style={[styles.tabSelectorButton]}
-            wrapperStyle={[styles.flex1]}
-            onPress={onPress}
+        <Tooltip
+            shouldRender={!shouldShowLabelWhenInactive && !isActive}
+            text={title}
         >
-            {({hovered}) => (
-                <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, styles.tabBackground(hovered, isActive, backgroundColor)]}>
-                    <TabIcon
-                        icon={icon}
-                        activeOpacity={styles.tabOpacity(hovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                        inactiveOpacity={styles.tabOpacity(hovered, isActive, inactiveOpacity, activeOpacity).opacity}
-                    />
+            <AnimatedPressableWithFeedback
+                accessibilityLabel={title}
+                style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
+                wrapperStyle={[styles.flexGrow1]}
+                onPress={onPress}
+                onHoverIn={() => setIsHovered(true)}
+                onHoverOut={() => setIsHovered(false)}
+                role={CONST.ROLE.BUTTON}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                testID={testID}
+            >
+                <TabIcon
+                    icon={icon}
+                    activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                    inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                />
+                {(shouldShowLabelWhenInactive || isActive) && (
                     <TabLabel
                         title={title}
-                        activeOpacity={styles.tabOpacity(hovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                        inactiveOpacity={styles.tabOpacity(hovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                        activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                        inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
                     />
-                </Animated.View>
-            )}
-        </PressableWithFeedback>
+                )}
+            </AnimatedPressableWithFeedback>
+        </Tooltip>
     );
 }
 

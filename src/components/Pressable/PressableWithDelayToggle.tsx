@@ -99,7 +99,7 @@ function PressableWithDelayToggle(
     return (
         <PressableView
             // Using `ref as any` due to variable component (Text or View) based on 'inline' prop; TypeScript workaround.
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
             ref={ref as any}
             onPress={updatePressState}
             accessibilityLabel={tooltipTexts}
@@ -121,7 +121,7 @@ function PressableWithDelayToggle(
                         {({hovered, pressed}) => (
                             <>
                                 {!inline && labelText}
-                                {icon && (
+                                {!!icon && (
                                     <Icon
                                         src={!isActive ? iconChecked : icon}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}

@@ -14,7 +14,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
-        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
     }),
 );
 
@@ -59,5 +59,5 @@ test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', a
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction));
+    await measureFunction(() => ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction}));
 });

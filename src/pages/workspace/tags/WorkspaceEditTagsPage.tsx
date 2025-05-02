@@ -1,8 +1,6 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -12,94 +10,103 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getCleanedTagName, getTagListName} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {renamePolicyTaglist} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyTagNameForm';
-import type * as OnyxTypes from '@src/types/onyx';
 
-type WorkspaceEditTagsPageOnyxProps = {
-    /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
-};
+type WorkspaceEditTagsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_EDIT>;
 
-type WorkspaceEditTagsPageProps = WorkspaceEditTagsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_EDIT>;
-
-const validateTagName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
-    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM> = {};
-    if (!values[INPUT_IDS.POLICY_TAGS_NAME] && values[INPUT_IDS.POLICY_TAGS_NAME].trim() === '') {
-        errors[INPUT_IDS.POLICY_TAGS_NAME] = 'common.error.fieldRequired';
-    }
-    return errors;
-};
-
-function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) {
+function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const taglistName = useMemo(() => PolicyUtils.getTagLists(policyTags)[0].name, [policyTags]);
+    const taglistName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const {inputCallbackRef} = useAutoFocusInput();
+    const backTo = route.params.backTo;
+    const isQuickSettingsFlow = !!backTo;
+
+    const validateTagName = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM> = {};
+            if (!values[INPUT_IDS.POLICY_TAGS_NAME] && values[INPUT_IDS.POLICY_TAGS_NAME].trim() === '') {
+                errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('common.error.fieldRequired');
+            }
+            if (values[INPUT_IDS.POLICY_TAGS_NAME]?.trim() === '0') {
+                errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.invalidTagNameError');
+            }
+            if (policyTags && Object.values(policyTags).find((tag) => tag.orderWeight !== route.params.orderWeight && tag.name === values[INPUT_IDS.POLICY_TAGS_NAME])) {
+                errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.existingTagError');
+            }
+            return errors;
+        },
+        [translate, policyTags, route.params.orderWeight],
+    );
+
+    const goBackToTagsSettings = useCallback(
+        () => Navigation.goBack(isQuickSettingsFlow ? backTo : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID)),
+        [isQuickSettingsFlow, backTo, route.params.policyID],
+    );
 
     const updateTaglistName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
             if (values[INPUT_IDS.POLICY_TAGS_NAME] !== taglistName) {
-                Policy.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags);
+                renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
             }
-            Navigation.goBack();
+            goBackToTagsSettings();
         },
-        [policyTags, route.params.policyID, taglistName],
+        [taglistName, goBackToTagsSettings, route.params.policyID, route.params.orderWeight, policyTags],
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={route.params.policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+        >
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
+                testID={WorkspaceEditTagsPage.displayName}
+            >
+                <HeaderWithBackButton
+                    title={translate(`workspace.tags.customTagName`)}
+                    onBackButtonPress={goBackToTagsSettings}
+                />
+                <FormProvider
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM}
+                    onSubmit={updateTaglistName}
+                    validate={validateTagName}
+                    submitButtonText={translate('common.save')}
+                    enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        shouldEnableMaxHeight
-                        testID={WorkspaceEditTagsPage.displayName}
-                    >
-                        <HeaderWithBackButton title={translate(`workspace.tags.customTagName`)} />
-                        <FormProvider
-                            style={[styles.flexGrow1, styles.ph5]}
-                            formID={ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM}
-                            onSubmit={updateTaglistName}
-                            validate={validateTagName}
-                            submitButtonText={translate('common.save')}
-                            enabledWhenOffline
-                        >
-                            <View style={styles.mb4}>
-                                <InputWrapper
-                                    InputComponent={TextInput}
-                                    inputID={INPUT_IDS.POLICY_TAGS_NAME}
-                                    label={translate(`workspace.tags.customTagName`)}
-                                    accessibilityLabel={translate(`workspace.tags.customTagName`)}
-                                    defaultValue={PolicyUtils.getCleanedTagName(taglistName)}
-                                    role={CONST.ROLE.PRESENTATION}
-                                    ref={inputCallbackRef}
-                                />
-                            </View>
-                        </FormProvider>
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    <View style={styles.mb4}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.POLICY_TAGS_NAME}
+                            label={translate(`workspace.tags.customTagName`)}
+                            accessibilityLabel={translate(`workspace.tags.customTagName`)}
+                            defaultValue={getCleanedTagName(taglistName)}
+                            role={CONST.ROLE.PRESENTATION}
+                            ref={inputCallbackRef}
+                        />
+                    </View>
+                </FormProvider>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
 WorkspaceEditTagsPage.displayName = 'WorkspaceEditTagsPage';
 
-export default withOnyx<WorkspaceEditTagsPageProps, WorkspaceEditTagsPageOnyxProps>({
-    policyTags: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`,
-    },
-})(WorkspaceEditTagsPage);
+export default WorkspaceEditTagsPage;

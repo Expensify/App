@@ -1,10 +1,12 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as AppUpdate from '@libs/actions/AppUpdate';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
+import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import type {Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
 import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
@@ -64,9 +66,12 @@ function push(
             body,
             icon: String(icon),
             data,
-            silent,
+            silent: true,
             tag,
         });
+        if (!silent) {
+            playSound(SOUNDS.RECEIVE);
+        }
         notificationCache[notificationID].onclick = () => {
             onClick();
             window.parent.focus();
@@ -95,13 +100,18 @@ export default {
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
 
-        const isChatRoom = ReportUtils.isChatRoom(report);
+        const isChatRoom = ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report);
 
         const {person, message} = reportAction;
-        const plainTextPerson = person?.map((f) => f.text).join() ?? '';
+        const plainTextPerson = person?.map((f) => Str.removeSMSDomain(f.text ?? '')).join() ?? '';
 
         // Specifically target the comment part of the message
-        const plainTextMessage = message?.find((f) => f?.type === 'COMMENT')?.text ?? '';
+        let plainTextMessage = '';
+        if (Array.isArray(message)) {
+            plainTextMessage = getTextFromHtml(message?.find((f) => f?.type === 'COMMENT')?.html);
+        } else {
+            plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html) : '';
+        }
 
         if (isChatRoom) {
             const roomName = ReportUtils.getReportName(report);
@@ -116,12 +126,12 @@ export default {
             reportID: report.reportID,
         };
 
-        push(title, body, icon, data, onClick, true);
+        push(title, body, icon, data, onClick);
     },
 
     pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+        const body = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,
@@ -153,7 +163,7 @@ export default {
      */
     clearNotifications(shouldClearNotification: (notificationData: LocalNotificationData) => boolean) {
         Object.values(notificationCache)
-            .filter((notification) => shouldClearNotification(notification.data))
+            .filter((notification) => shouldClearNotification(notification.data as LocalNotificationData))
             .forEach((notification) => notification.close());
     },
 };

@@ -33,7 +33,7 @@ function getAddressComponents(addressComponents: AddressComponent[], fieldsToExt
 }
 
 type AddressTerm = {value: string};
-type GetPlaceAutocompleteTermsResultKey = 'country' | 'state' | 'city' | 'street';
+type GetPlaceAutocompleteTermsResultKey = 'country' | 'state' | 'city' | 'street' | 'streetNumber';
 type GetPlaceAutocompleteTermsResult = Partial<Record<GetPlaceAutocompleteTermsResultKey, string>>;
 
 /**
@@ -41,11 +41,11 @@ type GetPlaceAutocompleteTermsResult = Partial<Record<GetPlaceAutocompleteTermsR
  * conform to the following ORDER: <street, city, state, country>
  */
 function getPlaceAutocompleteTerms(addressTerms: AddressTerm[]): GetPlaceAutocompleteTermsResult {
-    const fieldsToExtract: GetPlaceAutocompleteTermsResultKey[] = ['country', 'state', 'city', 'street'];
+    const fieldsToExtract: GetPlaceAutocompleteTermsResultKey[] = ['country', 'state', 'city', 'street', 'streetNumber'];
     const result: GetPlaceAutocompleteTermsResult = {};
     fieldsToExtract.forEach((fieldToExtract, index) => {
         const fieldTermIndex = addressTerms.length - (index + 1);
-        result[fieldToExtract] = fieldTermIndex >= 0 ? addressTerms[fieldTermIndex].value : '';
+        result[fieldToExtract] = fieldTermIndex >= 0 ? addressTerms.at(fieldTermIndex)?.value : '';
     });
     return result;
 }

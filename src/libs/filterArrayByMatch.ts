@@ -3,15 +3,13 @@
    Use `threshold` option with one of the rankings defined below to control the strictness of the match.
 */
 import type {ValueOf} from 'type-fest';
-import StringUtils from './StringUtils';
 
 const MATCH_RANK = {
-    CASE_SENSITIVE_EQUAL: 7,
-    EQUAL: 6,
-    STARTS_WITH: 5,
-    WORD_STARTS_WITH: 4,
-    CONTAINS: 3,
-    ACRONYM: 2,
+    CASE_SENSITIVE_EQUAL: 6,
+    EQUAL: 5,
+    STARTS_WITH: 4,
+    WORD_STARTS_WITH: 3,
+    CONTAINS: 2,
     MATCHES: 1,
     NO_MATCH: 0,
 } as const;
@@ -60,11 +58,6 @@ function getMatchRanking(testString: string, stringToRank: string): Ranking {
     }
     if (lowercaseStringToRank.length === 1) {
         return MATCH_RANK.NO_MATCH;
-    }
-
-    // acronym
-    if (StringUtils.getAcronym(lowercaseTestString).includes(lowercaseStringToRank)) {
-        return MATCH_RANK.ACRONYM;
     }
 
     // will return a number between rankings.MATCHES and rankings.MATCHES + 1 depending  on how close of a match it is.

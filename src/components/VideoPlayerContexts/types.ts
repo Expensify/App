@@ -1,45 +1,34 @@
 import type {MutableRefObject} from 'react';
-import type {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
+import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
-import type WindowDimensions from '@hooks/useWindowDimensions/types';
 import type CONST from '@src/CONST';
-
-type PlaybackContext = {
-    updateCurrentlyPlayingURL: (url: string | null) => void;
-    currentlyPlayingURL: string | null;
-    currentlyPlayingURLReportID: string | undefined;
-    originalParent: View | HTMLDivElement | null;
-    sharedElement: View | HTMLDivElement | null;
-    videoResumeTryNumber: MutableRefObject<number>;
-    currentVideoPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
-    shareVideoPlayerElements: (ref: VideoWithOnFullScreenUpdate | null, parent: View | HTMLDivElement | null, child: View | HTMLDivElement | null, isUploading: boolean) => void;
-    playVideo: () => void;
-    pauseVideo: () => void;
-    checkVideoPlaying: (statusCallback: StatusCallback) => void;
-    setCurrentlyPlayingURL: React.Dispatch<React.SetStateAction<string | null>>;
-};
+import type {ResponsiveLayoutProperties} from './FullScreenContext';
 
 type VolumeContext = {
     updateVolume: (newVolume: number) => void;
     volume: SharedValue<number>;
+    lastNonZeroVolume: SharedValue<number>;
+    toggleMute: () => void;
 };
 
 type VideoPopoverMenuContext = {
     menuItems: PopoverMenuItem[];
+    videoPopoverMenuPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
+    currentPlaybackSpeed: PlaybackSpeed;
     updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
+    setCurrentPlaybackSpeed: (speed: PlaybackSpeed) => void;
+    setSource: (source: string) => void;
 };
 
 type FullScreenContext = {
     isFullScreenRef: MutableRefObject<boolean>;
-    lockedWindowDimensionsRef: MutableRefObject<WindowDimensions | null>;
-    lockWindowDimensions: (newWindowDimensions: WindowDimensions) => void;
+    lockedWindowDimensionsRef: MutableRefObject<ResponsiveLayoutProperties | null>;
+    lockWindowDimensions: (newResponsiveLayoutResult: ResponsiveLayoutProperties) => void;
     unlockWindowDimensions: () => void;
 };
 
-type StatusCallback = (isPlaying: boolean) => void;
+type PlaybackSpeed = TupleToUnion<typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS>;
 
-type PlaybackSpeed = (typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS)[number];
-
-export type {PlaybackContext, VolumeContext, VideoPopoverMenuContext, FullScreenContext, StatusCallback, PlaybackSpeed};
+export type {VolumeContext, VideoPopoverMenuContext, FullScreenContext, PlaybackSpeed};

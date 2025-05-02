@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -9,50 +9,68 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import CarouselButtons from './CarouselButtons';
-import extractAttachmentsFromReport from './extractAttachmentsFromReport';
+import extractAttachments from './extractAttachments';
 import type {AttachmentCarouselPagerHandle} from './Pager';
 import AttachmentCarouselPager from './Pager';
-import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps} from './types';
+import type {AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, onClose}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownloadButtonVisibility, onClose, type, accountID}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
     const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
-    const [activeSource, setActiveSource] = useState<AttachmentSource>(source);
-
-    const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
+    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource>(attachmentID ?? source);
+    const compareImage = useCallback((attachment: Attachment) => (attachmentID ? attachment.attachmentID === attachmentID : attachment.source === source), [attachmentID, source]);
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
-        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions);
+        let newAttachments: Attachment[] = [];
+        if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report.privateNotes, accountID, report});
+        } else if (type === CONST.ATTACHMENT_TYPE.ONBOARDING) {
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.ONBOARDING, {parentReportAction, reportActions: reportActions ?? undefined, report});
+        } else {
+            newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions, report});
+        }
 
-        const initialPage = attachmentsFromReport.findIndex(compareImage);
+        let newIndex = newAttachments.findIndex(compareImage);
+        const index = attachments.findIndex(compareImage);
 
-        // Dismiss the modal when deleting an attachment during its display in preview.
-        if (initialPage === -1 && attachments.find(compareImage)) {
+        // If newAttachments includes an attachment with the same index, update newIndex to that index.
+        // Previously, uploading an attachment offline would dismiss the modal when the image was previewed and the connection was restored.
+        // Now, instead of dismissing the modal, we replace it with the new attachment that has the same index.
+        if (newIndex === -1 && index !== -1 && newAttachments.at(index)) {
+            newIndex = index;
+        }
+
+        // If no matching attachment with the same index, dismiss the modal
+        if (newIndex === -1 && index !== -1 && attachments.at(index)) {
             Navigation.dismissModal();
         } else {
-            setPage(initialPage);
-            setAttachments(attachmentsFromReport);
+            setPage(newIndex);
+            setAttachments(newAttachments);
 
             // Update the download button visibility in the parent modal
             if (setDownloadButtonVisibility) {
-                setDownloadButtonVisibility(initialPage !== -1);
+                setDownloadButtonVisibility(newIndex !== -1);
             }
 
+            const attachment = newAttachments.at(newIndex);
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (attachmentsFromReport[initialPage] !== undefined && onNavigate) {
-                onNavigate(attachmentsFromReport[initialPage]);
+            if (newIndex !== -1 && attachment !== undefined && onNavigate) {
+                onNavigate(attachment);
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportActions, compareImage]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [reportActions, compareImage, report]);
 
     /** Updates the page state when the user navigates between attachments */
     const updatePage = useCallback(
@@ -60,13 +78,15 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             Keyboard.dismiss();
             setShouldShowArrows(true);
 
-            const item = attachments[newPageIndex];
+            const item = attachments.at(newPageIndex);
 
             setPage(newPageIndex);
-            setActiveSource(item.source);
-
-            if (onNavigate) {
-                onNavigate(item);
+            if (newPageIndex >= 0 && item) {
+                setActiveAttachmentID(item.attachmentID ?? item.source);
+                if (onNavigate) {
+                    onNavigate(item);
+                }
+                onNavigate?.(item);
             }
         },
         [setShouldShowArrows, attachments, onNavigate],
@@ -88,22 +108,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             autoHideArrows();
         },
         [autoHideArrows, page, updatePage],
-    );
-
-    /**
-     * Toggles the arrows visibility
-     * @param {Boolean} showArrows if showArrows is passed, it will set the visibility to the passed value
-     */
-    const toggleArrows = useCallback(
-        (showArrows?: boolean) => {
-            if (showArrows === undefined) {
-                setShouldShowArrows((prevShouldShowArrows) => !prevShouldShowArrows);
-                return;
-            }
-
-            setShouldShowArrows(showArrows);
-        },
-        [setShouldShowArrows],
     );
 
     const containerStyles = [styles.flex1, styles.attachmentCarouselContainer];
@@ -140,11 +144,12 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                     <AttachmentCarouselPager
                         items={attachments}
                         initialPage={page}
-                        activeSource={activeSource}
-                        onRequestToggleArrows={toggleArrows}
+                        activeAttachmentID={activeAttachmentID}
+                        setShouldShowArrows={setShouldShowArrows}
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                         onClose={onClose}
                         ref={pagerRef}
+                        reportID={report.reportID}
                     />
                 </>
             )}
@@ -154,13 +159,4 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
-export default withOnyx<AttachmentCarouselProps, AttachmentCaraouselOnyxProps>({
-    parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-        canEvict: false,
-    },
-    reportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-        canEvict: false,
-    },
-})(AttachmentCarousel);
+export default AttachmentCarousel;

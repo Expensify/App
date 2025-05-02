@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import CONST from '@src/CONST';
 import useKeyboardShortcut from './useKeyboardShortcut';
+import usePrevious from './usePrevious';
 
 type Config = {
     maxIndex: number;
@@ -14,6 +15,7 @@ type Config = {
     allowHorizontalArrowKeys?: boolean;
     allowNegativeIndexes?: boolean;
     isFocused?: boolean;
+    setHasKeyBeenPressed?: () => void;
 };
 
 type UseArrowKeyFocusManager = [number, (index: number) => void];
@@ -49,8 +51,10 @@ export default function useArrowKeyFocusManager({
     allowHorizontalArrowKeys = false,
     allowNegativeIndexes = false,
     isFocused = true,
+    setHasKeyBeenPressed,
 }: Config): UseArrowKeyFocusManager {
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
+    const prevIsFocusedIndex = usePrevious(focusedIndex);
     const arrowConfig = useMemo(
         () => ({
             excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
@@ -67,15 +71,20 @@ export default function useArrowKeyFocusManager({
         [isActive, shouldExcludeTextAreaNodes, allowHorizontalArrowKeys],
     );
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => onFocusedIndexChange(focusedIndex), [focusedIndex]);
+    useEffect(() => {
+        if (prevIsFocusedIndex === focusedIndex) {
+            return;
+        }
+        onFocusedIndexChange(focusedIndex);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [focusedIndex, prevIsFocusedIndex]);
 
     const arrowUpCallback = useCallback(() => {
         if (maxIndex < 0 || !isFocused) {
             return;
         }
         const nextIndex = disableCyclicTraversal ? -1 : maxIndex;
-
+        setHasKeyBeenPressed?.();
         setFocusedIndex((actualIndex) => {
             const currentFocusedIndex = actualIndex > 0 ? actualIndex - (itemsPerRow ?? 1) : nextIndex;
             let newFocusedIndex = currentFocusedIndex;
@@ -98,7 +107,7 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [maxIndex, isFocused, disableCyclicTraversal, itemsPerRow, disabledIndexes, allowNegativeIndexes]);
+    }, [maxIndex, isFocused, disableCyclicTraversal, itemsPerRow, disabledIndexes, allowNegativeIndexes, setHasKeyBeenPressed]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, arrowUpCallback, arrowConfig);
 
@@ -106,6 +115,7 @@ export default function useArrowKeyFocusManager({
         if (maxIndex < 0 || !isFocused) {
             return;
         }
+        setHasKeyBeenPressed?.();
 
         const nextIndex = disableCyclicTraversal ? maxIndex : 0;
 
@@ -143,7 +153,7 @@ export default function useArrowKeyFocusManager({
             }
             return newFocusedIndex;
         });
-    }, [disableCyclicTraversal, disabledIndexes, isFocused, itemsPerRow, maxIndex]);
+    }, [disableCyclicTraversal, disabledIndexes, isFocused, itemsPerRow, maxIndex, setHasKeyBeenPressed]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN, arrowDownCallback, arrowConfig);
 

@@ -2,22 +2,32 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "com.google.firebase.firebase-perf"
+apply plugin: "fullstory"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
  */
+
+/* Fullstory settings */
+fullstory {
+    org 'o-1WN56P-na1'
+    enabledVariants 'production'
+    logcatLevel 'debug'
+    recordOnStart false
+}
+
 react {
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '..'
-    // root = file("../")
-    //   The folder where the react-native NPM package is. Default is ../node_modules/react-native
-    // reactNativeDir = file("../node_modules/react-native")
-    //   The folder where the react-native Codegen package is. Default is ../node_modules/@react-native/codegen
-    // codegenDir = file("../node_modules/@react-native/codegen")
-    //   The cli.js file which is the React Native CLI entrypoint. Default is ../node_modules/react-native/cli.js
-    // cliFile = file("../node_modules/react-native/cli.js")
+    // root = file("../../")
+    //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
+    // reactNativeDir = file("../../node_modules/react-native")
+    //   The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
+    // codegenDir = file("../../node_modules/@react-native/codegen")
+    //   The cli.js file which is the React Native CLI entrypoint. Default is ../../node_modules/react-native/cli.js
+    // cliFile = file("../../node_modules/react-native/cli.js")
 
     /* Variants */
     //   The list of variants to that are debuggable. For those we're going to
@@ -52,10 +62,12 @@ react {
     //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
     // hermesFlags = ["-O", "-output-source-map"]
     //
+    /* Autolinking */
+    autolinkLibrariesWithApp()
     // Added by install-expo-modules
     entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", rootDir.getAbsoluteFile().getParentFile().getAbsolutePath(), "android", "absolute"].execute(null, rootDir).text.trim())
-    cliFile = new File(["node", "--print", "require.resolve('@expo/cli')"].execute(null, rootDir).text.trim())
-    bundleCommand = "export:embed"
+    cliFile = file("../../node_modules/@rnef/cli/dist/src/bin.js")
+    bundleCommand = "bundle"
 }
 
 project.ext.envConfigFiles = [
@@ -87,6 +99,10 @@ def enableProguardInReleaseBuilds = true
 def jscFlavor = 'org.webkit:android-jsc:+'
 
 android {
+    androidResources {
+      noCompress += ["bundle"]
+    }
+
     ndkVersion rootProject.ext.ndkVersion
 
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -98,8 +114,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001046307
-        versionName "1.4.63-7"
+        versionCode 1009013902
+        versionName "9.1.39-2"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"
@@ -162,7 +178,7 @@ android {
             signingConfig null
             // buildTypes take precedence over productFlavors when it comes to the signing configuration,
             // thus we need to manually set the signing config, so that the e2e uses the debug config again.
-            // In other words, the signingConfig setting above will be ignored when we build the flavor in release mode. 
+            // In other words, the signingConfig setting above will be ignored when we build the flavor in release mode.
             productFlavors.all { flavor ->
                 // All release builds should be signed with the release config ...
                 flavor.signingConfig signingConfigs.release
@@ -177,6 +193,23 @@ android {
     variantFilter { variant ->
         if (variant.name == "adhocDebug" || variant.name == "e2eDebug" || variant.name == "e2edeltaDebug") {
             setIgnore(true)
+        }
+    }
+}
+
+afterEvaluate {
+    // As the App is building from source, we need to make sure hermesc is built before the JS bundle is created.
+    // Otherwise the release version of the app will fail to build due to missing hermesc.
+    def hermesCTask = gradle.includedBuild("react-native").task(":packages:react-native:ReactAndroid:hermes-engine:buildHermesC")
+
+    android.applicationVariants.configureEach { variant ->
+        if (variant.buildType.name == "release" || variant.buildType.name == "adhoc") {
+            def variantName = variant.name.capitalize()
+            def bundleTask = tasks.named("createBundle${variantName}JsAndAssets").getOrNull()
+
+            if (bundleTask != null) {
+                bundleTask.dependsOn(hermesCTask)
+            }
         }
     }
 }
@@ -200,11 +233,11 @@ dependencies {
     implementation 'com.facebook.fresco:fresco:2.5.0'
     implementation 'com.facebook.fresco:animated-gif:2.5.0'
 
-    // Android support library
-    implementation 'com.android.support:support-core-utils:28.0.0'
+    // AndroidX support library
+    implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
 
     // Multi Dex Support: https://developer.android.com/studio/build/multidex#mdex-gradle
-    implementation 'com.android.support:multidex:1.0.3'
+    implementation 'androidx.multidex:multidex:2.0.1'
 
     // Plaid SDK
     implementation project(':react-native-plaid-link-sdk')
@@ -219,6 +252,5 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
 }
 
-apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
 apply plugin: 'com.google.gms.google-services'  // Google Play services Gradle plugin
 apply plugin: 'com.google.firebase.crashlytics'

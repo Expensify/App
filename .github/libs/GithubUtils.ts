@@ -56,7 +56,8 @@ type StagingDeployCashData = {
     isTimingDashboardChecked: boolean;
     isFirebaseChecked: boolean;
     isGHStatusChecked: boolean;
-    tag?: string;
+    version: string;
+    tag: string;
 };
 
 type InternalOctokit = OctokitCore & Api & {paginate: PaginateInterface};
@@ -65,13 +66,11 @@ class GithubUtils {
     static internalOctokit: InternalOctokit | undefined;
 
     /**
-     * Initialize internal octokit
-     *
-     * @private
+     * Initialize internal octokit.
+     * NOTE: When using GithubUtils in CI, you don't need to call this manually.
      */
-    static initOctokit() {
+    static initOctokitWithToken(token: string) {
         const Octokit = GitHub.plugin(throttling, paginateRest);
-        const token = core.getInput('GITHUB_TOKEN', {required: true});
 
         // Save a copy of octokit used in this class
         this.internalOctokit = new Octokit(
@@ -94,6 +93,16 @@ class GithubUtils {
                 },
             }),
         );
+    }
+
+    /**
+     * Default initialize method assuming running in CI, getting the token from an input.
+     *
+     * @private
+     */
+    static initOctokit() {
+        const token = core.getInput('GITHUB_TOKEN', {required: true});
+        this.initOctokitWithToken(token);
     }
 
     /**
@@ -160,7 +169,13 @@ class GithubUtils {
                     throw new Error(`Found more than one ${CONST.LABELS.STAGING_DEPLOY} issue.`);
                 }
 
-                return this.getStagingDeployCashData(data[0]);
+                const issue = data.at(0);
+
+                if (!issue) {
+                    throw new Error(`Found an undefined ${CONST.LABELS.STAGING_DEPLOY} issue.`);
+                }
+
+                return this.getStagingDeployCashData(issue);
             });
     }
 
@@ -170,7 +185,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue: OctokitIssueItem): StagingDeployCashData {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const tag = issue.body?.match(versionRegex)?.[0].replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
 
             return {
                 title: issue.title,
@@ -183,7 +198,8 @@ class GithubUtils {
                 isTimingDashboardChecked: issue.body ? /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body) : false,
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
-                tag,
+                version,
+                tag: `${version}-staging`,
             };
         } catch (exception) {
             throw new Error(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue with correct data.`);
@@ -246,7 +262,7 @@ class GithubUtils {
         }
         internalQASection = internalQASection[1];
         const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2].split('-')[0].trim(),
+            url: match[2].split('-').at(0)?.trim() ?? '',
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
         }));
@@ -296,7 +312,7 @@ class GithubUtils {
 
                     // Tag version and comparison URL
                     // eslint-disable-next-line max-len
-                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n`;
+                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
 
                     // PR list
                     if (sortedPRList.length > 0) {
@@ -342,7 +358,11 @@ class GithubUtils {
                     // eslint-disable-next-line max-len
                     issueBody += `\r\n- [${
                         isFirebaseChecked ? 'x' : ' '
-                    }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                    }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                    // eslint-disable-next-line max-len
+                    issueBody += `\r\n- [${
+                        isFirebaseChecked ? 'x' : ' '
+                    }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/android:org.me.mobiexpensifyg/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
                     // eslint-disable-next-line max-len
                     issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
 
@@ -359,7 +379,7 @@ class GithubUtils {
      * Fetch all pull requests given a list of PR numbers.
      */
     static fetchAllPullRequests(pullRequestNumbers: number[]): Promise<OctokitPR[] | void> {
-        const oldestPR = pullRequestNumbers.sort((a, b) => a - b)[0];
+        const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(
             this.octokit.pulls.list,
             {
@@ -443,6 +463,7 @@ class GithubUtils {
     /**
      * Get the most recent workflow run for the given New Expensify workflow.
      */
+    /* eslint-disable rulesdir/no-default-id-values */
     static getLatestWorkflowRunID(workflow: string | number): Promise<number> {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return this.octokit.actions
@@ -451,14 +472,7 @@ class GithubUtils {
                 repo: CONST.APP_REPO,
                 workflow_id: workflow,
             })
-            .then((response) => response.data.workflow_runs[0]?.id);
-    }
-
-    /**
-     * Generate the well-formatted body of a production release.
-     */
-    static getReleaseBody(pullRequests: number[]): string {
-        return pullRequests.map((number) => `- ${this.getPullRequestURLFromNumber(number)}`).join('\r\n');
+            .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
     }
 
     /**
@@ -521,17 +535,34 @@ class GithubUtils {
             .then((closedEvents) => closedEvents.at(-1)?.actor?.login ?? '');
     }
 
-    static getArtifactByName(artefactName: string): Promise<OctokitArtifact | undefined> {
-        return this.paginate(this.octokit.actions.listArtifactsForRepo, {
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            per_page: 100,
-        }).then((artifacts: OctokitArtifact[]) => artifacts.find((artifact) => artifact.name === artefactName));
+    /**
+     * Returns a single artifact by name. If none is found, it returns undefined.
+     */
+    static getArtifactByName(artifactName: string): Promise<OctokitArtifact | undefined> {
+        return this.octokit.actions
+            .listArtifactsForRepo({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                per_page: 1,
+                name: artifactName,
+            })
+            .then((response) => response.data.artifacts.at(0));
+    }
+
+    /**
+     * Given an artifact ID, returns the download URL to a zip file containing the artifact.
+     */
+    static getArtifactDownloadURL(artifactId: number): Promise<string> {
+        return this.octokit.actions
+            .downloadArtifact({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                artifact_id: artifactId,
+                archive_format: 'zip',
+            })
+            .then((response) => response.url);
     }
 }
 
 export default GithubUtils;
-// This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
-// Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
-
 export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData};

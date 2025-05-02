@@ -1,7 +1,9 @@
+import type {ImageContentFit} from 'expo-image';
 import React, {useMemo} from 'react';
-import type {ImageSourcePropType, StyleProp, ViewStyle, WebStyle} from 'react-native';
+import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
+import type {WebStyle} from 'react-native-web';
 import type {MergeExclusive} from 'type-fest';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
@@ -9,6 +11,7 @@ import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,6 +24,9 @@ type BaseBlockingViewProps = {
 
     /** Subtitle message below the title */
     subtitle?: string;
+
+    /** The style of the subtitle message */
+    subtitleStyle?: StyleProp<TextStyle>;
 
     /** Link message below the subtitle */
     linkKey?: TranslationPaths;
@@ -36,6 +42,24 @@ type BaseBlockingViewProps = {
 
     /** Render custom subtitle */
     CustomSubtitle?: React.ReactElement;
+
+    /** Determines how the image should be resized to fit its container */
+    contentFitImage?: ImageContentFit;
+
+    /** Additional styles to apply to the container */
+    containerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to add bottom safe area padding to the view. */
+    addBottomSafeAreaPadding?: boolean;
+
+    /** Accessibility label for the view */
+    accessibilityLabel?: string;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** A testing ID that can be applied to the element on the page */
+    testID?: string;
 };
 
 type BlockingViewIconProps = {
@@ -72,6 +96,7 @@ function BlockingView({
     iconColor,
     title,
     subtitle = '',
+    subtitleStyle,
     linkKey = 'notFound.goBackHome',
     shouldShowLink = false,
     iconWidth = variables.iconSizeSuperLarge,
@@ -80,7 +105,13 @@ function BlockingView({
     shouldEmbedLinkWithSubtitle = false,
     animationStyles = [],
     animationWebStyle = {},
+    accessibilityLabel = '',
     CustomSubtitle,
+    contentFitImage,
+    containerStyle: containerStyleProp,
+    addBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+    testID,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -88,10 +119,12 @@ function BlockingView({
     const subtitleText = useMemo(
         () => (
             <>
-                <AutoEmailLink
-                    style={[styles.textAlignCenter]}
-                    text={subtitle}
-                />
+                {!!subtitle && (
+                    <AutoEmailLink
+                        style={[styles.textAlignCenter, subtitleStyle]}
+                        text={subtitle}
+                    />
+                )}
                 {shouldShowLink ? (
                     <TextLink
                         onPress={onLinkPress}
@@ -102,7 +135,7 @@ function BlockingView({
                 ) : null}
             </>
         ),
-        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate],
+        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle],
     );
 
     const subtitleContent = useMemo(() => {
@@ -116,9 +149,15 @@ function BlockingView({
         );
     }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
 
+    const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: containerStyleProp});
+
     return (
-        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
-            {animation && (
+        <View
+            style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}
+            accessibilityLabel={accessibilityLabel}
+            testID={testID}
+        >
+            {!!animation && (
                 <Lottie
                     source={animation}
                     loop
@@ -127,12 +166,13 @@ function BlockingView({
                     webStyle={animationWebStyle}
                 />
             )}
-            {icon && (
+            {!!icon && (
                 <Icon
                     src={icon}
                     fill={iconColor}
                     width={iconWidth}
                     height={iconHeight}
+                    contentFit={contentFitImage}
                 />
             )}
             <View>

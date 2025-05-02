@@ -5,7 +5,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import type {UserWallet} from '@src/types/onyx';
 
@@ -19,12 +19,12 @@ function ShortTermsForm(props: ShortTermsFormProps) {
     const {translate, numberFormat} = useLocalize();
     return (
         <>
-            <Text style={styles.mb5}>
+            <Text style={[styles.mb5, styles.textSupporting]}>
                 {translate('termsStep.shortTermsForm.expensifyPaymentsAccount', {
                     walletProgram:
-                        props.userWallet?.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID
-                            ? CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS
-                            : CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK,
+                        props.userWallet && props.userWallet?.walletProgramID === CONST.WALLET.BANCORP_WALLET_PROGRAM_ID
+                            ? CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK
+                            : CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS,
                 })}
             </Text>
 
@@ -32,46 +32,46 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                 <View style={[styles.shortTermsRow, styles.mb4]}>
                     <View style={[styles.flex2]}>
                         <View style={[styles.flexRow, styles.mb1]}>
-                            <Text style={styles.textLarge}>{translate('termsStep.monthlyFee')}</Text>
+                            <Text style={styles.mutedNormalTextLabel}>{translate('termsStep.monthlyFee')}</Text>
                         </View>
                         <View style={styles.flexRow}>
-                            <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
+                            <Text style={styles.shortTermsHeadline}>{convertToDisplayString(0, 'USD')}</Text>
                         </View>
                     </View>
                     <View style={[styles.flex2]}>
                         <View style={[styles.flex2]}>
                             <View style={[styles.flexRow, styles.mb1]}>
-                                <Text style={styles.textLarge}>{translate('termsStep.shortTermsForm.perPurchase')}</Text>
+                                <Text style={styles.mutedNormalTextLabel}>{translate('termsStep.shortTermsForm.perPurchase')}</Text>
                             </View>
                             <View style={styles.flexRow}>
-                                <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
+                                <Text style={styles.shortTermsHeadline}>{convertToDisplayString(0, 'USD')}</Text>
                             </View>
                         </View>
                     </View>
                 </View>
 
                 <View style={[styles.shortTermsRow, styles.mb6]}>
-                    <View style={[styles.flex2]}>
+                    <View style={styles.flex2}>
                         <View style={[styles.flexRow, styles.mb1]}>
-                            <Text style={styles.textLarge}>{translate('termsStep.shortTermsForm.atmWithdrawal')}</Text>
+                            <Text style={styles.mutedNormalTextLabel}>{translate('termsStep.shortTermsForm.atmWithdrawal')}</Text>
                         </View>
                         <View style={styles.flexRow}>
                             <Text style={styles.shortTermsHeadline}>{translate('common.na')}</Text>
                         </View>
                         <View style={styles.flexRow}>
-                            <Text style={styles.textLabelSupporting}>{translate('termsStep.shortTermsForm.inNetwork')}</Text>
+                            <Text style={styles.textMicroSupporting}>{translate('termsStep.shortTermsForm.inNetwork')}</Text>
                         </View>
                         <View style={[styles.flexRow, styles.mt4]}>
                             <Text style={styles.shortTermsHeadline}>{translate('common.na')}</Text>
                         </View>
                         <View style={styles.flexRow}>
-                            <Text style={styles.textLabelSupporting}>{translate('termsStep.shortTermsForm.outOfNetwork')}</Text>
+                            <Text style={styles.textMicroSupporting}>{translate('termsStep.shortTermsForm.outOfNetwork')}</Text>
                         </View>
                     </View>
                     <View style={[styles.flex2]}>
                         <View style={[styles.flex2]}>
                             <View style={[styles.flexRow, styles.mb1]}>
-                                <Text style={styles.textLarge}>{translate('termsStep.shortTermsForm.cashReload')}</Text>
+                                <Text style={styles.mutedNormalTextLabel}>{translate('termsStep.shortTermsForm.cashReload')}</Text>
                             </View>
                             <View style={styles.flexRow}>
                                 <Text style={styles.shortTermsHeadline}>{translate('common.na')}</Text>
@@ -100,7 +100,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                         </Text>
                     </View>
                     <View style={styles.flex1}>
-                        <Text style={styles.label}>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
+                        <Text>{convertToDisplayString(0, 'USD')}</Text>
                     </View>
                 </View>
 
@@ -112,7 +112,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                         </Text>
                     </View>
                     <View style={styles.flex1}>
-                        <Text>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
+                        <Text>{convertToDisplayString(0, 'USD')}</Text>
                     </View>
                 </View>
 
@@ -130,7 +130,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                     </View>
                     <View style={[styles.flex1, styles.termsCenterRight]}>
                         <Text style={styles.label}>{numberFormat(1.5)}%</Text>
-                        <Text style={styles.label}>{translate('termsStep.shortTermsForm.electronicFundsInstantFeeMin', {amount: CurrencyUtils.convertToDisplayString(25, 'USD')})}</Text>
+                        <Text style={styles.label}>{translate('termsStep.shortTermsForm.electronicFundsInstantFeeMin', {amount: convertToDisplayString(25, 'USD')})}</Text>
                     </View>
                 </View>
                 <View style={[styles.shortTermsBoldHeadingSection, styles.mb4]}>

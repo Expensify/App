@@ -5,6 +5,7 @@ import type {AddSchoolPrincipalParams, ReferTeachersUniteVolunteerParams} from '
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PhoneNumber from '@libs/PhoneNumber';
+import {getPolicy} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -26,7 +27,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         sessionEmail = value?.email ?? '';
-        sessionAccountID = value?.accountID ?? 0;
+        sessionAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -40,7 +41,12 @@ Onyx.connect({
  * @param publicRoomReportID - This is the global reportID for the public room, we'll ignore the optimistic one
  */
 function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, lastName: string, policyID: string, publicRoomReportID: string) {
-    const optimisticPublicRoom = ReportUtils.buildOptimisticChatReport([], CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME, CONST.REPORT.CHAT_TYPE.POLICY_ROOM, policyID);
+    const optimisticPublicRoom = ReportUtils.buildOptimisticChatReport({
+        participantList: [],
+        reportName: CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME,
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+        policyID,
+    });
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -49,6 +55,13 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
                 ...optimisticPublicRoom,
                 reportID: publicRoomReportID,
                 policyName: CONST.TEACHERS_UNITE.POLICY_NAME,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${publicRoomReportID}`,
+            value: {
+                isOptimisticReport: false,
             },
         },
     ];
@@ -61,7 +74,7 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
     };
 
     API.write(WRITE_COMMANDS.REFER_TEACHERS_UNITE_VOLUNTEER, parameters, {optimisticData});
-    Navigation.dismissModal(publicRoomReportID);
+    Navigation.dismissModalWithReport({reportID: publicRoomReportID});
 }
 
 /**
@@ -72,7 +85,15 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
     const loggedInEmail = PhoneNumber.addSMSDomainIfPhoneNumber(sessionEmail);
     const reportCreationData: ReportCreationData = {};
 
-    const expenseChatData = ReportUtils.buildOptimisticChatReport([sessionAccountID], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, sessionAccountID, true, policyName);
+    const expenseChatData = ReportUtils.buildOptimisticChatReport({
+        participantList: [sessionAccountID],
+        reportName: '',
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        policyID,
+        ownerAccountID: sessionAccountID,
+        isOwnPolicyExpenseChat: true,
+        oldPolicyName: policyName,
+    });
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(sessionEmail);
     const expenseReportActionData: ExpenseReportActionData = {
@@ -95,7 +116,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                 name: policyName,
                 role: CONST.POLICY.ROLE.USER,
                 owner: sessionEmail,
-                outputCurrency: allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
+                outputCurrency: getPolicy(policyID)?.outputCurrency ?? allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
                 employeeList: {
                     [sessionEmail]: {
                         role: CONST.POLICY.ROLE.USER,
@@ -140,9 +161,16 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: {
-                [Object.keys(expenseChatData)[0]]: {
+                [Object.keys(expenseChatData).at(0) ?? '']: {
                     pendingAction: null,
                 },
             },
@@ -178,7 +206,7 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
     };
 
     API.write(WRITE_COMMANDS.ADD_SCHOOL_PRINCIPAL, parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModal(expenseChatReportID);
+    Navigation.dismissModalWithReport({reportID: expenseChatReportID});
 }
 
 export default {referTeachersUniteVolunteer, addSchoolPrincipal};

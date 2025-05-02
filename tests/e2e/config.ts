@@ -4,10 +4,11 @@ const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 // add your test name here …
 const TEST_NAMES = {
     AppStartTime: 'App start time',
-    OpenChatFinderPage: 'Open chat finder page TTI',
+    OpenSearchRouter: 'Open search router TTI',
     ReportTyping: 'Report typing',
     ChatOpening: 'Chat opening',
     Linking: 'Linking',
+    MoneyRequest: 'Money request',
 };
 
 /**
@@ -25,6 +26,10 @@ export default {
 
     MAIN_APP_PATH: './app-e2eRelease.apk',
     DELTA_APP_PATH: './app-e2edeltaRelease.apk',
+    FLAG: '',
+
+    BRANCH_MAIN: 'main',
+    BRANCH_DELTA: 'delta',
 
     ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.ts',
 
@@ -49,7 +54,7 @@ export default {
     LOG_FILE: `${OUTPUT_DIR}/debug.log`,
 
     // The time in milliseconds after which an operation fails due to timeout
-    INTERACTION_TIMEOUT: 300000,
+    INTERACTION_TIMEOUT: 150 * 1000,
 
     // Period we wait between each test runs, to let the device cool down
     BOOT_COOL_DOWN: 90 * 1000,
@@ -68,37 +73,38 @@ export default {
     TESTS_CONFIG: {
         [TEST_NAMES.AppStartTime]: {
             name: TEST_NAMES.AppStartTime,
-
             // ... any additional config you might need
         },
-        [TEST_NAMES.OpenChatFinderPage]: {
-            name: TEST_NAMES.OpenChatFinderPage,
+        [TEST_NAMES.OpenSearchRouter]: {
+            name: TEST_NAMES.OpenSearchRouter,
         },
-        // TODO: Fix text and enable again
-        // [TEST_NAMES.ReportTyping]: {
-        //     name: TEST_NAMES.ReportTyping,
-        //     reportScreen: {
-        //         autoFocus: true,
-        //     },
-        //     // Crowded Policy (Do Not Delete) Report, has a input bar available:
-        //     reportID: '8268282951170052',
-        // },
+        [TEST_NAMES.ReportTyping]: {
+            name: TEST_NAMES.ReportTyping,
+            reportScreen: {
+                autoFocus: true,
+            },
+            // Crowded Policy (Do Not Delete) Report, has a input bar available:
+            reportID: '8268282951170052',
+            message: `Measure_performance#${Math.floor(Math.random() * 1000000)}`,
+        },
         [TEST_NAMES.ChatOpening]: {
             name: TEST_NAMES.ChatOpening,
             // #announce Chat with many messages
             reportID: '5421294415618529',
         },
-        // TODO: fix and enable again
-        // [TEST_NAMES.Linking]: {
-        //     name: TEST_NAMES.Linking,
-        //     reportScreen: {
-        //         autoFocus: true,
-        //     },
-        //     // Crowded Policy (Do Not Delete) Report, has a input bar available:
-        //     reportID: '8268282951170052',
-        //     linkedReportID: '5421294415618529',
-        //     linkedReportActionID: '2845024374735019929',
-        // },
+        [TEST_NAMES.Linking]: {
+            name: TEST_NAMES.Linking,
+            reportScreen: {
+                autoFocus: true,
+            },
+            // Crowded Policy (Do Not Delete) Report, has a input bar available:
+            reportID: '8268282951170052',
+            linkedReportID: '5421294415618529',
+            linkedReportActionID: '2845024374735019929',
+        },
+        [TEST_NAMES.MoneyRequest]: {
+            name: TEST_NAMES.MoneyRequest,
+        },
     },
 };
 

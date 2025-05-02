@@ -1,10 +1,10 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
-import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
+import {hasReportViolations, isReportOwner, isSettled, shouldDisplayViolationsRBRInLHN} from '@src/libs/ReportUtils';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -17,59 +17,81 @@ import type {OptionRowLHNDataProps} from './types';
 function OptionRowLHNData({
     isFocused = false,
     fullReport,
+    reportAttributes,
+    oneTransactionThreadReport,
+    reportNameValuePairs,
     reportActions,
     personalDetails = {},
     preferredLocale = CONST.LOCALES.DEFAULT,
     policy,
+    invoiceReceiverPolicy,
     receiptTransactions,
     parentReportAction,
+    iouReportReportActions,
     transaction,
-    lastReportActionTransaction = {},
+    lastReportActionTransaction,
     transactionViolations,
-    canUseViolations,
+    lastMessageTextFromReport,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
     const currentReportIDValue = useCurrentReportID();
     const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
 
-    const optionItemRef = useRef<OptionData>();
+    const optionItemRef = useRef<OptionData | undefined>(undefined);
 
-    const shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction ?? null);
+    const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(fullReport, transactionViolations);
+    const isReportSettled = isSettled(fullReport);
+    const shouldDisplayReportViolations = !isReportSettled && isReportOwner(fullReport) && hasReportViolations(reportID);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
             report: fullReport,
+            reportAttributes,
+            oneTransactionThreadReport,
+            reportNameValuePairs,
             reportActions,
             personalDetails,
             preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            hasViolations: !!shouldDisplayViolations,
+            hasViolations: !!shouldDisplayViolations || shouldDisplayReportViolations,
+            lastMessageTextFromReport,
+            transactionViolations,
+            invoiceReceiverPolicy,
         });
+        // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
+            // eslint-disable-next-line react-compiler/react-compiler
             return optionItemRef.current;
         }
 
+        // eslint-disable-next-line react-compiler/react-compiler
         optionItemRef.current = item;
 
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
         fullReport,
+        reportAttributes,
+        oneTransactionThreadReport,
+        reportNameValuePairs,
         lastReportActionTransaction,
         reportActions,
         personalDetails,
         preferredLocale,
         policy,
         parentReportAction,
+        iouReportReportActions,
         transaction,
         transactionViolations,
-        canUseViolations,
         receiptTransactions,
+        invoiceReceiverPolicy,
+        shouldDisplayReportViolations,
+        lastMessageTextFromReport,
     ]);
 
     return (

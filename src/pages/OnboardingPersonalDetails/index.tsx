@@ -1,14 +1,17 @@
 import React from 'react';
-import type {BaseOnboardingPersonalDetailsProps} from './BaseOnboardingPersonalDetails';
+import OnboardingWrapper from '@components/OnboardingWrapper';
 import BaseOnboardingPersonalDetails from './BaseOnboardingPersonalDetails';
+import type {OnboardingPersonalDetailsProps} from './types';
 
-function OnboardingPersonalDetails({...rest}: Omit<BaseOnboardingPersonalDetailsProps, 'shouldUseNativeStyles'>) {
+function OnboardingPersonalDetails({...rest}: OnboardingPersonalDetailsProps) {
     return (
-        <BaseOnboardingPersonalDetails
-            shouldUseNativeStyles={false}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
-        />
+        <OnboardingWrapper>
+            <BaseOnboardingPersonalDetails
+                shouldUseNativeStyles={false}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...rest}
+            />
+        </OnboardingWrapper>
     );
 }
 

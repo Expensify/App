@@ -2,16 +2,16 @@
 
 buildscript {
     ext {
-        buildToolsVersion = "34.0.0"
-        minSdkVersion = 21
-        compileSdkVersion = 34
+        buildToolsVersion = "35.0.0"
+        minSdkVersion = 24
+        compileSdkVersion = 35
         targetSdkVersion = 34
-        ndkVersion = "25.1.8937393"
+        ndkVersion = "27.1.12297006"
 
         androidXCore = "1.0.2"
         multiDexEnabled = true
         googlePlayServicesVersion = "17.0.0"
-        kotlinVersion = '1.8.10'
+        kotlinVersion = "2.0.21"
 
         // This property configures the type of Mapbox SDK used by the @rnmapbox/maps library.
         // "mapbox" indicates the usage of the Mapbox SDK.
@@ -20,6 +20,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven {url "https://maven.fullstory.com"}
     }
     dependencies {
         classpath("com.android.tools.build:gradle")
@@ -27,6 +28,9 @@ buildscript {
         classpath("com.google.gms:google-services:4.3.4")
         classpath("com.google.firebase:firebase-crashlytics-gradle:2.7.1")
         classpath("com.google.firebase:perf-plugin:1.4.1")
+        // Fullstory integration
+        classpath ("com.fullstory:gradle-plugin-local:1.52.0")
+
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
@@ -38,14 +42,6 @@ allprojects {
     configurations.all {
         resolutionStrategy {
             force 'org.xerial:sqlite-jdbc:3.34.0'
-
-            // Manually set the react-native version to resolve this upstream issue: https://github.com/facebook/react-native/issues/35210
-            def REACT_NATIVE_VERSION = new File(['node', '--print',"JSON.parse(require('fs').readFileSync(require.resolve('react-native/package.json'), 'utf-8')).version"].execute(null, rootDir).text.trim())
-            force "com.facebook.react:react-native:" + REACT_NATIVE_VERSION
-            force "com.facebook.react:hermes-engine:" + REACT_NATIVE_VERSION
-
-            //Fix Investigate App Crash MainActivity.onCreate #35655
-            force "com.facebook.soloader:soloader:0.10.4+"
 
             eachDependency { dependency ->
                 if (dependency.requested.group == 'org.bouncycastle') {
@@ -70,7 +66,7 @@ allprojects {
                 // 'mapbox' is the fixed username for Mapbox's Maven repository.
                 username = 'mapbox'
 
-                // The value for password is read from the 'MAPBOX_DOWNLOADS_TOKEN' gradle property. 
+                // The value for password is read from the 'MAPBOX_DOWNLOADS_TOKEN' gradle property.
                 // Run "npm run setup-mapbox-sdk" to set this property in «USER_HOME»/.gradle/gradle.properties
 
                 // Example gradle.properties entry:
@@ -82,3 +78,11 @@ allprojects {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+task buildReactNativeArtifacts {
+    dependsOn(gradle.includedBuild('react-native').task(':packages:react-native:ReactAndroid:build'))
+}
+
+task publishReactNativeArtifacts {
+    dependsOn(gradle.includedBuild('react-native').task(':packages:react-native:ReactAndroid:publishReleasePublicationToMavenRepository'))
+}

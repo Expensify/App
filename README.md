@@ -11,10 +11,11 @@
 
 #### Table of Contents
 * [Local Development](#local-development)
-* [Testing on browsers on simulators and emulators](#testing-on-browsers-on-simulators-and-emulators)
+* [Testing on browsers in simulators and emulators](#testing-on-browsers-in-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
+* [HybridApp](#HybridApp)
 * [Philosophy](#Philosophy)
 * [Security](#Security)
 * [Internationalization](#Internationalization)
@@ -25,7 +26,10 @@
 * [Offline First](contributingGuides/OFFLINE_UX.md)
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
-* [Contributor License Agreement](contributingGuides/CLA.md)
+* [Contributor License Agreement](CLA.md)
+* [React StrictMode](contributingGuides/STRICT_MODE.md)
+* [Left Hand Navigation(LHN)](contributingGuides/LEFT_HAND_NAVIGATION.md)
+* [HybridApp - additional info & troubleshooting](contributingGuides/HYBRID_APP.md)
 
 ----
 
@@ -60,6 +64,7 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
 
 * If you haven't already, install Xcode tools and make sure to install the optional "iOS Platform" package as well. This installation may take awhile.
+    * After installation, check in System Settings that there's no update for Xcode. Otherwise, you may encounter issues later that don't explain that you solve them by updating Xcode.
 * Install project gems, including cocoapods, using bundler to ensure everyone uses the same versions. In the project root, run: `bundle install`
     * If you get the error `Could not find 'bundler'`, install the bundler gem first: `gem install bundler` and try again.
     * If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
@@ -140,14 +145,14 @@ You create this certificate by following the instructions in [`Configuring HTTPS
 3. Install the certificate as CA certificate from the settings. On the Android emulator, this option can be found in Settings > Security > Encryption & Credentials > Install a certificate > CA certificate.
 4. Close the emulator.
 
-Note - If you want to run app on `https://127.0.0.1:8082`, then just install the certificate and use `adb reverse tcp:8082 tcp:8082` on every startup.
+**Note:** If you want to run app on `https://127.0.0.1:8082`, then just install the certificate and use `adb reverse tcp:8082 tcp:8082` on every startup.
 
 #### Android Flow
 1. Run `npm run setupNewDotWebForEmulators android`
 2. Select the emulator you want to run if prompted. (If single emulator is available, then it will open automatically)
 3. Let the script execute till the message `🎉 Done!`.
 
-Note - If you want to run app on `https://dev.new.expensify.com:8082`, then just do the Android flow and use `npm run startAndroidEmulator` to start the Android Emulator every time (It will configure the emulator).
+**Note:** If you want to run app on `https://dev.new.expensify.com:8082`, then just do the Android flow and use `npm run startAndroidEmulator` to start the Android Emulator every time (It will configure the emulator).
 
 
 Possible Scenario:
@@ -172,6 +177,7 @@ Often times in order to write a unit test, you may need to mock data, a componen
 to help run our Unit tests.
 
 * To run the **Jest unit tests**: `npm run test`
+* UI tests guidelines can be found [here](tests/ui/README.md)
 
 ## Performance tests
 We use Reassure for monitoring performance regression. More detailed information can be found [here](tests/perf-test/README.md):
@@ -229,19 +235,20 @@ Within Xcode head to the build phase - `Bundle React Native code and images`.
     ```jsx
     npm i && npm run pod-install
     ```
-7. Depending on the platform you are targeting, run your Android/iOS app in production mode.
-8. Upon completion, the generated source map can be found at:
+4. Depending on the platform you are targeting, run your Android/iOS app in production mode.
+5. Upon completion, the generated source map can be found at:
   Android: `android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map`
   IOS: `main.jsbundle.map`
+  web: `dist/merged-source-map.js.map`
 
 ### Recording a Trace:
 1. Ensure you have generated the source map as outlined above.
 2. Launch the app in production mode.
-2. Navigate to the feature you wish to profile.
-3. Initiate the profiling session by tapping with four fingers to open the menu and selecting **`Use Profiling`**.
-4. Close the menu and interact with the app.
-5. After completing your interactions, tap with four fingers again and select to stop profiling.
-6. You will be presented with a **`Share`** option to export the trace, which includes a trace file (`Profile<app version>.cpuprofile`) and build info (`AppInfo<app version>.json`).
+3. Navigate to the feature you wish to profile.
+4. Initiate the profiling session by tapping with four fingers (on mobile) or `cmd+d` (on web) to open the menu and selecting **`Use Profiling`**.
+5. Close the menu and interact with the app.
+6. After completing your interactions, tap with four fingers or `cmd+d` again and select to stop profiling.
+7. You will be presented with a **`Share`** option to export the trace, which includes a trace file (`Profile<app version>.cpuprofile`) and build info (`AppInfo<app version>.json`).
 
 Build info:
 ```jsx
@@ -264,13 +271,14 @@ Build info:
 4. Use the following commands to symbolicate the trace for Android and iOS, respectively:
 Android: `npm run symbolicate-release:android`
 IOS: `npm run symbolicate-release:ios`
+web: `npm run symbolicate-release:web`
 5. A new file named `Profile_trace_for_<app version>-converted.json` will appear in your project's root folder.
 6. Open this file in your tool of choice:
     - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))
     - Perfetto UI (https://ui.perfetto.dev/)
     - Google Chrome's Tracing UI (chrome://tracing)
 
----
+----
 
 # App Structure and Conventions
 
@@ -388,7 +396,7 @@ In most cases, the code written for this repo should be platform-independent. In
 - Web => `index.website.js`
 - Desktop => `index.desktop.js`
 
-Note that `index.js` should be the default and only platform-specific implementations should be done in their respective files. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`.
+**Note:** `index.js` should be the default and only platform-specific implementations should be done in their respective files. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`.
 
 `index.ios.js` and `index.android.js` are used when the app is running natively on respective platforms. These files are not used when users access the app through mobile browsers, but `index.website.js` is used instead. `index.native.js` are for both iOS and Android native apps. `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`.
 
@@ -406,14 +414,14 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 By default, Onyx will not evict anything from storage and will presume all keys are "unsafe" to remove unless explicitly told otherwise.
 
 **To flag a key as safe for removal:**
-- Add the key to the `safeEvictionKeys` option in `Onyx.init(options)`
+- Add the key to the `evictableKeys` option in `Onyx.init(options)`
 - Implement `canEvict` in the Onyx config for each component subscribing to a key
 - The key will only be deleted when all subscribers return `true` for `canEvict`
 
 e.g.
 ```js
 Onyx.init({
-    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+    evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
 });
 ```
 
@@ -430,6 +438,130 @@ export default withOnyx({
 1. The major difference between React Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. Any React skills you have can be applied to React Native.
 1. The application uses [`react-navigation`](https://reactnavigation.org/) for navigating between parts of the app.
 1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via [`react-native-onyx`](https://github.com/Expensify/react-native-onyx).
+
+----
+# HybridApp
+
+Currently, the production Expensify app contains both "Expensify Classic" and "New Expensify". The file structure is as follows:
+
+- 📂 [**App**](https://github.com/Expensify/App)
+    - 📂 [**android**](https://github.com/Expensify/App/tree/main/android): New Expensify Android specific code (not a part of HybridApp native code)
+    - 📂 [**ios**](https://github.com/Expensify/App/tree/main/ios): New Expensify iOS specific code (not a part of HybridApp native code)
+    - 📂 [**src**](https://github.com/Expensify/App/tree/main/src): New Expensify TypeScript logic
+    - 📂 [**Mobile-Expensify**](https://github.com/Expensify/Mobile-Expensify): `git` submodule that is pointed to [Mobile-Expensify](https://github.com/Expensify/Mobile-Expensify)
+        - 📂 [**Android**](https://github.com/Expensify/Mobile-Expensify/tree/main/Android): Expensify Classic Android specific code
+        - 📂 [**iOS**](https://github.com/Expensify/Mobile-Expensify/tree/main/iOS): Expensify Classic iOS specific code
+        - 📂 [**app**](https://github.com/Expensify/Mobile-Expensify/tree/main/app): Expensify Classic JavaScript logic (aka YAPL)
+
+You can only build HybridApp if you have been granted access to [`Mobile-Expensify`](https://github.com/Expensify/Mobile-Expensify). For most contributors, you will be working on the standalone NewDot application.
+
+## Getting started with HybridApp
+
+1. If you haven't, please follow [these instructions](https://github.com/Expensify/App?tab=readme-ov-file#getting-started) to setup the NewDot local environment.
+2. In the root directory, run `git submodule init`
+3. Run `git submodule update`
+    - If this takes too long, try `git submodule update --init --progress --depth 100` (Note: this makes it difficult to checkout remote branches in the submodule)
+    - If you have access to `Mobile-Expensify` and the command fails, add this to your `~/.gitconfig` file:
+
+    ```
+    [url "https://github.com/"]
+        insteadOf = ssh://git@github.com/
+    ```
+    - To prevent `Mobile-Expensify` submodule commit hash changes from appearing in `git status`, configure Git to ignore them by adding this to your local `.git/config` (This ensures that submodule changes are ignored unless you deliberately update them):
+    ```
+    [submodule "Mobile-Expensify"]
+        ignore = all
+    ```
+4. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App
+
+
+> [!Note]  
+> #### For external agencies and C+ contributors only
+>
+> If you'd like to modify the `Mobile-Expensify` source code, it is best that you create your own fork. Then, you can swap origin of the remote repository by executing this command:
+>
+> `cd Mobile-Expensify && git remote set-url origin <YOUR_FORK_URL>`
+>
+> This way, you'll attach the submodule to your fork repository.
+
+- Before building the app, you need to install dependencies. Run `npm install` from `Expensify/App` (this will also install dependencies for `Mobile-Expensify`)
+
+**At this point, the default behavior of some `npm` scripts will change to target HybridApp (the script that determines whether to use HybridApp or standalone scripts can be found in `scripts/is-hybrid-app.sh`):**
+| Command               | Description                        |
+| --------------------- | ---------------------------------- |
+| `npm run android`     | Build **HybridApp** for Android    |
+| `npm run ios`         | Build **HybridApp** for iOS        |
+| `npm run ipad`        | Build **HybridApp** for iPad       |
+| `npm run ipad-sm`     | Build **HybridApp** for small iPad |
+| `npm run pod-install` | Install pods for **HybridApp**     |
+| `npm run clean`       | Clean native code of **HybridApp** |
+
+If for some reason, you need to target the standalone NewDot application, you can append `*-standalone` to each of these scripts (eg. `npm run ios-standalone` will build NewDot instead of HybridApp). The same concept applies to the installation of standalone NewDot node modules. To skip the installation of HybridApp-specific patches and node modules, use `npm run i-standalone` or `npm run install-standalone`.
+
+| Command                          | Description                                                 |
+| -------------------------------- | ----------------------------------------------------------- |
+| `npm run install-standalone`     | Install standalone **NewDot** node modules (`npm install`). |
+| `npm run clean-standalone`       | Clean native code for standalone **NewDot**.                |
+| `npm run android-standalone`     | Build **NewDot** for Android in standalone mode.            |
+| `npm run ios-standalone`         | Build **NewDot** for iOS in standalone mode.                |
+| `npm run pod-install-standalone` | Install pods for standalone **NewDot**.                     |
+| `npm run ipad-standalone`        | Build **NewDot** for iPad in standalone mode.               |
+| `npm run ipad-sm-standalone`     | Build **NewDot** for small iPad in standalone mode.         |
+
+### Working with HybridApp vs Standalone NewDot
+
+Day-to-day work with **HybridApp** shouldn't differ much from working on the standalone **NewDot** repository.  
+The primary difference is that the native code, which runs React Native, is located in the following directories:  
+
+- `./Mobile-Expensify/Android`
+- `./Mobile-Expensify/iOS`
+
+### Important Notes:
+1. **Root Folders Do Not Affect HybridApp Builds:**
+   - Changes made to the `./android` and `./ios` folders at the root of the repository **won't affect the HybridApp build**.  
+
+2. **Modifying iOS Code for HybridApp:**
+   - If you need to remove `Pods`, you must do it in the **`./Mobile-Expensify/iOS`** directory.
+
+3. **Modifying Android Builds for HybridApp:**
+   - If you'd like to delete files such as `.cxx`, `build`, or `.gradle` directories, you need to navigate to **`./Mobile-Expensify/android`**.
+
+4. **Opening the HybridApp Project in IDEs:**
+   - To open the HybridApp project in **Android Studio** or **Xcode**, you **must select the workspace located in the `Mobile-Expensify` directory**:
+     - **Android**: `./Mobile-Expensify/Android`
+     - **iOS**: `./Mobile-Expensify/iOS/Expensify.xcworkspace`
+
+### Updating the `Mobile-Expensify` Submodule
+
+The `Mobile-Expensify` directory is a **Git submodule**. This means it points to a specific commit on the `Mobile-Expensify` repository.  
+
+If you'd like to fetch the submodule while executing the `git pull` command in `Expensify/App` instead of updating it manually you can run this command in the root of the project: 
+
+```
+git config submodule.recurse true
+```
+
+> [!WARNING]  
+> Please, remember that the submodule will get updated automatically only after executing the `git pull` command - if you switch between branches it is still recommended to execute `git submodule update` to make sure you're working on a compatible submodule version!
+
+If you'd like to download the most recent changes from the `main` branch, please use the following command:
+```bash
+git submodule update --remote
+```
+
+It's important to emphasize that a git submodule is just a **regular git repository** after all. It means that you can switch branches, pull the newest changes, and execute all regular git commands within the `Mobile-Expensify` directory. 
+
+### Adding HybridApp-related patches
+
+Applying patches from the `patches` directory is performed automatically with the `npm install` command executed in `Expensify/App`.
+
+If you'd like to add HybridApp-specific patches, use the `--patch-dir` flag:
+
+`npx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
+
+### Additional information and troubleshooting
+
+If you seek some additional information you can always refer to the [extended version](contributingGuides/HYBRID_APP.md) of the docs for HybridApp. You can find there extended explanation of some of the concepts, pro tips, and most common errors.
 
 ----
 
@@ -503,22 +635,22 @@ Updated rules for managing members across all types of chats in New Expensify.
 - **Excepting the above, anybody can remove themselves from any object**
 
 1. ### DM
-    |  | Member
-    | :---: | :---:
-    | **Invite** | ❌
-    | **Remove** | ❌
-    | **Leave**  | ❌
-    | **Can be removed**  | ❌
+    |                    | Member |
+    | :----------------: | :----: |
+    |     **Invite**     |   ❌    |
+    |     **Remove**     |   ❌    |
+    |     **Leave**      |   ❌    |
+    | **Can be removed** |   ❌    |
 - DM always has two participants. None of the participant can leave or be removed from the DM. Also no additional member can be invited to the chat.
 
 2. ### Workspace
     1. #### Workspace
-        |   |  Creator  |  Member(Employee/User) | Admin |  Auditor?
-        | :---: | :---:  |  :---: | :---: | :---:
-        | **Invite** | ✅ |  ❌ |  ✅ | ❌
-        | **Remove** | ✅ |  ❌ |  ✅ | ❌
-        | **Leave**  | ❌ |  ✅ |  ❌ | ✅
-        | **Can be removed**  | ❌ |  ✅ | ✅ | ✅
+        |                    | Creator | Member(Employee/User) | Admin | Auditor? |
+        | :----------------: | :-----: | :-------------------: | :---: | :------: |
+        |     **Invite**     |    ✅    |           ❌           |   ✅   |    ❌     |
+        |     **Remove**     |    ✅    |           ❌           |   ✅   |    ❌     |
+        |     **Leave**      |    ❌    |           ✅           |   ❌   |    ✅     |
+        | **Can be removed** |    ❌    |           ✅           |   ✅   |    ✅     |
 
         - Creator can't leave or be removed from their own workspace
         - Admins can't leave from the workspace
@@ -527,43 +659,43 @@ Updated rules for managing members across all types of chats in New Expensify.
         - Members and Auditors cannot invite or remove anyone from the workspace
 
     2. #### Workspace #announce room
-        |   |  Member(Employee/User) | Admin |  Auditor?
-        | :---: | :---:  |  :---: | :---:
-        | **Invite** | ❌ |  ❌ |  ❌
-        | **Remove** | ❌ |  ❌ |  ❌
-        | **Leave**  | ❌ |  ❌ |  ❌
-        | **Can be removed**  | ❌ |  ❌ |  ❌ |
+        |                    | Member(Employee/User) | Admin | Auditor? |
+        | :----------------: | :-------------------: | :---: | :------: |
+        |     **Invite**     |           ❌           |   ❌   |    ❌     |
+        |     **Remove**     |           ❌           |   ❌   |    ❌     |
+        |     **Leave**      |           ❌           |   ❌   |    ❌     |
+        | **Can be removed** |           ❌           |   ❌   |    ❌     |
 
        - No one can leave or be removed from the #announce room
 
     3. #### Workspace #admin room
-        |   |  Admin |
-        | :---: | :---:
-        | **Invite** | ❌
-        | **Remove** | ❌
-        | **Leave**  | ❌
-        | **Can be removed**  | ❌
+        |                    | Admin |
+        | :----------------: | :---: |
+        |     **Invite**     |   ❌   |
+        |     **Remove**     |   ❌   |
+        |     **Leave**      |   ❌   |
+        | **Can be removed** |   ❌   |
 
         - Admins can't leave or be removed from #admins
 
     4. #### Workspace rooms
-        |   |  Creator | Member | Guest(outside of the workspace)
-        | :---: | :---:  |  :---: | :---:
-        | **Invite** | ✅ | ✅ | ✅
-        | **Remove** | ✅ | ✅ | ❌
-        | **Leave**  | ✅ | ✅ | ✅
-        | **Can be removed**  | ✅ | ✅ | ✅
+        |                    | Creator | Member | Guest(outside of the workspace) |
+        | :----------------: | :-----: | :----: | :-----------------------------: |
+        |     **Invite**     |    ✅    |   ✅    |                ✅                |
+        |     **Remove**     |    ✅    |   ✅    |                ❌                |
+        |     **Leave**      |    ✅    |   ✅    |                ✅                |
+        | **Can be removed** |    ✅    |   ✅    |                ✅                |
 
         - Everyone can be removed/can leave from the room including creator
         - Guests are not able to remove anyone from the room
 
     4. #### Workspace chats
-        |   |  Admin | Member(default) | Member(invited)
-        | :---: | :---:  |  :---:  |  :---:
-        | **Invite** | ✅ |  ✅ | ❌
-        | **Remove** | ✅ |  ✅ | ❌
-        | **Leave**  | ❌ |  ❌  | ✅
-        | **Can be removed**  | ❌ | ❌ | ✅
+        |                    | Admin | Member(default) | Member(invited) |
+        | :----------------: | :---: | :-------------: | :-------------: |
+        |     **Invite**     |   ✅   |        ✅        |        ❌        |
+        |     **Remove**     |   ✅   |        ✅        |        ❌        |
+        |     **Leave**      |   ❌   |        ❌        |        ✅        |
+        | **Can be removed** |   ❌   |        ❌        |        ✅        |
 
         - Admins are not able to leave/be removed from the workspace chat
         - Default members(automatically invited) are not able to leave/be removed from the workspace chat
@@ -572,20 +704,20 @@ Updated rules for managing members across all types of chats in New Expensify.
         - Default members and admins are able to remove invited members
 
 3. ### Domain chat
-    |   |  Member
-    | :---: | :---:
-    | **Remove** | ❌
-    | **Leave**  | ❌
-    | **Can be removed**  | ❌
+    |                    | Member |
+    | :----------------: | :----: |
+    |     **Remove**     |   ❌    |
+    |     **Leave**      |   ❌    |
+    | **Can be removed** |   ❌    |
 
 - Domain members can't leave or be removed from their domain chat
 
 4. ### Reports
-    |   |  Submitter | Manager
-    | :---: | :---:  | :---:
-    | **Remove** | ❌ | ❌
-    | **Leave**  | ❌ | ❌
-    | **Can be removed**  | ❌ | ❌
+    |                    | Submitter | Manager |
+    | :----------------: | :-------: | :-----: |
+    |     **Remove**     |     ❌     |    ❌    |
+    |     **Leave**      |     ❌     |    ❌    |
+    | **Can be removed** |     ❌     |    ❌    |
 
 - Report submitters can't leave or be removed from their reports (eg, if they are the report.accountID)
 - Report managers can't leave or be removed from their reports (eg, if they are the report.managerID)
@@ -615,7 +747,30 @@ Some pointers:
   key to the translation file and use the arrow function version, like so:
   `nameOfTheKey: ({amount, dateTime}) => "User has sent " + amount + " to you on " + dateTime,`.
   This is because the order of the phrases might vary from one language to another.
+- When working with translations that involve plural forms, it's important to handle different cases correctly.
 
+  For example:
+  - zero: Used when there are no items **(optional)**. 
+  - one: Used when there's exactly one item.
+  - two: Used when there's two items. **(optional)**
+  - few: Used for a small number of items **(optional)**.
+  - many: Used for larger quantities **(optional)**.
+  - other: A catch-all case for other counts or variations.
+
+  Here’s an example of how to implement plural translations:
+
+  messages: () => ({
+      zero: 'No messages',
+      one: 'One message',
+      two: 'Two messages',
+      few: (count) => `${count} messages`,
+      many: (count) => `You have ${count} messages`,
+      other: (count) => `You have ${count} unread messages`,
+  })
+
+  In your code, you can use the translation like this:
+
+  `translate('common.messages', {count: 1});`
 ----
 
 # Deploying
@@ -655,6 +810,16 @@ The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/
 ### finishReleaseCycle
 The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging (with a new `PATCH` version), and creates a new `StagingDeployCash` deploy checklist.
 
+### testBuild
+The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (standalone iOS, standalone Android, web, and desktop) directly from pull requests in the App repository. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. To initiate this workflow, the PR number from the App repository is required as input.
+
+### testBuildHybrid
+The [`testBuildHybrid` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuildHybrid.yml) builds ad-hoc staging versions of hybrid apps (iOS and Android) from pull requests submitted to the App and Mobile-Expensify repositories. This workflow facilitates testing changes by accepting up to two inputs:
+- A PR number from the App repository for testing New Dot (ND) changes.
+- A PR number from the Mobile-Expensify repository for testing Old Dot (OD) changes.
+
+Both PR numbers can be entered simultaneously if the changes from both repositories need to be combined and tested. Additionally, contributors can explicitly link related PRs from the Mobile-Expensify repository in the App repository PR description if required. Guidance on linking PRs can be found [in PR template](https://github.com/Expensify/App/blob/main/.github/PULL_REQUEST_TEMPLATE.md?plain=1#L25-L30)
+
 ## Local production builds
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
 
@@ -662,10 +827,117 @@ Sometimes it might be beneficial to generate a local production version instead 
 In order to generate a production web build, run `npm run build`, this will generate a production javascript build in the `dist/` folder.
 
 #### Local production build of the MacOS desktop app
-In order to compile a production desktop build, run `npm run desktop-build`, this will generate a production app in the `dist/Mac` folder named `Chat.app`.
+The commands used to compile a production or staging desktop build are `npm run desktop-build` and `npm run desktop-build-staging`, respectively. These will product an app in the `dist/Mac` folder named NewExpensify.dmg that you can install like a normal app.
+
+HOWEVER, by default those commands will try to notarize the build (signing it as Expensify) and publish it to the S3 bucket where it's hosted for users. In most cases you won't actually need or want to do that for your local testing. To get around that and disable those behaviors for your local build, apply the following diff:
+
+```diff
+diff --git a/scripts/build-desktop.sh b/scripts/build-desktop.sh
+index 791f59d733..526306eec1 100755
+--- a/scripts/build-desktop.sh
++++ b/scripts/build-desktop.sh
+@@ -35,4 +35,4 @@ npx webpack --config config/webpack/webpack.desktop.ts --env file=$ENV_FILE
+ title "Building Desktop App Archive Using Electron"
+ info ""
+ shift 1
+-npx electron-builder --config config/electronBuilder.config.js --publish always "$@"
++npx electron-builder --config config/electronBuilder.config.js --publish never "$@"
+```
+
+There may be some cases where you need to test a signed and published build, such as when testing the update flows. Instructions on setting that up can be found in [Testing Electron Auto-Update](https://github.com/Expensify/App/blob/main/desktop/README.md#testing-electron-auto-update). Good luck 🙃
 
 #### Local production build the iOS app
 In order to compile a production iOS build, run `npm run ios-build`, this will generate a `Chat.ipa` in the root directory of this project.
 
 #### Local production build the Android app
 To build an APK to share run (e.g. via Slack), run `npm run android-build`, this will generate a new APK in the `android/app` folder.
+
+# Onyx derived values
+Onyx derived values are special Onyx keys which contain values derived from other Onyx values. These are available as a performance optimization, so that if the result of a common computation of Onyx values is needed in many places across the app, the computation can be done only as needed in a centralized location, and then shared across the app. Once created, Onyx derived values are stored and consumed just like any other Onyx value.
+
+## When to use derived values?
+
+1. **Complex Computations Across Multiple Components**
+   - Multiple components need the same computed value from one or more Onyx keys
+   - The computation is expensive (e.g., filtering large arrays, complex object transformations)
+   - The result needs to be cached and shared to avoid redundant calculations
+
+2. **Performance Critical Paths**
+   - The computation appears in frequently rendered components
+   - Profiling shows the same calculation being done repeatedly
+   - The computation involves multiple Onyx dependencies that change independently
+
+3. **Data Aggregation and Transformation**
+   - You need to combine data from multiple Onyx keys into a single, normalized structure
+   - The transformation logic is complex and reusable
+   - The derived data structure is used in multiple places
+
+4. **State-Dependent Calculations**
+   - The value depends on multiple pieces of state that can change independently
+   - The relationship between states is complex (e.g., filtering + sorting + grouping)
+   - Changes in any dependency should trigger a recalculation
+
+## When not to use derived values?
+
+1. **Simple or Local Computations**
+   - The computation is trivial (e.g., simple string manipulation, basic math)
+   - The value is only used in one component
+
+2. **Component-Specific Logic**
+   - The computation is specific to a single component's UI state
+   - The logic involves component-local state
+
+3. **Temporary or Volatile Data**
+   - The computed value is only needed temporarily
+   - The data doesn't need to persist across component unmounts
+   - The computation depends on non-Onyx values
+
+## Creating new Onyx derived values
+1. Add the new Onyx key. The keys for Onyx derived values are stored in `ONYXKEYS.ts`, in the `ONYXKEYS.DERIVED` object.
+2. Declare the type for the derived value in `ONYXKEYS.ts`, in the `OnyxDerivedValuesMapping` type.
+3. Add the derived value config to `ONYX_DERIVED_VALUES` in `src/libs/OnyxDerived.ts`. A derived value config is defined by:
+   1. The Onyx key for the derived value
+   2. An array of dependent Onyx keys (which can be any keys, not including the one from the previous step. Including other derived values!)
+   3. A `compute` function, which takes an array of dependent Onyx values (in the same order as the array of keys from the previous step), and returns a value matching the type you declared in `OnyxDerivedValuesMapping`
+
+## Best practices
+
+1. **Keep computations pure and predictable**
+   ```typescript
+      // GOOD ✅
+   compute: ([reports, personalDetails]) => {
+     // Pure function, only depends on input
+     return reports.map(report => ({
+       ...report,
+       authorName: personalDetails[report.authorID]?.displayName
+     }));
+   }
+
+   // BAD ❌
+   compute: ([reports]) => {
+     // Don't use external state or cause side effects
+     const currentUser = getCurrentUser(); // External dependency!
+     sendAnalytics('computation-done'); // Side effect!
+     return reports;
+   }
+   ```
+2. **Handle edge cases**
+   ```typescript
+   // GOOD ✅
+   compute: ([reports, personalDetails]: [Report[], PersonalDetails]): DerivedType => {
+     if (!reports?.length || !personalDetails) {
+       return { items: [], count: 0 };
+     }
+     // Rest of computation...
+   }
+
+   // BAD ❌
+   compute: ([reports, personalDetails]) => {
+     // Missing type safety and edge cases
+     return reports.map(report => personalDetails[report.id]);
+   }
+   ```
+
+3. **Document derived values**
+   - Explain the purpose and dependencies
+   - Document any special cases or performance considerations

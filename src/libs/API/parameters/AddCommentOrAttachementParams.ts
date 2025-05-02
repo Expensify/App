@@ -9,6 +9,7 @@ type AddCommentOrAttachementParams = {
     timezone?: string;
     clientCreatedTime?: string;
     isOldDotConciergeChat?: boolean;
+    idempotencyKey?: string;
 };
 
 export default AddCommentOrAttachementParams;

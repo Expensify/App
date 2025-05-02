@@ -6,10 +6,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {handlePlaidError, openPlaidBankAccountSelector, openPlaidBankLogin, setPlaidEvent} from '@libs/actions/BankAccounts';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
-import * as App from '@userActions/App';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {handleRestrictedEvent} from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PlaidData} from '@src/types/onyx';
@@ -18,7 +18,6 @@ import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlocking
 import FormHelpMessage from './FormHelpMessage';
 import Icon from './Icon';
 import getBankIcon from './Icon/BankIcons';
-import Picker from './Picker';
 import PlaidLink from './PlaidLink';
 import RadioButtons from './RadioButtons';
 import Text from './Text';
@@ -59,9 +58,6 @@ type AddPlaidBankAccountProps = AddPlaidBankAccountOnyxProps & {
     /** Are we adding a withdrawal account? */
     allowDebit?: boolean;
 
-    /** Is displayed in new VBBA */
-    isDisplayedInNewVBBA?: boolean;
-
     /** Is displayed in new enable wallet flow */
     isDisplayedInWalletFlow?: boolean;
 
@@ -84,7 +80,6 @@ function AddPlaidBankAccount({
     bankAccountID = 0,
     allowDebit = false,
     isPlaidDisabled,
-    isDisplayedInNewVBBA = false,
     errorText = '',
     onInputChange = () => {},
     isDisplayedInWalletFlow = false,
@@ -93,10 +88,10 @@ function AddPlaidBankAccount({
     const styles = useThemeStyles();
     const plaidBankAccounts = plaidData?.bankAccounts ?? [];
     const defaultSelectedPlaidAccount = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID);
-    const defaultSelectedPlaidAccountID = defaultSelectedPlaidAccount?.plaidAccountID ?? '';
+    const defaultSelectedPlaidAccountID = defaultSelectedPlaidAccount?.plaidAccountID ?? '-1';
     const defaultSelectedPlaidAccountMask = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID)?.mask ?? '';
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
-    const previousNetworkState = useRef<boolean | undefined>();
+    const previousNetworkState = useRef<boolean | undefined>(undefined);
     const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
 
     const {translate} = useLocalize();
@@ -154,18 +149,18 @@ function AddPlaidBankAccount({
         if (isAuthenticatedWithPlaid()) {
             return unsubscribeToNavigationShortcuts;
         }
-        BankAccounts.openPlaidBankLogin(allowDebit, bankAccountID);
+        openPlaidBankLogin(allowDebit, bankAccountID);
         return unsubscribeToNavigationShortcuts;
 
         // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         // previousNetworkState.current also makes sure that this doesn't run on the first render.
         if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid()) {
-            BankAccounts.openPlaidBankLogin(allowDebit, bankAccountID);
+            openPlaidBankLogin(allowDebit, bankAccountID);
         }
         previousNetworkState.current = isOffline;
     }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline]);
@@ -177,7 +172,8 @@ function AddPlaidBankAccount({
     }));
     const {icon, iconSize, iconStyles} = getBankIcon({styles});
     const plaidErrors = plaidData?.errors;
-    const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors)[0] as string) : '';
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) as string) : '';
     const bankName = plaidData?.bankName;
 
     /**
@@ -191,7 +187,7 @@ function AddPlaidBankAccount({
         onInputChange(plaidAccountID);
     };
 
-    const handlePlaidError = useCallback((error: ErrorEvent | null) => {
+    const handlePlaidLinkError = useCallback((error: ErrorEvent | null) => {
         Log.hmmm('[PlaidLink] Error: ', error?.message);
     }, []);
 
@@ -210,22 +206,22 @@ function AddPlaidBankAccount({
                     token={token}
                     onSuccess={({publicToken, metadata}) => {
                         Log.info('[PlaidLink] Success!');
-                        BankAccounts.openPlaidBankAccountSelector(publicToken, metadata?.institution?.name ?? '', allowDebit, bankAccountID);
+                        openPlaidBankAccountSelector(publicToken, metadata?.institution?.name ?? '', allowDebit, bankAccountID);
                     }}
-                    onError={handlePlaidError}
+                    onError={handlePlaidLinkError}
                     onEvent={(event, metadata) => {
-                        BankAccounts.setPlaidEvent(event);
+                        setPlaidEvent(event);
                         // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
                         if (event === 'ERROR') {
                             Log.hmmm('[PlaidLink] Error: ', {...metadata});
                             if (bankAccountID && metadata && 'error_code' in metadata) {
-                                BankAccounts.handlePlaidError(bankAccountID, metadata.error_code ?? '', metadata.error_message ?? '', metadata.request_id);
+                                handlePlaidError(bankAccountID, metadata.error_code ?? '', metadata.error_message ?? '', metadata.request_id);
                             }
                         }
 
                         // Limit the number of times a user can submit Plaid credentials
                         if (event === 'SUBMIT_CREDENTIALS') {
-                            App.handleRestrictedEvent(event);
+                            handleRestrictedEvent(event);
                         }
                     }}
                     // User prematurely exited the Plaid flow
@@ -259,62 +255,32 @@ function AddPlaidBankAccount({
         return <FullPageOfflineBlockingView>{renderPlaidLink()}</FullPageOfflineBlockingView>;
     }
 
-    if (isDisplayedInNewVBBA || isDisplayedInWalletFlow) {
-        return (
-            <FullPageOfflineBlockingView>
-                <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}</Text>
-                {!!text && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
-                    <Icon
-                        src={icon}
-                        height={iconSize}
-                        width={iconSize}
-                        additionalStyles={iconStyles}
-                    />
-                    <View>
-                        <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
-                        {selectedPlaidAccountMask.length > 0 && (
-                            <Text style={[styles.ml3, styles.textLabelSupporting]}>{`${translate('bankAccount.accountEnding')} ${selectedPlaidAccountMask}`}</Text>
-                        )}
-                    </View>
-                </View>
-                <Text style={[styles.textLabelSupporting]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
-                <RadioButtons
-                    items={options}
-                    defaultCheckedValue={defaultSelectedPlaidAccountID}
-                    onPress={handleSelectingPlaidAccount}
-                    radioButtonStyle={[styles.mb6]}
-                />
-                <FormHelpMessage message={errorText} />
-            </FullPageOfflineBlockingView>
-        );
-    }
-
-    // Plaid bank accounts view
     return (
         <FullPageOfflineBlockingView>
-            {!!text && <Text style={[styles.mb5]}>{text}</Text>}
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
+            <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}</Text>
+            {!!text && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
                 <Icon
                     src={icon}
                     height={iconSize}
                     width={iconSize}
                     additionalStyles={iconStyles}
                 />
-                <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
+                <View>
+                    <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
+                    {selectedPlaidAccountMask.length > 0 && (
+                        <Text style={[styles.ml3, styles.textLabelSupporting]}>{`${translate('bankAccount.accountEnding')} ${selectedPlaidAccountMask}`}</Text>
+                    )}
+                </View>
             </View>
-            <View>
-                <Picker
-                    label={translate('addPersonalBankAccountPage.chooseAccountLabel')}
-                    onInputChange={onSelect}
-                    items={options}
-                    placeholder={{
-                        value: '',
-                        label: translate('bankAccount.chooseAnAccount'),
-                    }}
-                    value={selectedPlaidAccountID}
-                />
-            </View>
+            <Text style={[styles.textLabelSupporting]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
+            <RadioButtons
+                items={options}
+                defaultCheckedValue={defaultSelectedPlaidAccountID}
+                onPress={handleSelectingPlaidAccount}
+                radioButtonStyle={[styles.mb6]}
+            />
+            <FormHelpMessage message={errorText} />
         </FullPageOfflineBlockingView>
     );
 }

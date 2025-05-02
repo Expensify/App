@@ -68,11 +68,15 @@ const test = () => {
   Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(firstReportIDInList));
 
   // markEnd will be called in the Screen's implementation
-  performance.subscribeToMeasurements("navigateToReport", (measurement) => {
-      // ... do something with the measurements
+  Performance.subscribeToMeasurements((measurement) => {
+      if (measurement.name !== "navigateToReport") {
+        return;
+      }
+
       E2EClient.submitTestResults({
           name: "Navigate to report",
-          duration: measurement.duration,
+          metric: measurement.duration,
+          unit: 'ms',
       }).then(E2EClient.submitTestDone)
   });
 
@@ -110,4 +114,3 @@ It is recommended to run a debug build of the e2e tests first to iterate quickly
 
 You can use regular console statements to debug your test. The output will be visible
 in logcat. I recommend opening the android studio logcat window and filter for `ReactNativeJS` to see the output you'd otherwise typically see in your metro bundler instance.
-

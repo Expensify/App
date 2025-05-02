@@ -1,6 +1,5 @@
 import type {ChangeEvent, Component, ReactElement} from 'react';
 import type {MeasureLayoutOnSuccessCallback, NativeMethods, StyleProp, ViewStyle} from 'react-native';
-import type {MaybePhraseKey} from '@libs/Localize';
 
 type MeasureLayoutOnFailCallback = () => void;
 
@@ -59,7 +58,7 @@ type BasePickerProps<TPickerValue> = {
     placeholder?: PickerPlaceholder;
 
     /** Error text to display */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Customize the BasePicker container */
     containerStyles?: StyleProp<ViewStyle>;
@@ -101,4 +100,4 @@ type BasePickerProps<TPickerValue> = {
     hintText?: string;
 };
 
-export type {BasePickerHandle, BasePickerProps, AdditionalPickerEventsCallback, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};
+export type {BasePickerHandle, BasePickerProps, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};

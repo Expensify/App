@@ -1,6 +1,5 @@
 import crashlytics from '@react-native-firebase/crashlytics';
-import PushNotification from '@libs/Notification/PushNotification';
-import subscribeToReportCommentPushNotifications from '@libs/Notification/PushNotification/subscribeToReportCommentPushNotifications';
+import canCapturePerformanceMetrics from '@libs/Metrics';
 import Performance from '@libs/Performance';
 import CONFIG from '@src/CONFIG';
 
@@ -12,14 +11,7 @@ export default function () {
         crashlytics().setCrashlyticsCollectionEnabled(false);
     }
 
-    /*
-     * Register callbacks for push notifications.
-     * When the app is completely closed, this code will be executed by a headless JS process thanks to magic in the UrbanAirship RN library.
-     * However, the main App component will not be mounted in this headless context, so we must register these callbacks outside of any React lifecycle.
-     * Otherwise, they will not be executed when the app is completely closed, and the push notification won't update the app data.
-     */
-    PushNotification.init();
-    subscribeToReportCommentPushNotifications();
-
-    Performance.setupPerformanceObserver();
+    if (canCapturePerformanceMetrics()) {
+        Performance.enableMonitoring();
+    }
 }

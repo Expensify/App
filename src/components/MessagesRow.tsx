@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -16,7 +15,7 @@ import Tooltip from './Tooltip';
 
 type MessagesRowProps = {
     /** The messages to display */
-    messages: Record<string, Localize.MaybePhraseKey | ReceiptError>;
+    messages: Record<string, string | ReceiptError>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
@@ -29,9 +28,12 @@ type MessagesRowProps = {
 
     /** Whether we can dismiss the messages */
     canDismiss?: boolean;
+
+    /** A function to dismiss error */
+    dismissError?: () => void;
 };
 
-function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, canDismiss = true}: MessagesRowProps) {
+function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, canDismiss = true, dismissError = () => {}}: MessagesRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,6 +45,7 @@ function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <DotIndicatorMessage
+                dismissError={dismissError}
                 style={styles.flex1}
                 messages={messages}
                 type={type}

@@ -1,8 +1,11 @@
 import type {ReactNode} from 'react';
+import type React from 'react';
+import type {GestureResponderEvent, LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
+import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type TooltipProps = ChildrenProps & {
-    /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
+type SharedTooltipProps = {
+    /** The text to display in the tooltip. If text is omitted, only children will be rendered. */
     text?: string;
 
     /** Maximum number of lines to show in tooltip */
@@ -25,16 +28,74 @@ type TooltipProps = ChildrenProps & {
     /** Unique key of renderTooltipContent to rerender the tooltip when one of the key changes */
     renderTooltipContentKey?: string[];
 
-    /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
-    shouldHandleScroll?: boolean;
+    /** The anchor alignment of the tooltip */
+    anchorAlignment?: TooltipAnchorAlignment;
 
+    /** Whether to display tooltip below the wrapped component */
     shouldForceRenderingBelow?: boolean;
+
+    /** Additional styles for tooltip wrapper view */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Should render a fullscreen transparent overlay */
+    shouldUseOverlay?: boolean;
+
+    /** Whether the tooltip should teleport to the modal layer */
+    shouldTeleportPortalToModalLayer?: boolean;
+
+    /** Callback when tooltip is clicked */
+    onTooltipPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 };
 
-type TooltipExtendedProps = TooltipProps & {
+type GenericTooltipState = {
+    /** Is tooltip visible */
+    isVisible: boolean;
+
+    /** Show tooltip */
+    showTooltip: () => void;
+
+    /** Hide tooltip */
+    hideTooltip: () => void;
+
+    /** Update the tooltip's target bounding rectangle */
+    updateTargetBounds: (rect: LayoutRectangle) => void;
+};
+
+type GenericTooltipProps = SharedTooltipProps & {
+    children: React.FC<GenericTooltipState>;
+
+    /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
+    shouldRender?: boolean;
+
+    /** Whether to ignore TooltipSense activity and always trigger animation */
+    shouldForceAnimate?: boolean;
+
+    /** Whether it is education tooltip */
+    isEducationTooltip?: boolean;
+};
+
+type TooltipProps = ChildrenProps &
+    SharedTooltipProps & {
+        /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
+        shouldHandleScroll?: boolean;
+    };
+
+type EducationalTooltipProps = ChildrenProps &
+    SharedTooltipProps & {
+        /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
+        shouldRender?: boolean;
+
+        /** Whether the tooltip should hide when navigating */
+        shouldHideOnNavigate?: boolean;
+
+        /** Whether the tooltip should hide during scrolling */
+        shouldHideOnScroll?: boolean;
+    };
+
+type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {
     /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
     shouldRender?: boolean;
 };
 
 export default TooltipProps;
-export type {TooltipExtendedProps};
+export type {EducationalTooltipProps, GenericTooltipProps, SharedTooltipProps, TooltipExtendedProps, GenericTooltipState};

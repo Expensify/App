@@ -1,11 +1,17 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
+import type {TupleToUnion} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import DateUtils from '@libs/DateUtils';
-import * as Localize from '@libs/Localize';
+import getPlatform from '@libs/getPlatform';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
+import saveLastRoute from '@libs/saveLastRoute';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import getImageManipulator from './getImageManipulator';
+import getImageResolution from './getImageResolution';
 import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 
 /**
@@ -14,11 +20,13 @@ import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
  */
 function showSuccessAlert(successMessage?: string) {
     Alert.alert(
-        Localize.translateLocal('fileDownload.success.title'),
-        successMessage ?? Localize.translateLocal('fileDownload.success.message'),
+        translateLocal('fileDownload.success.title'),
+        // successMessage can be an empty string and we want to default to `Localize.translateLocal('fileDownload.success.message')`
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        successMessage || translateLocal('fileDownload.success.message'),
         [
             {
-                text: Localize.translateLocal('common.ok'),
+                text: translateLocal('common.ok'),
                 style: 'cancel',
             },
         ],
@@ -30,9 +38,9 @@ function showSuccessAlert(successMessage?: string) {
  * Show alert on attachment download error
  */
 function showGeneralErrorAlert() {
-    Alert.alert(Localize.translateLocal('fileDownload.generalError.title'), Localize.translateLocal('fileDownload.generalError.message'), [
+    Alert.alert(translateLocal('fileDownload.generalError.title'), translateLocal('fileDownload.generalError.message'), [
         {
-            text: Localize.translateLocal('common.cancel'),
+            text: translateLocal('common.cancel'),
             style: 'cancel',
         },
     ]);
@@ -42,13 +50,13 @@ function showGeneralErrorAlert() {
  * Show alert on attachment download permissions error
  */
 function showPermissionErrorAlert() {
-    Alert.alert(Localize.translateLocal('fileDownload.permissionError.title'), Localize.translateLocal('fileDownload.permissionError.message'), [
+    Alert.alert(translateLocal('fileDownload.permissionError.title'), translateLocal('fileDownload.permissionError.message'), [
         {
-            text: Localize.translateLocal('common.cancel'),
+            text: translateLocal('common.cancel'),
             style: 'cancel',
         },
         {
-            text: Localize.translateLocal('common.settings'),
+            text: translateLocal('common.settings'),
             onPress: () => {
                 Linking.openSettings();
             },
@@ -61,17 +69,20 @@ function showPermissionErrorAlert() {
  */
 function showCameraPermissionsAlert() {
     Alert.alert(
-        Localize.translateLocal('attachmentPicker.cameraPermissionRequired'),
-        Localize.translateLocal('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+        translateLocal('attachmentPicker.cameraPermissionRequired'),
+        translateLocal('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
         [
             {
-                text: Localize.translateLocal('common.cancel'),
+                text: translateLocal('common.cancel'),
                 style: 'cancel',
             },
             {
-                text: Localize.translateLocal('common.settings'),
+                text: translateLocal('common.settings'),
                 onPress: () => {
                     Linking.openSettings();
+                    // In the case of ios, the App reloads when we update camera permission from settings
+                    // we are saving last route so we can navigate to it after app reload
+                    saveLastRoute();
                 },
             },
         ],
@@ -217,10 +228,10 @@ const readFileAsync: ReadFileAsync = (path, fileName, onSuccess, onFailure = () 
  */
 function base64ToFile(base64: string, filename: string): File {
     // Decode the base64 string
-    const byteString = atob(base64.split(',')[1]);
+    const byteString = atob(base64.split(',').at(1) ?? '');
 
     // Get the mime type from the base64 string
-    const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
+    const mimeString = base64.split(',').at(0)?.split(':').at(1)?.split(';').at(0);
 
     // Convert byte string to Uint8Array
     const arrayBuffer = new ArrayBuffer(byteString.length);
@@ -241,16 +252,131 @@ function base64ToFile(base64: string, filename: string): File {
     return file;
 }
 
-function validateImageForCorruption(file: FileObject): Promise<void> {
-    if (!Str.isImage(file.name ?? '')) {
+function validateImageForCorruption(file: FileObject): Promise<{width: number; height: number} | void> {
+    if (!Str.isImage(file.name ?? '') || !file.uri) {
         return Promise.resolve();
     }
     return new Promise((resolve, reject) => {
         ImageSize.getSize(file.uri ?? '')
-            .then(() => resolve())
-            .catch(() => reject(new Error('Error reading file: The file is corrupted')));
+            .then((size) => {
+                if (size.height <= 0 || size.width <= 0) {
+                    return reject(new Error('Error reading file: The file is corrupted'));
+                }
+                resolve();
+            })
+            .catch(() => {
+                return reject(new Error('Error reading file: The file is corrupted'));
+            });
     });
 }
+
+/** Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures */
+function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatSignatures: readonly string[]}) {
+    return fetch(fileUri)
+        .then((file) => file.arrayBuffer())
+        .then((arrayBuffer) => {
+            const uintArray = new Uint8Array(arrayBuffer, 4, 12);
+
+            const hexString = Array.from(uintArray)
+                .map((b) => b.toString(16).padStart(2, '0'))
+                .join('');
+
+            return hexString;
+        })
+        .then((hexSignature) => {
+            return formatSignatures.some((signature) => hexSignature.startsWith(signature));
+        });
+}
+
+function isLocalFile(receiptUri?: string | number): boolean {
+    if (!receiptUri) {
+        return false;
+    }
+    return typeof receiptUri === 'number' || receiptUri?.startsWith('blob:') || receiptUri?.startsWith('file:') || receiptUri?.startsWith('/');
+}
+
+function getFileResolution(targetFile: FileObject | undefined): Promise<{width: number; height: number} | null> {
+    if (!targetFile) {
+        return Promise.resolve(null);
+    }
+
+    // If the file already has width and height, return them directly
+    if ('width' in targetFile && 'height' in targetFile) {
+        return Promise.resolve({width: targetFile.width ?? 0, height: targetFile.height ?? 0});
+    }
+
+    // Otherwise, attempt to get the image resolution
+    return getImageResolution(targetFile)
+        .then(({width, height}) => ({width, height}))
+        .catch((error: Error) => {
+            Log.hmmm('Failed to get image resolution:', error);
+            return null;
+        });
+}
+
+function isHighResolutionImage(resolution: {width: number; height: number} | null): boolean {
+    return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
+}
+
+const getImageDimensionsAfterResize = (file: FileObject) =>
+    ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
+        const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
+        const newWidth = Math.max(1, width * scaleFactor);
+        const newHeight = Math.max(1, height * scaleFactor);
+
+        return {width: newWidth, height: newHeight};
+    });
+
+const resizeImageIfNeeded = (file: FileObject) => {
+    if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+        return Promise.resolve(file);
+    }
+    return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
+};
+
+const createFile = (file: File): FileObject => {
+    if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
+        return {
+            uri: file.uri,
+            name: file.name,
+            type: file.type,
+        };
+    }
+    return new File([file], file.name, {
+        type: file.type,
+        lastModified: file.lastModified,
+    });
+};
+
+const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => void) => {
+    return validateImageForCorruption(file)
+        .then(() => {
+            const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+            if (
+                !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+                    fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
+                )
+            ) {
+                setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+                return false;
+            }
+
+            if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceededWithLimit');
+                return false;
+            }
+
+            if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
+                return false;
+            }
+            return true;
+        })
+        .catch(() => {
+            setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+            return false;
+        });
+};
 
 export {
     showGeneralErrorAlert,
@@ -264,5 +390,14 @@ export {
     appendTimeToFileName,
     readFileAsync,
     base64ToFile,
+    isLocalFile,
     validateImageForCorruption,
+    isImage,
+    getFileResolution,
+    isHighResolutionImage,
+    verifyFileFormat,
+    getImageDimensionsAfterResize,
+    resizeImageIfNeeded,
+    createFile,
+    validateReceipt,
 };

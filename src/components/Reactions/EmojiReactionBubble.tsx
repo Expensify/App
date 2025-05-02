@@ -2,12 +2,11 @@ import React from 'react';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {ReactionListEvent} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
-import getEmojiReactionBubbleTextOffsetStyle from './getEmojiReactionBubbleTextOffsetStyle';
 
 type EmojiReactionBubbleProps = {
     /**
@@ -49,7 +48,7 @@ function EmojiReactionBubble(
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <PressableWithSecondaryInteraction
@@ -68,7 +67,7 @@ function EmojiReactionBubble(
             }}
             onSecondaryInteraction={onReactionListOpen}
             ref={ref}
-            enableLongPressWithHover={isSmallScreenWidth}
+            enableLongPressWithHover={shouldUseNarrowLayout}
             onMouseDown={(event) => {
                 // Allow text input blur when emoji reaction is right clicked
                 if (event?.button === 2) {
@@ -83,7 +82,7 @@ function EmojiReactionBubble(
             accessible
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
-            <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu), getEmojiReactionBubbleTextOffsetStyle()]}>{emojiCodes.join('')}</Text>
+            <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu)]}>{emojiCodes.join('')}</Text>
             {count > 0 && <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted)]}>{count}</Text>}
         </PressableWithSecondaryInteraction>
     );

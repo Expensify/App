@@ -1,3 +1,4 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Platform} from 'react-native';
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
@@ -96,4 +97,15 @@ export default {
         IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
     },
     GCP_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
+    FIREBASE_WEB_CONFIG: {
+        apiKey: get(Config, 'FB_API_KEY', 'AIzaSyBrLKgCuo6Vem6Xi5RPokdumssW8HaWBow'),
+        appId: get(Config, 'FB_APP_ID', '1:1008697809946:web:ca25268d2645fc285445a3'),
+        projectId: get(Config, 'FB_PROJECT_ID', 'expensify-mobile-app'),
+    },
+    // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
+    USE_REACT_STRICT_MODE_IN_DEV: false,
+    ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
+    IS_TEST_ENV: process.env.NODE_ENV === 'test',
+    // eslint-disable-next-line no-restricted-properties
+    IS_HYBRID_APP: HybridAppModule.isHybridApp(),
 } as const;

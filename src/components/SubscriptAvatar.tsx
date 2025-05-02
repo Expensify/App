@@ -27,8 +27,8 @@ type SubIcon = {
 };
 
 type SubscriptAvatarProps = {
-    /** Avatar URL or icon */
-    mainAvatar?: IconType;
+    /** Avatar icon */
+    mainAvatar: IconType;
 
     /** Subscript avatar URL or icon */
     secondaryAvatar?: IconType;
@@ -75,6 +75,9 @@ function SubscriptAvatar({
                 shouldRender={showTooltip}
                 accountID={Number(mainAvatar?.id ?? -1)}
                 icon={mainAvatar}
+                fallbackUserDetails={{
+                    displayName: mainAvatar?.name,
+                }}
             >
                 <View>
                     <Avatar
@@ -82,12 +85,13 @@ function SubscriptAvatar({
                         source={mainAvatar?.source}
                         size={size}
                         name={mainAvatar?.name}
+                        avatarID={mainAvatar?.id}
                         type={mainAvatar?.type}
                         fallbackIcon={mainAvatar?.fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
-            {secondaryAvatar && (
+            {!!secondaryAvatar && (
                 <UserDetailsTooltip
                     shouldRender={showTooltip}
                     accountID={Number(secondaryAvatar.id ?? -1)}
@@ -108,13 +112,14 @@ function SubscriptAvatar({
                             size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
                             fill={secondaryAvatar.fill}
                             name={secondaryAvatar.name}
+                            avatarID={secondaryAvatar.id}
                             type={secondaryAvatar.type}
                             fallbackIcon={secondaryAvatar.fallbackIcon}
                         />
                     </View>
                 </UserDetailsTooltip>
             )}
-            {subscriptIcon && (
+            {!!subscriptIcon && (
                 <View
                     style={[
                         size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {},

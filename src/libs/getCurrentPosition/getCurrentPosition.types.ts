@@ -15,7 +15,7 @@ type GeolocationSuccessCallback = (position: {
 
 type GeolocationErrorCodeType = ValueOf<typeof GeolocationErrorCode> | null;
 
-type GeolocationErrorCallback = (error: {
+type GeolocationErrorCallback = (error?: {
     code: GeolocationErrorCodeType;
     message: string;
     PERMISSION_DENIED: typeof GeolocationErrorCode.PERMISSION_DENIED;
@@ -55,4 +55,4 @@ type GetCurrentPosition = (success: GeolocationSuccessCallback, error: Geolocati
 
 export {GeolocationErrorCode};
 
-export type {GeolocationSuccessCallback, GeolocationErrorCallback, GeolocationOptions, GetCurrentPosition, GeolocationErrorCodeType};
+export type {GeolocationErrorCallback, GetCurrentPosition, GeolocationErrorCodeType};

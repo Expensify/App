@@ -8,12 +8,19 @@
 import AirshipServiceExtension
 import os.log
 import Intents
+import AppLogs
+import Gzip
 
 class NotificationService: UANotificationServiceExtension {
   
   var contentHandler: ((UNNotificationContent) -> Void)?
   var bestAttemptContent: UNMutableNotificationContent?
   let log = OSLog(subsystem: Bundle.main.bundleIdentifier ?? "com.expensify.chat.dev.NotificationServiceExtension", category: "NotificationService")
+  let appLogs: AppLogs = .init()
+
+  deinit {
+    appLogs.forwardLogsTo(appGroup: "group.com.expensify.new")
+  }
   
   override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
     os_log("[NotificationService] didReceive() - received notification", log: log)
@@ -42,7 +49,7 @@ class NotificationService: UANotificationServiceExtension {
     do {
       notificationData = try parsePayload(notificationContent: notificationContent)
     } catch ExpError.runtimeError(let errorMessage) {
-      os_log("[NotificationService] configureCommunicationNotification() - couldn't parse the payload '%@'", log: log, type: .error, errorMessage)
+      os_log("[NotificationService] configureCommunicationNotification() - couldn't parse the payload '%{public}@'", log: log, type: .error, errorMessage)
       contentHandler(notificationContent)
       return
     } catch {
@@ -87,10 +94,39 @@ class NotificationService: UANotificationServiceExtension {
     }
   }
   
-  func parsePayload(notificationContent: UNMutableNotificationContent) throws -> NotificationData  {
-    guard let payload = notificationContent.userInfo["payload"] as? NSDictionary else {
-      throw ExpError.runtimeError("payload missing")
+  private func processPayload(rawPayload: Any) throws -> NSDictionary {
+    // Handle valid objects first
+    if let dictPayload = rawPayload as? NSDictionary {
+      return dictPayload
     }
+    
+    guard let stringPayload = rawPayload as? String else {
+      throw ExpError.runtimeError("Failed to read payload as string")
+    }
+    
+    guard let decoded = Data(base64Encoded: stringPayload) else {
+      throw ExpError.runtimeError("Failed to decode payload string")
+    }
+    
+    guard decoded.isGzipped else {
+      throw ExpError.runtimeError("Decoded string not gzipped")
+    }
+    
+    let decompressedData = try decoded.gunzipped()
+    
+    guard let jsonDict = try JSONSerialization.jsonObject(with: decompressedData) as? NSDictionary else {
+      throw ExpError.runtimeError("Failed to parse JSON into dictionary")
+    }
+    
+    return jsonDict
+  }
+  
+  func parsePayload(notificationContent: UNMutableNotificationContent) throws -> NotificationData {
+    guard let rawPayload = notificationContent.userInfo["payload"] else {
+        throw ExpError.runtimeError("payload missing")
+    }
+  
+    let payload = try processPayload(rawPayload: rawPayload)
     
     guard let reportID = payload["reportID"] as? Int64 else {
       throw ExpError.runtimeError("payload.reportID missing")
@@ -144,7 +180,7 @@ class NotificationService: UANotificationServiceExtension {
       userName: userName,
       title: notificationContent.title,
       messageText: notificationContent.body,
-      roomName: payload["roomName"] as? String
+      subtitle: payload["subtitle"] as? String
     )
   }
   
@@ -163,11 +199,11 @@ class NotificationService: UANotificationServiceExtension {
     // Configure the group/room name if there is one
     var speakableGroupName: INSpeakableString? = nil
     var recipients: [INPerson]? = nil
-    if (notificationData.roomName != nil) {
-      speakableGroupName = INSpeakableString(spokenPhrase: notificationData.roomName ?? "")
+    if (notificationData.subtitle != nil) {
+      speakableGroupName = INSpeakableString(spokenPhrase: notificationData.subtitle ?? "")
       
       // To add the group name subtitle there must be multiple recipients set. However, we do not have
-      // data on the participatns in the room/group chat so we just add a placeholder here. This shouldn't
+      // data on the participants in the room/group chat so we just add a placeholder here. This shouldn't
       // appear anywhere in the UI
       let placeholderPerson = INPerson(personHandle: INPersonHandle(value: "placeholder", type: .unknown),
                                        nameComponents: nil,
@@ -212,7 +248,7 @@ class NotificationService: UANotificationServiceExtension {
       let data = try Data(contentsOf: url)
       return INImage(imageData: data)
     } catch {
-      os_log("[NotificationService] fetchINImage() - failed to fetch avatar. reportActionID: %@", log: self.log, type: .error, reportActionID)
+      os_log("[NotificationService] fetchINImage() - failed to fetch avatar. reportActionID: %{public}@", log: self.log, type: .error, reportActionID)
       return nil
     }
   }
@@ -226,9 +262,9 @@ class NotificationData {
   public var userName: String
   public var title: String
   public var messageText: String
-  public var roomName: String?
+  public var subtitle: String?
   
-  public init (reportID: Int64, reportActionID: String, avatarURL: String, accountID: Int, userName: String, title: String, messageText: String, roomName: String?) {
+  public init (reportID: Int64, reportActionID: String, avatarURL: String, accountID: Int, userName: String, title: String, messageText: String, subtitle: String?) {
     self.reportID = reportID
     self.reportActionID = reportActionID
     self.avatarURL = avatarURL
@@ -236,6 +272,6 @@ class NotificationData {
     self.userName = userName
     self.title = title
     self.messageText = messageText
-    self.roomName = roomName
+    self.subtitle = subtitle
   }
 }

@@ -1,5 +1,5 @@
 type CompleteSplitBillParams = {
-    transactionID: string;
+    transactionID: string | undefined;
     amount?: number;
     currency?: string;
     created?: string;
@@ -8,6 +8,10 @@ type CompleteSplitBillParams = {
     category?: string;
     tag?: string;
     splits: string;
+    taxCode?: string;
+    taxAmount?: number;
+    billable?: boolean;
+    description?: string;
 };
 
 export default CompleteSplitBillParams;

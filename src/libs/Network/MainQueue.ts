@@ -1,7 +1,7 @@
-import * as Request from '@libs/Request';
+import {processWithMiddleware} from '@libs/Request';
 import type OnyxRequest from '@src/types/onyx/Request';
-import * as NetworkStore from './NetworkStore';
-import * as SequentialQueue from './SequentialQueue';
+import {isAuthenticating, isOffline} from './NetworkStore';
+import {isRunning as sequentialQueueIsRunning} from './SequentialQueue';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue: OnyxRequest[] = [];
@@ -12,7 +12,7 @@ let networkRequestQueue: OnyxRequest[] = [];
 function canMakeRequest(request: OnyxRequest): boolean {
     // Some requests are always made even when we are in the process of authenticating (typically because they require no authToken e.g. Log, BeginSignIn)
     // However, if we are in the process of authenticating we always want to queue requests until we are no longer authenticating.
-    return request.data?.forceNetworkRequest === true || (!NetworkStore.isAuthenticating() && !SequentialQueue.isRunning());
+    return request.data?.forceNetworkRequest === true || (!isAuthenticating() && !sequentialQueueIsRunning());
 }
 
 function push(request: OnyxRequest) {
@@ -30,7 +30,7 @@ function replay(request: OnyxRequest) {
  * Process the networkRequestQueue by looping through the queue and attempting to make the requests
  */
 function process() {
-    if (NetworkStore.isOffline()) {
+    if (isOffline()) {
         return;
     }
 
@@ -57,7 +57,7 @@ function process() {
             return;
         }
 
-        Request.processWithMiddleware(queuedRequest);
+        processWithMiddleware(queuedRequest);
     });
 
     // We clear the request queue at the end by setting the queue to requestsToProcessOnNextRun which will either have some

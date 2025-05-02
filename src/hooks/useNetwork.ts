@@ -6,13 +6,14 @@ type UseNetworkProps = {
     onReconnect?: () => void;
 };
 
-type UseNetwork = {isOffline: boolean};
+type UseNetwork = {isOffline: boolean; lastOfflineAt?: Date};
 
 export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {}): UseNetwork {
     const callback = useRef(onReconnect);
+    // eslint-disable-next-line react-compiler/react-compiler
     callback.current = onReconnect;
 
-    const {isOffline} = useContext(NetworkContext) ?? CONST.DEFAULT_NETWORK_DATA;
+    const {isOffline, networkStatus, lastOfflineAt} = useContext(NetworkContext) ?? {...CONST.DEFAULT_NETWORK_DATA, networkStatus: CONST.NETWORK.NETWORK_STATUS.UNKNOWN};
     const prevOfflineStatusRef = useRef(isOffline);
     useEffect(() => {
         // If we were offline before and now we are not offline then we just reconnected
@@ -29,5 +30,6 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
         prevOfflineStatusRef.current = isOffline;
     }, [isOffline]);
 
-    return {isOffline: isOffline ?? false};
+    // If the network status is undefined, we don't treat it as offline. Otherwise, we utilize the isOffline prop.
+    return {isOffline: networkStatus === CONST.NETWORK.NETWORK_STATUS.UNKNOWN ? false : isOffline, lastOfflineAt};
 }

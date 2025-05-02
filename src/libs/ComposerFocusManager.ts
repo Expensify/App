@@ -1,4 +1,3 @@
-import type {View} from 'react-native';
 import {TextInput} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -9,8 +8,6 @@ type ModalId = number | undefined;
 type InputElement = (TextInput & HTMLElement) | null;
 
 type RestoreFocusType = ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE> | undefined;
-
-type ModalContainer = (View & HTMLElement) | undefined | null;
 
 /**
  * So far, modern browsers only support the file cancel event in some newer versions
@@ -38,6 +35,7 @@ const promiseMap = new Map<ModalId, PromiseMapValue>();
  * react-native-web doesn't support `currentlyFocusedInput`, so we need to make it compatible by using `currentlyFocusedField` instead.
  */
 function getActiveInput() {
+    // eslint-disable-next-line deprecation/deprecation
     return (TextInput.State.currentlyFocusedInput ? TextInput.State.currentlyFocusedInput() : TextInput.State.currentlyFocusedField()) as InputElement;
 }
 
@@ -89,15 +87,16 @@ function getId() {
 /**
  * Save the focus state when opening the modal.
  */
-function saveFocusState(id: ModalId, isInUploadingContext = false, shouldClearFocusWithType = false, container: ModalContainer = undefined) {
+function saveFocusState(id: ModalId, isInUploadingContext = false, shouldClearFocusWithType = false) {
     const activeInput = getActiveInput();
 
     // For popoverWithoutOverlay, react calls autofocus before useEffect.
     const input = focusedInput ?? activeInput;
     focusedInput = null;
-    if (activeModals.indexOf(id) < 0) {
-        activeModals.push(id);
+    if (activeModals.indexOf(id) >= 0) {
+        return;
     }
+    activeModals.push(id);
 
     if (shouldClearFocusWithType) {
         focusMap.forEach((value, key) => {
@@ -108,9 +107,6 @@ function saveFocusState(id: ModalId, isInUploadingContext = false, shouldClearFo
         });
     }
 
-    if (container?.contains(input)) {
-        return;
-    }
     focusMap.set(id, {input, isInUploadingContext});
     input?.blur();
 }
@@ -226,8 +222,6 @@ function isReadyToFocus(id?: ModalId) {
 function refocusAfterModalFullyClosed(id: ModalId, restoreType: RestoreFocusType, isInUploadingContext?: boolean) {
     isReadyToFocus(id)?.then(() => restoreFocusState(id, false, restoreType, isInUploadingContext));
 }
-
-export type {InputElement};
 
 export default {
     getId,

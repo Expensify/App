@@ -2,14 +2,17 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
+import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import Image from '@components/Image';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCanvas';
 import type {CanvasSize, ContentSize, OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
 const cachedImageDimensions = new Map<string, ContentSize | undefined>();
@@ -47,6 +50,8 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
      * we need to create a shared value that can be used in the render function.
      */
     const isPagerScrollingFallback = useSharedValue(false);
+    const isScrollingEnabledFallback = useSharedValue(false);
+    const {isOffline} = useNetwork();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const {
@@ -59,12 +64,14 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         onScaleChanged: onScaleChangedContext,
         onSwipeDown,
         pagerRef,
+        isScrollEnabled,
     } = useMemo(() => {
         if (attachmentCarouselPagerContext === null) {
             return {
                 isUsedInCarousel: false,
                 isSingleCarouselItem: true,
                 isPagerScrolling: isPagerScrollingFallback,
+                isScrollEnabled: isScrollingEnabledFallback,
                 page: 0,
                 activePage: 0,
                 onTap: () => {},
@@ -74,14 +81,14 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
             };
         }
 
-        const foundPage = attachmentCarouselPagerContext.pagerItems.findIndex((item) => item.source === uri);
+        const foundPage = attachmentCarouselPagerContext.pagerItems.findIndex((item) => item.source === uri || item.previewSource === uri);
         return {
             ...attachmentCarouselPagerContext,
             isUsedInCarousel: !!attachmentCarouselPagerContext.pagerRef,
             isSingleCarouselItem: attachmentCarouselPagerContext.pagerItems.length === 1,
             page: foundPage,
         };
-    }, [attachmentCarouselPagerContext, isPagerScrollingFallback, uri]);
+    }, [attachmentCarouselPagerContext, isPagerScrollingFallback, isScrollingEnabledFallback, uri]);
 
     /** Whether the Lightbox is used within an attachment carousel and there are more than one page in the carousel */
     const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
@@ -194,6 +201,8 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         [onScaleChangedContext, onScaleChangedProp],
     );
 
+    const isLocalFile = FileUtils.isLocalFile(uri);
+
     return (
         <View
             style={[StyleSheet.absoluteFill, style]}
@@ -209,7 +218,9 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                 contentSize={contentSize}
                                 zoomRange={zoomRange}
                                 pagerRef={pagerRef}
+                                isUsedInCarousel={isUsedInCarousel}
                                 shouldDisableTransformationGestures={isPagerScrolling}
+                                isPagerScrollEnabled={isScrollEnabled}
                                 onTap={onTap}
                                 onScaleChanged={scaleChange}
                                 onSwipeDown={onSwipeDown}
@@ -219,9 +230,17 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                     style={[contentSize ?? styles.invisibleImage]}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
-                                    onLoad={updateContentSize}
-                                    onLoadEnd={() => {
+                                    onLoad={(e) => {
+                                        updateContentSize(e);
                                         setLightboxImageLoaded(true);
+                                    }}
+                                    waitForSession={() => {
+                                        // only active lightbox should call this function
+                                        if (!isActive || isFallbackVisible || !isLightboxVisible) {
+                                            return;
+                                        }
+                                        setContentSize(cachedImageDimensions.get(uri));
+                                        setLightboxImageLoaded(false);
                                     }}
                                 />
                             </MultiGestureCanvas>
@@ -236,19 +255,22 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                 resizeMode="contain"
                                 style={[fallbackSize ?? styles.invisibleImage]}
                                 isAuthTokenRequired={isAuthTokenRequired}
-                                onLoad={updateContentSize}
-                                onLoadEnd={() => setFallbackImageLoaded(true)}
+                                onLoad={(e) => {
+                                    updateContentSize(e);
+                                    setFallbackImageLoaded(true);
+                                }}
                             />
                         </View>
                     )}
 
                     {/* Show activity indicator while the lightbox is still loading the image. */}
-                    {isLoading && (
+                    {isLoading && (!isOffline || isLocalFile) && (
                         <ActivityIndicator
                             size="large"
                             style={StyleSheet.absoluteFill}
                         />
                     )}
+                    {isLoading && !isLocalFile && <AttachmentOfflineIndicator />}
                 </>
             )}
         </View>

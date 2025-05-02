@@ -42,7 +42,7 @@ type ContextMenuItemProps = {
     /** Whether the width should be limited */
     shouldLimitWidth?: boolean;
 
-    /** Styles to apply to ManuItem wrapper */
+    /** Styles to apply to MenuItem wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
 
     shouldPreventDefaultFocusOnPress?: boolean;
@@ -52,6 +52,15 @@ type ContextMenuItemProps = {
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
+
+    /** Handles what to do when the item loose focus */
+    onBlur?: () => void;
+
+    /** Whether the menu item is disabled or not */
+    disabled?: boolean;
+
+    /** Whether the menu item should show loading icon */
+    shouldShowLoadingSpinnerIcon?: boolean;
 };
 
 type ContextMenuItemHandle = {
@@ -74,6 +83,9 @@ function ContextMenuItem(
         shouldPreventDefaultFocusOnPress = true,
         buttonRef = {current: null},
         onFocus = () => {},
+        onBlur = () => {},
+        disabled = false,
+        shouldShowLoadingSpinnerIcon = false,
     }: ContextMenuItemProps,
     ref: ForwardedRef<ContextMenuItemHandle>,
 ) {
@@ -121,7 +133,7 @@ function ContextMenuItem(
             title={itemText}
             icon={itemIcon}
             onPress={triggerPressAndUpdateSuccess}
-            wrapperStyle={[styles.pr9, wrapperStyle]}
+            wrapperStyle={[styles.pr8, wrapperStyle]}
             success={!isThrottledButtonActive}
             description={description}
             descriptionTextStyle={styles.breakWord}
@@ -130,6 +142,9 @@ function ContextMenuItem(
             focused={isFocused}
             interactive={isThrottledButtonActive}
             onFocus={onFocus}
+            onBlur={onBlur}
+            disabled={disabled}
+            shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
         />
     );
 }

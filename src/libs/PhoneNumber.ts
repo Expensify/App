@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import {parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber';
 import type {ParsedPhoneNumber, ParsedPhoneNumberInvalid, PhoneNumberParseOptions} from 'awesome-phonenumber';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
 
 /**
@@ -16,6 +16,23 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
     }
 
     const phoneNumberWithoutSpecialChars = phoneNumber.replace(CONST.REGEX.SPECIAL_CHARS_WITHOUT_NEWLINE, '');
+
+    if (!CONST.REGEX.PHONE_NUMBER.test(phoneNumberWithoutSpecialChars)) {
+        return {
+            ...parsedPhoneNumber,
+            valid: false,
+            possible: false,
+            number: {
+                ...parsedPhoneNumber.number,
+                e164: phoneNumberWithoutSpecialChars,
+                international: phoneNumberWithoutSpecialChars,
+                national: phoneNumberWithoutSpecialChars,
+                rfc3966: `tel:${phoneNumberWithoutSpecialChars}`,
+                significant: phoneNumberWithoutSpecialChars,
+            },
+        } as ParsedPhoneNumberInvalid;
+    }
+
     if (!/^\+11[0-9]{10}$/.test(phoneNumberWithoutSpecialChars)) {
         return parsedPhoneNumber;
     }
@@ -43,7 +60,7 @@ function parsePhoneNumber(phoneNumber: string, options?: PhoneNumberParseOptions
 /**
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
  */
-function addSMSDomainIfPhoneNumber(login: string): string {
+function addSMSDomainIfPhoneNumber(login = ''): string {
     const parsedPhoneNumber = parsePhoneNumber(login);
     if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
         return `${parsedPhoneNumber.number?.e164}${CONST.SMS.DOMAIN}`;

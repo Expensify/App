@@ -1,9 +1,9 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -16,10 +16,10 @@ type WorkspaceAvatarOnyxProps = {
     isLoadingApp: OnyxEntry<boolean>;
 };
 
-type WorkspaceAvatarProps = WorkspaceAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_AVATAR>;
+type WorkspaceAvatarProps = WorkspaceAvatarOnyxProps & PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_AVATAR>;
 
 function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
-    const avatarURL = policy?.avatar ?? '' ? policy?.avatar ?? '' : ReportUtils.getDefaultWorkspaceAvatar(policy?.name ?? '');
+    const avatarURL = policy?.avatarURL ?? '' ? policy?.avatarURL ?? '' : ReportUtils.getDefaultWorkspaceAvatar(policy?.name ?? '');
 
     return (
         <AttachmentModal
@@ -28,7 +28,7 @@ function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
             onModalClose={Navigation.goBack}
             isWorkspaceAvatar
-            originalFileName={policy?.originalFileName ?? policy?.name ?? ''}
+            originalFileName={policy?.originalFileName ?? policy?.id}
             shouldShowNotFoundPage={!Object.keys(policy ?? {}).length && !isLoadingApp}
             isLoading={!Object.keys(policy ?? {}).length && !!isLoadingApp}
             maybeIcon
@@ -40,7 +40,7 @@ WorkspaceAvatar.displayName = 'WorkspaceAvatar';
 
 export default withOnyx<WorkspaceAvatarProps, WorkspaceAvatarOnyxProps>({
     policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? ''}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? '-1'}`,
     },
     isLoadingApp: {
         key: ONYXKEYS.IS_LOADING_APP,

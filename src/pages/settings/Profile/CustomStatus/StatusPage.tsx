@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import FormProvider from '@components/Form/FormProvider';
@@ -15,36 +14,30 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as User from '@userActions/User';
+import {clearCustomStatus, clearDraftCustomStatus, updateCustomStatus, updateDraftCustomStatus} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
-import type {CustomStatusDraft} from '@src/types/onyx';
-
-type StatusPageOnyxProps = {
-    draftStatus: OnyxEntry<CustomStatusDraft>;
-};
-
-type StatusPageProps = StatusPageOnyxProps & WithCurrentUserPersonalDetailsProps;
 
 const initialEmoji = '💬';
 
-function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) {
+function StatusPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const [draftStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const formRef = useRef<FormRef>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>>();
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
@@ -74,9 +67,32 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
+    const navigateBackToPreviousScreenTask = useRef<{
+        then: (
+            onfulfilled?: () => typeof InteractionManager.runAfterInteractions,
+            onrejected?: () => typeof InteractionManager.runAfterInteractions,
+        ) => Promise<typeof InteractionManager.runAfterInteractions>;
+        done: (...args: Array<typeof InteractionManager.runAfterInteractions>) => typeof InteractionManager.runAfterInteractions;
+        cancel: () => void;
+    } | null>(null);
+
+    useEffect(
+        () => () => {
+            if (!navigateBackToPreviousScreenTask.current) {
+                return;
+            }
+
+            navigateBackToPreviousScreenTask.current.cancel();
+        },
+        [],
+    );
+
     const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(), []);
     const updateStatus = useCallback(
         ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
+            if (navigateBackToPreviousScreenTask.current) {
+                return;
+            }
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
             const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
@@ -84,13 +100,13 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                 setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
                 return;
             }
-            User.updateCustomStatus({
+            updateCustomStatus({
                 text: statusText,
                 emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
-            User.clearDraftCustomStatus();
-            InteractionManager.runAfterInteractions(() => {
+            clearDraftCustomStatus();
+            navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
                 navigateBackToPreviousScreen();
             });
         },
@@ -98,15 +114,18 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
     );
 
     const clearStatus = () => {
-        User.clearCustomStatus();
-        User.updateDraftCustomStatus({
+        if (navigateBackToPreviousScreenTask.current) {
+            return;
+        }
+        clearCustomStatus();
+        updateDraftCustomStatus({
             text: '',
             emojiCode: '',
             clearAfter: DateUtils.getEndOfToday(),
         });
         formRef.current?.resetForm({[INPUT_IDS.EMOJI_CODE]: ''});
 
-        InteractionManager.runAfterInteractions(() => {
+        navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
             navigateBackToPreviousScreen();
         });
     };
@@ -115,30 +134,41 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
 
     useEffect(() => {
         if (!currentUserEmojiCode && !currentUserClearAfter && !draftClearAfter) {
-            User.updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});
+            updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});
         } else {
-            User.updateDraftCustomStatus({clearAfter: currentUserClearAfter});
+            updateDraftCustomStatus({clearAfter: currentUserClearAfter});
         }
 
-        return () => User.clearDraftCustomStatus();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        return () => clearDraftCustomStatus();
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const validateForm = useCallback((): FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> => {
-        if (brickRoadIndicator) {
-            return {clearAfter: ''};
-        }
-        return {};
-    }, [brickRoadIndicator]);
+    const validateForm = useCallback(
+        ({statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> => {
+            if (brickRoadIndicator) {
+                return {clearAfter: ''};
+            }
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> = {};
+            if (statusText.length > CONST.STATUS_TEXT_MAX_LENGTH) {
+                errors[INPUT_IDS.STATUS_TEXT] = translate('common.error.characterLimitExceedCounter', {
+                    length: statusText.length,
+                    limit: CONST.STATUS_TEXT_MAX_LENGTH,
+                });
+            }
+            return errors;
+        },
+        [brickRoadIndicator, translate],
+    );
 
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
     return (
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.PROFILE.STATUS].backgroundColor)]}
             shouldEnablePickerAvoiding={false}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={HeaderPageLayout.displayName}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('statusPage.status')}
@@ -153,6 +183,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                 onSubmit={updateStatus}
                 validate={validateForm}
                 enabledWhenOffline
+                shouldScrollToEnd
             >
                 <View style={[styles.mh5, styles.mv1]}>
                     <Text style={[styles.textNormal, styles.mt2]}>{translate('statusPage.statusExplanation')}</Text>
@@ -166,7 +197,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={defaultEmoji}
                             style={styles.mb3}
-                            onModalHide={() => {}}
+                            onModalHide={() => {
+                                inputRef.current?.focus();
+                            }}
                             // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             onInputChange={(emoji: string): void => {}}
                         />
@@ -178,7 +211,6 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
                             label={translate('statusPage.message')}
                             accessibilityLabel={INPUT_IDS.STATUS_TEXT}
                             defaultValue={defaultText}
-                            maxLength={CONST.STATUS_TEXT_MAX_LENGTH}
                         />
                     </View>
                     <MenuItemWithTopDescription
@@ -207,10 +239,4 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
 
 StatusPage.displayName = 'StatusPage';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<StatusPageProps, StatusPageOnyxProps>({
-        draftStatus: {
-            key: () => ONYXKEYS.CUSTOM_STATUS_DRAFT,
-        },
-    })(StatusPage),
-);
+export default StatusPage;

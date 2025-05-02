@@ -1,44 +1,101 @@
 ---
 title: Expense Types
-description: Details of the different Expense filters and Expense Types
+description: Learn how to organize reports by expense type and identify different expense categories in Expensify.
 ---
 
-# Overview
-Expense types help categorize different expenses for better financial management. While reimbursable and non-reimbursable expenses are common, Expensify offers various other options to suit your needs. Let's explore the available expense types.
+Understanding expense types in Expensify helps you track and categorize business spending more effectively. This guide covers how to organize reports by expense type and explains the differences between reimbursable, non-reimbursable, and billable expenses.
 
-# How To
-## Filtering a Report by Expense Type
-Organizing a report by expense type can make it easier to review expenses on a report. 
-- Open the report you're interested in.
-- Click the **Details** icon in the upper right corner of the report,
-- Change the “View” to **Detailed** and “Split by” **Reimbursable** or **Billable**.
-- You’ll also see the option to **Group by Category** or **Tags**. 
+# Organize a Report by Expense Type
 
+Organizing reports by expense type helps streamline expense review:
 
-# Deep Dive
-Each report will show the total amount for all expenses in the upper right. Under that total, there will be a breakdown of amounts that are reimbursable, billable, and non-reimbursable (depending on which of those expense types exist on the report). 
+1. Open the desired report.
+2. Click **Details** in the upper-right corner.
+3. Click the **View** dropdown and select **Detailed**.
+4. Click the **Split by** dropdown and select **Reimbursable** or **Billable**.
+5. To group expenses further, use the **Group by** dropdown to select **Category** or **Tags**.
 
-## Expense Types
-- **Reimbursable Expenses:** Employees pay for these expenses out of their pockets on behalf of the business and are usually reimbursed. They often come from cash, debit cards, or personal credit card purchases.
-- **Non-reimbursable Expenses:** The business directly covers these expenses, so there's no need to reimburse the employee. Typically, these expenses are company card expenses.
-- **Billable Expenses:** Business or employee expenses must be billed to a specific client or vendor. Choose this option if you need to track expenses for invoicing to customers, clients, or other departments.
-- **Per Diem Expenses:** These expenses involve a daily or partial daily rate you can configure in your expense Workspace.
-- **Time Expenses:** Employees or jobs are billed based on an hourly rate that you can set within Expensify.
-- **Distance Expenses:** These expenses are related to travel for work.
+---
 
-{% include faq-begin.md %}
+# Identify Expense Types
+The right side of every report displays total expenses, broken down by **reimbursable**, **billable**, and **non-reimbursable** amounts.
 
-## What’s the difference between a receipt, an expense, and a report attachment?
+## Reimbursable Expenses
+Expenses paid by employees on behalf of the business, including:
+- **Cash & Personal Card:** Out-of-pocket business expenses.
+- **Per Diem:** Daily expense allowances configured in your [workspace settings](https://help.expensify.com/articles/expensify-classic/workspaces/Enable-per-diem-expenses).
+- **Time:** Hourly wages for jobs, typically used for contractor invoicing. Configure rates [here](https://help.expensify.com/articles/expensify-classic/workspaces/Set-time-and-distance-rates).
+- **Distance:** Mileage-related expenses.
 
-- **Expense:** Created when you SmartScan or manually upload a receipt from a purchase.
-- **Receipt:** Automatically attached to the expense during the SmartScan process.
-- **Report Attachments:** Additional documents that need to be submitted to your approver (e.g., supplemental documents to the purchase) can be added to a report anytime by clicking the paperclip icon in the Reports Comments. 
+## Non-Reimbursable Expenses
+Expenses that are directly covered by the business, usually on company cards.
+
+## Billable Expenses
+Expenses billed to a client or vendor. Any expense—reimbursable or non-reimbursable—can also be billable.
+
+![Image of a report showing multiple expense totals]({{site.url}}/assets/images/amounts.png){:width="100%"}
+
+---
+
+# Deleting Expenses
+
+Expensify does not permanently delete expenses in open accounts to prevent lost funds or reconciliation issues. Instead, expenses are **soft deleted**, meaning they are moved to a **Deleted** folder. This ensures that:  
+
+- Accidental deletions can be easily reversed.  
+- No financial data is permanently lost within an active Expensify account.  
+- Users maintain better control over expense records.  
+
+## Recovering Deleted Expenses  
+
+If you need to restore a deleted expense:  
+
+1. Navigate to **Expenses** in your Expensify account.  
+2. Click the **Filters** icon and select **Deleted** to view all soft-deleted expenses.  
+3. Locate the expense you want to recover.  
+4. Click **Restore** to move the expense back to its original state.  
+
+## Managing Deleted Expenses  
+
+- **Deleted expenses remain in the system** for reference, ensuring no financial data is lost.  
+- **Expenses can be restored at any time** unless permanently removed by an admin.  
+- If an expense is deleted in error, you can restore it using the steps above.
+
+---
+
+# Filtering Expenses
+
+Use filters to narrow down the data:
+1. Click the **Expenses** tab.
+2. Adjust the filters at the top of the page:
+   - **Date Range** – Select a specific time frame.
+   - **Merchant Name** – Find expenses from a particular vendor (partial searches work).
+   - **Workspace** – View expenses for a specific Group or Individual Workspace.
+   - **Categories** – Filter by category to refine your search.
+   - **Tags** – Locate expenses based on assigned tags.
+   - **Submitters** – Find expenses by employee or vendor.
+   - **Personal Expenses** – Show expenses that have not yet been added to a report.
+   - **Open, Processing, Approved, Reimbursed, Closed** – View expenses at different reporting stages.
+
+**Note:** Some filters adjust dynamically based on your current selections. If results aren’t as expected, click **Reset** to clear all filters.
+
+---
+
+# FAQ
+
+## What’s the difference between an expense, a receipt, and a report attachment?
+- **Expense:** Created when you SmartScan or manually upload a receipt.
+- **Receipt:** Image file automatically attached to an expense via SmartScan.
+- **Report Attachment:** Additional documents (e.g., supporting documents) added via the paperclip icon in report comments.
 
 ## How are credits or refunds displayed in Expensify?
-In Expensify, a credit is displayed as an expense with a minus (ex. -$1.00) in front of it. That’s because Expensify defaults all expenses as something that needs to be paid by the company. So a credit that is returned to the company is displayed as a negative expense. 
+Credits appear as **negative expenses** (e.g., -$1.00). They offset the total report amount.
 
-If a report includes a credit or a refund expense, it will offset the total amount on the report. 
-For example, the report has two reimbursable expenses, $400 and $500. The total Reimbursable is $900. 
-Conversely, a -$400 and $500 will be a total Reimbursable amount of $500
+For example:
+- A report with **$400** and **$500** reimbursable expenses shows a total of **$900**.
+- A report with **-$400** and **$500** expenses results in a **$100** total.
 
-{% include faq-end.md %}
+## Can I permanently delete a cash expense?
+Permanently deleting cash expenses is restricted to ensure accurate financial records. It is possible to delete company card expenses, as long as the expenses have not been submitted, by un-assigning the employee's card at the domain level. 
+
+## How do I find my deleted expenses?  
+Use the **Filters** option in the **Expenses** tab and select **Deleted** to view all soft-deleted expenses.  

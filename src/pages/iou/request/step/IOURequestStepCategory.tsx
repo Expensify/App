@@ -1,97 +1,107 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
+import FixedFooter from '@components/FixedFooter';
+import * as Illustrations from '@components/Icon/Illustrations';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getIOURequestPolicyID, setDraftSplitTransaction, setMoneyRequestCategory, updateMoneyRequestCategory} from '@libs/actions/IOU';
+import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
-import * as IOU from '@userActions/IOU';
-import * as PolicyActions from '@userActions/Policy';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {canEditMoneyRequest, getTransactionDetails, isGroupPolicy, isReportInGroupPolicy} from '@libs/ReportUtils';
+import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, ReportActions, Session, Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepCategoryOnyxProps = {
-    /** The draft transaction that holds data to be persisted on the current transaction */
-    splitDraftTransaction: OnyxEntry<Transaction>;
-
-    /** The policy of the report */
-    policy: OnyxEntry<Policy>;
-
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<PolicyCategories>;
-
-    /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<PolicyTagList>;
-
-    /** The actions from the parent report */
-    reportActions: OnyxEntry<ReportActions>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-};
-
-type IOURequestStepCategoryProps = IOURequestStepCategoryOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY> &
+type IOURequestStepCategoryProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY>;
 
 function IOURequestStepCategory({
-    report,
+    report: reportReal,
+    reportDraft,
     route: {
         params: {transactionID, backTo, action, iouType, reportActionID},
     },
     transaction,
-    splitDraftTransaction,
-    policy,
-    policyTags,
-    policyCategories,
-    reportActions,
-    session,
 }: IOURequestStepCategoryProps) {
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, reportReal)}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, reportReal)}`);
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${getIOURequestPolicyID(transaction, reportDraft)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, reportReal)}`);
+    let reportID = '-1';
+    if (action === CONST.IOU.ACTION.EDIT && reportReal) {
+        if (iouType === CONST.IOU.TYPE.SPLIT) {
+            reportID = reportReal.reportID;
+        } else if (reportReal.parentReportID) {
+            reportID = reportReal.parentReportID;
+        }
+    }
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+
+    const report = reportReal ?? reportDraft;
+    const policy = policyReal ?? policyDraft;
+    const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
+    const {currentSearchHash} = useSearchContext();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
-    const transactionCategory = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction)?.category;
+    const currentTransaction = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const transactionCategory = getTransactionDetails(currentTransaction)?.category;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportAction = reportActions?.[report?.parentReportActionID || reportActionID] ?? null;
 
-    // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowCategory = ReportUtils.isGroupPolicy(report) && (!!transactionCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
+    const shouldShowCategory =
+        (isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
+        // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (!!transactionCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
-    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
+    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !shouldShowCategory || (isEditing && (isSplitBill ? !canEditSplitBill : !ReportUtils.canEditMoneyRequest(reportAction)));
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction));
 
     const fetchData = () => {
-        if (policy && policyCategories) {
+        if ((!!policy && !!policyCategories) || !report?.policyID) {
             return;
         }
 
-        PolicyActions.openDraftWorkspaceRequest(report?.policyID ?? '');
+        getPolicyCategories(report?.policyID);
     };
-    useNetwork({onReconnect: fetchData});
+    const {isOffline} = useNetwork({onReconnect: fetchData});
+    const isLoading = !isOffline && policyCategories === undefined;
+    const shouldShowEmptyState = policyCategories !== undefined && !shouldShowCategory;
+    const shouldShowOfflineView = policyCategories === undefined && isOffline;
 
     useEffect(() => {
         fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const navigateBack = () => {
@@ -106,22 +116,24 @@ function IOURequestStepCategory({
         if (transaction) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplitBill) {
-                IOU.setDraftSplitTransaction(transaction.transactionID, {category: updatedCategory});
+                setDraftSplitTransaction(transaction.transactionID, {category: updatedCategory}, policy);
                 navigateBack();
                 return;
             }
 
             if (isEditing && report) {
-                IOU.updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, policy, policyTags, policyCategories);
+                updateMoneyRequestCategory(transaction.transactionID, report.reportID, updatedCategory, policy, policyTags, policyCategories, currentSearchHash);
                 navigateBack();
                 return;
             }
         }
 
-        IOU.setMoneyRequestCategory(transactionID, updatedCategory);
+        setMoneyRequestCategory(transactionID, updatedCategory, policy?.id);
 
-        if (action === CONST.IOU.ACTION.CATEGORIZE) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? ''));
+        if (action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {
+            if (report?.reportID) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report.reportID));
+            }
             return;
         }
 
@@ -134,62 +146,74 @@ function IOURequestStepCategory({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
+            shouldShowOfflineIndicator={policyCategories !== undefined}
             testID={IOURequestStepCategory.displayName}
-            includeSafeAreaPaddingBottom={false}
         >
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
-            <CategoryPicker
-                selectedCategory={transactionCategory}
-                policyID={report?.policyID ?? ''}
-                onSubmit={updateCategory}
-            />
+            {isLoading && (
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={[styles.flex1]}
+                    color={theme.spinner}
+                />
+            )}
+            {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
+            {shouldShowEmptyState && (
+                <View style={[styles.flex1]}>
+                    <WorkspaceEmptyStateSection
+                        shouldStyleAsCard={false}
+                        icon={Illustrations.EmptyStateExpenses}
+                        title={translate('workspace.categories.emptyCategories.title')}
+                        subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                        containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                    />
+                    {isPolicyAdmin(policy) && (
+                        <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                            <Button
+                                large
+                                success
+                                style={[styles.w100]}
+                                onPress={() => {
+                                    if (!policy?.id || !report?.reportID) {
+                                        return;
+                                    }
+
+                                    if (!policy.areCategoriesEnabled) {
+                                        enablePolicyCategories(policy.id, true, false);
+                                    }
+                                    InteractionManager.runAfterInteractions(() => {
+                                        Navigation.navigate(
+                                            ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                                policy.id,
+                                                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report.reportID, backTo, reportActionID),
+                                            ),
+                                        );
+                                    });
+                                }}
+                                text={translate('workspace.categories.editCategories')}
+                                pressOnEnter
+                            />
+                        </FixedFooter>
+                    )}
+                </View>
+            )}
+            {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && (
+                <>
+                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
+                    <CategoryPicker
+                        selectedCategory={transactionCategory}
+                        policyID={report?.policyID ?? policy?.id}
+                        onSubmit={updateCategory}
+                    />
+                </>
+            )}
         </StepScreenWrapper>
     );
 }
 
 IOURequestStepCategory.displayName = 'IOURequestStepCategory';
 
-const IOURequestStepCategoryWithOnyx = withOnyx<IOURequestStepCategoryProps, IOURequestStepCategoryOnyxProps>({
-    splitDraftTransaction: {
-        key: ({route}) => {
-            const transactionID = route?.params.transactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-        },
-    },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-    },
-    policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
-    },
-    policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
-    },
-    reportActions: {
-        key: ({
-            report,
-            route: {
-                params: {action, iouType},
-            },
-        }) => {
-            let reportID = '0';
-            if (action === CONST.IOU.ACTION.EDIT && report) {
-                if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    reportID = report.reportID;
-                } else if (report.parentReportID) {
-                    reportID = report.parentReportID;
-                }
-            }
-            return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
-        },
-        canEvict: false,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(IOURequestStepCategory);
 /* eslint-disable rulesdir/no-negated-variables */
-const IOURequestStepCategoryWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCategoryWithOnyx);
+const IOURequestStepCategoryWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCategory);
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepCategoryWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepCategoryWithFullTransactionOrNotFound);
 export default IOURequestStepCategoryWithWritableReportOrNotFound;

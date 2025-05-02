@@ -38,20 +38,20 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
 
     const didForceUpdateStatusBarRef = useRef(false);
     const prevIsRootStatusBarEnabled = usePrevious(isRootStatusBarEnabled);
-    // The prev and current status bar background color refs are initialized with the splash screen background color so the status bar color is changed from the splash screen color to the expected color atleast once on first render - https://github.com/Expensify/App/issues/34154
-    const prevStatusBarBackgroundColor = useRef(theme.splashBG);
-    const statusBarBackgroundColor = useRef(theme.splashBG);
+    // The prev and current status bar background color refs are initialized with the splash screen background color so the status bar color is changed from the splash screen color to the expected color at least once on first render - https://github.com/Expensify/App/issues/34154
+    const prevStatusBarBackgroundColor = useSharedValue(theme.splashBG);
+    const statusBarBackgroundColor = useSharedValue(theme.splashBG);
     const statusBarAnimation = useSharedValue(0);
 
     useAnimatedReaction(
-        () => statusBarAnimation.value,
+        () => statusBarAnimation.get(),
         (current, previous) => {
             // Do not run if either of the animated value is null
             // or previous animated value is greater than or equal to the current one
             if (previous === null || current === null || current <= previous) {
                 return;
             }
-            const backgroundColor = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
+            const backgroundColor = interpolateColor(statusBarAnimation.get(), [0, 1], [prevStatusBarBackgroundColor.get(), statusBarBackgroundColor.get()]);
             runOnJS(updateStatusBarAppearance)({backgroundColor});
         },
     );
@@ -59,7 +59,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     const listenerCount = useRef(0);
 
     // Updates the status bar style and background color depending on the current route and theme
-    // This callback is triggered everytime the route changes or the theme changes
+    // This callback is triggered every time the route changes or the theme changes
     const updateStatusBarStyle = useCallback(
         (listenerID?: number) => {
             // Check if this function is either called through the current navigation listener
@@ -69,8 +69,8 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
                 return;
             }
 
-            // Set the status bar colour depending on the current route.
-            // If we don't have any colour defined for a route, fall back to
+            // Set the status bar color depending on the current route.
+            // If we don't have any color defined for a route, fall back to
             // appBG color.
             let currentRoute: ReturnType<typeof navigationRef.getCurrentRoute> | undefined;
             if (navigationRef.isReady()) {
@@ -92,32 +92,51 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
                 currentScreenBackgroundColor = backgroundColorFromRoute || pageTheme.backgroundColor;
             }
 
-            prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
-            statusBarBackgroundColor.current = currentScreenBackgroundColor;
+            prevStatusBarBackgroundColor.set(statusBarBackgroundColor.get());
+            statusBarBackgroundColor.set(currentScreenBackgroundColor);
 
-            if (currentScreenBackgroundColor !== theme.appBG || prevStatusBarBackgroundColor.current !== theme.appBG) {
-                statusBarAnimation.value = 0;
-                statusBarAnimation.value = withDelay(300, withTiming(1));
-            }
-
-            // Don't update the status bar style if it's the same as the current one, to prevent flashing.
-            // Force update if the root status bar is back on active or it won't overwirte the nested status bar style
-            if ((!didForceUpdateStatusBarRef.current && !prevIsRootStatusBarEnabled && isRootStatusBarEnabled) || newStatusBarStyle !== statusBarStyle) {
+            const callUpdateStatusBarAppearance = () => {
                 updateStatusBarAppearance({statusBarStyle: newStatusBarStyle});
                 setStatusBarStyle(newStatusBarStyle);
+            };
+
+            const callUpdateStatusBarBackgroundColor = () => {
+                statusBarAnimation.set(0);
+                statusBarAnimation.set(withDelay(300, withTiming(1)));
+            };
+
+            // Don't update the status bar style if it's the same as the current one, to prevent flashing.
+            // Force update if the root status bar is back on active or it won't overwrite the nested status bar style
+            if (!didForceUpdateStatusBarRef.current && !prevIsRootStatusBarEnabled && isRootStatusBarEnabled) {
+                callUpdateStatusBarAppearance();
+                callUpdateStatusBarBackgroundColor();
 
                 if (!prevIsRootStatusBarEnabled && isRootStatusBarEnabled) {
                     didForceUpdateStatusBarRef.current = true;
                 }
+                return;
+            }
+
+            if (newStatusBarStyle !== statusBarStyle) {
+                callUpdateStatusBarAppearance();
+            }
+
+            if (currentScreenBackgroundColor !== theme.appBG || prevStatusBarBackgroundColor.get() !== theme.appBG) {
+                callUpdateStatusBarBackgroundColor();
             }
         },
-        [prevIsRootStatusBarEnabled, isRootStatusBarEnabled, statusBarAnimation, statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle],
+        [
+            theme.statusBarStyle,
+            theme.appBG,
+            theme.PAGE_THEMES,
+            prevStatusBarBackgroundColor,
+            statusBarBackgroundColor,
+            prevIsRootStatusBarEnabled,
+            isRootStatusBarEnabled,
+            statusBarStyle,
+            statusBarAnimation,
+        ],
     );
-
-    useEffect(() => {
-        updateStatusBarAppearance({backgroundColor: theme.appBG});
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this to run on first render
-    }, []);
 
     useEffect(() => {
         didForceUpdateStatusBarRef.current = false;
@@ -140,7 +159,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
         return () => navigationRef.removeListener('state', listener);
     }, [isDisabled, updateStatusBarStyle]);
 
-    // Update the global background and status bar style (on web) everytime the theme changes.
+    // Update the global background and status bar style (on web) every time the theme changes.
     // The background of the html element needs to be updated, otherwise you will see a big contrast when resizing the window or when the keyboard is open on iOS web.
     // The status bar style needs to be updated when the user changes the theme, otherwise, the status bar will not change its color (mWeb iOS).
     useEffect(() => {

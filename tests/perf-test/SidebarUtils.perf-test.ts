@@ -29,6 +29,7 @@ const allReports = createCollection<Report>(
         // add status and state to every 5th report to mock nonarchived reports
         statusNum: index % REPORT_TRESHOLD ? 0 : CONST.REPORT.STATUS_NUM.CLOSED,
         stateNum: index % REPORT_TRESHOLD ? 0 : CONST.REPORT.STATE_NUM.APPROVED,
+        isUnreadWithMention: false,
     }),
     REPORTS_COUNT,
 );
@@ -51,25 +52,6 @@ const policies = createCollection<Policy>(
 
 const mockedBetas = Object.values(CONST.BETAS);
 
-const allReportActions = Object.fromEntries(
-    Object.keys(reportActions).map((key) => [
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${key}`,
-        [
-            {
-                errors: reportActions[key].errors ?? [],
-                message: [
-                    {
-                        moderationDecision: {
-                            decision: reportActions[key].message?.[0]?.moderationDecision?.decision,
-                        },
-                    },
-                ],
-                reportActionID: reportActions[key].reportActionID,
-            },
-        ],
-    ]),
-) as unknown as OnyxCollection<ReportAction[]>;
-
 const currentReportId = '1';
 const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
 
@@ -77,7 +59,7 @@ describe('SidebarUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
 
         Onyx.multiSet({
@@ -94,31 +76,33 @@ describe('SidebarUtils', () => {
         const preferredLocale = 'en';
         const policy = createRandomPolicy(1);
         const parentReportAction = createRandomReportAction(1);
+        const reportNameValuePairs = {};
 
         await waitForBatchedUpdates();
 
         await measureFunction(() =>
             SidebarUtils.getOptionData({
                 report,
+                reportAttributes: {},
+                reportNameValuePairs,
                 reportActions,
                 personalDetails,
                 preferredLocale,
                 policy,
                 parentReportAction,
                 hasViolations: false,
+                oneTransactionThreadReport: undefined,
             }),
         );
     });
 
     test('[SidebarUtils] getOrderedReportIDs on 15k reports for default priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() =>
-            SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations),
-        );
+        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, transactionViolations));
     });
 
     test('[SidebarUtils] getOrderedReportIDs on 15k reports for GSD priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, allReportActions, transactionViolations));
+        await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, transactionViolations));
     });
 });

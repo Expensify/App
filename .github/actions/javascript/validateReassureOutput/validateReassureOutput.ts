@@ -1,9 +1,9 @@
 import * as core from '@actions/core';
-import type {CompareResult, PerformanceEntry} from '@callstack/reassure-compare/src/types';
+import type {CompareResult, MeasureEntry} from '@callstack/reassure-compare';
 import fs from 'fs';
 
 const run = (): boolean => {
-    const regressionOutput: CompareResult = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
+    const regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8')) as CompareResult;
     const countDeviation = Number(core.getInput('COUNT_DEVIATION', {required: true}));
     const durationDeviation = Number(core.getInput('DURATION_DEVIATION_PERCENTAGE', {required: true}));
 
@@ -15,9 +15,14 @@ const run = (): boolean => {
     console.log(`Processing ${regressionOutput.countChanged.length} measurements...`);
 
     for (let i = 0; i < regressionOutput.countChanged.length; i++) {
-        const measurement = regressionOutput.countChanged[i];
-        const baseline: PerformanceEntry = measurement.baseline;
-        const current: PerformanceEntry = measurement.current;
+        const measurement = regressionOutput.countChanged.at(i);
+
+        if (!measurement) {
+            continue;
+        }
+
+        const baseline: MeasureEntry = measurement.baseline;
+        const current: MeasureEntry = measurement.current;
 
         console.log(`Processing measurement ${i + 1}: ${measurement.name}`);
 

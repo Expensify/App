@@ -1,6 +1,5 @@
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
-import type {MaybePhraseKey} from '@libs/Localize';
 
 type TextProps = Exclude<BaseTextInputProps, 'value' | 'onInputChange'>;
 
@@ -19,7 +18,16 @@ type TextSelectorModalProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
-} & Pick<MenuItemBaseProps, 'description'> &
+
+    /** Whether to clear the input value when the modal closes */
+    shouldClearOnClose?: boolean;
+
+    /** The ID used to uniquely identify the input in a Form */
+    inputID: string;
+
+    /** Whether the field is required */
+    required?: boolean;
+} & Pick<MenuItemBaseProps, 'subtitle' | 'description'> &
     TextProps;
 
 type TextPickerProps = {
@@ -30,7 +38,7 @@ type TextPickerProps = {
     placeholder?: string;
 
     /** Form Error description */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Callback to call when the input changes */
     onInputChange?: (value: string | undefined) => void;
@@ -40,7 +48,13 @@ type TextPickerProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
-} & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
+
+    /** The ID used to uniquely identify the input in a Form */
+    inputID: string;
+
+    /** Whether the field is required */
+    required?: boolean;
+} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive'> &
     TextProps;
 
 export type {TextSelectorModalProps, TextPickerProps};

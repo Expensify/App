@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import {getButtonRole} from './Button/utils';
 import Icon from './Icon';
 import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
@@ -14,12 +15,8 @@ import Text from './Text';
 import Tooltip from './Tooltip';
 
 type ReferralProgramCTAProps = {
-    referralContentType:
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
-    style?: ViewStyle;
+    referralContentType: typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT;
+    style?: StyleProp<ViewStyle>;
     onDismiss?: () => void;
 };
 
@@ -53,8 +50,9 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                 Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType, Navigation.getActiveRouteWithoutParams()));
             }}
             style={[styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5, style]}
+            isNested
             accessibilityLabel="referral"
-            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={getButtonRole(true)}
         >
             <Text>
                 {translate(`referralProgram.${referralContentType}.buttonText1`)}
@@ -72,7 +70,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                         e.preventDefault();
                     }}
                     style={[styles.touchableButtonImage]}
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.close')}
                 >
                     <Icon

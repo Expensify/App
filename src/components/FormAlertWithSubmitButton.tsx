@@ -1,14 +1,16 @@
+import type {Ref} from 'react';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MaybePhraseKey} from '@libs/Localize';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
 type FormAlertWithSubmitButtonProps = {
     /** Error message to display above button */
-    message?: MaybePhraseKey;
+    message?: string;
 
     /** Whether the button is disabled */
     isDisabled?: boolean;
@@ -46,6 +48,9 @@ type FormAlertWithSubmitButtonProps = {
     /** Whether to show the alert text */
     isAlertVisible?: boolean;
 
+    /** React ref being forwarded to the submit button */
+    buttonRef?: Ref<View>;
+
     /** Text for the button */
     buttonText: string;
 
@@ -54,6 +59,21 @@ type FormAlertWithSubmitButtonProps = {
 
     /** Style for the error message for submit button */
     errorMessageStyle?: StyleProp<ViewStyle>;
+
+    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
+    enterKeyEventListenerPriority?: number;
+
+    /** should render the extra button above submit button */
+    shouldRenderFooterAboveSubmit?: boolean;
+
+    /**
+     * Whether the button should have a background layer in the color of theme.appBG.
+     * This is needed for buttons that allow content to display under them.
+     */
+    shouldBlendOpacity?: boolean;
+
+    /** Whether to add a bottom padding to the button */
+    addButtonBottomPadding?: boolean;
 };
 
 function FormAlertWithSubmitButton({
@@ -67,15 +87,26 @@ function FormAlertWithSubmitButton({
     disablePressOnEnter = false,
     isSubmitActionDangerous = false,
     footerContent,
+    buttonRef,
     buttonStyles,
     buttonText,
     isAlertVisible = false,
     onSubmit,
     useSmallerSubmitButtonSize = false,
     errorMessageStyle,
+    enterKeyEventListenerPriority = 0,
+    shouldRenderFooterAboveSubmit = false,
+    shouldBlendOpacity = false,
+    addButtonBottomPadding = true,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
-    const style = [!footerContent ? {} : styles.mb3, buttonStyles];
+    const style = [footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
+
+    // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
+    // where pressing Enter saves the form instead of adding a new line in multiline input.
+    // More details: https://github.com/Expensify/App/issues/46644
+    const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
+    const pressOnEnter = isAndroidNative ? false : !disablePressOnEnter;
 
     return (
         <FormAlertWrapper
@@ -88,9 +119,11 @@ function FormAlertWithSubmitButton({
         >
             {(isOffline: boolean | undefined) => (
                 <View>
+                    {shouldRenderFooterAboveSubmit && footerContent}
                     {isOffline && !enabledWhenOffline ? (
                         <Button
                             success
+                            shouldBlendOpacity={shouldBlendOpacity}
                             isDisabled
                             text={buttonText}
                             style={style}
@@ -100,8 +133,11 @@ function FormAlertWithSubmitButton({
                         />
                     ) : (
                         <Button
+                            ref={buttonRef}
                             success
-                            pressOnEnter={!disablePressOnEnter}
+                            shouldBlendOpacity={shouldBlendOpacity}
+                            pressOnEnter={pressOnEnter}
+                            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             text={buttonText}
                             style={style}
                             onPress={onSubmit}
@@ -112,7 +148,7 @@ function FormAlertWithSubmitButton({
                             large={!useSmallerSubmitButtonSize}
                         />
                     )}
-                    {footerContent}
+                    {!shouldRenderFooterAboveSubmit && footerContent}
                 </View>
             )}
         </FormAlertWrapper>

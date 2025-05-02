@@ -27,6 +27,18 @@ const server = http.createServer((request: IncomingMessage, response: ServerResp
     let hostname = host;
     let requestPath = request.url;
 
+    // Add CORS headers
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
+    // Handle preflight requests
+    if (request.method === 'OPTIONS') {
+        response.writeHead(200);
+        response.end();
+        return;
+    }
+
     /**
      * When a request is matching a proxy config path we might direct it to a different host (e.g. staging)
      * For requests matching proxy config patterns we replace the mapping url (prefix) with the actual path.
@@ -50,7 +62,7 @@ const server = http.createServer((request: IncomingMessage, response: ServerResp
 
     const proxyRequest = https.request({
         hostname,
-        method: 'POST',
+        method: request.method,
         path: requestPath,
         headers: {
             ...request.headers,

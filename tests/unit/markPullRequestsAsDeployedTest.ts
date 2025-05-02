@@ -3,6 +3,7 @@
 /**
  * @jest-environment node
  */
+import CONST from '../../.github/libs/CONST';
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
 import GitUtils from '../../.github/libs/GitUtils';
@@ -15,6 +16,7 @@ type PullRequest = {
     issue_number: number;
     title: string;
     merged_by: {login: string};
+    labels: Array<{name: string}>;
 };
 
 type PullRequestParams = {
@@ -35,7 +37,7 @@ type CommitData = {
     };
 };
 
-let run;
+let run: () => Promise<void>;
 
 const mockGetInput = jest.fn();
 const mockGetPullRequest = jest.fn();
@@ -52,6 +54,7 @@ const PRList: Record<number, PullRequest> = {
         merged_by: {
             login: 'odin',
         },
+        labels: [],
     },
     2: {
         issue_number: 2,
@@ -59,6 +62,7 @@ const PRList: Record<number, PullRequest> = {
         merged_by: {
             login: 'loki',
         },
+        labels: [],
     },
 };
 const version = '42.42.42-42';
@@ -80,8 +84,11 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
         case 'DESKTOP':
         case 'WEB':
             return 'success';
+        case 'DATE':
+        case 'NOTE':
+            return '';
         default:
-            throw new Error('Trying to access invalid input');
+            throw new Error(`Trying to access invalid input: ${key}`);
     }
 }
 
@@ -138,7 +145,7 @@ beforeAll(() => {
     jest.mock('../../.github/libs/ActionUtils', () => ({
         getJSONInput: jest.fn().mockImplementation((name: string, defaultValue: string) => {
             try {
-                const input: string = mockGetInput(name);
+                const input = mockGetInput(name) as string;
                 return JSON.parse(input) as unknown;
             } catch (err) {
                 return defaultValue;
@@ -148,7 +155,6 @@ beforeAll(() => {
 
     // Set GH runner environment variables
     process.env.GITHUB_SERVER_URL = 'https://github.com';
-    process.env.GITHUB_REPOSITORY = 'Expensify/App';
     process.env.GITHUB_RUN_ID = '1234';
     workflowRunURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 });
@@ -171,10 +177,12 @@ afterAll(() => {
     jest.clearAllMocks();
 });
 
+type MockedActionRun = () => Promise<void>;
+
 describe('markPullRequestsAsDeployed', () => {
     it('comments on pull requests correctly for a standard staging deploy', async () => {
         // Note: we import this in here so that it executes after all the mocks are set up
-        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
@@ -184,19 +192,19 @@ describe('markPullRequestsAsDeployed', () => {
 
 platform | result
 ---|---
-🤖 android 🤖|success ✅
 🖥 desktop 🖥|success ✅
-🍎 iOS 🍎|success ✅
-🕸 web 🕸|success ✅`,
+🕸 web 🕸|success ✅
+🤖 android 🤖|success ✅
+🍎 iOS 🍎|success ✅`,
                 issue_number: PR.issue_number,
-                owner: 'Expensify',
-                repo: 'App',
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
             });
         }
     });
 
     it('comments on pull requests correctly for a standard production deploy', async () => {
-        mockGetInput.mockImplementation((key) => {
+        mockGetInput.mockImplementation((key: string) => {
             if (key === 'IS_PRODUCTION_DEPLOY') {
                 return true;
             }
@@ -204,7 +212,7 @@ platform | result
         });
 
         // Note: we import this in here so that it executes after all the mocks are set up
-        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
 
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
@@ -214,19 +222,19 @@ platform | result
 
 platform | result
 ---|---
-🤖 android 🤖|success ✅
 🖥 desktop 🖥|success ✅
-🍎 iOS 🍎|success ✅
-🕸 web 🕸|success ✅`,
+🕸 web 🕸|success ✅
+🤖 android 🤖|success ✅
+🍎 iOS 🍎|success ✅`,
                 issue_number: PRList[i + 1].issue_number,
-                owner: 'Expensify',
-                repo: 'App',
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
             });
         }
     });
 
     it('comments on pull requests correctly for a cherry pick', async () => {
-        mockGetInput.mockImplementation((key) => {
+        mockGetInput.mockImplementation((key: string) => {
             if (key === 'PR_LIST') {
                 return JSON.stringify([3]);
             }
@@ -244,6 +252,7 @@ platform | result
                         merged_by: {
                             login: 'thor',
                         },
+                        labels: [{name: CONST.LABELS.CP_STAGING}],
                     },
                 };
             }
@@ -254,13 +263,17 @@ platform | result
         });
         mockGetCommit.mockImplementation(({commit_sha}: Commit) => {
             if (commit_sha === 'xyz') {
-                return {data: {message: 'Test PR 3 (cherry picked from commit dagdag)', committer: {name: 'freyja'}}};
+                return {
+                    data: {
+                        message: `Merge pull request #3 blahblahblah\\n(cherry picked from commit dagdag)\\n(cherry-picked to staging by freyja)`,
+                    },
+                };
             }
             return mockGetCommitDefaultImplementation({commit_sha});
         });
 
         // Note: we import this in here so that it executes after all the mocks are set up
-        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(1);
         expect(mockCreateComment).toHaveBeenCalledWith({
@@ -268,20 +281,20 @@ platform | result
 
 platform | result
 ---|---
-🤖 android 🤖|success ✅
 🖥 desktop 🖥|success ✅
-🍎 iOS 🍎|success ✅
 🕸 web 🕸|success ✅
+🤖 android 🤖|success ✅
+🍎 iOS 🍎|success ✅
 
 @Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.`,
             issue_number: 3,
-            owner: 'Expensify',
-            repo: 'App',
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
         });
     });
 
     it('comments on pull requests correctly when one platform fails', async () => {
-        mockGetInput.mockImplementation((key) => {
+        mockGetInput.mockImplementation((key: string) => {
             if (key === 'ANDROID') {
                 return 'skipped';
             }
@@ -295,7 +308,7 @@ platform | result
         });
 
         // Note: we import this in here so that it executes after all the mocks are set up
-        run = require('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
+        run = require<MockedActionRun>('../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed');
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
@@ -305,13 +318,13 @@ platform | result
 
 platform | result
 ---|---
-🤖 android 🤖|skipped 🚫
 🖥 desktop 🖥|cancelled 🔪
-🍎 iOS 🍎|failed ❌
-🕸 web 🕸|success ✅`,
+🕸 web 🕸|success ✅
+🤖 android 🤖|skipped 🚫
+🍎 iOS 🍎|failed ❌`,
                 issue_number: PR.issue_number,
-                owner: 'Expensify',
-                repo: 'App',
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
             });
         }
     });

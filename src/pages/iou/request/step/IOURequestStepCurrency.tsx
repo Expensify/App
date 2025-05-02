@@ -1,50 +1,40 @@
-import Str from 'expensify-common/lib/str';
-import React, {useMemo, useState} from 'react';
+import React from 'react';
 import {Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import CurrencySelectionList from '@components/CurrencySelectionList';
+import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import {appendParam} from '@libs/Url';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {getUrlWithBackToParam} from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CurrencyList, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 
 type IOURequestStepCurrencyOnyxProps = {
-    /** Constant, list of available currencies */
-    currencyList: OnyxEntry<CurrencyList>;
-
     /** The draft transaction object being modified in Onyx */
     draftTransaction: OnyxEntry<Transaction>;
+    /** List of recently used currencies */
+    recentlyUsedCurrencies: OnyxEntry<string[]>;
 };
 
 type IOURequestStepCurrencyProps = IOURequestStepCurrencyOnyxProps & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY>;
 
-type CurrencyListItem = ListItem & {
-    currencyName: string;
-    currencyCode: string;
-};
-
 function IOURequestStepCurrency({
-    currencyList,
     route: {
-        params: {backTo, iouType, pageIndex, reportID, transactionID, action, currency: selectedCurrency = ''},
+        params: {backTo, pageIndex, transactionID, action, currency: selectedCurrency = ''},
     },
     draftTransaction,
+    recentlyUsedCurrencies,
 }: IOURequestStepCurrencyProps) {
     const {translate} = useLocalize();
-    const [searchValue, setSearchValue] = useState('');
     const {currency: originalCurrency = ''} = ReportUtils.getTransactionDetails(draftTransaction) ?? {};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
@@ -53,15 +43,11 @@ function IOURequestStepCurrency({
         // then the user needs taken back to the confirmation page instead of the initial amount page. This is because the route params
         // are only able to handle one backTo param at a time and the user needs to go back to the amount page before going back
         // to the confirmation page
-        if (pageIndex === 'confirm') {
-            const routeToAmountPageWithConfirmationAsBackTo = getUrlWithBackToParam(
-                backTo as string,
-                `/${ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)}`,
-            );
+        if (pageIndex === CONST.IOU.PAGE_INDEX.CONFIRM) {
             if (selectedCurrencyValue) {
-                Navigation.navigate(`${routeToAmountPageWithConfirmationAsBackTo}&currency=${selectedCurrencyValue}` as Route);
+                Navigation.goBack(appendParam(backTo as string, 'currency', selectedCurrencyValue), {compareParams: false});
             } else {
-                Navigation.goBack(routeToAmountPageWithConfirmationAsBackTo as Route);
+                Navigation.goBack(backTo);
             }
             return;
         }
@@ -70,40 +56,12 @@ function IOURequestStepCurrency({
 
     const confirmCurrencySelection = (option: CurrencyListItem) => {
         Keyboard.dismiss();
-        if (pageIndex !== 'confirm') {
-            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, option.currencyCode, action === CONST.IOU.ACTION.EDIT);
+        if (pageIndex !== CONST.IOU.PAGE_INDEX.CONFIRM) {
+            IOU.setMoneyRequestCurrency(transactionID, option.currencyCode, action === CONST.IOU.ACTION.EDIT);
         }
-        navigateBack(option.currencyCode);
+
+        Navigation.setNavigationActionToMicrotaskQueue(() => navigateBack(option.currencyCode));
     };
-
-    const {sections, headerMessage, initiallyFocusedOptionKey} = useMemo(() => {
-        const currencyOptions: CurrencyListItem[] = Object.entries(currencyList ?? {}).map(([currencyCode, currencyInfo]) => {
-            const isSelectedCurrency = currencyCode === currency.toUpperCase();
-            return {
-                currencyName: currencyInfo?.name ?? '',
-                text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
-                currencyCode,
-                keyForList: currencyCode,
-                isSelected: isSelectedCurrency,
-            };
-        });
-
-        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
-        const filteredCurrencies = currencyOptions.filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName));
-        const isEmpty = searchValue.trim() && !filteredCurrencies.length;
-
-        return {
-            initiallyFocusedOptionKey: filteredCurrencies.find((filteredCurrency) => filteredCurrency.currencyCode === currency.toUpperCase())?.keyForList,
-            sections: isEmpty
-                ? []
-                : [
-                      {
-                          data: filteredCurrencies,
-                      },
-                  ],
-            headerMessage: isEmpty ? translate('common.noResultsFound') : '',
-        };
-    }, [currencyList, searchValue, currency, translate]);
 
     return (
         <StepScreenWrapper
@@ -111,24 +69,19 @@ function IOURequestStepCurrency({
             onBackButtonPress={() => navigateBack()}
             shouldShowWrapper
             testID={IOURequestStepCurrency.displayName}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
         >
             {({didScreenTransitionEnd}) => (
-                <SelectionList
-                    sections={sections}
-                    ListItem={RadioListItem}
-                    textInputLabel={translate('common.search')}
-                    textInputValue={searchValue}
-                    onChangeText={setSearchValue}
-                    onSelectRow={(option) => {
+                <CurrencySelectionList
+                    recentlyUsedCurrencies={recentlyUsedCurrencies ?? []}
+                    searchInputLabel={translate('common.search')}
+                    onSelect={(option: CurrencyListItem) => {
                         if (!didScreenTransitionEnd) {
                             return;
                         }
                         confirmCurrencySelection(option);
                     }}
-                    headerMessage={headerMessage}
-                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                    showScrollIndicator
+                    initiallySelectedCurrencyCode={currency.toUpperCase()}
                 />
             )}
         </StepScreenWrapper>
@@ -138,12 +91,14 @@ function IOURequestStepCurrency({
 IOURequestStepCurrency.displayName = 'IOURequestStepCurrency';
 
 const IOURequestStepCurrencyWithOnyx = withOnyx<IOURequestStepCurrencyProps, IOURequestStepCurrencyOnyxProps>({
-    currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     draftTransaction: {
         key: ({route}) => {
-            const transactionID = route?.params?.transactionID ?? 0;
+            const transactionID = route?.params?.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
         },
+    },
+    recentlyUsedCurrencies: {
+        key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
     },
 })(IOURequestStepCurrency);
 

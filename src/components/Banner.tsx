@@ -7,6 +7,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
+import Button from './Button';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -17,7 +19,13 @@ import Tooltip from './Tooltip';
 
 type BannerProps = {
     /** Text to display in the banner. */
-    text: string;
+    text?: string;
+
+    /** Content to display in the banner. */
+    content?: React.ReactNode;
+
+    /** The icon asset to display to the left of the text */
+    icon?: IconAsset | null;
 
     /** Should this component render the left-aligned exclamation icon? */
     shouldShowIcon?: boolean;
@@ -39,9 +47,28 @@ type BannerProps = {
 
     /** Styles to be assigned to the Banner text */
     textStyles?: StyleProp<TextStyle>;
+
+    /** Whether to display button in the banner */
+    shouldShowButton?: boolean;
+
+    /** Callback called when pressing the button */
+    onButtonPress?: () => void;
 };
 
-function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRenderHTML = false, shouldShowIcon = false, shouldShowCloseButton = false}: BannerProps) {
+function Banner({
+    text,
+    content,
+    icon = Expensicons.Exclamation,
+    onClose,
+    onPress,
+    onButtonPress,
+    containerStyles,
+    textStyles,
+    shouldRenderHTML = false,
+    shouldShowIcon = false,
+    shouldShowCloseButton = false,
+    shouldShowButton = false,
+}: BannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -50,7 +77,7 @@ function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRend
     return (
         <Hoverable>
             {(isHovered) => {
-                const isClickable = onClose ?? onPress;
+                const isClickable = onClose && onPress;
                 const shouldHighlight = isClickable && isHovered;
                 return (
                     <View
@@ -64,27 +91,38 @@ function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRend
                             containerStyles,
                         ]}
                     >
-                        <View style={[styles.flexRow, styles.flexGrow1, styles.mw100, styles.alignItemsCenter]}>
-                            {shouldShowIcon && (
+                        <View style={[styles.flexRow, styles.flex1, styles.mw100, styles.alignItemsCenter]}>
+                            {shouldShowIcon && !!icon && (
                                 <View style={[styles.mr3]}>
                                     <Icon
-                                        src={Expensicons.Exclamation}
+                                        src={icon}
                                         fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))}
                                     />
                                 </View>
                             )}
-                            {shouldRenderHTML ? (
-                                <RenderHTML html={text} />
-                            ) : (
-                                <Text
-                                    style={textStyles}
-                                    onPress={onPress}
-                                    suppressHighlighting
-                                >
-                                    {text}
-                                </Text>
-                            )}
+                            {content && content}
+
+                            {text &&
+                                (shouldRenderHTML ? (
+                                    <RenderHTML html={text} />
+                                ) : (
+                                    <Text
+                                        style={[styles.flex1, styles.flexWrap, textStyles]}
+                                        onPress={onPress}
+                                        suppressHighlighting
+                                    >
+                                        {text}
+                                    </Text>
+                                ))}
                         </View>
+                        {shouldShowButton && (
+                            <Button
+                                success
+                                style={[styles.pr3]}
+                                text={translate('common.chatNow')}
+                                onPress={onButtonPress}
+                            />
+                        )}
                         {shouldShowCloseButton && !!onClose && (
                             <Tooltip text={translate('common.close')}>
                                 <PressableWithFeedback

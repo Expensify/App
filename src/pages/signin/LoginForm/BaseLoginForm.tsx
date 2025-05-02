@@ -1,16 +1,16 @@
 import {useIsFocused} from '@react-navigation/native';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {InteractionManager, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import AppleSignIn from '@components/SignInButtons/AppleSignIn';
 import GoogleSignIn from '@components/SignInButtons/GoogleSignIn';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
@@ -19,52 +19,43 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileWebKit} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
-import * as LoginUtils from '@libs/LoginUtils';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
-import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import * as CloseAccount from '@userActions/CloseAccount';
-import * as Session from '@userActions/Session';
+import {useLogin} from '@pages/signin/SignInLoginContext';
+import {setDefaultData} from '@userActions/CloseAccount';
+import {beginSignIn, clearAccountMessages, clearSignInData} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CloseAccountForm} from '@src/types/form';
-import type {Account, Credentials} from '@src/types/onyx';
+import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+import viewRef from '@src/types/utils/viewRef';
 import type LoginFormProps from './types';
 import type {InputHandle} from './types';
 
-type BaseLoginFormOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
+type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
-    /** Message to display when user successfully closed their account */
-    closeAccount: OnyxEntry<CloseAccountForm>;
-
-    /** The credentials of the logged in person */
-    credentials: OnyxEntry<Credentials>;
-};
-
-type BaseLoginFormProps = WithToggleVisibilityViewProps & BaseLoginFormOnyxProps & LoginFormProps;
-
-const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
-
-function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+    const {login, setLogin} = useLogin();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {canBeMissing: true});
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const input = useRef<BaseTextInputRef | null>(null);
-    const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
     const [formError, setFormError] = useState<TranslationPaths | undefined>();
     const prevIsVisible = usePrevious(isVisible);
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
     const isLoading = useRef(false);
-    const {shouldUseNarrowLayout, isInModal} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const accountMessage = account?.message === 'unlinkLoginForm.succesfullyUnlinkedLogin' ? translate(account.message) : account?.message ?? '';
 
     /**
      * Validate the input value and set the error for formError
@@ -77,11 +68,11 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                 return false;
             }
 
-            const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
+            const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim));
             const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
             if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
-                if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
+                if (isNumericWithSpecialChars(loginTrim)) {
                     setFormError('common.error.phoneNumber');
                 } else {
                     setFormError('loginForm.error.invalidFormatEmailLogin');
@@ -106,12 +97,12 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             }
 
             if (!!account?.errors || !!account?.message) {
-                Session.clearAccountMessages();
+                clearAccountMessages();
             }
 
             // Clear the "Account successfully closed" message when the user starts typing
             if (closeAccount?.success && !isInputAutoFilled(input.current)) {
-                CloseAccount.setDefaultData();
+                setDefaultData();
             }
         },
         [account, closeAccount, input, setLogin, validate],
@@ -132,7 +123,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
         // If account was closed and have success message in Onyx, we clear it here
         if (closeAccount?.success) {
-            CloseAccount.setDefaultData();
+            setDefaultData();
         }
 
         // For native, the single input doesn't lost focus when we click outside.
@@ -148,11 +139,11 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
         const loginTrim = login.trim();
 
-        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
+        const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim));
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
         // Check if this login has an account associated with it or not
-        Session.beginSignIn(parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim);
+        beginSignIn(parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim);
     }, [login, account, closeAccount, isOffline, validate]);
 
     useEffect(() => {
@@ -161,19 +152,19 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
         // resetting account.isLoading will cause the app to briefly display the session expiration page.
 
         if (isFocused && isVisible) {
-            Session.clearAccountMessages();
+            clearAccountMessages();
         }
         if (!canFocusInputOnScreenFocus() || !input.current || !isVisible || !isFocused) {
             return;
         }
         let focusTimeout: NodeJS.Timeout;
-        if (isInModal) {
+        if (isInNarrowPaneModal) {
             focusTimeout = setTimeout(() => input.current?.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             input.current.focus();
         }
         return () => clearTimeout(focusTimeout);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
     useEffect(() => {
@@ -200,21 +191,38 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             if (!input.current) {
                 return false;
             }
-            return input.current.isFocused() as boolean;
+            return !!isTextInputFocused(input);
         },
         clearDataAndFocus(clearLogin = true) {
             if (!input.current) {
                 return;
             }
             if (clearLogin) {
-                Session.clearSignInData();
+                clearSignInData();
             }
             input.current.focus();
         },
     }));
 
-    const serverErrorText = useMemo(() => (account ? ErrorUtils.getLatestErrorMessage(account) : ''), [account]);
+    const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
     const shouldShowServerError = !!serverErrorText && !formError;
+    const isSigningWithAppleOrGoogle = useRef(false);
+    const setIsSigningWithAppleOrGoogle = useCallback((isPressed: boolean) => (isSigningWithAppleOrGoogle.current = isPressed), []);
+
+    const submitContainerRef = useRef<View | HTMLDivElement>(null);
+    const handleFocus = useCallback(() => {
+        if (!isMobileWebKit()) {
+            return;
+        }
+        // On mobile WebKit browsers, when an input field gains focus, the keyboard appears and the virtual viewport is resized and scrolled to make the input field visible.
+        // This occurs even when there is enough space to display both the input field and the submit button in the current view.
+        // so this change to correct the scroll position when the input field gains focus.
+        InteractionManager.runAfterInteractions(() => {
+            htmlDivElementRef(submitContainerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
+        });
+    }, []);
+
+    const handleSignIn = () => setIsSigningWithAppleOrGoogle(true);
 
     return (
         <>
@@ -237,25 +245,23 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                         // As we have only two signin buttons (Apple/Google) other than the text input,
                         // for natives onBlur is called only when the buttons are pressed and we don't need
                         // to validate in those case as the user has opted for other signin flow.
-                        willBlurTextInputOnTapOutside
-                            ? () =>
-                                  // This delay is to avoid the validate being called before google iframe is rendered to
-                                  // avoid error message appearing after pressing google signin button.
-                                  setTimeout(() => {
-                                      if (firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
-                                          return;
-                                      }
-                                      firstBlurred.current = true;
-                                      validate(login);
-                                  }, 500)
-                            : undefined
+                        () =>
+                            setTimeout(() => {
+                                if (isSigningWithAppleOrGoogle.current || firstBlurred.current || !Visibility.isVisible() || !Visibility.hasFocus()) {
+                                    setIsSigningWithAppleOrGoogle(false);
+                                    return;
+                                }
+                                firstBlurred.current = true;
+                                validate(login);
+                            }, 500)
                     }
+                    onFocus={handleFocus}
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
                     autoCorrect={false}
                     inputMode={CONST.INPUT_MODE.EMAIL}
-                    errorText={formError}
+                    errorText={formError ? translate(formError) : undefined}
                     hasError={shouldShowServerError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
@@ -266,14 +272,17 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                     style={[styles.mv2]}
                     type="success"
                     // eslint-disable-next-line @typescript-eslint/naming-convention,@typescript-eslint/prefer-nullish-coalescing
-                    messages={{0: closeAccount?.success ? [closeAccount.success, {isTranslated: true}] : account?.message || ''}}
+                    messages={{0: closeAccount?.success ? closeAccount.success : accountMessage}}
                 />
             )}
             {
                 // We need to unmount the submit button when the component is not visible so that the Enter button
                 // key handler gets unsubscribed
                 isVisible && (
-                    <View style={[shouldShowServerError ? {} : styles.mt5]}>
+                    <View
+                        style={[shouldShowServerError ? {} : styles.mt5]}
+                        ref={viewRef(submitContainerRef)}
+                    >
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.continue')}
                             isLoading={account?.isLoading && account?.loadingForm === CONST.FORMS.LOGIN_FORM}
@@ -300,10 +309,16 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
                                     <View style={shouldUseNarrowLayout ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                         <View>
-                                            <AppleSignIn />
+                                            <AppleSignIn
+                                                onPress={handleSignIn}
+                                                onPointerDown={handleSignIn}
+                                            />
                                         </View>
                                         <View>
-                                            <GoogleSignIn />
+                                            <GoogleSignIn
+                                                onPress={handleSignIn}
+                                                onPointerDown={handleSignIn}
+                                            />
                                         </View>
                                     </View>
                                 </View>
@@ -318,10 +333,4 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
 
 BaseLoginForm.displayName = 'BaseLoginForm';
 
-export default withToggleVisibilityView(
-    withOnyx<BaseLoginFormProps, BaseLoginFormOnyxProps>({
-        account: {key: ONYXKEYS.ACCOUNT},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-        closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
-    })(forwardRef(BaseLoginForm)),
-);
+export default withToggleVisibilityView(forwardRef(BaseLoginForm));

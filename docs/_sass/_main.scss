@@ -131,7 +131,7 @@ details[open] > summary {
 
 h1,
 summary {
-    font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+    font-family: 'Expensify New Kansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-weight: 500;
     font-size: larger;
 }
@@ -144,14 +144,29 @@ p {
     padding-bottom: 20px;
 }
 
+code {
+    font-family: 'Expensify Mono', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 5px;
+    border-color: var(--color-borders);
+    background-color: var(--color-highlightBG);
+    line-height: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 13px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
 body,
 button,
 input,
 select,
 textarea {
-    line-height: 1.4;
+    line-height: 1.33;
     font-weight: 400;
-    font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+    font-family: 'Expensify Neue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-size: 16px;
     color: var(--color-text-supporting);
 }
@@ -159,7 +174,7 @@ textarea {
 button {
     border-radius: 12px;
     padding: 12px;
-    font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+    font-family: 'Expensify Neue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-size: 15px;
     font-weight: bold;
 
@@ -374,6 +389,18 @@ button {
             }
         }
 
+        li {
+            padding-bottom: 4px;
+        }
+
+        ol {
+            li {
+                ul {
+                    padding-bottom: 0;
+                }
+            }
+        }
+
         table {
             margin-bottom: 20px;
             border-radius: 8px;
@@ -418,6 +445,12 @@ button {
         }
 
         h1,
+        h2,
+        h3 {
+            line-height: 1.2;
+        }
+
+        h1,
         summary {
             font-size: 1.5em;
             padding: 20px 0 12px 0;
@@ -426,12 +459,12 @@ button {
         h2 {
             font-size: 1.125em;
             font-weight: 500;
-            font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+            font-family: 'Expensify New Kansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
         }
 
         h3 {
             font-size: 1em;
-            font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+            font-family: 'Expensify Neue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
         }
 
         h2,
@@ -457,7 +490,7 @@ button {
 
             p:first-child {
                 font-size: large;
-                font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+                font-family: 'Expensify New Kansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
                 opacity: 0.8;
             }
         }
@@ -523,6 +556,10 @@ button {
             * {
                 padding: 0;
                 margin: 0;
+            }
+
+            li {
+                margin-left: 12px;
             }
         }
     }
@@ -617,7 +654,7 @@ button {
     }
 
     h3.title {
-        font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+        font-family: 'Expensify New Kansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     }
 
     h3.title,
@@ -745,6 +782,7 @@ button {
     width: 20px;
     height: 20px;
     cursor: pointer;
+    display: inline-block;
 }
 
 .homepage {
@@ -815,7 +853,7 @@ button {
 
     h3 {
         color: var(--color-success);
-        font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+        font-family: 'Expensify New Kansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
         font-size: 17px;
         font-weight: 500;
         padding: 0;
@@ -941,10 +979,18 @@ button {
 }
 
 #platform-tabs > .active {
-    color: var(--color-button-text);
-    background-color: var(--color-button-success-background);
+    color: var(--color-text);
+    background-color: var(--color-button-background);
 }
 
 .hidden {
     display: none;
+}
+
+.expensifyhelp-logo__expensify {
+    fill: var(--color-text);
+}
+
+.expensifyhelp-logo__help {
+    fill: var(--color-success);
 }

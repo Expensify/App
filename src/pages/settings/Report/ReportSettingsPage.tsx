@@ -1,44 +1,43 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
-import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ReportSettingsPageProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>;
+type ReportSettingsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>;
 
-function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
-    const reportID = report?.reportID ?? '';
+function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) {
+    const backTo = route.params.backTo;
+    const reportID = report?.reportID;
     const styles = useThemeStyles();
-    const isGroupChat = ReportUtils.isGroupChat(report);
     const {translate} = useLocalize();
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     // The workspace the report is on, null if the user isn't a member of the workspace
-    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID) ?? null, [policies, report?.policyID]);
-    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
+    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID), [policies, report?.policyID]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
-    const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report);
-    const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
+    const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs) || ReportUtils.isSelfDM(report);
+    const notificationPreferenceValue = ReportUtils.getReportNotificationPreference(report);
     const notificationPreference =
-        report?.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
-            ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}`)
+        notificationPreferenceValue && !ReportUtils.isHiddenForCurrentUser(notificationPreferenceValue)
+            ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}`)
             : '';
     const writeCapability = ReportUtils.isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
@@ -46,9 +45,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const shouldAllowWriteCapabilityEditing = useMemo(() => ReportUtils.canEditWriteCapability(report, linkedWorkspace), [report, linkedWorkspace]);
     const shouldAllowChangeVisibility = useMemo(() => ReportUtils.canEditRoomVisibility(report, linkedWorkspace), [report, linkedWorkspace]);
 
-    const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-    const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
-    const reportName = ReportUtils.getReportName(report);
+    const shouldShowNotificationPref = !isMoneyRequestReport && !ReportUtils.isHiddenForCurrentUser(notificationPreferenceValue);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
@@ -57,7 +54,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
             <FullPageNotFoundView shouldShow={shouldDisableSettings}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
                 />
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (
@@ -65,45 +62,8 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             shouldShowRightIcon
                             title={notificationPreference}
                             description={translate('notificationPreferencesPage.label')}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(reportID, backTo))}
                         />
-                    )}
-                    {shouldShowRoomName && (
-                        <OfflineWithFeedback
-                            pendingAction={report?.pendingFields?.reportName}
-                            errors={report?.errorFields?.reportName}
-                            errorRowStyles={[styles.ph5]}
-                            onClose={() => ReportActions.clearPolicyRoomNameErrors(reportID)}
-                        >
-                            {shouldDisableRename ? (
-                                <View style={[styles.ph5, styles.pv3]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {roomNameLabel}
-                                    </Text>
-                                    <DisplayNames
-                                        fullTitle={reportName ?? ''}
-                                        tooltipEnabled
-                                        numberOfLines={1}
-                                        textStyles={[styles.optionAlternateText, styles.pre]}
-                                        shouldUseFullTitle
-                                    />
-                                </View>
-                            ) : (
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={report?.reportName === '' ? reportName : report?.reportName}
-                                    description={isGroupChat ? translate('common.name') : translate('newRoomPage.roomName')}
-                                    onPress={() =>
-                                        isGroupChat
-                                            ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(reportID))
-                                            : Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(reportID))
-                                    }
-                                />
-                            )}
-                        </OfflineWithFeedback>
                     )}
                     {shouldShowWriteCapability &&
                         (shouldAllowWriteCapabilityEditing ? (
@@ -111,7 +71,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 shouldShowRightIcon
                                 title={writeCapabilityText}
                                 description={translate('writeCapabilityPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.getRoute(reportID, backTo))}
                             />
                         ) : (
                             <View style={[styles.ph5, styles.pv3]}>
@@ -129,32 +89,14 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 </Text>
                             </View>
                         ))}
-                    <View style={[styles.ph5]}>
-                        {linkedWorkspace !== null && (
-                            <View style={[styles.pv3]}>
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
-                                    numberOfLines={1}
-                                >
-                                    {translate('workspace.common.workspace')}
-                                </Text>
-                                <DisplayNames
-                                    fullTitle={linkedWorkspace.name}
-                                    tooltipEnabled
-                                    numberOfLines={1}
-                                    textStyles={[styles.optionAlternateText, styles.pre]}
-                                    shouldUseFullTitle
-                                />
-                            </View>
-                        )}
-                    </View>
                     {!!report?.visibility &&
+                        report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE &&
                         (shouldAllowChangeVisibility ? (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 title={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
                                 description={translate('newRoomPage.visibility')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_VISIBILITY.getRoute(report.reportID))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_VISIBILITY.getRoute(report.reportID, backTo))}
                             />
                         ) : (
                             <View style={[styles.pv3, styles.ph5]}>

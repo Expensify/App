@@ -16,7 +16,7 @@ type EmojiPopoverAnchor = MutableRefObject<View | HTMLDivElement | TextInput | n
 
 type OnWillShowPicker = (callback?: CloseContextMenuCallback) => void;
 
-type OnModalHideValue = () => void;
+type OnModalHideValue = (isNavigating?: boolean) => void;
 
 type EmojiPickerRef = {
     showEmojiPicker: (
@@ -79,8 +79,8 @@ function hideEmojiPicker(isNavigating?: boolean) {
 /**
  * Whether Emoji Picker is active for the given id.
  */
-function isActive(id: string): boolean {
-    if (!emojiPickerRef.current) {
+function isActive(id?: string): boolean {
+    if (!emojiPickerRef.current || !id) {
         return false;
     }
 

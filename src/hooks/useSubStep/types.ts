@@ -5,16 +5,19 @@ type SubStepProps = {
     isEditing: boolean;
 
     /** continues to next sub step */
-    onNext: () => void;
+    onNext: (data?: unknown) => void;
 
     /** moves user to passed sub step */
-    onMove: (step: number) => void;
+    onMove: (step: number, turnOnEditMode?: boolean) => void;
 
     /** index of currently displayed sub step */
     screenIndex?: number;
 
     /** moves user to previous sub step */
     prevScreen?: () => void;
+
+    /** resets screen index to passed value */
+    resetScreenIndex?: (index?: number) => void;
 };
 
 type UseSubStep<TProps extends SubStepProps> = {
@@ -25,10 +28,13 @@ type UseSubStep<TProps extends SubStepProps> = {
     onNextSubStep?: () => void;
 
     /** called on last sub step */
-    onFinished: () => void;
+    onFinished: (data?: unknown) => void;
 
     /** index of initial sub step to display */
     startFrom?: number;
+
+    /** array of indexes to skip */
+    skipSteps?: number[];
 };
 
 export type {SubStepProps, UseSubStep};

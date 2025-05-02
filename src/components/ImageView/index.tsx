@@ -2,14 +2,18 @@ import type {SyntheticEvent} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
+import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
 import type {ImageOnLoadEvent} from '@components/Image/types';
+import Lightbox from '@components/Lightbox';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
 import type ImageViewProps from './types';
@@ -33,6 +37,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const [imgHeight, setImgHeight] = useState(0);
     const [zoomScale, setZoomScale] = useState(0);
     const [zoomDelta, setZoomDelta] = useState<ZoomDelta>();
+    const {isOffline} = useNetwork();
 
     const scrollableRef = useRef<HTMLDivElement>(null);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -191,31 +196,26 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
             document.removeEventListener('mouseup', trackPointerPosition);
         };
     }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
+    // isLocalToUserDeviceFile means the file is located on the user device,
+    // not loaded on the server yet (the user is offline when loading this file in fact)
+    let isLocalToUserDeviceFile = FileUtils.isLocalFile(url);
+    if (isLocalToUserDeviceFile && typeof url === 'string' && url.startsWith('/chat-attachments')) {
+        isLocalToUserDeviceFile = false;
+    }
 
     if (canUseTouchScreen) {
         return (
-            <View
-                style={[styles.imageViewContainer, styles.overflowHidden]}
-                onLayout={onContainerLayoutChanged}
-            >
-                <Image
-                    source={{uri: url}}
-                    isAuthTokenRequired={isAuthTokenRequired}
-                    // Hide image until finished loading to prevent showing preview with wrong dimensions.
-                    style={isLoading || zoomScale === 0 ? undefined : [styles.w100, styles.h100]}
-                    // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
-                    // Both `center` and `contain` keeps the image centered on both x and y axis.
-                    resizeMode={zoomScale > 1 ? RESIZE_MODES.center : RESIZE_MODES.contain}
-                    onLoadStart={imageLoadingStart}
-                    onLoad={imageLoad}
-                    onError={onError}
-                />
-                {(isLoading || zoomScale === 0) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-            </View>
+            <Lightbox
+                uri={url}
+                isAuthTokenRequired={isAuthTokenRequired}
+                onError={onError}
+            />
         );
     }
+
     return (
         <View
+            // eslint-disable-next-line react-compiler/react-compiler
             ref={viewRef(scrollableRef)}
             onLayout={onContainerLayoutChanged}
             style={[styles.imageViewContainer, styles.overflowAuto, styles.pRelative]}
@@ -239,11 +239,17 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                     resizeMode={RESIZE_MODES.contain}
                     onLoadStart={imageLoadingStart}
                     onLoad={imageLoad}
+                    waitForSession={() => {
+                        setIsLoading(true);
+                        setZoomScale(0);
+                        setIsZoomed(false);
+                    }}
                     onError={onError}
                 />
             </PressableWithoutFeedback>
 
-            {isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {isLoading && (!isOffline || isLocalToUserDeviceFile) && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {isLoading && !isLocalToUserDeviceFile && <AttachmentOfflineIndicator />}
         </View>
     );
 }

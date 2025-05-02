@@ -1,97 +1,102 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {getCurrency} from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-type IOURequestStepTaxRatePageOnyxProps = {
-    policy: OnyxEntry<Policy>;
-    policyCategories: OnyxEntry<PolicyCategories>;
-
-    /** Collection of tag list on a policy */
-    policyTags: OnyxEntry<PolicyTagList>;
+type IOURequestStepTaxRatePageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE> & {
+    transaction: OnyxEntry<Transaction>;
 };
 
-type IOURequestStepTaxRatePageProps = IOURequestStepTaxRatePageOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE> & {
-        transaction: OnyxEntry<Transaction>;
-    };
-
-function getTaxAmount(taxRates: TaxRatesWithDefault, selectedTaxRate: string, amount: number): number | undefined {
-    const percentage = Object.values(OptionsListUtils.transformedTaxRates(taxRates)).find((taxRate) => taxRate.modifiedName?.includes(selectedTaxRate))?.value;
-    if (percentage) {
-        return TransactionUtils.calculateTaxAmount(percentage, amount);
+function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, selectedTaxCode: string, amount: number): number | undefined {
+    const getTaxValue = (taxCode: string) => TransactionUtils.getTaxValue(policy, transaction, taxCode);
+    const taxPercentage = getTaxValue(selectedTaxCode);
+    if (taxPercentage) {
+        return TransactionUtils.calculateTaxAmount(taxPercentage, amount, getCurrency(transaction));
     }
 }
 
 function IOURequestStepTaxRatePage({
     route: {
-        params: {action, backTo},
+        params: {action, backTo, iouType, transactionID},
     },
-    policy,
     transaction,
     report,
-    policyCategories,
-    policyTags,
 }: IOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
 
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID ?? '-1'}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID ?? '-1'}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID ?? '-1'}`);
+
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
+    const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const taxRates = policy?.taxRates;
-    const defaultExternalID = taxRates?.defaultExternalID;
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
-    const transactionTaxCode = transactionDetails?.taxCode;
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const moneyRequestSelectedTaxRate = transaction?.taxRate?.keyForList || (taxRates && TransactionUtils.getDefaultTaxName(taxRates));
-    const editingSelectedTaxRate =
-        taxRates &&
-        (transactionTaxCode === defaultExternalID
-            ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
-            : transactionTaxCode && TransactionUtils.getTaxName(taxRates.taxes, transactionTaxCode));
 
-    const updateTaxRates = (taxes: OptionsListUtils.TaxRatesOption) => {
-        if (isEditing) {
-            const newTaxCode = taxes.data.code;
-            if (newTaxCode === undefined || newTaxCode === TransactionUtils.getTaxCode(transaction)) {
-                navigateBack();
-                return;
-            }
-            IOU.updateMoneyRequestTaxRate(transaction?.transactionID ?? '', report?.reportID ?? '', newTaxCode, policy, policyTags, policyCategories);
+    const taxRateTitle = TransactionUtils.getTaxName(policy, currentTransaction);
+
+    const updateTaxRates = (taxes: TaxRatesOption) => {
+        if (!currentTransaction || !taxes.code || !taxRates) {
+            Navigation.goBack();
+            return;
+        }
+
+        const taxAmount = getTaxAmount(policy, currentTransaction, taxes.code, TransactionUtils.getAmount(currentTransaction, false, true));
+
+        if (isEditingSplitBill) {
+            IOU.setDraftSplitTransaction(currentTransaction.transactionID, {
+                taxAmount: CurrencyUtils.convertToBackendAmount(taxAmount ?? 0),
+                taxCode: taxes.code,
+            });
             navigateBack();
             return;
         }
-        if (!transaction || !taxes.text || !taxRates) {
-            Navigation.goBack(backTo);
+
+        if (isEditing) {
+            const newTaxCode = taxes.code;
+            IOU.updateMoneyRequestTaxRate({
+                transactionID: currentTransaction?.transactionID ?? '-1',
+                optimisticReportActionID: report?.reportID ?? '-1',
+                taxCode: newTaxCode,
+                taxAmount: CurrencyUtils.convertToBackendAmount(taxAmount ?? 0),
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+            });
+            navigateBack();
             return;
         }
-        const taxAmount = getTaxAmount(taxRates, taxes.text, transaction?.amount);
+
         if (taxAmount === undefined) {
-            Navigation.goBack(backTo);
+            navigateBack();
             return;
         }
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(taxAmount);
-        IOU.setMoneyRequestTaxRate(transaction?.transactionID, taxes);
-        IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits, true);
+        IOU.setMoneyRequestTaxRate(currentTransaction?.transactionID, taxes?.code ?? '');
+        IOU.setMoneyRequestTaxAmount(currentTransaction.transactionID, amountInSmallestCurrencyUnits);
 
-        Navigation.goBack(backTo);
+        navigateBack();
     };
 
     return (
@@ -102,9 +107,13 @@ function IOURequestStepTaxRatePage({
             testID={IOURequestStepTaxRatePage.displayName}
         >
             <TaxPicker
-                selectedTaxRate={isEditing ? editingSelectedTaxRate ?? '' : moneyRequestSelectedTaxRate}
+                selectedTaxRate={taxRateTitle}
                 policyID={report?.policyID}
+                transactionID={currentTransaction?.transactionID}
                 onSubmit={updateTaxRates}
+                action={action}
+                iouType={iouType}
+                onDismiss={navigateBack}
             />
         </StepScreenWrapper>
     );
@@ -112,20 +121,8 @@ function IOURequestStepTaxRatePage({
 
 IOURequestStepTaxRatePage.displayName = 'IOURequestStepTaxRatePage';
 
-const IOURequestStepTaxRatePageWithOnyx = withOnyx<IOURequestStepTaxRatePageProps, IOURequestStepTaxRatePageOnyxProps>({
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-    },
-    policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
-    },
-    policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
-    },
-})(IOURequestStepTaxRatePage);
-
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePageWithOnyx);
+const IOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePage);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTaxRatePageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTaxRatePageWithWritableReportOrNotFound);
 

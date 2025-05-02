@@ -1,40 +1,41 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
+import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ApiUtils from '@libs/ApiUtils';
-import compose from '@libs/compose';
-import Navigation from '@libs/Navigation/Navigation';
-import * as Network from '@userActions/Network';
-import * as Session from '@userActions/Session';
-import * as User from '@userActions/User';
+import {isUsingStagingApi} from '@libs/ApiUtils';
+import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
+import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
+import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
+import type {Account as AccountOnyx} from '@src/types/onyx';
 import Button from './Button';
-import {withNetwork} from './OnyxProvider';
 import Switch from './Switch';
+import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
-type TestToolMenuOnyxProps = {
-    /** User object in Onyx */
-    user: OnyxEntry<UserOnyx>;
+const ACCOUNT_DEFAULT: AccountOnyx = {
+    shouldUseStagingServer: undefined,
+    isSubscribedToNewsletter: false,
+    validated: false,
+    isFromPublicDomain: false,
+    isUsingExpensifyCard: false,
+    isDebugModeEnabled: false,
 };
 
-type TestToolMenuProps = TestToolMenuOnyxProps & {
-    /** Network object in Onyx */
-    network: OnyxEntry<NetworkOnyx>;
-};
-const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
-
-function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
-    const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
+function TestToolMenu() {
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const [account = ACCOUNT_DEFAULT] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE, {canBeMissing: true});
+    const shouldUseStagingServer = account?.shouldUseStagingServer ?? isUsingStagingApi();
+    const isDebugModeEnabled = !!account?.isDebugModeEnabled;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    // Check if the user is authenticated to show options that require authentication
+    const isAuthenticated = useIsAuthenticated();
 
     return (
         <>
@@ -44,6 +45,46 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
             >
                 {translate('initialSettingsPage.troubleshoot.testingPreferences')}
             </Text>
+            {isAuthenticated && (
+                <>
+                    {/* When toggled the app will be put into debug mode. */}
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugMode')}>
+                        <Switch
+                            accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
+                            isOn={isDebugModeEnabled}
+                            onToggle={() => setIsDebugModeEnabled(!isDebugModeEnabled)}
+                        />
+                    </TestToolRow>
+
+                    {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
+                        <Button
+                            small
+                            text={translate('initialSettingsPage.troubleshoot.invalidate')}
+                            onPress={() => invalidateAuthToken()}
+                        />
+                    </TestToolRow>
+
+                    {/* Invalidate stored user auto-generated credentials. Useful for manually testing sign out logic. */}
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.deviceCredentials')}>
+                        <Button
+                            small
+                            text={translate('initialSettingsPage.troubleshoot.destroy')}
+                            onPress={() => invalidateCredentials()}
+                        />
+                    </TestToolRow>
+
+                    {/* Sends an expired session to the FE and invalidates the session by the same time in the BE. Action is delayed for 15s */}
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
+                        <Button
+                            small
+                            text={translate('initialSettingsPage.troubleshoot.invalidateWithDelay')}
+                            onPress={() => expireSessionWithDelay()}
+                        />
+                    </TestToolRow>
+                </>
+            )}
+
             {/* Option to switch between staging and default api endpoints.
         This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
         This toggle is not rendered for internal devs as they make environment changes directly to the .env file. */}
@@ -52,7 +93,7 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     <Switch
                         accessibilityLabel="Use Staging Server"
                         isOn={shouldUseStagingServer}
-                        onToggle={() => User.setShouldUseStagingServer(!shouldUseStagingServer)}
+                        onToggle={() => setShouldUseStagingServer(!shouldUseStagingServer)}
                     />
                 </TestToolRow>
             )}
@@ -62,69 +103,35 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                 <Switch
                     accessibilityLabel="Force offline"
                     isOn={!!network?.shouldForceOffline}
-                    onToggle={() => Network.setShouldForceOffline(!network?.shouldForceOffline)}
+                    onToggle={() => setShouldForceOffline(!network?.shouldForceOffline)}
+                    disabled={!!isUsingImportedState || !!network?.shouldSimulatePoorConnection || network?.shouldFailAllRequests}
+                />
+            </TestToolRow>
+
+            {/* When toggled the app will randomly change internet connection every 2-5 seconds */}
+            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulatePoorConnection')}>
+                <Switch
+                    accessibilityLabel="Simulate poor internet connection"
+                    isOn={!!network?.shouldSimulatePoorConnection}
+                    onToggle={() => setShouldSimulatePoorConnection(!network?.shouldSimulatePoorConnection, network?.poorConnectionTimeoutID)}
+                    disabled={!!isUsingImportedState || !!network?.shouldFailAllRequests || network?.shouldForceOffline}
                 />
             </TestToolRow>
 
             {/* When toggled all network requests will fail. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulatFailingNetworkRequests')}>
+            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulateFailingNetworkRequests')}>
                 <Switch
                     accessibilityLabel="Simulate failing network requests"
                     isOn={!!network?.shouldFailAllRequests}
-                    onToggle={() => Network.setShouldFailAllRequests(!network?.shouldFailAllRequests)}
+                    onToggle={() => setShouldFailAllRequests(!network?.shouldFailAllRequests)}
+                    disabled={!!network?.shouldForceOffline || network?.shouldSimulatePoorConnection}
                 />
             </TestToolRow>
-
-            {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
-                <Button
-                    small
-                    text={translate('initialSettingsPage.troubleshoot.invalidate')}
-                    onPress={() => Session.invalidateAuthToken()}
-                />
-            </TestToolRow>
-
-            {/* Invalidate stored user auto-generated credentials. Useful for manually testing sign out logic. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.deviceCredentials')}>
-                <Button
-                    small
-                    text={translate('initialSettingsPage.troubleshoot.destroy')}
-                    onPress={() => Session.invalidateCredentials()}
-                />
-            </TestToolRow>
-
-            {/* Navigate to the new Onboarding flow (Stage 1). This button is temporary and should be removed after passing QA tests. */}
-            <TestToolRow title="Onboarding Flow">
-                <Button
-                    small
-                    text="Navigate"
-                    onPress={() => {
-                        Navigation.dismissModal();
-                        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
-                    }}
-                />
-            </TestToolRow>
-            {/* Navigate to the new Search Page. This button is temporary and should be removed after passing QA tests. */}
-            <TestToolRow title="New Search Page">
-                <Button
-                    small
-                    text="Navigate"
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
-                    }}
-                />
-            </TestToolRow>
+            <TestCrash />
         </>
     );
 }
 
 TestToolMenu.displayName = 'TestToolMenu';
 
-export default compose(
-    withOnyx<TestToolMenuProps, TestToolMenuOnyxProps>({
-        user: {
-            key: ONYXKEYS.USER,
-        },
-    }),
-    withNetwork(),
-)(TestToolMenu);
+export default TestToolMenu;

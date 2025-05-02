@@ -1,8 +1,6 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -10,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -17,43 +16,38 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails} from '@src/types/onyx';
+import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 
-type ReportParticipantDetailsOnyxProps = {
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
+type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS>;
 
-type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps &
-    StackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS> &
-    ReportParticipantDetailsOnyxProps;
-
-function ReportParticipantDetails({personalDetails, report, route}: ReportParticipantDetailsPageProps) {
+function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '');
+    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1', route.params.backTo);
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
-    const avatar = details.avatar ?? UserUtils.getDefaultAvatar();
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = details.displayName ?? '';
+    const displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details));
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = useCallback(() => {
@@ -67,8 +61,12 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     }, [accountID]);
 
     const openRoleSelectionModal = useCallback(() => {
-        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID));
-    }, [accountID, report.reportID]);
+        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID, route.params.backTo));
+    }, [accountID, report.reportID, route.params.backTo]);
+
+    if (!member) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper testID={ReportParticipantDetails.displayName}>
@@ -81,11 +79,13 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                     <Avatar
                         containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
                         imageStyles={[styles.avatarXLarge]}
-                        source={UserUtils.getAvatar(avatar, accountID)}
-                        size={CONST.AVATAR_SIZE.XLARGE}
+                        source={details.avatar}
+                        avatarID={accountID}
+                        type={CONST.ICON_TYPE_AVATAR}
+                        size={CONST.AVATAR_SIZE.X_LARGE}
                         fallbackIcon={fallbackIcon}
                     />
-                    {Boolean(details.displayName ?? '') && (
+                    {!!(displayName ?? '') && (
                         <Text
                             style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                             numberOfLines={1}
@@ -96,9 +96,8 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                     {isCurrentUserAdmin && (
                         <>
                             <Button
-                                text={translate('workspace.people.removeMemberGroupButtonTitle')}
+                                text={translate('workspace.people.removeGroupMemberButtonTitle')}
                                 onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
-                                medium
                                 isDisabled={isSelectedMemberCurrentUser}
                                 icon={Expensicons.RemoveMembers}
                                 iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
@@ -106,7 +105,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                             />
                             <ConfirmModal
                                 danger
-                                title={translate('workspace.people.removeMemberGroupButtonTitle')}
+                                title={translate('workspace.people.removeGroupMemberButtonTitle')}
                                 isVisible={isRemoveMemberConfirmModalVisible}
                                 onConfirm={removeUser}
                                 onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
@@ -119,13 +118,15 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                 </View>
                 <View style={styles.w100}>
                     {isCurrentUserAdmin && (
-                        <MenuItemWithTopDescription
-                            disabled={isSelectedMemberCurrentUser}
-                            title={member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
-                            description={translate('common.role')}
-                            shouldShowRightIcon
-                            onPress={openRoleSelectionModal}
-                        />
+                        <OfflineWithFeedback pendingAction={member?.pendingFields?.role ?? null}>
+                            <MenuItemWithTopDescription
+                                disabled={isSelectedMemberCurrentUser}
+                                title={member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
+                                description={translate('common.role')}
+                                shouldShowRightIcon
+                                onPress={openRoleSelectionModal}
+                            />
+                        </OfflineWithFeedback>
                     )}
                     <MenuItem
                         title={translate('common.profile')}
@@ -141,10 +142,4 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
 
 ReportParticipantDetails.displayName = 'ReportParticipantDetails';
 
-export default withReportOrNotFound()(
-    withOnyx<ReportParticipantDetailsPageProps, ReportParticipantDetailsOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    })(ReportParticipantDetails),
-);
+export default withReportOrNotFound()(ReportParticipantDetails);

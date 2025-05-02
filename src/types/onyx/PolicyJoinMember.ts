@@ -1,7 +1,8 @@
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Model of policy join member */
 type PolicyJoinMember = {
-    /** Role of the user in the policy */
+    /** The ID of the policy */
     policyID?: string;
 
     /** Email of the user inviting the new member */

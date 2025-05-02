@@ -1,4 +1,5 @@
 import * as github from '@actions/github';
+import type {WebhookPayload} from '@actions/github/lib/interfaces';
 import {parse} from '@babel/parser';
 import traverse from '@babel/traverse';
 import CONST from '@github/libs/CONST';
@@ -7,6 +8,15 @@ import promiseSome from '@github/libs/promiseSome';
 import type Category from './Category';
 
 type SuperClassType = {superClass: {name?: string; object: {name: string}; property: {name: string}} | null; name: string};
+
+type GithubPaylod = WebhookPayload & {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    pull_request?: {
+        head: {
+            ref?: string;
+        };
+    };
+};
 
 const items = [
     "I verified that similar component doesn't exist in the codebase",
@@ -77,7 +87,7 @@ async function detectReactComponentInFile(filename: string): Promise<boolean | u
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
         path: filename,
-        ref: github.context.payload.pull_request?.head.ref,
+        ref: (github.context.payload as GithubPaylod)?.pull_request?.head.ref,
     };
     try {
         const {data} = await GithubUtils.octokit.repos.getContent(params);

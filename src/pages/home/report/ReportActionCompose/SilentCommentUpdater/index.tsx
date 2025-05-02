@@ -19,7 +19,7 @@ function SilentCommentUpdater({comment, commentRef, reportID, value, updateComme
     useEffect(() => {
         updateComment(comment ?? '');
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- We need to run this on mount
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We need to run this on mount
     }, []);
 
     useEffect(() => {

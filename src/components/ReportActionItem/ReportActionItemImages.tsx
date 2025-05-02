@@ -1,7 +1,9 @@
 /* eslint-disable react/no-array-index-key */
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import {Polygon, Svg} from 'react-native-svg';
+import {ImageBehaviorContextProvider} from '@components/Image/ImageBehaviorContextProvider';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -26,6 +28,12 @@ type ReportActionItemImagesProps = {
 
     /** if the corresponding report action item is hovered */
     isHovered?: boolean;
+
+    /** Callback to be called on onPress */
+    onPress?: () => void;
+
+    /** Whether we should use aspect ratio to decide the height of receipt previews. */
+    shouldUseAspectRatio?: boolean;
 };
 
 /**
@@ -37,7 +45,7 @@ type ReportActionItemImagesProps = {
  * additional number when subtracted from size.
  */
 
-function ReportActionItemImages({images, size, total, isHovered = false}: ReportActionItemImagesProps) {
+function ReportActionItemImages({images, size, total, isHovered = false, onPress, shouldUseAspectRatio = false}: ReportActionItemImagesProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -49,13 +57,15 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
     const MAX_REMAINING = 9;
 
     // The height varies depending on the number of images we are displaying.
-    let heightStyle = {};
-    if (numberOfShownImages === 1) {
-        heightStyle = StyleUtils.getHeight(variables.reportActionImagesSingleImageHeight);
+    const layoutStyle = [];
+    if (shouldUseAspectRatio) {
+        layoutStyle.push(styles.receiptPreviewAspectRatio);
+    } else if (numberOfShownImages === 1) {
+        layoutStyle.push(StyleUtils.getMaximumHeight(variables.reportActionImagesSingleImageHeight), StyleUtils.getMinimumHeight(variables.reportActionImagesSingleImageHeight));
     } else if (numberOfShownImages === 2) {
-        heightStyle = StyleUtils.getHeight(variables.reportActionImagesDoubleImageHeight);
+        layoutStyle.push(StyleUtils.getMaximumHeight(variables.reportActionImagesDoubleImageHeight), StyleUtils.getMinimumHeight(variables.reportActionImagesDoubleImageHeight));
     } else if (numberOfShownImages > 2) {
-        heightStyle = StyleUtils.getHeight(variables.reportActionImagesMultipleImageHeight);
+        layoutStyle.push(StyleUtils.getMaximumHeight(variables.reportActionImagesMultipleImageHeight), StyleUtils.getMinimumHeight(variables.reportActionImagesMultipleImageHeight));
     }
 
     const hoverStyle = isHovered ? styles.reportPreviewBoxHoverBorder : undefined;
@@ -64,27 +74,33 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
 
     return (
         <View style={styles.reportActionItemImagesContainer}>
-            <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-                {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile, fileExtension, filename}, index) => {
+            <View style={[styles.reportActionItemImages, hoverStyle, ...layoutStyle]}>
+                {shownImages.map(({thumbnail, isThumbnail, image, isEmptyReceipt, transaction, isLocalFile, fileExtension, filename}, index) => {
                     // Show a border to separate multiple images. Shown to the right for each except the last.
                     const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
                     const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
                     return (
-                        <View
+                        <ImageBehaviorContextProvider
                             key={`${index}-${image}`}
-                            style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
+                            shouldSetAspectRatioInStyle={numberOfShownImages === 1 ? true : Str.isPDF(filename ?? '')}
                         >
-                            <ReportActionItemImage
-                                thumbnail={thumbnail}
-                                fileExtension={fileExtension}
-                                image={image}
-                                isLocalFile={isLocalFile}
-                                filename={filename}
-                                transaction={transaction}
-                                isThumbnail={isThumbnail}
-                                isSingleImage={numberOfShownImages === 1}
-                            />
-                        </View>
+                            <View style={[styles.reportActionItemImage, borderStyle, hoverStyle]}>
+                                <ReportActionItemImage
+                                    thumbnail={thumbnail}
+                                    fileExtension={fileExtension}
+                                    image={image}
+                                    isLocalFile={isLocalFile}
+                                    isEmptyReceipt={isEmptyReceipt}
+                                    filename={filename}
+                                    transaction={transaction}
+                                    isThumbnail={isThumbnail}
+                                    isSingleImage={numberOfShownImages === 1}
+                                    shouldMapHaveBorderRadius={false}
+                                    onPress={onPress}
+                                    shouldUseFullHeight={shouldUseAspectRatio}
+                                />
+                            </View>
+                        </ImageBehaviorContextProvider>
                     );
                 })}
             </View>

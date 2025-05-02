@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addDays, addMinutes, format, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
-import {format as tzFormat, utcToZonedTime} from 'date-fns-tz';
+import {toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
@@ -132,6 +132,7 @@ describe('DateUtils', () => {
     it('canUpdateTimezone should return false when lastUpdatedTimezoneTime is less than 5 minutes ago', () => {
         // Use fake timers to control the current time
         jest.useFakeTimers();
+        DateUtils.setTimezoneUpdated();
         jest.setSystemTime(addMinutes(new Date(), 4));
         const isUpdateTimezoneAllowed = DateUtils.canUpdateTimezone();
         expect(isUpdateTimezoneAllowed).toBe(false);
@@ -161,9 +162,9 @@ describe('DateUtils', () => {
         const tomorrow = addDays(today, 1);
         const yesterday = subDays(today, 1);
 
-        const todayInTimezone = utcToZonedTime(today, timezone);
-        const tomorrowInTimezone = utcToZonedTime(tomorrow, timezone);
-        const yesterdayInTimezone = utcToZonedTime(yesterday, timezone);
+        const todayInTimezone = toZonedTime(today, timezone);
+        const tomorrowInTimezone = toZonedTime(tomorrow, timezone);
+        const yesterdayInTimezone = toZonedTime(yesterday, timezone);
 
         it('isToday should correctly identify today', () => {
             expect(DateUtils.isToday(todayInTimezone, timezone)).toBe(true);
@@ -233,6 +234,12 @@ describe('DateUtils', () => {
                 expect(formattedDate).toEqual(expectedResult);
             });
         });
+
+        it('returns the correct date when the date with time is used', () => {
+            const datetimeStr = '2022-11-07 17:48:00';
+            const expectedResult = '2022-11-07';
+            expect(DateUtils.formatWithUTCTimeZone(datetimeStr)).toEqual(expectedResult);
+        });
     });
 
     describe('getLastBusinessDayOfMonth', () => {
@@ -263,6 +270,60 @@ describe('DateUtils', () => {
             const lastBusinessDay = DateUtils.getLastBusinessDayOfMonth(inputDate);
 
             expect(lastBusinessDay).toEqual(expectedResult);
+        });
+    });
+
+    describe('isCardExpired', () => {
+        it('should return true when the card is expired', () => {
+            const cardMonth = 1;
+            const cardYear = new Date().getFullYear() - 1;
+            expect(DateUtils.isCardExpired(cardMonth, cardYear)).toBe(true);
+        });
+
+        it('should return false when the card is not expired', () => {
+            const cardMonth = 1;
+            const cardYear = new Date().getFullYear() + 1;
+            expect(DateUtils.isCardExpired(cardMonth, cardYear)).toBe(false);
+        });
+    });
+
+    describe('isCurrentTimeWithinRange', () => {
+        beforeAll(() => {
+            jest.useFakeTimers();
+        });
+
+        afterAll(() => {
+            jest.useRealTimers();
+        });
+
+        it('should return true when current time is within the range', () => {
+            const currentTime = new Date(datetime);
+            jest.setSystemTime(currentTime);
+
+            const startTime = '2022-11-06T10:00:00Z';
+            const endTime = '2022-11-07T14:00:00Z';
+
+            expect(DateUtils.isCurrentTimeWithinRange(startTime, endTime)).toBe(true);
+        });
+
+        it('should return false when current time is before the range', () => {
+            const currentTime = new Date(datetime);
+            jest.setSystemTime(currentTime);
+
+            const startTime = '2022-11-07T10:00:00Z';
+            const endTime = '2022-11-07T14:00:00Z';
+
+            expect(DateUtils.isCurrentTimeWithinRange(startTime, endTime)).toBe(false);
+        });
+
+        it('should return false when current time is after the range', () => {
+            const currentTime = new Date(datetime);
+            jest.setSystemTime(currentTime);
+
+            const startTime = '2022-11-06T10:00:00Z';
+            const endTime = '2022-11-06T14:00:00Z';
+
+            expect(DateUtils.isCurrentTimeWithinRange(startTime, endTime)).toBe(false);
         });
     });
 });

@@ -1,19 +1,29 @@
-// @ts-expect-error - This line imports a module from 'pdfjs-dist' package which lacks TypeScript typings.
-import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
-import React, {useMemo} from 'react';
+import 'core-js/proposals/promise-with-resolvers';
+// eslint-disable-next-line import/extensions
+import pdfWorkerSource from 'pdfjs-dist/build/pdf.worker.min.mjs';
+// eslint-disable-next-line import/extensions
+import pdfWorkerLegacySource from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {isMobileSafari, isModernSafari} from '@libs/Browser';
+import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
+const shouldUseLegacyWorker = isMobileSafari() && !isModernSafari();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const pdfWorker = shouldUseLegacyWorker ? pdfWorkerLegacySource : pdfWorkerSource;
+
 if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
+    pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorker], {type: 'text/javascript'}));
 }
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
+    const [failedToLoad, setFailedToLoad] = useState(false);
 
     const thumbnail = useMemo(
         () => (
@@ -26,18 +36,37 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                 }}
                 externalLinkTarget="_blank"
                 onPassword={onPassword}
+                onLoad={() => {
+                    setFailedToLoad(false);
+                }}
+                onLoadSuccess={() => {
+                    if (!onLoadSuccess) {
+                        return;
+                    }
+                    onLoadSuccess();
+                }}
+                onLoadError={() => {
+                    if (onLoadError) {
+                        onLoadError();
+                    }
+                    setFailedToLoad(true);
+                }}
+                error={() => null}
             >
                 <View pointerEvents="none">
                     <Thumbnail pageIndex={0} />
                 </View>
             </Document>
         ),
-        [isAuthTokenRequired, previewSourceURL, onPassword],
+        [isAuthTokenRequired, previewSourceURL, onPassword, onLoadError, onLoadSuccess],
     );
 
     return (
-        <View style={[style, styles.overflowHidden]}>
-            <View style={[styles.w100, styles.h100, styles.alignItemsCenter, styles.justifyContentCenter]}>{enabled && thumbnail}</View>
+        <View style={[style, styles.overflowHidden, failedToLoad && styles.h100]}>
+            <View style={[styles.w100, styles.h100, !failedToLoad && {...styles.alignItemsCenter, ...styles.justifyContentCenter}]}>
+                {enabled && !failedToLoad && thumbnail}
+                {failedToLoad && <PDFThumbnailError />}
+            </View>
         </View>
     );
 }

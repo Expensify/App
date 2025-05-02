@@ -1,11 +1,12 @@
 import React, {useMemo} from 'react';
 import type {TextProps} from 'react-native';
 import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
+import type {TNode} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import FontUtils from '@styles/utils/FontUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import * as HTMLEngineUtils from './htmlEngineUtils';
+import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
@@ -19,7 +20,7 @@ type BaseHTMLEngineProviderProps = ChildrenProps & {
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
-// Beware that each prop should be referentialy stable between renders to avoid
+// Beware that each prop should be referentially stable between renders to avoid
 // costly invalidations and commits.
 function BaseHTMLEngineProvider({textSelectable = false, children, enableExperimentalBRCollapsing = false}: BaseHTMLEngineProviderProps) {
     const styles = useThemeStyles();
@@ -32,7 +33,17 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'edited',
                 contentModel: HTMLContentModel.textual,
             }),
+            'task-title': HTMLElementModel.fromCustomModel({
+                tagName: 'task-title',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: {...styles.taskTitleMenuItem},
+            }),
             'alert-text': HTMLElementModel.fromCustomModel({
+                tagName: 'alert-text',
+                mixedUAStyles: {...styles.formError, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
+            }),
+            'deleted-action': HTMLElementModel.fromCustomModel({
                 tagName: 'alert-text',
                 mixedUAStyles: {...styles.formError, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
@@ -42,24 +53,53 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
+            'muted-text-label': HTMLElementModel.fromCustomModel({
+                tagName: 'muted-text-label',
+                mixedUAStyles: {...styles.mutedNormalTextLabel, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
+            }),
             comment: HTMLElementModel.fromCustomModel({
                 tagName: 'comment',
-                mixedUAStyles: {whiteSpace: 'pre'},
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.islarge === undefined) {
+                        if (tnode.attributes.center === undefined) {
+                            return {whiteSpace: 'pre'};
+                        }
+                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center'};
+                    }
+                    return {whiteSpace: 'pre', ...styles.onlyEmojisText};
+                },
                 contentModel: HTMLContentModel.block,
             }),
             'email-comment': HTMLElementModel.fromCustomModel({
                 tagName: 'email-comment',
-                mixedUAStyles: {whiteSpace: 'normal'},
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.islarge === undefined) {
+                        return {whiteSpace: 'normal'};
+                    }
+                    return {whiteSpace: 'normal', ...styles.onlyEmojisText};
+                },
                 contentModel: HTMLContentModel.block,
             }),
             strong: HTMLElementModel.fromCustomModel({
                 tagName: 'strong',
-                mixedUAStyles: {whiteSpace: 'pre'},
+                getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? {} : styles.strong),
                 contentModel: HTMLContentModel.textual,
+            }),
+            em: HTMLElementModel.fromCustomModel({
+                tagName: 'em',
+                getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? styles.taskTitleMenuItemItalic : styles.em),
+                contentModel: HTMLContentModel.textual,
+            }),
+            h1: HTMLElementModel.fromCustomModel({
+                tagName: 'h1',
+                getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? {} : styles.h1),
+                contentModel: HTMLContentModel.block,
             }),
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
             'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
+            'mention-short': HTMLElementModel.fromCustomModel({tagName: 'mention-short', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
                 mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
@@ -77,8 +117,35 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.textSupporting, ...styles.textLineThrough},
                 contentModel: HTMLContentModel.textual,
             }),
+            blockquote: HTMLElementModel.fromCustomModel({
+                tagName: 'blockquote',
+                contentModel: HTMLContentModel.block,
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.isemojisonly === undefined) {
+                        return isChildOfTaskTitle(tnode as TNode) ? {} : styles.blockquote;
+                    }
+                    return isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
+                },
+            }),
         }),
-        [styles.formError, styles.mb0, styles.colorMuted, styles.textLabelSupporting, styles.lh16, styles.textSupporting, styles.textLineThrough],
+        [
+            styles.formError,
+            styles.mb0,
+            styles.colorMuted,
+            styles.textLabelSupporting,
+            styles.lh16,
+            styles.textSupporting,
+            styles.textLineThrough,
+            styles.mutedNormalTextLabel,
+            styles.onlyEmojisText,
+            styles.onlyEmojisTextLineHeight,
+            styles.taskTitleMenuItem,
+            styles.taskTitleMenuItemItalic,
+            styles.em,
+            styles.strong,
+            styles.h1,
+            styles.blockquote,
+        ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -91,7 +158,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            systemFonts={Object.values(FontUtils.fontFamily.single)}
+            systemFonts={Object.values(FontUtils.fontFamily.single).map((font) => font.fontFamily)}
             htmlParserOptions={{
                 recognizeSelfClosing: true,
             }}
@@ -104,7 +171,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 defaultTextProps={defaultTextProps}
                 defaultViewProps={defaultViewProps}
                 renderers={htmlRenderers}
-                computeEmbeddedMaxWidth={HTMLEngineUtils.computeEmbeddedMaxWidth}
+                computeEmbeddedMaxWidth={computeEmbeddedMaxWidth}
                 enableExperimentalBRCollapsing={enableExperimentalBRCollapsing}
             >
                 {children}

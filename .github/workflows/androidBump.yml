@@ -1,0 +1,49 @@
+name: Android Rollout Bumper
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Runs at midnight every day
+    - cron: '0 0 * * *'
+
+jobs:
+  android_bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Setup Ruby
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
+        with:
+          bundler-cache: true
+
+      - name: Install 1Password CLI
+        # v1
+        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
+
+      - name: Load files from 1Password
+        working-directory: android/app
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
+
+      - name: Get status from Google Play and generate next rollout percentage
+        id: checkAndroidStatus
+        uses: ./.github/actions/javascript/checkAndroidStatus
+        with:
+          GOOGLE_KEY_FILE: android/app/android-fastlane-json-key.json
+          PACKAGE_NAME: org.me.mobiexpensifyg
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Rollout Percentage with Fastlane
+        # We should not rollout if the release is halted or the rollout percentage is completed
+        if: ${{ steps.checkAndroidStatus.outputs.HALTED == 'false' && steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE != '-1' }}
+        run: |
+          echo "HALTED: ${{ steps.checkAndroidStatus.outputs.HALTED }}"
+          echo "ROLLOUT_PERCENTAGE: ${{ steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE }}"
+          bundle exec fastlane android update_hybrid_rollout rollout:${{ steps.checkAndroidStatus.outputs.ROLLOUT_PERCENTAGE }}

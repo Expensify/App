@@ -64,9 +64,9 @@ platforms:
         icon: /assets/images/handshake.svg
         description: Discover the benefits of becoming an Expensify Partner.
 
-      - href: integrations
-        title: Integrations
-        icon: /assets/images/workflow.svg
+      - href: connections
+        title: Connections
+        icon: /assets/images/simple-illustration__monitor-remotesync.svg
         description: Integrate with accounting or HR software to streamline expense approvals.
 
       - href: spending-insights
@@ -83,6 +83,11 @@ platforms:
         title: Expensify Billing
         icon: /assets/images/subscription-annual.svg
         description: Review Expensify's subscription options, plan types, and payment methods.
+
+      - href: travel
+        title: Travel
+        icon: /assets/images/plane.svg
+        description: Manage all your corporate travel needs with Expensify Travel.
      
         
   - href: new-expensify
@@ -109,22 +114,43 @@ platforms:
         icon: /assets/images/shield.svg
         description: Configure rules, settings, and limits for your company’s spending.
       
-      - href: expenses
-        title: Expenses
-        icon: /assets/images/money-into-wallet.svg
+      - href: reports-and-expenses
+        title: Reports & Expenses
+        icon: /assets/images/envelope-receipt.svg
         description: Learn more about expense tracking and submission.
 
-      - href: bank-accounts-and-payments
-        title: Bank Accounts & Payments
+      - href: wallet-and-payments
+        title: Wallet & Payments
+        icon: /assets/images/money-into-wallet.svg
+        description: Send and receive payments.
+
+      - href: connect-credit-cards
+        title: Connect Credit Cards
         icon: /assets/images/bank-card.svg
-        description: Send direct reimbursements, pay invoices, and receive payment.
-      
+        description: Track credit card transactions and reconcile company cards.
+        
       - href: expensify-card
         title: Expensify Card
         icon: /assets/images/hand-card.svg
         description: Explore the perks and benefits of the Expensify Card.
+      
+      - href: travel
+        title: Travel
+        icon: /assets/images/plane.svg
+        description: Manage all your corporate travel needs with Expensify Travel.
+
+      - href: connections
+        title: Connections
+        icon: /assets/images/simple-illustration__monitor-remotesync.svg
+        description: Connect to accounting software to streamline expense approvals.
 
       - href: settings
         title: Settings
         icon: /assets/images/gears.svg
         description: Manage profile settings and notifications.
+        
+      - href: billing-and-subscriptions
+        title: Expensify Billing & Subscriptions
+        icon: /assets/images/subscription-annual.svg
+        description: Review Expensify's subscription options, plan types, and payment methods.
+        

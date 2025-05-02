@@ -14,8 +14,8 @@ type RequestMoneyParams = {
     chatReportID: string;
     transactionID: string;
     reportActionID: string;
-    createdChatReportActionID: string;
-    createdIOUReportActionID: string;
+    createdChatReportActionID?: string;
+    createdIOUReportActionID?: string;
     reportPreviewReportActionID: string;
     receipt?: Receipt;
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
@@ -24,9 +24,12 @@ type RequestMoneyParams = {
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
-    gpsPoints?: string;
+    receiptGpsPoints?: string;
     transactionThreadReportID: string;
-    createdReportActionIDForThread: string;
+    createdReportActionIDForThread: string | undefined;
+    reimbursible?: boolean;
+    description?: string;
+    attendees?: string;
 };
 
 export default RequestMoneyParams;

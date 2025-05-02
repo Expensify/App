@@ -3,6 +3,7 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 # This value is used by $RNMapboxMaps
 $RNMapboxMapsImpl = 'mapbox'
 $VCDisableFrameProcessors = true
+ENV['PROJECT_ROOT_PATH'] = "./";
 
 def node_require(script)
   # Resolve script with node to allow for hoisting
@@ -16,9 +17,9 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
-# Our min supported iOS version is higher than the default (min_ios_version_supported) to support libraires such as Airship
-platform :ios, 14.0
+platform :ios, min_ios_version_supported
 prepare_react_native_project!
+
 
 setup_permissions([
   'Camera',
@@ -48,6 +49,16 @@ def __apply_Xcode_14_3_RC_post_install_workaround(installer)
   end
 end
 
+# Pods does not derive :debug type from NewExpensify's debug configurations so we need to set it manually before react-native-post-install. 
+# Based on this value react-native-post-install will set the correct GCC_PREPROCESSOR_DEFINITIONS e.g. ENABLE_HERMES_DEBUGGER
+def __set_debug_type_for_debug_configurations(installer)
+  installer.pods_project.build_configurations.each do |config|
+    if config.name.downcase.include?("debug")
+      installer.pods_project.add_build_configuration(config.name, :debug)
+    end
+  end
+end
+
 # Configure Mapbox before installing dependencies
 pre_install do |installer|
   $RNMapboxMaps.pre_install(installer)
@@ -70,9 +81,10 @@ target 'NewExpensify' do
     'DebugProduction' => :debug,
     'ReleaseDevelopment' => :release,
     'ReleaseAdHoc' => :release,
-    'ReleaseProduction' => :release
+    'ReleaseProduction' => :release,
+    'Debug' => :debug
 
-  config = use_native_modules!
+  config = use_native_modules!(['npx', 'rnef', 'config', '-p', 'ios'])
 
   # Flags change depending on the env values.
   flags = get_default_flags()
@@ -80,27 +92,24 @@ target 'NewExpensify' do
   # ENV Variable enables/disables TurboModules
   ENV['RCT_NEW_ARCH_ENABLED'] = '1';
 
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-
-  target 'NewExpensifyTests' do
-    inherit! :complete
-    # Pods for testing
-  end
-
   post_install do |installer|
     # Configure Mapbox after installation
     $RNMapboxMaps.post_install(installer)
 
+    __set_debug_type_for_debug_configurations(installer)
     # https://github.com/facebook/react-native/blob/main/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false
+      :mac_catalyst_enabled => false,
+      # :ccache_enabled => true
     )
     __apply_Xcode_14_3_RC_post_install_workaround(installer)
 
@@ -116,4 +125,8 @@ end
 
 target 'NotificationServiceExtension' do
   pod 'AirshipServiceExtension'
+  pod 'GzipSwift'
+  pod 'AppLogs', :path => '../node_modules/react-native-app-logs/AppLogsPod'
 end
+
+pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz'

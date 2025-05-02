@@ -163,8 +163,24 @@ const emojis: PickerEmojis = [
         code: '🤭',
     },
     {
+        name: 'face_with_open_eyes_and_hand_over_mouth',
+        code: '🫢',
+    },
+    {
+        name: 'saluting_face',
+        code: '🫡',
+    },
+    {
         name: 'shushing_face',
         code: '🤫',
+    },
+    {
+        name: 'face_with_peeking_eye',
+        code: '🫣',
+    },
+    {
+        name: 'melting_face',
+        code: '🫠',
     },
     {
         name: 'thinking',
@@ -175,6 +191,10 @@ const emojis: PickerEmojis = [
         code: '🤐',
     },
     {
+        name: 'dotted_line_face',
+        code: '🫥',
+    },
+    {
         name: 'raised_eyebrow',
         code: '🤨',
     },
@@ -183,8 +203,16 @@ const emojis: PickerEmojis = [
         code: '😐',
     },
     {
+        name: 'face_with_diagonal_mouth',
+        code: '🫤',
+    },
+    {
         name: 'expressionless',
         code: '😑',
+    },
+    {
+        name: 'shaking_face',
+        code: '🫨',
     },
     {
         name: 'no_mouth',
@@ -361,6 +389,10 @@ const emojis: PickerEmojis = [
     {
         name: 'cold_sweat',
         code: '😰',
+    },
+    {
+        name: 'face_holding_back_tears',
+        code: '🥹',
     },
     {
         name: 'disappointed_relieved',
@@ -579,6 +611,18 @@ const emojis: PickerEmojis = [
         code: '❤️',
     },
     {
+        name: 'pink_heart',
+        code: '🩷',
+    },
+    {
+        name: 'light_blue_heart',
+        code: '🩵',
+    },
+    {
+        name: 'grey_heart',
+        code: '🩶',
+    },
+    {
         name: 'orange_heart',
         code: '🧡',
     },
@@ -629,6 +673,10 @@ const emojis: PickerEmojis = [
     {
         name: 'sweat_drops',
         code: '💦',
+    },
+    {
+        name: 'bubbles',
+        code: '🫧',
     },
     {
         name: 'dash',
@@ -707,6 +755,16 @@ const emojis: PickerEmojis = [
         types: ['🤏🏿', '🤏🏾', '🤏🏽', '🤏🏼', '🤏🏻'],
     },
     {
+        name: 'palm_down_hand',
+        code: '🫳',
+        types: ['🫳🏿', '🫳🏾', '🫳🏽', '🫳🏼', '🫳🏻'],
+    },
+    {
+        name: 'palm_up_hand',
+        code: '🫴',
+        types: ['🫴🏿', '🫴🏾', '🫴🏽', '🫴🏼', '🫴🏻'],
+    },
+    {
         name: 'v',
         code: '✌️',
         types: ['✌🏿', '✌🏾', '✌🏽', '✌🏼', '✌🏻'],
@@ -730,6 +788,16 @@ const emojis: PickerEmojis = [
         name: 'call_me_hand',
         code: '🤙',
         types: ['🤙🏿', '🤙🏾', '🤙🏽', '🤙🏼', '🤙🏻'],
+    },
+    {
+        name: 'rightwards_hand',
+        code: '🫱',
+        types: ['🫱🏿', '🫱🏾', '🫱🏽', '🫱🏼', '🫱🏻'],
+    },
+    {
+        name: 'leftwards_hand',
+        code: '🫲',
+        types: ['🫲🏿', '🫲🏾', '🫲🏽', '🫲🏼', '🫲🏻'],
     },
     {
         name: 'point_left',
@@ -772,6 +840,11 @@ const emojis: PickerEmojis = [
         types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
     },
     {
+        name: 'hand_with_index_finger_and_thumb_crossed',
+        code: '🫰',
+        types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
+    },
+    {
         name: 'fist_raised',
         code: '✊',
         types: ['✊🏿', '✊🏾', '✊🏽', '✊🏼', '✊🏻'],
@@ -792,6 +865,16 @@ const emojis: PickerEmojis = [
         types: ['🤜🏿', '🤜🏾', '🤜🏽', '🤜🏼', '🤜🏻'],
     },
     {
+        name: 'leftwards_pushing_hand',
+        code: '🫷',
+        types: ['🫷🏿', '🫷🏾', '🫷🏽', '🫷🏼', '🫷🏻'],
+    },
+    {
+        name: 'rightwards_pushing_hand',
+        code: '🫸',
+        types: ['🫸🏿', '🫸🏾', '🫸🏽', '🫸🏼', '🫸🏻'],
+    },
+    {
         name: 'clap',
         code: '👏',
         types: ['👏🏿', '👏🏾', '👏🏽', '👏🏼', '👏🏻'],
@@ -800,6 +883,11 @@ const emojis: PickerEmojis = [
         name: 'raised_hands',
         code: '🙌',
         types: ['🙌🏿', '🙌🏾', '🙌🏽', '🙌🏼', '🙌🏻'],
+    },
+    {
+        name: 'heart_hands',
+        code: '🫶',
+        types: ['🫶🏿', '🫶🏾', '🫶🏽', '🫶🏼', '🫶🏻'],
     },
     {
         name: 'open_hands',
@@ -820,6 +908,11 @@ const emojis: PickerEmojis = [
         name: 'pray',
         code: '🙏',
         types: ['🙏🏿', '🙏🏾', '🙏🏽', '🙏🏼', '🙏🏻'],
+    },
+    {
+        name: 'index_pointing_at_the_viewer',
+        code: '🫵',
+        types: ['🫵🏿', '🫵🏾', '🫵🏽', '🫵🏼', '🫵🏻'],
     },
     {
         name: 'writing_hand',
@@ -909,6 +1002,10 @@ const emojis: PickerEmojis = [
     {
         name: 'lips',
         code: '👄',
+    },
+    {
+        name: 'biting_lip',
+        code: '🫦',
     },
     {
         name: 'baby',
@@ -1511,6 +1608,11 @@ const emojis: PickerEmojis = [
         types: ['🤴🏿', '🤴🏾', '🤴🏽', '🤴🏼', '🤴🏻'],
     },
     {
+        name: 'person_with_crown',
+        code: '🫅',
+        types: ['🫅🏿', '🫅🏾', '🫅🏽', '🫅🏼', '🫅🏻'],
+    },
+    {
         name: 'princess',
         code: '👸',
         types: ['👸🏿', '👸🏾', '👸🏽', '👸🏼', '👸🏻'],
@@ -1574,6 +1676,16 @@ const emojis: PickerEmojis = [
         name: 'pregnant_woman',
         code: '🤰',
         types: ['🤰🏿', '🤰🏾', '🤰🏽', '🤰🏼', '🤰🏻'],
+    },
+    {
+        name: 'pregnant_person',
+        code: '🫄',
+        types: ['🫄🏿', '🫄🏾', '🫄🏽', '🫄🏼', '🫄🏻'],
+    },
+    {
+        name: 'pregnant_man',
+        code: '🫃',
+        types: ['🫃🏿', '🫃🏾', '🫃🏽', '🫃🏼', '🫃🏻'],
     },
     {
         name: 'breast_feeding',
@@ -1719,6 +1831,10 @@ const emojis: PickerEmojis = [
         name: 'elf_woman',
         code: '🧝‍♀️',
         types: ['🧝🏿‍♀️', '🧝🏾‍♀️', '🧝🏽‍♀️', '🧝🏼‍♀️', '🧝🏻‍♀️'],
+    },
+    {
+        name: 'troll',
+        code: '🧌',
     },
     {
         name: 'genie',
@@ -2449,6 +2565,30 @@ const emojis: PickerEmojis = [
         code: '🦄',
     },
     {
+        name: 'moose',
+        code: '🫎',
+    },
+    {
+        name: 'donkey',
+        code: '🫏',
+    },
+    {
+        name: 'wing',
+        code: '🪽',
+    },
+    {
+        name: 'black_bird',
+        code: '🐦‍⬛',
+    },
+    {
+        name: 'goose',
+        code: '🪿',
+    },
+    {
+        name: 'jellyfish',
+        code: '🪼',
+    },
+    {
         name: 'zebra',
         code: '🦓',
     },
@@ -2765,6 +2905,10 @@ const emojis: PickerEmojis = [
         code: '🐚',
     },
     {
+        name: 'coral',
+        code: '🪸',
+    },
+    {
         name: 'snail',
         code: '🐌',
     },
@@ -2853,6 +2997,14 @@ const emojis: PickerEmojis = [
         code: '🥀',
     },
     {
+        name: 'hyacinth',
+        code: '🪻',
+    },
+    {
+        name: 'lotus',
+        code: '🪷',
+    },
+    {
         name: 'hibiscus',
         code: '🌺',
     },
@@ -2919,6 +3071,14 @@ const emojis: PickerEmojis = [
     {
         name: 'leaves',
         code: '🍃',
+    },
+    {
+        name: 'nest_with_eggs',
+        code: '🪺',
+    },
+    {
+        name: 'empty_nest',
+        code: '🪹',
     },
     {
         header: true,
@@ -3056,6 +3216,10 @@ const emojis: PickerEmojis = [
     {
         name: 'peanuts',
         code: '🥜',
+    },
+    {
+        name: 'beans',
+        code: '🫘',
     },
     {
         name: 'chestnut',
@@ -3198,6 +3362,10 @@ const emojis: PickerEmojis = [
         code: '🥫',
     },
     {
+        name: 'jar',
+        code: '🫙',
+    },
+    {
         name: 'bento',
         code: '🍱',
     },
@@ -3228,6 +3396,14 @@ const emojis: PickerEmojis = [
     {
         name: 'sweet_potato',
         code: '🍠',
+    },
+    {
+        name: 'ginger',
+        code: '🫚',
+    },
+    {
+        name: 'pea_pod',
+        code: '🫛',
     },
     {
         name: 'oden',
@@ -3348,6 +3524,10 @@ const emojis: PickerEmojis = [
     {
         name: 'milk_glass',
         code: '🥛',
+    },
+    {
+        name: 'pouring_liquid',
+        code: '🫗',
     },
     {
         name: 'coffee',
@@ -3843,6 +4023,10 @@ const emojis: PickerEmojis = [
         code: '🦼',
     },
     {
+        name: 'crutch',
+        code: '🩼',
+    },
+    {
         name: 'auto_rickshaw',
         code: '🛺',
     },
@@ -3861,6 +4045,10 @@ const emojis: PickerEmojis = [
     {
         name: 'roller_skate',
         code: '🛼',
+    },
+    {
+        name: 'wheel',
+        code: '🛞',
     },
     {
         name: 'busstop',
@@ -3933,6 +4121,10 @@ const emojis: PickerEmojis = [
     {
         name: 'ship',
         code: '🚢',
+    },
+    {
+        name: 'ring_buoy',
+        code: '🛟',
     },
     {
         name: 'airplane',
@@ -4360,12 +4552,20 @@ const emojis: PickerEmojis = [
         code: '🎎',
     },
     {
+        name: 'folding_hand_fan',
+        code: '🪭',
+    },
+    {
         name: 'flags',
         code: '🎏',
     },
     {
         name: 'wind_chime',
         code: '🎐',
+    },
+    {
+        name: 'mirror_ball',
+        code: '🪩',
     },
     {
         name: 'rice_scene',
@@ -4540,6 +4740,10 @@ const emojis: PickerEmojis = [
         code: '🪁',
     },
     {
+        name: 'playground_slide',
+        code: '🛝',
+    },
+    {
         name: '8ball',
         code: '🎱',
     },
@@ -4554,6 +4758,10 @@ const emojis: PickerEmojis = [
     {
         name: 'nazar_amulet',
         code: '🧿',
+    },
+    {
+        name: 'hamsa',
+        code: '🪬',
     },
     {
         name: 'video_game',
@@ -4921,12 +5129,20 @@ const emojis: PickerEmojis = [
         code: '🎹',
     },
     {
+        name: 'maracas',
+        code: '🪇',
+    },
+    {
         name: 'trumpet',
         code: '🎺',
     },
     {
         name: 'violin',
         code: '🎻',
+    },
+    {
+        name: 'flute',
+        code: '🪈',
     },
     {
         name: 'banjo',
@@ -4967,6 +5183,10 @@ const emojis: PickerEmojis = [
     {
         name: 'battery',
         code: '🔋',
+    },
+    {
+        name: 'low_battery',
+        code: '🪫',
     },
     {
         name: 'electric_plug',
@@ -5179,6 +5399,10 @@ const emojis: PickerEmojis = [
     {
         name: 'credit_card',
         code: '💳',
+    },
+    {
+        name: 'identification_card',
+        code: '🪪',
     },
     {
         name: 'receipt',
@@ -5509,6 +5733,10 @@ const emojis: PickerEmojis = [
         code: '🔭',
     },
     {
+        name: 'x_ray',
+        code: '🩻',
+    },
+    {
         name: 'satellite',
         code: '📡',
     },
@@ -5583,6 +5811,10 @@ const emojis: PickerEmojis = [
     {
         name: 'razor',
         code: '🪒',
+    },
+    {
+        name: 'hair_pick',
+        code: '🪮',
     },
     {
         name: 'lotion_bottle',
@@ -5708,6 +5940,10 @@ const emojis: PickerEmojis = [
     {
         name: 'left_luggage',
         code: '🛅',
+    },
+    {
+        name: 'wireless',
+        code: '🛜',
     },
     {
         name: 'warning',
@@ -5864,6 +6100,10 @@ const emojis: PickerEmojis = [
     {
         name: 'wheel_of_dharma',
         code: '☸️',
+    },
+    {
+        name: 'khanda',
+        code: '🪯',
     },
     {
         name: 'yin_yang',
@@ -6068,6 +6308,10 @@ const emojis: PickerEmojis = [
     {
         name: 'heavy_division_sign',
         code: '➗',
+    },
+    {
+        name: 'heavy_equals_sign',
+        code: '🟰',
     },
     {
         name: 'infinity',

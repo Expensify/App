@@ -1,87 +1,164 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import React, {useMemo, useState} from 'react';
+import {InteractionManager, Keyboard, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import CategorySelectorModal from '@components/CategorySelector/CategorySelectorModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Switch from '@components/Switch';
+import ScrollView from '@components/ScrollView';
+import SelectionList from '@components/SelectionList';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setWorkspaceRequiresCategory} from '@libs/actions/Policy';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {getCurrentConnectionName} from '@libs/PolicyUtils';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
+import {clearPolicyErrorField, setWorkspaceDefaultSpendCategory} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
+import SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 
-type WorkspaceCategoriesSettingsPageOnyxProps = {
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-};
+type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS>;
 
-type WorkspaceCategoriesSettingsPageProps = WorkspaceCategoriesSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS>;
-
-function WorkspaceCategoriesSettingsPage({route, policyCategories}: WorkspaceCategoriesSettingsPageProps) {
+function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [currentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const currentConnectionName = getCurrentConnectionName(policy);
+    const [isSelectorModalVisible, setIsSelectorModalVisible] = useState(false);
+    const [categoryID, setCategoryID] = useState<string>();
+    const [groupID, setGroupID] = useState<string>();
+    const isQuickSettingsFlow = backTo;
+
+    const toggleSubtitle =
+        isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', {connectionName: currentConnectionName}) : undefined;
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
-        setWorkspaceRequiresCategory(route.params.policyID, value);
+        setWorkspaceRequiresCategory(policyID, value);
     };
 
-    const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(policyCategories ?? {});
+    const {sections} = useMemo(() => {
+        if (!(currentPolicy && currentPolicy.mccGroup)) {
+            return {sections: [{data: []}]};
+        }
+
+        return {
+            sections: [
+                {
+                    data: Object.entries(currentPolicy.mccGroup).map(
+                        ([mccKey, mccGroup]) =>
+                            ({
+                                categoryID: mccGroup.category,
+                                keyForList: mccKey,
+                                groupID: mccKey,
+                                tabIndex: -1,
+                                pendingAction: mccGroup?.pendingAction,
+                            } as ListItem),
+                    ),
+                },
+            ],
+        };
+    }, [currentPolicy]);
+
+    const hasEnabledCategories = hasEnabledOptions(policyCategories ?? {});
+    const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
+
+    const setNewCategory = (selectedCategory: ListItem) => {
+        if (!selectedCategory.keyForList || !groupID) {
+            return;
+        }
+        if (categoryID !== selectedCategory.keyForList) {
+            setWorkspaceDefaultSpendCategory(policyID, groupID, selectedCategory.keyForList);
+        }
+
+        Keyboard.dismiss();
+        InteractionManager.runAfterInteractions(() => {
+            setIsSelectorModalVisible(false);
+        });
+    };
+
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={route.params.policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
-                >
-                    {({policy}) => (
-                        <ScreenWrapper
-                            includeSafeAreaPaddingBottom={false}
-                            style={[styles.defaultModalContainer]}
-                            testID={WorkspaceCategoriesSettingsPage.displayName}
-                        >
-                            <HeaderWithBackButton title={translate('common.settings')} />
-                            <View style={styles.flexGrow1}>
-                                <OfflineWithFeedback
-                                    errors={policy?.errorFields?.requiresCategory}
-                                    pendingAction={policy?.pendingFields?.requiresCategory}
-                                    errorRowStyles={styles.mh5}
-                                >
-                                    <View style={[styles.mt2, styles.mh4]}>
-                                        <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                            <Text style={[styles.textNormal, styles.colorMuted, styles.flexShrink1, styles.mr2]}>{translate('workspace.categories.requiresCategory')}</Text>
-                                            <Switch
-                                                isOn={policy?.requiresCategory ?? false}
-                                                accessibilityLabel={translate('workspace.categories.requiresCategory')}
-                                                onToggle={updateWorkspaceRequiresCategory}
-                                                disabled={!policy?.areCategoriesEnabled || !hasEnabledOptions}
-                                            />
-                                        </View>
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+        >
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                style={[styles.defaultModalContainer]}
+                testID={WorkspaceCategoriesSettingsPage.displayName}
+            >
+                <HeaderWithBackButton
+                    title={translate('common.settings')}
+                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined)}
+                />
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.categories.requiresCategory')}
+                        subtitle={toggleSubtitle}
+                        switchAccessibilityLabel={translate('workspace.categories.requiresCategory')}
+                        isActive={policy?.requiresCategory ?? false}
+                        onToggle={updateWorkspaceRequiresCategory}
+                        pendingAction={policy?.pendingFields?.requiresCategory}
+                        disabled={isToggleDisabled}
+                        wrapperStyle={[styles.pv2, styles.mh5]}
+                        errors={policy?.errorFields?.requiresCategory ?? undefined}
+                        onCloseError={() => clearPolicyErrorField(policy?.id, 'requiresCategory')}
+                        shouldPlaceSubtitleBelowSwitch
+                    />
+                    <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
+                    <View style={[styles.containerWithSpaceBetween]}>
+                        {!!currentPolicy && (sections.at(0)?.data?.length ?? 0) > 0 && (
+                            <SelectionList
+                                addBottomSafeAreaPadding
+                                headerContent={
+                                    <View style={[styles.mh5, styles.mt2, styles.mb1]}>
+                                        <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
+                                        <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
                                     </View>
-                                </OfflineWithFeedback>
-                            </View>
-                        </ScreenWrapper>
-                    )}
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                                }
+                                sections={sections}
+                                ListItem={SpendCategorySelectorListItem}
+                                onSelectRow={(item) => {
+                                    if (!item.groupID || !item.categoryID) {
+                                        return;
+                                    }
+                                    setIsSelectorModalVisible(true);
+                                    setCategoryID(item.categoryID);
+                                    setGroupID(item.groupID);
+                                }}
+                            />
+                        )}
+                    </View>
+                </ScrollView>
+                {!!categoryID && !!groupID && (
+                    <CategorySelectorModal
+                        policyID={policyID}
+                        isVisible={isSelectorModalVisible}
+                        currentCategory={categoryID}
+                        onClose={() => setIsSelectorModalVisible(false)}
+                        onCategorySelected={setNewCategory}
+                        label={groupID[0].toUpperCase() + groupID.slice(1)}
+                    />
+                )}
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
 WorkspaceCategoriesSettingsPage.displayName = 'WorkspaceCategoriesSettingsPage';
 
-export default withOnyx<WorkspaceCategoriesSettingsPageProps, WorkspaceCategoriesSettingsPageOnyxProps>({
-    policyCategories: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
-    },
-})(WorkspaceCategoriesSettingsPage);
+export default withPolicyConnections(WorkspaceCategoriesSettingsPage);

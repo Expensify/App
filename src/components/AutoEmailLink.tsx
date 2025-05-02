@@ -1,4 +1,4 @@
-import {CONST} from 'expensify-common/lib/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,32 +18,43 @@ type AutoEmailLinkProps = {
 
 function AutoEmailLink({text, style}: AutoEmailLinkProps) {
     const styles = useThemeStyles();
+    const emailRegex = COMMON_CONST.REG_EXP.EXTRACT_EMAIL;
+    const matches = [...text.matchAll(emailRegex)];
+
+    if (matches.length === 0) {
+        return <Text style={style}>{text}</Text>;
+    }
+
+    let lastIndex = 0;
+
     return (
         <Text style={style}>
-            {text.split(CONST.REG_EXP.EXTRACT_EMAIL).map((str, index) => {
-                if (CONST.REG_EXP.EMAIL.test(str)) {
-                    return (
-                        <TextLink
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`${index}-${str}`}
-                            href={`mailto:${str}`}
-                            style={styles.link}
-                        >
-                            {str}
-                        </TextLink>
-                    );
+            {matches.flatMap((match, index) => {
+                const email = match[0];
+                const startIndex = match.index ?? 0;
+                const elements = [];
+
+                // Push plain text before email
+                if (startIndex > lastIndex) {
+                    elements.push(text.slice(lastIndex, startIndex));
                 }
 
-                return (
-                    <Text
-                        style={style}
+                // Push email as a link
+                elements.push(
+                    <TextLink
                         // eslint-disable-next-line react/no-array-index-key
-                        key={`${index}-${str}`}
+                        key={`email-${index}`}
+                        href={`mailto:${email}`}
+                        style={styles.link}
                     >
-                        {str}
-                    </Text>
+                        {email}
+                    </TextLink>,
                 );
+
+                lastIndex = startIndex + email.length;
+                return elements;
             })}
+            {lastIndex < text.length && text.slice(lastIndex)}
         </Text>
     );
 }

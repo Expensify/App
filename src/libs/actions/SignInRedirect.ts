@@ -1,7 +1,8 @@
 import Onyx from 'react-native-onyx';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {clearAllPolicies} from './Policy/Policy';
 
 let currentIsOffline: boolean | undefined;
 let currentShouldForceOffline: boolean | undefined;
@@ -19,6 +20,7 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     // flashes of unwanted default state.
     const keysToPreserve: OnyxKey[] = [];
     keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    keysToPreserve.push(ONYXKEYS.PREFERRED_THEME);
     keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     keysToPreserve.push(ONYXKEYS.DEVICE_ID);
 
@@ -29,12 +31,13 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     }
 
     return Onyx.clear(keysToPreserve).then(() => {
+        clearAllPolicies();
         if (!errorMessage) {
             return;
         }
 
         // `Onyx.clear` reinitializes the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
-        Onyx.merge(ONYXKEYS.SESSION, {errors: ErrorUtils.getMicroSecondOnyxError(errorMessage)});
+        Onyx.merge(ONYXKEYS.SESSION, {errors: getMicroSecondOnyxErrorWithMessage(errorMessage)});
     });
 }
 

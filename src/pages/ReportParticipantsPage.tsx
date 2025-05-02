@@ -2,8 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TextInput} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -12,54 +11,78 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {FallbackAvatar, MakeAdmin, Plus, RemoveMembers, User} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Report from '@libs/actions/Report';
-import Log from '@libs/Log';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {removeFromGroupChat, updateGroupChatMemberRoles} from '@libs/actions/Report';
+import {clearUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
+import {isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {
+    getParticipantsList,
+    getReportName,
+    isArchivedNonExpenseReport,
+    isChatRoom,
+    isChatThread,
+    isGroupChatAdmin,
+    isGroupChat as isGroupChatUtils,
+    isMoneyRequestReport,
+    isPolicyExpenseChat,
+    isSelfDM,
+    isTaskReport,
+} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Session} from '@src/types/onyx';
+import type SCREENS from '@src/SCREENS';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
-type ReportParticipantsPageOnyxProps = {
-    /** Personal details of all the users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-};
-
-type ReportParticipantsPageProps = ReportParticipantsPageOnyxProps & WithReportOrNotFoundProps;
-
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-function ReportParticipantsPage({report, personalDetails, session}: ReportParticipantsPageProps) {
+type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
+function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
+    const backTo = route.params.backTo;
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const selectionListRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<TextInput>(null);
+    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
+    const {selectionMode} = useMobileSelectionMode();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
-    const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserAccountID);
-    const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserAccountID);
+    const isGroupChat = useMemo(() => isGroupChatUtils(report), [report]);
     const isFocused = useIsFocused();
+    const {isOffline} = useNetwork();
+    const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
+    const [searchValue, setSearchValue] = useState('');
 
     useEffect(() => {
         if (isFocused) {
@@ -68,43 +91,83 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
         setSelectedMembers([]);
     }, [isFocused]);
 
-    const getUsers = useCallback((): MemberOption[] => {
-        let result: MemberOption[] = [];
-        const chatParticipants = isGroupChat ? ReportUtils.getParticipantAccountIDs(report.reportID) : ReportUtils.getVisibleChatMemberAccountIDs(report.reportID);
-        chatParticipants.forEach((accountID) => {
-            const role = report.participants?.[accountID].role;
-            const details = personalDetails?.[accountID];
-            if (!details) {
-                Log.hmmm(`[ReportParticipantsPage] no personal details found for Group chat member with accountID: ${accountID}`);
+    const chatParticipants = getParticipantsList(report, personalDetails);
+
+    const pendingChatMembers = reportMetadata?.pendingChatMembers;
+    const reportParticipants = report?.participants;
+
+    // Get the active chat members by filtering out the pending members with delete action
+    const activeParticipants = chatParticipants.filter((accountID) => {
+        const pendingMember = pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        if (!personalDetails?.[accountID]) {
+            return false;
+        }
+        // When offline, we want to include the pending members with delete action as they are displayed in the list as well
+        return !pendingMember || isOffline || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    });
+
+    // Include the search bar when there are 8 or more active members in the selection list
+    const shouldShowTextInput = activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+        if (shouldShowTextInput) {
+            setSearchValue(userSearchPhrase ?? '');
+        } else {
+            clearUserSearchPhrase();
+            setSearchValue('');
+        }
+    }, [isFocused, setSearchValue, shouldShowTextInput, userSearchPhrase]);
+
+    useSearchBackPress({
+        onClearSelection: () => setSelectedMembers([]),
+        onNavigationCallBack: () => {
+            if (!report) {
                 return;
             }
 
-            const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            const isSelected = selectedMembers.includes(accountID);
+            setSearchValue('');
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+        },
+    });
+
+    const getParticipants = () => {
+        let result: MemberOption[] = [];
+
+        chatParticipants.forEach((accountID) => {
+            const role = reportParticipants?.[accountID].role;
+            const details = personalDetails?.[accountID];
+
+            // If search value is provided, filter out members that don't match the search value
+            if (!details || (searchValue.trim() && !isSearchStringMatchUserDetails(details, searchValue))) {
+                return;
+            }
+
+            const pendingChatMember = pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+            const isSelected = selectedMembers.includes(accountID) && canSelectMultiple;
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;
             if (isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
-                    />
-                );
+                roleBadge = <Badge text={translate('common.admin')} />;
             }
+
+            const pendingAction = pendingChatMember?.pendingAction ?? reportParticipants?.[accountID]?.pendingAction;
 
             result.push({
                 keyForList: `${accountID}`,
                 accountID,
                 isSelected,
                 isDisabledCheckbox: accountID === currentUserAccountID,
-                text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+                isDisabled: pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details?.isOptimisticPersonalDetail,
+                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
-                pendingAction: pendingChatMember?.pendingAction,
+                pendingAction,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(details?.avatar, accountID),
+                        source: details?.avatar ?? FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -115,9 +178,9 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, styles, StyleUtils, isGroupChat]);
+    };
 
-    const participants = useMemo(() => getUsers(), [getUsers]);
+    const participants = getParticipants();
 
     /**
      * Add user from the selectedMembers list
@@ -129,9 +192,8 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
      */
     const toggleAllUsers = (memberList: MemberOption[]) => {
         const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
-        const everyoneSelected = enabledAccounts.every((member) => selectedMembers.includes(member.accountID));
-
-        if (everyoneSelected) {
+        const someSelected = enabledAccounts.some((member) => selectedMembers.includes(member.accountID));
+        if (someSelected) {
             setSelectedMembers([]);
         } else {
             const everyAccountId = enabledAccounts.map((member) => member.accountID);
@@ -153,8 +215,8 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
      * Open the modal to invite a user
      */
     const inviteUser = useCallback(() => {
-        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_INVITE.getRoute(report.reportID));
-    }, [report]);
+        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_INVITE.getRoute(report.reportID, backTo));
+    }, [report, backTo]);
 
     /**
      * Remove selected users from the workspace
@@ -163,15 +225,19 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const removeUsers = () => {
         // Remove the admin from the list
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
-        Report.removeFromGroupChat(report.reportID, accountIDsToRemove);
+        removeFromGroupChat(report.reportID, accountIDsToRemove);
+        setSearchValue('');
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
+        InteractionManager.runAfterInteractions(() => {
+            clearUserSearchPhrase();
+        });
     };
 
     const changeUserRole = useCallback(
         (role: ValueOf<typeof CONST.REPORT.ROLE>) => {
             const accountIDsToUpdate = selectedMembers.filter((id) => report.participants?.[id].role !== role);
-            Report.updateGroupChatMemberRoles(report.reportID, accountIDsToUpdate, role);
+            updateGroupChatMemberRoles(report.reportID, accountIDsToUpdate, role);
             setSelectedMembers([]);
         },
         [report, selectedMembers],
@@ -181,72 +247,76 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
      * Toggle user from the selectedMembers list
      */
     const toggleUser = useCallback(
-        (accountID: number) => {
+        (user: MemberOption) => {
+            if (user.accountID === currentUserAccountID) {
+                return;
+            }
+
             // Add or remove the user if the checkbox is enabled
-            if (selectedMembers.includes(accountID)) {
-                removeUser(accountID);
+            if (selectedMembers.includes(user.accountID)) {
+                removeUser(user.accountID);
             } else {
-                addUser(accountID);
+                addUser(user.accountID);
             }
         },
-        [selectedMembers, addUser, removeUser],
+        [selectedMembers, addUser, removeUser, currentUserAccountID],
     );
 
-    const headerContent = useMemo(() => {
-        if (!isGroupChat) {
-            return;
-        }
-
-        return <Text style={[styles.pl5, styles.mb4, styles.mt6, styles.textSupporting]}>{translate('groupChat.groupMembersListTitle')}</Text>;
-    }, [styles, translate, isGroupChat]);
-
     const customListHeader = useMemo(() => {
-        if (!isGroupChat) {
-            return;
-        }
-
         const header = (
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
                 <View>
-                    <Text style={[styles.searchInputStyle, isCurrentUserAdmin ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
+                    <Text style={[styles.textMicroSupporting, canSelectMultiple ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
                 </View>
-                <View style={[StyleUtils.getMinimumWidth(60)]}>
-                    <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
-                </View>
+                {isGroupChat && (
+                    <View style={[StyleUtils.getMinimumWidth(60)]}>
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('common.role')}</Text>
+                    </View>
+                )}
             </View>
         );
 
-        if (isCurrentUserAdmin) {
+        if (canSelectMultiple) {
             return header;
         }
 
-        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5]}>{header}</View>;
-    }, [styles, translate, isGroupChat, isCurrentUserAdmin, StyleUtils]);
+        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, shouldShowTextInput ? styles.mt3 : styles.mt0]}>{header}</View>;
+    }, [styles, translate, isGroupChat, shouldShowTextInput, StyleUtils, canSelectMultiple]);
 
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
             {
-                text: translate('workspace.people.removeMembersTitle'),
+                text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
-                icon: Expensicons.RemoveMembers,
+                icon: RemoveMembers,
                 onSelected: () => setRemoveMembersConfirmModalVisible(true),
-            },
-            {
-                text: translate('workspace.people.makeAdmin'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-                icon: Expensicons.MakeAdmin,
-                onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
-            },
-            {
-                text: translate('workspace.people.makeMember'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                icon: Expensicons.MakeAdmin,
-                onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
             },
         ];
 
+        const isAtleastOneAdminSelected = selectedMembers.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.ADMIN);
+
+        if (isAtleastOneAdminSelected) {
+            options.push({
+                text: translate('workspace.people.makeMember'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+                icon: User,
+                onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
+            });
+        }
+
+        const isAtleastOneMemberSelected = selectedMembers.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.MEMBER);
+
+        if (isAtleastOneMemberSelected) {
+            options.push({
+                text: translate('workspace.people.makeAdmin'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+                icon: MakeAdmin,
+                onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
+            });
+        }
+
         return options;
-    }, [changeUserRole, translate, setRemoveMembersConfirmModalVisible]);
+    }, [changeUserRole, translate, setRemoveMembersConfirmModalVisible, selectedMembers, report.participants]);
 
     const headerButtons = useMemo(() => {
         if (!isGroupChat) {
@@ -255,76 +325,92 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
         return (
             <View style={styles.w100}>
-                {selectedMembers.length > 0 ? (
+                {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                     <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
-                        customText={translate('workspace.common.selected', {selectedNumber: selectedMembers.length})}
+                        customText={translate('workspace.common.selected', {count: selectedMembers.length})}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
+                        isSplitButton={false}
                         options={bulkActionsButtonOptions}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                        isDisabled={!selectedMembers.length}
                     />
                 ) : (
                     <Button
-                        medium
                         success
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
-                        icon={Expensicons.Plus}
-                        innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        icon={Plus}
+                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     />
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, isGroupChat]);
+    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, isGroupChat, canSelectMultiple, shouldUseNarrowLayout]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
             if (isGroupChat && isCurrentUserAdmin) {
-                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, item.accountID));
+                Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_DETAILS.getRoute(report.reportID, item.accountID, backTo));
                 return;
             }
-            Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+            Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
         },
-        [report, isCurrentUserAdmin, isGroupChat],
+        [report, isCurrentUserAdmin, isGroupChat, backTo],
     );
     const headerTitle = useMemo(() => {
-        if (
-            ReportUtils.isChatRoom(report) ||
-            ReportUtils.isPolicyExpenseChat(report) ||
-            ReportUtils.isChatThread(report) ||
-            ReportUtils.isTaskReport(report) ||
-            ReportUtils.isMoneyRequestReport(report) ||
-            isGroupChat
-        ) {
+        if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report) || isMoneyRequestReport(report) || isGroupChat) {
             return translate('common.members');
         }
         return translate('common.details');
     }, [report, translate, isGroupChat]);
+
+    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const memberNotFoundMessage = isGroupChat
+        ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}`
+        : translate('roomMembersPage.memberNotFound');
+    const headerMessage = searchValue.trim() && !participants.length ? memberNotFoundMessage : '';
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
             testID={ReportParticipantsPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report)}>
+            <FullPageNotFoundView shouldShow={!report || isArchivedNonExpenseReport(report, reportNameValuePairs) || isSelfDM(report)}>
                 <HeaderWithBackButton
-                    title={headerTitle}
-                    onBackButtonPress={report ? () => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)) : undefined}
-                    shouldShowBackButton
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                    title={selectionModeHeader ? translate('common.selectMultiple') : headerTitle}
+                    onBackButtonPress={() => {
+                        if (selectionMode?.isEnabled) {
+                            setSelectedMembers([]);
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
+
+                        if (report) {
+                            setSearchValue('');
+                            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+                        }
+                    }}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, undefined, undefined, undefined, undefined, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal
                     danger
-                    title={translate('workspace.people.removeMembersTitle')}
+                    title={translate('workspace.people.removeMembersTitle', {count: selectedMembers.length})}
                     isVisible={removeMembersConfirmModalVisible}
                     onConfirm={removeUsers}
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={translate('workspace.people.removeMembersPrompt')}
+                    prompt={translate('workspace.people.removeMembersPrompt', {
+                        count: selectedMembers.length,
+                        memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
+                    })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
                     onModalHide={() => {
@@ -336,20 +422,27 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                         });
                     }}
                 />
-                <View style={[styles.w100, styles.flex1]}>
-                    <SelectionList
+                <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>
+                    <SelectionListWithModal
                         ref={selectionListRef}
-                        canSelectMultiple={isGroupChat && isCurrentUserAdmin}
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress={isCurrentUserAdmin && isGroupChat}
+                        onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         sections={[{data: participants}]}
+                        shouldShowTextInput={shouldShowTextInput}
+                        textInputLabel={translate('selectionList.findMember')}
+                        textInputValue={searchValue}
+                        onChangeText={setSearchValue}
+                        headerMessage={headerMessage}
                         ListItem={TableListItem}
-                        headerContent={headerContent}
                         onSelectRow={openMemberDetails}
-                        onCheckboxPress={(item) => toggleUser(item.accountID)}
+                        shouldSingleExecuteRowSelect={!(isGroupChat && isCurrentUserAdmin)}
+                        onCheckboxPress={(item) => toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(participants)}
                         showScrollIndicator
                         textInputRef={textInputRef}
                         customListHeader={customListHeader}
-                        listHeaderWrapperStyle={[styles.ph9]}
+                        listHeaderWrapperStyle={[styles.ph9, styles.mt3]}
                     />
                 </View>
             </FullPageNotFoundView>
@@ -359,13 +452,4 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
 ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
-export default withReportOrNotFound()(
-    withOnyx<ReportParticipantsPageProps, ReportParticipantsPageOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    })(ReportParticipantsPage),
-);
+export default withReportOrNotFound()(ReportParticipantsPage);

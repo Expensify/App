@@ -15,7 +15,7 @@ ___
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
 **Expensify/Expensify Issue URL:**
 **Issue reported by:**
-**Slack conversation:**
+**Slack conversation** (hyperlinked to channel name):
 
 ## Action Performed:
 Break down in numbered steps
@@ -30,20 +30,36 @@ Describe what actually happened
 Can the user still use Expensify without this being fixed? Have you informed them of the workaround?
 
 ## Platforms:
-<!---
-Check off any platforms that are affected by this issue
---->
-Which of our officially supported platforms is this issue occurring on?
-- [ ] Android: Native
+Select the officially supported platforms where the issue was reproduced:
+- [ ] Android: App
 - [ ] Android: mWeb Chrome
-- [ ] iOS: Native
+- [ ] iOS: App
 - [ ] iOS: mWeb Safari
+- [ ] iOS: mWeb Chrome
+- [ ] Windows: Chrome
 - [ ] MacOS: Chrome / Safari
 - [ ] MacOS: Desktop
 
+<details>
+  <summary>Platforms Tested:</summary>
+On which of our officially supported platforms was this issue tested:
+
+- [ ] Android: App
+- [ ] Android: mWeb Chrome
+- [ ] iOS: App
+- [ ] iOS: mWeb Safari
+- [ ] iOS: mWeb Chrome
+- [ ] Windows: Chrome
+- [ ] MacOS: Chrome / Safari
+- [ ] MacOS: Desktop
+
+</details>
+
 ## Screenshots/Videos
 
-Add any screenshot/video evidence
+<details>
+  <summary>Add any screenshot/video evidence</summary>
+
 
 </details>
 

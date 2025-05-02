@@ -5,16 +5,25 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
+import {formatReportLastMessageText} from '@libs/ReportUtils';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 import type DisplayNamesProps from './types';
 
 type HTMLElementWithText = HTMLElement & RNText;
 
-function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWithTooltips, textStyles = [], numberOfLines = 1, renderAdditionalText}: DisplayNamesProps) {
+function DisplayNamesWithToolTip({
+    shouldUseFullTitle,
+    fullTitle,
+    displayNamesWithTooltips,
+    shouldAddEllipsis = false,
+    textStyles = [],
+    numberOfLines = 1,
+    renderAdditionalText,
+}: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
     const childRefs = useRef<HTMLElementWithText[]>([]);
+    // eslint-disable-next-line react-compiler/react-compiler
     const isEllipsisActive = !!containerRef.current?.offsetWidth && !!containerRef.current?.scrollWidth && containerRef.current.offsetWidth < containerRef.current.scrollWidth;
 
     /**
@@ -31,13 +40,13 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
      */
     const getTooltipShiftX = useCallback((index: number) => {
         // Only shift the tooltip in case the containerLayout or Refs to the text node are available
-        if (!containerRef.current || !childRefs.current[index]) {
+        if (!containerRef.current || index < 0 || !childRefs.current.at(index)) {
             return 0;
         }
         const {width: containerWidth, left: containerLeft} = containerRef.current.getBoundingClientRect();
 
         // We have to return the value as Number so we can't use `measureWindow` which takes a callback
-        const {width: textNodeWidth, left: textNodeLeft} = childRefs.current[index].getBoundingClientRect();
+        const {width: textNodeWidth, left: textNodeLeft} = childRefs.current.at(index)?.getBoundingClientRect() ?? {width: 0, left: 0};
         const tooltipX = textNodeWidth / 2 + textNodeLeft;
         const containerRight = containerWidth + containerLeft;
         const textNodeRight = textNodeWidth + textNodeLeft;
@@ -56,7 +65,7 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
             testID={DisplayNamesWithToolTip.displayName}
         >
             {shouldUseFullTitle
-                ? ReportUtils.formatReportLastMessageText(fullTitle)
+                ? formatReportLastMessageText(fullTitle)
                 : displayNamesWithTooltips?.map(({displayName, accountID, avatar, login}, index) => (
                       // eslint-disable-next-line react/no-array-index-key
                       <Fragment key={index}>
@@ -71,10 +80,11 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
                               childRefs={childRefs}
                           />
                           {index < displayNamesWithTooltips.length - 1 && <Text style={textStyles}>,&nbsp;</Text>}
+                          {shouldAddEllipsis && index === displayNamesWithTooltips.length - 1 && <Text style={textStyles}>...</Text>}
                       </Fragment>
                   ))}
             {renderAdditionalText?.()}
-            {Boolean(isEllipsisActive) && (
+            {!!isEllipsisActive && (
                 <View style={styles.displayNameTooltipEllipsis}>
                     <Tooltip text={fullTitle}>
                         {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}

@@ -24,7 +24,7 @@ type EditReportFieldDatePageProps = {
     isRequired: boolean;
 
     /** Callback to fire when the Save button is pressed  */
-    onSubmit: (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => void;
+    onSubmit: (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => void;
 };
 
 function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, fieldKey}: EditReportFieldDatePageProps) {
@@ -33,24 +33,25 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
     const inputRef = useRef<AnimatedTextInputRef>(null);
 
     const validate = useCallback(
-        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM> = {};
+        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM> = {};
             if (isRequired && value[fieldKey].trim() === '') {
-                errors[fieldKey] = 'common.error.fieldRequired';
+                errors[fieldKey] = translate('common.error.fieldRequired');
             }
             return errors;
         },
-        [fieldKey, isRequired],
+        [fieldKey, isRequired, translate],
     );
 
     return (
         <FormProvider
             style={[styles.flexGrow1, styles.ph5]}
-            formID={ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM}
+            formID={ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM}
             onSubmit={onSubmit}
             validate={validate}
             submitButtonText={translate('common.save')}
             enabledWhenOffline
+            shouldHideFixErrorsAlert
         >
             <View style={styles.mb4}>
                 <InputWrapper
@@ -64,6 +65,7 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                     ref={inputRef}
+                    autoFocus
                 />
             </View>
         </FormProvider>

@@ -4,7 +4,8 @@ import BootSplash from '@libs/BootSplash';
 import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
 import UpdateRequiredView from '@pages/ErrorPage/UpdateRequiredView';
 import CONST from '@src/CONST';
-import type {BaseErrorBoundaryProps, LogError} from './types';
+import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import type {BaseErrorBoundaryProps} from './types';
 
 /**
  * This component captures an error in the child component tree and logs it to the server
@@ -14,17 +15,19 @@ import type {BaseErrorBoundaryProps, LogError} from './types';
 
 function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseErrorBoundaryProps) {
     const [errorContent, setErrorContent] = useState('');
+    const {setSplashScreenState} = useSplashScreenStateContext();
+
     const catchError = (errorObject: Error, errorInfo: React.ErrorInfo) => {
         logError(errorMessage, errorObject, JSON.stringify(errorInfo));
         // We hide the splash screen since the error might happened during app init
-        BootSplash.hide();
+        BootSplash.hide().then(() => setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN));
         setErrorContent(errorObject.message);
     };
     const updateRequired = errorContent === CONST.ERROR.UPDATE_REQUIRED;
 
     return (
         <ErrorBoundary
-            fallback={updateRequired ? <UpdateRequiredView /> : <GenericErrorPage />}
+            FallbackComponent={updateRequired ? UpdateRequiredView : GenericErrorPage}
             onError={catchError}
         >
             {children}
@@ -33,5 +36,4 @@ function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseEr
 }
 
 BaseErrorBoundary.displayName = 'BaseErrorBoundary';
-export type {LogError, BaseErrorBoundaryProps};
 export default BaseErrorBoundary;

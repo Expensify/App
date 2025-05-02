@@ -18,7 +18,7 @@ function Direction({coordinates}: DirectionProps) {
     }
     return (
         <View>
-            {coordinates && (
+            {!!coordinates && (
                 <Source
                     id="route"
                     type="geojson"

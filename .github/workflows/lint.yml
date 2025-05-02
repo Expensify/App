@@ -1,4 +1,4 @@
-name: Lint code
+name: ESLint check
 
 on:
   workflow_call:
@@ -8,35 +8,25 @@ on:
     paths: ['**.js', '**.ts', '**.tsx', '**.json', '**.mjs', '**.cjs', 'config/.editorconfig', '.watchmanconfig', '.imgbotconfig']
 
 concurrency:
-  group: "${{ github.ref }}-lint"
+  group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-lint
   cancel-in-progress: true
 
 jobs:
   lint:
-    name: Run ESLint
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    name: ESLint check
+    if: ${{ github.event.head_commit.author.name != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_DESKTOP_BUILD: true
 
       - name: Lint JavaScript and Typescript with ESLint
         run: npm run lint
         env:
           CI: true
-
-      - name: Verify there's no Prettier diff
-        run: |
-          npm run prettier -- --loglevel silent
-          if ! git diff --name-only --exit-code; then
-            # shellcheck disable=SC2016
-            echo 'Error: Prettier diff detected! Please run `npm run prettier` and commit the changes.'
-            exit 1
-          fi
-
-      - name: Run unused style searcher
-        shell: bash
-        run: ./.github/scripts/findUnusedKeys.sh

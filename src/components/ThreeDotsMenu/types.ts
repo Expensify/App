@@ -1,18 +1,11 @@
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
-import type {Modal} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type ThreeDotsMenuOnyxProps = {
-    /** Details about any modals being used */
-    modal: OnyxEntry<Modal>;
-};
-
-type ThreeDotsMenuProps = ThreeDotsMenuOnyxProps & {
+type ThreeDotsMenuProps = {
     /** Tooltip for the popup icon */
     iconTooltip?: TranslationPaths;
 
@@ -31,9 +24,6 @@ type ThreeDotsMenuProps = ThreeDotsMenuOnyxProps & {
     /** menuItems that'll show up on toggle of the popup menu */
     menuItems: PopoverMenuItem[];
 
-    /** The anchor position of the menu */
-    anchorPosition: AnchorPosition;
-
     /** The anchor alignment of the menu */
     anchorAlignment?: AnchorAlignment;
 
@@ -45,6 +35,37 @@ type ThreeDotsMenuProps = ThreeDotsMenuOnyxProps & {
 
     /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility?: boolean;
+
+    /** Function to hide the product training tooltip */
+    hideProductTrainingTooltip?: () => void;
+
+    /** Tooltip content to render */
+    renderProductTrainingTooltipContent?: () => React.JSX.Element;
+
+    /** Should we render the tooltip */
+    shouldShowProductTrainingTooltip?: boolean;
+
+    /** Is the menu nested? This prop is used to omit html warning when we are nesting a button inside another button */
+    isNested?: boolean;
+
+    /** Ref to the menu */
+    threeDotsMenuRef?: React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>;
 };
 
-export default ThreeDotsMenuProps;
+type ThreeDotsMenuWithOptionalAnchorProps =
+    | (ThreeDotsMenuProps & {
+          /** The anchor position of the menu */
+          anchorPosition: AnchorPosition;
+
+          /** A callback to get the anchor position dynamically */
+          getAnchorPosition?: never;
+      })
+    | (ThreeDotsMenuProps & {
+          /** The anchor position of the menu */
+          anchorPosition?: never;
+
+          /** A callback to get the anchor position dynamically */
+          getAnchorPosition: () => Promise<AnchorPosition>;
+      });
+
+export default ThreeDotsMenuWithOptionalAnchorProps;

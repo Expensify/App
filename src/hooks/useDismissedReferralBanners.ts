@@ -1,13 +1,12 @@
 import {useOnyx} from 'react-native-onyx';
-import * as User from '@userActions/User';
+import {dismissReferralBanner} from '@libs/actions/User';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type UseDismissedReferralBannersProps = {
     referralContentType:
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST
+        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY
         | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
 };
 
@@ -20,7 +19,7 @@ function useDismissedReferralBanners({referralContentType}: UseDismissedReferral
             return;
         }
         // Set the banner as dismissed
-        User.dismissReferralBanner(referralContentType);
+        dismissReferralBanner(referralContentType);
     };
 
     return {isDismissed, setAsDismissed};

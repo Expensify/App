@@ -5,6 +5,7 @@ import StatusBar from '@libs/StatusBar';
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
 import type BaseModalProps from './types';
+import type {WindowState} from './types';
 
 function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = () => {}, children, shouldHandleNavigationBack, ...rest}: BaseModalProps) {
     const theme = useTheme();
@@ -22,7 +23,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const hideModal = () => {
         setStatusBarColor(previousStatusBarColor);
         onModalHide();
-        if (window.history.state.shouldGoBack) {
+        if ((window.history.state as WindowState)?.shouldGoBack) {
             window.history.back();
         }
     };
@@ -34,7 +35,11 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const showModal = () => {
         const statusBarColor = StatusBar.getBackgroundColor() ?? theme.appBG;
 
-        const isFullScreenModal = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE || type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
+        const isFullScreenModal =
+            type === CONST.MODAL.MODAL_TYPE.CENTERED ||
+            type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
+            type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED ||
+            type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT;
 
         if (statusBarColor) {
             setPreviousStatusBarColor(statusBarColor);
@@ -64,6 +69,8 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
             onModalShow={showModal}
             avoidKeyboard={false}
             fullscreen={fullscreen}
+            useNativeDriver={false}
+            useNativeDriverForBackdrop={false}
             type={type}
         >
             {children}

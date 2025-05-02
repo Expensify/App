@@ -1,6 +1,6 @@
 import type {OnfidoResult} from '@onfido/react-native-sdk';
 import type {Handle} from 'onfido-sdk-ui/types/Onfido';
-import type {CompleteData} from 'onfido-sdk-ui/types/Types';
+import type {CompleteData} from 'onfido-sdk-ui/types/shared/SdkParameters';
 import type {OnyxEntry} from 'react-native-onyx';
 
 type OnfidoData = CompleteData | OnfidoResult;
@@ -25,4 +25,8 @@ type OnfidoProps = {
     onError: (error?: string) => void;
 };
 
-export type {OnfidoProps, OnfidoElement, OnfidoData, OnfidoDataWithApplicantID};
+type OnfidoError = Error & {
+    type?: string;
+};
+
+export type {OnfidoProps, OnfidoElement, OnfidoData, OnfidoDataWithApplicantID, OnfidoError};

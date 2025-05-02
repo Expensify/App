@@ -1,18 +1,25 @@
 package com.expensify.chat
 
+import com.facebook.react.common.assets.ReactFontManager
+
 import android.app.ActivityManager
 import android.content.res.Configuration
 import android.database.CursorWindow
 import android.os.Process
 import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage
+import com.expensify.chat.navbar.NavBarManagerPackage
+import com.expensify.chat.shortcutManagerModule.ShortcutManagerPackage
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
+import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
+import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.modules.i18nmanager.I18nUtil
+import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.oblador.performance.RNPerformance
@@ -27,9 +34,11 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             PackageList(this).packages.apply {
             // Packages that cannot be autolinked yet can be added manually here, for example:
             // add(MyReactNativePackage());
+            add(ShortcutManagerPackage())
             add(BootSplashPackage())
             add(ExpensifyAppPackage())
             add(RNTextInputResetPackage())
+            add(NavBarManagerPackage())
         }
 
         override fun getJSMainModuleName() = ".expo/.virtual-metro-entry"
@@ -40,8 +49,14 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             get() = BuildConfig.IS_HERMES_ENABLED
     })
 
+    override val reactHost: ReactHost
+        get() = getDefaultReactHost(applicationContext, reactNativeHost)
+
     override fun onCreate() {
         super.onCreate()
+        ReactFontManager.getInstance().addCustomFont(this, "Expensify New Kansas", R.font.expensify_new_kansas)
+        ReactFontManager.getInstance().addCustomFont(this, "Expensify Neue", R.font.expensify_neue)
+        ReactFontManager.getInstance().addCustomFont(this, "Expensify Mono", R.font.expensify_mono)
 
         RNPerformance.getInstance().mark("appCreationStart", false);
 
@@ -49,7 +64,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             return
         }
 
-        SoLoader.init(this,  /* native exopackage */false)
+        SoLoader.init(this, OpenSourceMergedSoMapping)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
             load()
@@ -59,7 +74,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         }
 
         // Force the app to LTR mode.
-        val sharedI18nUtilInstance = I18nUtil.getInstance()
+        val sharedI18nUtilInstance = I18nUtil.instance
         sharedI18nUtilInstance.allowRTL(applicationContext, false)
 
         // Start the "js_load" custom performance tracing metric. This timer is stopped by a native

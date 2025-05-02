@@ -3,15 +3,16 @@ name: Send Reassure Performance Tests to Graphite
 on:
   push:
     branches: [main]
-    paths-ignore: [docs/**, contributingGuides/**, jest/**, workflow_tests/**]
+    paths-ignore: [docs/**, help/**, contributingGuides/**, jest/**]
 
 jobs:
   perf-tests:
     if: ${{ github.actor != 'OSBotify' }}
-    runs-on: ubuntu-latest-reassure-tests
+    runs-on: ubuntu-24.04-v4
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           fetch-depth: 0
 
@@ -25,7 +26,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          npx reassure --baseline
+          NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
 
       - name: Get merged pull request
         id: getMergedPullRequest
@@ -33,10 +34,13 @@ jobs:
         with:
           github_token: ${{ github.token }}
 
+      - name: Test connectivity to stats.expensify.com server
+        run: nc -zv stats.expensify.com 3003
+
       - name: Get and save graphite string
         id: saveGraphiteString
         uses: ./.github/actions/javascript/getGraphiteString
-        with: 
+        with:
           PR_NUMBER: ${{ steps.getMergedPullRequest.outputs.number }}
 
       - name: Send graphite data

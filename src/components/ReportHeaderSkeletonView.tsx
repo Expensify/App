@@ -2,9 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -20,18 +21,19 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {canUseLeftHandBar} = usePermissions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const smallScreenHeight = styles.appContentHeader.height;
-    const height = !isSmallScreenWidth ? styles.headerBarDesktopHeight.height : smallScreenHeight;
+    const height = !shouldUseNarrowLayout ? styles.headerBarDesktopHeight(canUseLeftHandBar).height : smallScreenHeight;
     const radius = 20;
     const circleY = height / 2;
     const circleTopY = circleY - radius;
     const circleBottomY = circleY + radius;
 
     return (
-        <View style={[styles.appContentHeader, isSmallScreenWidth && styles.pl2, styles.h100]}>
-            <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
-                {isSmallScreenWidth && (
+        <View style={[styles.appContentHeader, shouldUseNarrowLayout && styles.pl2, styles.h100]}>
+            <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && styles.pl5]}>
+                {shouldUseNarrowLayout && (
                     <PressableWithFeedback
                         onPress={onBackButtonPress}
                         style={[styles.touchableButtonImage]}
@@ -48,8 +50,8 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                     animate={shouldAnimate}
                     width={styles.w100.width}
                     height={height}
-                    backgroundColor={theme.highlightBG}
-                    foregroundColor={theme.border}
+                    backgroundColor={theme.skeletonLHNIn}
+                    foregroundColor={theme.skeletonLHNOut}
                 >
                     <Circle
                         cx="20"

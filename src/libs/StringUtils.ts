@@ -1,5 +1,6 @@
-import _ from 'lodash';
+import deburr from 'lodash/deburr';
 import CONST from '@src/CONST';
+import {isSafari} from './Browser';
 
 /**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
@@ -7,7 +8,7 @@ import CONST from '@src/CONST';
  * @returns The sanitized string
  */
 function sanitizeString(str: string): string {
-    return _.deburr(str).toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
+    return deburr(str).toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
 }
 
 /**
@@ -34,20 +35,21 @@ function removeInvisibleCharacters(value: string): string {
 
     // Remove spaces:
     // - \u200B: zero-width space
-    // - \u00A0: non-breaking space
     // - \u2060: word joiner
-    result = result.replace(/[\u200B\u00A0\u2060]/g, '');
+    result = result.replace(/[\u200B\u2060]/g, '');
 
-    // Temporarily replace all newlines with non-breaking spaces
-    // It is necessary because the next step removes all newlines because they are in the (Cc) category
-    result = result.replace(/\n/g, '\u00A0');
+    const invisibleCharacterRegex = isSafari() ? /([\uD800-\uDBFF][\uDC00-\uDFFF])|[\p{Cc}\p{Co}\p{Cn}]/gu : /[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu;
 
-    // Remove all characters from the 'Other' (C) category except for format characters (Cf)
-    // because some of them are used for emojis
-    result = result.replace(/[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu, '');
-
-    // Replace all non-breaking spaces with newlines
-    result = result.replace(/\u00A0/g, '\n');
+    // The control unicode (Cc) regex removes all newlines,
+    // so we first split the string by newline and rejoin it afterward to retain the original line breaks.
+    result = result
+        .split('\n')
+        .map((part) =>
+            // Remove all characters from the 'Other' (C) category except for format characters (Cf)
+            // because some of them are used for emojis
+            part.replace(invisibleCharacterRegex, ''),
+        )
+        .join('\n');
 
     // Remove characters from the (Cf) category that are not used for emojis
     result = result.replace(/[\u200E-\u200F]/g, '');
@@ -64,6 +66,15 @@ function removeInvisibleCharacters(value: string): string {
 }
 
 /**
+ * Remove accents/diacritics
+ * @param text - The input string
+ * @returns The string with all accents/diacritics removed
+ */
+function normalizeAccents(text: string) {
+    return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+/**
  *  Replace all CRLF with LF
  *  @param value - The input string
  *  @returns The string with all CRLF replaced with LF
@@ -73,20 +84,52 @@ function normalizeCRLF(value?: string): string | undefined {
 }
 
 /**
- * Generates an acronym for a string.
- * @param string the string for which to produce the acronym
- * @returns the acronym
+ * Replace all line breaks with white spaces
  */
-function getAcronym(string: string): string {
-    let acronym = '';
-    const wordsInString = string.split(' ');
-    wordsInString.forEach((wordInString) => {
-        const splitByHyphenWords = wordInString.split('-');
-        splitByHyphenWords.forEach((splitByHyphenWord) => {
-            acronym += splitByHyphenWord.substring(0, 1);
-        });
-    });
-    return acronym;
+function lineBreaksToSpaces(text = '', useNonBreakingSpace = false) {
+    return text.replace(CONST.REGEX.LINE_BREAK, useNonBreakingSpace ? '\u00A0' : ' ');
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF, getAcronym};
+/**
+ * Get the first line of the string
+ */
+function getFirstLine(text = '') {
+    // Split the input string by newline characters and return the first element of the resulting array
+    const lines = text.split('\n');
+    return lines.at(0);
+}
+
+/**
+ * Remove double quotes from the string
+ */
+function removeDoubleQuotes(text = '') {
+    return text.replace(/"/g, '');
+}
+
+/**
+ * Sort an array of strings by their length.
+ * The longest strings will be at the end of the array.
+ */
+function sortStringArrayByLength(arr: string[]): string[] {
+    return arr.sort((a, b) => a.length - b.length);
+}
+
+/**
+ * Remove pre tag from the html
+ */
+function removePreCodeBlock(text = '') {
+    return text.replace(/<pre[^>]*>|<\/pre>/g, '');
+}
+
+export default {
+    sanitizeString,
+    isEmptyString,
+    removeInvisibleCharacters,
+    normalizeAccents,
+    normalizeCRLF,
+    lineBreaksToSpaces,
+    getFirstLine,
+    removeDoubleQuotes,
+    removePreCodeBlock,
+    sortStringArrayByLength,
+};

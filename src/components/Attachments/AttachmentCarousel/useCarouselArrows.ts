@@ -32,6 +32,9 @@ function useCarouselArrows() {
         }, CONST.ARROW_HIDE_DELAY);
     }, [canUseTouchScreen, cancelAutoHideArrows]);
 
+    /**
+     * Sets the visibility of the arrows.
+     */
     const setShouldShowArrows = useCallback(
         (show: SetStateAction<boolean> = true) => {
             setShouldShowArrowsInternal(show);
@@ -42,7 +45,7 @@ function useCarouselArrows() {
 
     useEffect(() => {
         autoHideArrows();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     return {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows};

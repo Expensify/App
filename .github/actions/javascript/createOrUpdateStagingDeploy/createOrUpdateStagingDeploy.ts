@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import format from 'date-fns/format';
+import {format} from 'date-fns/format';
 import fs from 'fs';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
@@ -8,10 +8,17 @@ import GitUtils from '@github/libs/GitUtils';
 
 type IssuesCreateResponse = Awaited<ReturnType<typeof GithubUtils.octokit.issues.create>>['data'];
 
+type PackageJson = {
+    version: string;
+};
+
 async function run(): Promise<IssuesCreateResponse | void> {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
-    const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-    const newVersionTag: string = packageJson.version;
+    const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8')) as PackageJson;
+    // The checklist will use the package.json version, e.g. '1.2.3-4'
+    const newVersion = packageJson.version;
+    // The staging tag will use the package.json version with a '-staging' suffix, e.g. '1.2.3-4-staging'
+    const newStagingTag = `${packageJson.version}-staging`;
 
     try {
         // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
@@ -25,13 +32,22 @@ async function run(): Promise<IssuesCreateResponse | void> {
 
         // Look at the state of the most recent StagingDeployCash,
         // if it is open then we'll update the existing one, otherwise, we'll create a new one.
-        const mostRecentChecklist = recentDeployChecklists[0];
+        const mostRecentChecklist = recentDeployChecklists.at(0);
+
+        if (!mostRecentChecklist) {
+            throw new Error('Could not find the most recent checklist');
+        }
+
         const shouldCreateNewDeployChecklist = mostRecentChecklist.state !== 'open';
-        const previousChecklist = shouldCreateNewDeployChecklist ? mostRecentChecklist : recentDeployChecklists[1];
+        const previousChecklist = shouldCreateNewDeployChecklist ? mostRecentChecklist : recentDeployChecklists.at(1);
         if (shouldCreateNewDeployChecklist) {
             console.log('Latest StagingDeployCash is closed, creating a new one.', mostRecentChecklist);
         } else {
             console.log('Latest StagingDeployCash is open, updating it instead of creating a new one.', 'Current:', mostRecentChecklist, 'Previous:', previousChecklist);
+        }
+
+        if (!previousChecklist) {
+            throw new Error('Could not find the previous checklist');
         }
 
         // Parse the data from the previous and current checklists into the format used to generate the checklist
@@ -39,14 +55,14 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const currentChecklistData: StagingDeployCashData | undefined = shouldCreateNewDeployChecklist ? undefined : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag ?? '', newVersionTag);
+        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
 
         // Next, we generate the checklist body
         let checklistBody = '';
         let checklistAssignees: string[] = [];
         if (shouldCreateNewDeployChecklist) {
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
-                newVersionTag,
+                newVersion,
                 mergedPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
             );
             if (stagingDeployCashBodyAndAssignees) {
@@ -93,9 +109,9 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 });
             });
 
-            const didVersionChange = newVersionTag !== currentChecklistData?.tag;
+            const didVersionChange = newVersion !== currentChecklistData?.version;
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
-                newVersionTag,
+                newVersion,
                 PRList.map((pr) => pr.url),
                 PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
                 deployBlockers.map((blocker) => blocker.url),

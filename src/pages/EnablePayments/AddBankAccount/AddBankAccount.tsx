@@ -1,7 +1,6 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,32 +8,22 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {addPersonalBankAccount, clearPersonalBankAccount} from '@libs/actions/BankAccounts';
+import {continueSetup} from '@libs/actions/PaymentMethods';
+import {updateCurrentStep} from '@libs/actions/Wallet';
 import Navigation from '@navigation/Navigation';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalBankAccountForm} from '@src/types/form';
-import type {PersonalBankAccount, PlaidData} from '@src/types/onyx';
 import SetupMethod from './SetupMethod';
 import Confirmation from './substeps/ConfirmationStep';
 import Plaid from './substeps/PlaidStep';
 
-type AddPersonalBankAccountPageWithOnyxProps = {
-    /** Contains plaid data */
-    plaidData: OnyxEntry<PlaidData>;
-
-    /** The details about the Personal bank account we are adding saved in Onyx */
-    personalBankAccount: OnyxEntry<PersonalBankAccount>;
-
-    /** The draft values of the bank account being setup */
-    personalBankAccountDraft: OnyxEntry<PersonalBankAccountForm>;
-};
-
 const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
-
-function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraft}: AddPersonalBankAccountPageWithOnyxProps) {
+function AddBankAccount() {
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -43,8 +32,7 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccountDraft?.plaidAccountID);
 
         if (selectedPlaidBankAccount) {
-            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
-            Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
+            addPersonalBankAccount(selectedPlaidBankAccount);
         }
     }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts]);
 
@@ -57,11 +45,11 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
         const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
 
         if (exitReportID) {
-            Navigation.dismissModal(exitReportID);
+            Navigation.dismissModalWithReport({reportID: exitReportID});
             return;
         }
         if (shouldContinue && onSuccessFallbackRoute) {
-            PaymentMethods.continueSetup(onSuccessFallbackRoute);
+            continueSetup(onSuccessFallbackRoute);
             return;
         }
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
@@ -73,57 +61,49 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
             return;
         }
         if (screenIndex === 0) {
-            BankAccounts.clearPersonalBankAccount();
+            clearPersonalBankAccount();
+            updateCurrentStep(null);
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }
         prevScreen();
     };
-
-    useEffect(() => BankAccounts.clearPersonalBankAccount, []);
 
     return (
         <ScreenWrapper
             testID={AddBankAccount.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
+            shouldShowOfflineIndicator
         >
             <HeaderWithBackButton
                 shouldShowBackButton
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('bankAccount.addBankAccount')}
             />
-            {isSetupTypeChosen ? (
-                <>
-                    <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                        <InteractiveStepSubHeader
-                            startStepIndex={0}
-                            stepNames={CONST.WALLET.STEP_NAMES}
+            <View style={styles.flex1}>
+                {isSetupTypeChosen ? (
+                    <>
+                        <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                            <InteractiveStepSubHeader
+                                startStepIndex={0}
+                                stepNames={CONST.WALLET.STEP_NAMES}
+                            />
+                        </View>
+                        <SubStep
+                            isEditing={isEditing}
+                            onNext={nextScreen}
+                            onMove={moveTo}
                         />
-                    </View>
-                    <SubStep
-                        isEditing={isEditing}
-                        onNext={nextScreen}
-                        onMove={moveTo}
-                    />
-                </>
-            ) : (
-                <SetupMethod />
-            )}
+                    </>
+                ) : (
+                    <SetupMethod />
+                )}
+            </View>
         </ScreenWrapper>
     );
 }
 
 AddBankAccount.displayName = 'AddBankAccountPage';
 
-export default withOnyx<AddPersonalBankAccountPageWithOnyxProps, AddPersonalBankAccountPageWithOnyxProps>({
-    plaidData: {
-        key: ONYXKEYS.PLAID_DATA,
-    },
-    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
-    personalBankAccount: {
-        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-    },
-    personalBankAccountDraft: {
-        key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
-    },
-})(AddBankAccount);
+export default AddBankAccount;

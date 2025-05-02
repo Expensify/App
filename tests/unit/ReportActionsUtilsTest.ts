@@ -1,3 +1,4 @@
+import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
@@ -7,11 +8,13 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
+jest.mock('@components/ConfirmedRoute.tsx');
+
 describe('ReportActionsUtils', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
 
@@ -190,15 +193,110 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
             ],
+            [
+                [
+                    {
+                        created: '2022-11-09 22:27:01.825',
+                        reportActionID: '8401445780099176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:27:01.600',
+                        reportActionID: '6401435781022176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    // this item has no created field, so it should appear right after CONST.REPORT.ACTIONS.TYPE.CREATED
+                    {
+                        reportActionID: '2962390724708756',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.889',
+                        reportActionID: '1609646094152486',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.989',
+                        reportActionID: '1661970171066218',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                ],
+                [
+                    {
+                        created: '2022-11-09 22:27:01.600',
+                        reportActionID: '6401435781022176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        reportActionID: '2962390724708756',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.889',
+                        reportActionID: '1609646094152486',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.989',
+                        reportActionID: '1661970171066218',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:27:01.825',
+                        reportActionID: '8401445780099176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                ],
+            ],
         ];
 
         test.each(cases)('sorts by created, then actionName, then reportActionID', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input);
+            const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[]);
             expect(result).toStrictEqual(expectedOutput);
         });
 
         test.each(cases)('in descending order', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input, true);
+            const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[], true);
             expect(result).toStrictEqual(expectedOutput.reverse());
         });
     });
@@ -301,8 +399,12 @@ describe('ReportActionsUtils', () => {
                 },
             ];
 
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
-            expect(result).toStrictEqual(input);
+            // Expected output should have the `CREATED` action at last
+            // eslint-disable-next-line rulesdir/prefer-at
+            const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2), input[1]];
+
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
+            expect(result).toStrictEqual(expectedOutput);
         });
 
         it('should filter out closed actions', () => {
@@ -391,9 +493,13 @@ describe('ReportActionsUtils', () => {
                     ],
                 },
             ];
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
-            input.pop();
-            expect(result).toStrictEqual(input);
+
+            // Expected output should have the `CREATED` action at last and `CLOSED` action removed
+            // eslint-disable-next-line rulesdir/prefer-at
+            const expectedOutput: ReportAction[] = [...input.slice(0, 1), ...input.slice(2, -1), input[1]];
+
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
+            expect(result).toStrictEqual(expectedOutput);
         });
 
         it('should filter out deleted, non-pending comments', () => {
@@ -436,1489 +542,102 @@ describe('ReportActionsUtils', () => {
                     message: [{html: '', type: 'Action type', text: 'Action text'}],
                 },
             ];
-            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
             input.pop();
             expect(result).toStrictEqual(input);
         });
-    });
-    describe('getContinuousReportActionChain', () => {
-        it('given an input ID of 1, ..., 7 it will return the report actions with id 1 - 7', () => {
+
+        it('should filter actionable whisper actions e.g. "join", "create room" when room is archived', () => {
+            // Given several different action types, including actionable whispers for creating, inviting and joining rooms, as well as non-actionable whispers
+            // - ADD_COMMENT
+            // - ACTIONABLE_REPORT_MENTION_WHISPER
+            // - ACTIONABLE_MENTION_WHISPER
             const input: ReportAction[] = [
-                // Given these sortedReportActions
                 {
-                    reportActionID: '1',
-                    previousReportActionID: undefined,
-                    created: '2022-11-13 22:27:01.825',
+                    created: '2024-11-19 08:04:13.728',
+                    reportActionID: '1607371725956675966',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
-                        html: 'Hello world',
+                        html: '<mention-user accountID="18414674"/>',
                         whisperedTo: [],
+                        lastModified: '2024-11-19 08:04:13.728',
+                        mentionedAccountIDs: [18301266],
                     },
                     message: [
                         {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
+                            html: '<mention-user accountID="18414674"/>',
+                            text: '@as',
+                            type: 'COMMENT',
+                            whisperedTo: [],
                         },
                     ],
                 },
                 {
-                    reportActionID: '2',
-                    previousReportActionID: '1',
-                    created: '2022-11-13 22:27:01.825',
+                    created: '2024-11-19 08:00:14.352',
+                    reportActionID: '4655978522337302598',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
-                        html: 'Hello world',
+                        html: '#join',
                         whisperedTo: [],
+                        lastModified: '2024-11-19 08:00:14.352',
                     },
                     message: [
                         {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
+                            html: '#join',
+                            text: '#join',
+                            type: 'COMMENT',
+                            whisperedTo: [],
                         },
                     ],
                 },
                 {
-                    reportActionID: '3',
-                    previousReportActionID: '2',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2022-11-09 22:27:01.825',
+                    reportActionID: '8049485084562457',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
                     originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
+                        lastModified: '2024-11-19 08:00:14.353',
+                        mentionedAccountIDs: [],
+                        whisperedTo: [18301266],
                     },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '4',
-                    previousReportActionID: '3',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
+                    message: {
+                        html: "Heads up, <mention-report>#join</mention-report> doesn't exist yet. Do you want to create it?",
+                        text: "Heads up, #join doesn't exist yet. Do you want to create it?",
+                        type: 'COMMENT',
+                        whisperedTo: [18301266],
                     },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '5',
-                    previousReportActionID: '4',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '6',
-                    previousReportActionID: '5',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '7',
-                    previousReportActionID: '6',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
                 },
 
-                // Note: there's a "gap" here because the previousReportActionID (8) does not match the ID of the previous reportAction in the array (7)
                 {
-                    reportActionID: '9',
-                    previousReportActionID: '8',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2022-11-12 22:27:01.825',
+                    reportActionID: '6401435781022176',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
                     originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
+                        inviteeAccountIDs: [18414674],
+                        lastModified: '2024-11-19 08:04:25.813',
+                        whisperedTo: [18301266],
                     },
                     message: [
                         {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '10',
-                    previousReportActionID: '9',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '11',
-                    previousReportActionID: '10',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '12',
-                    previousReportActionID: '11',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-
-                // Note: another gap
-                {
-                    reportActionID: '14',
-                    previousReportActionID: '13',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '15',
-                    previousReportActionID: '14',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '16',
-                    previousReportActionID: '15',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '17',
-                    previousReportActionID: '16',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
+                            html: "Heads up, <mention-user accountID=18414674></mention-user> isn't a member of this room.",
+                            text: "Heads up,  isn't a member of this room.",
+                            type: 'COMMENT',
                         },
                     ],
                 },
             ];
 
-            const expectedResult = [
-                {
-                    reportActionID: '1',
-                    previousReportActionID: undefined,
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '2',
-                    previousReportActionID: '1',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '3',
-                    previousReportActionID: '2',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '4',
-                    previousReportActionID: '3',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '5',
-                    previousReportActionID: '4',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '6',
-                    previousReportActionID: '5',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '7',
-                    previousReportActionID: '6',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-            ];
-            // Reversing the input array to simulate descending order sorting as per our data structure
-            const result = ReportActionsUtils.getContinuousReportActionChain(input.reverse(), '3');
-            input.pop();
-            expect(result).toStrictEqual(expectedResult.reverse());
-        });
+            // When the report actions are sorted for display with the second parameter (canUserPerformWriteAction) set to false (to simulate a report that has been archived)
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, false);
+            // The output should correctly filter out the actionable whisper types for "join," "invite," and "create room" because the report is archived.
+            // Taking these actions not only doesn't make sense from a UX standpoint,  but also leads to server errors since such actions are not possible.
+            const expectedOutput: ReportAction[] = input.filter(
+                (action) =>
+                    action.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER &&
+                    action.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST &&
+                    action.actionName !== CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+            );
 
-        it('given an input ID of 9, ..., 12 it will return the report actions with id 9 - 12', () => {
-            const input: ReportAction[] = [
-                // Given these sortedReportActions
-                {
-                    reportActionID: '1',
-                    previousReportActionID: undefined,
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '2',
-                    previousReportActionID: '1',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '3',
-                    previousReportActionID: '2',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '4',
-                    previousReportActionID: '3',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '5',
-                    previousReportActionID: '4',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '6',
-                    previousReportActionID: '5',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '7',
-                    previousReportActionID: '6',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-
-                // Note: there's a "gap" here because the previousReportActionID (8) does not match the ID of the previous reportAction in the array (7)
-                {
-                    reportActionID: '9',
-                    previousReportActionID: '8',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '10',
-                    previousReportActionID: '9',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '11',
-                    previousReportActionID: '10',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '12',
-                    previousReportActionID: '11',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-
-                // Note: another gap
-                {
-                    reportActionID: '14',
-                    previousReportActionID: '13',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '15',
-                    previousReportActionID: '14',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '16',
-                    previousReportActionID: '15',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '17',
-                    previousReportActionID: '16',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-            ];
-
-            const expectedResult = [
-                {
-                    reportActionID: '9',
-                    previousReportActionID: '8',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '10',
-                    previousReportActionID: '9',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '11',
-                    previousReportActionID: '10',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '12',
-                    previousReportActionID: '11',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-            ];
-            // Reversing the input array to simulate descending order sorting as per our data structure
-            const result = ReportActionsUtils.getContinuousReportActionChain(input.reverse(), '10');
-            input.pop();
-            expect(result).toStrictEqual(expectedResult.reverse());
-        });
-
-        it('given an input ID of 14, ..., 17 it will return the report actions with id 14 - 17', () => {
-            const input = [
-                // Given these sortedReportActions
-                {
-                    reportActionID: '1',
-                    previousReportActionID: undefined,
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '2',
-                    previousReportActionID: '1',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '3',
-                    previousReportActionID: '2',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '4',
-                    previousReportActionID: '3',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '5',
-                    previousReportActionID: '4',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '6',
-                    previousReportActionID: '5',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '7',
-                    previousReportActionID: '6',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-
-                // Note: there's a "gap" here because the previousReportActionID (8) does not match the ID of the previous reportAction in the array (7)
-                {
-                    reportActionID: '9',
-                    previousReportActionID: '8',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '10',
-                    previousReportActionID: '9',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '11',
-                    previousReportActionID: '10',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '12',
-                    previousReportActionID: '11',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-
-                // Note: another gap
-                {
-                    reportActionID: '14',
-                    previousReportActionID: '13',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '15',
-                    previousReportActionID: '14',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '16',
-                    previousReportActionID: '15',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '17',
-                    previousReportActionID: '16',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-            ];
-
-            const expectedResult = [
-                {
-                    reportActionID: '14',
-                    previousReportActionID: '13',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '15',
-                    previousReportActionID: '14',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '16',
-                    previousReportActionID: '15',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '17',
-                    previousReportActionID: '16',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-            ];
-            // Reversing the input array to simulate descending order sorting as per our data structure
-            const result = ReportActionsUtils.getContinuousReportActionChain(input.reverse(), '16');
-            input.pop();
-            expect(result).toStrictEqual(expectedResult.reverse());
-        });
-
-        it('given an input ID of 8 or 13 which are not exist in Onyx it will return an empty array', () => {
-            const input: ReportAction[] = [
-                // Given these sortedReportActions
-                {
-                    reportActionID: '1',
-                    previousReportActionID: undefined,
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '2',
-                    previousReportActionID: '1',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '3',
-                    previousReportActionID: '2',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '4',
-                    previousReportActionID: '3',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '5',
-                    previousReportActionID: '4',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '6',
-                    previousReportActionID: '5',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '7',
-                    previousReportActionID: '6',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-
-                // Note: there's a "gap" here because the previousReportActionID (8) does not match the ID of the previous reportAction in the array (7)
-                {
-                    reportActionID: '9',
-                    previousReportActionID: '8',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '10',
-                    previousReportActionID: '9',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '11',
-                    previousReportActionID: '10',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '12',
-                    previousReportActionID: '11',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-
-                // Note: another gap
-                {
-                    reportActionID: '14',
-                    previousReportActionID: '13',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '15',
-                    previousReportActionID: '14',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '16',
-                    previousReportActionID: '15',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-                {
-                    reportActionID: '17',
-                    previousReportActionID: '16',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                },
-            ];
-
-            const expectedResult: ReportAction[] = [];
-            // Reversing the input array to simulate descending order sorting as per our data structure
-            const result = ReportActionsUtils.getContinuousReportActionChain(input.reverse(), '8');
-            input.pop();
-            expect(result).toStrictEqual(expectedResult.reverse());
-        });
-
-        it('given an empty input ID and the report only contains pending actions, it will return all actions', () => {
-            const input: ReportAction[] = [
-                // Given these sortedReportActions
-                {
-                    reportActionID: '1',
-                    previousReportActionID: undefined,
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                {
-                    reportActionID: '2',
-                    previousReportActionID: '1',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                {
-                    reportActionID: '3',
-                    previousReportActionID: '2',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                {
-                    reportActionID: '4',
-                    previousReportActionID: '3',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                {
-                    reportActionID: '5',
-                    previousReportActionID: '4',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                {
-                    reportActionID: '6',
-                    previousReportActionID: '5',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                {
-                    reportActionID: '7',
-                    previousReportActionID: '6',
-                    created: '2022-11-13 22:27:01.825',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    originalMessage: {
-                        html: 'Hello world',
-                        whisperedTo: [],
-                    },
-                    message: [
-                        {
-                            html: 'Hello world',
-                            type: 'Action type',
-                            text: 'Action text',
-                        },
-                    ],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            ];
-
-            const expectedResult = input;
-            // Reversing the input array to simulate descending order sorting as per our data structure
-            const result = ReportActionsUtils.getContinuousReportActionChain(input.reverse(), '');
-            expect(result).toStrictEqual(expectedResult.reverse());
+            expect(result).toStrictEqual(expectedOutput);
         });
     });
 
@@ -1952,19 +671,18 @@ describe('ReportActionsUtils', () => {
                 waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
-                        // @ts-expect-error Preset necessary values
                         Onyx.multiSet({
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action, [action2.reportActionID]: action2},
-                        }),
+                        } as unknown as KeyValueMapping),
                     )
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
+                                const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
                                     callback: () => {
-                                        Onyx.disconnect(connectionID);
+                                        Onyx.disconnect(connection);
                                         const res = ReportActionsUtils.getLastVisibleAction(report.reportID);
                                         expect(res).toEqual(action2);
                                         resolve();
@@ -1973,6 +691,272 @@ describe('ReportActionsUtils', () => {
                             }),
                     )
             );
+        });
+    });
+
+    describe('getReportActionMessageFragments', () => {
+        it('should return the correct fragment for the REIMBURSED action', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '1',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: 'Concierge',
+                    },
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: ' reimbursed this report',
+                    },
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: ' on behalf of you',
+                    },
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: ' from the bank account ending in 1111',
+                    },
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: '. Money is on its way to your bank account ending in 0000. Reimbursement estimated to complete on Dec 16.',
+                    },
+                ],
+            };
+            const expectedMessage = ReportActionsUtils.getReportActionMessageText(action);
+            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
+            expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
+        });
+    });
+
+    describe('shouldShowAddMissingDetails', () => {
+        it('should return true if personal detail is not completed', async () => {
+            const card = {
+                cardID: 1,
+                state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                bank: 'vcf',
+                domainName: 'expensify',
+                lastUpdated: '2022-11-09 22:27:01.825',
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            };
+            const mockPersonalDetail = {
+                address: {
+                    street: '123 Main St',
+                    city: 'New York',
+                    state: 'NY',
+                    postalCode: '10001',
+                },
+            };
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            expect(res).toEqual(true);
+        });
+        it('should return true if card state is STATE_NOT_ISSUED', async () => {
+            const card = {
+                cardID: 1,
+                state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
+                bank: 'vcf',
+                domainName: 'expensify',
+                lastUpdated: '2022-11-09 22:27:01.825',
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            };
+            const mockPersonalDetail = {
+                addresses: [
+                    {
+                        street: '123 Main St',
+                        city: 'New York',
+                        state: 'NY',
+                        postalCode: '10001',
+                    },
+                ],
+                legalFirstName: 'John',
+                legalLastName: 'David',
+                phoneNumber: '+162992973',
+                dob: '9-9-2000',
+            };
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            expect(res).toEqual(true);
+        });
+        it('should return false if no condition is matched', async () => {
+            const card = {
+                cardID: 1,
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                bank: 'vcf',
+                domainName: 'expensify',
+                lastUpdated: '2022-11-09 22:27:01.825',
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            };
+            const mockPersonalDetail = {
+                addresses: [
+                    {
+                        street: '123 Main St',
+                        city: 'New York',
+                        state: 'NY',
+                        postalCode: '10001',
+                    },
+                ],
+                legalFirstName: 'John',
+                legalLastName: 'David',
+                phoneNumber: '+162992973',
+                dob: '9-9-2000',
+            };
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            expect(res).toEqual(false);
+        });
+    });
+
+    describe('isDeletedAction', () => {
+        it('should return true if reportAction is undefined', () => {
+            expect(ReportActionsUtils.isDeletedAction(undefined)).toBe(true);
+        });
+
+        it('should return false for POLICY_CHANGE_LOG.INVITE_TO_ROOM action', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM,
+                originalMessage: {
+                    html: '',
+                    whisperedTo: [],
+                },
+                reportActionID: '1',
+                created: '1',
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
+        it('should return true if message is an empty array', () => {
+            const reportAction = {
+                created: '2022-11-09 22:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(true);
+        });
+
+        it('should return true if message html is empty', () => {
+            const reportAction = {
+                created: '2022-11-09 22:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+                message: {
+                    html: '',
+                    type: 'Action type',
+                    text: 'Action text',
+                },
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(true);
+        });
+
+        it('should return true if message is not an array and deleted is not empty', () => {
+            const reportAction = {
+                created: '2022-11-09 22:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+                message: {
+                    html: 'Hello world',
+                    deleted: 'deleted',
+                    type: 'Action type',
+                    text: 'Action text',
+                },
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(true);
+        });
+
+        it('should return true if message an array and first element deleted is not empty', () => {
+            const reportAction = {
+                created: '2022-11-09 22:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+                message: [
+                    {
+                        html: 'Hello world',
+                        deleted: 'deleted',
+                        type: 'Action type',
+                        text: 'Action text',
+                    },
+                ],
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(true);
+        });
+
+        it('should return true if message is an object with html field with empty string as value is empty', () => {
+            const reportAction = {
+                created: '2022-11-09 22:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+                message: [
+                    {
+                        html: '',
+                        type: 'Action type',
+                        text: 'Action text',
+                    },
+                ],
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(true);
+        });
+
+        it('should return false otherwise', () => {
+            const reportAction = {
+                created: '2022-11-09 22:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+                message: [
+                    {
+                        html: 'Hello world',
+                        type: 'Action type',
+                        text: 'Action text',
+                    },
+                ],
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+    });
+
+    describe('getRenamedAction', () => {
+        it('should return the correct translated message for a renamed action', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                    lastModified: '2022-11-09 22:27:01.825',
+                    oldName: 'Old name',
+                    newName: 'New name',
+                },
+                reportActionID: '1',
+                created: '1',
+            };
+            expect(ReportActionsUtils.getRenamedAction(reportAction, 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
         });
     });
 });

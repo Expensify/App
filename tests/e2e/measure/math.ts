@@ -14,11 +14,11 @@ const filterOutliersViaIQR = (data: Entries): Entries => {
     const values = data.slice().sort((a, b) => a - b);
 
     if ((values.length / 4) % 1 === 0) {
-        q1 = (1 / 2) * (values[values.length / 4] + values[values.length / 4 + 1]);
-        q3 = (1 / 2) * (values[values.length * (3 / 4)] + values[values.length * (3 / 4) + 1]);
+        q1 = (1 / 2) * ((values.at(values.length / 4) ?? 0) + (values.at(values.length / 4 + 1) ?? 0));
+        q3 = (1 / 2) * ((values.at(values.length * (3 / 4)) ?? 0) + (values.at(values.length * (3 / 4) + 1) ?? 0));
     } else {
-        q1 = values[Math.floor(values.length / 4 + 1)];
-        q3 = values[Math.ceil(values.length * (3 / 4) + 1)];
+        q1 = values.at(Math.floor(values.length / 4 + 1)) ?? 0;
+        q3 = values.at(Math.ceil(values.length * (3 / 4) + 1)) ?? 0;
     }
 
     const iqr = q3 - q1;
