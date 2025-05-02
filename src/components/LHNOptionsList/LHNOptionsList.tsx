@@ -9,6 +9,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
 import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
@@ -21,9 +22,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
+import {getIOUReportIDOfLastAction, getLastMessageTextForReport, hasReportErrors} from '@libs/OptionsListUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, requiresAttentionFromCurrentUser} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,6 +42,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const route = useRoute();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -57,6 +59,27 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
+
+    const {shouldShowProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GBR_RBR_CHAT, true);
+    const firstReportIDWithGBRorRBR = useMemo(() => {
+        if (!shouldShowProductTrainingTooltip) {
+            return undefined;
+        }
+        return data.find((reportID) => {
+            const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            if (!itemFullReport) {
+                return false;
+            }
+            if (hasReportErrors(itemFullReport, itemReportActions)) {
+                return true;
+            }
+            const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
+            const itemParentReportAction = itemFullReport?.parentReportActionID ? itemParentReportActions?.[itemFullReport?.parentReportActionID] : undefined;
+            const hasGBR = requiresAttentionFromCurrentUser(itemFullReport, itemParentReportAction);
+            return hasGBR;
+        });
+    }, [shouldShowProductTrainingTooltip, data, reportActions, reports]);
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -180,10 +203,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             const lastMessageTextFromReport = getLastMessageTextForReport(itemFullReport, lastActorDetails, itemPolicy, itemReportNameValuePairs);
 
+            const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
+
             return (
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={itemFullReport}
+                    reportAttributes={reportAttributes ?? {}}
                     oneTransactionThreadReport={itemOneTransactionThreadReport}
                     reportNameValuePairs={itemReportNameValuePairs}
                     reportActions={itemReportActions}
@@ -203,6 +229,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     hasDraftComment={hasDraftComment}
                     transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
+                    shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
                 />
             );
         },
@@ -215,12 +242,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             preferredLocale,
             reportActions,
             reports,
+            reportAttributes,
             reportNameValuePairs,
             shouldDisableFocusOptions,
             transactions,
             transactionViolations,
             onLayoutItem,
             isOffline,
+            firstReportIDWithGBRorRBR,
         ],
     );
 
@@ -228,6 +257,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         () => [
             reportActions,
             reports,
+            reportAttributes,
             reportNameValuePairs,
             transactionViolations,
             policy,
@@ -239,7 +269,21 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             transactions,
             isOffline,
         ],
-        [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale, transactions, isOffline],
+        [
+            reportActions,
+            reports,
+            reportAttributes,
+            reportNameValuePairs,
+            transactionViolations,
+            policy,
+            personalDetails,
+            data.length,
+            draftComments,
+            optionMode,
+            preferredLocale,
+            transactions,
+            isOffline,
+        ],
     );
 
     const previousOptionMode = usePrevious(optionMode);
@@ -259,7 +303,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const onScroll = useCallback<NonNullable<FlashListProps<string>['onScroll']>>(
         (e) => {
-            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
+            // If the layout measurement is 0, it means the FlashList is not displayed but the onScroll may be triggered with offset value 0.
             // We should ignore this case.
             if (e.nativeEvent.layoutMeasurement.height === 0) {
                 return;

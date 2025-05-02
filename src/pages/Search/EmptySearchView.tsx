@@ -113,7 +113,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(viewTourTaskReport?.parentReportID);
-    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, undefined, isReportArchived);
+    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isReportArchived);
     const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const content = useMemo(() => {
@@ -137,7 +137,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                             ...(!hasSeenTour
                                 ? [
                                       {
-                                          buttonText: translate('emptySearchView.takeATour'),
+                                          buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();
@@ -177,7 +177,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                             ...(!hasSeenTour
                                 ? [
                                       {
-                                          buttonText: translate('emptySearchView.takeATour'),
+                                          buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();

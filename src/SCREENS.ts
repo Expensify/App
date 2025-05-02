@@ -254,6 +254,7 @@ const SCREENS = {
         RECEIPT: 'Money_Request_Receipt',
         STATE_SELECTOR: 'Money_Request_State_Selector',
         STEP_ATTENDEES: 'Money_Request_Attendee',
+        STEP_ACCOUNTANT: 'Money_Request_Accountant',
         STEP_DESTINATION: 'Money_Request_Destination',
         STEP_TIME: 'Money_Request_Time',
         STEP_SUBRATE: 'Money_Request_SubRate',
@@ -521,6 +522,7 @@ const SCREENS = {
         MEMBERS_IMPORTED: 'Members_Imported',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
+        INVITE_MESSAGE_ROLE: 'Workspace_Invite_Message_Role',
         CATEGORIES: 'Workspace_Categories',
         TAGS: 'Workspace_Tags',
         TAGS_SETTINGS: 'Tags_Settings',
@@ -660,6 +662,10 @@ const SCREENS = {
 
     TEST_DRIVE_MODAL: {
         ROOT: 'TestDrive_Modal_Root',
+    },
+
+    TEST_DRIVE_DEMO: {
+        ROOT: 'TestDrive_Demo_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
