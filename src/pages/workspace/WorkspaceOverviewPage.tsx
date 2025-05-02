@@ -39,7 +39,7 @@ import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicy
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getUserFriendlyWorkspaceType, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
+import {getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
@@ -163,7 +163,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
                 source={policy?.avatarURL || getDefaultWorkspaceAvatar(policyName)}
                 fallbackIcon={FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.XLARGE}
+                size={CONST.AVATAR_SIZE.X_LARGE}
                 name={policyName}
                 avatarID={policy?.id}
                 type={CONST.ICON_TYPE_WORKSPACE}
@@ -190,7 +190,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             resetPolicyIDInNavigationState();
             updateLastAccessedWorkspaceSwitcher(undefined);
         }
-    }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
+        if (!shouldUseNarrowLayout) {
+            goBackFromInvalidPolicy();
+        }
+    }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID, shouldUseNarrowLayout]);
 
     const onDeleteWorkspace = useCallback(() => {
         if (shouldCalculateBillNewDot()) {
@@ -243,7 +246,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             }}
                             source={policy?.avatarURL ?? ''}
                             avatarID={policy?.id}
-                            size={CONST.AVATAR_SIZE.XLARGE}
+                            size={CONST.AVATAR_SIZE.X_LARGE}
                             avatarStyle={styles.avatarXLarge}
                             enablePreview
                             DefaultAvatar={DefaultAvatar}

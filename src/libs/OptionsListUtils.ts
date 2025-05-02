@@ -42,16 +42,19 @@ import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import Performance from './Performance';
 import Permissions from './Permissions';
-import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {canSendInvoiceFromWorkspace, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
+    getLeaveRoomMessage,
+    getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReportActionHtml,
     getReportActionMessageText,
     getSortedReportActions,
     getUpdateRoomDescriptionMessage,
@@ -282,7 +285,7 @@ type OrderOptionsConfig =
       };
 
 type OrderReportOptionsConfig = {
-    preferChatroomsOverThreads?: boolean;
+    preferChatRoomsOverThreads?: boolean;
     preferPolicyExpenseChat?: boolean;
     preferRecentExpenseReports?: boolean;
 };
@@ -633,7 +636,7 @@ function getAlternateText(option: OptionData, {showChatPreviewLine = false, forc
  * Searches for a match when provided with a value
  */
 function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isReportChatRoom = false): boolean {
-    const searchWords = new Set(searchValue.replace(/,/g, ' ').split(' '));
+    const searchWords = new Set(searchValue.replace(/,/g, ' ').split(/\s+/));
     const valueToSearch = searchText?.replace(new RegExp(/&nbsp;/g), '');
     let matching = true;
     searchWords.forEach((word) => {
@@ -679,6 +682,10 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
         return;
     }
     return getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastAction))?.reportID;
+}
+
+function hasHiddenDisplayNames(accountIDs: number[]) {
+    return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
 /**
@@ -790,10 +797,12 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getDowngradeWorkspaceMessage();
     } else if (isActionableAddPaymentCard(lastReportAction) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
-    } else if (lastReportAction?.actionName === 'EXPORTINTEGRATION') {
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
+        lastMessageTextFromReport = getLeaveRoomMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
@@ -804,6 +813,13 @@ function getLastMessageTextForReport(
     if (reportID && !isArchivedReport(reportNameValuePairs) && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
     }
+
+    // When the last report action has unkown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
+    // so we reconstruct the last message text of the report from the last report action.
+    if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction))) {
+        lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));
+    }
+
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
@@ -1120,35 +1136,53 @@ function isReportSelected(reportOption: OptionData, selectedOptions: Array<Parti
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
+function processReport(
+    report: OnyxEntry<Report>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+): {
+    reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
+    reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
+} {
+    if (!report) {
+        return {reportOption: null};
+    }
+
+    const isOneOnOneChat = reportUtilsIsOneOnOneChat(report);
+    const accountIDs = getParticipantsAccountIDsForDisplay(report);
+    const isChatRoom = reportUtilsIsChatRoom(report);
+
+    if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
+        return {reportOption: null};
+    }
+
+    // Determine if this report should be mapped to a personal detail
+    const reportMapEntry = accountIDs.length <= 1 && isOneOnOneChat ? ([accountIDs.at(0), report] as [number, Report]) : undefined;
+
+    return {
+        reportMapEntry,
+        reportOption: {
+            item: report,
+            ...createOption(accountIDs, personalDetails, report, {}),
+        },
+    };
+}
+
 function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>) {
     const reportMapForAccountIDs: Record<number, Report> = {};
     const allReportOptions: Array<SearchOption<Report>> = [];
 
     if (reports) {
         Object.values(reports).forEach((report) => {
-            if (!report) {
-                return;
+            const {reportMapEntry, reportOption} = processReport(report, personalDetails);
+
+            if (reportMapEntry) {
+                const [accountID, reportValue] = reportMapEntry;
+                reportMapForAccountIDs[accountID] = reportValue;
             }
 
-            const isOneOnOneChat = reportUtilsIsOneOnOneChat(report);
-            const accountIDs = getParticipantsAccountIDsForDisplay(report);
-
-            const isChatRoom = reportUtilsIsChatRoom(report);
-            if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
-                return;
+            if (reportOption) {
+                allReportOptions.push(reportOption);
             }
-
-            // Save the report in the map if this is a single participant so we can associate the reportID with the
-            // personal detail option later. Individuals should not be associated with single participant
-            // policyExpenseChats or chatRooms since those are not people.
-            if (accountIDs.length <= 1 && isOneOnOneChat) {
-                reportMapForAccountIDs[accountIDs[0]] = report;
-            }
-
-            allReportOptions.push({
-                item: report,
-                ...createOption(accountIDs, personalDetails, report, {}),
-            });
         });
     }
 
@@ -1200,7 +1234,7 @@ function orderReportOptions(options: OptionData[]) {
 function orderReportOptionsWithSearch(
     options: OptionData[],
     searchValue: string,
-    {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderReportOptionsConfig = {},
+    {preferChatRoomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderReportOptionsConfig = {},
 ) {
     const orderedByDate = orderReportOptions(options);
 
@@ -1222,7 +1256,7 @@ function orderReportOptionsWithSearch(
                 if (preferRecentExpenseReports && option.isPolicyExpenseChat) {
                     return 1;
                 }
-                if (preferChatroomsOverThreads && option.isThread) {
+                if (preferChatRoomsOverThreads && option.isThread) {
                     return 4;
                 }
                 if (!!option.isChatRoom || option.private_isArchived) {
@@ -2380,6 +2414,7 @@ export {
     getIsUserSubmittedExpenseOrScannedReceipt,
     getManagerMcTestParticipant,
     shouldShowLastActorDisplayName,
+    processReport,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions};
