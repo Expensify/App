@@ -940,10 +940,14 @@ function updateNetSuiteExportReportsTo(
 }
 
 function updateNetSuiteAccountingMethod(
-    policyID: string,
+    policyID: string | undefined,
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
     oldAccountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
 ) {
+    if (!policyID) {
+        return;
+    }
+
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod);
 
     const parameters = {
