@@ -82,4 +82,4 @@ type ReportNameValuePairsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.C
 
 export default ReportNameValuePairs;
 
-export type {ReportNameValuePairsCollectionDataSet};
+export type {ReportNameValuePairsCollectionDataSet, CalendlyCall};

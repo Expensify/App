@@ -82,6 +82,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {cancelBooking, rescheduleBooking} from '@libs/actions/ScheduleCall';
 import TalkToSalesButton from './TalkToSalesButton';
 
 type HeaderViewProps = {
@@ -171,7 +172,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         return true;
     };
 
-    const shouldShowGuideBooking = !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
+    const shouldShowGuideBooking = true || !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
@@ -270,11 +271,13 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             {
                 text: translate('common.reschedule'),
                 value: 'Reschedule',
+                onSelected: () => rescheduleBooking(activeScheduledCall),
                 icon: CalendarSolid,
             },
             {
                 text: translate('common.cancel'),
                 value: 'Cancel',
+                onSelected: () => cancelBooking(activeScheduledCall),
                 icon: Close,
             },
         ];
