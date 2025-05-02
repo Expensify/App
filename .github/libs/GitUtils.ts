@@ -229,7 +229,7 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
  */
-async function getPullRequestsMergedBetween(fromTag: string, toTag: string) {
+async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}`);
 
     const apiCommitList = await getCommitHistoryBetweenTags(fromTag, toTag);
@@ -249,7 +249,7 @@ async function getPullRequestsMergedBetween(fromTag: string, toTag: string) {
 export default {
     getPreviousExistingTag,
     getValidMergedPRs,
-    getPullRequestsMergedBetween,
+    getPullRequestsDeployedBetween,
     getCommitHistoryBetweenTags,
 };
 export type {CommitType};

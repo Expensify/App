@@ -11569,7 +11569,7 @@ async function run() {
         const previousChecklistData = GithubUtils_1.default.getStagingDeployCashData(previousChecklist);
         const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils_1.default.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
+        const mergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag);
         // mergedPRs includes cherry-picked PRs that have already been releases with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
         console.log(`PRs from previous checklist: ${Array.from(previousPRNumbers).join(', ')}`);
@@ -11942,7 +11942,7 @@ function getValidMergedPRs(commits) {
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
  */
-async function getPullRequestsMergedBetween(fromTag, toTag) {
+async function getPullRequestsDeployedBetween(fromTag, toTag) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}`);
     const apiCommitList = await getCommitHistoryBetweenTags(fromTag, toTag);
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
@@ -11958,7 +11958,7 @@ async function getPullRequestsMergedBetween(fromTag, toTag) {
 exports["default"] = {
     getPreviousExistingTag,
     getValidMergedPRs,
-    getPullRequestsMergedBetween,
+    getPullRequestsDeployedBetween,
     getCommitHistoryBetweenTags,
 };
 

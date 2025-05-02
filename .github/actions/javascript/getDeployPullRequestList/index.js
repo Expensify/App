@@ -11618,7 +11618,7 @@ async function run() {
             throw new Error('Something went wrong and the prior tag could not be found.');
         }
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
-        const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag, inputTag);
+        const prList = await GitUtils_1.default.getPullRequestsDeployedBetween(priorTag, inputTag);
         console.log('Found the pull request list: ', prList);
         core.setOutput('PR_LIST', prList);
     }
@@ -11969,7 +11969,7 @@ function getValidMergedPRs(commits) {
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
  */
-async function getPullRequestsMergedBetween(fromTag, toTag) {
+async function getPullRequestsDeployedBetween(fromTag, toTag) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}`);
     const apiCommitList = await getCommitHistoryBetweenTags(fromTag, toTag);
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
@@ -11985,7 +11985,7 @@ async function getPullRequestsMergedBetween(fromTag, toTag) {
 exports["default"] = {
     getPreviousExistingTag,
     getValidMergedPRs,
-    getPullRequestsMergedBetween,
+    getPullRequestsDeployedBetween,
     getCommitHistoryBetweenTags,
 };
 

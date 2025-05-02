@@ -467,7 +467,7 @@ function deployProduction() {
 
 async function assertPRsMergedBetween(from: string, to: string, expected: number[]) {
     checkoutRepo();
-    const PRs = await GitUtils.getPullRequestsMergedBetween(from, to);
+    const PRs = await GitUtils.getPullRequestsDeployedBetween(from, to);
     expect(PRs).toStrictEqual(expected);
     Log.success(`Verified PRs merged between ${from} and ${to} are [${expected.join(',')}]`);
 }

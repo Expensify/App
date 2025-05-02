@@ -22,7 +22,7 @@ const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
 jest.mock('fs');
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
-const mockGetPullRequestsMergedBetween = jest.fn();
+const mockGetPullRequestsDeployedBetween = jest.fn();
 const mockIssuesUpdate = jest.fn();
 let mockFetchAllPullRequests: jest.SpyInstance;
 let mockGetPullRequestMergerLogin: jest.SpyInstance;
@@ -66,7 +66,7 @@ beforeAll(() => {
     GithubUtils.internalOctokit = moctokit;
 
     // Mock GitUtils
-    GitUtils.getPullRequestsMergedBetween = mockGetPullRequestsMergedBetween;
+    GitUtils.getPullRequestsDeployedBetween = mockGetPullRequestsDeployedBetween;
 
     // Mock internal GithubUtils methods used by generateStagingDeployCashBodyAndAssignees
     mockFetchAllPullRequests = jest.spyOn(GithubUtils, 'fetchAllPullRequests');
@@ -81,7 +81,7 @@ beforeAll(() => {
 afterEach(() => {
     mockGetInput.mockClear();
     mockListIssues.mockClear();
-    mockGetPullRequestsMergedBetween.mockClear();
+    mockGetPullRequestsDeployedBetween.mockClear();
     mockIssuesUpdate.mockClear();
     mockFetchAllPullRequests.mockClear();
     mockGetPullRequestMergerLogin.mockClear();
@@ -182,7 +182,7 @@ describe('createOrUpdateStagingDeploy', () => {
             return 'fake_token';
         });
 
-        mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
+        mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
             if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                 return [...baseNewPullRequests];
             }
@@ -279,7 +279,7 @@ describe('createOrUpdateStagingDeploy', () => {
 
             // New pull requests to add to open StagingDeployCash
             const newPullRequests = [9, 10];
-            mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
+            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-2-staging') {
                     return [...baseNewPullRequests, ...newPullRequests];
                 }
@@ -357,7 +357,7 @@ describe('createOrUpdateStagingDeploy', () => {
                 }
                 return 'fake_token';
             });
-            mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
+            mockGetPullRequestsDeployedBetween.mockImplementation((fromRef, toRef) => {
                 if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                     return [...baseNewPullRequests];
                 }
@@ -434,7 +434,7 @@ describe('createOrUpdateStagingDeploy', () => {
         });
 
         // Mock the response from GitUtils to include value PRs and some which were cherry-picked to prior release (9, 11)
-        mockGetPullRequestsMergedBetween.mockResolvedValue([9, 10, 11, 12]);
+        mockGetPullRequestsDeployedBetween.mockResolvedValue([9, 10, 11, 12]);
 
         // Mock the previous checklist data directly, including the PRs we want to filter out (9, 11)
         const mockGetStagingDeployCashData = jest.spyOn(GithubUtils, 'getStagingDeployCashData');
