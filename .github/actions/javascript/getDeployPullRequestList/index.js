@@ -11927,17 +11927,13 @@ async function getCommitHistoryBetweenTags(fromTag, toTag) {
             commit: commit.sha,
             subject: commit.commit.message,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            authorName: commit.commit.author?.name || commit.author?.login || 'Unknown',
+            authorName: commit.commit.author?.name || 'Unknown',
         }));
     }
     catch (error) {
         if (error instanceof request_error_1.RequestError && error.status === 404) {
             console.error(`❓❓ Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`);
         }
-        else {
-            console.error('Error getting commit history from GitHub API:', error);
-        }
-        // Re-throw the error after logging
         throw error;
     }
 }

@@ -57,7 +57,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         // Find the list of PRs merged between the current checklist and the previous checklist
         const mergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag);
 
-        // mergedPRs includes cherry-picked PRs that have already been releases with previous checklist, so we need to filter these out
+        // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
         console.log(`PRs from previous checklist: ${Array.from(previousPRNumbers).join(', ')}`);
         const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));

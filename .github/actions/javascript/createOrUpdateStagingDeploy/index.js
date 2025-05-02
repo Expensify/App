@@ -11570,7 +11570,7 @@ async function run() {
         const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
         // Find the list of PRs merged between the current checklist and the previous checklist
         const mergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag);
-        // mergedPRs includes cherry-picked PRs that have already been releases with previous checklist, so we need to filter these out
+        // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
         console.log(`PRs from previous checklist: ${Array.from(previousPRNumbers).join(', ')}`);
         const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
@@ -11900,17 +11900,13 @@ async function getCommitHistoryBetweenTags(fromTag, toTag) {
             commit: commit.sha,
             subject: commit.commit.message,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            authorName: commit.commit.author?.name || commit.author?.login || 'Unknown',
+            authorName: commit.commit.author?.name || 'Unknown',
         }));
     }
     catch (error) {
         if (error instanceof request_error_1.RequestError && error.status === 404) {
             console.error(`❓❓ Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`);
         }
-        else {
-            console.error('Error getting commit history from GitHub API:', error);
-        }
-        // Re-throw the error after logging
         throw error;
     }
 }
