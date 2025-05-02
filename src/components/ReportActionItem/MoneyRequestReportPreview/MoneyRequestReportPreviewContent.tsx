@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {LayoutChangeEvent, ListRenderItemInfo, ViewToken} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import type {LayoutRectangle} from 'react-native/Libraries/Types/CoreEventTypes';
 import Button from '@components/Button';
@@ -62,6 +63,7 @@ import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActio
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -186,10 +188,11 @@ function MoneyRequestReportPreviewContent({
 
     const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
 
-    // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
+    // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
-
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReportID}`, {canBeMissing: true});
 
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
@@ -332,7 +335,7 @@ function MoneyRequestReportPreviewContent({
             return;
         }
 
-        thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBSUP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBSUP_DURATION})) : 1);
+        thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     const carouselTransactions = transactions.slice(0, 11);
@@ -405,7 +408,7 @@ function MoneyRequestReportPreviewContent({
     // The button should expand up to transaction width
     const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
 
-    const approvedOrSettledicon = (iouSettled || isApproved) && (
+    const approvedOrSettledIcon = (iouSettled || isApproved) && (
         <ImageSVG
             src={isApproved ? Expensicons.ThumbsUp : Expensicons.Checkmark}
             fill={isApproved ? theme.icon : theme.iconSuccessFill}
@@ -448,8 +451,12 @@ function MoneyRequestReportPreviewContent({
     }, [iouReportID]);
 
     const reportPreviewAction = useMemo(() => {
-        return getReportPreviewAction(violations, iouReport, policy, transactions);
-    }, [iouReport, policy, violations, transactions]);
+        // It's necessary to allow payment animation to finish before button is changed
+        if (isPaidAnimationRunning) {
+            return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
+        }
+        return getReportPreviewAction(violations, iouReport, policy, transactions, reportNameValuePairs);
+    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, reportNameValuePairs]);
 
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
@@ -589,11 +596,11 @@ function MoneyRequestReportPreviewContent({
                                                         >
                                                             {getPreviewName()}
                                                         </Text>
-                                                        {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledicon}</>}
+                                                        {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledIcon}</>}
                                                     </Text>
                                                     {doesReportNameOverflow && (
                                                         <View style={[styles.mtn0Half, (transactions.length < 3 || shouldUseNarrowLayout) && styles.alignSelfStart]}>
-                                                            {approvedOrSettledicon}
+                                                            {approvedOrSettledIcon}
                                                         </View>
                                                     )}
                                                 </Animated.View>
@@ -675,7 +682,8 @@ function MoneyRequestReportPreviewContent({
                                             ))}
                                         </View>
                                     )}
-                                    <View style={[buttonMaxWidth]}>{reportPreviewActions[reportPreviewAction]}</View>
+                                    {/* height is needed to avoid flickering on animation */}
+                                    <View style={[buttonMaxWidth, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>
                                 </View>
                             </View>
                         </View>

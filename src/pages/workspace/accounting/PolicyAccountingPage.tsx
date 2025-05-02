@@ -41,6 +41,7 @@ import {
     getCurrentXeroOrganizationName,
     getIntegrationLastSuccessfulDate,
     getXeroTenants,
+    hasAccountingConnections,
     hasUnsupportedIntegration,
     isControlPolicy,
     settingsPendingAction,
@@ -616,7 +617,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     />
                                 </CollapsibleSection>
                             )}
-                            {!!account?.guideDetails?.email && (
+                            {!!account?.guideDetails?.email && !hasAccountingConnections(policy) && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                                     <Icon
                                         src={Expensicons.QuestionMark}

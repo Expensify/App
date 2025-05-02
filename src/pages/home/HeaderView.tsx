@@ -1,15 +1,18 @@
 import {useRoute} from '@react-navigation/native';
+import {addMinutes, compareDesc, format, isPast, parseISO} from 'date-fns';
 import React, {memo, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 import {BackArrow, CalendarSolid, Close, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import LoadingBar from '@components/LoadingBar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -22,6 +25,7 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -30,6 +34,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -75,13 +80,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type { DropdownOption } from '@components/ButtonWithDropdownMenu/types';
-import { addMinutes, compareDesc, format, isPast, parseISO } from 'date-fns';
-import DateUtils from '@libs/DateUtils';
-import * as Illustrations from '@components/Icon/Illustrations';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import type { Timezone } from '@src/types/onyx/PersonalDetails';
 import TalkToSalesButton from './TalkToSalesButton';
 
 type HeaderViewProps = {
@@ -123,6 +123,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const [isDismissedDiscountBanner, setIsDismissedDiscountBanner] = useState(false);
 
     const {translate} = useLocalize();
@@ -133,7 +134,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const {canUseTalkToAISales, canUseLeftHandBar} = usePermissions();
     const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report);
 
-    const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
+    const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
     const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
     const isMultipleParticipant = participants.length > 1;
@@ -225,8 +226,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
 
     const guideBookingButton = useMemo(() => {
-        const activeScheduledCall = reportNameValuePairs?.calendlyCalls?.sort((callA, callB) => compareDesc(parseISO(callA.eventTime), parseISO(callB.eventTime)))
-        .find(call => !isPast(parseISO(call.eventTime)) && call.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED)
+        const activeScheduledCall = reportNameValuePairs?.calendlyCalls
+            ?.sort((callA, callB) => compareDesc(parseISO(callA.eventTime), parseISO(callB.eventTime)))
+            .find((call) => !isPast(parseISO(call.eventTime)) && call.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED);
 
         if (!activeScheduledCall) {
             return (
@@ -239,17 +241,25 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                         }
                         Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK.getRoute(report?.reportID));
                     }}
-                    style={shouldUseNarrowLayout && shouldShowGuideBookingButtonInEarlyDiscountBanner && [styles.flex1]}
+                    style={shouldUseNarrowLayout && shouldShowGuideBookingButtonInEarlyDiscountBanner && styles.earlyDiscountButton}
                     icon={CalendarSolid}
+                    // Ensure that a button with an icon displays an ellipsis when its content overflows https://github.com/Expensify/App/issues/58974#issuecomment-2794297554
+                    iconWrapperStyles={[styles.mw100]}
+                    isContentCentered
                 />
             );
         }
         const menuItems: Array<DropdownOption<string>> = [
             {
-                text: `${format(new Date(activeScheduledCall.eventTime), CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${format(new Date(activeScheduledCall.eventTime), CONST.DATE.MONTH_DAY_YEAR_FORMAT)}`,
+                text: `${format(new Date(activeScheduledCall.eventTime), CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${format(
+                    new Date(activeScheduledCall.eventTime),
+                    CONST.DATE.MONTH_DAY_YEAR_FORMAT,
+                )}`,
                 value: activeScheduledCall.eventTime,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                description: `${DateUtils.formatToLocalTime(activeScheduledCall.eventTime)} - ${DateUtils.formatToLocalTime(addMinutes(activeScheduledCall.eventTime, 30))} ${DateUtils.getZoneAbbreviation(new Date(activeScheduledCall.eventTime), timezone.selected!)}`,
+                description: `${DateUtils.formatToLocalTime(activeScheduledCall.eventTime)} - ${DateUtils.formatToLocalTime(
+                    addMinutes(activeScheduledCall.eventTime, 30),
+                )} ${DateUtils.getZoneAbbreviation(new Date(activeScheduledCall.eventTime), timezone.selected!)}`,
                 descriptionTextStyle: styles.themeTextColor,
                 icon: Illustrations.HeadSet,
                 iconWidth: 40,
@@ -283,7 +293,21 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 testID="scheduled-call-header-dropdown-menu-button"
             />
         );
-    }, [report?.reportID, reportNameValuePairs?.calendlyCalls, shouldShowGuideBookingButtonInEarlyDiscountBanner, shouldUseNarrowLayout, styles.borderBottom, styles.flex1, styles.flexGrow1, styles.mb4, styles.ph5, styles.pv5, styles.themeTextColor, timezone.selected, translate]);
+    }, [
+        report?.reportID,
+        reportNameValuePairs?.calendlyCalls,
+        shouldShowGuideBookingButtonInEarlyDiscountBanner,
+        shouldUseNarrowLayout,
+        styles.borderBottom,
+        styles.flex1,
+        styles.flexGrow1,
+        styles.mb4,
+        styles.ph5,
+        styles.pv5,
+        styles.themeTextColor,
+        timezone.selected,
+        translate,
+    ]);
 
     const talkToSalesButton = (
         <TalkToSalesButton
