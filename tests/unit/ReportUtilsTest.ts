@@ -2461,7 +2461,7 @@ describe('ReportUtils', () => {
     describe('isPayer', () => {
         const approvedReport: Report = {
             ...createRandomReport(1),
-            type: CONST.REPORT.TYPE.IOU,
+            type: CONST.REPORT.TYPE.EXPENSE,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             policyID: '1',
@@ -2469,15 +2469,27 @@ describe('ReportUtils', () => {
 
         const unapprovedReport: Report = {
             ...createRandomReport(2),
-            type: CONST.REPORT.TYPE.IOU,
+            type: CONST.REPORT.TYPE.EXPENSE,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             policyID: '1',
         };
 
+        const policyTest: Policy = {
+            ...createRandomPolicy(1),
+            employeeList: {
+                [currentUserEmail]: {
+                    role: CONST.POLICY.ROLE.AUDITOR,
+                },
+            },
+        };
+
         beforeAll(() => {
             Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                [ONYXKEYS.COLLECTION.POLICY]: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: policyTest,
+                },
             });
             return waitForBatchedUpdates();
         });

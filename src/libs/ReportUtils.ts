@@ -2254,11 +2254,12 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
     const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = iouReport?.managerID === session?.accountID;
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
             // If we get here without a reimburser only show the pay button if we are the admin.
             if (!policy?.achAccount?.reimburser) {
-                return isAdmin;
+                return isAdmin && isManager;
             }
 
             // If we are the reimburser and the report is approved or we are the admin then we can pay it.
@@ -2266,11 +2267,11 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
             return isReimburser && (isApproved || isAdmin);
         }
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
-            return isAdmin && isApproved;
+            return isAdmin && isManager;
         }
         return false;
     }
-    return isAdmin;
+    return isMoneyRequestReport(iouReport) && isManager;
 }
 
 /**
