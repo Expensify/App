@@ -1,5 +1,3 @@
-import type {FC} from 'react';
-import type {SvgProps} from 'react-native-svg';
 import Avatar1 from '@assets/images/avatars/user/default-avatar_1.svg';
 import Avatar2 from '@assets/images/avatars/user/default-avatar_2.svg';
 import Avatar3 from '@assets/images/avatars/user/default-avatar_3.svg';
@@ -24,11 +22,9 @@ import Avatar21 from '@assets/images/avatars/user/default-avatar_21.svg';
 import Avatar22 from '@assets/images/avatars/user/default-avatar_22.svg';
 import Avatar23 from '@assets/images/avatars/user/default-avatar_23.svg';
 import Avatar24 from '@assets/images/avatars/user/default-avatar_24.svg';
+import StringUtils from './StringUtils';
 
-type AvatarComponent = FC<SvgProps>;
-type AvatarArray = readonly AvatarComponent[];
-
-const avatars: AvatarArray = [
+const avatars = [
     Avatar1,
     Avatar2,
     Avatar3,
@@ -55,45 +51,16 @@ const avatars: AvatarArray = [
     Avatar24,
 ] as const;
 
-const AVATAR_LENGTH: number = avatars.length;
-const DEFAULT_AVATAR: AvatarComponent = Avatar1;
-
-// Prime numbers for better distribution
-const MULTIPLIER = AVATAR_LENGTH + 7; // First prime after length
-const OFFSET = AVATAR_LENGTH - 11; // First prime before length
+const DEFAULT_AVATAR = Avatar1;
 
 /**
- * Generate a deterministic avatar based on multiple letters from the name.
- * Uses a rolling hash of the first 5 letters (or available letters if name is shorter)
- * for better distribution while maintaining deterministic results.
- *
- * @example
- * // These will always return the same avatar for the same name
- * const avatar1 = getAvatarForContact("Jonathan")  // Uses 'Jonat' for hash
- * const avatar2 = getAvatarForContact("Jane")  // Uses 'Jane' for hash
- * const avatar3 = getAvatarForContact("J")     // Uses 'J' for hash
- *
- * @param name - Contact name or null/undefined
- * @returns Avatar component
+ * Deterministically choose an avatar for a contact with an even distribution.
  */
-const getAvatarForContact = (name?: string | null): AvatarComponent => {
-    if (!name?.length) {
+const getAvatarForContact = (name?: string | null) => {
+    if (!name) {
         return DEFAULT_AVATAR;
     }
-
-    // Take up to first 8 characters, or all if name is shorter
-    const chars = name.slice(0, 8);
-
-    // Create a rolling hash from the characters
-    let hash = 0;
-    for (let i = 0; i < chars.length; i++) {
-        const charCode = chars.charCodeAt(i);
-        // Use position-based multiplier for better distribution
-        hash = (hash * MULTIPLIER + charCode * (i + 1) + OFFSET) % AVATAR_LENGTH;
-    }
-
-    return avatars.at(Math.abs(hash)) ?? DEFAULT_AVATAR;
+    return avatars.at(StringUtils.hash(name, avatars.length)) ?? DEFAULT_AVATAR;
 };
 
-export type {AvatarComponent};
-export {getAvatarForContact};
+export default {getAvatarForContact};

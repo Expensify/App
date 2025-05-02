@@ -3,7 +3,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 import type {DeviceContact, StringHolder} from './ContactImport/types';
 import {getUserToInviteContactOption} from './OptionsListUtils';
 import type {SearchOption} from './OptionsListUtils';
-import {getAvatarForContact} from './RandomAvatarUtils';
+import RandomAvatarUtils from './RandomAvatarUtils';
 
 function sortEmailObjects(emails?: StringHolder[]): string[] {
     if (!emails?.length) {
@@ -29,7 +29,7 @@ const getContacts = (deviceContacts: DeviceContact[] | []): Array<SearchOption<P
         .map((contact) => {
             const email = sortEmailObjects(contact?.emailAddresses ?? [])?.at(0) ?? '';
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const avatarSource = (contact?.imageData || getAvatarForContact(`${contact?.firstName}${email}${contact?.lastName}`)) ?? '';
+            const avatarSource = (contact?.imageData || RandomAvatarUtils.getAvatarForContact(`${contact?.firstName}${email}${contact?.lastName}`)) ?? '';
             const phoneNumber = contact.phoneNumbers?.[0]?.value ?? '';
             const firstName = contact?.firstName ?? '';
             const lastName = contact?.lastName ?? '';
