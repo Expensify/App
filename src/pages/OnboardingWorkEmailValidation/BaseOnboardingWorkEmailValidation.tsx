@@ -82,7 +82,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         >
             <HeaderWithBackButton
                 shouldShowBackButton={!onboardingValues?.isMergingAccountBlocked}
-                progressBarPercentage={40}
+                progressBarPercentage={15}
                 onBackButtonPress={() => {
                     updateOnboardingValuesAndNavigation(onboardingValues);
                 }}
