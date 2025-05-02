@@ -718,6 +718,19 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, curre
     return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
+/** Return active policies where current user is an employee (of the role "user") */
+function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyUser(policy, currentUserLogin));
+}
+
+/**
+ * Checks whether the current user has a policy with admin access
+ */
+function hasActiveAdminWorkspaces(currentUserLogin: string | undefined) {
+    return getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
+}
+
 /**
  *
  * Checks whether the current user has a policy with Xero accounting software integration
@@ -1251,6 +1264,10 @@ function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
 }
 
+function getAllPolicies() {
+    return Object.values(allPolicies ?? {}).filter((p) => !!p);
+}
+
 function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
 }
@@ -1404,18 +1421,6 @@ function isPrefferedExporter(policy: Policy) {
     return exporters.some((exporter) => exporter && exporter === user);
 }
 
-function isAutoSyncEnabled(policy: Policy) {
-    const values = [
-        policy.connections?.intacct?.config?.autoSync?.enabled,
-        policy.connections?.netsuite?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
-        policy.connections?.xero?.config?.autoSync?.enabled,
-    ];
-
-    return values.some((value) => !!value);
-}
-
 /**
  * Checks if the user is invited to any workspace.
  */
@@ -1482,6 +1487,7 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
+    hasActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
@@ -1550,6 +1556,7 @@ export {
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
+    getAllPolicies,
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
@@ -1565,8 +1572,8 @@ export {
     isWorkspaceEligibleForReportChange,
     getManagerAccountID,
     isPrefferedExporter,
-    isAutoSyncEnabled,
     areAllGroupPoliciesExpenseChatDisabled,
+    getActiveEmployeeWorkspaces,
     isUserInvitedToWorkspace,
 };
 

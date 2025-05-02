@@ -14,7 +14,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ExtendedTargetedEvent, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ExtendedTargetedEvent, ReportListItemType, SearchListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -31,7 +31,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem;
 
 type SearchListHandle = {
@@ -62,7 +61,7 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
+    /** Whether to prevent default focusing of options and focus the text input when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Whether to prevent long press of options */
@@ -169,10 +168,14 @@ function SearchList(
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
                 return;
             }
+            if (selectionMode?.isEnabled) {
+                onCheckboxPress(item);
+                return;
+            }
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [isFocused, isSmallScreenWidth, shouldPreventLongPressRow],
+        [isFocused, isSmallScreenWidth, onCheckboxPress, selectionMode?.isEnabled, shouldPreventLongPressRow],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -385,7 +388,7 @@ function SearchList(
             >
                 <MenuItem
                     title={translate('common.select')}
-                    icon={Expensicons.Checkmark}
+                    icon={Expensicons.CheckSquare}
                     onPress={turnOnSelectionMode}
                 />
             </Modal>

@@ -37,7 +37,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
-    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
@@ -49,10 +49,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
-    const {canUseDefaultRooms} = usePermissions();
+    const {canUseDefaultRooms, canUsePrivateDomainOnboarding} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
 
-    const isPrivateDomainAndHasAccesiblePolicies = !user?.isFromPublicDomain && !!user?.hasAccessibleDomainPolicies;
+    const isPrivateDomainAndHasAccesiblePolicies = canUsePrivateDomainOnboarding && !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList);
 
     useEffect(() => {
@@ -77,7 +77,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
 
-            navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, mergedAccountConciergeReportID);
+            navigateAfterOnboarding(onboardingPurposeSelected, isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, mergedAccountConciergeReportID);
         },
         [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth, mergedAccountConciergeReportID],
     );
