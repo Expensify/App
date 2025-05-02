@@ -5676,6 +5676,12 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 20,
         }),
 
+        earlyDiscountButton: {
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: 'auto',
+        },
+
         testDriveModalContainer: {
             // On small/medium screens, we need to remove the top padding
             paddingTop: 0,

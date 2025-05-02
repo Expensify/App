@@ -24,7 +24,7 @@ import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCards, sortCardsByCardholderName} from '@libs/CardUtils';
 import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
+import {getDescriptionForPolicyDomainCard, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -73,7 +73,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
-    const sortedCards = useMemo(() => sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
+    const sortedCards = useMemo(
+        () => sortCardsByCardholderName(cardsList, personalDetails, Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList))),
+        [cardsList, personalDetails, policy?.employeeList],
+    );
 
     const [inputValue, setInputValue] = useState('');
 

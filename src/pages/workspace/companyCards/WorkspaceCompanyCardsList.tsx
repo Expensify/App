@@ -8,8 +8,10 @@ import {PressableWithFeedback} from '@components/Pressable';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {filterCards, getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
+import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,8 +39,12 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
     const {translate} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const policy = usePolicy(policyID);
 
-    const sortedCards = useMemo(() => sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
+    const sortedCards = useMemo(
+        () => sortCardsByCardholderName(cardsList, personalDetails, Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList))),
+        [cardsList, personalDetails, policy?.employeeList],
+    );
 
     const [inputValue, setInputValue] = useState('');
 
