@@ -74,7 +74,7 @@ function ScheduleCallPage() {
         if (!calendlySchedule?.data) {
             return {};
         }
-        const guides =  Object.keys(calendlySchedule?.data);
+        const guides = Object.keys(calendlySchedule?.data);
 
         const allTimeSlots = guides?.reduce((allSlots, guideAccountID) => {
             const guideSchedule = calendlySchedule?.data?.[guideAccountID];
@@ -101,9 +101,9 @@ function ScheduleCallPage() {
     }, [calendlySchedule]);
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
-    const firstDate =  selectableDates.at(0);
-    const lastDate =  selectableDates.at(selectableDates.length - 1);
-    const minDate = firstDate ? parse(firstDate,  CONST.DATE.FNS_FORMAT_STRING, new Date()): undefined;
+    const firstDate = selectableDates.at(0);
+    const lastDate = selectableDates.at(selectableDates.length - 1);
+    const minDate = firstDate ? parse(firstDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
     const maxDate = lastDate ? parse(lastDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
     const timeSlotsForSelectedData = scheduleCallDraft?.date ? timeSlotDateMap?.[scheduleCallDraft?.date] ?? [] : [];
 

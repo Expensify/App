@@ -34,12 +34,15 @@ function ScheduleCallConfirmationPage() {
         if (!scheduleCallDraft?.slotTime || !scheduleCallDraft?.date || !scheduleCallDraft.guide || !scheduleCallDraft.reportID) {
             return;
         }
-        confirmBooking({
-            date: scheduleCallDraft.date,
-            slotTime: scheduleCallDraft.slotTime,
-            guide: scheduleCallDraft.guide,
-            reportID: scheduleCallDraft.reportID,
-        }, currentUserPersonalDetails);
+        confirmBooking(
+            {
+                date: scheduleCallDraft.date,
+                slotTime: scheduleCallDraft.slotTime,
+                guide: scheduleCallDraft.guide,
+                reportID: scheduleCallDraft.reportID,
+            },
+            currentUserPersonalDetails,
+        );
     }, [currentUserPersonalDetails, scheduleCallDraft]);
 
     const guideDetails = useMemo(

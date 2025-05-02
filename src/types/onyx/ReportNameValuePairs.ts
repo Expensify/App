@@ -45,7 +45,7 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
         data?: Record<GuideAccountID, GuideCalendlySchedule>;
 
         /** Errors while merging the account */
-        errors: OnyxCommon.Errors;
+        errors?: OnyxCommon.Errors;
     };
 
     /** The time the report export failed */
