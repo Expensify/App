@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -21,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 
 type ConfirmationStepProps = {
     /** Current policy id */
@@ -71,6 +72,27 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const handleBackButtonPress = () => {
         setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
     };
+
+    // Handle browser back button
+    const handlePopStateRef = useRef(() => {
+        handleBackButtonPress();
+    });
+
+    useEffect(() => {
+        window.history.pushState({shouldGoBack: true}, '', null);
+
+        window.addEventListener('popstate', handlePopStateRef.current);
+        return () => {
+            window.removeEventListener('popstate', handlePopStateRef.current);
+        };
+    }, []);
+
+    // Handle android back button
+    useHandleBackButton(() => {
+        handleBackButtonPress();
+        return true;
+    });
+
 
     return (
         <InteractiveStepWrapper

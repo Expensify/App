@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -66,10 +66,25 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
     };
 
+    // Handle android back button
     useHandleBackButton(() => {
         handleBackButtonPress();
         return true;
     });
+
+       // Handle browser back button
+       const handlePopStateRef = useRef(() => {
+        handleBackButtonPress();
+    });
+
+    useEffect(() => {
+        window.history.pushState({shouldGoBack: true}, '', null);
+
+        window.addEventListener('popstate', handlePopStateRef.current);
+        return () => {
+            window.removeEventListener('popstate', handlePopStateRef.current);
+        };
+    }, []);
 
     const handleSelectCard = (cardNumber: string) => {
         setCardSelected(cardNumber);

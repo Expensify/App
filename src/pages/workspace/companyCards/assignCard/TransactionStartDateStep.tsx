@@ -1,5 +1,5 @@
 import {format, subDays} from 'date-fns';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
+import Log from '@libs/Log';
 
 type TransactionStartDateStepProps = {
     policyID: string | undefined;
@@ -49,6 +50,21 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
         setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CARD});
     };
 
+    // Handle browser back button
+    const handlePopStateRef = useRef(() => {
+        handleBackButtonPress();
+    });
+
+    useEffect(() => {
+        window.history.pushState({shouldGoBack: true}, '', null);
+
+        window.addEventListener('popstate', handlePopStateRef.current);
+        return () => {
+            window.removeEventListener('popstate', handlePopStateRef.current);
+        };
+    }, [isEditing]);
+
+    // Handle android back button
     useHandleBackButton(() => {
         handleBackButtonPress();
         return true;

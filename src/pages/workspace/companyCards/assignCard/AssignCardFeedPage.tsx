@@ -17,12 +17,14 @@ import CardNameStep from './CardNameStep';
 import CardSelectionStep from './CardSelectionStep';
 import ConfirmationStep from './ConfirmationStep';
 import TransactionStartDateStep from './TransactionStartDateStep';
+import Log from '@libs/__mocks__/Log';
 
 type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD> & WithPolicyAndFullscreenLoadingProps;
 
 function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const currentStep = assignCard?.currentStep;
+    Log.hmmm(`assignCard ${JSON.stringify(assignCard)}`);
+    let currentStep = assignCard?.currentStep;
 
     const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
     const backTo = route.params?.backTo;
@@ -46,7 +48,11 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             </ScreenWrapper>
         );
     }
+    useEffect(() => {
+        currentStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
+    }, []);
 
+    Log.hmmm(`currentStep ${currentStep}`);
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
             return (
