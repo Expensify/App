@@ -21,7 +21,7 @@ describe('SidebarUtils', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
 
@@ -579,6 +579,67 @@ describe('SidebarUtils', () => {
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
             expect(result?.alternateText).toBe(`${lastAction.person?.[0].text}: ${getReportActionMessageText(lastAction)}`);
         });
+
+        it('returns @Hidden as an alternate text if the last action mentioned account has no name', async () => {
+            // When a report has last action with mention of an account that has no name
+            const report: Report = {
+                ...createRandomReport(4),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                lastMessageText: '@unexisting@gmail.com',
+                lastVisibleActionCreated: '2025-01-20 12:30:03.784',
+            };
+
+            const mentionedAccountID = 19797552;
+            const lastAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT> = {
+                ...createRandomReportAction(2),
+                message: [
+                    {
+                        html: `<mention-user accountID="${mentionedAccountID}"/>`,
+                        text: '@unexisting@gmal.com',
+                        type: 'COMMENT',
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user accountID="${mentionedAccountID}"/>`,
+                    whisperedTo: [],
+                    lastModified: '2025-05-01 13:23:25.209',
+                    mentionedAccountIDs: [mentionedAccountID],
+                },
+                pendingAction: undefined,
+                previousMessage: undefined,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: 119086,
+                person: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: 'f50',
+                    },
+                ],
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[mentionedAccountID]: {accountID: mentionedAccountID, firstName: '', lastName: ''}});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportActions,
+                reportAttributes: {},
+                reportNameValuePairs: {},
+                hasViolations: false,
+                personalDetails: {},
+                policy: undefined,
+                parentReportAction: undefined,
+                preferredLocale: CONST.LOCALES.EN,
+                oneTransactionThreadReport: undefined,
+            });
+
+            // Then the alternate text should show @Hidden.
+            expect(result?.alternateText).toBe(`f50: @Hidden`);
+        });
+
         describe('Alternative text', () => {
             afterEach(async () => {
                 Onyx.clear();

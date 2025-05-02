@@ -6,9 +6,8 @@ import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {SearchColumnType, SearchQueryJSON, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
-import TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ListItem, ReportActionListItemType, ReportListItemType, SearchListItem, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -25,7 +24,6 @@ import type {
     SearchPersonalDetails,
     SearchPolicy,
     SearchReport,
-    SearchTask,
     SearchTransaction,
     SearchTransactionAction,
 } from '@src/types/onyx/SearchResults';
@@ -36,14 +34,10 @@ import DateUtils from './DateUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
-import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {canSendInvoice, getPolicy} from './PolicyUtils';
+import {canSendInvoice} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
-    getIcons,
-    getReportName,
-    getReportOrDraftReport,
     getSearchReportName,
     hasInvoiceReports,
     hasOnlyHeldExpenses,
@@ -56,11 +50,10 @@ import {
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
-import StringUtils from './StringUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
 
-const transactionColumnNamesToSortingProperty = {
+const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'date' as const,
@@ -73,16 +66,6 @@ const transactionColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
-    [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
-};
-
-const taskColumnNamesToSortingProperty = {
-    [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'created' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'description' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'reportName' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.CREATED_BY]: 'formattedCreatedBy' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: 'formattedAssignee' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
 };
 
 let currentAccountID: number | undefined;
@@ -207,22 +190,15 @@ function isReportListItemType(item: ListItem): item is ReportListItemType {
 /**
  * Type guard that checks if something is a TransactionListItemType
  */
-function isTransactionListItemType(item: SearchListItem): item is TransactionListItemType {
+function isTransactionListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType): item is TransactionListItemType {
     const transactionListItem = item as TransactionListItemType;
     return transactionListItem.transactionID !== undefined;
 }
 
 /**
- * Type guard that check if something is a TaskListItemType
- */
-function isTaskListItemType(item: SearchListItem): item is TaskListItemType {
-    return 'type' in item && item.type === CONST.REPORT.TYPE.TASK;
-}
-
-/**
  * Type guard that checks if something is a ReportActionListItemType
  */
-function isReportActionListItemType(item: SearchListItem): item is ReportActionListItemType {
+function isReportActionListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType): item is ReportActionListItemType {
     const reportActionListItem = item as ReportActionListItemType;
     return reportActionListItem.reportActionID !== undefined;
 }
@@ -230,16 +206,11 @@ function isReportActionListItemType(item: SearchListItem): item is ReportActionL
 /**
  * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
  */
-function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']) {
+function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']) {
     const currentYear = new Date().getFullYear();
 
     if (Array.isArray(data)) {
-        return data.some((item: TransactionListItemType | ReportListItemType | TaskListItemType) => {
-            if (isTaskListItemType(item)) {
-                const taskYear = new Date(item.created).getFullYear();
-                return taskYear !== currentYear;
-            }
-
+        return data.some((item: TransactionListItemType | ReportListItemType) => {
             if (isReportListItemType(item)) {
                 // If the item is a ReportListItemType, iterate over its transactions and check them
                 return item.transactions.some((transaction) => {
@@ -267,13 +238,6 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
                 if (DateUtils.doesDateBelongToAPastYear(date)) {
                     return true;
                 }
-            }
-        } else if (isReportEntry(key)) {
-            const item = data[key];
-            const date = item.created;
-
-            if (date && DateUtils.doesDateBelongToAPastYear(date)) {
-                return true;
             }
         }
     }
@@ -438,61 +402,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
 
 /**
  * @private
- * Organizes data into List Sections for display, for the TaskListItemType of Search Results.
- *
- * Do not use directly, use only via `getSections()` facade.
- */
-function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemType[] {
-    return Object.keys(data)
-        .filter(isReportEntry)
-        .map((key) => {
-            const taskItem = data[key] as SearchTask;
-            const personalDetails = data.personalDetailsList;
-
-            const assignee = personalDetails?.[taskItem.managerID] ?? emptyPersonalDetails;
-            const createdBy = personalDetails?.[taskItem.accountID] ?? emptyPersonalDetails;
-            const formattedAssignee = formatPhoneNumber(getDisplayNameOrDefault(assignee));
-            const formattedCreatedBy = formatPhoneNumber(getDisplayNameOrDefault(createdBy));
-
-            const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
-            const parentReport = getReportOrDraftReport(taskItem.parentReportID);
-
-            const doesDataContainAPastYearTransaction = shouldShowYear(data);
-            const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName));
-            const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description));
-
-            const result: TaskListItemType = {
-                ...taskItem,
-                reportName,
-                description,
-                assignee,
-                formattedAssignee,
-                createdBy,
-                formattedCreatedBy,
-                keyForList: taskItem.reportID,
-                shouldShowYear: doesDataContainAPastYearTransaction,
-            };
-
-            if (parentReport && personalDetails) {
-                const policy = getPolicy(parentReport.policyID);
-                const parentReportName = getReportName(parentReport, policy, undefined, undefined);
-                const icons = getIcons(parentReport, personalDetails, null, '', -1, policy);
-                const parentReportIcon = icons?.at(0);
-
-                result.parentReportName = parentReportName;
-                result.parentReportIcon = parentReportIcon;
-            }
-
-            if (report) {
-                result.report = report;
-            }
-
-            return result;
-        });
-}
-
-/**
- * @private
  * Organizes data into List Sections for display, for the ReportActionListItemType of Search Results.
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -628,9 +537,6 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, shouldGroupByR
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return ChatListItem;
     }
-    if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return TaskListItem;
-    }
     if (!shouldGroupByReports) {
         return TransactionListItem;
     }
@@ -644,13 +550,9 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
-    if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getTaskSections(data);
-    }
     if (!shouldGroupByReports) {
         return getTransactionsSections(data, metadata);
     }
-
     return getReportSections(data, metadata);
 }
 
@@ -667,9 +569,6 @@ function getSortedSections(
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getSortedReportActionData(data as ReportActionListItemType[]);
-    }
-    if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getSortedTaskData(data as TaskListItemType[], sortBy, sortOrder);
     }
     if (!shouldGroupByReports) {
         return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
@@ -710,15 +609,15 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
         return data;
     }
 
-    const sortingProperty = transactionColumnNamesToSortingProperty[sortBy as keyof typeof transactionColumnNamesToSortingProperty];
+    const sortingProperty = columnNamesToSortingProperty[sortBy];
 
     if (!sortingProperty) {
         return data;
     }
 
     return data.sort((a, b) => {
-        const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty as keyof TransactionListItemType];
-        const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty as keyof TransactionListItemType];
+        const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty];
+        const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty];
 
         return compareValues(aValue, bValue, sortOrder, sortingProperty);
     });
@@ -730,25 +629,6 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
  */
 function getReportNewestTransactionDate(report: ReportListItemType) {
     return report.transactions?.reduce((max, curr) => (curr.modifiedCreated ?? curr.created > (max?.created ?? '') ? curr : max), report.transactions.at(0))?.created;
-}
-
-function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
-    if (!sortBy || !sortOrder) {
-        return data;
-    }
-
-    const sortingProperty = taskColumnNamesToSortingProperty[sortBy as keyof typeof taskColumnNamesToSortingProperty];
-
-    if (!sortingProperty) {
-        return data;
-    }
-
-    return data.sort((a, b) => {
-        const aValue = a[sortingProperty as keyof TaskListItemType];
-        const bValue = b[sortingProperty as keyof TaskListItemType];
-
-        return compareValues(aValue, bValue, sortOrder, sortingProperty);
-    });
 }
 
 /**
@@ -878,15 +758,6 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
                 return ROUTES.SEARCH_ROOT.getRoute({query});
             },
         },
-        {
-            translationPath: 'common.tasks',
-            type: CONST.SEARCH.DATA_TYPES.TASK,
-            icon: Expensicons.Task,
-            getRoute: (policyID?: string) => {
-                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TASK, status: CONST.SEARCH.STATUS.TASK.ALL, policyID});
-                return ROUTES.SEARCH_ROOT.getRoute({query});
-            },
-        },
     ];
 
     if (canSendInvoice(allPolicies, email) || hasInvoiceReports()) {
@@ -960,7 +831,6 @@ export {
     getOverflowMenu,
     isCorrectSearchUserName,
     isReportActionEntry,
-    isTaskListItemType,
     getAction,
     createTypeMenuItems,
     createBaseSavedSearchMenuItem,

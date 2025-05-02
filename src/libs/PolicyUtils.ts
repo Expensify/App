@@ -718,6 +718,12 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, curre
     return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
+/** Return active policies where current user is an employee (of the role "user") */
+function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyUser(policy, currentUserLogin));
+}
+
 /**
  *
  * Checks whether the current user has a policy with Xero accounting software integration
@@ -1575,6 +1581,7 @@ export {
     getManagerAccountID,
     isPrefferedExporter,
     areAllGroupPoliciesExpenseChatDisabled,
+    getActiveEmployeeWorkspaces,
     isUserInvitedToWorkspace,
 };
 

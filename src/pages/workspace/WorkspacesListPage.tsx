@@ -564,7 +564,7 @@ function WorkspacesListPage() {
                 shouldEnableMaxHeight
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
-                extraContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
+                bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
                 <HeaderWithBackButton
@@ -608,7 +608,7 @@ function WorkspacesListPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            extraContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
+            bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
         >
             <View style={styles.flex1}>
                 <HeaderWithBackButton
