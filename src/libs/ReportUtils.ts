@@ -2267,11 +2267,11 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
             return isReimburser && (isApproved || isAdmin);
         }
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
-            return isAdmin && isManager;
+            return isAdmin && (isApproved || isManager);
         }
         return false;
     }
-    return isMoneyRequestReport(iouReport) && isManager;
+    return isAdmin || (isMoneyRequestReport(iouReport) && isManager);
 }
 
 /**
