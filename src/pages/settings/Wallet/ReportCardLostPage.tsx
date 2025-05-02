@@ -207,7 +207,7 @@ function ReportCardLostPage({
                     </>
                 ) : (
                     <>
-                        <View>
+                        <View style={[styles.mh5]}>
                             <Text style={[styles.textHeadline, styles.mr5]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
                             <SingleOptionSelector
                                 options={OPTIONS}
