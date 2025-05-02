@@ -80,7 +80,7 @@ type SearchAutocompleteListProps = {
     onHighlightFirstItem?: () => void;
 
     /** Ref for textInput */
-    textInputRef: React.RefObject<AnimatedTextInputRef>;
+    textInputRef?: React.RefObject<AnimatedTextInputRef>;
 };
 
 const defaultListOptions = {
@@ -594,7 +594,7 @@ function SearchAutocompleteList(
                 onLayout={() => {
                     setPerformanceTimersEnd();
                     setIsInitialRender(false);
-                    if (!!textInputRef.current && ref && 'current' in ref) {
+                    if (!!textInputRef?.current && ref && 'current' in ref) {
                         ref.current?.updateExternalTextInputFocus?.(textInputRef.current.isFocused());
                     }
                 }}
