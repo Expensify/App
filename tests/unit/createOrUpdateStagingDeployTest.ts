@@ -497,7 +497,7 @@ describe('createOrUpdateStagingDeploy', () => {
         });
 
         // Run the createOrUpdateStagingDeploy function
-        const consoleSpy = jest.spyOn(console, 'log');
+        const consoleSpy = jest.spyOn(console, 'info');
         await run();
 
         // Verify that the previously cherry-picked PRs are filtered out from the current checklist (9, 11)

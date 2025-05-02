@@ -64,7 +64,6 @@ async function run(): Promise<IssuesCreateResponse | void> {
         core.info(`Found ${previousPRNumbers.size} PRs in the previous checklist:`);
         core.info(JSON.stringify(Array.from(previousPRNumbers)));
         const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
-        core.info(`Filtered list contains ${newPRNumbers.length} PRs for the current checklist:`);
         core.info(JSON.stringify(newPRNumbers));
 
         // Log the PRs that were filtered out
@@ -73,6 +72,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             core.info(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
         }
         core.endGroup();
+        console.info(`Final list of PRs for current checklist: ${newPRNumbers.join(', ')}`);
 
         // Next, we generate the checklist body
         let checklistBody = '';
