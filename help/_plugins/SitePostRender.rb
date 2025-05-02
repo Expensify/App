@@ -139,7 +139,7 @@ module Jekyll
       tree = {}
     
       @help_mapping.each do |route, node|
-        parts = route.sub(/^ref\//, '').sub(/\.md$/, '').split('/') # remove .md and split
+        parts = route.sub(/^ref\//, '').sub(/\.md$/, '').split('/')
         current = tree
     
         parts.each_with_index do |part, i|
@@ -150,12 +150,11 @@ module Jekyll
           current[:children][part_key] ||= {}
     
           if i == parts.length - 1
-            jsx_content = html_node_to_RN(node, 2).rstrip
-            indented_jsx = jsx_content.lines.map { |line| '  ' + line }.join # indent by 2 more spaces
+            jsx_content = html_node_to_RN(node, 1).rstrip
     
             current[:children][part_key][:content] = <<~TS.chomp
               ({styles}: {styles: ThemeStyles}) => (
-                #{indented_jsx}
+              #{jsx_content}
               )
             TS
           end
@@ -164,7 +163,9 @@ module Jekyll
         end
       end
     
-      tree[:content] = '() => null'
+      tree[:content] = <<~JSX
+        () => null
+      JSX
       tree
     end
     
@@ -184,21 +185,21 @@ module Jekyll
     
         "#{indent}<View>\n#{children}\n#{indent}</View>"
     
-      when 'h1' then "#{indent}<Text style={[styles.textHeadlineH1]}>#{node.text.strip}</Text>"
-      when 'h2' then "#{indent}<Text style={[styles.textHeadlineH2]}>#{node.text.strip}</Text>"
-      when 'h3' then "#{indent}<Text style={[styles.textHeadlineH3]}>#{node.text.strip}</Text>"
-      when 'h4' then "#{indent}<Text style={[styles.textHeadlineH4]}>#{node.text.strip}</Text>"
-      when 'h5' then "#{indent}<Text style={[styles.textHeadlineH5]}>#{node.text.strip}</Text>"
-      when 'h6' then "#{indent}<Text style={[styles.textHeadlineH6]}>#{node.text.strip}</Text>"
+      when 'h1' then "#{indent}<Text style={[styles.textHeadlineH1]}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
+      when 'h2' then "#{indent}<Text style={[styles.textHeadlineH2]}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
+      when 'h3' then "#{indent}<Text style={[styles.textHeadlineH3]}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
+      when 'h4' then "#{indent}<Text style={[styles.textHeadlineH4]}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
+      when 'h5' then "#{indent}<Text style={[styles.textHeadlineH5]}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
+      when 'h6' then "#{indent}<Text style={[styles.textHeadlineH6]}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
     
       when 'p'
-        inner = node.children.map { |c| html_node_to_RN(c, indent_level + 1) }.join.strip
-        "#{indent}<Text style={styles.textNormal}>#{inner}</Text>"
+        inner = node.children.map { |c| html_node_to_RN(c, indent_level + 1) }.join("\n").strip
+        "#{indent}<Text style={styles.textNormal}>\n#{'  ' * (indent_level + 1)}#{inner}\n#{indent}</Text>"
     
       when 'ul'
         items = node.xpath('./li').map do |li|
-          li_text = li.children.map { |child| html_node_to_RN(child, indent_level + 3) }.join.strip
-          "#{'  ' * (indent_level + 2)}<Text style={styles.textNormal}>#{li_text}</Text>"
+          li_text = li.children.map { |child| html_node_to_RN(child, indent_level + 3) }.join("\n").strip
+          "#{'  ' * (indent_level + 2)}<Text style={styles.textNormal}>\n#{'  ' * (indent_level + 3)}#{li_text}\n#{'  ' * (indent_level + 2)}</Text>"
         end
     
         bullet_indent = '  ' * indent_level
@@ -215,41 +216,45 @@ module Jekyll
         '' # already handled in <ul>
     
       when 'strong', 'b'
-        "<Text style={styles.textBold}>#{node.text.strip}</Text>"
+        "#{indent}<Text style={styles.textBold}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
       when 'em', 'i'
-        "<Text style={styles.textItalic}>#{node.text.strip}</Text>"
+        "#{indent}<Text style={styles.textItalic}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
       when 'a'
         href = node['href']
-        link_text = node.children.map { |child| html_node_to_RN(child, 0) }.join.strip
-        "#{indent}<TextLink href=\"#{href}\" style={styles.link}>#{link_text}</TextLink>"
+        link_text = node.children.map { |child| html_node_to_RN(child, 0) }.join("\n").strip
+        "#{indent}<TextLink href=\"#{href}\" style={styles.link}>\n#{'  ' * (indent_level + 1)}#{link_text}\n#{indent}</TextLink>"
       when 'text'
-        node.text.strip
+        "#{indent}#{node.text.strip}"
       else
-        node.children.map { |child| html_node_to_RN(child, indent_level) }.join
+        node.children.map { |child| html_node_to_RN(child, indent_level) }.join("\n")
       end
     end
-    
+
     def self.to_ts_object(obj, indent = 0)
       spacing = '  ' * indent
       lines = ["{"]
-      
-      # Handle all key-value pairs
+    
       obj.each do |key, value|
-        line = "#{spacing}  "
         key_str = key.is_a?(Symbol) ? key.to_s : key.inspect
+        key_line_prefix = '  ' * (indent + 1) + "#{key_str}: "
     
         if value.is_a?(Hash)
-          line += "#{key_str}: #{to_ts_object(value, indent + 1)}"
+          nested = to_ts_object(value, indent + 1)
+          lines << key_line_prefix + nested + ","
+        elsif value.is_a?(String) && value.include?("\n")
+          value_lines = value.split("\n")
+          first_line = value_lines.shift
+          rest_lines = value_lines.map { |l| '  ' * (indent + 1) + l }
+          lines << ([key_line_prefix + first_line] + rest_lines).join("\n") + ","
         else
-          line += "#{key_str}: #{value}"
+          lines << key_line_prefix + value.inspect + ","
         end
-    
-        lines << line + ","
       end
     
-      lines << "#{spacing}}"
+      lines << '  ' * indent + "}"
       lines.join("\n")
     end
+    
   end
 end
 
