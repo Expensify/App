@@ -11733,7 +11733,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const request_error_1 = __nccwpck_require__(537);
 const child_process_1 = __nccwpck_require__(2081);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
@@ -11844,7 +11843,7 @@ function fetchTag(tag, shallowExcludeTag = '') {
 /**
  * Get merge logs between two tags (inclusive) as a JavaScript object.
  *
- * @deprecated Use getCommitHistoryBetweenTags - to be removed after verification of https://github.com/Expensify/App/issues/60687
+ * @deprecated Use GithubUtils.getCommitHistoryBetweenTags - to be removed after verification of https://github.com/Expensify/App/issues/60687
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
     // Fetch tags, excluding commits reachable from the previous patch version (or minor for prod) (i.e: previous checklist), so that we don't have to fetch the full history
@@ -11884,33 +11883,6 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
     });
 }
 /**
- * Get commits between two tags via the GitHub API
- */
-async function getCommitHistoryBetweenTags(fromTag, toTag) {
-    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
-    try {
-        const { data: comparison } = await GithubUtils_1.default.octokit.repos.compareCommits({
-            owner: CONST_1.default.GITHUB_OWNER,
-            repo: CONST_1.default.APP_REPO,
-            base: fromTag,
-            head: toTag,
-        });
-        // Map API response to our CommitType format
-        return comparison.commits.map((commit) => ({
-            commit: commit.sha,
-            subject: commit.commit.message,
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            authorName: commit.commit.author?.name || 'Unknown',
-        }));
-    }
-    catch (error) {
-        if (error instanceof request_error_1.RequestError && error.status === 404) {
-            console.error(`❓❓ Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`);
-        }
-        throw error;
-    }
-}
-/**
  * Parse merged PRs, excluding those from irrelevant branches.
  */
 function getValidMergedPRs(commits) {
@@ -11940,7 +11912,7 @@ function getValidMergedPRs(commits) {
  */
 async function getPullRequestsDeployedBetween(fromTag, toTag) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}`);
-    const apiCommitList = await getCommitHistoryBetweenTags(fromTag, toTag);
+    const apiCommitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag);
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
     console.log(`[API] Found ${apiCommitList.length} commits.`);
     console.error(`[API] Parsed PRs: ${apiPullRequestNumbers.join(', ')}`);
@@ -11955,7 +11927,6 @@ exports["default"] = {
     getPreviousExistingTag,
     getValidMergedPRs,
     getPullRequestsDeployedBetween,
-    getCommitHistoryBetweenTags,
 };
 
 
@@ -11998,6 +11969,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
+const request_error_1 = __nccwpck_require__(537);
 const EmptyObject_1 = __nccwpck_require__(8227);
 const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
@@ -12419,6 +12391,34 @@ class GithubUtils {
             archive_format: 'zip',
         })
             .then((response) => response.url);
+    }
+    /**
+     * Get commits between two tags via the GitHub API
+     */
+    static async getCommitHistoryBetweenTags(fromTag, toTag) {
+        console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+        try {
+            const { data: comparison } = await this.octokit.repos.compareCommits({
+                owner: CONST_1.default.GITHUB_OWNER,
+                repo: CONST_1.default.APP_REPO,
+                base: fromTag,
+                head: toTag,
+            });
+            // Map API response to our CommitType format
+            return comparison.commits.map((commit) => ({
+                commit: commit.sha,
+                subject: commit.commit.message,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                authorName: commit.commit.author?.name || 'Unknown',
+            }));
+        }
+        catch (error) {
+            if (error instanceof request_error_1.RequestError && error.status === 404) {
+                console.error(`❓❓ Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`);
+            }
+            // Re-throw the error after logging
+            throw error;
+        }
     }
 }
 exports["default"] = GithubUtils;
