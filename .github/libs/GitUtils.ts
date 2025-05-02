@@ -1,3 +1,4 @@
+import * as core from '@actions/core';
 import {execSync, spawn} from 'child_process';
 import CONST from './CONST';
 import GithubUtils from './GithubUtils';
@@ -195,13 +196,17 @@ async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
     const apiCommitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag);
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
     console.log(`[API] Found ${apiCommitList.length} commits.`);
-    console.error(`[API] Parsed PRs: ${apiPullRequestNumbers.join(', ')}`);
+    core.startGroup('[API] Parsed PRs:');
+    core.info(JSON.stringify(apiPullRequestNumbers));
+    core.endGroup();
 
     // eslint-disable-next-line deprecation/deprecation
     const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
     const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
     console.log(`[git log] Found ${gitCommitList.length} commits.`);
-    console.error(`[git log] Parsed PRs: ${gitLogPullRequestNumbers.join(', ')}`);
+    core.startGroup('[git log] Parsed PRs:');
+    core.info(JSON.stringify(gitLogPullRequestNumbers));
+    core.endGroup();
 
     return gitLogPullRequestNumbers;
 }

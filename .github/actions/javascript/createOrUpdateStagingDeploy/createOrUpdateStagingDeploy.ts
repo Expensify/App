@@ -59,15 +59,20 @@ async function run(): Promise<IssuesCreateResponse | void> {
 
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
-        console.log(`PRs from previous checklist: ${Array.from(previousPRNumbers).join(', ')}`);
+        core.startGroup('Filtering PRs:');
+        core.debug('mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out');
+        core.info(`Found ${previousPRNumbers.size} PRs in the previous checklist:`);
+        core.info(JSON.stringify(Array.from(previousPRNumbers)));
         const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
-        console.log(`Final list of PRs for current checklist: ${newPRNumbers.join(', ')}`);
+        core.info(`Filtered list contains ${newPRNumbers.length} PRs for the current checklist:`);
+        core.info(JSON.stringify(newPRNumbers));
 
         // Log the PRs that were filtered out
         const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
         if (removedPRs.length > 0) {
-            console.log(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
+            core.info(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
         }
+        core.endGroup();
 
         // Next, we generate the checklist body
         let checklistBody = '';
