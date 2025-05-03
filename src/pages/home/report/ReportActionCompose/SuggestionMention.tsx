@@ -190,6 +190,12 @@ function SuggestionMention(
         [formatLoginPrivateDomain],
     );
 
+    function getOriginalMentionText(inputValue: string, atSignIndex: number) {
+        const rest = inputValue.slice(atSignIndex);
+        const mentionMatch = rest.match(/^[@\w.\-+]+/); // capture till space or special characters not in emails
+        return mentionMatch?.[0] ?? '';
+    }
+
     /**
      * Replace the code of mention and update selection
      */
@@ -201,8 +207,8 @@ function SuggestionMention(
                 return;
             }
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
-            const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
-
+            const originalMention = getOriginalMentionText(value, suggestionValues.atSignIndex);
+            const commentAfterMention = value.slice(suggestionValues.atSignIndex + originalMention.length);
             updateComment(`${commentBeforeAtSign}${mentionCode} ${trimLeadingSpace(commentAfterMention)}`, true);
             const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH;
             setSelection({
@@ -216,16 +222,7 @@ function SuggestionMention(
                 shouldShowSuggestionMenu: false,
             }));
         },
-        [
-            value,
-            suggestionValues.atSignIndex,
-            suggestionValues.suggestedMentions,
-            suggestionValues.prefixType,
-            suggestionValues.mentionPrefix.length,
-            getMentionCode,
-            updateComment,
-            setSelection,
-        ],
+        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.prefixType, getMentionCode, updateComment, setSelection],
     );
 
     /**
