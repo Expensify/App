@@ -772,6 +772,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
         cardTitle,
         validateCode,
         domainAccountID,
+        policyID,
     };
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
