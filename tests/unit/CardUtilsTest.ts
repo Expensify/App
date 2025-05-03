@@ -926,9 +926,9 @@ describe('CardUtils', () => {
             const sortedCards = sortCardsByCardholderName(mockCards, mockPersonalDetails, policyMembersAccountIDs);
 
             expect(sortedCards).toHaveLength(3);
-            expect(sortedCards.at(0)?.cardID).toBe('2');
-            expect(sortedCards.at(1)?.cardID).toBe('1');
-            expect(sortedCards.at(2)?.cardID).toBe('3');
+            expect(sortedCards.at(0)?.cardID).toBe(2);
+            expect(sortedCards.at(1)?.cardID).toBe(1);
+            expect(sortedCards.at(2)?.cardID).toBe(3);
         });
 
         it('should filter out cards that are not associated with policy members', () => {
@@ -936,8 +936,8 @@ describe('CardUtils', () => {
             const sortedCards = sortCardsByCardholderName(mockCards, mockPersonalDetails, policyMembersAccountIDs);
 
             expect(sortedCards).toHaveLength(2);
-            expect(sortedCards.at(0)?.cardID).toBe('2');
-            expect(sortedCards.at(1)?.cardID).toBe('1');
+            expect(sortedCards.at(0)?.cardID).toBe(2);
+            expect(sortedCards.at(1)?.cardID).toBe(1);
         });
 
         it('should handle undefined cardsList', () => {
@@ -953,9 +953,9 @@ describe('CardUtils', () => {
 
             expect(sortedCards).toHaveLength(3);
             // All cards should be sorted with default names
-            expect(sortedCards.at(0)?.cardID).toBe('1');
-            expect(sortedCards.at(1)?.cardID).toBe('2');
-            expect(sortedCards.at(2)?.cardID).toBe('3');
+            expect(sortedCards.at(0)?.cardID).toBe(1);
+            expect(sortedCards.at(1)?.cardID).toBe(2);
+            expect(sortedCards.at(2)?.cardID).toBe(3);
         });
 
         it('should handle cards with missing accountID', () => {
@@ -989,7 +989,7 @@ describe('CardUtils', () => {
             const sortedCards = sortCardsByCardholderName(cardsWithMissingAccountID, mockPersonalDetails, policyMembersAccountIDs);
 
             expect(sortedCards).toHaveLength(1);
-            expect(sortedCards.at(0)?.cardID).toBe('1');
+            expect(sortedCards.at(0)?.cardID).toBe(1);
         });
     });
 });
