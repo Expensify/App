@@ -80,6 +80,7 @@ describe('getReportPreviewAction', () => {
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
         };
 
         const policy = createRandomPolicy(0);

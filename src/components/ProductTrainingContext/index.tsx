@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
 import getPlatform from '@libs/getPlatform';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
-import {getActiveAdminWorkspaces} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -60,6 +60,13 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
 
+    const isUserPolicyEmployee = useMemo(() => {
+        if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
+            return false;
+        }
+        return getActiveEmployeeWorkspaces(allPolicies, currentUserLogin).length > 0;
+    }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
+
     const isUserPolicyAdmin = useMemo(() => {
         if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
             return false;
@@ -68,6 +75,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
 
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
@@ -141,6 +149,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
             return tooltipConfig.shouldShow({
                 shouldUseNarrowLayout,
+                isUserPolicyEmployee,
                 isUserPolicyAdmin,
                 hasBeenAddedToNudgeMigration,
             });
@@ -153,6 +162,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             shouldUseNarrowLayout,
             isModalVisible,
             isLoadingApp,
+            isUserPolicyEmployee,
             isUserPolicyAdmin,
         ],
     );
