@@ -3274,8 +3274,8 @@ function openReportFromDeepLink(url: string) {
         waitForUserSignIn().then(() => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
-                callback: (onboarding) => {
-                    if (!onboarding) {
+                callback: (val) => {
+                    if (!val) {
                         return;
                     }
 
