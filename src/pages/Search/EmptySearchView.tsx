@@ -29,6 +29,7 @@ import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {getNavatticURL} from '@libs/TourUtils';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -70,6 +71,14 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     <TextLink
                         onPress={() => {
                             Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
+                        }}
+                        onLongPress={(event) => {
+                            showContextMenu({
+                                type: CONST.CONTEXT_MENU_TYPES.LINK,
+                                event,
+                                selection: CONST.BOOK_TRAVEL_DEMO_URL,
+                                contextMenuAnchor: null,
+                            });
                         }}
                     >
                         {translate('travel.bookADemo')}
