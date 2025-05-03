@@ -1,6 +1,7 @@
 import {addMinutes, format} from 'date-fns';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -71,52 +72,54 @@ function ScheduleCallConfirmationPage() {
                 title={translate('scheduledCall.confirmation.title')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                <Text style={[styles.mb5, styles.ph5, styles.colorMuted]}>{translate('scheduledCall.confirmation.description')}</Text>
-                <MenuItem
-                    style={styles.mb3}
-                    title={guideDetails?.displayName}
-                    description={guideDetails?.login}
-                    label={translate('scheduledCall.confirmation.setupSpecialist')}
-                    interactive={false}
-                    icon={[
-                        {
-                            id: guideDetails?.accountID,
-                            source: guideDetails?.avatarThumbnail ?? guideDetails?.avatar ?? guideDetails?.fallbackIcon ?? FallbackAvatar,
-                            name: guideDetails?.login,
-                            type: CONST.ICON_TYPE_AVATAR,
-                        },
-                    ]}
-                />
-                <MenuItemWithTopDescription
-                    title={dateTimeString}
-                    description={translate('scheduledCall.confirmation.dateTime')}
-                    shouldTruncateTitle={false}
-                    numberOfLinesTitle={2}
-                    shouldShowRightIcon
-                    style={styles.mb3}
-                    onPress={() => {
-                        if (!scheduleCallDraft?.reportID) {
-                            return;
-                        }
-                        Navigation.goBack(ROUTES.SCHEDULE_CALL_BOOK.getRoute(scheduleCallDraft?.reportID));
-                    }}
-                />
-                <MenuItemWithTopDescription
-                    title={translate('scheduledCall.confirmation.minutes')}
-                    description={translate('scheduledCall.confirmation.meetingLength')}
-                    interactive={false}
-                    style={styles.mb3}
-                />
-            </ScrollView>
-            <FixedFooter>
-                <Button
-                    success
-                    large
-                    text={translate('scheduledCall.confirmation.title')}
-                    onPress={confirm}
-                />
-            </FixedFooter>
+            <FullPageOfflineBlockingView>
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                    <Text style={[styles.mb5, styles.ph5, styles.colorMuted]}>{translate('scheduledCall.confirmation.description')}</Text>
+                    <MenuItem
+                        style={styles.mb3}
+                        title={guideDetails?.displayName}
+                        description={guideDetails?.login}
+                        label={translate('scheduledCall.confirmation.setupSpecialist')}
+                        interactive={false}
+                        icon={[
+                            {
+                                id: guideDetails?.accountID,
+                                source: guideDetails?.avatarThumbnail ?? guideDetails?.avatar ?? guideDetails?.fallbackIcon ?? FallbackAvatar,
+                                name: guideDetails?.login,
+                                type: CONST.ICON_TYPE_AVATAR,
+                            },
+                        ]}
+                    />
+                    <MenuItemWithTopDescription
+                        title={dateTimeString}
+                        description={translate('scheduledCall.confirmation.dateTime')}
+                        shouldTruncateTitle={false}
+                        numberOfLinesTitle={2}
+                        shouldShowRightIcon
+                        style={styles.mb3}
+                        onPress={() => {
+                            if (!scheduleCallDraft?.reportID) {
+                                return;
+                            }
+                            Navigation.goBack(ROUTES.SCHEDULE_CALL_BOOK.getRoute(scheduleCallDraft?.reportID));
+                        }}
+                    />
+                    <MenuItemWithTopDescription
+                        title={translate('scheduledCall.confirmation.minutes')}
+                        description={translate('scheduledCall.confirmation.meetingLength')}
+                        interactive={false}
+                        style={styles.mb3}
+                    />
+                </ScrollView>
+                <FixedFooter>
+                    <Button
+                        success
+                        large
+                        text={translate('scheduledCall.confirmation.title')}
+                        onPress={confirm}
+                    />
+                </FixedFooter>
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
