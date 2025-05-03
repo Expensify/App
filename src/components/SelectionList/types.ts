@@ -568,9 +568,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
 
-    /** Whether the layout is narrow */
-    isSmallScreenWidth?: boolean;
-
     /** Callback to fire when the text input changes */
     onArrowFocus?: (focusedItem: TItem) => void;
 

@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import {isArchivedReportWithID, isThread} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
@@ -22,7 +23,11 @@ export default createOnyxDerivedValueConfig({
                 return false;
             }
 
-            return participantAccountIDs.has(CONST.ACCOUNT_ID.CONCIERGE.toString()) || report?.reportID === conciergeChatReportID;
+            const hasConciergeInChat = participantAccountIDs.has(CONST.ACCOUNT_ID.CONCIERGE.toString());
+            if (hasConciergeInChat && report?.reportID !== conciergeChatReportID) {
+                Log.hmmm('Found concierge in a chat not matching conciergeChatReportID from Auth', {reportID: report?.reportID, conciergeChatReportID});
+            }
+            return hasConciergeInChat || report?.reportID === conciergeChatReportID;
         });
 
         return conciergeReport?.reportID;
