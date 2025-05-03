@@ -11,9 +11,9 @@
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified that the composer does not automatically focus or open the keyboard on mobile unless explicitly intended. This includes checking that returning the app from the background does not unexpectedly open the keyboard.
 - [ ] I verified tests pass on **all platforms** & I tested again on:
-    - [ ] Android: Native
+    - [ ] Android: HybridApp
     - [ ] Android: mWeb Chrome
-    - [ ] iOS: Native
+    - [ ] iOS: HybridApp
     - [ ] iOS: mWeb Safari
     - [ ] MacOS: Chrome / Safari
     - [ ] MacOS: Desktop
@@ -62,7 +62,7 @@
 
 ### Screenshots/Videos
 <details>
-<summary>Android: Native</summary>
+<summary>Android: HybridApp</summary>
 
 <!-- add screenshots or videos here -->
 
@@ -76,7 +76,7 @@
 </details>
 
 <details>
-<summary>iOS: Native</summary>
+<summary>iOS: HybridApp</summary>
 
 <!-- add screenshots or videos here -->
 

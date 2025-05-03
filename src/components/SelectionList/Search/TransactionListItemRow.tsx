@@ -17,17 +17,19 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import {getFileName} from '@libs/fileDownload/FileUtils';
 import Parser from '@libs/Parser';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import StringUtils from '@libs/StringUtils';
 import {
-    getCreated,
     getTagForDisplay,
     getTaxAmount,
+    getCreated as getTransactionCreated,
     getCurrency as getTransactionCurrency,
     getDescription as getTransactionDescription,
     hasReceipt,
+    hasReceiptSource,
     isExpensifyCardTransaction,
     isPending,
     isReceiptBeingScanned,
@@ -37,7 +39,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
-import DateCell from './DateCell';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TextWithIconCell from './TextWithIconCell';
 import UserInfoCell from './UserInfoCell';
@@ -113,7 +114,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
         >
             <ReceiptImage
                 source={source}
-                isEReceipt={transactionItem.hasEReceipt}
+                isEReceipt={transactionItem.hasEReceipt && !hasReceiptSource(transactionItem)}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
@@ -125,6 +126,21 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
                 transactionItem={transactionItem}
             />
         </View>
+    );
+}
+
+function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionCellProps) {
+    const styles = useThemeStyles();
+
+    const created = getTransactionCreated(transactionItem);
+    const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+
+    return (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={date}
+            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+        />
     );
 }
 
@@ -271,8 +287,6 @@ function TransactionListItemRow({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    const created = getCreated(item);
-
     if (!isLargeScreenWidth) {
         return (
             <View style={containerStyle}>
@@ -351,7 +365,7 @@ function TransactionListItemRow({
                                 showTooltip={false}
                             />
                             <DateCell
-                                created={created}
+                                transactionItem={item}
                                 showTooltip={showTooltip}
                                 isLargeScreenWidth={false}
                             />
@@ -390,7 +404,7 @@ function TransactionListItemRow({
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
-                        created={created}
+                        transactionItem={item}
                         showTooltip={showTooltip}
                         isLargeScreenWidth
                     />
