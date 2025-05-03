@@ -145,7 +145,7 @@ function BaseReportActionContextMenu({
     });
     const transactionID = getLinkedTransactionID(reportActionID, reportID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: false});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
@@ -222,7 +222,7 @@ function BaseReportActionContextMenu({
                 isProduction,
                 moneyRequestAction,
                 areHoldRequirementsMet,
-                user,
+                account,
             }),
     );
 
