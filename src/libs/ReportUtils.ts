@@ -171,6 +171,7 @@ import {
     isDeletedParentAction,
     isExportIntegrationAction,
     isForwardedAction,
+    isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isOldDotReportAction,
@@ -4649,8 +4650,12 @@ function getReportNameInternal({
     }
     const parentReportActionMessage = getReportActionMessageReportUtils(parentReportAction);
 
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) {
-        const {harvesting} = getOriginalMessage(parentReportAction) ?? {};
+    if (
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
+        isMarkAsClosedAction(parentReportAction)
+    ) {
+        const harvesting = !isMarkAsClosedAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.harvesting ?? false : false;
         if (harvesting) {
             return Parser.htmlToText(getReportAutomaticallySubmittedMessage(parentReportAction));
         }
@@ -5620,7 +5625,8 @@ function getFormattedAmount(reportAction: ReportAction, report?: Report | null) 
         !isForwardedAction(reportAction) &&
         !isApprovedAction(reportAction) &&
         !isUnapprovedAction(reportAction) &&
-        !isSubmittedAndClosedAction(reportAction)
+        !isSubmittedAndClosedAction(reportAction) &&
+        !isMarkAsClosedAction(reportAction)
     ) {
         return '';
     }
@@ -5640,12 +5646,20 @@ function getActorDisplayName(action: ReportAction) {
 }
 
 function getReportAutomaticallySubmittedMessage(
-    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>,
+    reportAction:
+        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>
+        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>
+        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>,
 ) {
     return translateLocal('iou.automaticallySubmitted', {displayName: getActorDisplayName(reportAction)});
 }
 
-function getIOUSubmittedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>) {
+function getIOUSubmittedMessage(
+    reportAction:
+        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>
+        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>
+        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>,
+) {
     return translateLocal('iou.submittedWithDisplayName', {displayName: getActorDisplayName(reportAction)});
 }
 
