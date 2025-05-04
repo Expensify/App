@@ -1191,8 +1191,9 @@ const translations = {
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
         decline: {
-            educationalTitle: 'Should you ',
-            educationalText: 'If you\'re not ready to approve or pay an expense, you have two options:',
+            educationalTitle: '¿Deberías',
+            questionMark: '?',
+            educationalText: 'Si no está listo para aprobar o pagar un gasto, tiene dos opciones:',
         }
     },
     share: {

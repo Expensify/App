@@ -33,7 +33,8 @@ function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducat
                 <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.decline.educationalTitle')}</Text>
                 <TextPill textStyles={[styles.inlinePill, styles.yellowPillInline, styles.mr2]}>{translate('iou.hold')}</TextPill>
                 <Text style={[styles.textHeadline, styles.mr2]}>{translate('common.or')}</Text>
-                <TextPill textStyles={[styles.inlinePill, styles.redPillInline]}>{translate('common.decline')}</TextPill>
+                <TextPill textStyles={[styles.inlinePill, styles.redPillInline, styles.mr2]}>{translate('common.decline')}</TextPill>
+                <Text style={styles.textHeadline}>{translate('iou.decline.questionMark')}</Text>
             </View>
         ),
         [styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mb2, styles.textHeadline, styles.mr2, styles.inlinePill, styles.yellowPillInline, styles.redPillInline, onboardingIsMediumOrLargerScreenWidth, translate],

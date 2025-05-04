@@ -1193,6 +1193,7 @@ const translations = {
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
         decline: {
             educationalTitle: 'Should you',
+            questionMark: '?',
             educationalText: 'If you\'re not ready to approve or pay an expense, you have two options:',
         }
     },
