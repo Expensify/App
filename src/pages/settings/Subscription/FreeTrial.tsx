@@ -46,6 +46,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
             icon={Star}
             success={success}
             text={freeTrialText}
+            iconWrapperStyles={[styles.mw100]}
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
         />
     ) : (

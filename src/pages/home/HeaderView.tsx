@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import {DropdownOption, OnboardingHelpType} from '@components/ButtonWithDropdownMenu/types';
+import type {DropdownOption, OnboardingHelpType} from '@components/ButtonWithDropdownMenu/types';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
@@ -122,8 +122,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const [isDismissedDiscountBanner, setIsDismissedDiscountBanner] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES, {canBeMissing: true});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -133,7 +133,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const {canUseTalkToAISales, canUseLeftHandBar} = usePermissions();
     const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report);
     const shouldShowRegisterForWebinar = introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && isAdminRoom(report);
-
+    const shouldShowOnBoardingHelpDropdownButton = shouldShowTalkToSales || shouldShowRegisterForWebinar;
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
     const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
@@ -247,7 +247,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 icon: talkToSalesOption.talkToSalesIcon,
                 value: CONST.ONBOARDING_HELP.TALK_TO_SALES,
                 onSelected: () => {
-                    if (!report?.reportID) return;
+                    if (!report?.reportID) {
+                        return;
+                    }
 
                     if (talkToAISales?.isTalkingToAISales) {
                         stopConnection();
@@ -407,7 +409,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {(shouldShowTalkToSales || shouldShowRegisterForWebinar) && !shouldUseNarrowLayout && onboardingHelpDropdownButton()}
+                                    {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton()}
                                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
@@ -440,8 +442,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
                 <View style={isChatUsedForOnboarding && !shouldShowDiscount && shouldShowGuideBooking && [styles.dFlex, styles.flexRow]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                        {!shouldShowEarlyDiscountBanner && (shouldShowTalkToSales || shouldShowRegisterForWebinar) && shouldUseNarrowLayout && (
+                    <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                        {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
                             <View style={[styles.flex1, styles.pb3, styles.pl5]}>{onboardingHelpDropdownButton()}</View>
                         )}
                         {!isLoading && !shouldShowDiscount && isChatUsedForOnboarding && shouldUseNarrowLayout && (
@@ -449,7 +451,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 pressable
                                 addSpacing
                                 success={!shouldShowGuideBooking}
-                                inARow={shouldShowGuideBooking || shouldShowRegisterForWebinar}
+                                inARow={shouldShowGuideBooking || shouldShowOnBoardingHelpDropdownButton}
                             />
                         )}
                     </View>
