@@ -23,7 +23,6 @@ type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamLi
 
 function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    Log.hmmm(`assignCard ${JSON.stringify(assignCard)}`);
     let currentStep = assignCard?.currentStep;
 
     const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
@@ -52,7 +51,6 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
         currentStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
     }, []);
 
-    Log.hmmm(`currentStep ${currentStep}`);
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
             return (
