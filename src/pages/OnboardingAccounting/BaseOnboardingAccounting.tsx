@@ -122,22 +122,22 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     }
                     case CONST.POLICY.CONNECTIONS.NAME.SAP: {
                         text = translate('workspace.accounting.sap');
-                        accountingIcon = Expensicons.IntacctSquare;
+                        accountingIcon = Expensicons.SapSquare;
                         break;
                     }
                     case CONST.POLICY.CONNECTIONS.NAME.ORACLE: {
                         text = translate('workspace.accounting.oracle');
-                        accountingIcon = Expensicons.IntacctSquare;
+                        accountingIcon = Expensicons.OracleSquare;
                         break;
                     }
                     case CONST.POLICY.CONNECTIONS.NAME.MICROSOFT_DYNAMICS: {
                         text = translate('workspace.accounting.microsoftDynamics');
-                        accountingIcon = Expensicons.IntacctSquare;
+                        accountingIcon = Expensicons.MicrosoftDynamicsSquare;
                         break;
                     }
                     case CONST.POLICY.CONNECTIONS.NAME.OTHER: {
                         text = translate('workspace.accounting.other');
-                        accountingIcon = Expensicons.IntacctSquare;
+                        accountingIcon = Expensicons.Connect;
                         break;
                     }
                     default: {
@@ -161,10 +161,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             .filter((item): item is OnboardingListItem => !!item);
         const noneAccountingOption: OnboardingListItem = {
             keyForList: null,
-            text: translate('onboarding.accounting.noneOfAbove'),
+            text: translate('onboarding.accounting.none'),
             leftElement: (
                 <Icon
-                    src={Expensicons.Clear}
+                    src={Expensicons.EmptySquare}
                     width={variables.iconSizeNormal}
                     height={variables.iconSizeNormal}
                     fill={theme.success}
@@ -185,7 +185,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         setUserReportedIntegration(item.keyForList);
                         setError('');
                     }}
-                    radioOnRight
+                    style={[styles.flexRowReverse]}
                     LabelComponent={() => (
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             {item.leftElement}

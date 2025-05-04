@@ -29,60 +29,39 @@ type RadioButtonWithLabelProps = {
 
     /** Error text to display */
     errorText?: string;
-
-    /** If true, radio button is rendered **after** the label (right-hand side). */
-    radioOnRight?: boolean;
 };
 
 const PressableWithFeedback = Pressables.PressableWithFeedback;
 
-function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = false, errorText = '', isChecked, onPress, radioOnRight = false}: RadioButtonWithLabelProps) {
+function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = false, errorText = '', isChecked, onPress}: RadioButtonWithLabelProps) {
     const styles = useThemeStyles();
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
 
     if (!label && !LabelComponent) {
         throw new Error('Must provide at least label or LabelComponent prop');
     }
-
-    const LabelPressable = (
-        <PressableWithFeedback
-            tabIndex={-1}
-            accessible={false}
-            onPress={onPress}
-            style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
-            wrapperStyle={[styles.flex1, styles.ml3, styles.pr2]}
-            // disable hover style when disabled
-            hoverDimmingValue={0.8}
-            pressDimmingValue={0.5}
-        >
-            {!!label && <Text style={[styles.ml1]}>{label}</Text>}
-            {!!LabelComponent && <LabelComponent />}
-        </PressableWithFeedback>
-    );
-
-    const Radio = (
-        <RadioButton
-            isChecked={isChecked}
-            onPress={onPress}
-            accessibilityLabel={label}
-            hasError={hasError}
-        />
-    );
-
     return (
         <>
             <View style={[defaultStyles, style]}>
-                {radioOnRight ? (
-                    <>
-                        {LabelPressable}
-                        {Radio}
-                    </>
-                ) : (
-                    <>
-                        {Radio}
-                        {LabelPressable}
-                    </>
-                )}
+                <RadioButton
+                    isChecked={isChecked}
+                    onPress={onPress}
+                    accessibilityLabel={label}
+                    hasError={hasError}
+                />
+                <PressableWithFeedback
+                    tabIndex={-1}
+                    accessible={false}
+                    onPress={onPress}
+                    style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
+                    wrapperStyle={[styles.flex1, styles.ml3, styles.pr2]}
+                    // disable hover style when disabled
+                    hoverDimmingValue={0.8}
+                    pressDimmingValue={0.5}
+                >
+                    {!!label && <Text style={[styles.ml1]}>{label}</Text>}
+                    {!!LabelComponent && <LabelComponent />}
+                </PressableWithFeedback>
             </View>
             <FormHelpMessage message={errorText} />
         </>
