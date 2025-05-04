@@ -2761,11 +2761,11 @@ function getParticipantsAccountIDsForDisplay(
     return participantsIds.filter((accountID) => isNumber(accountID));
 }
 
-function getParticipantsList(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, isRoomMembersList = false): number[] {
+function getParticipantsList(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, isRoomMembersList = false, reportMetadata: OnyxEntry<ReportMetadata> = undefined): number[] {
     const isReportGroupChat = isGroupChat(report);
     const isReportIOU = isIOUReport(report);
     const shouldExcludeHiddenParticipants = !isReportGroupChat && !isReportIOU;
-    const chatParticipants = getParticipantsAccountIDsForDisplay(report, isRoomMembersList || shouldExcludeHiddenParticipants);
+    const chatParticipants = getParticipantsAccountIDsForDisplay(report, isRoomMembersList || shouldExcludeHiddenParticipants, false, false, reportMetadata);
 
     return chatParticipants.filter((accountID) => {
         const details = personalDetails?.[accountID];
@@ -10455,6 +10455,20 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
     return action?.reportName ?? '';
 }
 
+function getReportPersonalDetailsParticipants(report: Report, personalDetailsParam: OnyxEntry<PersonalDetailsList>, reportMetadata: OnyxEntry<ReportMetadata>, isRoomMembersList = false) {
+    const chatParticipants = getParticipantsList(report, personalDetailsParam, isRoomMembersList, reportMetadata);
+    return {
+        chatParticipants,
+        personalDetailsParticipants: chatParticipants.reduce<Record<number, PersonalDetails>>((acc, accountID) => {
+            const details = personalDetailsParam?.[accountID];
+            if (details) {
+                acc[accountID] = details;
+            }
+            return acc;
+        }, {}),
+    };
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -10824,6 +10838,7 @@ export {
     populateOptimisticReportFormula,
     getOutstandingReportsForUser,
     isReportOutstanding,
+    getReportPersonalDetailsParticipants,
     isAllowedToSubmitDraftExpenseReport,
 };
 
