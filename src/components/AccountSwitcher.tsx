@@ -26,10 +26,17 @@ import * as Expensicons from './Icon/Expensicons';
 import type {PopoverMenuItem} from './PopoverMenu';
 import PopoverMenu from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
+import {useProductTrainingContext} from './ProductTrainingContext';
 import Text from './Text';
 import Tooltip from './Tooltip';
+import EducationalTooltip from './Tooltip/EducationalTooltip';
 
-function AccountSwitcher() {
+type AccountSwitcherProps = {
+    /* Whether the screen is focused. Used to hide the product training tooltip */
+    isScreenFocused: boolean;
+};
+
+function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -38,7 +45,6 @@ function AccountSwitcher() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
     const {canUseLeftHandBar} = usePermissions();
@@ -47,9 +53,41 @@ function AccountSwitcher() {
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
+    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
     const accountSwitcherPopoverStyle = canUseLeftHandBar ? styles.accountSwitcherPopoverWithLHB : styles.accountSwitcherPopover;
+
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
+        isScreenFocused && canSwitchAccounts,
+    );
+
+    const onPressSwitcher = () => {
+        hideProductTrainingTooltip();
+        setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
+    };
+
+    const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
+    const tooltipProps = shouldShowProductTrainingTooltip
+        ? {
+              shouldRender: shouldShowProductTrainingTooltip,
+              renderTooltipContent: renderProductTrainingTooltip,
+              anchorAlignment: {
+                  horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                  vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+              },
+              shiftVertical: variables.accountSwitcherTooltipShiftVertical,
+              shiftHorizontal: variables.accountSwitcherTooltipShiftHorizontal,
+              wrapperStyle: styles.productTrainingTooltipWrapper,
+              onTooltipPress: onPressSwitcher,
+          }
+        : {
+              text: translate('delegate.copilotAccess'),
+              shiftVertical: 8,
+              shiftHorizontal: 8,
+              anchorAlignment: {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM},
+              shouldRender: canSwitchAccounts,
+          };
 
     const createBaseMenuItem = (
         personalDetails: PersonalDetails | undefined,
@@ -133,19 +171,12 @@ function AccountSwitcher() {
 
     return (
         <>
-            <Tooltip
-                text={translate('delegate.copilotAccess')}
-                shiftVertical={8}
-                shiftHorizontal={8}
-                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
-                shouldRender={canSwitchAccounts}
-            >
+            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+            <TooltipToRender {...tooltipProps}>
                 <PressableWithFeedback
                     accessible
                     accessibilityLabel={translate('common.profile')}
-                    onPress={() => {
-                        setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
-                    }}
+                    onPress={onPressSwitcher}
                     ref={buttonRef}
                     interactive={canSwitchAccounts}
                     pressDimmingValue={canSwitchAccounts ? undefined : 1}
@@ -184,7 +215,7 @@ function AccountSwitcher() {
                             >
                                 {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
                             </Text>
-                            {!!user?.isDebugModeEnabled && (
+                            {!!account?.isDebugModeEnabled && (
                                 <Text
                                     style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
                                     numberOfLines={1}
@@ -195,7 +226,8 @@ function AccountSwitcher() {
                         </View>
                     </View>
                 </PressableWithFeedback>
-            </Tooltip>
+            </TooltipToRender>
+
             {!!canSwitchAccounts && (
                 <PopoverMenu
                     isVisible={shouldShowDelegatorMenu}
