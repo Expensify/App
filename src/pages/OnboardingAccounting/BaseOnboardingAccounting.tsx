@@ -245,7 +245,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             userReportedIntegration,
         });
 
-        if (onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP) {
+        if (!CONST.NEW_DOT_SUPPORTED_COMPANY_SIZES.includes(onboardingCompanySize) && getPlatform() !== CONST.PLATFORM.DESKTOP) {
             if (CONFIG.IS_HYBRID_APP) {
                 return;
             }
