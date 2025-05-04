@@ -141,7 +141,6 @@ function NewChatPage() {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
@@ -362,7 +361,7 @@ function NewChatPage() {
                 initiallyFocusedOptionKey={firstKeyForList}
                 shouldTextInputInterceptSwipe
                 addBottomSafeAreaPadding
-                addOfflineIndicatorBottomSafeAreaPadding={isSmallScreenWidth}
+                addOfflineIndicatorBottomSafeAreaPadding={false}
             />
         </ScreenWrapper>
     );
