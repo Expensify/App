@@ -1195,6 +1195,12 @@ const translations = {
             educationalTitle: 'Should you',
             questionMark: '?',
             educationalText: 'If you\'re not ready to approve or pay an expense, you have two options:',
+            holdExpenseTitlePrefix: 'Hold an expense',
+            holdExpenseTitle: 'to ask for more details before approval or payment.',
+            holdExpenseDescription: 'Hold is temporary. You can unhold an expense to keep it moving forward.',
+            declineExpenseTitlePrefix: 'Decline an expense',
+            declineExpenseTitle: 'when you don\'t intend to approve or pay it.',
+            declineExpenseDescription: 'Declined expenses are removed from reports and must be resubmitted.',
         }
     },
     share: {

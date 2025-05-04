@@ -6,11 +6,28 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
 import FeatureTrainingModal from './FeatureTrainingModal';
-import HoldMenuSectionList from './HoldMenuSectionList';
 import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 import TextPill from './TextPill';
+import Icon from './Icon';
+
+type SectionMenuItem = {
+    /** The icon supplied with the section */
+    icon: IconAsset;
+
+    /** Translation key for the title prefix */
+    titlePrefixTranslationKey: TranslationPaths;
+
+    /** Translation key for the title */
+    titleTranslationKey: TranslationPaths;
+
+    /** Translation key for the description */
+    descriptionKey: TranslationPaths;
+};
+
 
 type HoldOrDeclineEducationalModalProps = {
     /** Method to trigger when pressing outside of the popover menu to close it */
@@ -19,6 +36,21 @@ type HoldOrDeclineEducationalModalProps = {
     /** Method to trigger when pressing confirm button */
     onConfirm: () => void;
 };
+
+const menuSections: SectionMenuItem[] = [
+    {
+        icon: Illustrations.Stopwatch,
+        titlePrefixTranslationKey: 'iou.decline.holdExpenseTitlePrefix',
+        titleTranslationKey: 'iou.decline.holdExpenseTitle',
+        descriptionKey: 'iou.decline.holdExpenseDescription',
+    },
+    {
+        icon: Illustrations.RealtimeReport,
+        titlePrefixTranslationKey: 'iou.decline.declineExpenseTitlePrefix',
+        titleTranslationKey: 'iou.decline.declineExpenseTitle',
+        descriptionKey: 'iou.decline.declineExpenseDescription',
+    },
+];
 
 function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducationalModalProps) {
     const {translate} = useLocalize();
@@ -55,7 +87,30 @@ function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducat
             onClose={onClose}
             onConfirm={onConfirm}
         >
-            <HoldMenuSectionList />
+            <>
+                {menuSections.map((section) => (
+                    <View
+                        key={section.titleTranslationKey}
+                        style={[styles.flexRow, styles.alignItemsStart, styles.mt5]}
+                    >
+                        <Icon
+                            width={variables.menuIconSize}
+                            height={variables.menuIconSize}
+                            src={section.icon}
+                            additionalStyles={[styles.mr4]}
+                        />
+                        <View style={[styles.flex1, styles.justifyContentCenter]}>
+                            <Text style={[styles.mb1]}>
+                                <Text style={[styles.mb1, styles.textStrong, styles.mr1]}>{translate(section.titlePrefixTranslationKey)}</Text>
+                                {translate(section.titleTranslationKey)}
+                            </Text>
+                            <Text style={styles.textSupporting}>
+                                {translate(section.descriptionKey)}
+                            </Text>
+                        </View>
+                    </View>
+                ))}
+            </>
         </FeatureTrainingModal>
     );
 }

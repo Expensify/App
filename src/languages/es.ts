@@ -1194,6 +1194,12 @@ const translations = {
             educationalTitle: '¿Deberías',
             questionMark: '?',
             educationalText: 'Si no está listo para aprobar o pagar un gasto, tiene dos opciones:',
+            holdExpenseTitlePrefix: 'Retener un gasto',
+            holdExpenseTitle: 'para solicitar más detalles antes de la aprobación o el pago.',
+            holdExpenseDescription: 'La retención es temporal. Puedes liberar un gasto para que siga adelante.',
+            declineExpenseTitlePrefix: 'Rechazar un gasto',
+            declineExpenseTitle: 'cuando no tienes intención de aprobarlo o pagarlo.',
+            declineExpenseDescription: 'Los gastos rechazados se eliminan de los informes y deben volver a enviarse.',
         }
     },
     share: {

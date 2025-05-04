@@ -5068,7 +5068,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         yellowPillInline: {
-            backgroundColor: colors.yellow600,
+            backgroundColor: colors.yellow500,
         },
 
         headerStatusBarContainer: {
