@@ -22,10 +22,10 @@ type FreeTrialProps = {
 
 function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success = true, inARow = false}: FreeTrialProps) {
     const styles = useThemeStyles();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
 
     const [freeTrialText, setFreeTrialText] = useState<string | undefined>(undefined);
     const {isOffline} = useNetwork();
