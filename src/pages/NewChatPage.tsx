@@ -17,6 +17,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -140,6 +141,7 @@ function NewChatPage() {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
@@ -309,7 +311,7 @@ function NewChatPage() {
 
     const footerContent = useMemo(
         () =>
-            !isDismissed || selectedOptions.length ? (
+            (!isDismissed || selectedOptions.length > 0) && (
                 <>
                     <ReferralProgramCTA
                         referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
@@ -326,7 +328,7 @@ function NewChatPage() {
                         />
                     )}
                 </>
-            ) : null,
+            ),
         [createGroup, selectedOptions.length, styles.mb5, translate, isDismissed],
     );
 
@@ -360,6 +362,7 @@ function NewChatPage() {
                 initiallyFocusedOptionKey={firstKeyForList}
                 shouldTextInputInterceptSwipe
                 addBottomSafeAreaPadding
+                addOfflineIndicatorBottomSafeAreaPadding={isSmallScreenWidth}
             />
         </ScreenWrapper>
     );
