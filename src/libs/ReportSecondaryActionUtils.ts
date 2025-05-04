@@ -427,6 +427,7 @@ function getSecondaryReportActions(
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
+    canUseRetractNewDot?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -458,7 +459,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
     }
 
-    if (isReopenAction(report, policy)) {
+    if (canUseRetractNewDot && isReopenAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }
 

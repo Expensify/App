@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useTheme from '@hooks/useTheme';
@@ -482,12 +483,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         ),
     };
 
+    const {canUseRetractNewDot} = usePermissions();
+
     const secondaryActions = useMemo(() => {
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy);
-    }, [moneyRequestReport, policy, transactions, violations]);
+        return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy, canUseRetractNewDot);
+    }, [canUseRetractNewDot, moneyRequestReport, policy, transactions, violations]);
 
     const secondaryActionsImplemenation: Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
