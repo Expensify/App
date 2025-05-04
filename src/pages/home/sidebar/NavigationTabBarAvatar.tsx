@@ -2,6 +2,7 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -24,23 +25,30 @@ type NavigationTabBarAvatarProps = {
     /** Additional styles to add to the button */
     style?: StyleProp<ViewStyle>;
 
-    /** Should tooltip be visible */
-    shouldShowTooltip: boolean;
+    /** Whether the educational tooltip is allowed */
+    isTooltipAllowed: boolean;
 
     /** Whether the layout is for Web/Desktop */
     isWebOrDesktop: boolean;
-
-    /** Tooltip content to render */
-    renderTooltipContent: () => React.JSX.Element;
 };
 
-function NavigationTabBarAvatar({onPress, isSelected = false, style, shouldShowTooltip, isWebOrDesktop, renderTooltipContent}: NavigationTabBarAvatarProps) {
+function NavigationTabBarAvatar({onPress, isSelected = false, style, isTooltipAllowed, isWebOrDesktop}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SETTINGS_TAB,
+        isTooltipAllowed && !isSelected,
+    );
+
     const delegateEmail = account?.delegatedAccess?.delegate ?? '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';
+
+    const hideTooltipAndSelectTab = () => {
+        hideProductTrainingTooltip();
+        onPress();
+    };
 
     let children;
 
@@ -71,19 +79,19 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style, shouldShowT
 
     return (
         <EducationalTooltip
-            shouldRender={shouldShowTooltip}
+            shouldRender={shouldShowProductTrainingTooltip}
             anchorAlignment={{
                 horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
             shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarSettingsTooltipShiftHorizontal}
-            renderTooltipContent={renderTooltipContent}
+            renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shouldHideOnNavigate={false}
-            onTooltipPress={onPress}
+            onTooltipPress={hideTooltipAndSelectTab}
         >
             <PressableWithFeedback
-                onPress={onPress}
+                onPress={hideTooltipAndSelectTab}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
                 wrapperStyle={styles.flex1}

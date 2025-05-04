@@ -243,9 +243,12 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
             };
         }, []),
     );
+    const isOutstandingStatusActive = Array.isArray(queryJSON.status)
+        ? queryJSON.status.includes(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING)
+        : queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.OUTSANDING_FILTER,
-        isScreenFocused,
+        isScreenFocused && !isOutstandingStatusActive,
     );
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.

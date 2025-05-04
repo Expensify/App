@@ -68,11 +68,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         shouldShowProductTrainingTooltip: shouldShowInboxTooltip,
         hideProductTrainingTooltip: hideInboxTooltip,
     } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP, isTooltipAllowed && selectedTab !== NAVIGATION_TABS.HOME);
-    const {
-        renderProductTrainingTooltip: renderSettingsTooltip,
-        shouldShowProductTrainingTooltip: shouldShowSettingsTooltip,
-        hideProductTrainingTooltip: hideSettingsTooltip,
-    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SETTINGS_TAB, isTooltipAllowed && selectedTab !== NAVIGATION_TABS.SETTINGS);
     const StyleUtils = useStyleUtils();
     const {canUseLeftHandBar} = usePermissions();
 
@@ -139,7 +134,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
      * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
      */
     const showSettingsPage = useCallback(() => {
-        hideSettingsTooltip();
         const rootState = navigationRef.getRootState();
         const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
         if (!topmostFullScreenRoute) {
@@ -208,7 +202,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             // Otherwise we should simply open the settings navigator.
             Navigation.navigate(ROUTES.SETTINGS);
         });
-    }, [hideSettingsTooltip, shouldUseNarrowLayout]);
+    }, [shouldUseNarrowLayout]);
 
     if (!shouldUseNarrowLayout && canUseLeftHandBar) {
         return (
@@ -311,8 +305,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                             onPress={showSettingsPage}
                             isWebOrDesktop={isWebOrDesktop}
-                            shouldShowTooltip={shouldShowSettingsTooltip}
-                            renderTooltipContent={renderSettingsTooltip}
+                            isTooltipAllowed={isTooltipAllowed}
                         />
                     </View>
                     <View style={styles.leftNavigationTabBarItem}>
@@ -408,8 +401,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                     onPress={showSettingsPage}
                     isWebOrDesktop={isWebOrDesktop}
-                    shouldShowTooltip={shouldShowSettingsTooltip}
-                    renderTooltipContent={renderSettingsTooltip}
+                    isTooltipAllowed={isTooltipAllowed}
                 />
                 <View style={[styles.flex1, styles.navigationTabBarItem]}>
                     <NavigationTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />

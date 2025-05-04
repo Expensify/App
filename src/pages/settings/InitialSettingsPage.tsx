@@ -113,12 +113,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {canUseLeftHandBar} = usePermissions();
 
     const isScreenFocused = useIsAccountSettingsRouteActive(shouldUseNarrowLayout);
+    const isWorkspacesTabSelected = focusedRouteName === SCREENS.SETTINGS.WORKSPACES;
 
     const {
         renderProductTrainingTooltip: renderWorkspaceSettingsTooltip,
         shouldShowProductTrainingTooltip: shouldShowWorkspaceSettingsTooltip,
         hideProductTrainingTooltip: hideWorkspaceSettingsTooltip,
-    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACES_SETTINGS, isScreenFocused);
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACES_SETTINGS, isScreenFocused && !isWorkspacesTabSelected);
 
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
