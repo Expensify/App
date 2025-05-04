@@ -96,6 +96,7 @@ import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
+import HoldOrDeclineEducationalModal from './HoldOrDeclineEducationalModal';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -198,6 +199,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     );
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+    const [isDeclineEducationalModalVisible, setIsDeclineEducationalModalVisible] = useState(false);
 
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
@@ -627,9 +629,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.DECLINE,
             onSelected: () => {
                 if (dismissedDeclineUseExplanation) {
-                    alert('hello');
+                    Navigation.navigate(ROUTES.DECLINE_MONEY_REQUEST.getRoute(Navigation.getReportRHPActiveRoute()));
                 } else {
-                    alert('world');
+                    setIsDeclineEducationalModalVisible(true);
                 }
             },
         },
@@ -862,6 +864,17 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
             />
+
+            {!!isDeclineEducationalModalVisible && (
+                <HoldOrDeclineEducationalModal
+                    onClose={() => {
+                        setIsDeclineEducationalModalVisible(false);
+                    }}
+                    onConfirm={() => {
+                        setIsDeclineEducationalModalVisible(false);
+                    }}
+                />)
+            }
         </View>
     );
 }
