@@ -1190,6 +1190,10 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+        decline: {
+            educationalTitle: 'Should you ',
+            educationalText: 'If you\'re not ready to approve or pay an expense, you have two options:',
+        }
     },
     share: {
         shareToExpensify: 'Compartir para Expensify',

@@ -1201,6 +1201,7 @@ const CONST = {
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             ADD_EXPENSE: 'addExpense',
+            DECLINE: 'decline'
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',

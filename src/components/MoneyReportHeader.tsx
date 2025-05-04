@@ -144,7 +144,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         canBeMissing: true,
     });
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: true});
+    const [dismissedDeclineUseExplanation, dismissedDeclineUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_DECLINE_USE_EXPLANATION, {initialValue: false, canBeMissing: true});
+
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
+    const isLoadingDeclineUseExplained = isLoadingOnyxValue(dismissedDeclineUseExplanationResult);
 
     const isExported = isExportedUtils(reportActions);
 
@@ -347,6 +350,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
+
+    useEffect(() => {
+        if (isLoadingDeclineUseExplained || dismissedDeclineUseExplanation) {
+            return;
+        }
+        Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
+    }, [dismissedDeclineUseExplanation, isLoadingDeclineUseExplained]);
 
     const primaryAction = useMemo(() => {
         // It's necessary to allow payment animation to finish before button is changed
@@ -617,6 +627,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
                 setIsDeleteModalVisible(true);
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.DECLINE]: {
+            text: translate('common.decline'),
+            icon: Expensicons.ThumbsUp,
+            value: CONST.REPORT.SECONDARY_ACTIONS.DECLINE,
+            onSelected: () => {
+                // setIsDeleteModalVisible(true);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE]: {

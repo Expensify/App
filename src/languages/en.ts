@@ -1191,6 +1191,10 @@ const translations = {
         dates: 'Dates',
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
+        decline: {
+            educationalTitle: 'Should you',
+            educationalText: 'If you\'re not ready to approve or pay an expense, you have two options:',
+        }
     },
     share: {
         shareToExpensify: 'Share to Expensify',

@@ -455,6 +455,8 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.DECLINE);
+
     return options;
 }
 

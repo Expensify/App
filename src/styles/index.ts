@@ -5050,19 +5050,25 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 16,
         },
 
-        holdRequestInline: {
+        inlinePill: {
             ...headlineFont,
             ...whiteSpace.preWrap,
             color: theme.textLight,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
-
-            backgroundColor: colors.red,
             borderRadius: variables.componentBorderRadiusMedium,
             overflow: 'hidden',
-
             paddingHorizontal: 8,
             paddingVertical: 4,
+            textTransform: 'lowercase',
+        },
+
+        redPillInline: {
+            backgroundColor: colors.red,
+        },
+
+        yellowPillInline: {
+            backgroundColor: colors.yellow600,
         },
 
         headerStatusBarContainer: {

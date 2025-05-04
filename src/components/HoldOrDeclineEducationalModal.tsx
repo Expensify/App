@@ -12,7 +12,7 @@ import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 import TextPill from './TextPill';
 
-type ProcessMoneyRequestHoldMenuProps = {
+type HoldOrDeclineEducationalModalProps = {
     /** Method to trigger when pressing outside of the popover menu to close it */
     onClose: () => void;
 
@@ -20,7 +20,7 @@ type ProcessMoneyRequestHoldMenuProps = {
     onConfirm: () => void;
 };
 
-function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHoldMenuProps) {
+function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
@@ -30,17 +30,19 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
     const title = useMemo(
         () => (
             <View style={[styles.flexRow, styles.alignItemsCenter, onboardingIsMediumOrLargerScreenWidth ? styles.mb1 : styles.mb2]}>
-                <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                <TextPill textStyles={[styles.inlinePill, styles.redPillInline]}>{translate('iou.holdEducationalText')}</TextPill>
+                <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.decline.educationalTitle')}</Text>
+                <TextPill textStyles={[styles.inlinePill, styles.yellowPillInline, styles.mr2]}>{translate('iou.hold')}</TextPill>
+                <Text style={[styles.textHeadline, styles.mr2]}>{translate('common.or')}</Text>
+                <TextPill textStyles={[styles.inlinePill, styles.redPillInline]}>{translate('common.decline')}</TextPill>
             </View>
         ),
-        [styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mb2, styles.textHeadline, styles.mr2, styles.inlinePill, styles.redPillInline, onboardingIsMediumOrLargerScreenWidth, translate],
+        [styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mb2, styles.textHeadline, styles.mr2, styles.inlinePill, styles.yellowPillInline, styles.redPillInline, onboardingIsMediumOrLargerScreenWidth, translate],
     );
 
     return (
         <FeatureTrainingModal
             title={title}
-            description={translate('iou.whatIsHoldExplain')}
+            description={translate('iou.decline.educationalText')}
             confirmText={translate('common.buttonConfirm')}
             image={Illustrations.HoldExpense}
             contentFitImage="cover"
@@ -57,6 +59,6 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
     );
 }
 
-ProcessMoneyRequestHoldMenu.displayName = 'ProcessMoneyRequestHoldMenu';
+HoldOrDeclineEducationalModal.displayName = 'HoldOrDeclineEducationalModal';
 
-export default ProcessMoneyRequestHoldMenu;
+export default HoldOrDeclineEducationalModal;
