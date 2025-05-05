@@ -155,7 +155,7 @@ function WorkspaceReportFieldsPage({
         const availableReportFields = Object.values(reportFieldsSections).filter(
             (reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && filteredReportFields.find((item) => item.fieldID === reportField.fieldID),
         );
-        setSelectedReportFields(selectedReportFields.length > 0 ? [] : Object.keys(availableReportFields));
+        setSelectedReportFields(selectedReportFields.length > 0 ? [] : Object.values(availableReportFields).map((reportField) => getReportFieldKey(reportField.fieldID)));
     };
 
     const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
@@ -282,7 +282,7 @@ function WorkspaceReportFieldsPage({
                 />
                 {(!shouldUseNarrowLayout || !hasVisibleReportField || isLoading) && getHeaderText()}
                 {!shouldShowEmptyState && !isLoading && shouldUseNarrowLayout && getHeaderText()}
-                {filteredReportFields.length > 15 && (
+                {reportFieldsSections.length > CONST.SEARCH_ITEM_LIMIT && (
                     <SearchBar
                         label={translate('workspace.reportFields.findReportField')}
                         inputValue={inputValue}

@@ -348,7 +348,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length > 15 && (
+                {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
                     <SearchBar
                         inputValue={inputValue}
                         onChangeText={setInputValue}

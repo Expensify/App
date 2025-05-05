@@ -251,7 +251,7 @@ function PolicyDistanceRatesPage({
         } else {
             setSelectedDistanceRates(
                 Object.entries(selectableRates)
-                    .filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    .filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && filteredDistanceRatesList.some((item) => item.value === rate.customUnitRateID))
                     .map(([key]) => key),
             );
         }
@@ -376,7 +376,7 @@ function PolicyDistanceRatesPage({
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.ph5]}>{headerButtons}</View>}
                 {Object.values(customUnitRates).length > 0 && getHeaderText()}
-                {Object.values(customUnitRates).length > 15 && (
+                {Object.values(customUnitRates).length > CONST.SEARCH_ITEM_LIMIT && (
                     <SearchBar
                         label={translate('workspace.distanceRates.findRate')}
                         inputValue={inputValue}

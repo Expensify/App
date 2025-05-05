@@ -723,7 +723,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 <>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                     {shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : getHeaderContent()}
-                    {data.length > 15 && (
+                    {data.length > CONST.SEARCH_ITEM_LIMIT && (
                         <SearchBar
                             inputValue={inputValue}
                             onChangeText={setInputValue}

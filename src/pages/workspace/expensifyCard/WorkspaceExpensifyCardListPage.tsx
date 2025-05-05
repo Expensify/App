@@ -184,7 +184,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                             policyID={policyID}
                             cardSettings={cardSettings}
                         />
-                        {allCards.length > 15 && (
+                        {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
                             <SearchBar
                                 label={translate('workspace.expensifyCard.findCard')}
                                 inputValue={inputValue}

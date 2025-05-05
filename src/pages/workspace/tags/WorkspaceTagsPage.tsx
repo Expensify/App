@@ -485,7 +485,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     danger
                 />
                 {(!shouldUseNarrowLayout || !hasVisibleTags || isLoading) && getHeaderText()}
-                {tagList.length > 15 && (
+                {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
                     <SearchBar
                         label={translate('workspace.tags.findTag')}
                         inputValue={inputValue}

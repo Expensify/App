@@ -385,7 +385,7 @@ function WorkspaceTaxesPage({
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
 
                 {getHeaderText()}
-                {taxesList.length > 15 && (
+                {taxesList.length > CONST.SEARCH_ITEM_LIMIT && (
                     <SearchBar
                         label={translate('workspace.taxes.findTaxRate')}
                         inputValue={inputValue}

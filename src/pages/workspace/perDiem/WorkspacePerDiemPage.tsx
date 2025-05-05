@@ -416,7 +416,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {(!hasVisibleSubRates || isLoading) && getHeaderText()}
-                {subRatesList.length > 15 && (
+                {subRatesList.length > CONST.SEARCH_ITEM_LIMIT && (
                     <SearchBar
                         label={translate('workspace.perDiem.findPerDiemRate')}
                         inputValue={inputValue}
