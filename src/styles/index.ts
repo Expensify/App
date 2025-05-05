@@ -120,6 +120,15 @@ const link = (theme: ThemeColors) =>
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
     } satisfies ViewStyle & MixedStyleDeclaration);
 
+const emailLink = (theme: ThemeColors) =>
+    ({
+        color: theme.link,
+        textDecorationColor: theme.link,
+        // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
+        fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+        fontWeight: FontUtils.fontWeight.bold,
+    } satisfies ViewStyle & MixedStyleDeclaration);
+
 const baseCodeTagStyles = (theme: ThemeColors) =>
     ({
         borderWidth: 1,
@@ -335,6 +344,8 @@ const styles = (theme: ThemeColors) =>
         webViewStyles: webViewStyles(theme),
 
         link: link(theme),
+
+        emailLink: emailLink(theme),
 
         linkMuted: {
             color: theme.textSupporting,
@@ -5668,6 +5679,12 @@ const styles = (theme: ThemeColors) =>
             bottom: 0,
             left: 0,
             right: 0,
+        },
+
+        earlyDiscountButton: {
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: 'auto',
         },
 
         testDriveModalContainer: {

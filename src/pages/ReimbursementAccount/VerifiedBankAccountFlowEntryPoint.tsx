@@ -15,7 +15,6 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -98,7 +97,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const pendingAction = reimbursementAccount?.pendingAction ?? null;
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const optionPressed = useRef('');
-    const isAccountValidated = useAccountValidation();
+    const isAccountValidated = account?.validated ?? false;
 
     const contactMethod = account?.primaryLogin ?? '';
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
