@@ -20,11 +20,11 @@ type ScrollingEventData = {
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
 function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, shouldHideOnScroll = false, ...props}: EducationalTooltipProps) {
-    const genericTooltipStateRef = useRef<GenericTooltipState>();
-    const tooltipElementRef = useRef<Readonly<NativeMethods>>();
+    const genericTooltipStateRef = useRef<GenericTooltipState | undefined>(undefined);
+    const tooltipElementRef = useRef<Readonly<NativeMethods> | undefined>(undefined);
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
-    const show = useRef<() => void>();
+    const show = useRef<(() => void) | undefined>(undefined);
 
     const navigator = useContext(NavigationContext);
     const insets = useSafeAreaInsets();

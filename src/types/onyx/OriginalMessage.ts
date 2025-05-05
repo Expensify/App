@@ -92,24 +92,6 @@ type Decision = {
     timestamp?: string;
 };
 
-/** Model of user reaction */
-type User = {
-    /** Account ID of the user that reacted to the comment */
-    accountID: number;
-
-    /** What's the skin tone of the user reaction */
-    skinTone: number;
-};
-
-/** Model of comment reaction */
-type Reaction = {
-    /** Which emoji was used to react to the comment */
-    emoji: string;
-
-    /** Which users reacted with this emoji */
-    users: User[];
-};
-
 /** Model of `add comment` report action */
 type OriginalMessageAddComment = {
     /** HTML content of the comment */
@@ -186,6 +168,12 @@ type OriginalMessageClosed = {
 
     /** Name of the invoice receiver's policy */
     receiverPolicyName?: string;
+
+    /** If the expense report was mark as closed, then this is the report amount */
+    amount?: number;
+
+    /** If the expense report was mark as closed, then this is the report currency */
+    currency?: string;
 };
 
 /** Model of `renamed` report action, created when chat rooms get renamed */
@@ -740,6 +728,17 @@ type OriginalMessageCard = {
 };
 
 /**
+ * Model of INTEGRATIONS_MESSAGE report action
+ */
+type OriginalMessageIntegrationMessage = {
+    /** Object with detailed result */
+    result: {
+        /** Wether action was successful */
+        success: boolean;
+    };
+};
+
+/**
  * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ASSIGNED and CARD_ISSUED_VIRTUAL actions
  */
 type IssueNewCardOriginalMessage = OriginalMessage<
@@ -772,7 +771,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: OriginalMessageForwarded;
     [CONST.REPORT.ACTIONS.TYPE.HOLD]: never;
     [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: never;
-    [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: never;
+    [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: OriginalMessageIntegrationMessage;
     [CONST.REPORT.ACTIONS.TYPE.IOU]: OriginalMessageIOU;
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT]: never;
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT]: never;
@@ -842,7 +841,6 @@ export type {
     ChronosOOOEvent,
     PaymentMethodType,
     OriginalMessageSource,
-    Reaction,
     Decision,
     OriginalMessageChangeLog,
     JoinWorkspaceResolution,

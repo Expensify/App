@@ -183,6 +183,9 @@ type Account = {
         /** Whether the user validation code was sent */
         validateCodeSent?: boolean;
 
+        /** Whether the user validation code was re-sent */
+        validateCodeResent?: boolean;
+
         /** Errors while requesting the validation code */
         errors: OnyxCommon.Errors;
     };
@@ -228,6 +231,9 @@ type Account = {
 
     /** Whether the debug mode is currently enabled */
     isDebugModeEnabled?: boolean;
+
+    /** If user has accesible policies on a private domain */
+    hasAccessibleDomainPolicies?: boolean;
 };
 
 export default Account;

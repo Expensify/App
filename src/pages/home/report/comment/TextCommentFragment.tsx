@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
+import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
@@ -78,7 +79,11 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
         if (containsOnlyEmojis) {
             htmlContent = Str.replaceAll(htmlContent, '<emoji>', '<emoji islarge>');
         } else if (containsEmojis) {
-            htmlContent = Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji ismedium>');
+            htmlContent = htmlWithDeletedTag;
+            if (!htmlContent.includes('<emoji>')) {
+                htmlContent = Parser.replace(htmlContent, {filterRules: ['emoji'], shouldEscapeText: false});
+            }
+            htmlContent = Str.replaceAll(htmlContent, '<emoji>', '<emoji ismedium>');
         }
 
         let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
@@ -131,12 +136,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             )}
             {!!fragment?.isEdited && (
                 <>
-                    <Text
-                        style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
-                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                    >
-                        {' '}
-                    </Text>
+                    <Text style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight]}> </Text>
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={theme.textSupporting}
