@@ -438,6 +438,9 @@ const translations = {
         websiteExample: 'e.g. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
+        title: 'Title',
+        assignee: 'Assignee',
+        createdBy: 'Created by',
         with: 'with',
         shareCode: 'Share code',
         share: 'Share',
@@ -524,6 +527,7 @@ const translations = {
         offlinePrompt: "You can't take this action right now.",
         outstanding: 'Outstanding',
         chats: 'Chats',
+        tasks: 'Tasks',
         unread: 'Unread',
         sent: 'Sent',
         links: 'Links',
@@ -548,6 +552,7 @@ const translations = {
         reimbursable: 'Reimbursable',
         editYourProfile: 'Edit your profile',
         comments: 'Comments',
+        sharedIn: 'Shared in',
         unreported: 'Unreported',
     },
     supportalNoAccess: {
@@ -5145,6 +5150,7 @@ const translations = {
         description: 'Description',
         assignee: 'Assignee',
         completed: 'Completed',
+        action: 'Complete',
         messages: {
             created: ({title}: TaskCreatedActionParams) => `task for ${title}`,
             completed: 'marked as complete',
@@ -5230,6 +5236,7 @@ const translations = {
             link: 'Link',
             pinned: 'Pinned',
             unread: 'Unread',
+            completed: 'Completed',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Less than ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Greater than ${amount ?? ''}`,
@@ -5923,7 +5930,7 @@ const translations = {
             perMemberMonth: 'per member/month',
             collect: {
                 title: 'Collect',
-                description: 'The SMB plan that gives you expense, travel, and chat.',
+                description: 'The small business plan that gives you expense, travel, and chat.',
                 priceAnnual: ({lower, upper}: YourPlanPriceParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 benefit1: 'Receipt scanning',
