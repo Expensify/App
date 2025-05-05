@@ -51,5 +51,4 @@ describe('GitUtils', () => {
             expect(result).toStrictEqual(exampleCase.expectedOutput);
         });
     });
-
 });
