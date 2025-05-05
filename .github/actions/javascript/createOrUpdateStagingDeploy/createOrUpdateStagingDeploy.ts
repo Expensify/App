@@ -42,13 +42,13 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const previousChecklist = shouldCreateNewDeployChecklist ? mostRecentChecklist : recentDeployChecklists.at(1);
         if (shouldCreateNewDeployChecklist) {
             core.startGroup('ℹ️ Latest StagingDeployCash is closed, creating a new one. Current:');
-            core.info(JSON.stringify(mostRecentChecklist));
+            core.info(JSON.stringify(mostRecentChecklist, null, 2));
             core.endGroup();
         } else {
             core.startGroup('ℹ️ Latest StagingDeployCash is open, updating it instead of creating a new one. Current:');
-            core.info(JSON.stringify(mostRecentChecklist));
+            core.info(JSON.stringify(mostRecentChecklist, null, 2));
             core.info('Previous:');
-            core.info(JSON.stringify(previousChecklist));
+            core.info(JSON.stringify(previousChecklist, null, 2));
             core.endGroup();
         }
 
