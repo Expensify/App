@@ -10,6 +10,7 @@ import type {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navi
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import NarrowPaneOfflineIndicatorContextProvider from './NarrowPaneOfflineIndicatorContextProvider';
 import Overlay from './Overlay';
 
 type LeftModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.LEFT_MODAL_NAVIGATOR>;
@@ -31,17 +32,19 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
                     onPress={navigation.goBack}
                 />
             )}
-            <View style={styles.LHPNavigatorContainer(shouldUseNarrowLayout)}>
-                <Stack.Navigator
-                    screenOptions={screenOptions}
-                    id={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
-                >
-                    <Stack.Screen
-                        name={SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER}
-                        getComponent={loadWorkspaceSwitcherPage}
-                    />
-                </Stack.Navigator>
-            </View>
+            <NarrowPaneOfflineIndicatorContextProvider>
+                <View style={styles.LHPNavigatorContainer(shouldUseNarrowLayout)}>
+                    <Stack.Navigator
+                        screenOptions={screenOptions}
+                        id={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
+                    >
+                        <Stack.Screen
+                            name={SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER}
+                            getComponent={loadWorkspaceSwitcherPage}
+                        />
+                    </Stack.Navigator>
+                </View>
+            </NarrowPaneOfflineIndicatorContextProvider>
         </NoDropZone>
     );
 }

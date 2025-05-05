@@ -1,8 +1,6 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import type {ScreenWrapperOfflineIndicatorContextType} from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
-import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
@@ -16,6 +14,7 @@ import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigati
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import NarrowPaneOfflineIndicatorContextProvider from './NarrowPaneOfflineIndicatorContextProvider';
 import Overlay from './Overlay';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
@@ -26,13 +25,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
-
-    const offlineIndicatorContextValue: ScreenWrapperOfflineIndicatorContextType = useMemo(
-        () => ({
-            addSafeAreaPadding: shouldUseNarrowLayout,
-        }),
-        [shouldUseNarrowLayout],
-    );
 
     const screenOptions = useCustomScreenOptions();
 
@@ -52,7 +44,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     }}
                 />
             )}
-            <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+            <NarrowPaneOfflineIndicatorContextProvider>
                 <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
@@ -231,7 +223,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                     </Stack.Navigator>
                 </View>
-            </ScreenWrapperOfflineIndicatorContext.Provider>
+            </NarrowPaneOfflineIndicatorContextProvider>
         </NoDropZone>
     );
 }
