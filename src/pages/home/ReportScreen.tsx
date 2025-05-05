@@ -334,14 +334,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.goBack(backTo as Route, {shouldPopToTop: true});
             return;
         }
-
-        if (report?.parentReportID && !isMoneyRequestReportPendingDeletion(report?.parentReportID)) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report?.parentReportID), {shouldPopToTop: true});
-            return;
-        }
-
         Navigation.goBack(undefined, {shouldPopToTop: true});
-    }, [isInNarrowPaneModal, backTo, report?.parentReportID]);
+    }, [isInNarrowPaneModal, backTo]);
 
     let headerView = (
         <HeaderView
