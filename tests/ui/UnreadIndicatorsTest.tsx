@@ -677,4 +677,37 @@ describe('Unread Indicators', () => {
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(0);
     });
+    it('Mark the chat as unread on clicking "Mark as unread" on an item in LHN when the last message of the chat was deleted', async () => {
+        await signInAndGetAppWithUnreadChat();
+        await navigateToSidebarOption(0);
+        const reportAction1 = {
+            reportActionID: '1',
+            message: {html: ''}, // set to empty string to simulate a deleted message
+            created: '2025-05-02T00:00:00.000Z',
+            actorAccountID: USER_B_ACCOUNT_ID,
+        } as unknown as ReportAction;
+        const reportAction2 = {
+            reportActionID: '2',
+            message: {html: 'Comment 2'},
+            created: '2025-05-01T00:00:00.000Z',
+            actorAccountID: USER_B_ACCOUNT_ID,
+        } as unknown as ReportAction;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+            [reportAction1.reportActionID]: reportAction1,
+            [reportAction2.reportActionID]: reportAction2,
+        });
+
+        markCommentAsUnread(REPORT_ID, {reportActionID: -1} as unknown as ReportAction); // Marking the chat as unread from LHN passing a dummy reportActionID
+
+        await waitForBatchedUpdates();
+
+        navigateToSidebar();
+
+        await waitForBatchedUpdates();
+
+        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+        const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
+        expect(displayNameTexts).toHaveLength(1);
+        expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
+    });
 });
