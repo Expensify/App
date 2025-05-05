@@ -13,7 +13,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import type {FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
@@ -199,15 +198,15 @@ function PaymentMethodList({
     const {isOffline} = useNetwork();
     const illustrations = useThemeIllustrations();
 
-    const isUserValidated = useAccountValidation();
-    const [bankAccountList = {}, bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [bankAccountList = {}, bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
-    const [cardList = {}, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [cardList = {}, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [isLoadingPaymentMethods = true, isLoadingPaymentMethodsResult] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
+    const [isLoadingPaymentMethods = true, isLoadingPaymentMethodsResult] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const isLoadingPaymentMethodsOnyx = isLoadingOnyxValue(isLoadingPaymentMethodsResult);
 
     const filteredPaymentMethods = useMemo(() => {
