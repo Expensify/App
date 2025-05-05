@@ -79,6 +79,7 @@ function WorkspaceHubInitialPage() {
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
     const subscriptionPlan = useSubscriptionPlan();
@@ -283,7 +284,7 @@ function WorkspaceHubInitialPage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID={WorkspaceHubInitialPage.displayName}
-            bottomContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
+            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             shouldEnableKeyboardAvoidingView={false}
         >
             <TopBar
@@ -313,6 +314,7 @@ function WorkspaceHubInitialPage() {
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
             />
+            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
     );
 }
