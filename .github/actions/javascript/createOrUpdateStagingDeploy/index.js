@@ -11552,7 +11552,7 @@ async function run() {
         // if it is open then we'll update the existing one, otherwise, we'll create a new one.
         const mostRecentChecklist = recentDeployChecklists.at(0);
         if (!mostRecentChecklist) {
-            throw new Error('⚠️⚠️ Could not find the most recent checklist ⚠️⚠️');
+            throw new Error('⚠️⚠️ Could not find the most recent checklist! ⚠️⚠️');
         }
         const shouldCreateNewDeployChecklist = mostRecentChecklist.state !== 'open';
         const previousChecklist = shouldCreateNewDeployChecklist ? mostRecentChecklist : recentDeployChecklists.at(1);
@@ -11563,7 +11563,7 @@ async function run() {
             console.log('ℹ️ Latest StagingDeployCash is open, updating it instead of creating a new one.', 'Current:', mostRecentChecklist, 'Previous:', previousChecklist);
         }
         if (!previousChecklist) {
-            throw new Error('⚠️⚠️ Could not find the previous checklist ⚠️⚠️');
+            throw new Error('⚠️⚠️ Could not find the previous checklist! ⚠️⚠️');
         }
         // Parse the data from the previous and current checklists into the format used to generate the checklist
         const previousChecklistData = GithubUtils_1.default.getStagingDeployCashData(previousChecklist);
@@ -11572,20 +11572,22 @@ async function run() {
         const mergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag);
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
-        core.startGroup('Filtering PRs:');
-        core.info('mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out');
-        core.info(`Found ${previousPRNumbers.size} PRs in the previous checklist:`);
-        core.info(JSON.stringify(Array.from(previousPRNumbers)));
+        core.info('Deployed PRs include cherry-picked PRs released with previous checklist, these must be excluded');
+        core.startGroup('Filtering out cherry-picked PRs');
+        core.info(`Found ${mergedPRs.length} PRs deployed since previous checklist: ${JSON.stringify(mergedPRs)}`);
+        core.info(`Found ${previousPRNumbers.size} PRs from the previous checklist: ${JSON.stringify(Array.from(previousPRNumbers))}`);
+        // Create the final list of PRs for the current checklist
         const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
-        core.info(`Found ${newPRNumbers.length} PRs deployed since the previous checklist:`);
-        core.info(JSON.stringify(newPRNumbers));
         // Log the PRs that were filtered out
         const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
         if (removedPRs.length > 0) {
-            core.info(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
+            core.info(`ℹ️🧹 Filtered out the following cherry-picked PRs that were released with the previous checklist: ${JSON.stringify(removedPRs)}`);
+        }
+        else {
+            core.info('ℹ️🧐 No PRs from previous checklist were filtered out');
         }
         core.endGroup();
-        console.info(`Final list of PRs for current checklist: ${newPRNumbers.join(', ')}`);
+        console.info(`Created final list of PRs for current checklist: ${JSON.stringify(newPRNumbers)}`);
         // Next, we generate the checklist body
         let checklistBody = '';
         let checklistAssignees = [];
