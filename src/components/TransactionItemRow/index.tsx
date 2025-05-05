@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
@@ -48,7 +47,6 @@ function TransactionItemRow({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    const backgroundColor = isSelected ? styles.buttonDefaultBG : styles.highlightBG;
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -73,18 +71,17 @@ function TransactionItemRow({
                         {(hovered) => (
                             <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3, hovered && styles.hoveredComponentBG, isSelected && styles.buttonDefaultBG]}>
                                 <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
-                                    {(!!selectionMode?.isEnabled ||
-                                        shouldShowCheckBox) && (
-                                            <View style={[styles.mr3, styles.justifyContentCenter]}>
-                                                <Checkbox
-                                                    onPress={() => {
-                                                        onCheckboxPress(transactionItem.transactionID);
-                                                    }}
-                                                    accessibilityLabel={CONST.ROLE.CHECKBOX}
-                                                    isChecked={isSelected}
-                                                />
-                                            </View>
-                                        )}
+                                    {(!!selectionMode?.isEnabled || shouldShowCheckBox) && (
+                                        <View style={[styles.mr3, styles.justifyContentCenter]}>
+                                            <Checkbox
+                                                onPress={() => {
+                                                    onCheckboxPress(transactionItem.transactionID);
+                                                }}
+                                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                                isChecked={isSelected}
+                                            />
+                                        </View>
+                                    )}
                                     <View style={[styles.mr3]}>
                                         <ReceiptCell
                                             transactionItem={transactionItem}
