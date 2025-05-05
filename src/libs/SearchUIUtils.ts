@@ -382,7 +382,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
 
     const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`] ?? undefined;
-    const isArchived = isArchivedReport(chatReportRNVP);
 
     if (canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
@@ -394,12 +393,14 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
+    const reportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`] ?? undefined;
+    const isArchived = isArchivedReport(reportRNVP);
+
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
     if (canSubmitReport(report, policy, allReportTransactions, allViolations, isArchived) && isAllowedToApproveExpenseReport) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
-    const reportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`] ?? undefined;
     if (reportRNVP?.exportFailedTime) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
