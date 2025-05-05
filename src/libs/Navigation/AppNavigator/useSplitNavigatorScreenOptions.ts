@@ -1,5 +1,4 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,8 +25,6 @@ const useSplitNavigatorScreenOptions = () => {
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const {canUseLeftHandBar} = usePermissions();
-    const sidebarWidth = canUseLeftHandBar ? variables.sideBarWithLHBWidth : variables.sideBarWidth;
 
     return {
         sidebarScreen: {
@@ -39,10 +36,10 @@ const useSplitNavigatorScreenOptions = () => {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
-                    width: shouldUseNarrowLayout ? '100%' : sidebarWidth,
+                    width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
 
                     // We need to shift the sidebar to not be covered by the StackNavigator so it can be clickable.
-                    marginLeft: shouldUseNarrowLayout ? 0 : -sidebarWidth,
+                    marginLeft: shouldUseNarrowLayout ? 0 : -variables.sideBarWithLHBWidth,
                     ...(shouldUseNarrowLayout ? {} : themeStyles.borderRight),
                 },
             },

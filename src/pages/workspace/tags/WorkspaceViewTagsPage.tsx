@@ -64,7 +64,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const {selectionMode} = useMobileSelectionMode();
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
@@ -81,10 +81,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         if (isFocused) {
             return;
         }
-        setSelectedTags({});
 
         return () => {
-            setSelectedTags({});
             turnOffMobileSelectionMode();
         };
     }, [isFocused]);
