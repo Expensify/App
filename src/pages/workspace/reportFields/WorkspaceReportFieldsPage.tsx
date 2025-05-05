@@ -143,7 +143,7 @@ function WorkspaceReportFieldsPage({
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(reportFieldsSections.at(0)?.data ?? ([] as ListItem[]));
 
-    const updateSelectedReportFields = (item: ReportFieldForList) => {
+    const toggleReportField = (item: ReportFieldForList) => {
         const fieldKey = getReportFieldKey(item.fieldID);
         setSelectedReportFields((prevSelectedReportFields) => {
             if (prevSelectedReportFields.includes(fieldKey)) {
@@ -158,7 +158,11 @@ function WorkspaceReportFieldsPage({
         setSelectedReportFields(selectedReportFields.length > 0 ? [] : Object.keys(availableReportFields));
     };
 
-    const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
+    const toggleOrNavigate = (reportField: ReportFieldForList) => {
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            toggleReportField(reportField);
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
     };
 
@@ -306,10 +310,10 @@ function WorkspaceReportFieldsPage({
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={!hasReportAccountingConnections}
-                        onTurnOnSelectionMode={(item) => item && updateSelectedReportFields(item)}
+                        onTurnOnSelectionMode={(item) => item && toggleReportField(item)}
                         sections={reportFieldsSections}
-                        onCheckboxPress={updateSelectedReportFields}
-                        onSelectRow={navigateToReportFieldsSettings}
+                        onCheckboxPress={toggleReportField}
+                        onSelectRow={toggleOrNavigate}
                         onSelectAll={toggleAllReportFields}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
