@@ -33,6 +33,33 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
+function EmptyWorkspaceView() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, additionalPaddingBottom: styles.mb5.marginBottom, styleProperty: 'marginBottom'});
+
+    return (
+        <>
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.emptyWorkspace.notFound')}
+                subtitle={translate('workspace.emptyWorkspace.description')}
+                shouldShowLink={false}
+                addBottomSafeAreaPadding
+            />
+            <Button
+                success
+                large
+                text={translate('footer.learnMore')}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route)}
+                style={[styles.mh5, bottomSafeAreaPaddingStyle]}
+            />
+        </>
+    );
+}
+
 function WorkspaceNewRoomPage() {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -187,29 +214,6 @@ function WorkspaceNewRoomPage() {
     );
 
     const {inputCallbackRef} = useAutoFocusInput();
-
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, additionalPaddingBottom: styles.mb5.marginBottom, styleProperty: 'marginBottom'});
-
-    const renderEmptyWorkspaceView = () => (
-        <>
-            <BlockingView
-                icon={Illustrations.TeleScope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.emptyWorkspace.notFound')}
-                subtitle={translate('workspace.emptyWorkspace.description')}
-                shouldShowLink={false}
-                addBottomSafeAreaPadding
-            />
-            <Button
-                success
-                large
-                text={translate('footer.learnMore')}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route)}
-                style={[styles.mh5, bottomSafeAreaPaddingStyle]}
-            />
-        </>
-    );
 
     return (
         <ScreenWrapper
