@@ -21,7 +21,6 @@ module Jekyll
       # Parse the page's content for header elements
       doc = Nokogiri::HTML(page.output)
 
-
       # Check if the page is a reference page
       if page.path.start_with?("ref/")
         @help_mapping ||= {}
@@ -174,59 +173,63 @@ module Jekyll
     
       case node.name
       when 'div'
-        children = node.children.map.with_index do |child, i|
+        children = node.children.map do |child|
           next if child.text? && child.text.strip.empty?
-    
-          child_output = html_node_to_RN(child, indent_level + 2).rstrip
-          mb_view_indent = '  ' * (indent_level + 1)
-    
-          "#{mb_view_indent}<View style={[styles.mb4]}>\n#{child_output}\n#{mb_view_indent}</View>"
+          html_node_to_RN(child, indent_level + 1)
         end.compact.join("\n")
     
         "#{indent}<View>\n#{children}\n#{indent}</View>"
     
-      when 'h1' then "#{indent}<Text style={[styles.textHeadlineH1]}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
-      when 'h2' then "#{indent}<Text style={[styles.textHeadlineH2]}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
-      when 'h3' then "#{indent}<Text style={[styles.textHeadlineH3]}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
-      when 'h4' then "#{indent}<Text style={[styles.textHeadlineH4]}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
-      when 'h5' then "#{indent}<Text style={[styles.textHeadlineH5]}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
-      when 'h6' then "#{indent}<Text style={[styles.textHeadlineH6]}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
+      when 'h1' then "#{indent}<Text style={[styles.textHeadlineH1, styles.mv4]}>#{node.text.strip}</Text>"
+      when 'h2' then "#{indent}<Text style={[styles.textHeadlineH2, styles.mv4]}>#{node.text.strip}</Text>"
+      when 'h3' then "#{indent}<Text style={[styles.textHeadlineH3, styles.mv4]}>#{node.text.strip}</Text>"
+      when 'h4' then "#{indent}<Text style={[styles.textHeadlineH4, styles.mv4]}>#{node.text.strip}</Text>"
+      when 'h5' then "#{indent}<Text style={[styles.textHeadlineH5, styles.mv4]}>#{node.text.strip}</Text>"
+      when 'h6' then "#{indent}<Text style={[styles.textHeadlineH6, styles.mv4]}>#{node.text.strip}</Text>"
     
       when 'p'
-        inner = node.children.map { |c| html_node_to_RN(c, indent_level + 1) }.join("\n").strip
-        "#{indent}<Text style={styles.textNormal}>\n#{'  ' * (indent_level + 1)}#{inner}\n#{indent}</Text>"
+        inner = node.children.map { |c| html_node_to_RN(c, 0) }.join
+        prev = node.previous_element
+        next_el = node.next_element
+      
+        style_classes = ['styles.textNormal']
+        style_classes << 'styles.mt4' if prev&.name == 'ul'
+        style_classes << 'styles.mb4' if next_el&.name == 'p'
+        
+        "#{indent}<Text style={[#{style_classes.join(', ')}]}>#{inner.strip}</Text>"
     
       when 'ul'
         items = node.xpath('./li').map do |li|
-          li_text = li.children.map { |child| html_node_to_RN(child, indent_level + 3) }.join("\n").strip
-          "#{'  ' * (indent_level + 2)}<Text style={styles.textNormal}>\n#{'  ' * (indent_level + 3)}#{li_text}\n#{'  ' * (indent_level + 2)}</Text>"
+          li_text = li.children.map { |child| html_node_to_RN(child, 0) }.join.strip
+          "#{indent}  <Text style={styles.textNormal}>#{li_text}</Text>"
         end
-    
-        bullet_indent = '  ' * indent_level
-        <<~TS
-          #{bullet_indent}<BulletList
-          #{bullet_indent}  styles={styles}
-          #{bullet_indent}  items={[
+
+        <<~TS.strip
+          #{indent}<BulletList
+          #{indent}  styles={styles}
+          #{indent}  items={[
           #{items.join(",\n")}
-          #{bullet_indent}  ]}
-          #{bullet_indent}/>
+          #{indent}  ]}
+          #{indent}/>
         TS
     
       when 'li'
-        '' # already handled in <ul>
+        '' # handled in <ul>
     
       when 'strong', 'b'
-        "#{indent}<Text style={styles.textBold}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
+        "<Text style={styles.textBold}>#{node.text}</Text>"
       when 'em', 'i'
-        "#{indent}<Text style={styles.textItalic}>\n#{'  ' * (indent_level + 1)}#{node.text.strip}\n#{indent}</Text>"
+        "<Text style={styles.textItalic}>#{node.text}</Text>"
       when 'a'
         href = node['href']
-        link_text = node.children.map { |child| html_node_to_RN(child, 0) }.join("\n").strip
-        "#{indent}<TextLink href=\"#{href}\" style={styles.link}>\n#{'  ' * (indent_level + 1)}#{link_text}\n#{indent}</TextLink>"
+        link_text = node.children.map { |child| html_node_to_RN(child, 0) }.join
+        "<TextLink href=\"#{href}\" style={styles.link}>#{link_text.strip}</TextLink>"
+        
       when 'text'
-        "#{indent}#{node.text.strip}"
+        node.text
+    
       else
-        node.children.map { |child| html_node_to_RN(child, indent_level) }.join("\n")
+        node.children.map { |child| html_node_to_RN(child, indent_level) }.join
       end
     end
 
