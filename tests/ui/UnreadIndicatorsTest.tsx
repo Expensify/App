@@ -677,36 +677,35 @@ describe('Unread Indicators', () => {
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(0);
     });
-    it('Mark the chat as unread on clicking "Mark as unread" on an item in LHN when the last message of the chat was deleted', async () => {
+    it('Mark the chat as unread on clicking "Mark as unread" on an item in LHN when the last message of the chat was deleted by another user', async () => {
         await signInAndGetAppWithUnreadChat();
-        await navigateToSidebarOption(0);
-        const reportAction1 = {
-            reportActionID: '1',
-            message: {html: ''}, // set to empty string to simulate a deleted message
-            created: '2025-05-02T00:00:00.000Z',
-            actorAccountID: USER_B_ACCOUNT_ID,
-        } as unknown as ReportAction;
-        const reportAction2 = {
-            reportActionID: '2',
-            message: {html: 'Comment 2'},
-            created: '2025-05-01T00:00:00.000Z',
-            actorAccountID: USER_B_ACCOUNT_ID,
-        } as unknown as ReportAction;
+
+        await navigateToSidebar();
+
+        const reportAction11CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 110), CONST.DATE.FNS_DB_FORMAT_STRING);
+        const reportAction11 = TestHelper.buildTestReportComment(reportAction11CreatedDate, USER_B_ACCOUNT_ID, '11');
+        const reportAction12CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 120), CONST.DATE.FNS_DB_FORMAT_STRING);
+        const reportAction12 = TestHelper.buildTestReportComment(reportAction12CreatedDate, USER_B_ACCOUNT_ID, '12');
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-            [reportAction1.reportActionID]: reportAction1,
-            [reportAction2.reportActionID]: reportAction2,
+            11: reportAction11,
+            12: reportAction12,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            lastVisibleActionCreated: reportAction12CreatedDate,
+        });
+
+        reportAction12.message[0].html = ''; // Simulate the server response for deleting the last message
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            lastVisibleActionCreated: reportAction11CreatedDate,
         });
 
         markCommentAsUnread(REPORT_ID, {reportActionID: -1} as unknown as ReportAction); // Marking the chat as unread from LHN passing a dummy reportActionID
 
         await waitForBatchedUpdates();
-
-        navigateToSidebar();
-
-        await waitForBatchedUpdates();
-
         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
-        const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
+        const displayNameTexts = screen.queryAllByLabelText(hintText);
         expect(displayNameTexts).toHaveLength(1);
         expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
     });
