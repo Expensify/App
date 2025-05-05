@@ -173,6 +173,7 @@ import {
     isDeletedParentAction,
     isExportIntegrationAction,
     isForwardedAction,
+    isIntegrationMessageAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
@@ -10329,6 +10330,18 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
 }
 
+function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
+    if (!reportActions) {
+        return false;
+    }
+
+    if (Array.isArray(reportActions)) {
+        return reportActions.some((action) => isIntegrationMessageAction(action));
+    }
+
+    return Object.values(reportActions).some((action) => isIntegrationMessageAction(action));
+}
+
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
     const approvalChain: string[] = [];
     const fullApprovalChain: string[] = [];
@@ -10817,6 +10830,7 @@ export {
     getIntegrationIcon,
     canBeExported,
     isExported,
+    hasExportError,
     getHelpPaneReportType,
     hasOnlyNonReimbursableTransactions,
     getReportLastMessage,

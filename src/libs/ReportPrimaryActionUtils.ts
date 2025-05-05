@@ -18,6 +18,7 @@ import {
     canAddTransaction as canAddTransactionUtil,
     getMoneyRequestSpendBreakdown,
     getParentReport,
+    hasExportError as hasExportErrorUtil,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -178,7 +179,8 @@ function isExportAction(report: Report, policy?: Policy) {
         return false;
     }
 
-    if (syncEnabled) {
+    const hasExportError = hasExportErrorUtil(reportActions);
+    if (syncEnabled && !hasExportError) {
         return false;
     }
 
