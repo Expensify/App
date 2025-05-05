@@ -66,6 +66,7 @@ function startOnboardingFlow(canUsePrivateDomainOnboarding?: boolean) {
 function getOnboardingInitialPath(canUsePrivateDomainOnboarding = false): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const isUserFromPublicDomain = userAccount?.isFromPublicDomain;
+    const hasAccessiblePolicies = userAccount?.hasAccessibleDomainPolicies;
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const isIndividual = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
@@ -85,7 +86,7 @@ function getOnboardingInitialPath(canUsePrivateDomainOnboarding = false): string
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 
-    if (!isUserFromPublicDomain && canUsePrivateDomainOnboarding) {
+    if (!isUserFromPublicDomain && hasAccessiblePolicies && canUsePrivateDomainOnboarding) {
         return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
 
