@@ -56,6 +56,7 @@ describe('getPrimaryAction', () => {
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = {
@@ -326,7 +327,6 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        getTransactionThreadPrimaryAction({} as Report, report, transaction, [violation], policy as Policy);
         expect(getTransactionThreadPrimaryAction({} as Report, report, transaction, [violation], policy as Policy)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
     });
 

@@ -80,6 +80,6 @@ To be assigned a **Partner Manager**, you must complete the **ExpensifyApproved!
 
 ---
 
-Expensify's Partner Support ensures you and your clients receive elevated support in Expensify. If you need further guidance, reach out via `Support` in your Expensify account or connect directly with your Partner Manager!
+Expensify's Partner Support ensures you and your clients receive elevated support in Expensify. If you need further guidance, reach out via **Support** in your Expensify account or connect directly with your Partner Manager!
 
 </div>

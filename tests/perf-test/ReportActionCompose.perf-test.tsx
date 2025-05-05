@@ -62,7 +62,7 @@ jest.mock('@components/ConfirmedRoute.tsx');
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
-        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
     }),
 );
 

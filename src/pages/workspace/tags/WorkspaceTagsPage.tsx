@@ -524,6 +524,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 prompt={translate('common.thisFeatureRequiresInternet')}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
+                onCancel={() => setIsOfflineModalVisible(false)}
+                shouldHandleNavigationBack
             />
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}

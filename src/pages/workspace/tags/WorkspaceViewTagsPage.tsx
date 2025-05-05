@@ -81,10 +81,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         if (isFocused) {
             return;
         }
-        setSelectedTags({});
 
         return () => {
-            setSelectedTags({});
             turnOffMobileSelectionMode();
         };
     }, [isFocused]);

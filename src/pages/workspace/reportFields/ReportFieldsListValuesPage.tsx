@@ -138,7 +138,7 @@ function ReportFieldsListValuesPage({
     }, [canSelectMultiple, disabledListValues, listValues, selectedValues, translate, updateReportFieldListValueEnabled]);
 
     const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
-    const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
+    const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key] && listValues.includes(key));
 
     const toggleValue = (valueItem: ValueListItem) => {
         setSelectedValues((prev) => ({
@@ -181,8 +181,6 @@ function ReportFieldsListValuesPage({
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS.getRoute(policyID, valueItem.index, reportFieldID));
-
-        setSelectedValues({});
     };
 
     const getCustomListHeader = () => {
