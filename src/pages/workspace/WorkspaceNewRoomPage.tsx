@@ -228,7 +228,7 @@ function WorkspaceNewRoomPage() {
             testID={WorkspaceNewRoomPage.displayName}
         >
             {workspaceOptions.length === 0 ? (
-                renderEmptyWorkspaceView()
+                <EmptyWorkspaceView />
             ) : (
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
