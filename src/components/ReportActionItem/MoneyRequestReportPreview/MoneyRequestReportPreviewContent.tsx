@@ -28,7 +28,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
@@ -538,30 +537,25 @@ function MoneyRequestReportPreviewContent({
         ),
     };
 
-    const platform = getPlatform();
-
     useEffect(() => {
-        const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
-        if (isWebOrDesktop) {
-            const node = carouselRef.current?.getScrollableNode?.() as HTMLElement;
-            if (node) {
-                const horizontalWheel = (ev: WheelEvent) => {
-                    const deltaX = ev.deltaX || 0;
-                    const deltaY = ev.deltaY || 0;
-                    if (Math.abs(deltaX) * 10 >= Math.abs(deltaY)) {
-                        node.scrollLeft += deltaX;
-                        ev.preventDefault();
-                        ev.stopPropagation();
-                    }
-                };
-                node.addEventListener('wheel', horizontalWheel, {capture: true});
+        const node = carouselRef.current?.getScrollableNode?.() as HTMLElement;
+        if (node?.addEventListener) {
+            const horizontalWheel = (ev: WheelEvent) => {
+                const deltaX = ev.deltaX || 0;
+                const deltaY = ev.deltaY || 0;
+                if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+                    node.scrollLeft += deltaX;
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                }
+            };
+            node.addEventListener('wheel', horizontalWheel, {capture: true});
 
-                return () => {
-                    node.removeEventListener('wheel', horizontalWheel, {capture: true});
-                };
-            }
+            return () => {
+                node.removeEventListener('wheel', horizontalWheel, {capture: true});
+            };
         }
-    }, [platform]);
+    }, []);
 
     return (
         transactions.length > 0 && (
