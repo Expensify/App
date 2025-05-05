@@ -68,7 +68,6 @@ function useFastSearchFromOptions(
             const deburredInput = deburr(searchInput);
             const searchWords = deburredInput.split(/\s+/);
             const longestSearchWord = arrayLastElement(searchWords, (a, b) => a.length - b.length); // longest word is the last element
-
             if (!longestSearchWord) {
                 return emptyResult;
             }
