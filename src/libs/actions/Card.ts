@@ -772,7 +772,6 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
         cardTitle,
         validateCode,
         domainAccountID,
-        policyID,
     };
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
@@ -791,7 +790,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(
         WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,
-        {...parameters},
+        {...parameters, policyID},
         {
             optimisticData,
             successData,
