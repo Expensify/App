@@ -339,7 +339,7 @@ function ScreenWrapper(
     }, [isUsingEdgeToEdgeMode, ignoreInsetsConsumption, includePaddingTop, paddingTop, unmodifiedPaddings.top]);
 
     const showBottomContent = isUsingEdgeToEdgeMode ? !!bottomContent : true;
-    const edgeToEdgeBottomContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+    const edgeToEdgeBottomContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
     const legacyBottomContentStyle: StyleProp<ViewStyle> = useMemo(() => {
         const shouldUseUnmodifiedPaddings = includeSafeAreaPaddingBottom && ignoreInsetsConsumption;
         if (shouldUseUnmodifiedPaddings) {
@@ -387,6 +387,7 @@ function ScreenWrapper(
      */
     const smallScreenOfflineIndicatorBottomSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: hasSmallScreenOfflineIndicatorBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
         styleProperty: isSoftKeyNavigation ? 'bottom' : 'paddingBottom',
     });
 
