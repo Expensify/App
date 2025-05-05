@@ -502,8 +502,8 @@ describe('createOrUpdateStagingDeploy', () => {
 
         // Verify that the previously cherry-picked PRs are filtered out from the current checklist (9, 11)
         // Use type assertion to assure TypeScript call[0] is a string
-        const finalLogCall = consoleSpy.mock.calls.find((call) => (call[0] as string)?.startsWith('Final list of PRs for current checklist:'));
-        expect(finalLogCall?.[0]).toBe('Final list of PRs for current checklist: 10, 12');
+        const finalLogCall = consoleSpy.mock.calls.find((call) => (call[0] as string)?.startsWith('Created final list of PRs for current checklist:'));
+        expect(finalLogCall?.[0]).toBe('Created final list of PRs for current checklist: [10,12]');
 
         // Restore mocks
         mockGetStagingDeployCashData.mockRestore();
