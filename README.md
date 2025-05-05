@@ -414,14 +414,14 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 By default, Onyx will not evict anything from storage and will presume all keys are "unsafe" to remove unless explicitly told otherwise.
 
 **To flag a key as safe for removal:**
-- Add the key to the `safeEvictionKeys` option in `Onyx.init(options)`
+- Add the key to the `evictableKeys` option in `Onyx.init(options)`
 - Implement `canEvict` in the Onyx config for each component subscribing to a key
 - The key will only be deleted when all subscribers return `true` for `canEvict`
 
 e.g.
 ```js
 Onyx.init({
-    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+    evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
 });
 ```
 

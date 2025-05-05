@@ -1,7 +1,7 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import isEqual from 'lodash/isEqual';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {TextInputProps} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -188,7 +188,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
         scrollToRight(textInputRef.current);
         shouldScrollRef.current = false;
-    }, []);
+    }, [textInputValue]);
 
     const onSearchQueryChange = useCallback(
         (userQuery: string, autoScrollToRight = false) => {
@@ -234,6 +234,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const setTextAndUpdateSelection = useCallback(
         (text: string) => {
             setTextInputValue(text);
+            shouldScrollRef.current = true;
             setSelection({start: text.length, end: text.length});
         },
         [setSelection, setTextInputValue],
@@ -241,6 +242,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
+            const setFocusAndScrollToRight = () => {
+                InteractionManager.runAfterInteractions(() => {
+                    if (!textInputRef.current) {
+                        return;
+                    }
+                    textInputRef.current.focus();
+                    scrollToRight(textInputRef.current);
+                });
+            };
+
             if (isSearchQueryItem(item)) {
                 if (!item.searchQuery) {
                     return;
@@ -258,10 +269,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
                         setAutocompleteSubstitutions(substitutions);
                     }
+                    setFocusAndScrollToRight();
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
                     const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
-                    onSearchQueryChange(newSearchQuery);
+                    onSearchQueryChange(newSearchQuery, true);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     if (item.mapKey && item.autocompleteID) {
@@ -270,7 +282,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         setAutocompleteSubstitutions(substitutions);
                     }
                     // needed for android mWeb
-                    textInputRef.current?.focus();
+                    setFocusAndScrollToRight();
                 } else {
                     submitSearch(item.searchQuery);
                 }
