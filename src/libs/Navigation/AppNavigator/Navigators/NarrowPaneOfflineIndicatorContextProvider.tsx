@@ -1,4 +1,4 @@
-import {useMemo} from 'react';
+import React, {useMemo} from 'react';
 import type {ScreenWrapperOfflineIndicatorContextType} from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
