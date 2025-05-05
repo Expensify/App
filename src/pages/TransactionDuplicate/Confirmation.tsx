@@ -31,10 +31,12 @@ import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import usePermissions from '@hooks/usePermissions';
 
 function Confirmation() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {canUseTableReportView} = usePermissions();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
@@ -53,14 +55,32 @@ function Confirmation() {
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const mergeDuplicates = useCallback(() => {
+        if (!reportAction?.childReportID) {
+            return;
+        }
         IOU.mergeDuplicates(transactionsMergeParams);
-        Navigation.dismissModal();
-    }, [transactionsMergeParams]);
+        if (canUseTableReportView) {
+            Navigation.dismissModal();
+            return;
+        }
+        if (!reportAction?.childReportID) {
+            return;
+        }
+        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
+    }, [reportAction?.childReportID, transactionsMergeParams, canUseTableReportView]);
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
-        Navigation.dismissModal();
-    }, [transactionsMergeParams]);
+        if (canUseTableReportView) {
+            Navigation.dismissModal();
+            return;
+        }
+        if (!reportAction?.childReportID) {
+            Navigation.dismissModal();
+            return;
+        }
+        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
+    }, [transactionsMergeParams, reportAction?.childReportID, canUseTableReportView]);
 
     const contextValue = useMemo(
         () => ({
