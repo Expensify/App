@@ -65,8 +65,10 @@ function useFastSearchFromOptions(
         ]);
 
         function search(searchInput: string): AllOrSelectiveOptions {
-            const searchWords = deburr(searchInput).split(' ');
+            const deburredInput = deburr(searchInput);
+            const searchWords = deburredInput.split(/\s+/);
             const longestSearchWord = arrayLastElement(searchWords, (a, b) => a.length - b.length); // longest word is the last element
+
             if (!longestSearchWord) {
                 return emptyResult;
             }
@@ -77,8 +79,8 @@ function useFastSearchFromOptions(
             let [personalDetails, recentReports] = fastSearch.search(longestSearchWord);
 
             if (searchWords.length > 1) {
-                personalDetails = personalDetails.filter((pd) => isSearchStringMatch(searchInput, pd.text));
-                recentReports = recentReports.filter((rr) => isSearchStringMatch(searchInput, rr.text));
+                personalDetails = personalDetails.filter((pd) => isSearchStringMatch(deburredInput, deburr(pd.text)));
+                recentReports = recentReports.filter((rr) => isSearchStringMatch(deburredInput, deburr(rr.text)));
             }
 
             if (includeUserToInvite && 'currentUserOption' in options) {
