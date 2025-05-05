@@ -12,7 +12,6 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -22,7 +21,6 @@ import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
-import variables from '@styles/variables';
 import {openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
@@ -45,7 +43,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {canUseLeftHandBar} = usePermissions();
 
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
@@ -131,10 +128,10 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     testID={SearchMoneyRequestReportPage.displayName}
                     shouldEnableMaxHeight
                     offlineIndicatorStyle={styles.mtAuto}
-                    headerGapStyles={[styles.searchHeaderGap, canUseLeftHandBar && styles.h0]}
+                    headerGapStyles={[styles.searchHeaderGap, styles.h0]}
                 >
-                    <View style={[styles.searchSplitContainer, canUseLeftHandBar && {marginLeft: variables.navigationTabBarSize}]}>
-                        <View style={canUseLeftHandBar ? styles.searchSidebarWithLHB : styles.searchSidebar}>
+                    <View style={styles.searchSplitContainer}>
+                        <View style={styles.searchSidebar}>
                             <View style={styles.flex1}>
                                 <TopBar
                                     breadcrumbLabel={translate('common.reports')}
