@@ -80,6 +80,21 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
     return cardDescriptor ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
+/**
+ * @param transactionCardName
+ * @param cardID
+ * @param cards
+ * @returns company card name
+ */
+function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards?: CardList) {
+    if (!cardID || isExpensifyCard(cardID) || !cards?.[cardID]) {
+        return transactionCardName;
+    }
+    const card = cards[cardID];
+
+    return card.cardName;
+}
+
 function isCard(item: Card | Record<string, string>): item is Card {
     return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
 }
@@ -621,4 +636,5 @@ export {
     isExpensifyCardFullySetUp,
     filterInactiveCards,
     getFundIdFromSettingsKey,
+    getCompanyCardDescription,
 };
