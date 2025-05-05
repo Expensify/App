@@ -695,7 +695,7 @@ describe('Unread Indicators', () => {
             lastVisibleActionCreated: reportAction12CreatedDate,
         });
 
-        let message = reportAction12.message.at(0);
+        const message = reportAction12.message.at(0);
         if (message) {
             message.html = ''; // Simulate the server response for deleting the last message
         }
