@@ -3,7 +3,6 @@ import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
 import React, {useCallback, useContext, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -51,12 +50,13 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
-    const isUserValidated = useAccountValidation();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isUserValidated = account?.validated ?? false;
+    const primaryLogin = account?.primaryLogin ?? '';
 
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: false});
-    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin, canBeMissing: false});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
