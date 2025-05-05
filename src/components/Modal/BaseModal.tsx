@@ -52,8 +52,6 @@ function BaseModal(
         innerContainerStyle = {},
         outerStyle,
         onModalShow = () => {},
-        onModalWillShow,
-        onModalWillHide,
         propagateSwipe,
         fullscreen = true,
         animationIn,
@@ -271,11 +269,7 @@ function BaseModal(
                     onModalShow={handleShowModal}
                     propagateSwipe={propagateSwipe}
                     onModalHide={hideModal}
-                    onModalWillShow={() => {
-                        saveFocusState();
-                        onModalWillShow?.();
-                    }}
-                    onModalWillHide={onModalWillHide}
+                    onModalWillShow={saveFocusState}
                     onDismiss={handleDismissModal}
                     onSwipeComplete={() => onClose?.()}
                     swipeDirection={swipeDirection}
