@@ -101,7 +101,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
 
-    it('includes APPROVE option for report with RTER violations for all transactions', async () => {
+    it('includes APPROVE option for report with RTER violations for all transactions', () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
