@@ -493,6 +493,7 @@ function ReportActionCompose({
                                             }
                                         }}
                                         icon={Expensicons.DragAndDrop}
+                                        dropTitle={translate('dropzone.addAttachments')}
                                     />
                                 </>
                             )}
