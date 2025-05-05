@@ -23,7 +23,7 @@ function BaseInvertedFlatListE2e(props: BaseInvertedFlatListProps, ref: React.Fo
     const maintainVisibleContentPosition = useMemo(() => {
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
             // This needs to be 1 to avoid using loading views as anchors.
-            minIndexForVisible: Math.min(1, rest.data?.length ?? 0 - 1),
+            minIndexForVisible: Math.min(1, (rest.data?.length ?? 0) - 1),
         };
 
         if (shouldEnableAutoScrollToTopThreshold) {
