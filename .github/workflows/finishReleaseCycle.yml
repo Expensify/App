@@ -73,20 +73,16 @@ jobs:
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
-  checkAndUpdateVersion:
-    name: Check and update version if production is greater than staging
+  checkVersion:
+    name: Check if production version > staging version
     needs: validate
     if: fromJSON(needs.validate.outputs.isValid)
     runs-on: ubuntu-latest
-
+    outputs:
+      needs_update: ${{ steps.compare_versions.outputs.needs_update }}
+      prod_version: ${{ steps.compare_versions.outputs.prod_version }}
+      staging_version: ${{ steps.compare_versions.outputs.staging_version }}
     steps:
-      - name: Checkout main
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          ref: main
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
       - name: Setup git for OSBotify
         uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
         id: setupGitForOSBotify
@@ -113,23 +109,40 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
-      - name: Create New Patch Version if Needed
-        id: create_version
-        if: steps.compare_versions.outputs.needs_update == 'true'
-        uses: ./.github/workflows/createNewVersion.yml
-        secrets: inherit
-        with:
-          SEMVER_LEVEL: PATCH
+  createPatchVersionIfNeeded:
+    name: Create Patch Version if Needed
+    needs: checkVersion
+    if: fromJSON(needs.checkVersion.outputs.needs_update)
+    uses: ./.github/workflows/createNewVersion.yml
+    secrets: inherit
+    with:
+      SEMVER_LEVEL: PATCH
 
-      - name: Comment on Issue if Version Updated
-        if: steps.create_version.outputs.NEW_VERSION
-        run: gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "FYI - The current staging release version (${{ steps.compare_versions.outputs.staging_version }}) is currently lower than the current production version (${{ steps.compare_versions.outputs.prod_version }}) due to a CP to production, so I've updated the version to ${{ steps.create_version.outputs.NEW_VERSION }}."
+  commentOnIssueIfNeeded:
+    name: Comment on Issue if Version Updated
+    needs: [checkVersion, createPatchVersionIfNeeded]
+    if: fromJSON(needs.checkVersion.outputs.needs_update) && needs.createPatchVersionIfNeeded.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup git for OSBotify
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
+        id: setupGitForOSBotify
+        with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+
+      - name: Post Comment
+        run: |
+          echo "Posting comment to issue ${{ github.event.issue.number }}"
+          gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "FYI - The current staging release version (${{ needs.checkVersion.outputs.staging_version }}) is currently lower than the current production version (${{ needs.checkVersion.outputs.prod_version }}) due to a CP to production, so I've updated the version to ${{ needs.createPatchVersionIfNeeded.outputs.NEW_VERSION }}."
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
-  # Update the production branch to trigger the production deploy.
   updateProduction:
-    needs: [validate, checkAndUpdateVersion]
+    needs: [validate, commentOnIssueIfNeeded]
+    if: fromJSON(needs.validate.outputs.isValid)
     uses: ./.github/workflows/updateProtectedBranch.yml
     secrets: inherit
     with:
