@@ -120,6 +120,15 @@ const link = (theme: ThemeColors) =>
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
     } satisfies ViewStyle & MixedStyleDeclaration);
 
+const emailLink = (theme: ThemeColors) =>
+    ({
+        color: theme.link,
+        textDecorationColor: theme.link,
+        // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
+        fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+        fontWeight: FontUtils.fontWeight.bold,
+    } satisfies ViewStyle & MixedStyleDeclaration);
+
 const baseCodeTagStyles = (theme: ThemeColors) =>
     ({
         borderWidth: 1,
@@ -336,6 +345,8 @@ const styles = (theme: ThemeColors) =>
 
         link: link(theme),
 
+        emailLink: emailLink(theme),
+
         linkMuted: {
             color: theme.textSupporting,
             textDecorationColor: theme.textSupporting,
@@ -505,7 +516,7 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             ...whiteSpace.preWrap,
             color: theme.heading,
-            fontSize: variables.fontSizeh2,
+            fontSize: variables.fontSizeH2,
             lineHeight: variables.lineHeightSizeh2,
         },
 
@@ -1808,7 +1819,7 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
         },
 
-        breadcrumsContainer: {
+        breadcrumbsContainer: {
             minHeight: 24,
         },
 
@@ -2714,7 +2725,7 @@ const styles = (theme: ThemeColors) =>
         searchResultsHeaderBar: {
             display: 'flex',
             height: variables.contentHeaderDesktopHeight,
-            zIndex: variables.popoverzIndex,
+            zIndex: variables.popoverZIndex,
             position: 'relative',
             paddingLeft: 20,
             paddingRight: 12,
@@ -3396,7 +3407,7 @@ const styles = (theme: ThemeColors) =>
 
         moneyRequestConfirmationAmount: {
             ...headlineFont,
-            fontSize: variables.fontSizeh1,
+            fontSize: variables.fontSizeH1,
         },
 
         moneyRequestMenuItem: {
@@ -5659,8 +5670,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        navigationBarBG: {
-            backgroundColor: theme.navigationBarBackgroundColor,
+        translucentNavigationBarBG: {
+            backgroundColor: theme.translucentNavigationBarBackgroundColor,
         },
 
         stickToBottom: {
@@ -5668,6 +5679,12 @@ const styles = (theme: ThemeColors) =>
             bottom: 0,
             left: 0,
             right: 0,
+        },
+
+        earlyDiscountButton: {
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: 'auto',
         },
 
         testDriveModalContainer: {

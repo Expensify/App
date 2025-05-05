@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import Collapsible from '@components/CollapsibleSection/Collapsible';
+import Icon from '@components/Icon';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import IconButton from '@components/VideoPlayer/IconButton';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -14,19 +17,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import RepliesDivider from '@pages/home/report/RepliesDivider';
+import ThreadDivider from '@pages/home/report/ThreadDivider';
 import variables from '@styles/variables';
+import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ActionCell from './ActionCell';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TransactionListItem from './TransactionListItem';
 import TransactionListItemRow from './TransactionListItemRow';
-import Collapsible from '@components/CollapsibleSection/Collapsible';
-import Icon from '@components/Icon';
-import * as Expensicons from '@src/components/Icon/Expensicons';
-import IconButton from '@components/VideoPlayer/IconButton';
-import ThreadDivider from '@pages/home/report/ThreadDivider';
-import RepliesDivider from '@pages/home/report/RepliesDivider';
 
 type CellProps = {
     // eslint-disable-next-line react/no-unused-prop-types
@@ -216,7 +216,7 @@ function ReportListItem<TItem extends ListItem>({
                             />
                         </View>
                     )}
-                    <IconButton 
+                    <IconButton
                         fill={theme.icon}
                         src={src}
                         onPress={() => setIsExpanded(!isExpanded)}
