@@ -1,7 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import type {NativeProps} from 'react-native-pager-view/lib/typescript/specs/PagerViewNativeComponent';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -15,7 +14,6 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import NewChatPage from './NewChatPage';
-import type {NewChatPageHandle} from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 
 function NewChatSelectorPage() {
@@ -28,7 +26,7 @@ function NewChatSelectorPage() {
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
     const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {canBeMissing: false});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const chatPageInputRef = useRef<NewChatPageHandle | null>(null);
+    const chatPageInputRef = useRef<AnimatedTextInputRef | null>(null);
     const roomPageInputRef = useRef<AnimatedTextInputRef | null>(null);
 
     // Theoretically, the focus trap container element can be null (due to component unmount/remount), so we filter out the null elements
@@ -40,19 +38,18 @@ function NewChatSelectorPage() {
         setActiveTabContainerElement(activeTabElement ?? null);
     }, []);
 
-    useEffect(() => {
-        setNewRoomFormLoading(false);
-    }, []);
-
-    const handleOnPageSelected: NativeProps['onPageSelected'] = (event) => {
-        const {position} = event.nativeEvent;
+    const onTabSelectFocusHandler = (index: number) => {
         // Chat tab (0) / Room tab (1) according to OnyxTabNavigator (see below)
-        if (position === 0) {
-            chatPageInputRef.current?.selectionList?.focusTextInput();
-        } else if (position === 1) {
+        if (index === 0) {
+            chatPageInputRef.current?.focus();
+        } else if (index === 1) {
             roomPageInputRef.current?.focus();
         }
     };
+
+    useEffect(() => {
+        setNewRoomFormLoading(false);
+    }, []);
 
     return (
         <ScreenWrapper
@@ -79,7 +76,7 @@ function NewChatSelectorPage() {
                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                 onActiveTabFocusTrapContainerElementChanged={onTabFocusTrapContainerElementChanged}
                 disableSwipe={!!formState?.isLoading && shouldUseNarrowLayout}
-                onPageSelected={handleOnPageSelected}
+                onTabSelect={onTabSelectFocusHandler}
             >
                 <TopTab.Screen name={CONST.TAB.NEW_CHAT}>
                     {() => (

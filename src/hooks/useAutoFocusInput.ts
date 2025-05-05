@@ -16,7 +16,7 @@ type UseAutoFocusInput = {
     inputRef: RefObject<TextInput | null>;
 };
 
-export default function useAutoFocusInput(isMultiline = false, isDisabled = false): UseAutoFocusInput {
+export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
@@ -28,7 +28,7 @@ export default function useAutoFocusInput(isMultiline = false, isDisabled = fals
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (isDisabled || !isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
+        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
             return;
         }
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
@@ -42,7 +42,7 @@ export default function useAutoFocusInput(isMultiline = false, isDisabled = fals
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isMultiline, isDisabled, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible]);
+    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible]);
 
     useFocusEffect(
         useCallback(() => {

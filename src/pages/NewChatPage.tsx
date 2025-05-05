@@ -134,11 +134,11 @@ function useOptions() {
     };
 }
 
-type NewChatPageHandle = {
-    selectionList: SelectionListHandle | null;
+type NewChatPageRef = {
+    focus?: () => void;
 };
 
-function NewChatPage(_: unknown, ref: React.Ref<NewChatPageHandle>) {
+function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
@@ -147,10 +147,10 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageHandle>) {
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
-    const selectionListRef = useRef<SelectionListHandle>(null);
+    const selectionListRef = useRef<SelectionListHandle | null>(null);
 
     useImperativeHandle(ref, () => ({
-        selectionList: selectionListRef.current,
+        focus: selectionListRef.current?.focusTextInput,
     }));
 
     const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
@@ -368,6 +368,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageHandle>) {
                 initiallyFocusedOptionKey={firstKeyForList}
                 shouldTextInputInterceptSwipe
                 addBottomSafeAreaPadding
+                textInputAutoFocus={false}
             />
         </ScreenWrapper>
     );
@@ -376,4 +377,3 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageHandle>) {
 NewChatPage.displayName = 'NewChatPage';
 
 export default forwardRef(NewChatPage);
-export type {NewChatPageHandle};
