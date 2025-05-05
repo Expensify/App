@@ -6,8 +6,6 @@ import {canModifyTask, completeTestDriveTask} from '@libs/actions/Task';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Parser from '@libs/Parser';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
-import * as ReportUtils from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST, {getTestDriveTaskName} from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
