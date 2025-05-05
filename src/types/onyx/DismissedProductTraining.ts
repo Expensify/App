@@ -81,7 +81,7 @@ type DismissedProductTraining = {
     [ACCOUNT_SWITCHER]: DismissedProductTrainingElement;
 
     /**
-     * When user dismisses the chatGBRRBR product training tooltip, we store the timestamp here.
+     * When user dismisses the chatGbrRbr product training tooltip, we store the timestamp here.
      */
     [GBR_RBR_CHAT]: DismissedProductTrainingElement;
 

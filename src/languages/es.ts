@@ -6753,7 +6753,7 @@ const translations = {
             part3: '\ny más.',
             part4: ' ¡Pruébalo!',
         },
-        GBRRBRChat: {
+        gbrRbrChat: {
             part1: 'Verás 🟢 en ',
             part2: 'las acciones a realizar',
             part3: '\ny 🔴 en ',

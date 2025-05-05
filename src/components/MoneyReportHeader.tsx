@@ -487,7 +487,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy);
     }, [moneyRequestReport, policy, transactions, violations]);
 
-    const secondaryActionsImplemenation: Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>> = {
+    const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
             text: translate('iou.viewDetails'),
@@ -632,7 +632,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         },
     };
 
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplemenation[action]);
+    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
 
     useEffect(() => {
         if (!transactionThreadReportID) {
@@ -799,7 +799,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         if (!requestParentReportAction || !transaction?.transactionID) {
                             throw new Error('Missing data!');
                         }
-                        // it's deleting transacation but not the report which leads to bug (that is actually also on staging)
+                        // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
                         deleteMoneyRequest(transaction?.transactionID, requestParentReportAction);
                         goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, false);
                     }

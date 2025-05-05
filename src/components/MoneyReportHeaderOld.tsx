@@ -239,7 +239,7 @@ function MoneyReportHeaderOld({policy, report: moneyRequestReport, transactionTh
     const shouldShowStatusBar =
         hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions || hasDuplicates;
 
-    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to theirself, we need to show the optimistic next step
+    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
@@ -382,7 +382,7 @@ function MoneyReportHeaderOld({policy, report: moneyRequestReport, transactionTh
         (isDuplicate || shouldShowSettlementButton || !!shouldShowExportIntegrationButton || shouldShowSubmitButton || shouldShowMarkAsCashButton) &&
         (!!statusBarProps || shouldShowNextStep);
 
-    // The submit button should be success green colour only if the user is the submitter and the policy does not have Scheduled Submit turned on
+    // The submit button should be success green color only if the user is the submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
 
     const shouldDuplicateButtonBeSuccess = useMemo(

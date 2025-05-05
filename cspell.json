@@ -121,6 +121,7 @@
         "dateexported",
         "debitamount",
         "deburr",
+        "deburred",
         "Deel",
         "deeplink",
         "deeplinked",
@@ -164,6 +165,7 @@
         "ethnicities",
         "evenodd",
         "eventmachine",
+        "evictable",
         "exchangerate",
         "exchrate",
         "exfy",
@@ -671,7 +673,9 @@
         "src/libs/SearchParser/*",
         ".gitignore"
     ],
-    "ignoreRegExpList": ["@assets/.*"],
+    "ignoreRegExpList": [
+        "@assets/.*"
+    ],
     "useGitignore": true,
     "overrides": [
         {

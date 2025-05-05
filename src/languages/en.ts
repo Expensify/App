@@ -6231,7 +6231,7 @@ const translations = {
             part3: '\nand more.',
             part4: ' Try it out!',
         },
-        GBRRBRChat: {
+        gbrRbrChat: {
             part1: 'You’ll see 🟢 on ',
             part2: 'actions to take',
             part3: ',\nand 🔴 on ',

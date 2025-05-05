@@ -1769,10 +1769,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     ],
 
     getResetStyle: <K extends TextStyle | ViewStyle>(keys: Array<keyof K>) =>
-        keys.reduce((styleobj: Nullable<K>, key) => {
+        keys.reduce((styleObj: Nullable<K>, key) => {
             // eslint-disable-next-line no-param-reassign
-            styleobj[key] = null;
-            return styleobj;
+            styleObj[key] = null;
+            return styleObj;
         }, {} as Nullable<K>) as K,
 });
 
