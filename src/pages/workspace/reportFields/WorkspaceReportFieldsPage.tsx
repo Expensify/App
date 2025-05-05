@@ -3,6 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {ActivityIndicator} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import FlatList from '@components/FlatList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,23 +18,26 @@ import Section from '@components/Section';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {enablePolicyReportFields, setPolicyPreventMemberCreatedTitle} from '@libs/actions/Policy/Policy';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {hasAccountingConnections, isControlPolicy} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -58,6 +62,13 @@ function WorkspaceReportFieldsPage({
     const {translate} = useLocalize();
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const policy = usePolicy(policyID);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
+    const {environmentURL} = useEnvironment();
+    const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
+    const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
+    const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
+    const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
+    const currentConnectionName = getCurrentConnectionName(policy);
     const hasReportAccountingConnections = hasAccountingConnections(policy);
     const filteredPolicyFieldList = useMemo(() => {
         if (!policy?.fieldList) {
@@ -98,6 +109,22 @@ function WorkspaceReportFieldsPage({
         },
         [policyID],
     );
+
+    const getHeaderText = () =>
+        !hasSyncError && isConnectionVerified ? (
+            <Text style={[styles.mr5, styles.mt1]}>
+                <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.reportFields.importedFromAccountingSoftware')} `}</Text>
+                <TextLink
+                    style={[styles.textNormal, styles.link]}
+                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                >
+                    {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                </TextLink>
+                <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+            </Text>
+        ) : (
+            <Text style={[styles.textNormal, styles.colorMuted, styles.mr5, styles.mt1]}>{translate('workspace.reportFields.subtitle')}</Text>
+        );
 
     const isLoading = !isOffline && policy === undefined;
 
@@ -207,8 +234,7 @@ function WorkspaceReportFieldsPage({
                                 pendingAction={policy?.pendingFields?.areReportFieldsEnabled}
                                 title={translate('workspace.common.reportFields')}
                                 switchAccessibilityLabel={translate('workspace.common.reportFields')}
-                                subtitle={translate('workspace.reportFields.subtitle')}
-                                subtitleStyle={[styles.textLabelSupportingEmptyValue, styles.lh20]}
+                                subtitle={getHeaderText()}
                                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                                 isActive={!!policy?.areReportFieldsEnabled}
                                 onToggle={(isEnabled) => {
