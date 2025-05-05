@@ -45,6 +45,7 @@ import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle, SelectionListProps} from './types';
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
+
 function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
