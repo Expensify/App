@@ -87,6 +87,7 @@ function MoneyRequestReportPreview({
         <TransactionPreview
             chatReportID={chatReportID}
             action={getIOUActionForReportID(item.reportID, item.transactionID)}
+            contextAction={action}
             reportID={item.reportID}
             isBillSplit={isSplitBillAction}
             isTrackExpense={isTrackExpenseAction}
