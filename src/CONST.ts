@@ -5603,14 +5603,12 @@ const CONST = {
                     type: 'reviewWorkspaceSettings',
                     autoCompleted: false,
                     mediaAttributes: {},
-                    title: 'Review your workspace settings',
-                    description:
-                        "Here's how to review and update your workspace settings:" +
-                        '\n' +
-                        '1. Click *Settings*.' +
-                        '2. Go to *Workspaces* > [Your workspace].' +
-                        '\n' +
-                        "Make any changes there and we'll track them in the #admins room.",
+                    title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
+                    description: ({workspaceSettingsLink}) =>
+                        "Here's how to review and update your workspace settings:\n" +
+                        '1. Click the settings tab.\n' +
+                        '2. Click *Workspaces* > [Your workspace].\n' +
+                        `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
                 },
                 {
                     type: 'submitExpense',
