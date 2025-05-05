@@ -78,7 +78,6 @@ import {
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
-    getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
@@ -97,6 +96,7 @@ import {
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isIOURequestReportAction,
+    isMarkAsClosedAction,
     isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
@@ -968,8 +968,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = <ReportActionItemBasicMessage message={modifiedExpenseMessage} />;
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) {
-            const wasSubmittedViaHarvesting = getOriginalMessage(action)?.harvesting ?? false;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
+            const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? getOriginalMessage(action)?.harvesting ?? false : false;
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage>
@@ -1039,8 +1039,6 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
             children = <ReportActionItemBasicMessage message={getWorkspaceNameUpdatedMessage(action)} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION) {
-            children = <ReportActionItemBasicMessage message={getWorkspaceDescriptionUpdatedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
             children = <ReportActionItemBasicMessage message={getWorkspaceCurrencyUpdateMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {

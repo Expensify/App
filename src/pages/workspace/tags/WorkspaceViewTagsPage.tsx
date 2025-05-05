@@ -83,10 +83,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         if (isFocused) {
             return;
         }
-        setSelectedTags({});
 
         return () => {
-            setSelectedTags({});
             turnOffMobileSelectionMode();
         };
     }, [isFocused]);
@@ -107,26 +105,24 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     const tagList = useMemo<TagListItem[]>(
         () =>
-            Object.values(currentPolicyTag?.tags ?? {})
-                .sort((tagA, tagB) => localeCompare(tagA.name, tagB.name))
-                .map((tag) => ({
-                    value: tag.name,
-                    text: getCleanedTagName(tag.name),
-                    keyForList: tag.name,
-                    isSelected: selectedTags[tag.name] && canSelectMultiple,
-                    pendingAction: tag.pendingAction,
-                    errors: tag.errors ?? undefined,
-                    enabled: tag.enabled,
-                    isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    rightElement: (
-                        <Switch
-                            isOn={tag.enabled}
-                            disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                            accessibilityLabel={translate('workspace.tags.enableTag')}
-                            onToggle={(newValue: boolean) => updateWorkspaceTagEnabled(newValue, tag.name)}
-                        />
-                    ),
-                })),
+            Object.values(currentPolicyTag?.tags ?? {}).map((tag) => ({
+                value: tag.name,
+                text: getCleanedTagName(tag.name),
+                keyForList: tag.name,
+                isSelected: selectedTags[tag.name] && canSelectMultiple,
+                pendingAction: tag.pendingAction,
+                errors: tag.errors ?? undefined,
+                enabled: tag.enabled,
+                isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                rightElement: (
+                    <Switch
+                        isOn={tag.enabled}
+                        disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                        accessibilityLabel={translate('workspace.tags.enableTag')}
+                        onToggle={(newValue: boolean) => updateWorkspaceTagEnabled(newValue, tag.name)}
+                    />
+                ),
+            })),
         [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled],
     );
 

@@ -1,6 +1,6 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -25,6 +25,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useEnvironment from '@hooks/useEnvironment';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -50,7 +51,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyReportField} from '@src/types/onyx/Policy';
+import type {PolicyReportField} from '@src/types/onyx';
+import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type ReportFieldForList = ListItem & {
@@ -72,18 +74,9 @@ function WorkspaceReportFieldsPage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
     const policy = usePolicy(policyID);
     const {selectionMode} = useMobileSelectionMode();
-    const filteredPolicyFieldList = useMemo(() => {
-        if (!policy?.fieldList) {
-            return {};
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
-    }, [policy]);
-    const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
     const [deleteReportFieldsConfirmModalVisible, setDeleteReportFieldsConfirmModalVisible] = useState(false);
     const hasReportAccountingConnections = hasAccountingConnections(policy);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
@@ -95,59 +88,74 @@ function WorkspaceReportFieldsPage({
 
     const canSelectMultiple = !hasReportAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
+    const selectionFieldList = useMemo(() => {
+        if (!policy?.fieldList) {
+            return {};
+        }
+        return Object.values(policy.fieldList).reduce<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>((acc, reportField) => {
+            if (reportField.fieldID === CONST.POLICY.FIELDS.FIELD_LIST_TITLE) {
+                return acc;
+            }
+            const reportFieldKey = getReportFieldKey(reportField.fieldID);
+            acc[reportFieldKey] = reportField;
+            return acc;
+        }, {});
+    }, [policy]);
+
+    const filterReportFields = useCallback((reportField: OnyxValueWithOfflineFeedback<PolicyReportField> | undefined) => {
+        return !!reportField && reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    }, []);
+
+    const [selectedReportFields, setSelectedReportFields] = useFilteredSelection(selectionFieldList, filterReportFields);
+
     const fetchReportFields = useCallback(() => {
         openPolicyReportFieldsPage(policyID);
     }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchReportFields});
 
-    const hasVisibleReportField = Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+    const hasVisibleReportField = Object.values(selectionFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     useFocusEffect(fetchReportFields);
 
-    useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-        setSelectedReportFields([]);
-    }, [isFocused]);
-
-    const data = useMemo(() => {
+    const reportFieldsSections = useMemo(() => {
         if (!policy) {
             return [];
         }
-        return Object.values(filteredPolicyFieldList).map((reportField) => ({
+        return Object.values(selectionFieldList).map((reportField) => ({
             value: reportField.name,
             fieldID: reportField.fieldID,
             keyForList: String(reportField.fieldID),
             orderWeight: reportField.orderWeight,
             pendingAction: reportField.pendingAction,
-            isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined && canSelectMultiple,
+            isSelected: selectedReportFields.includes(getReportFieldKey(reportField.fieldID)) && canSelectMultiple,
             isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             text: reportField.name,
             rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))} />,
         }));
-    }, [canSelectMultiple, filteredPolicyFieldList, policy, selectedReportFields, translate]);
+    }, [canSelectMultiple, selectionFieldList, policy, selectedReportFields, translate]);
 
     const filterReportField = useCallback((reportField: ReportFieldForList, searchInput: string) => !!reportField.text?.toLowerCase().includes(searchInput), []);
     const sortReportFields = useCallback((reportFields: ReportFieldForList[]) => reportFields.sort((a, b) => localeCompare(a.value, b.value)), []);
-    const [inputValue, setInputValue, filteredReportFields] = useSearchResults(data, filterReportField, sortReportFields);
+    const [inputValue, setInputValue, filteredReportFields] = useSearchResults(reportFieldsSections, filterReportField, sortReportFields);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(filteredReportFields);
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
         const fieldKey = getReportFieldKey(item.fieldID);
-        const updatedReportFields = selectedReportFields.find((selectedReportField) => selectedReportField.name === item.value)
-            ? selectedReportFields.filter((selectedReportField) => selectedReportField.name !== item.value)
-            : [...selectedReportFields, filteredPolicyFieldList[fieldKey]];
-        setSelectedReportFields(updatedReportFields);
+        setSelectedReportFields((prevSelectedReportFields) => {
+            if (prevSelectedReportFields.includes(fieldKey)) {
+                return prevSelectedReportFields.filter((selectedField) => selectedField !== fieldKey);
+            }
+            return [...prevSelectedReportFields, fieldKey];
+        });
     };
 
     const toggleAllReportFields = () => {
-        const availableReportFields = Object.values(filteredPolicyFieldList).filter(
+        const availableReportFields = Object.values(reportFieldsSections).filter(
             (reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && filteredReportFields.find((item) => item.fieldID === reportField.fieldID),
         );
-        setSelectedReportFields(selectedReportFields.length > 0 ? [] : availableReportFields);
+        setSelectedReportFields(selectedReportFields.length > 0 ? [] : Object.keys(availableReportFields));
     };
 
     const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
@@ -155,15 +163,14 @@ function WorkspaceReportFieldsPage({
     };
 
     const handleDeleteReportFields = () => {
-        const reportFieldKeys = selectedReportFields.map((selectedReportField) => getReportFieldKey(selectedReportField.fieldID));
         setSelectedReportFields([]);
-        deleteReportFields(policyID, reportFieldKeys);
+        deleteReportFields(policyID, selectedReportFields);
         setDeleteReportFieldsConfirmModalVisible(false);
     };
 
     const isLoading = !isOffline && policy === undefined;
     const shouldShowEmptyState =
-        !Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline) && !isLoading;
+        !Object.values(selectionFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline) && !isLoading;
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
