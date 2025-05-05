@@ -341,54 +341,6 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
-function getReportBrickRoadReason(
-    report: Report,
-    reportActions: OnyxEntry<ReportActions>,
-    hasAnyViolations: boolean,
-    hasErrors: boolean,
-    singleTransactionThread?: string,
-    isReportArchived = false,
-) {
-    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
-    if (isReportArchived) {
-        return false;
-    }
-
-    if (hasAnyViolations) {
-        return {
-            reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
-        };
-    }
-
-    if (hasErrors) {
-        return {
-            reason: CONST.RBR_REASONS.HAS_ERRORS,
-            reportAction,
-        };
-    }
-
-    if (singleTransactionThread) {
-        const transactionID = getTransactionID(singleTransactionThread);
-        const transaction = getTransaction(transactionID);
-        if (hasReceiptError(transaction)) {
-            return {
-                reason: CONST.RBR_REASONS.HAS_ERRORS,
-            };
-        }
-    }
-
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionID = getTransactionID(report.reportID);
-    const transaction = getTransaction(transactionID);
-    if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
-        return {
-            reason: CONST.RBR_REASONS.HAS_ERRORS,
-        };
-    }
-
-    return false;
-}
-
 function getReasonAndReportActionThatHasRedBrickRoad(
     report: Report,
     reportActions: OnyxEntry<ReportActions>,
@@ -881,5 +833,4 @@ export default {
     getWelcomeMessage,
     getReasonAndReportActionThatHasRedBrickRoad,
     shouldShowRedBrickRoad,
-    getReportBrickRoadReason,
 };
