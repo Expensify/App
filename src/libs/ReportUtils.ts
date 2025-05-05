@@ -4570,21 +4570,34 @@ function getInvoicesChatName({
 }
 
 /**
- * Get the title for a report using only participant names. This may be used for 1:1 DMs and other non-categorized chats.
+ * Generates a report title using the names of participants, excluding the current user.
+ * This function is useful in contexts such as 1:1 direct messages (DMs) or other group chats.
+ * It limits to a maximum of 5 participants for the title and uses short names unless there is only one participant.
  */
-function buildReportNameFromParticipantNames({report, personalDetails}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) {
-    const participantsWithoutCurrentUser: number[] = [];
-    Object.keys(report?.participants ?? {}).forEach((accountID) => {
-        const accID = Number(accountID);
-        if (accID !== currentUserAccountID && participantsWithoutCurrentUser.length < 5) {
-            participantsWithoutCurrentUser.push(accID);
-        }
-    });
-    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    return participantsWithoutCurrentUser
-        .map((accountID) => getDisplayNameForParticipant({accountID, shouldUseShortForm: isMultipleParticipantReport, personalDetailsData: personalDetails}))
-        .join(', ');
-}
+const buildReportNameFromParticipantNames = ({report, personalDetails: personalDetailsData}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) =>
+    Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((id) => id !== currentUserAccountID)
+        .slice(0, 5)
+        .map((accountID) => ({
+            accountID,
+            name: getDisplayNameForParticipant({
+                accountID,
+                shouldUseShortForm: true,
+                personalDetailsData,
+            }),
+        }))
+        .filter((participant) => participant.name)
+        .reduce((formattedNames, {name, accountID}, _, array) => {
+            // If there is only one participant (if it is 0 or less the function will return empty string), return their full name
+            if (array.length < 2) {
+                return getDisplayNameForParticipant({
+                    accountID,
+                    personalDetailsData,
+                });
+            }
+            return formattedNames ? `${formattedNames}, ${name}` : name;
+        }, '');
 
 function generateReportName(report: OnyxEntry<Report>): string {
     if (!report) {
