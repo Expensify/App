@@ -189,7 +189,7 @@ import type {
     UnreportedTransactionParams,
     UnshareParams,
     UntilTimeParams,
-    UpdateCustomFieldParams,
+    UpdatedCustomFieldParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
@@ -5426,10 +5426,10 @@ const translations = {
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
-                updateCustomField1: ({email, previousValue, newValue}: UpdateCustomFieldParams) =>
-                    `updated the custom field 1 of ${email} to ${newValue}${previousValue ? ` (previously ${previousValue})` : ''}`,
-                updateCustomField2: ({email, previousValue, newValue}: UpdateCustomFieldParams) =>
-                    `updated the custom field 2 of ${email} to ${newValue}${previousValue ? ` (previously ${previousValue})` : ''}`,
+                updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) =>
+                    !previousValue ? `added ${newValue} to ${email}’s custom field 1` : `changed ${email}’s custom field 1 to ${newValue} (previously ${previousValue})`,
+                updatedCustomField2: ({email, previousValue, newValue}: UpdatedCustomFieldParams) =>
+                    !previousValue ? `added ${newValue} to ${email}’s custom field 2` : `changed ${email}’s custom field 2 to ${newValue} (previously ${previousValue})`,
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} left the workspace`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,

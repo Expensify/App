@@ -416,7 +416,7 @@ type AddEmployeeParams = {email: string; role: string};
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
 
-type UpdateCustomFieldParams = {email: string; previousValue: string; newValue: string};
+type UpdatedCustomFieldParams = {email: string; previousValue: string; newValue: string};
 
 type LeftWorkspaceParams = {nameOrEmail: string};
 
@@ -896,7 +896,7 @@ export type {
     IntegrationSyncFailedParams,
     AddEmployeeParams,
     UpdateRoleParams,
-    UpdateCustomFieldParams,
+    UpdatedCustomFieldParams,
     LeftWorkspaceParams,
     RemoveMemberParams,
     DateParams,

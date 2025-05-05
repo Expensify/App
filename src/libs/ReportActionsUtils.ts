@@ -1897,7 +1897,7 @@ function getPolicyChangeLogUpdateEmployee(reportAction: OnyxInputOrEntry<ReportA
     const field = originalMessage?.field;
     const customFieldType = Object.values(CONST.CUSTOM_FIELD_KEYS).find((value) => value === field);
     if (customFieldType) {
-        const translationKey = field === CONST.CUSTOM_FIELD_KEYS.customField1 ? 'report.actions.type.updateCustomField1' : 'report.actions.type.updateCustomField2';
+        const translationKey = field === CONST.CUSTOM_FIELD_KEYS.customField1 ? 'report.actions.type.updatedCustomField1' : 'report.actions.type.updatedCustomField2';
         return translateLocal(translationKey, {
             email,
             newValue: typeof originalMessage?.newValue === 'string' ? originalMessage?.newValue : '',

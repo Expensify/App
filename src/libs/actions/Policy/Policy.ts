@@ -2413,6 +2413,10 @@ function updateCustomField(policyID: string, login: string, customFieldType: Cus
     const policy = getPolicy(policyID);
     const previousValue = policy?.employeeList?.[login]?.[customFieldKey];
 
+    if (value === (previousValue ?? '')) {
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
