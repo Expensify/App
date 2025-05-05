@@ -6622,6 +6622,7 @@ const CONST = {
         DATE_MODIFIERS: {
             BEFORE: 'Before',
             AFTER: 'After',
+            ON: 'On',
         },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,

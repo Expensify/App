@@ -198,7 +198,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             const value: DateSelectPopupValue = {
                 after: filterFormValues.dateAfter ?? null,
                 before: filterFormValues.dateBefore ?? null,
-                on: null,
+                on: filterFormValues.dateOn ?? null,
             };
 
             return (
@@ -206,7 +206,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     closeOverlay={closeOverlay}
                     value={value}
                     onChange={(selectedDates) => {
-                        const newFilterFormValues = {...filterFormValues, dateAfter: selectedDates.after ?? undefined, dateBefore: selectedDates.before ?? undefined};
+                        const newFilterFormValues = {
+                            ...filterFormValues,
+                            dateAfter: selectedDates.after ?? undefined,
+                            dateBefore: selectedDates.before ?? undefined,
+                            dateOn: selectedDates.on ?? undefined,
+                        };
                         const queryString = buildQueryStringFromFilterFormValues(newFilterFormValues);
                         Navigation.setParams({q: queryString});
                     }}
@@ -246,6 +251,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         const dateValue = [
             filterFormValues.dateAfter ? `${translate('common.after')} ${DateUtils.formatToReadableString(filterFormValues.dateAfter)}` : null,
             filterFormValues.dateBefore ? `${translate('common.before')} ${DateUtils.formatToReadableString(filterFormValues.dateBefore)}` : null,
+            filterFormValues.dateOn ? `${translate('common.on')} ${DateUtils.formatToReadableString(filterFormValues.dateOn)}` : null,
         ].filter((date): date is string => !!date);
 
         const filterList = [
@@ -262,12 +268,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             {
                 label: translate('common.date'),
                 PopoverComponent: datePickerComponent,
-                value: dateValue.length ? dateValue : null,
+                value: dateValue,
             },
             {
                 label: translate('common.from'),
                 PopoverComponent: userPickerComponent,
-                value: fromValue.length ? fromValue : null,
+                value: fromValue,
             },
         ];
 
@@ -278,6 +284,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         filterFormValues.from,
         filterFormValues.dateAfter,
         filterFormValues.dateBefore,
+        filterFormValues.dateOn,
         translate,
         typeComponent,
         statusComponent,
