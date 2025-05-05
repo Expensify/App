@@ -340,6 +340,8 @@ function NewChatPage() {
             enableEdgeToEdgeBottomSafeAreaPadding
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
+            disableOfflineIndicatorSafeAreaPadding
+            // shouldShowOfflineIndicator={false}
             keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
@@ -365,7 +367,6 @@ function NewChatPage() {
                 initiallyFocusedOptionKey={firstKeyForList}
                 shouldTextInputInterceptSwipe
                 addBottomSafeAreaPadding
-                addOfflineIndicatorBottomSafeAreaPadding={false}
             />
         </ScreenWrapper>
     );
