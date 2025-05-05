@@ -40,6 +40,8 @@ jest.mock('@libs/ReportUtils', () => ({
     isValidReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isValidReport,
     generateReportAttributes: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportAttributes,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllReportActionsErrorsAndReportActionThatRequiresAttention,
+    getAllReportErrors: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllReportErrors,
+    shouldDisplayViolationsRBRInLHN: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').shouldDisplayViolationsRBRInLHN,
 }));
 
 jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({

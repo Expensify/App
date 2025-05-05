@@ -670,9 +670,8 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.getOptionData({
                 report,
                 reportActions,
-                reportAttributes: {},
+                reportAttributes: undefined,
                 reportNameValuePairs: {},
-                hasViolations: false,
                 personalDetails: {},
                 policy: undefined,
                 parentReportAction: undefined,
