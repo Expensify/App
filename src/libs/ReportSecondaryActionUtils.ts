@@ -87,8 +87,14 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
+    const currentUserAccountID = getCurrentUserAccountID();
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+    if (!isCurrentUserManager) {
+        return false;
+    }
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
+    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const isProcessingReport = isProcessingReportUtils(report);
     const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
 
@@ -254,7 +260,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
     const isReportFinished = isReportClosedOrApproved || isReportReimbursed;
 
-    if (!isReportFinished || !syncEnabled) {
+    if (!isReportFinished) {
         return false;
     }
 
@@ -262,7 +268,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
 
     const isExporter = isPrefferedExporter(policy);
 
-    return isAdmin || isExporter;
+    return (isAdmin && syncEnabled) || (isExporter && !syncEnabled);
 }
 
 function isHoldAction(report: Report, reportTransactions: Transaction[]): boolean {

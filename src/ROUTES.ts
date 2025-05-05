@@ -68,6 +68,9 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_PAID: 'search/filters/paid',
     SEARCH_ADVANCED_FILTERS_EXPORTED: 'search/filters/exported',
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
+    SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
+    SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
+    SEARCH_ADVANCED_FILTERS_CREATED_BY: 'search/filters/createdBy',
     SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
     SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
     SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
@@ -554,13 +557,12 @@ const ROUTES = {
         getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members/${accountID}` as const, backTo),
     },
     ROOM_INVITE: {
-        route: 'r/:reportID/invite/:role?',
-        getRoute: (reportID: string | undefined, role?: string, backTo?: string) => {
+        route: 'r/:reportID/invite',
+        getRoute: (reportID: string | undefined, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the ROOM_INVITE route');
             }
-            const route = role ? (`r/${reportID}/invite/${role}` as const) : (`r/${reportID}/invite` as const);
-            return getUrlWithBackToParam(route, backTo);
+            return getUrlWithBackToParam(`r/${reportID}/invite` as const, backTo);
         },
     },
     MONEY_REQUEST_HOLD_REASON: {
@@ -633,6 +635,15 @@ const ROUTES = {
                 Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_ATTENDEE route');
             }
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/attendees/${transactionID}/${reportID}`, backTo);
+        },
+    },
+    MONEY_REQUEST_ACCOUNTANT: {
+        route: ':action/:iouType/accountant/:transactionID/:reportID',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_ACCOUNTANT route');
+            }
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/accountant/${transactionID}/${reportID}`, backTo);
         },
     },
     MONEY_REQUEST_UPGRADE: {
