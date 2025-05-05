@@ -99,11 +99,10 @@ type ScreenWrapperProps = {
     /** Whether to use the minHeight. Use true for screens where the window height are changing because of Virtual Keyboard */
     shouldEnableMinHeight?: boolean;
 
-    /** Whether to disable the safe area padding for the offline indicator */
+    /** Whether to disable the safe area padding for (nested) offline indicators */
     disableOfflineIndicatorSafeAreaPadding?: boolean;
 
-    /** Whether to show offline indicator */
-
+    /** Whether to show offline indicator on small screens */
     shouldShowOfflineIndicator?: boolean;
 
     /** Whether to show offline indicator on wide screens */
@@ -166,9 +165,9 @@ function ScreenWrapper(
         shouldEnablePickerAvoiding = true,
         headerGapStyles,
         children,
-        disableOfflineIndicatorSafeAreaPadding: disableOfflineIndicatorSafeAreaPaddingProp,
-        shouldShowOfflineIndicatorInWideScreen: shouldShowOfflineIndicatorInWideScreenProp,
-        shouldShowOfflineIndicator: shouldShowOfflineIndicatorProp,
+        disableOfflineIndicatorSafeAreaPadding,
+        shouldShowOfflineIndicatorInWideScreen,
+        shouldShowOfflineIndicator,
         offlineIndicatorStyle,
         style,
         shouldDismissKeyboardBeforeClose = true,
@@ -421,23 +420,18 @@ function ScreenWrapper(
     // This context allows us to disable the safe area padding offseting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.
     // This is useful e.g. for the RightModalNavigator, where we want to avoid the safe area padding offseting the offline indicator because we only show the offline indicator on small screens.
     const parentOfflineIndicatorContext = useContext(ScreenWrapperOfflineIndicatorContext);
-    const showSmallScreenOfflineIndicator = shouldShowOfflineIndicatorProp ?? parentOfflineIndicatorContext.showOnSmallScreens ?? true;
-    const showWideScreenOfflineIndicator = shouldShowOfflineIndicatorInWideScreenProp ?? parentOfflineIndicatorContext.showOnWideScreens ?? false;
-    const addOfflineIndicatorSafeAreaPadding =
-        disableOfflineIndicatorSafeAreaPaddingProp === undefined ? parentOfflineIndicatorContext.addSafeAreaPadding ?? true : !disableOfflineIndicatorSafeAreaPaddingProp;
-
     const offlineIndicatorContextValue = useMemo(
         () => ({
-            addSafeAreaPadding: addOfflineIndicatorSafeAreaPadding,
+            addSafeAreaPadding: disableOfflineIndicatorSafeAreaPadding === undefined ? parentOfflineIndicatorContext.addSafeAreaPadding ?? true : !disableOfflineIndicatorSafeAreaPadding,
             // Prevent any nested ScreenWrapper components from rendering another offline indicator.
             showOnSmallScreens: false,
             showOnWideScreens: false,
         }),
-        [addOfflineIndicatorSafeAreaPadding],
+        [disableOfflineIndicatorSafeAreaPadding, parentOfflineIndicatorContext.addSafeAreaPadding],
     );
 
-    const displaySmallScreenOfflineIndicator = isSmallScreenWidth && showSmallScreenOfflineIndicator;
-    const displayWidescreenOfflineIndicator = !shouldUseNarrowLayout && showWideScreenOfflineIndicator;
+    const displaySmallScreenOfflineIndicator = isSmallScreenWidth && (shouldShowOfflineIndicator ?? parentOfflineIndicatorContext.showOnSmallScreens ?? true);
+    const displayWidescreenOfflineIndicator = !shouldUseNarrowLayout && (shouldShowOfflineIndicatorInWideScreen ?? parentOfflineIndicatorContext.showOnWideScreens ?? false);
 
     /** If we currently show the offline indicator and it has bottom safe area padding, we need to offset the bottom safe area padding in the KeyboardAvoidingView. */
     const shouldOffsetMobileOfflineIndicator = displaySmallScreenOfflineIndicator && hasSmallScreenOfflineIndicatorBottomSafeAreaPadding && isOffline;
