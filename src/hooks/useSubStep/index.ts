@@ -23,10 +23,6 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
     const [screenIndex, setScreenIndex] = useState(startFrom);
     const isEditing = useRef(false);
 
-    useEffect(() => {
-        setScreenIndex(startFrom);
-    }, [startFrom]);
-
     if (bodyContent.length === skipSteps.length) {
         throw new Error('All steps are skipped');
     }

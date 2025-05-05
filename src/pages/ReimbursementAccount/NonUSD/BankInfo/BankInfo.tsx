@@ -4,7 +4,6 @@ import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePrevious from '@hooks/usePrevious';
 import useSubStep from '@hooks/useSubStep';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
@@ -35,8 +34,6 @@ type BankInfoProps = {
 
 function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
-    const prevIsOffline = usePrevious(isOffline);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
@@ -54,12 +51,13 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
         createCorpayBankAccount({...values, ...corpayData} as ReimbursementAccountForm, policyID);
     };
 
-    useEffect(() => {
-        // Refetch Corpay fields upon going online
-        if (prevIsOffline && !isOffline) {
+    useNetwork({
+        onReconnect: () => {
             getCorpayBankAccountFields(country, currency);
-        }
+        },
+    });
 
+    useEffect(() => {
         if (reimbursementAccount?.isLoading === true || !!reimbursementAccount?.errors) {
             return;
         }
@@ -68,7 +66,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
             onSubmit();
             clearReimbursementAccountBankCreation();
         }
-    }, [corpayFields?.bankCurrency, country, currency, isOffline, onSubmit, prevIsOffline, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
+    }, [corpayFields?.bankCurrency, country, currency, onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
 
     useEffect(() => {
         // No fetching when there is no country

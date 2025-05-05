@@ -355,7 +355,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         (!hasACHDataBeenLoaded || isLoading) &&
         shouldShowOfflineLoader &&
         (shouldReopenOnfido || !requestorStepRef?.current) &&
-        !(currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && isValidateCodeActionModalVisible)
+        !(currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && isValidateCodeActionModalVisible) &&
+        !isNonUSDWorkspace
     ) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
@@ -457,7 +458,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             policyName={policyName}
             isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
             toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
-            onBackButtonPress={Navigation.closeRHPFlow}
+            onBackButtonPress={Navigation.goBack}
             shouldShowContinueSetupButton={shouldShowContinueSetupButton}
             isNonUSDWorkspace={isNonUSDWorkspace}
             setNonUSDBankAccountStep={setNonUSDBankAccountStep}
