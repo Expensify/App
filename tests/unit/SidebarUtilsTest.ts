@@ -950,6 +950,13 @@ describe('SidebarUtils', () => {
                     },
                     actorAccountID: 12345,
                     actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+                    person: [
+                        {
+                            type: 'TEXT',
+                            style: 'strong',
+                            text: 'f50',
+                        },
+                    ],
                 };
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
