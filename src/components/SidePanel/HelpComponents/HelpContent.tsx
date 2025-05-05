@@ -44,15 +44,15 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         };
     });
 
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`, {canBeMissing: true});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || CONST.DEFAULT_NUMBER_ID}`);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID || CONST.DEFAULT_NUMBER_ID}`, {
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {
         canEvict: false,
+        canBeMissing: true,
     });
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const linkedTransactionID = useMemo(() => (isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined), [parentReportAction]);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, {canBeMissing: true});
 
     const route = useMemo(() => {
         const path = normalizedConfigs[routeName]?.path;
@@ -96,6 +96,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
             <ScrollView
                 style={[styles.ph5, styles.pb5]}
                 userSelect="auto"
+                scrollIndicatorInsets={{right: Number.MIN_VALUE}}
             >
                 {getHelpContent(styles, route, isProduction, expandedIndex, setExpandedIndex)}
             </ScrollView>
