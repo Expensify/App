@@ -11552,18 +11552,18 @@ async function run() {
         // if it is open then we'll update the existing one, otherwise, we'll create a new one.
         const mostRecentChecklist = recentDeployChecklists.at(0);
         if (!mostRecentChecklist) {
-            throw new Error('Could not find the most recent checklist');
+            throw new Error('⚠️⚠️ Could not find the most recent checklist ⚠️⚠️');
         }
         const shouldCreateNewDeployChecklist = mostRecentChecklist.state !== 'open';
         const previousChecklist = shouldCreateNewDeployChecklist ? mostRecentChecklist : recentDeployChecklists.at(1);
         if (shouldCreateNewDeployChecklist) {
-            console.log('Latest StagingDeployCash is closed, creating a new one.', mostRecentChecklist);
+            console.log('ℹ️ Latest StagingDeployCash is closed, creating a new one.', mostRecentChecklist);
         }
         else {
-            console.log('Latest StagingDeployCash is open, updating it instead of creating a new one.', 'Current:', mostRecentChecklist, 'Previous:', previousChecklist);
+            console.log('ℹ️ Latest StagingDeployCash is open, updating it instead of creating a new one.', 'Current:', mostRecentChecklist, 'Previous:', previousChecklist);
         }
         if (!previousChecklist) {
-            throw new Error('Could not find the previous checklist');
+            throw new Error('⚠️⚠️ Could not find the previous checklist ⚠️⚠️');
         }
         // Parse the data from the previous and current checklists into the format used to generate the checklist
         const previousChecklistData = GithubUtils_1.default.getStagingDeployCashData(previousChecklist);
