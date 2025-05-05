@@ -29,7 +29,6 @@ import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -86,7 +85,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = !!backTo;
-    const {canUseLeftHandBar} = usePermissions();
     const filterCategories = useCallback((category: PolicyCategory | undefined) => !!category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, []);
 
     const [selectedCategories, setSelectedCategories] = useFilteredSelection(policyCategories, filterCategories);
@@ -412,7 +410,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         goBackFromWorkspaceCentralScreen(policyId);
                     }}
                     shouldShowThreeDotsButton
-                    style={styles.headerBarDesktopHeight(canUseLeftHandBar)}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
                 >
