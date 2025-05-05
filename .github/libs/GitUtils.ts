@@ -1,9 +1,8 @@
 import * as core from '@actions/core';
-import {execSync, spawn} from 'child_process';
+import {execSync} from 'child_process';
 import CONST from './CONST';
 import GithubUtils from './GithubUtils';
 import type {CommitType} from './GithubUtils';
-import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
 import {getPreviousVersion, SEMANTIC_VERSION_LEVELS} from './versionUpdater';
 import type {SemverLevel} from './versionUpdater';
 
@@ -68,93 +67,6 @@ function getPreviousExistingTag(tag: string, level: SemverLevel) {
         previousVersion = getPreviousVersion(previousVersion, level);
     }
     return previousVersion;
-}
-
-/**
- * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
- */
-function fetchTag(tag: string, shallowExcludeTag = '') {
-    let shouldRetry = true;
-    let needsRepack = false;
-    while (shouldRetry) {
-        try {
-            let command = '';
-            if (needsRepack) {
-                // We have seen some scenarios where this fixes the git fetch.
-                // Why? Who knows... https://github.com/Expensify/App/pull/31459
-                command = 'git repack -d';
-                console.log(`Running command: ${command}`);
-                execSync(command);
-            }
-
-            command = `git fetch origin tag ${tag} --no-tags`;
-
-            // Note that this condition is only ever NOT true in the 1.0.0-0 edge case
-            if (shallowExcludeTag && shallowExcludeTag !== tag) {
-                command += ` --shallow-exclude=${shallowExcludeTag}`;
-            }
-
-            console.log(`Running command: ${command}`);
-            execSync(command);
-            shouldRetry = false;
-        } catch (e) {
-            console.error(e);
-            if (!needsRepack) {
-                console.log('Attempting to repack and retry...');
-                needsRepack = true;
-            } else {
-                console.error("Repack didn't help, giving up...");
-                shouldRetry = false;
-            }
-        }
-    }
-}
-
-/**
- * Get merge logs between two tags (inclusive) as a JavaScript object.
- *
- * @deprecated Use GithubUtils.getCommitHistoryBetweenTags - to be removed after verification of https://github.com/Expensify/App/issues/60687
- */
-function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitType[]> {
-    // Fetch tags, excluding commits reachable from the previous patch version (or minor for prod) (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousExistingTag(fromTag.replace('-staging', ''), fromTag.endsWith('-staging') ? SEMANTIC_VERSION_LEVELS.PATCH : SEMANTIC_VERSION_LEVELS.MINOR);
-    fetchTag(fromTag, previousPatchVersion);
-    fetchTag(toTag, previousPatchVersion);
-
-    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
-    return new Promise<string>((resolve, reject) => {
-        let stdout = '';
-        let stderr = '';
-        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
-        console.log(`Running command: git ${args.join(' ')}`);
-        const spawnedProcess = spawn('git', args);
-        spawnedProcess.on('message', console.log);
-        spawnedProcess.stdout.on('data', (chunk: Buffer) => {
-            console.log(chunk.toString());
-            stdout += chunk.toString();
-        });
-        spawnedProcess.stderr.on('data', (chunk: Buffer) => {
-            console.error(chunk.toString());
-            stderr += chunk.toString();
-        });
-        spawnedProcess.on('close', (code) => {
-            if (code !== 0) {
-                console.log('code: ', code);
-                return reject(new Error(`${stderr}`));
-            }
-
-            resolve(stdout);
-        });
-        spawnedProcess.on('error', (err) => reject(err));
-    }).then((stdout) => {
-        // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
-        const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, (subject) => sanitizeStringForJSONParse(subject));
-
-        // Then remove newlines, format as JSON and convert to a proper JS object
-        const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
-
-        return JSON.parse(json) as CommitType[];
-    });
 }
 
 /**
