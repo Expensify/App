@@ -223,7 +223,7 @@ Ensure the following is set in your app's `android/app/build.gradle` file.
     ```
 
 2. Enable source maps on IOS
-Within Xcode head to the build phase - `Bundle React Native code and images`.
+Within Xcode head to the build phase - `Bundle React Native code and images`
 
     ```jsx
     export SOURCEMAP_FILE="$(pwd)/../main.jsbundle.map" // <-- here;
