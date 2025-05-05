@@ -11577,6 +11577,7 @@ async function run() {
         core.info(`Found ${previousPRNumbers.size} PRs in the previous checklist:`);
         core.info(JSON.stringify(Array.from(previousPRNumbers)));
         const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
+        core.info(`Found ${newPRNumbers.length} PRs deployed since the previous checklist:`);
         core.info(JSON.stringify(newPRNumbers));
         // Log the PRs that were filtered out
         const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
