@@ -695,7 +695,10 @@ describe('Unread Indicators', () => {
             lastVisibleActionCreated: reportAction12CreatedDate,
         });
 
-        reportAction12.message[0].html = ''; // Simulate the server response for deleting the last message
+        let message = reportAction12.message.at(0);
+        if (message) {
+            message.html = ''; // Simulate the server response for deleting the last message
+        }
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
             lastVisibleActionCreated: reportAction11CreatedDate,
