@@ -25,7 +25,6 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
@@ -34,6 +33,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import useIsAccountSettingsRouteActive from '@libs/Navigation/helpers/useRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
@@ -84,15 +84,15 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
-    const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
@@ -103,11 +103,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
-    const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
-    const {canUseLeftHandBar} = usePermissions();
-    const shouldDisplayLHB = canUseLeftHandBar && !shouldUseNarrowLayout;
+    const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`, {canBeMissing: true});
+    const shouldDisplayLHB = !shouldUseNarrowLayout;
 
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
     const subscriptionPlan = useSubscriptionPlan();
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
     const walletBrickRoadIndicator =
@@ -117,6 +116,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const freeTrialText = getFreeTrialText(policies);
     const shouldOpenBookACall = tryNewDot?.classicRedirect?.dismissed === false;
+
+    const isScreenFocused = useIsAccountSettingsRouteActive(shouldUseNarrowLayout);
 
     useEffect(() => {
         openInitialSettingsPage();
@@ -379,12 +380,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
 
     const headerContent = (
-        <View style={[styles.ph5, !canUseLeftHandBar && styles.pv5]}>
+        <View style={[styles.ph5, styles.pv4]}>
             {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
                 <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
             ) : (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, canUseLeftHandBar ? [styles.headerBarDesktopHeight(true)] : []]}>
-                    <AccountSwitcher />
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
+                    <AccountSwitcher isScreenFocused={isScreenFocused} />
                     <Tooltip text={translate('statusPage.status')}>
                         <PressableWithFeedback
                             accessibilityLabel={translate('statusPage.status')}
@@ -439,8 +440,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID={InitialSettingsPage.displayName}
-            extraContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
-            extraContentStyles={shouldDisplayLHB && styles.leftNavigationTabBarPosition}
+            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
         >
             {headerContent}
@@ -465,6 +465,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     onCancel={() => toggleSignoutConfirmModal(false)}
                 />
             </ScrollView>
+            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
         </ScreenWrapper>
     );
 }

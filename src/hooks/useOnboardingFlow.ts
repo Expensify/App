@@ -22,7 +22,7 @@ function useOnboardingFlowRouter() {
         selector: hasCompletedGuidedSetupFlowSelector,
         canBeMissing: true,
     });
-    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
+    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
         canBeMissing: true,
     });

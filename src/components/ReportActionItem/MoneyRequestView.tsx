@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
+import {getCompanyCardDescription} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
@@ -33,6 +34,7 @@ import {
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getCreationReportErrors,
+    getReportName,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,
@@ -47,7 +49,6 @@ import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     getBillable,
-    getCardName,
     getDescription,
     getDistanceInMeters,
     getTagForDisplay,
@@ -123,6 +124,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`, {canBeMissing: true});
     const targetPolicyID = updatedTransaction?.reportID ? transactionReport?.policyID : policyID;
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
         canBeMissing: true,
@@ -167,7 +169,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency) : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
-    const cardProgramName = getCardName(transaction);
+    const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, cardList);
     const shouldShowCard = isCardTransaction && cardProgramName;
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
@@ -741,22 +743,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         />
                     </OfflineWithFeedback>
                 )}
-                {shouldShowViewTripDetails && (
-                    <MenuItem
-                        title={translate('travel.viewTripDetails')}
-                        icon={Expensicons.Suitcase}
-                        onPress={() => {
-                            if (!transaction?.transactionID || !report?.reportID) {
-                                return;
-                            }
-                            const reservations = transaction?.receipt?.reservationList?.length ?? 0;
-                            if (reservations > 1) {
-                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(report.reportID, transaction.transactionID, getReportRHPActiveRoute()));
-                            }
-                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report.reportID, transaction.transactionID, 0, getReportRHPActiveRoute()));
-                        }}
-                    />
-                )}
                 {shouldShowAttendees && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
                         <MenuItemWithTopDescription
@@ -779,6 +765,28 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         />
                     </OfflineWithFeedback>
                 )}
+                {!!parentReportID && !!canUseTableReportView && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={canEditReport}
+                            title={getReportName(parentReport) || parentReport?.reportName}
+                            description={translate('common.report')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() => {
+                                if (!canEditReport || !report?.reportID || !transaction?.transactionID) {
+                                    return;
+                                }
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report.reportID, getReportRHPActiveRoute()),
+                                );
+                            }}
+                            interactive={canEditReport}
+                            shouldRenderAsHTML
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {/* Note: "Billable" toggle and "View trip details" should be always the last two items */}
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <View>
@@ -801,26 +809,21 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         />
                     </View>
                 )}
-                {!!parentReportID && !!canUseTableReportView && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canEditReport}
-                            title={parentReport?.reportName}
-                            description={translate('common.report')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (!canEditReport || !report?.reportID || !transaction?.transactionID) {
-                                    return;
-                                }
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report.reportID, getReportRHPActiveRoute()),
-                                );
-                            }}
-                            interactive={canEditReport}
-                            shouldRenderAsHTML
-                        />
-                    </OfflineWithFeedback>
+                {shouldShowViewTripDetails && (
+                    <MenuItem
+                        title={translate('travel.viewTripDetails')}
+                        icon={Expensicons.Suitcase}
+                        onPress={() => {
+                            if (!transaction?.transactionID || !report?.reportID) {
+                                return;
+                            }
+                            const reservations = transaction?.receipt?.reservationList?.length ?? 0;
+                            if (reservations > 1) {
+                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(report.reportID, transaction.transactionID, getReportRHPActiveRoute()));
+                            }
+                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report.reportID, transaction.transactionID, 0, getReportRHPActiveRoute()));
+                        }}
+                    />
                 )}
             </>
             <ConfirmModal

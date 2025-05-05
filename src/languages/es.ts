@@ -423,8 +423,8 @@ const translations = {
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa.',
-        attachementWillBeAvailableOnceBackOnline: 'El archivo adjunto estará disponible cuando vuelvas a estar en línea.',
-        errorOccuredWhileTryingToPlayVideo: 'Se produjo un error al intentar reproducir este video.',
+        attachmentWillBeAvailableOnceBackOnline: 'El archivo adjunto estará disponible cuando vuelvas a estar en línea.',
+        errorOccurredWhileTryingToPlayVideo: 'Se produjo un error al intentar reproducir este video.',
         areYouSure: '¿Estás seguro?',
         verify: 'Verifique',
         yesContinue: 'Sí, continuar',
@@ -912,6 +912,7 @@ const translations = {
         original: 'Original',
         split: 'Dividir',
         splitExpense: 'Dividir gasto',
+        addExpense: 'Agregar gasto',
         expense: 'Gasto',
         categorize: 'Categorizar',
         share: 'Compartir',
@@ -1162,6 +1163,7 @@ const translations = {
         bookingArchived: 'Esta reserva está archivada',
         bookingArchivedDescription: 'Esta reserva está archivada porque la fecha del viaje ha pasado. Agregue un gasto por el monto final si es necesario.',
         attendees: 'Asistentes',
+        whoIsYourAccountant: '¿Quién es tu contador?',
         paymentComplete: 'Pago completo',
         time: 'Tiempo',
         startDate: 'Fecha de inicio',
@@ -1365,7 +1367,7 @@ const translations = {
             useStagingServer: 'Usar servidor "staging"',
             forceOffline: 'Forzar desconexión',
             simulatePoorConnection: 'Simular una conexión a internet deficiente',
-            simulatFailingNetworkRequests: 'Simular fallos en solicitudes de red',
+            simulateFailingNetworkRequests: 'Simular fallos en solicitudes de red',
             authenticationStatus: 'Estado de autenticación',
             deviceCredentials: 'Credenciales del dispositivo',
             invalidate: 'Invalidar',
@@ -1953,9 +1955,9 @@ const translations = {
         requestNewCode: 'Pedir un código nuevo en ',
         requestNewCodeAfterErrorOccurred: 'Solicitar un nuevo código',
         error: {
-            pleaseFillMagicCode: 'Por favor, introduce el código mágico',
-            incorrectMagicCode: 'Código mágico incorrecto',
-            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
+            pleaseFillMagicCode: 'Por favor, introduce el código mágico.',
+            incorrectMagicCode: 'Código mágico incorrecto o no válido. Inténtalo de nuevo o solicita otro código.',
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores.',
         },
     },
     passwordForm: {
@@ -2173,11 +2175,11 @@ const translations = {
         iouReportNotFound: 'Los detalles del pago que estás buscando no se pudieron encontrar.',
         notHere: 'Hmm… no está aquí',
         pageNotFound: 'Ups, no deberías estar aquí',
-        noAccess: 'Ese chat no existe o no tienes acceso a él. Intenta usar la búsqueda para encontrar un chat.',
+        noAccess: 'Es posible que este chat o gasto haya sido eliminado o que no tengas acceso a él. \n\nPara cualquier consulta, contáctanos a través de concierge@expensify.com',
         goBackHome: 'Volver a la página principal',
     },
     errorPage: {
-        title: ({isBreakline}: {isBreakline: boolean}) => `Ups... ${isBreakline ? '\n' : ''}Algo no ha ido bien`,
+        title: ({isBreakLine}: {isBreakLine: boolean}) => `Ups... ${isBreakLine ? '\n' : ''}Algo no ha ido bien`,
         subtitle: 'No se ha podido completar la acción. Por favor, inténtalo más tarde.',
     },
     setPasswordPage: {
@@ -2902,6 +2904,10 @@ const translations = {
             title: 'Expensify Travel ha sido deshabilitado',
             message: 'Tu administrador ha desactivado Expensify Travel. Por favor, sigue la política de reservas de tu empresa para organizar tus viajes.',
         },
+        verifyCompany: {
+            title: '¡Empieza a viajar hoy mismo!',
+            message: `Por favor, contacta a tu gestor de cuenta o a salesteam@expensify.com para solicitar una demostración de Travel y habilitarlo para tu empresa.`,
+        },
     },
     workspace: {
         common: {
@@ -2963,7 +2969,8 @@ const translations = {
             descriptionHint: 'Comparte información sobre este espacio de trabajo con todos los miembros.',
             welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
-            markAsExported: 'Marcar como introducido manualmente',
+            markAsEntered: 'Marcar como introducido manualmente',
+            markAsExported: 'Marcar como exportado manualmente',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
@@ -4345,6 +4352,7 @@ const translations = {
             goToODToSettings: 'Ve a Expensify Classic para gestionar tus configuraciones.',
             setup: 'Configurar',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Recién sincronizado ${relativeDate}`,
+            notSync: 'No sincronizado',
             import: 'Importar',
             export: 'Exportar',
             advanced: 'Avanzado',
@@ -4919,7 +4927,7 @@ const translations = {
             description1: 'Tu factura final por esta suscripción será',
             description2: ({date}: DateParams) => `Consulta el desglose a continuación para ${date}:`,
             subscription:
-                'Esto finalizará tu suscripción a Expensify, eliminará tu espacio de trabajo restante y todos los miembros perderán acceso de ahora en adelante. Si solo deseas eliminarte a ti mismo, haz que otro administrador se encargue de la facturación, y en ese momento podrás salir de este espacio de trabajo.',
+                '¡Atención! Esta acción finalizará tu suscripción a Expensify, eliminará este espacio de trabajo y eliminará a todos los miembros del espacio de trabajo. Si deseas conservar este espacio de trabajo y solo eliminarte a ti mismo, haz que otro administrador tome el control de la facturación primero.',
             genericFailureMessage: 'Ocurrió un error al pagar tu factura. Por favor, inténtalo de nuevo.',
         },
         restrictedAction: {
@@ -4962,7 +4970,6 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Marque cualquier recibo donde aparezcan alcohol, apuestas u otros artículos restringidos. Los gastos con recibos que incluyan estos conceptos requerirán una revisión manual.',
                 prohibitedExpenses: 'Gastos prohibidos',
-                none: 'Ninguno',
                 alcohol: 'Alcohol',
                 hotelIncidentals: 'Gastos incidentales de hotel',
                 gambling: 'Juegos de azar',
@@ -5239,12 +5246,12 @@ const translations = {
             },
             emptyExpenseResults: {
                 title: 'Aún no has creado ningún gasto',
-                subtitle: 'Crea un gasto o haz un tour por Expensify para aprender más.',
+                subtitle: 'Crea un gasto o haz una proba por Expensify para aprender más.',
                 subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para crear un gasto.',
             },
             emptyInvoiceResults: {
                 title: 'Aún no has creado \nninguna factura',
-                subtitle: 'Envía una factura o haz un tour por Expensify para aprender más.',
+                subtitle: 'Envía una factura o haz una proba por Expensify para aprender más.',
                 subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para enviar una factura.',
             },
             emptyTripResults: {
@@ -5469,6 +5476,7 @@ const translations = {
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} salió del espacio de trabajo`,
                 removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                leftTheChat: 'salió del chat',
             },
         },
     },
@@ -5977,7 +5985,7 @@ const translations = {
         workspaceName: 'Nombre del espacio de trabajo',
         chatUserDisplayNames: 'Nombres de los miembros del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
-        prestyledText: 'texto preestilizado',
+        preStyledText: 'texto preestilizado',
         viewAttachment: 'Ver archivo adjunto',
     },
     parentReportAction: {
@@ -6170,10 +6178,10 @@ const translations = {
         },
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
-        overAutoApprovalLimit: ({formattedLimit}: ViolationsOverAutoApprovalLimitParams) =>
-            `Importe supera el límite de aprobación automática${formattedLimit ? ` de ${formattedLimit}` : ''}`,
+        overAutoApprovalLimit: ({formattedLimit}: ViolationsOverAutoApprovalLimitParams) => `El importe supera${formattedLimit ? ` de ${formattedLimit}/viaje` : ''}`,
         overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Importe supera el límite para la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
+        overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/viaje` : ''}`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Escaneo de recibo incompleto. Por favor, verifica los detalles manualmente.',
@@ -6191,7 +6199,7 @@ const translations = {
             return message;
         },
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
-            const preMessage = 'Gasto prohibido: ';
+            const preMessage = 'Gasto prohibido:';
             switch (prohibitedExpenseType) {
                 case 'alcohol':
                     return `${preMessage} Alcohol`;
@@ -6706,11 +6714,7 @@ const translations = {
         },
     },
     emptySearchView: {
-        takeATour: 'Haz un tour',
-    },
-    tour: {
-        takeATwoMinuteTour: 'Haz un tour de 2 minutos',
-        exploreExpensify: 'Explora todo lo que Expensify tiene para ofrecer',
+        takeATestDrive: 'Haz una proba',
     },
     migratedUserWelcomeModal: {
         title: 'Viajes y gastos, a la velocidad del chat',
@@ -6723,9 +6727,9 @@ const translations = {
         },
     },
     productTrainingTooltip: {
-        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
+        conciergeLHNGbr: {
             part1: '¡Comienza',
             part2: ' aquí!',
         },
@@ -6734,19 +6738,36 @@ const translations = {
             part2: ' aquí',
         },
         bottomNavInboxTooltip: {
-            part1: 'Tu lista de tareas',
-            part2: '\n🟢 = listo para ti',
-            part3: ' 🔴 = necesita revisión',
+            part1: 'Revisa lo que ',
+            part2: 'necesita tu atención',
+            part3: '\ny ',
+            part4: 'chatea sobre los gastos.',
         },
         workspaceChatTooltip: {
-            part1: 'Envía gastos',
-            part2: ' y chatea con',
-            part3: '\naprobadores aquí!',
+            part1: 'Chatea con ',
+            part2: 'los aprobadores',
         },
         globalCreateTooltip: {
             part1: 'Crea gastos',
-            part2: ', comienza a chatear,',
-            part3: '\ny mucho más!',
+            part2: ', empieza a chatear',
+            part3: '\ny más.',
+            part4: ' ¡Pruébalo!',
+        },
+        GBRRBRChat: {
+            part1: 'Verás 🟢 en ',
+            part2: 'las acciones a realizar',
+            part3: '\ny 🔴 en ',
+            part4: 'los errores que debes revisar.',
+        },
+        accountSwitcher: {
+            part1: 'Accede a tus ',
+            part2: 'cuentas copiloto',
+            part3: ' aquí',
+        },
+        expenseReportsFilter: {
+            part1: '¡Bienvenido! Aquí encontrarás todos los',
+            part2: '\ninformes de tu empresa',
+            part3: '.',
         },
         scanTestTooltip: {
             part1: '¿Quieres ver cómo funciona Escanear?',
@@ -6773,11 +6794,20 @@ const translations = {
         hangUp: 'Colgar',
     },
     testDrive: {
+        quickAction: {
+            takeATwoMinuteTestDrive: 'Haz una proba de 2 minutos',
+            exploreExpensify: 'Explora todo lo que Expensify tiene para ofrecer',
+        },
         modal: {
             title: 'Haz una prueba con nosotros',
             description: 'Haz un recorrido rápido por el producto para ponerte al día rápidamente. ¡No se requieren paradas!',
             confirmText: 'Iniciar prueba',
             helpText: 'Omitir',
+        },
+        banner: {
+            currentlyTestDrivingExpensify: 'Actualmente estás probando Expensify',
+            readyForTheRealThing: '¿Listo para la versión real?',
+            getStarted: 'Comenzar',
         },
     },
 };
