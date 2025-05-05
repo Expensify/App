@@ -4,15 +4,7 @@ import CONST from '@src/CONST';
 import type {Policy, Report, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
-import {
-    arePaymentsEnabled,
-    getConnectedIntegration,
-    getCorrectedAutoReportingFrequency,
-    getSubmitToAccountID,
-    hasAccountingConnections,
-    hasIntegrationAutoSync,
-    isPrefferedExporter,
-} from './PolicyUtils';
+import {arePaymentsEnabled, getCorrectedAutoReportingFrequency, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPrefferedExporter} from './PolicyUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
@@ -138,13 +130,12 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
     const isReimbursed = isSettled(report);
     const isClosed = isClosedReport(report);
     const isApproved = isReportApproved({report});
-    const hasAccountingConnection = hasAccountingConnections(policy);
-    const connectedIntegration = getConnectedIntegration(policy);
+    const connectedIntegration = getValidConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
     const hasAnyViolations =
         hasViolations(report.reportID, violations) || hasNoticeTypeViolations(report.reportID, violations, true) || hasWarningTypeViolations(report.reportID, violations, true);
 
-    if (!hasAccountingConnection || !isExpense || !isExporter) {
+    if (!connectedIntegration || !isExpense || !isExporter) {
         return false;
     }
 
