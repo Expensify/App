@@ -463,6 +463,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             isNonUSDWorkspace={isNonUSDWorkspace}
             setNonUSDBankAccountStep={setNonUSDBankAccountStep}
             setUSDBankAccountStep={setUSDBankAccountStep}
+            policyID={policyIDParam}
         />
     );
 }

@@ -19,7 +19,7 @@ import * as MultiGestureCanvasUtils from './utils';
 
 type MultiGestureCanvasProps = ChildrenProps & {
     /**
-     * Wheter the canvas is currently active (in the screen) or not.
+     * Whether the canvas is currently active (in the screen) or not.
      * Disables certain gestures and functionality
      */
     isActive?: boolean;
