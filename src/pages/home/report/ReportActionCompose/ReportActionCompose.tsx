@@ -481,18 +481,6 @@ function ReportActionCompose({
                                         onValueChange={onValueChange}
                                         didHideComposerInput={didHideComposerInput}
                                     />
-                                    {/* <ReportDropUI */}
-                                    {/*     onDrop={(event: DragEvent) => { */}
-                                    {/*         if (isAttachmentPreviewActive) { */}
-                                    {/*             return; */}
-                                    {/*         } */}
-                                    {/*         const data = event.dataTransfer?.files[0]; */}
-                                    {/*         if (data) { */}
-                                    {/*             data.uri = URL.createObjectURL(data); */}
-                                    {/*             displayFileInModal(data); */}
-                                    {/*         } */}
-                                    {/*     }} */}
-                                    {/* /> */}
                                     <DropZoneUI
                                         onDrop={(event: DragEvent) => {
                                             if (isAttachmentPreviewActive) {

@@ -139,6 +139,7 @@ import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
 import Megaphone from '@assets/images/megaphone.svg';
+import MessageInABottle from '@assets/images/simple-illustrations/simple-illustration__messageinabottle.svg';
 import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
 import Minus from '@assets/images/minus.svg';
@@ -174,11 +175,13 @@ import ReceiptSearch from '@assets/images/receipt-search.svg';
 import ReceiptSlash from '@assets/images/receipt-slash.svg';
 import Receipt from '@assets/images/receipt.svg';
 import RemoveMembers from '@assets/images/remove-members.svg';
+import ReplaceReceipt from '@assets/images/simple-illustrations/simple-illustration__replace-receipt.svg';
 import Rotate from '@assets/images/rotate-image.svg';
 import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
 import Send from '@assets/images/send.svg';
 import Shield from '@assets/images/shield.svg';
+import SmartScan from '@assets/images/simple-illustrations/simple-illustration__smartscan.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
 import GoogleLogo from '@assets/images/signIn/google-logo.svg';
 import AdvancedApprovalsSquare from '@assets/images/simple-illustrations/advanced-approvals-icon-square.svg';
@@ -338,6 +341,7 @@ export {
     Menu,
     Meter,
     Megaphone,
+    MessageInABottle,
     MoneyBag,
     MoneyCircle,
     MoneySearch,
@@ -371,11 +375,13 @@ export {
     ReceiptSlash,
     RemoveMembers,
     ReceiptSearch,
+    ReplaceReceipt,
     Rotate,
     RotateLeft,
     Scan,
     Send,
     Shield,
+    SmartScan,
     Stopwatch,
     Suitcase,
     Sync,
