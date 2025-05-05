@@ -17,6 +17,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -32,13 +33,14 @@ import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtils, isUserPolicyAdmin} from '@libs/PolicyUtils';
-import {getParticipantsList, getReportName, isChatThread, isDefaultRoom, isPolicyExpenseChat as isPolicyExpenseChatUtils, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {getReportName, getReportPersonalDetailsParticipants, isChatThread, isDefaultRoom, isPolicyExpenseChat as isPolicyExpenseChatUtils, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {clearAddRoomMemberError, openRoomMembersPage, removeFromRoom} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
@@ -52,7 +54,6 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
     const {formatPhoneNumber, translate} = useLocalize();
-    const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchValue, setSearchValue] = useState('');
@@ -62,6 +63,29 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
     const backTo = route.params.backTo;
 
+    const {chatParticipants: participants, personalDetailsParticipants} = useMemo(
+        () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
+        [report, personalDetails, reportMetadata],
+    );
+
+    const shouldIncludeMember = useCallback(
+        (participant?: PersonalDetails) => {
+            if (!participant) {
+                return false;
+            }
+            const isInParticipants = participants.includes(participant.accountID);
+            const pendingChatMember = reportMetadata?.pendingChatMembers?.find((member) => member.accountID === participant.accountID.toString());
+
+            const isPendingDelete = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+            // Keep the member only if they're still in the room and not pending removal
+            return isInParticipants && !isPendingDelete;
+        },
+        [participants, reportMetadata?.pendingChatMembers],
+    );
+
+    const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, shouldIncludeMember);
+
     const isFocusedScreen = useIsFocused();
     const {isOffline} = useNetwork();
 
@@ -70,13 +94,6 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
-
-    useEffect(() => {
-        if (isFocusedScreen) {
-            return;
-        }
-        setSelectedMembers([]);
-    }, [isFocusedScreen]);
 
     /**
      * Get members for the current room
@@ -125,16 +142,22 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     /**
      * Add user from the selectedMembers list
      */
-    const addUser = useCallback((accountID: number) => {
-        setSelectedMembers((prevSelected) => [...prevSelected, accountID]);
-    }, []);
+    const addUser = useCallback(
+        (accountID: number) => {
+            setSelectedMembers((prevSelected) => [...prevSelected, accountID]);
+        },
+        [setSelectedMembers],
+    );
 
     /**
      * Remove user from the selectedEmployees list
      */
-    const removeUser = useCallback((accountID: number) => {
-        setSelectedMembers((prevSelected) => prevSelected.filter((selected) => selected !== accountID));
-    }, []);
+    const removeUser = useCallback(
+        (accountID: number) => {
+            setSelectedMembers((prevSelected) => prevSelected.filter((id) => id !== accountID));
+        },
+        [setSelectedMembers],
+    );
 
     /** Toggle user from the selectedMembers list */
     const toggleUser = useCallback(
@@ -170,8 +193,6 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             setSelectedMembers(everyAccountId);
         }
     };
-
-    const participants = useMemo(() => getParticipantsList(report, personalDetails, true), [report, personalDetails]);
 
     /** Include the search bar when there are 8 or more active members in the selection list */
     const shouldShowTextInput = useMemo(() => {
