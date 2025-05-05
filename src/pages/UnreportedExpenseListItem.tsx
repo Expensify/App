@@ -15,7 +15,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
     const theme = useTheme();
     const backgroundColor = isSelected ? styles.buttonDefaultBG : styles.highlightBG;
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
+    const hoveredTransactionStyles = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
@@ -33,7 +33,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            pressableWrapperStyle={[animatedHighlightStyle, backgroundColor]}
+            pressableWrapperStyle={[hoveredTransactionStyles, backgroundColor]}
             onSelectRow={() => {
                 onSelectRow(item);
                 setIsSelected((val) => !val);
