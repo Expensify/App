@@ -32,7 +32,7 @@ type UseBottomSafeAreaPaddingStyleParams = {
  */
 function useBottomSafeSafeAreaPaddingStyle({
     addBottomSafeAreaPadding = false,
-    addOfflineIndicatorBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
     style,
     styleProperty = 'paddingBottom',
     additionalPaddingBottom = 0,
