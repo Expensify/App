@@ -24,15 +24,14 @@ const Stack = createPlatformStackNavigator<RightModalNavigatorParamList>();
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
 
     const offlineIndicatorContextValue: ScreenWrapperOfflineIndicatorContextType = useMemo(
         () => ({
-            addSafeAreaPadding: isSmallScreenWidth,
+            addSafeAreaPadding: shouldUseNarrowLayout,
         }),
-        [isSmallScreenWidth],
+        [shouldUseNarrowLayout],
     );
 
     const screenOptions = useCustomScreenOptions();
