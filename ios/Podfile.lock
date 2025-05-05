@@ -750,7 +750,6 @@ PODS:
     - React-Fabric/componentregistry (= 0.79.2)
     - React-Fabric/componentregistrynative (= 0.79.2)
     - React-Fabric/components (= 0.79.2)
-    - React-Fabric/consistency (= 0.79.2)
     - React-Fabric/core (= 0.79.2)
     - React-Fabric/dom (= 0.79.2)
     - React-Fabric/imagemanager (= 0.79.2)
@@ -975,29 +974,7 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/core
     - Yoga
-  - React-Fabric/consistency (0.79.2):
-    - DoubleConversion
-    - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
-    - glog
-    - hermes-engine
-    - RCT-Folly/Fabric (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-cxxreact
-    - React-debug
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-jsi
-    - React-jsiexecutor
-    - React-logger
-    - React-rendererdebug
-    - React-runtimescheduler
-    - React-utils
-    - ReactCommon/turbomodule/core
-  - React-Fabric/core (0.79.2):
+  - React-Fabric/core (0.77.1):
     - DoubleConversion
     - fast_float (= 6.1.4)
     - fmt (= 11.0.2)
@@ -3825,6 +3802,6 @@ SPEC CHECKSUMS:
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: c758bfb934100bb4bf9cbaccb52557cee35e8bdf
 
-PODFILE CHECKSUM: 7c82525cf111fba4b673ad07e55f2994ea241a32
+PODFILE CHECKSUM: 3742d104d6ece80a980e5052f676b69f97405c55
 
 COCOAPODS: 1.15.2
