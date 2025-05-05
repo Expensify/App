@@ -428,10 +428,11 @@ function ScreenWrapper(
     const offlineIndicatorContextValue = useMemo(
         () => ({
             addSafeAreaPadding: addOfflineIndicatorSafeAreaPadding,
-            showOnSmallScreens: showSmallScreenOfflineIndicator,
-            showOnWideScreens: showWideScreenOfflineIndicator,
+            // Prevent any nested ScreenWrapper components from rendering another offline indicator.
+            showOnSmallScreens: false,
+            showOnWideScreens: false,
         }),
-        [addOfflineIndicatorSafeAreaPadding, showSmallScreenOfflineIndicator, showWideScreenOfflineIndicator],
+        [addOfflineIndicatorSafeAreaPadding],
     );
 
     const displaySmallScreenOfflineIndicator = isSmallScreenWidth && showSmallScreenOfflineIndicator;
