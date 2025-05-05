@@ -4,13 +4,11 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption, OnboardingHelpType} from '@components/ButtonWithDropdownMenu/types';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-import {BackArrow, CalendarSolid, DotIndicator, FallbackAvatar, Monitor} from '@components/Icon/Expensicons';
+import {BackArrow, CalendarSolid, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -32,8 +30,8 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
-import {initializeOpenAIRealtime, stopConnection} from '@libs/actions/OpenAI';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -67,7 +65,6 @@ import {
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
 import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
-import getTalkToSalesData from '@libs/TalkToSalesUtils';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import {joinRoom} from '@userActions/Report';
@@ -79,6 +76,7 @@ import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import OnboardingHelpDropdownButton from './OnboardingHelpDropdownButton';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -121,17 +119,16 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const [isDismissedDiscountBanner, setIsDismissedDiscountBanner] = useState(false);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES, {canBeMissing: true});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
 
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {canUseTalkToAISales} = usePermissions();
-    const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report);
+    const isNativePlatform = getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID;
+    const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report) && !isNativePlatform;
     const shouldShowRegisterForWebinar = introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && isAdminRoom(report);
     const shouldShowOnBoardingHelpDropdownButton = shouldShowTalkToSales || shouldShowRegisterForWebinar;
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
@@ -237,56 +234,16 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         />
     );
 
-    const onboardingHelpDropdownButton = () => {
-        const options: Array<DropdownOption<OnboardingHelpType>> = [];
-        const talkToSalesOption = getTalkToSalesData({accountID, introSelected, talkToAISales, reportID: report?.reportID});
+    const onboardingHelpDropdownButton = (
+        <OnboardingHelpDropdownButton
+            reportID={report?.reportID}
+            shouldUseNarrowLayout={shouldUseNarrowLayout}
+            shouldShowTalkToSales={shouldShowTalkToSales}
+            shouldShowRegisterForWebinar={shouldShowRegisterForWebinar}
+        />
+    );
 
-        if (shouldShowTalkToSales && talkToSalesOption) {
-            options.push({
-                text: talkToSalesOption.talkToSaleText,
-                icon: talkToSalesOption.talkToSalesIcon,
-                value: CONST.ONBOARDING_HELP.TALK_TO_SALES,
-                onSelected: () => {
-                    if (!report?.reportID) {
-                        return;
-                    }
-
-                    if (talkToAISales?.isTalkingToAISales) {
-                        stopConnection();
-                    } else {
-                        initializeOpenAIRealtime(Number(report.reportID) ?? CONST.DEFAULT_NUMBER_ID, talkToSalesOption.abTestCtaText);
-                    }
-                },
-            });
-        }
-
-        if (shouldShowRegisterForWebinar) {
-            options.push({
-                text: translate('getAssistancePage.registerForWebinar'),
-                icon: Monitor,
-                value: CONST.ONBOARDING_HELP.REGISTER_FOR_WEBINAR,
-                onSelected: () => {
-                    openExternalLink(CONST.REGISTER_FOR_WEBINAR_URL);
-                },
-            });
-        }
-
-        if (options.length === 0) {
-            return undefined;
-        }
-        return (
-            <ButtonWithDropdownMenu
-                onPress={() => null}
-                shouldAlwaysShowDropdownMenu
-                success={false}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                options={options}
-                isSplitButton={false}
-                customText={translate('getAssistancePage.onboardingHelp')}
-                isLoading={talkToAISales?.isLoading}
-            />
-        );
-    };
+    console.log('OnboardingHelpDropdownButton', !!onboardingHelpDropdownButton);
 
     const getActionButtonStyles = () => {
         if (isChatUsedForOnboarding && shouldShowDiscount) {
@@ -409,7 +366,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton()}
+                                    {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
                                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
@@ -444,7 +401,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 <View style={isChatUsedForOnboarding && !shouldShowDiscount && shouldShowGuideBooking && [styles.dFlex, styles.flexRow]}>
                     <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                         {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
-                            <View style={[styles.flex1, styles.pb3, styles.pl5]}>{onboardingHelpDropdownButton()}</View>
+                            <View style={[styles.flex1, styles.pb3, styles.pl5]}>{onboardingHelpDropdownButton}</View>
                         )}
                         {!isLoading && !shouldShowDiscount && isChatUsedForOnboarding && shouldUseNarrowLayout && (
                             <FreeTrial
@@ -471,7 +428,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             </View>
             {shouldShowEarlyDiscountBanner && (
                 <EarlyDiscountBanner
-                    onboardingHelpDropdownButton={shouldUseNarrowLayout ? onboardingHelpDropdownButton() : undefined}
+                    onboardingHelpDropdownButton={shouldUseNarrowLayout ? onboardingHelpDropdownButton : undefined}
                     GuideBookingButton={shouldShowGuideBookingButtonInEarlyDiscountBanner ? guideBookingButton : undefined}
                     isSubscriptionPage={false}
                     onDismissedDiscountBanner={() => setIsDismissedDiscountBanner(true)}
