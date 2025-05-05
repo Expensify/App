@@ -6445,7 +6445,7 @@ const translations = {
             perMemberMonth: 'por miembro/mes',
             collect: {
                 title: 'Recopilar',
-                description: 'El plan SMB que te ofrece gestión de gastos, viajes y chat.',
+                description: 'El plan para pequeñas empresas que te ofrece gestión de gastos, viajes y chat.',
                 priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 benefit1: 'Escaneo de recibos',
