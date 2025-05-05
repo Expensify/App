@@ -9,8 +9,10 @@ import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
+import DropZoneUI from '@components/DropZoneUI';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
@@ -34,7 +36,6 @@ import {canShowReportRecipientLocalTime, chatIncludesChronos, chatIncludesConcie
 import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
-import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from '@userActions/Report';
@@ -480,7 +481,19 @@ function ReportActionCompose({
                                         onValueChange={onValueChange}
                                         didHideComposerInput={didHideComposerInput}
                                     />
-                                    <ReportDropUI
+                                    {/* <ReportDropUI */}
+                                    {/*     onDrop={(event: DragEvent) => { */}
+                                    {/*         if (isAttachmentPreviewActive) { */}
+                                    {/*             return; */}
+                                    {/*         } */}
+                                    {/*         const data = event.dataTransfer?.files[0]; */}
+                                    {/*         if (data) { */}
+                                    {/*             data.uri = URL.createObjectURL(data); */}
+                                    {/*             displayFileInModal(data); */}
+                                    {/*         } */}
+                                    {/*     }} */}
+                                    {/* /> */}
+                                    <DropZoneUI
                                         onDrop={(event: DragEvent) => {
                                             if (isAttachmentPreviewActive) {
                                                 return;
@@ -491,6 +504,7 @@ function ReportActionCompose({
                                                 displayFileInModal(data);
                                             }
                                         }}
+                                        icon={Expensicons.DragAndDrop}
                                     />
                                 </>
                             )}
