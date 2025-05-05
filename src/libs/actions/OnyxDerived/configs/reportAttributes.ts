@@ -29,13 +29,13 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.NVP_PREFERRED_LOCALE,
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ONYXKEYS.PERSONAL_DETAILS_LIST,
         ONYXKEYS.COLLECTION.TRANSACTION,
         ONYXKEYS.COLLECTION.POLICY,
-        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
-    compute: ([reports, preferredLocale, transactionViolations, reportActions], {currentValue, sourceValues, areAllConnectionsSet}) => {
+    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs], {currentValue, sourceValues, areAllConnectionsSet}) => {
         if (!areAllConnectionsSet) {
             return {
                 reports: {},
@@ -83,15 +83,16 @@ export default createOnyxDerivedValueConfig({
             }
 
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-            const {hasAnyViolations, hasErrors, oneTransactionThreadReportID, requiresAttention} = generateReportAttributes({
+            const {hasAnyViolations, hasErrors, oneTransactionThreadReportID, requiresAttention, isReportArchived} = generateReportAttributes({
                 report,
                 reportActions,
                 transactionViolations,
+                reportNameValuePairs,
             });
 
             let brickRoadStatus;
             // if report has errors or violations, show red dot
-            if (SidebarUtils.getReportBrickRoadReason(report, reportActionsList, hasAnyViolations, hasErrors, oneTransactionThreadReportID)) {
+            if (SidebarUtils.getReportBrickRoadReason(report, reportActionsList, hasAnyViolations, hasErrors, oneTransactionThreadReportID, !!isReportArchived)) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             }
             // if report does not have error, check if it should show green dot

@@ -77,6 +77,7 @@ import {
     getPolicyName,
     getReportDescription,
     getReportName,
+    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
@@ -87,7 +88,6 @@ import {
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
-    isArchivedReportWithID,
     isChatRoom,
     isChatThread,
     isConciergeChatReport,
@@ -242,7 +242,7 @@ function getOrderedReportIDs(
             isSystemChat ||
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
-            (!isInFocusMode && isArchivedReportWithID(report.reportID)) ||
+            (!isInFocusMode && isArchivedReport(reportNameValuePairs)) ||
             requiresAttentionFromCurrentUser(report, parentReportAction);
         if (isHidden && !shouldOverrideHidden) {
             return;
@@ -341,9 +341,16 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
-function getReportBrickRoadReason(report: Report, reportActions: OnyxEntry<ReportActions>, hasAnyViolations: boolean, hasErrors: boolean, singleTransactionThread?: string) {
+function getReportBrickRoadReason(
+    report: Report,
+    reportActions: OnyxEntry<ReportActions>,
+    hasAnyViolations: boolean,
+    hasErrors: boolean,
+    singleTransactionThread?: string,
+    isReportArchived = false,
+) {
     const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
-    if (isArchivedReportWithID(report.reportID)) {
+    if (isReportArchived) {
         return false;
     }
 
@@ -387,12 +394,13 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
+    isReportArchived = false,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
     const errors = getAllReportErrors(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
 
-    if (isArchivedReportWithID(report.reportID)) {
+    if (isReportArchived) {
         return null;
     }
 
@@ -436,8 +444,14 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     return null;
 }
 
-function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, transactionViolations?: OnyxCollection<TransactionViolation[]>) {
-    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations);
+function shouldShowRedBrickRoad(
+    report: Report,
+    reportActions: OnyxEntry<ReportActions>,
+    hasViolations: boolean,
+    transactionViolations?: OnyxCollection<TransactionViolation[]>,
+    isReportArchived = false,
+) {
+    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isReportArchived);
 }
 
 /**
@@ -819,7 +833,11 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         return welcomeMessage;
     }
 
-    if (isArchivedReportWithID(report?.reportID)) {
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
+    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+
+    if (isArchivedReport(reportNameValuePairs)) {
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (isDomainRoom(report)) {
