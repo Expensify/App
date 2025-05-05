@@ -33,8 +33,11 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const [exitReason] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const [exitReason] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM, {
+        selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[EXIT_SURVEY_REASON_INPUT_IDS.REASON] ?? null,
+        canBeMissing: true,
+    });
     const shouldShowQuickTips =
         isEmptyObject(tryNewDot) || tryNewDot?.classicRedirect?.dismissed === true || (!isEmptyObject(tryNewDot) && tryNewDot?.classicRedirect?.dismissed === undefined);
 

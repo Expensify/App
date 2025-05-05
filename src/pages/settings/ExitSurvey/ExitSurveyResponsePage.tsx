@@ -32,7 +32,7 @@ import ExitSurveyOffline from './ExitSurveyOffline';
 type ExitSurveyResponsePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
 
 function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps) {
-    const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: (value) => value?.[INPUT_IDS.RESPONSE]});
+    const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: (value) => value?.[INPUT_IDS.RESPONSE], canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
