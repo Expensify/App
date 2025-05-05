@@ -1,5 +1,7 @@
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import {canSubmitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -15,6 +17,9 @@ import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import currencyList from './currencyList.json';
+
+// This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const testDate = DateUtils.getDBTime();
 const currentUserAccountID = 5;
@@ -346,8 +351,8 @@ describe('canSubmitReport', () => {
         });
 
         // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
-        // const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-        expect(canSubmitReport(report, policy, [], undefined)).toBe(false);
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current)).toBe(false);
     });
 });
 
