@@ -30,8 +30,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES, {canBeMissing: true});
     const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     const email = session?.email ?? '';
     const domain = email.split('@').at(1) ?? '';
@@ -63,7 +62,6 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            shouldShowOfflineIndicator={isSmallScreenWidth}
             includeSafeAreaPaddingBottom
             testID="BaseOnboardingPrivateDomain"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
