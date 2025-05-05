@@ -341,7 +341,7 @@ function NewChatPage() {
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
             disableOfflineIndicatorSafeAreaPadding
-            // shouldShowOfflineIndicator={false}
+            shouldShowOfflineIndicator={false}
             keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}

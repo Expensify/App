@@ -215,6 +215,7 @@ function WorkspaceNewRoomPage() {
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             includePaddingTop={false}
+            shouldShowOfflineIndicator
             shouldEnablePickerAvoiding={false}
             shouldEnableKeyboardAvoidingView={workspaceOptions.length !== 0}
             keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top}
