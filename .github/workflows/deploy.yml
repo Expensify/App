@@ -612,11 +612,18 @@ jobs:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
 
+      - name: Get last production release
+        id: get_last_prod_version
+        run: echo "LAST_PROD_VERSION=$(gh release list --repo ${{ github.repository }} --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName')" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name:  🚀 Create release 🚀
         run: |
           gh release create ${{ needs.prep.outputs.TAG }} ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
             --repo ${{ github.repository }} \
             --title ${{ needs.prep.outputs.TAG }} \
+            --notes-start-tag ${{ steps.get_last_prod_version.outputs.LAST_PROD_VERSION }} \
             --generate-notes \
             --verify-tag \
             --target ${{ github.ref }}
@@ -691,106 +698,18 @@ jobs:
   # To address this, we'll:
   #   1. Bump the version on main again
   #   2. CP that version bump to staging
-  createNewVersion:
+  cherryPickExtraVersionBump:
     needs: [prep, checkDeploymentSuccess]
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-    uses: ./.github/workflows/createNewVersion.yml
+    uses: ./.github/workflows/cherryPick.yml
     secrets: inherit
     with:
-      SEMVER_LEVEL: BUILD
-
-  cherryPickVersionBump:
-    needs: [createNewVersion, checkDeploymentSuccess, prep]
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-    runs-on: ubuntu-latest
-    steps:
-      # v4.2.2
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: staging
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          submodules: true
-
-      # This command is necessary to fetch any branch other than main in the submodule.
-      # See https://github.com/actions/checkout/issues/1815#issuecomment-2777836442 for further context.
-      - name: Enable branch-switching in submodules
-        run: |
-          git submodule foreach '\
-            git config --add remote.origin.fetch "+refs/heads/staging:refs/remotes/origin/staging" && \
-            git config --add remote.origin.fetch "+refs/heads/production:refs/remotes/origin/production"'
-
-      - name: Set up git for OSBotify
-        id: setupGitForOSBotify
-        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
-        with:
-          OP_VAULT: ${{ vars.OP_VAULT }}
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
-          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
-
-      - name: Get previous app version
-        id: getPreviousVersion
-        uses: ./.github/actions/javascript/getPreviousVersion
-        with:
-          SEMVER_LEVEL: 'PATCH'
-
-      - name: Fetch history of relevant refs
-        run: |
-          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
-          cd Mobile-Expensify
-          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
-
-      - name: Get E/App version bump commit
-        id: getVersionBumpCommit
-        run: |
-          git switch main
-          VERSION_BUMP_COMMIT="$(git log -1 --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
-          if [ -z "$VERSION_BUMP_COMMIT" ]; then
-            echo "::error::❌ Could not find E/App version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
-            git log --oneline
-          else
-            echo "::notice::👀 Found E/App version bump commit $VERSION_BUMP_COMMIT"
-          fi
-          echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
-
-      - name: Get Mobile-Expensify version bump commit
-        id: getMobileExpensifyVersionBumpCommit
-        working-directory: Mobile-Expensify
-        run: |
-          git switch main
-          VERSION_BUMP_COMMIT="$(git log -1 --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
-          if [ -z "$VERSION_BUMP_COMMIT" ]; then
-            echo "::error::❌ Could not find Mobile-Expensify version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
-            git log --oneline
-          else
-            echo "::notice::👀 Found Mobile-Expensify version bump commit $VERSION_BUMP_COMMIT"
-          fi
-          echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
-
-      - name: Cherry-pick the Mobile-Expensify version bump to Mobile-Expensify staging
-        working-directory: Mobile-Expensify
-        run: |
-          git switch staging
-          git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getMobileExpensifyVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
-          git commit --amend -m "$(git log -1 --pretty=%B)" -m "(cherry-picked to staging by ${{ github.actor }})"
-          git push origin staging
-
-      - name: Cherry-pick the E/App version-bump to target branch
-        run: |
-          git switch staging
-          git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
-          git commit --amend -m "$(git log -1 --pretty=%B)" -m "(cherry-picked to staging by ${{ github.actor }})"
-
-      - name: Update the Mobile-Expensify submodule on E/App staging
-        run: |
-          git add Mobile-Expensify
-          git commit -m "Update Mobile-Expensify submodule version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
-          git push origin staging
+      # Note: by omitting PULL_REQUEST_URL, we are just doing a version bump and CP'ing it to staging
+      TARGET: staging
 
   updateChecklistWithVersionBump:
     name: Update deploy checklist with the new version bump
-    needs: [prep, checkDeploymentSuccess, cherryPickVersionBump]
+    needs: [prep, checkDeploymentSuccess, cherryPickExtraVersionBump]
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     uses: ./.github/workflows/createDeployChecklist.yml
     secrets: inherit
