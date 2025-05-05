@@ -10,6 +10,7 @@ import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/ge
 import getInitialSubStepForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBankInfoStep';
 import getInputKeysForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInputKeysForBankInfoStep';
 import {clearReimbursementAccountBankCreation, createCorpayBankAccount, getCorpayBankAccountFields} from '@userActions/BankAccounts';
+import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
@@ -101,6 +102,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     } = useSubStep<BankInfoSubStepProps>({bodyContent, startFrom, onFinished: submit});
 
     const handleBackButtonPress = () => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
             goToTheLastStep();
             return;
