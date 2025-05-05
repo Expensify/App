@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ListItemProps, TransactionListItemType} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -8,8 +7,6 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-
-const emptyStylesArray: ViewStyle[] = [];
 
 function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, canSelectMultiple, onFocus, shouldSyncFocus, onSelectRow}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -55,7 +52,6 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
                         onSelectRow(item);
                         setIsSelected((val) => !val);
                     }}
-                    containerStyles={emptyStylesArray}
                     shouldShowCheckBox
                 />
             </View>
@@ -63,6 +59,6 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
     );
 }
 
-UnreportedExpenseListItem.displayName = 'unreportedExpenseListItem';
+UnreportedExpenseListItem.displayName = 'UnreportedExpenseListItem';
 
 export default UnreportedExpenseListItem;

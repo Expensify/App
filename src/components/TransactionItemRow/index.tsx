@@ -29,7 +29,6 @@ function TransactionItemRow({
     dateColumnSize,
     shouldShowChatBubbleComponent = false,
     onCheckboxPress,
-    containerStyles,
     shouldShowCheckBox = false,
 }: {
     transactionItem: Transaction;
@@ -39,7 +38,6 @@ function TransactionItemRow({
     dateColumnSize: TableColumnSize;
     shouldShowChatBubbleComponent?: boolean;
     onCheckboxPress: (transactionID: string) => void;
-    containerStyles?: ViewStyle[];
     shouldShowCheckBox: boolean;
 }) {
     const styles = useThemeStyles();
@@ -60,7 +58,7 @@ function TransactionItemRow({
             {shouldUseNarrowLayout ? (
                 <Hoverable>
                     {(hovered) => (
-                        <View style={containerStyles ?? [hovered ? styles.hoveredComponentBG : backgroundColor, styles.p2, styles.expenseWidgetRadius]}>
+                        <View style={[hovered && !isSelected ? styles.hoveredComponentBG : backgroundColor, styles.p2, styles.expenseWidgetRadius]}>
                             {' '}
                             <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
                                 {!!selectionMode?.isEnabled ||
@@ -146,7 +144,7 @@ function TransactionItemRow({
             ) : (
                 <Hoverable>
                     {(hovered) => (
-                        <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p3, styles.expenseWidgetRadius, styles.gap2]}>
+                        <View style={[hovered && !isSelected ? styles.hoveredComponentBG : backgroundColor, styles.p3, styles.expenseWidgetRadius, styles.gap2]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                                 {shouldShowCheckBox && (
                                     <View style={[styles.mr1]}>
