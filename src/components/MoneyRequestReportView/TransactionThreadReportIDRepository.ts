@@ -7,14 +7,18 @@ const transactionReportIDs: string[] = [];
  * This is a super simple storage to keep these ids. It's implemented as a singleton because we can only ever have 1 RHP opened with report screen.
  */
 
-function setActiveTransactionReportIDs(ids: string[]) {
-    // Cleaning previously saved keys because
+function setActiveTransactionThreadIDs(ids: string[]) {
+    // Clearing previously saved keys
     transactionReportIDs.splice(0, Infinity);
     transactionReportIDs.push(...ids);
 }
 
-function getActiveTransactionReportIDs() {
+function getActiveTransactionThreadIDs() {
     return transactionReportIDs;
 }
 
-export {setActiveTransactionReportIDs, getActiveTransactionReportIDs};
+function clearActiveTransactionThreadIDs() {
+    transactionReportIDs.splice(0, Infinity);
+}
+
+export {setActiveTransactionThreadIDs, getActiveTransactionThreadIDs, clearActiveTransactionThreadIDs};
