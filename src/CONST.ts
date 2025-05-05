@@ -11,6 +11,7 @@ import BankAccount from './libs/models/BankAccount';
 import {addTrailingForwardSlash} from './libs/Url';
 import ONYXKEYS from './ONYXKEYS';
 import SCREENS from './SCREENS';
+import variables from './styles/variables';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
@@ -399,8 +400,8 @@ const CONST = {
         TEXTAREA: 'TEXTAREA',
     },
     POPOVER_ACCOUNT_SWITCHER_POSITION: {
-        horizontal: 12,
-        vertical: 80,
+        horizontal: 12 + variables.navigationTabBarSize,
+        vertical: 72,
     },
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
@@ -809,7 +810,6 @@ const CONST = {
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
-        LEFT_HAND_BAR: 'leftHandBar',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
@@ -5304,6 +5304,7 @@ const CONST = {
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
+        OVER_TRIP_LIMIT: 'overTripLimit',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
@@ -7007,6 +7008,8 @@ const CONST = {
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
+        GBR_RBR_CHAT: 'chatGBRRBR',
+        ACCOUNT_SWITCHER: 'accountSwitcher',
         EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
