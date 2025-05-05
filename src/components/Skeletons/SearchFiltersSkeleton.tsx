@@ -16,7 +16,7 @@ function SearchFiltersSkeleton({shouldAnimate = true}: SearchFiltersSkeletonProp
     const skeletonCount = new Array(5).fill(0);
 
     return (
-        <View style={[styles.mh5, styles.mb5]}>
+        <View style={[styles.mh5, styles.mb4, styles.mt2]}>
             <SkeletonViewContentLoader
                 animate={shouldAnimate}
                 height={28}

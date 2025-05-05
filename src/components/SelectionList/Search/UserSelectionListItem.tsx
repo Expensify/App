@@ -47,12 +47,12 @@ function UserSelectionListItem<TItem extends ListItem>({
     const userHandle = useMemo(() => {
         const login = item.login ?? '';
 
-        // If the emails are not in the same private domain, we also return the displayText
+        // If the emails are not in the same private domain, we just return the users email
         if (!areEmailsFromSamePrivateDomain(login, currentUserPersonalDetails.login ?? '')) {
             return Str.removeSMSDomain(login);
         }
 
-        // Otherwise, the emails must be of the same private domain, so we should remove the domain part
+        // Otherwise, the emails are a part of the same private domain, so we can remove the domain and just show username
         return login.split('@').at(0);
     }, [currentUserPersonalDetails.login, item.login]);
 
@@ -94,13 +94,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
                         text={Str.removeSMSDomain(item.text ?? '')}
-                        style={[
-                            styles.flexShrink0,
-                            styles.optionDisplayName,
-                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                            item.isBold !== false && styles.sidebarLinkTextBold,
-                            styles.pre,
-                        ]}
+                        style={[styles.flexShrink0, styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre]}
                     />
                     {!!userHandle && (
                         <TextWithTooltip
