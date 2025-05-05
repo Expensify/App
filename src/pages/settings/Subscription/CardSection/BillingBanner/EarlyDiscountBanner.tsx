@@ -103,6 +103,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onboarding
         styles.alignItemsCenter,
         styles.earlyDiscountButton,
         styles.mr2,
+        styles.w50,
         onboardingHelpDropdownButton,
         GuideBookingButton,
         translate,

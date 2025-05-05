@@ -1,14 +1,14 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import {DropdownOption, OnboardingHelpType} from '@components/ButtonWithDropdownMenu/types';
-import {Close, Monitor, Phone} from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import {initializeOpenAIRealtime, stopConnection} from '@libs/actions/OpenAI';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
+import {Close, Monitor, Phone} from './Icon/Expensicons';
 
 type TalkToSalesButtonProps = {
     reportID: string | undefined;

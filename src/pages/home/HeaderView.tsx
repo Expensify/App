@@ -12,6 +12,7 @@ import {BackArrow, CalendarSolid, DotIndicator, FallbackAvatar} from '@component
 import LoadingBar from '@components/LoadingBar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
@@ -76,7 +77,6 @@ import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import OnboardingHelpDropdownButton from './OnboardingHelpDropdownButton';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -242,8 +242,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             shouldShowRegisterForWebinar={shouldShowRegisterForWebinar}
         />
     );
-
-    console.log('OnboardingHelpDropdownButton', !!onboardingHelpDropdownButton);
 
     const getActionButtonStyles = () => {
         if (isChatUsedForOnboarding && shouldShowDiscount) {
