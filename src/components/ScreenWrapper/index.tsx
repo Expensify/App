@@ -38,6 +38,7 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ScreenWrapperOfflineIndicatorContext from './ScreenWrapperOfflineIndicatorContext';
 
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
@@ -98,8 +99,15 @@ type ScreenWrapperProps = {
     /** Whether to use the minHeight. Use true for screens where the window height are changing because of Virtual Keyboard */
     shouldEnableMinHeight?: boolean;
 
+    /** Whether to disable the safe area padding for the offline indicator */
+    disableOfflineIndicatorSafeAreaPadding?: boolean;
+
     /** Whether to show offline indicator */
+
     shouldShowOfflineIndicator?: boolean;
+
+    /** Whether to show offline indicator on wide screens */
+    shouldShowOfflineIndicatorInWideScreen?: boolean;
 
     /** Whether to avoid scroll on virtual viewport */
     shouldAvoidScrollOnVirtualViewport?: boolean;
@@ -114,9 +122,6 @@ type ScreenWrapperProps = {
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
     navigation?: PlatformStackNavigationProp<RootNavigatorParamList> | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>;
-
-    /** Whether to show offline indicator on wide screens */
-    shouldShowOfflineIndicatorInWideScreen?: boolean;
 
     /** Overrides the focus trap default settings */
     focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
@@ -161,7 +166,9 @@ function ScreenWrapper(
         shouldEnablePickerAvoiding = true,
         headerGapStyles,
         children,
-        shouldShowOfflineIndicator = true,
+        disableOfflineIndicatorSafeAreaPadding: disableOfflineIndicatorSafeAreaPaddingProp,
+        shouldShowOfflineIndicatorInWideScreen: shouldShowOfflineIndicatorInWideScreenProp,
+        shouldShowOfflineIndicator: shouldShowOfflineIndicatorProp,
         offlineIndicatorStyle,
         style,
         shouldDismissKeyboardBeforeClose = true,
@@ -169,7 +176,6 @@ function ScreenWrapper(
         testID,
         navigation: navigationProp,
         shouldAvoidScrollOnVirtualViewport = true,
-        shouldShowOfflineIndicatorInWideScreen = false,
         shouldUseCachedViewportHeight = false,
         focusTrapSettings,
         bottomContent,
@@ -360,7 +366,7 @@ function ScreenWrapper(
      * By default, the background color of the mobile offline indicator is opaque.
      * If `isOfflineIndicatorTranslucent` is set to true, a translucent background color is applied.
      */
-    const mobileOfflineIndicatorBackgroundStyle = useMemo(() => {
+    const smallScreenOfflineIndicatorBackgroundStyle = useMemo(() => {
         const showOfflineIndicatorBackground = !bottomContent && isOffline;
         if (!showOfflineIndicatorBackground) {
             return undefined;
@@ -369,7 +375,7 @@ function ScreenWrapper(
     }, [bottomContent, isOffline, isOfflineIndicatorTranslucent, styles.appBG, styles.translucentNavigationBarBG]);
 
     /** In edge-to-edge mode, we always want to apply the bottom safe area padding to the mobile offline indicator. */
-    const hasMobileOfflineIndicatorBottomSafeAreaPadding = isUsingEdgeToEdgeMode ? enableEdgeToEdgeBottomSafeAreaPadding : !includeSafeAreaPaddingBottom;
+    const hasSmallScreenOfflineIndicatorBottomSafeAreaPadding = isUsingEdgeToEdgeMode ? enableEdgeToEdgeBottomSafeAreaPadding : !includeSafeAreaPaddingBottom;
 
     /**
      * This style includes the bottom safe area padding for the mobile offline indicator.
@@ -379,42 +385,64 @@ function ScreenWrapper(
      * two overlapping layers of translucent background.
      * If the device does not have soft keys, the bottom safe area padding is applied as `paddingBottom`.
      */
-    const mobileOfflineIndicatorBottomSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: hasMobileOfflineIndicatorBottomSafeAreaPadding,
+    const smallScreenOfflineIndicatorBottomSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: hasSmallScreenOfflineIndicatorBottomSafeAreaPadding,
         styleProperty: isSoftKeyNavigation ? 'bottom' : 'paddingBottom',
     });
 
     /** If there is no bottom content, the mobile offline indicator will stick to the bottom of the screen by default. */
-    const displayStickyMobileOfflineIndicator = shouldMobileOfflineIndicatorStickToBottom && !bottomContent;
+    const displayStickySmallScreenOfflineIndicator = shouldMobileOfflineIndicatorStickToBottom && !bottomContent;
 
     /**
-     * This style includes all styles applied to the container of the mobile offline indicator.
+     * This style includes all styles applied to the container of the offline indicator on small screens.
      * It always applies the bottom safe area padding as well as the background style, if the device has soft keys.
      * In this case, we want the whole container (including the bottom safe area padding) to have translucent/opaque background.
      */
-    const mobileOfflineIndicatorContainerStyle = useMemo(
-        () => [mobileOfflineIndicatorBottomSafeAreaStyle, displayStickyMobileOfflineIndicator && styles.stickToBottom, !isSoftKeyNavigation && mobileOfflineIndicatorBackgroundStyle],
-        [mobileOfflineIndicatorBottomSafeAreaStyle, displayStickyMobileOfflineIndicator, styles.stickToBottom, isSoftKeyNavigation, mobileOfflineIndicatorBackgroundStyle],
+    const smallScreenOfflineIndicatorContainerStyle = useMemo(
+        () => [
+            smallScreenOfflineIndicatorBottomSafeAreaStyle,
+            displayStickySmallScreenOfflineIndicator && styles.stickToBottom,
+            !isSoftKeyNavigation && smallScreenOfflineIndicatorBackgroundStyle,
+        ],
+        [smallScreenOfflineIndicatorBottomSafeAreaStyle, displayStickySmallScreenOfflineIndicator, styles.stickToBottom, isSoftKeyNavigation, smallScreenOfflineIndicatorBackgroundStyle],
     );
 
     /**
-     * This style includes the styles applied to the mobile offline indicator component.
-     * If the device has soft keys, we only want to apply the background style to the mobile offline indicator component,
+     * This style includes the styles applied to the offline indicator component on small screens.
+     * If the device has soft keys, we only want to apply the background style to the offline indicator component,
      * rather than the whole container, because otherwise the navigation bar would be extra opaque, since it already has a translucent background.
      */
-    const mobileOfflineIndicatorStyle = useMemo(
-        () => [styles.pl5, isSoftKeyNavigation && mobileOfflineIndicatorBackgroundStyle, offlineIndicatorStyle],
-        [isSoftKeyNavigation, mobileOfflineIndicatorBackgroundStyle, offlineIndicatorStyle, styles.pl5],
+    const smallScreenOfflineIndicatorStyle = useMemo(
+        () => [styles.pl5, isSoftKeyNavigation && smallScreenOfflineIndicatorBackgroundStyle, offlineIndicatorStyle],
+        [isSoftKeyNavigation, smallScreenOfflineIndicatorBackgroundStyle, offlineIndicatorStyle, styles.pl5],
     );
 
-    const displayMobileOfflineIndicator = isSmallScreenWidth && shouldShowOfflineIndicator;
-    const displayWidescreenOfflineIndicator = !shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen;
+    // This context allows us to disable the safe area padding offseting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.
+    // This is useful e.g. for the RightModalNavigator, where we want to avoid the safe area padding offseting the offline indicator because we only show the offline indicator on small screens.
+    const parentOfflineIndicatorContext = useContext(ScreenWrapperOfflineIndicatorContext);
+    const showSmallScreenOfflineIndicator = shouldShowOfflineIndicatorProp ?? parentOfflineIndicatorContext.showOnSmallScreens ?? true;
+    const showWideScreenOfflineIndicator = shouldShowOfflineIndicatorInWideScreenProp ?? parentOfflineIndicatorContext.showOnWideScreens ?? false;
+    const addOfflineIndicatorSafeAreaPadding =
+        disableOfflineIndicatorSafeAreaPaddingProp === undefined ? parentOfflineIndicatorContext.addSafeAreaPadding ?? true : !disableOfflineIndicatorSafeAreaPaddingProp;
+
+    const offlineIndicatorContextValue = useMemo(
+        () => ({
+            addSafeAreaPadding: addOfflineIndicatorSafeAreaPadding,
+            showOnSmallScreens: showSmallScreenOfflineIndicator,
+            showOnWideScreens: showWideScreenOfflineIndicator,
+        }),
+        [addOfflineIndicatorSafeAreaPadding, showSmallScreenOfflineIndicator, showWideScreenOfflineIndicator],
+    );
+
+    const displaySmallScreenOfflineIndicator = isSmallScreenWidth && showSmallScreenOfflineIndicator;
+    const displayWidescreenOfflineIndicator = !shouldUseNarrowLayout && showWideScreenOfflineIndicator;
 
     /** If we currently show the offline indicator and it has bottom safe area padding, we need to offset the bottom safe area padding in the KeyboardAvoidingView. */
-    const shouldOffsetMobileOfflineIndicator = displayMobileOfflineIndicator && hasMobileOfflineIndicatorBottomSafeAreaPadding && isOffline;
+    const shouldOffsetMobileOfflineIndicator = displaySmallScreenOfflineIndicator && hasSmallScreenOfflineIndicatorBottomSafeAreaPadding && isOffline;
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
-    const contextValue = useMemo(
+
+    const statusContextValue = useMemo(
         () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
         [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
     );
@@ -449,38 +477,40 @@ function ScreenWrapper(
                         >
                             <HeaderGap styles={headerGapStyles} />
                             {isDevelopment && <CustomDevMenu />}
-                            <ScreenWrapperStatusContext.Provider value={contextValue}>
-                                {
-                                    // If props.children is a function, call it to provide the insets to the children.
-                                    typeof children === 'function'
-                                        ? children({
-                                              insets,
-                                              safeAreaPaddingBottomStyle,
-                                              didScreenTransitionEnd,
-                                          })
-                                        : children
-                                }
-                                {displayMobileOfflineIndicator && (
-                                    <>
-                                        {isOffline && (
-                                            <View style={[mobileOfflineIndicatorContainerStyle]}>
-                                                <OfflineIndicator style={mobileOfflineIndicatorStyle} />
-                                                {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
-                                            </View>
-                                        )}
-                                        <ImportedStateIndicator />
-                                    </>
-                                )}
-                                {displayWidescreenOfflineIndicator && (
-                                    <>
-                                        <OfflineIndicator
-                                            style={[styles.pl5, offlineIndicatorStyle]}
-                                            addBottomSafeAreaPadding={isUsingEdgeToEdgeMode ? !bottomContent : true}
-                                        />
-                                        {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
-                                        <ImportedStateIndicator />
-                                    </>
-                                )}
+                            <ScreenWrapperStatusContext.Provider value={statusContextValue}>
+                                <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+                                    {
+                                        // If props.children is a function, call it to provide the insets to the children.
+                                        typeof children === 'function'
+                                            ? children({
+                                                  insets,
+                                                  safeAreaPaddingBottomStyle,
+                                                  didScreenTransitionEnd,
+                                              })
+                                            : children
+                                    }
+                                    {displaySmallScreenOfflineIndicator && (
+                                        <>
+                                            {isOffline && (
+                                                <View style={[smallScreenOfflineIndicatorContainerStyle]}>
+                                                    <OfflineIndicator style={smallScreenOfflineIndicatorStyle} />
+                                                    {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                                </View>
+                                            )}
+                                            <ImportedStateIndicator />
+                                        </>
+                                    )}
+                                    {displayWidescreenOfflineIndicator && (
+                                        <>
+                                            <OfflineIndicator
+                                                style={[styles.pl5, offlineIndicatorStyle]}
+                                                addBottomSafeAreaPadding={isUsingEdgeToEdgeMode ? !bottomContent : true}
+                                            />
+                                            {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                            <ImportedStateIndicator />
+                                        </>
+                                    )}
+                                </ScreenWrapperOfflineIndicatorContext.Provider>
                             </ScreenWrapperStatusContext.Provider>
                         </PickerAvoidingView>
                     </KeyboardAvoidingView>
