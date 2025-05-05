@@ -690,30 +690,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-  # Why is this necessary for CP-to-prod? Consider this scenario:
-  #   1. You close a checklist and we create a new staging version `9.0.34-0` and a new checklist
-  #   2. You then CP a PR to production, and in the process create `9.0.35-0`
-  #   3. You close the new checklist, and we try to ship `9.0.34-0` to production. This won't work, because we already submitted a higher version `9.0-35-0`
-  #
-  # To address this, we'll:
-  #   1. Bump the version on main again
-  #   2. CP that version bump to staging
-  cherryPickExtraVersionBump:
-    needs: [prep, checkDeploymentSuccess]
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-    uses: ./.github/workflows/cherryPick.yml
-    secrets: inherit
-    with:
-      # Note: by omitting PULL_REQUEST_URL, we are just doing a version bump and CP'ing it to staging
-      TARGET: staging
-
-  updateChecklistWithVersionBump:
-    name: Update deploy checklist with the new version bump
-    needs: [prep, checkDeploymentSuccess, cherryPickExtraVersionBump]
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-    uses: ./.github/workflows/createDeployChecklist.yml
-    secrets: inherit
-
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
