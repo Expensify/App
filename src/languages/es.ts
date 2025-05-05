@@ -1163,6 +1163,7 @@ const translations = {
         bookingArchived: 'Esta reserva está archivada',
         bookingArchivedDescription: 'Esta reserva está archivada porque la fecha del viaje ha pasado. Agregue un gasto por el monto final si es necesario.',
         attendees: 'Asistentes',
+        whoIsYourAccountant: '¿Quién es tu contador?',
         paymentComplete: 'Pago completo',
         time: 'Tiempo',
         startDate: 'Fecha de inicio',
@@ -4926,7 +4927,7 @@ const translations = {
             description1: 'Tu factura final por esta suscripción será',
             description2: ({date}: DateParams) => `Consulta el desglose a continuación para ${date}:`,
             subscription:
-                'Esto finalizará tu suscripción a Expensify, eliminará tu espacio de trabajo restante y todos los miembros perderán acceso de ahora en adelante. Si solo deseas eliminarte a ti mismo, haz que otro administrador se encargue de la facturación, y en ese momento podrás salir de este espacio de trabajo.',
+                '¡Atención! Esta acción finalizará tu suscripción a Expensify, eliminará este espacio de trabajo y eliminará a todos los miembros del espacio de trabajo. Si deseas conservar este espacio de trabajo y solo eliminarte a ti mismo, haz que otro administrador tome el control de la facturación primero.',
             genericFailureMessage: 'Ocurrió un error al pagar tu factura. Por favor, inténtalo de nuevo.',
         },
         restrictedAction: {
@@ -6751,6 +6752,17 @@ const translations = {
             part2: ', empieza a chatear',
             part3: '\ny más.',
             part4: ' ¡Pruébalo!',
+        },
+        GBRRBRChat: {
+            part1: 'Verás 🟢 en ',
+            part2: 'las acciones a realizar',
+            part3: '\ny 🔴 en ',
+            part4: 'los errores que debes revisar.',
+        },
+        accountSwitcher: {
+            part1: 'Accede a tus ',
+            part2: 'cuentas copiloto',
+            part3: ' aquí',
         },
         expenseReportsFilter: {
             part1: '¡Bienvenido! Aquí encontrarás todos los',
