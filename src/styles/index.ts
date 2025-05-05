@@ -120,6 +120,15 @@ const link = (theme: ThemeColors) =>
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
     } satisfies ViewStyle & MixedStyleDeclaration);
 
+const emailLink = (theme: ThemeColors) =>
+    ({
+        color: theme.link,
+        textDecorationColor: theme.link,
+        // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
+        fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+        fontWeight: FontUtils.fontWeight.bold,
+    } satisfies ViewStyle & MixedStyleDeclaration);
+
 const baseCodeTagStyles = (theme: ThemeColors) =>
     ({
         borderWidth: 1,
@@ -335,6 +344,8 @@ const styles = (theme: ThemeColors) =>
         webViewStyles: webViewStyles(theme),
 
         link: link(theme),
+
+        emailLink: emailLink(theme),
 
         linkMuted: {
             color: theme.textSupporting,
@@ -592,13 +603,13 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number, sidebarWidth: number) => ({
+        topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
             // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
             // On natives we can use absolute positioning.
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             opacity: shouldDisplayTopLevelNavigationTabBar ? 1 : 0,
             pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
-            width: shouldUseNarrowLayout ? '100%' : sidebarWidth,
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
             paddingBottom: bottomSafeAreaOffset,
 
             // There is a missing border right on the wide layout
@@ -621,14 +632,7 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        leftNavigationTabBarPosition: {
-            height: '100%',
-            width: variables.navigationTabBarSize,
-            position: 'fixed',
-            left: 0,
-        },
-
-        leftNavigationTabBar: {
+        leftNavigationTabBarContainer: {
             height: '100%',
             width: variables.navigationTabBarSize,
             position: 'fixed',
@@ -636,6 +640,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderRightColor: theme.border,
+            backgroundColor: theme.appBG,
         },
 
         leftNavigationTabBarItem: {
@@ -1660,18 +1665,11 @@ const styles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-        },
-
-        searchSidebarWithLHB: {
-            width: variables.sideBarWithLHBWidth,
-            height: '100%',
-            justifyContent: 'space-between',
-            borderRightWidth: 1,
-            borderColor: theme.border,
+            marginLeft: variables.navigationTabBarSize,
         },
 
         searchSidebar: {
-            width: variables.sideBarWidth,
+            width: variables.sideBarWithLHBWidth,
             height: '100%',
             justifyContent: 'space-between',
             borderRightWidth: 1,
@@ -1894,15 +1892,7 @@ const styles = (theme: ThemeColors) =>
             ({
                 horizontal: 18,
                 // Menu should be displayed 12px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
-                vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 12),
-            } satisfies AnchorPosition),
-
-        createLHBMenuPositionSidebar: (windowHeight: number) =>
-            ({
-                horizontal: 18,
-                // Menu should be displayed 12px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
+                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (12px)
                 vertical: windowHeight - (variables.fabBottom + variables.componentSizeNormal + 12),
             } satisfies AnchorPosition),
 
@@ -1913,14 +1903,6 @@ const styles = (theme: ThemeColors) =>
             } satisfies AnchorPosition),
 
         createMenuPositionReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
-            ({
-                // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
-                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWidth : variables.sideBarWidth) + 18,
-                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
-            } satisfies AnchorPosition),
-
-        // @TODO: When canUseLeftHandBar beta is no longer needed, rename it to createMenuPositionReportActionCompose and remove the above function
-        createMenuPositionReportActionComposeWhenLhbIsVisible: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
             ({
                 // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
                 horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWithLHBWidth : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) + 18,
@@ -2720,9 +2702,9 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 12,
         },
 
-        headerBarDesktopHeight: (canUseLeftHandBar: boolean | undefined) => ({
-            height: canUseLeftHandBar ? variables.contentHeaderHeight : variables.contentHeaderDesktopHeight,
-        }),
+        headerBarHeight: {
+            height: variables.contentHeaderHeight,
+        },
 
         imageViewContainer: {
             width: '100%',
@@ -3005,8 +2987,7 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 88,
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
-        rootNavigatorContainerWithLHBStyles: (isSmallScreenWidth: boolean) =>
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
             ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1} satisfies ViewStyle),
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
 
@@ -5109,7 +5090,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         walletRedDotSectionText: {
-            color: theme.darkSupportingText,
+            color: theme.textSupporting,
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightNormal,
         },
