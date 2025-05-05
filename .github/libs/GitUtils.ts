@@ -3,7 +3,7 @@ import {execSync} from 'child_process';
 import CONST from './CONST';
 import GithubUtils from './GithubUtils';
 import type {CommitType} from './GithubUtils';
-import {getPreviousVersion, SEMANTIC_VERSION_LEVELS} from './versionUpdater';
+import {getPreviousVersion} from './versionUpdater';
 import type {SemverLevel} from './versionUpdater';
 
 /**
