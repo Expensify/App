@@ -520,6 +520,9 @@ function IOURequestStepConfirmation({
                     customUnitRateID,
                     attendees: transaction.comment?.attendees,
                 },
+                accountantParams: {
+                    accountant: transaction.accountant,
+                },
             });
         },
         [
