@@ -69,6 +69,8 @@ const darkTheme = {
     uploadPreviewActivityIndicator: colors.productDark200,
     dropUIBG: 'rgba(6,27,9,0.92)',
     fileDropUIBG: 'rgba(3, 212, 124, 0.84)',
+    attachmentDropUIBG: 'rgba(90, 176, 255, 0.9)',
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.9)',
     checkBox: colors.green400,
     imageCropBackgroundColor: colors.productDark700,
     fallbackIconColor: colors.green700,

@@ -74,6 +74,8 @@ type ThemeColors = {
     uploadPreviewActivityIndicator: Color;
     dropUIBG: Color;
     fileDropUIBG: Color;
+    attachmentDropUIBG: Color;
+    receiptDropUIBG: Color;
     checkBox: Color;
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
