@@ -2,7 +2,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import type {OptionList, Options} from '@libs/OptionsListUtils';
+import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
     createOptionList,
@@ -589,7 +589,7 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getSearchOptions()', () => {
-        it('should filter options correctly', () => {
+        it('should return all options when no search value is provided', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
             const results = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
@@ -603,7 +603,7 @@ describe('OptionsListUtils', () => {
     });
 
     describe('orderOptions()', () => {
-        it('should sort all options correctly', () => {
+        it('should sort options alphabetically and preserves reportID for personal details with existing reports', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions()
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = getValidOptions({
@@ -627,7 +627,7 @@ describe('OptionsListUtils', () => {
             expect(personalDetailWithExistingReport?.reportID).toBe('2');
         });
 
-        it('should sort all options correctly with no reports', () => {
+        it('should sort personal details options alphabetically when only personal details are provided', () => {
             // Given a set of personalDetails and an empty reports array
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = getValidOptions({personalDetails: OPTIONS.personalDetails, reports: []});
             // When we call orderOptions()
@@ -642,7 +642,7 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getValidOptions()', () => {
-        it('should correctly filter when there are no reports or personalDetails', () => {
+        it('should return empty options when no reports or personal details are provided', () => {
             // Given empty arrays of reports and personalDetails
             // When we call getValidOptions()
             const results = getValidOptions({reports: [], personalDetails: []});
@@ -656,7 +656,7 @@ describe('OptionsListUtils', () => {
             expect(results.selfDMChat).toEqual(undefined);
         });
 
-        it('should include Concierge in results', () => {
+        it('should include Concierge by default in results', () => {
             // Given a set of reports and personalDetails that includes Concierge
             // When we call getValidOptions()
             const results = getValidOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails});
@@ -667,7 +667,7 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
         });
 
-        it('should exclude concierge from results', () => {
+        it('should exclude Concierge when excludedLogins is specified', () => {
             // Given a set of reports and personalDetails that includes Concierge and a config object that excludes Concierge
             // When we call getValidOptions()
             const results = getValidOptions(
@@ -686,7 +686,7 @@ describe('OptionsListUtils', () => {
             expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
         });
 
-        it('should exclude Chronos from results', () => {
+        it('should exclude Chronos when excludedLogins is specified', () => {
             // Given a set of reports and personalDetails that includes Chronos and a config object that excludes Chronos
             // When we call getValidOptions()
             const results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}});
@@ -697,7 +697,7 @@ describe('OptionsListUtils', () => {
             expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
         });
 
-        it('should exclude receipts from results', () => {
+        it('should exclude Receipts option from results when excludedLogins is specified', () => {
             // Given a set of reports and personalDetails that includes receipts and a config object that excludes receipts
             // When we call getValidOptions()
             const results = getValidOptions(
@@ -716,7 +716,7 @@ describe('OptionsListUtils', () => {
             expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
         });
 
-        it('should include Manager McTest in results', () => {
+        it('should include Manager McTest in results by default', () => {
             // Given a set of reports and personalDetails that includes Manager McTest
             // When we call getValidOptions()
             const result = getValidOptions(
@@ -767,10 +767,57 @@ describe('OptionsListUtils', () => {
                     expect(optionsWhenUserAlreadySubmittedExpense.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
                 });
         });
+
+        it('should keep admin rooms if specified', () => {
+            // Given an admin room report search option
+            const adminRoom: SearchOption<Report> = {
+                item: {
+                    chatType: 'policyAdmins',
+                    currency: 'USD',
+                    errorFields: {},
+                    lastActionType: 'CREATED',
+                    lastReadTime: '2025-03-21 07:25:46.279',
+                    lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                    lastVisibleActionLastModified: '2024-12-15 21:13:24.317',
+                    ownerAccountID: 0,
+                    permissions: ['read', 'write'],
+                    policyID: '52A5ABD88FBBD18F',
+                    policyName: "David's Playground",
+                    reportID: '1455140530846319',
+                    reportName: '#admins',
+                    type: 'chat',
+                    writeCapability: 'all',
+                },
+                text: '#admins',
+                alternateText: "David's Playground",
+                allReportErrors: {},
+                subtitle: "David's Playground",
+                participantsList: [],
+                reportID: '1455140530846319',
+                keyForList: '1455140530846319',
+                isDefaultRoom: true,
+                isChatRoom: true,
+                policyID: '52A5ABD88FBBD18F',
+                lastMessageText: '',
+                lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                notificationPreference: 'hidden',
+            };
+            // When we call getValidOptions with includeMultipleParticipantReports set to true
+            const results = getValidOptions(
+                {reports: [adminRoom], personalDetails: OPTIONS.personalDetails},
+                {
+                    includeMultipleParticipantReports: true,
+                },
+            );
+            const adminRoomOption = results.recentReports.find((report) => report.reportID === '1455140530846319');
+
+            // Then the result should include the admin room
+            expect(adminRoomOption).toBeDefined();
+        });
     });
 
     describe('getValidOptions() for chat room', () => {
-        it('should include all reports', () => {
+        it('should include all reports by default', () => {
             // Given a set of reports and personalDetails that includes workspace rooms with no `excludeHiddenChatRoom` flag
             // When we call getValidOptions()
             const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, {
@@ -786,7 +833,7 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: '18'})]));
         });
 
-        it('should exclude hidden chat room', () => {
+        it('should exclude hidden chat room when excludeHiddenChatRoom flag is set', () => {
             // Given a set of reports and personalDetails that includes workspace rooms with `excludeHiddenChatRoom` flag
             // When we call getValidOptions()
             const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, {
@@ -818,7 +865,7 @@ describe('OptionsListUtils', () => {
             expect(personalDetailsOverlapWithReports).toBe(false);
         });
 
-        it('should exclude selected login', () => {
+        it('should exclude selected options', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions with excludeLogins param
             const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: {'peterparker@expensify.com': true}});
@@ -828,7 +875,7 @@ describe('OptionsListUtils', () => {
             expect(results.personalDetails.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
         });
 
-        it('should include Concierge in the results', () => {
+        it('should include Concierge in the results by default', () => {
             // Given a set of report and personalDetails that include Concierge
             // When we call getValidOptions()
             const results = getValidOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails});
@@ -839,7 +886,7 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
         });
 
-        it('should exclude Concierge from the results', () => {
+        it('should exclude Concierge from the results when it is specified in excludedLogins', () => {
             // Given a set of reports and personalDetails that includes Concierge
             // When we call getValidOptions with excludeLogins param
             const results = getValidOptions(
@@ -859,7 +906,7 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
         });
 
-        it('should exclude Chronos from the results', () => {
+        it('should exclude Chronos from the results when it is specified in excludedLogins', () => {
             // given a set of reports and personalDetails that includes Chronos
             // When we call getValidOptions() with excludeLogins param
             const results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}});
@@ -871,7 +918,7 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
         });
 
-        it('should exclude receipts from the results', () => {
+        it('should exclude Receipts from the results when it is specified in excludedLogins', () => {
             // Given a set of reports and personalDetails that includes receipts
             // When we call getValidOptions() with excludeLogins param
             const results = getValidOptions(
@@ -893,7 +940,7 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getShareDestinationsOptions()', () => {
-        it('should exclude archived rooms and hidden threads', () => {
+        it('should exclude archived rooms and hidden threads from share destinations', () => {
             // Given a set of filtered current Reports (as we do in the component) before getting share destination options
             const filteredReports = Object.values(OPTIONS.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
@@ -910,7 +957,7 @@ describe('OptionsListUtils', () => {
             expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 2);
         });
 
-        it('should return the DMS, the group chats and the workspace room', () => {
+        it('should include DMS, group chats, and workspace rooms in share destinations', () => {
             // Given a set of filtered current Reports (as we do in the component) with workspace rooms before getting share destination options
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
@@ -942,7 +989,7 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getMemberInviteOptions()', () => {
-        it('should sort personal details', () => {
+        it('should sort personal details alphabetically', () => {
             // Given a set of personalDetails
             // When we call getMemberInviteOptions
             const results = getMemberInviteOptions(OPTIONS.personalDetails, []);
