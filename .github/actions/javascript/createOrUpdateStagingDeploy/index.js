@@ -11557,10 +11557,16 @@ async function run() {
         const shouldCreateNewDeployChecklist = mostRecentChecklist.state !== 'open';
         const previousChecklist = shouldCreateNewDeployChecklist ? mostRecentChecklist : recentDeployChecklists.at(1);
         if (shouldCreateNewDeployChecklist) {
-            console.log('ℹ️ Latest StagingDeployCash is closed, creating a new one.', mostRecentChecklist);
+            core.startGroup('ℹ️ Latest StagingDeployCash is closed, creating a new one. Current:');
+            core.info(JSON.stringify(mostRecentChecklist));
+            core.endGroup();
         }
         else {
-            console.log('ℹ️ Latest StagingDeployCash is open, updating it instead of creating a new one.', 'Current:', mostRecentChecklist, 'Previous:', previousChecklist);
+            core.startGroup('ℹ️ Latest StagingDeployCash is open, updating it instead of creating a new one. Current:');
+            core.info(JSON.stringify(mostRecentChecklist));
+            core.info('Previous:');
+            core.info(JSON.stringify(previousChecklist));
+            core.endGroup();
         }
         if (!previousChecklist) {
             throw new Error('⚠️⚠️ Could not find the previous checklist! ⚠️⚠️');
