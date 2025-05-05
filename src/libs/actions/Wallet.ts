@@ -1,4 +1,4 @@
-import type {AndroidCardData, AndroidWalletData, IOSEncryptPayload} from '@expensify/react-native-wallet';
+import type {AndroidCardData, IOSEncryptPayload} from '@expensify/react-native-wallet';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -279,7 +279,7 @@ function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, cer
  * @param walletAcountID ID of the wallet on user's phone
  * @param deviceID ID of user's phone
  */
-function createDigitalGoogleWallet({walletAccountID, deviceID}: AndroidWalletData): Promise<AndroidCardData> {
+function createDigitalGoogleWallet({walletAccountID, deviceID, cardHolderName}: {deviceID: string; walletAccountID: string; cardHolderName: string}): Promise<AndroidCardData> {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
         platform: 'android',
@@ -292,7 +292,7 @@ function createDigitalGoogleWallet({walletAccountID, deviceID}: AndroidWalletDat
             return {
                 network: data.network,
                 opaquePaymentCard: data.opaquePaymentCard,
-                cardHolderName: '',
+                cardHolderName,
                 lastDigits: data.lastDigits,
                 userAddress: {
                     name: data.userAddress.name,

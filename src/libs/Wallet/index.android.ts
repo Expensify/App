@@ -13,15 +13,8 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
 function handleAddCardToWallet(card: Card, cardHolderName: string, onFinished?: () => void) {
     getSecureWalletInfo()
         .then((walletData: AndroidWalletData) => {
-            createDigitalGoogleWallet(walletData)
-                .then((cardData: AndroidCardData) => {
-                    const data = {
-                        ...cardData,
-                        cardHolderName,
-                        lastDigits: card.lastFourPAN ?? cardData.lastDigits,
-                    };
-                    return addCardToGoogleWallet(data);
-                })
+            createDigitalGoogleWallet({cardHolderName, ...walletData})
+                .then((cardData: AndroidCardData) => addCardToGoogleWallet(cardData))
                 .then(() => {
                     Log.info('Card added to wallet');
                     onFinished?.();
@@ -47,7 +40,7 @@ function isCardInWallet(card: Card): Promise<boolean> {
         })
         .catch((error) => {
             Log.warn(`getCardTokenStatus error: ${error}`);
-            return Promise.resolve(false);
+            return false;
         });
 }
 
