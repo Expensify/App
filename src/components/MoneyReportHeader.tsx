@@ -474,7 +474,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     if (!threadID) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID, Navigation.getReportRHPActiveRoute()));
+                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
                 }}
             />
         ),
