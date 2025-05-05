@@ -8,6 +8,9 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
+
+        /* If the tooltip is allowed to be shown */
+        isTooltipAllowed?: boolean;
     };
 
 export default IOURequestStepScanProps;
