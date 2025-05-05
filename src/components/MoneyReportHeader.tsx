@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -57,6 +57,7 @@ import {
     cancelPayment,
     canIOUBePaid as canIOUBePaidAction,
     deleteMoneyRequest,
+    dismissDeclineUseExplanation,
     getNavigationUrlOnMoneyRequestDelete,
     getNextApproverAccountID,
     payInvoice,
@@ -343,6 +344,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const statusBarProps = getStatusBarProps();
     const shouldAddGapToContents = shouldUseNarrowLayout && (!!statusBarProps || shouldShowNextStep);
+
+    const hasUseDeclineDismissedRef = useRef(false);
+    const dismissModalAndUpdateUseDecline = () => {
+        setIsDeclineEducationalModalVisible(false);
+        if (!hasUseDeclineDismissedRef.current) {
+            dismissDeclineUseExplanation();
+            hasUseDeclineDismissedRef.current = true;
+        }
+    }
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -867,12 +877,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
             {!!isDeclineEducationalModalVisible && (
                 <HoldOrDeclineEducationalModal
-                    onClose={() => {
-                        setIsDeclineEducationalModalVisible(false);
-                    }}
-                    onConfirm={() => {
-                        setIsDeclineEducationalModalVisible(false);
-                    }}
+                    onClose={dismissModalAndUpdateUseDecline}
+                    onConfirm={dismissModalAndUpdateUseDecline}
                 />)
             }
         </View>
