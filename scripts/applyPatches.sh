@@ -21,21 +21,17 @@ readonly NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
 
 # Wrapper to run patch-package.
 function patchPackage() {
-    if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
-      TEMP_PATCH_DIR=$(mktemp -d ./tmp-patches-XXX)
-      trap 'rm -rf "$TEMP_PATCH_DIR"' RETURN
+  TEMP_PATCH_DIR=$(mktemp -d ./patches/tmp-patches-XXX)
+  trap 'rm -rf "$TEMP_PATCH_DIR"' RETURN
 
-      cp -r ./patches/* "$TEMP_PATCH_DIR"
-      cp -r ./Mobile-Expensify/patches/* "$TEMP_PATCH_DIR"
+  find ./patches -type f -name '*.patch' -exec cp {} "$TEMP_PATCH_DIR" \;
+  if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
+    find ./Mobile-Expensify/patches -type f -name '*.patch' -exec cp {} "$TEMP_PATCH_DIR" \;
+  fi
 
-      if ! npx patch-package --patch-dir "$TEMP_PATCH_DIR" --error-on-fail --color=always; then
-          return 1
-      fi
-    else
-      if ! npx patch-package --error-on-fail --color=always; then
-          return 1
-      fi
-    fi
+  if ! npx patch-package --patch-dir "$TEMP_PATCH_DIR" --error-on-fail --color=always; then
+    return 1
+  fi
 }
 
 # Run patch-package and capture its output and exit code, while still displaying the original output to the terminal
