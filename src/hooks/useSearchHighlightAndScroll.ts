@@ -74,7 +74,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         return () => {
             searchTriggeredRef.current = false;
         };
-    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat]);
+    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, isOpeningReport]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {

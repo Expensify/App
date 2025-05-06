@@ -2,7 +2,7 @@
 import {renderHook} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
-import * as Search from '@libs/actions/Search';
+import { search } from '@libs/actions/Search';
 
 jest.mock('@libs/actions/Search');
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -181,13 +181,13 @@ describe('useSearchHighlightAndScroll', () => {
         const {rerender} = renderHook((prop: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(prop), {
             initialProps,
         });
-        expect(Search.search).not.toHaveBeenCalled();
+        expect(search).not.toHaveBeenCalled();
 
         // When the transaction ids list change though it has the same length as previous value
         rerender(changedProp);
 
         // Then Search will be triggerred.
-        expect(Search.search).toHaveBeenCalled();
+        expect(search).toHaveBeenCalled();
     });
 
     it('should not trigger Search when isOpeningReport is true', () => {
@@ -368,12 +368,12 @@ describe('useSearchHighlightAndScroll', () => {
         const {rerender} = renderHook((prop: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(prop), {
             initialProps,
         });
-        expect(Search.search).not.toHaveBeenCalled();
+        expect(search).not.toHaveBeenCalled();
 
         // When the transaction ids list changes but isOpeningReport is true
         rerender(changedProp);
 
         // Then Search should NOT be triggered
-        expect(Search.search).not.toHaveBeenCalled();
+        expect(search).not.toHaveBeenCalled();
     });
 });
