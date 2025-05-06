@@ -956,10 +956,9 @@ describe('SidebarUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
                 const result = SidebarUtils.getOptionData({
                     report,
-                    reportAttributes: {},
+                    reportAttributes: undefined,
                     reportActions,
                     reportNameValuePairs: {},
-                    hasViolations: false,
                     personalDetails: {},
                     policy: undefined,
                     parentReportAction: undefined,
