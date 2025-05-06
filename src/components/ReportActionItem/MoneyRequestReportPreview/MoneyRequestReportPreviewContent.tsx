@@ -542,14 +542,14 @@ function MoneyRequestReportPreviewContent({
 
     const emptyReportPreviewAction = useMemo(() => {
         if (!iouReport) {
-            return CONST.REPORT.PRIMARY_ACTIONS.VIEW;
+            return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
         }
 
         if (isAddExpenseAction(iouReport, transactions ?? [])) {
             return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
         }
 
-        return CONST.REPORT.PRIMARY_ACTIONS.VIEW;
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }, [iouReport, transactions]);
 
     const emptyReportPreviewActions = {
@@ -565,7 +565,7 @@ function MoneyRequestReportPreviewContent({
                 }}
             />
         ),
-        [CONST.REPORT.PRIMARY_ACTIONS.VIEW]: (
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
             <Button
                 text={translate('common.view')}
                 onPress={() => {

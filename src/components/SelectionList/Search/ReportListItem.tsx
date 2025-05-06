@@ -31,7 +31,7 @@ function ReportListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
