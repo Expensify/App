@@ -37,6 +37,7 @@ import {canShowReportRecipientLocalTime, chatIncludesChronos, chatIncludesConcie
 import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
+import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from '@userActions/Report';
@@ -504,7 +505,7 @@ function ReportActionCompose({
                                             dropTextStyles={styles.attachmentDropText}
                                         />
                                     ) : (
-                                        <DropZoneUI
+                                        <ReportDropUI
                                             onDrop={(event: DragEvent) => {
                                                 if (isAttachmentPreviewActive) {
                                                     return;
@@ -515,7 +516,6 @@ function ReportActionCompose({
                                                     displayFileInModal(data);
                                                 }
                                             }}
-                                            icon={Expensicons.DragAndDrop}
                                         />
                                     )}
                                 </>
