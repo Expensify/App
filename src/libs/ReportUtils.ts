@@ -9925,7 +9925,6 @@ function prepareOnboardingOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
             value: {
-                lastMentionedTime: DateUtils.getDBTime(),
                 hasOutstandingChildTask,
                 lastVisibleActionCreated,
                 lastActorAccountID: actorAccountID,
