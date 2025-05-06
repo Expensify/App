@@ -1,6 +1,7 @@
 import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusByIdentifier, getSecureWalletInfo} from '@expensify/react-native-wallet';
 import type {AndroidCardData, AndroidWalletData, CardStatus} from '@expensify/react-native-wallet';
 import {Alert} from 'react-native';
+import {openWalletPage} from '@libs/actions/PaymentMethods';
 import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
@@ -10,26 +11,33 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
 
-function handleAddCardToWallet(card: Card, cardHolderName: string, onFinished?: () => void) {
+function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescription: string, onFinished?: () => void) {
     getSecureWalletInfo()
         .then((walletData: AndroidWalletData) => {
             createDigitalGoogleWallet({cardHolderName, ...walletData})
-                .then((cardData: AndroidCardData) => addCardToGoogleWallet(cardData))
-                .then(() => {
-                    Log.info('Card added to wallet');
-                    onFinished?.();
+                .then((cardData: AndroidCardData) => {
+                    addCardToGoogleWallet(cardData)
+                        .then((status: string) => {
+                            Log.info('Card added to wallet');
+                            if (status === 'SUCCESS') {
+                                openWalletPage();
+                            } else {
+                                onFinished?.();
+                            }
+                        })
+                        .catch((error) => {
+                            Log.warn(`addCardToGoogleWallet error: ${error}`);
+                            Alert.alert('Failed to add card to wallet', 'Please try again later.');
+                        });
                 })
-                .catch((error) => {
-                    Log.warn(`addCardToGoogleWallet error: ${error}`);
-                    Alert.alert('Failed to add card to wallet', 'Please try again later.');
-                })
+
                 .catch((error) => Log.warn(`createDigitalWallet error: ${error}`));
         })
         .catch((error) => Log.warn(`getSecureWalletInfo error: ${error}`));
 }
 
 function isCardInWallet(card: Card): Promise<boolean> {
-    const tokenRefId = card.nameValuePairs?.expensifyCard_tokenReferenceIdList?.at(0);
+    const tokenRefId = card.nameValuePairs?.expensifyCard_tokenReferenceIdList?.at(-1);
     if (!tokenRefId) {
         return Promise.resolve(false);
     }
