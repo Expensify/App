@@ -120,6 +120,8 @@ function ReportActionCompose({
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
 
+    const isMultiFilesBetaEnabled = true;
+
     /**
      * Updates the Highlight state of the composer
      */
@@ -492,8 +494,9 @@ function ReportActionCompose({
                                                 displayFileInModal(data);
                                             }
                                         }}
-                                        icon={Expensicons.DragAndDrop}
-                                        dropTitle={translate('dropzone.addAttachments')}
+                                        icon={isMultiFilesBetaEnabled ? Expensicons.MessageInABottle : Expensicons.DragAndDrop}
+                                        dropTitle={isMultiFilesBetaEnabled ? translate('dropzone.addAttachments') : ''}
+                                        dropStyles={isMultiFilesBetaEnabled ? styles.attachmentDropOverlay : styles.reportDropOverlay}
                                     />
                                 </>
                             )}

@@ -3999,6 +3999,16 @@ const styles = (theme: ThemeColors) =>
             zIndex: 2,
         },
 
+        attachmentDropOverlay: {
+            backgroundColor: theme.attachmentDropUIBG,
+            zIndex: 2,
+        },
+
+        receiptDropOverlay: {
+            backgroundColor: theme.receiptDropUIBG,
+            zIndex: 2,
+        },
+
         isDraggingOver: {
             backgroundColor: theme.fileDropUIBG,
         },

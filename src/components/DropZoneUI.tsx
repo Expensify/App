@@ -26,7 +26,7 @@ function DropZoneUI({onDrop, icon, dropTitle, dropStyles}: DropZoneUIProps) {
 
     return (
         <DragAndDropConsumer onDrop={onDrop}>
-            <View style={[styles.reportDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter, dropStyles]}>
+            <View style={[styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter, dropStyles]}>
                 <View style={styles.mb3}>
                     <Icon
                         src={icon}
