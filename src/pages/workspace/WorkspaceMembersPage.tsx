@@ -376,9 +376,13 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         [selectedEmployees, addUser, removeUser, policy?.ownerAccountID, session?.accountID],
     );
 
-    /** Opens the member details page */
-    const openMemberDetails = useCallback(
+    /** Toggles the selection if selection mode is enabled or Opens the member details page */
+    const toggleOrNavigate = useCallback(
         (item: MemberOption) => {
+            if (isSmallScreenWidth && selectionMode?.isEnabled) {
+                toggleUser(item.accountID);
+                return;
+            }
             if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
                 Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
                 return;
@@ -386,7 +390,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             clearWorkspaceOwnerChangeFlow(policyID);
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
         },
-        [isPolicyAdmin, policy, policyID, route.params.policyID],
+        [isPolicyAdmin, policy, policyID, route.params.policyID, isSmallScreenWidth, selectionMode, selectedEmployees],
     );
 
     /**
@@ -766,7 +770,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
                             headerContent={!shouldUseNarrowLayout && getHeaderContent()}
-                            onSelectRow={openMemberDetails}
+                            onSelectRow={toggleOrNavigate}
                             shouldSingleExecuteRowSelect={!isPolicyAdmin}
                             onCheckboxPress={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}

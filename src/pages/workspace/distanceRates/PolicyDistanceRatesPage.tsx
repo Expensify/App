@@ -53,7 +53,7 @@ function PolicyDistanceRatesPage({
         params: {policyID},
     },
 }: PolicyDistanceRatesPageProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -185,7 +185,11 @@ function PolicyDistanceRatesPage({
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
     };
 
-    const openRateDetails = (rate: RateForList) => {
+    const toggleOrNavigate = (rate: RateForList) => {
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            toggleRate(rate);
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rate.value));
     };
 
@@ -386,7 +390,7 @@ function PolicyDistanceRatesPage({
                         onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                         sections={[{data: distanceRatesList, isDisabled: false}]}
                         onCheckboxPress={toggleRate}
-                        onSelectRow={openRateDetails}
+                        onSelectRow={toggleOrNavigate}
                         onSelectAll={toggleAllRates}
                         onDismissError={dismissError}
                         ListItem={TableListItem}

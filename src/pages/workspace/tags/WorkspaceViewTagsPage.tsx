@@ -165,7 +165,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         );
     };
 
-    const navigateToTagSettings = (tag: TagListItem) => {
+    const toggleOrNavigate = (tag: TagListItem) => {
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            toggleTag(tag);
+            return;
+        }
         Navigation.navigate(
             isQuickSettingsFlow
                 ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value, backTo)
@@ -351,7 +355,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                         sections={[{data: tagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
-                        onSelectRow={navigateToTagSettings}
+                        onSelectRow={toggleOrNavigate}
                         onSelectAll={toggleAllTags}
                         showScrollIndicator
                         ListItem={TableListItem}
