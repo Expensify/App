@@ -623,7 +623,7 @@ jobs:
           gh release create ${{ needs.prep.outputs.TAG }} ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
             --repo ${{ github.repository }} \
             --title ${{ needs.prep.outputs.TAG }} \
-            --notes-start-tag ${{ steps.get_last_prod_version.outputs.LAST_PROD_VERSION }} \
+            ${{ github.ref == 'refs/heads/production' && format('--notes-start-tag {0}', steps.get_last_prod_version.outputs.LAST_PROD_VERSION) || '' }} \
             --generate-notes \
             --verify-tag \
             --target ${{ github.ref }}
