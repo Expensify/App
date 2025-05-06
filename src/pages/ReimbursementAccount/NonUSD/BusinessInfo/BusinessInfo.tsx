@@ -8,6 +8,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import getInitialSubStepForBusinessInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBusinessInfoStep';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountSaveCorpayOnboardingCompanyDetails, getCorpayOnboardingFields, saveCorpayOnboardingCompanyDetails} from '@userActions/BankAccounts';
+import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -116,6 +117,7 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
     const handleBackButtonPress = () => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
             goToTheLastStep();
             return;

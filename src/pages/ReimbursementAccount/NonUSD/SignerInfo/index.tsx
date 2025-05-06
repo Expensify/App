@@ -9,6 +9,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
 import {clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
+import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -124,6 +125,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     );
 
     const handleBackButtonPress = useCallback(() => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
             goToTheLastStep();
             return;
