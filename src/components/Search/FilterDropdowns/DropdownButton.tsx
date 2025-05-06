@@ -103,6 +103,9 @@ function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldEnableNewFocusManagement
                 shouldMeasureAnchorPositionFromTop={false}
+                // This must be false because we dont want the modal to close if we open the RHP for selections
+                // such as date years
+                shouldCloseWhenBrowserNavigationChanged={false}
                 innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}}
                 popoverDimensions={{
                     width: CONST.POPOVER_DROPDOWN_WIDTH,
