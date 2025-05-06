@@ -120,6 +120,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
                 {from: 'assets/sounds', to: 'sounds'},
+                {from: 'assets/pdfs', to: 'pdfs'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
                 {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
@@ -214,6 +215,10 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         loader: '@svgr/webpack',
                     },
                 ],
+            },
+            {
+                test: /\.pdf$/,
+                type: 'asset',
             },
             {
                 test: /\.css$/i,

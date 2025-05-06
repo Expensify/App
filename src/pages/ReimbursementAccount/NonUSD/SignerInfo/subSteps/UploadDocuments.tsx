@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
@@ -19,10 +19,15 @@ import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/For
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import fileDownload from '@libs/fileDownload';
+import CONFIG from '@src/CONFIG';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
 
 type UploadDocumentsProps = SubStepProps;
 
 const {ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID, CODICE_FISCALE} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const signerInfoKeys = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
 function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const {translate} = useLocalize();
@@ -32,16 +37,18 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [environmentUrl, setEnvironmentUrl] = useState<string | null>(null);
 
     const currency = policy?.outputCurrency ?? '';
     const countryStepCountryValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
+    const isPDSandFSGDownloaded = reimbursementAccount?.achData?.corpay?.downloadedPDSandFSG ?? reimbursementAccountDraft?.[signerInfoKeys.DOWNLOADED_PDS_AND_FSG];
 
     const copyOfIDInputID = COPY_OF_ID;
     const addressProofInputID = ADDRESS_PROOF;
     const directorsProofInputID = PROOF_OF_DIRECTORS;
     const codiceFiscaleInputID = CODICE_FISCALE;
-
+    
     const defaultValues: Record<string, FileObject[]> = {
         [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? reimbursementAccountDraft?.[copyOfIDInputID] ?? [] : [],
         [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? reimbursementAccountDraft?.[addressProofInputID] ?? [] : [],
@@ -53,6 +60,10 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const [uploadedProofsOfAddress, setUploadedProofOfAddress] = useState<FileObject[]>(defaultValues[addressProofInputID]);
     const [uploadedProofsOfDirectors, setUploadedProofsOfDirectors] = useState<FileObject[]>(defaultValues[directorsProofInputID]);
     const [uploadedCodiceFiscale, setUploadedCodiceFiscale] = useState<FileObject[]>(defaultValues[codiceFiscaleInputID]);
+
+    useEffect(() => {
+        getEnvironmentURL().then(setEnvironmentUrl);
+    }, []);
 
     const STEP_FIELDS = useMemo(
         (): Array<FormOnyxKeys<'reimbursementAccount'>> => [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
@@ -71,6 +82,10 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    const handleSubmitWithDownload = (values: FormOnyxValues<'reimbursementAccount'>) => {
+        handleSubmit(values);
+    };
 
     const handleRemoveFile = (fileName: string, uploadedFiles: FileObject[], inputID: string, setFiles: React.Dispatch<React.SetStateAction<FileObject[]>>) => {
         const newUploadedIDs = uploadedFiles.filter((file) => file.name !== fileName);
@@ -93,7 +108,8 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     };
 
     const handleDownload = () => {
-        console.log('download');
+        fileDownload(`${environmentUrl}/pdfs/PDSAndFSG.pdf`, 'PDSAndFSG.pdf');
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[signerInfoKeys.DOWNLOADED_PDS_AND_FSG]: true});
     }
 
     return (
@@ -217,6 +233,13 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                 <View style={[styles.alignItemsStart]}>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PDSandFSG')}</Text>
                     <Button onPress={handleDownload} text={translate('common.download')} />
+                    {!isPDSandFSGDownloaded && (
+                        <DotIndicatorMessage
+                            style={[styles.formError, styles.mt3]}
+                            type="error"
+                            messages={{[signerInfoKeys.DOWNLOADED_PDS_AND_FSG]: translate('common.error.fieldRequired')}}
+                        />
+                    )}
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.PDSandFSGDescription')}</Text>
                 </View>
             )}
