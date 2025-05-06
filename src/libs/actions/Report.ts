@@ -4676,12 +4676,12 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
     const changePolicyReportAction = buildOptimisticChangePolicyReportAction(iouReport.policyID, policyID, true);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         value: {[changePolicyReportAction.reportActionID]: changePolicyReportAction},
     });
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         value: {
             [changePolicyReportAction.reportActionID]: {
                 ...changePolicyReportAction,
@@ -4691,7 +4691,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         value: {[changePolicyReportAction.reportActionID]: null},
     });
 
