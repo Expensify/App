@@ -68,6 +68,8 @@ const darkTheme = {
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.productDark200,
     dropUIBG: 'rgba(6,27,9,0.92)',
+    dropWrapperBG: 'rgba(26, 61, 50, 0.72)',
+    dropHoverBorderColor: 'rgba(255, 255, 255, 0.52)',
     fileDropUIBG: 'rgba(3, 212, 124, 0.84)',
     attachmentDropUIBG: 'rgba(90, 176, 255, 0.9)',
     receiptDropUIBG: 'rgba(3, 212, 124, 0.9)',

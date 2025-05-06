@@ -26,15 +26,20 @@ function DropZoneUI({onDrop, icon, dropTitle, dropStyles}: DropZoneUIProps) {
 
     return (
         <DragAndDropConsumer onDrop={onDrop}>
-            <View style={[styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter, dropStyles]}>
-                <View style={styles.mb3}>
-                    <Icon
-                        src={icon}
-                        width={100}
-                        height={100}
-                    />
+            <View style={[styles.w100, styles.h100, styles.dropWrapper, styles.p2]}>
+                <View style={[dropStyles, styles.borderRadiusComponentNormal, styles.p2, styles.flex1]}>
+                    {/* TODO: display dropInnerWrapper styles only when hovered over - will be done in Stage 4 (two zones) */}
+                    <View style={[styles.dropInnerWrapper, styles.justifyContentCenter, styles.alignItemsCenter, styles.borderRadiusComponentNormal]}>
+                        <View style={styles.mb3}>
+                            <Icon
+                                src={icon}
+                                width={100}
+                                height={100}
+                            />
+                        </View>
+                        <Text style={[styles.textHeadline]}>{dropTitle}</Text>
+                    </View>
                 </View>
-                <Text style={[styles.textHeadline]}>{dropTitle}</Text>
             </View>
         </DragAndDropConsumer>
     );

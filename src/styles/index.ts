@@ -3989,6 +3989,18 @@ const styles = (theme: ThemeColors) =>
             height: 200,
         },
 
+        dropWrapper: {
+            zIndex: 2,
+            backgroundColor: theme.dropWrapperBG,
+        },
+
+        dropInnerWrapper: {
+            borderWidth: 2,
+            borderColor: theme.dropHoverBorderColor,
+            flex: 1,
+            borderStyle: 'dashed',
+        },
+
         reportDropOverlay: {
             backgroundColor: theme.dropUIBG,
             zIndex: 2,
@@ -3996,12 +4008,10 @@ const styles = (theme: ThemeColors) =>
 
         fileDropOverlay: {
             backgroundColor: theme.fileDropUIBG,
-            zIndex: 2,
         },
 
         attachmentDropOverlay: {
             backgroundColor: theme.attachmentDropUIBG,
-            zIndex: 2,
         },
 
         receiptDropOverlay: {

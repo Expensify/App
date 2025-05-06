@@ -2,6 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type {NavBarButtonStyle} from '@libs/NavBarManager/types';
 import type CONST from '@src/CONST';
 import type {ColorScheme, StatusBarStyle} from '..';
+import colors from '@styles/theme/colors';
 
 type Color = string;
 
@@ -73,6 +74,8 @@ type ThemeColors = {
     heroCard: Color;
     uploadPreviewActivityIndicator: Color;
     dropUIBG: Color;
+    dropWrapperBG: Color;
+    dropHoverBorderColor: Color,
     fileDropUIBG: Color;
     attachmentDropUIBG: Color;
     receiptDropUIBG: Color;

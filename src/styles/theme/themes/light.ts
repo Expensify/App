@@ -68,6 +68,8 @@ const lightTheme = {
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.productLight200,
     dropUIBG: 'rgba(252, 251, 249, 0.92)',
+    dropWrapperBG: 'rgba(235, 230, 223, 0.72)',
+    dropHoverBorderColor: 'rgba(255, 255, 255, 0.52)',
     fileDropUIBG: 'rgba(3, 212, 124, 0.84)',
     attachmentDropUIBG: 'rgba(90, 176, 255, 0.9)',
     receiptDropUIBG: 'rgba(3, 212, 124, 0.9)',
