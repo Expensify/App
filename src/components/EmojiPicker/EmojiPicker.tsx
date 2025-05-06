@@ -128,14 +128,17 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             }
 
             emojiPopoverAnchorRef.current = null;
-
-            if (wasComposerFocused.current) {
-                ReportActionComposeFocusManager.composerRef.current?.focus();
-                // ReportActionComposeFocusManager.focus();
-                wasComposerFocused.current = false;
-            }
         };
         setIsEmojiPickerVisible(false);
+    };
+
+    const handleModalHide = () => {
+        onModalHide.current();
+
+        if (wasComposerFocused.current) {
+            ReportActionComposeFocusManager.composerRef.current?.focus();
+            wasComposerFocused.current = false;
+        }
     };
 
     /**
@@ -210,7 +213,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             isVisible={isEmojiPickerVisible}
             onClose={hideEmojiPicker}
             onModalShow={focusEmojiSearchInput}
-            onModalHide={onModalHide.current}
+            onModalHide={handleModalHide}
             shouldSetModalVisibility={false}
             anchorPosition={{
                 vertical: emojiPopoverAnchorPosition.vertical,
