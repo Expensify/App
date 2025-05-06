@@ -139,6 +139,7 @@ import type {
     RemoveMemberPromptParams,
     RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
+    RenamedWorkspaceNameActionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -431,6 +432,9 @@ const translations = {
         websiteExample: 'p. ej. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
         description: 'Descripción',
+        title: 'Título',
+        assignee: 'Asignado a',
+        createdBy: 'Creado por',
         with: 'con',
         shareCode: 'Compartir código',
         share: 'Compartir',
@@ -517,6 +521,7 @@ const translations = {
         offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
         outstanding: 'Pendiente',
         chats: 'Chats',
+        tasks: 'Tereas',
         unread: 'No leído',
         sent: 'Enviado',
         links: 'Enlaces',
@@ -539,6 +544,7 @@ const translations = {
         reimbursable: 'Reembolsable',
         editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
+        sharedIn: 'Compartido en',
         unreported: 'No reportado',
     },
     supportalNoAccess: {
@@ -5088,7 +5094,10 @@ const translations = {
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones',
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
-        renamedRoomAction: ({oldName, newName, actorName}: RenamedRoomActionParams) => `${actorName ? `${actorName} ` : ''}renamed this room to "${newName}" (previously "${oldName}")`,
+        renamedRoomAction: ({oldName, newName, actorName, isExpenseReport}: RenamedRoomActionParams) => {
+            const actor = actorName ? `${actorName} ` : '';
+            return isExpenseReport ? `${actor}cambió el nombre a "${newName}" (previamente "${oldName}")` : `${actor}cambió el nombre de la sala a "${newName}" (previamente "${oldName}")`;
+        },
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Sala renombrada a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
@@ -5151,7 +5160,7 @@ const translations = {
             !oldDescription
                 ? `estableció la descripción de este espacio de trabajo como "${newDescription}"`
                 : `actualizó la descripción de este espacio de trabajo a "${newDescription}" (previamente "${oldDescription}")`,
-        renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `actualizó el nombre de este espacio de trabajo a "${newName}" (previamente "${oldName}")`,
+        renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `actualizó el nombre de este espacio de trabajo a "${newName}" (previamente "${oldName}")`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
@@ -5202,6 +5211,7 @@ const translations = {
         description: 'Descripción',
         assignee: 'Miembro asignado',
         completed: 'Completada',
+        action: 'Completar',
         messages: {
             created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',
@@ -5287,6 +5297,7 @@ const translations = {
             link: 'Enlace',
             pinned: 'Fijado',
             unread: 'No leído',
+            completed: 'Completadas',
             card: {
                 expensify: 'Expensify',
                 individualCards: 'Tarjetas individuales',
@@ -6178,10 +6189,10 @@ const translations = {
         },
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
-        overAutoApprovalLimit: ({formattedLimit}: ViolationsOverAutoApprovalLimitParams) => `El importe supera${formattedLimit ? ` de ${formattedLimit}/viaje` : ''}`,
+        overAutoApprovalLimit: ({formattedLimit}: ViolationsOverAutoApprovalLimitParams) =>
+            `Importe supera el límite de aprobación automática${formattedLimit ? ` de ${formattedLimit}` : ''}`,
         overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Importe supera el límite para la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
-        overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/viaje` : ''}`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Escaneo de recibo incompleto. Por favor, verifica los detalles manualmente.',
@@ -6445,7 +6456,7 @@ const translations = {
             perMemberMonth: 'por miembro/mes',
             collect: {
                 title: 'Recopilar',
-                description: 'El plan SMB que te ofrece gestión de gastos, viajes y chat.',
+                description: 'El plan para pequeñas empresas que te ofrece gestión de gastos, viajes y chat.',
                 priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 benefit1: 'Escaneo de recibos',
