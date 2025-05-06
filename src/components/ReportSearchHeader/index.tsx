@@ -22,9 +22,9 @@ function ReportSearchHeader({report, policy, style, transactions}: ReportSearchH
     return (
         <View
             dataSet={{dragArea: false}}
-            style={[styles.headerBar, style]}
+            style={[style, styles.reportSearchHeaderBar]}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>{middleContent}</View>
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>{middleContent}</View>
         </View>
     );
 }

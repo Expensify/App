@@ -82,7 +82,7 @@ function ReportListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
-            <View style={styles.flex1}>
+            <View style={[styles.flex1]}>
                 <ReportListItemHeader
                     report={reportItem}
                     policy={policy}
@@ -113,7 +113,7 @@ function ReportListItem<TItem extends ListItem>({
                         />
                     ))
                 ) : (
-                    <View style={[styles.pt5, styles.pb5, styles.pr2, styles.pl2, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
                         <Text
                             style={[styles.textLabelSupporting]}
                             numberOfLines={1}

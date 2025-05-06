@@ -90,8 +90,8 @@ function FirstHeaderRow<TItem extends ListItem>({policy, report: moneyRequestRep
     const reportItem = item as unknown as ReportListItemType;
 
     return (
-        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pr3, styles.pl3, styles.gap3]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex5]}>
+        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pr3, styles.pl3]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
                         onPress={() => onCheckboxPress?.(item)}
@@ -103,14 +103,16 @@ function FirstHeaderRow<TItem extends ListItem>({policy, report: moneyRequestRep
                         style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                     />
                 )}
-                <ReportSearchHeader
-                    report={moneyRequestReport}
-                    policy={policy}
-                    style={[{maxWidth: 700}]}
-                    transactions={reportItem.transactions}
-                />
+                <View style={{flexShrink: 1, flexGrow: 1, minWidth: 0}}>
+                    <ReportSearchHeader
+                        report={moneyRequestReport}
+                        policy={policy}
+                        style={[{maxWidth: 700}]}
+                        transactions={reportItem.transactions}
+                    />
+                </View>
             </View>
-            <View style={[styles.justifyContentEnd]}>
+            <View style={[styles.justifyContentEnd, styles.flexShrink0]}>
                 <TotalCell
                     showTooltip
                     isLargeScreenWidth={false}
@@ -180,7 +182,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
             />
-            <View style={[styles.mr3, styles.ml3]}>
+            <View style={[styles.mr3, styles.ml3, styles.pv2]}>
                 <View style={[styles.borderBottom]} />
             </View>
         </View>
