@@ -1,14 +1,11 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import getPolicyIDFromState from '@libs/Navigation/helpers/getPolicyIDFromState';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, SwitchPolicyIdActionType} from './types';
 
@@ -32,12 +29,6 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
 const workspaceSplitsWithoutEnteringAnimation = new Set<string>();
 const reportsSplitsWithEnteringAnimation = new Set<string>();
 const settingsSplitWithEnteringAnimation = new Set<string>();
-
-let lastAccessedWorkspaceSwitcherID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_SWITCHER_ID,
-    callback: (value) => (lastAccessedWorkspaceSwitcherID = value),
-});
 
 /**
  * Handles the OPEN_WORKSPACE_SPLIT action.
@@ -159,41 +150,8 @@ function handlePushReportSplitAction(
     action: PushActionType,
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-    setActiveWorkspaceID: (workspaceID: string | undefined) => void,
-    canUseLeftHandBar: boolean,
 ) {
-    let modifiedAction = {...action};
-
-    // When users have access to the leftHandBar beta, the Workspace Switcher is hidden so the policyID should not be passed to the ReportSplitNavigator.
-    if (!canUseLeftHandBar) {
-        const haveParamsPolicyID = action.payload.params && 'policyID' in action.payload.params;
-        let policyID;
-
-        const policyIDFromState = getPolicyIDFromState(state as State<RootNavigatorParamList>);
-
-        if (haveParamsPolicyID) {
-            policyID = (action.payload.params as Record<string, string | undefined>)?.policyID;
-            setActiveWorkspaceID(policyID);
-        } else if (policyIDFromState) {
-            policyID = policyIDFromState;
-        } else {
-            policyID = lastAccessedWorkspaceSwitcherID;
-            setActiveWorkspaceID(policyID);
-        }
-
-        modifiedAction = {
-            ...action,
-            payload: {
-                ...action.payload,
-                params: {
-                    ...action.payload.params,
-                    policyID,
-                },
-            },
-        };
-    }
-
-    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, modifiedAction, configOptions);
+    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
 
     if (!stateWithReportsSplitNavigator) {
         Log.hmmm('[handlePushReportAction] ReportsSplitNavigator has not been found in the navigation state.');
@@ -341,16 +299,16 @@ function handleNavigatingToModalFromModal(
 }
 
 export {
-    handleOpenWorkspaceSplitAction,
     handleDismissModalAction,
+    handleNavigatingToModalFromModal,
+    handleOpenWorkspaceSplitAction,
     handlePushReportSplitAction,
     handlePushSearchPageAction,
+    handlePushSettingsSplitAction,
     handleReplaceReportsSplitNavigatorAction,
     handleSwitchPolicyIDAction,
     handleSwitchPolicyIDFromSearchAction,
-    handleNavigatingToModalFromModal,
-    handlePushSettingsSplitAction,
-    workspaceSplitsWithoutEnteringAnimation,
     reportsSplitsWithEnteringAnimation,
     settingsSplitWithEnteringAnimation,
+    workspaceSplitsWithoutEnteringAnimation,
 };
