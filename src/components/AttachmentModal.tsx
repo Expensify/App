@@ -487,15 +487,11 @@ function AttachmentModal({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isReceiptAttachment, transaction, file, sourceState, iouType]);
 
-    // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
-    // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
-    let headerTitleNew = headerTitle;
+    const headerTitleNew = headerTitle ?? translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
+    const shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     let shouldShowDownloadButton = false;
-    let shouldShowThreeDotsButton = false;
     if (!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) {
-        headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
-        shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
     const context = useMemo(
         () => ({
