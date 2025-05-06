@@ -1767,9 +1767,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : [],
         {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
     ],
-    getRowChildWidth: (columnCount: number, gap: number, containerWidth: number): StyleProp<ViewStyle> => ({
-        width: parseFloat(((parseFloat(containerWidth.toFixed(1)) - gap) / columnCount).toFixed(1)),
-    }),
     getResetStyle: <K extends TextStyle | ViewStyle>(keys: Array<keyof K>) =>
         keys.reduce((styleobj: Nullable<K>, key) => {
             // eslint-disable-next-line no-param-reassign

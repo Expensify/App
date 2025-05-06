@@ -1,6 +1,6 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {compareAsc, format, parse} from 'date-fns';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -15,7 +15,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getGuideCallAvailabilitySchedule, saveBookingDraft} from '@libs/actions/ScheduleCall';
 import {getLatestError} from '@libs/ErrorUtils';
@@ -39,7 +38,6 @@ type TimeSlot = {
 
 function ScheduleCallPage() {
     const styles = useThemeStyles();
-    const styleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK>>();
 
@@ -55,9 +53,6 @@ function ScheduleCallPage() {
         canBeMissing: true,
     });
     const calendlySchedule = adminReportNameValuePairs?.calendlySchedule;
-
-    const [containerWidth, setContainerWidth] = useState(0);
-    const slotWidthStyle = containerWidth ? styleUtils.getRowChildWidth(2, 8, containerWidth) : undefined;
 
     useEffect(() => {
         if (!reportID) {
@@ -112,7 +107,7 @@ function ScheduleCallPage() {
     const lastDate = selectableDates.at(selectableDates.length - 1);
     const minDate = firstDate ? parse(firstDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
     const maxDate = lastDate ? parse(lastDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
-    const timeSlotsForSelectedData = scheduleCallDraft?.date ? timeSlotDateMap?.[scheduleCallDraft?.date] ?? [] : [];
+    const timeSlotsForSelectedData = scheduleCallDraft?.date ? timeSlotDateMap?.[scheduleCallDraft?.date].slice(0, -1) ?? [] : [];
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -121,6 +116,22 @@ function ScheduleCallPage() {
         }
         saveBookingDraft({date: firstDate});
     }, [firstDate, calendlySchedule?.isLoading, scheduleCallDraft?.date]);
+
+    // When there is only one time slot on the row, it will take full width of the row, use a hidden filler item to keep 2 columns
+    const timeFillerItem = useMemo(() => {
+        if (timeSlotsForSelectedData.length % 2 === 0) {
+            return null;
+        }
+
+        return (
+            <View
+                key="time-filler-col"
+                aria-hidden
+                accessibilityElementsHidden
+                style={[styles.twoColumnLayoutCol, styles.visibilityHidden]}
+            />
+        );
+    }, [styles.twoColumnLayoutCol, styles.visibilityHidden, timeSlotsForSelectedData.length]);
 
     return (
         <ScreenWrapper
@@ -171,39 +182,30 @@ function ScheduleCallPage() {
                                     {translate('scheduledCall.book.slots')}
                                     <Text style={[styles.textStrong, styles.colorMuted]}>{format(scheduleCallDraft.date, CONST.DATE.MONTH_DAY_YEAR_FORMAT)}</Text>
                                 </Text>
-                                <View
-                                    style={[styles.flexRow, styles.flexWrap, styles.justifyContentStart, styles.gap2]}
-                                    onLayout={({
-                                        nativeEvent: {
-                                            layout: {width},
-                                        },
-                                    }) => {
-                                        setContainerWidth(width);
-                                    }}
-                                >
-                                    {slotWidthStyle &&
-                                        timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
-                                            <Button
-                                                key={`time-slot-${timeSlot.startTime}`}
-                                                large
-                                                success={scheduleCallDraft?.timeSlot === timeSlot?.startTime}
-                                                onPress={() => {
-                                                    saveBookingDraft({
-                                                        timeSlot: timeSlot.startTime,
-                                                        guide: {
-                                                            scheduleURL: timeSlot.scheduleURL,
-                                                            accountID: timeSlot.guideAccountID,
-                                                            email: timeSlot.guideEmail,
-                                                        },
-                                                        reportID,
-                                                    });
-                                                    Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATON.getRoute(reportID));
-                                                }}
-                                                shouldEnableHapticFeedback
-                                                style={slotWidthStyle}
-                                                text={format(timeSlot.startTime, 'p')}
-                                            />
-                                        ))}
+                                <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentStart, styles.gap2]}>
+                                    {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
+                                        <Button
+                                            key={`time-slot-${timeSlot.startTime}`}
+                                            large
+                                            success={scheduleCallDraft?.timeSlot === timeSlot?.startTime}
+                                            onPress={() => {
+                                                saveBookingDraft({
+                                                    timeSlot: timeSlot.startTime,
+                                                    guide: {
+                                                        scheduleURL: timeSlot.scheduleURL,
+                                                        accountID: timeSlot.guideAccountID,
+                                                        email: timeSlot.guideEmail,
+                                                    },
+                                                    reportID,
+                                                });
+                                                Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATON.getRoute(reportID));
+                                            }}
+                                            shouldEnableHapticFeedback
+                                            style={styles.twoColumnLayoutCol}
+                                            text={format(timeSlot.startTime, 'p')}
+                                        />
+                                    ))}
+                                    {timeFillerItem}
                                 </View>
                             </View>
                         )}
