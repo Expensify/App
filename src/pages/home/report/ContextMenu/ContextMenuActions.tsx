@@ -56,6 +56,7 @@ import {
     isCardIssuedAction,
     isCreatedTaskReportAction,
     isDeletedAction as isDeletedActionReportActionsUtils,
+    isMarkAsClosedAction,
     isMemberChangeAction,
     isMessageDeleted,
     isModifiedExpenseAction,
@@ -97,6 +98,7 @@ import {
     getReportPreviewMessage,
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
+    isExpenseReport,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
 } from '@libs/ReportUtils';
@@ -550,9 +552,13 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionableTrackExpense(reportAction)) {
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);
                 } else if (isRenamedAction(reportAction)) {
-                    setClipboardMessage(getRenamedAction(reportAction));
-                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) {
-                    const {harvesting} = getOriginalMessage(reportAction) ?? {};
+                    setClipboardMessage(getRenamedAction(reportAction, isExpenseReport(report)));
+                } else if (
+                    isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
+                    isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
+                    isMarkAsClosedAction(reportAction)
+                ) {
+                    const harvesting = !isMarkAsClosedAction(reportAction) ? getOriginalMessage(reportAction)?.harvesting ?? false : false;
                     if (harvesting) {
                         setClipboardMessage(getReportAutomaticallySubmittedMessage(reportAction));
                     } else {
