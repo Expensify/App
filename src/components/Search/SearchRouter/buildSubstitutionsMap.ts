@@ -2,7 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 import type {CardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {parse} from '@libs/SearchParser/autocompleteParser';
-import {getFilterDisplayValue, getFilterDisplayValueWithPolicyID} from '@libs/SearchQueryUtils';
+import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import type {CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
@@ -33,7 +33,6 @@ function buildSubstitutionsMap(
     cardList: CardList,
     cardFeedNamesWithType: CardFeedNamesWithType,
     policies: OnyxCollection<Policy>,
-    canUseLeftHandBar?: boolean,
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
@@ -66,11 +65,11 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE
         ) {
-            const displayValue = canUseLeftHandBar
-                ? getFilterDisplayValueWithPolicyID(filterKey, filterValue, personalDetails, reports, cardList, cardFeedNamesWithType, policies)
-                : getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeedNamesWithType);
+            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeedNamesWithType, policies);
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {

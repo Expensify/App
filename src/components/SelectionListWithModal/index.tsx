@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef, useState} from 'react';
-import {CheckSquare, EmptySquare} from '@components/Icon/Expensicons';
+import {CheckSquare} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
@@ -82,6 +82,11 @@ function SelectionListWithModal<TItem extends ListItem>(
         if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || (!isFocused && !isScreenFocused)) {
             return;
         }
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            rest?.onCheckboxPress?.(item);
+            return;
+        }
+
         setLongPressedItem(item);
         setIsModalVisible(true);
 
@@ -106,7 +111,6 @@ function SelectionListWithModal<TItem extends ListItem>(
                 sections={sections}
                 onLongPressRow={handleLongPressRow}
                 isScreenFocused={isScreenFocused}
-                isSmallScreenWidth={isSmallScreenWidth}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
@@ -118,8 +122,8 @@ function SelectionListWithModal<TItem extends ListItem>(
                 shouldUseNewModal
             >
                 <MenuItem
-                    title={longPressedItem?.isSelected ? translate('common.deselect') : translate('common.select')}
-                    icon={longPressedItem?.isSelected ? EmptySquare : CheckSquare}
+                    title={translate('common.select')}
+                    icon={CheckSquare}
                     onPress={turnOnSelectionMode}
                     pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
                 />
