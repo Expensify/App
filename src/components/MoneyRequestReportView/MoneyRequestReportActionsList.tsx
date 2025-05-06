@@ -125,7 +125,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
         handleDeleteTransactions,
         isDeleteModalVisible,
         hideDeleteModal,
-    } = useSelectedTransactionsActions({report, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    } = useSelectedTransactionsActions({report, reportActions, allTransactionsLength: transactions.length, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
