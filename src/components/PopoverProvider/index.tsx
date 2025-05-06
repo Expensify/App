@@ -45,7 +45,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
             }
             // Incase there are any extra anchor refs where the popover should not close on click
             // for example, the case when the QAB tooltip is clicked it closes the popover this will prevent that
-            if (activePopoverExtraAnchorRefs?.some((ref: RefObject<View | HTMLElement | Text>) => elementContains(ref, e.target))) {
+            if (activePopoverExtraAnchorRefs?.some((ref: RefObject<View | HTMLElement | Text | null>) => elementContains(ref, e.target))) {
                 return;
             }
             const ref = activePopoverRef.current?.anchorRef;
