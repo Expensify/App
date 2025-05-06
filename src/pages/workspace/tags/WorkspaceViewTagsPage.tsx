@@ -14,6 +14,7 @@ import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Switch from '@components/Switch';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -45,6 +46,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PolicyTag} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {TagListItem} from './types';
 
@@ -57,7 +59,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
     const dropdownButtonRef = useRef(null);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
@@ -74,6 +75,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         openPolicyTagsPage(policyID);
     }, [policyID]);
 
+    const filterFunction = useCallback((tag: PolicyTag | undefined) => !!tag && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, []);
+
+    const [selectedTags, setSelectedTags] = useFilteredSelection(currentPolicyTag?.tags, filterFunction);
+
     const {isOffline} = useNetwork({onReconnect: fetchTags});
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
@@ -89,7 +94,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     useSearchBackPress({
         onClearSelection: () => {
-            setSelectedTags({});
+            setSelectedTags([]);
         },
         onNavigationCallBack: () => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID) : undefined),
     });
@@ -109,7 +114,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     value: tag.name,
                     text: getCleanedTagName(tag.name),
                     keyForList: tag.name,
-                    isSelected: selectedTags[tag.name] && canSelectMultiple,
+                    isSelected: selectedTags.includes(tag.name) && canSelectMultiple,
                     pendingAction: tag.pendingAction,
                     errors: tag.errors ?? undefined,
                     enabled: tag.enabled,
@@ -142,17 +147,19 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     }
 
     const toggleTag = (tag: TagListItem) => {
-        setSelectedTags((prev) => ({
-            ...prev,
-            [tag.value]: !prev[tag.value],
-        }));
+        setSelectedTags((prev) => {
+            if (prev.includes(tag.value)) {
+                return prev.filter((selectedTag) => selectedTag !== tag.value);
+            }
+            return [...prev, tag.value];
+        });
     };
 
     const toggleAllTags = () => {
         const availableTags = tagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const anySelected = availableTags.some((tag) => !!selectedTags[tag.value]);
+        const anySelected = availableTags.some((tag) => selectedTags.includes(tag.value));
 
-        setSelectedTags(anySelected ? {} : Object.fromEntries(availableTags.map((t) => [t.value, true])));
+        setSelectedTags(anySelected ? [] : availableTags.map((tag) => tag.value));
     };
 
     const getCustomListHeader = () => {
@@ -173,21 +180,19 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         );
     };
 
-    const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);
-
     const deleteTags = () => {
-        deletePolicyTags(policyID, selectedTagsArray);
+        deletePolicyTags(policyID, selectedTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
-            setSelectedTags({});
+            setSelectedTags([]);
         });
     };
 
     const isLoading = !isOffline && policyTags === undefined;
 
     const getHeaderButtons = () => {
-        if ((!isSmallScreenWidth && selectedTagsArray.length === 0) || (isSmallScreenWidth && !selectionMode?.isEnabled)) {
+        if ((!isSmallScreenWidth && selectedTags.length === 0) || (isSmallScreenWidth && !selectionMode?.isEnabled)) {
             return null;
         }
 
@@ -195,10 +200,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
         const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
 
-        if (!isThereAnyAccountingConnection && !isMultiLevelTags && selectedTagsArray.length > 0) {
+        if (!isThereAnyAccountingConnection && !isMultiLevelTags && selectedTags.length > 0) {
             options.push({
                 icon: Expensicons.Trashcan,
-                text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
+                text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setIsDeleteTagsConfirmModalVisible(true),
             });
@@ -208,7 +213,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         const tagsToDisable: Record<string, {name: string; enabled: boolean}> = {};
         let disabledTagCount = 0;
         const tagsToEnable: Record<string, {name: string; enabled: boolean}> = {};
-        for (const tagName of selectedTagsArray) {
+        for (const tagName of selectedTags) {
             if (tagListKeyedByName[tagName]?.enabled) {
                 enabledTagCount++;
                 tagsToDisable[tagName] = {
@@ -230,7 +235,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
-                    setSelectedTags({});
+                    setSelectedTags([]);
                     setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight);
                 },
             });
@@ -242,7 +247,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
-                    setSelectedTags({});
+                    setSelectedTags([]);
                     setWorkspaceTagEnabled(policyID, tagsToEnable, route.params.orderWeight);
                 },
             });
@@ -256,10 +261,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 pressOnEnter
                 isSplitButton={false}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                customText={translate('workspace.common.selected', {count: selectedTagsArray.length})}
+                customText={translate('workspace.common.selected', {count: selectedTags.length})}
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                isDisabled={!selectedTagsArray.length}
+                isDisabled={!selectedTags.length}
             />
         );
     };
@@ -293,7 +298,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     title={selectionModeHeader ? translate('common.selectMultiple') : currentTagListName}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
-                            setSelectedTags({});
+                            setSelectedTags([]);
                             turnOffMobileSelectionMode();
                             return;
                         }
@@ -307,8 +312,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     isVisible={isDeleteTagsConfirmModalVisible}
                     onConfirm={deleteTags}
                     onCancel={() => setIsDeleteTagsConfirmModalVisible(false)}
-                    title={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
-                    prompt={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
+                    title={translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
+                    prompt={translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
