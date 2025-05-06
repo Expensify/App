@@ -1334,11 +1334,11 @@ function navigateToAndOpenReport(
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             });
         }
+        // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
+        openReport(newChat?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
-    // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(report?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     if (shouldDismissModal) {
         if (getIsNarrowLayout()) {
             Navigation.dismissModalWithReport({report});

@@ -460,6 +460,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
+        if (reportMetadata.isOptimisticReport) {
+            return;
+        }
+
         const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
         const transactionID: string | undefined = route.params?.transactionID;
 
@@ -470,7 +474,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [route.params?.moneyRequestReportActionID, route.params?.transactionID, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail]);
+    }, [reportMetadata.isOptimisticReport, route.params?.moneyRequestReportActionID, route.params?.transactionID, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail]);
 
     useEffect(() => {
         if (!reportID || !isFocused) {
