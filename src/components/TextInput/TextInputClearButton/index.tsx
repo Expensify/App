@@ -19,7 +19,7 @@ function TextInputClearButton({onPressButton}: TextInputClearButtonProps) {
     return (
         <Tooltip text={translate('common.clear')}>
             <PressableWithoutFeedback
-                style={[styles.textInputIconContainerMarginTop, styles.ml1]}
+                style={[styles.mt2, styles.ml1]}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.clear')}
                 onMouseDown={(e) => {

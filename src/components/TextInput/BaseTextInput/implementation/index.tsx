@@ -447,13 +447,7 @@ function BaseTextInput(
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
-                                    style={[
-                                        styles.textInputIconContainerMarginTop,
-                                        styles.ml1,
-                                        styles.justifyContentStart,
-                                        loadingSpinnerStyle,
-                                        StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
-                                    ]}
+                                    style={[styles.mt2, styles.ml1, styles.justifyContentStart, loadingSpinnerStyle, StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0)]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (

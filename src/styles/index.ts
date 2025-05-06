@@ -1270,14 +1270,14 @@ const styles = (theme: ThemeColors) =>
 
         autoGrowHeightInputContainer: (textInputHeight: number, minHeight: number, maxHeight: number) =>
             ({
-                height: lodashClamp(textInputHeight, minHeight, maxHeight) + 8,
+                height: lodashClamp(textInputHeight, minHeight, maxHeight),
                 minHeight,
             } satisfies ViewStyle),
 
         autoGrowHeightHiddenInput: (maxWidth: number, maxHeight?: number) =>
             ({
                 maxWidth,
-                maxHeight: maxHeight && maxHeight + 1 + 8,
+                maxHeight: maxHeight && maxHeight + 1,
                 overflow: 'hidden',
             } satisfies TextStyle),
 
