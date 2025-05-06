@@ -91,6 +91,14 @@ class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplica
     }
   }
 
+  override fun addListener(eventType: String?) {
+    // no-op
+  }
+
+  override fun removeListeners(count: Double) {
+    // no-op
+  }
+
   companion object {
     const val NAME = "ReactNativeBackgroundTask"
   }

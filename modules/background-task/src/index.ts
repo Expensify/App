@@ -1,12 +1,13 @@
-import { DeviceEventEmitter, EmitterSubscription } from 'react-native';
+import { DeviceEventEmitter, EmitterSubscription, NativeEventEmitter } from 'react-native';
 import NativeReactNativeBackgroundTask from './NativeReactNativeBackgroundTask';
 
 type TaskManagerTaskExecutor<T = unknown> = (data: T) => void | Promise<void>;
 
+const eventEmitter = new NativeEventEmitter(NativeReactNativeBackgroundTask);
 const taskExecutors = new Map<string, TaskManagerTaskExecutor>();
+let subscription: EmitterSubscription | undefined;
 
 function onBackgroundTaskExecution({taskName}: {taskName: string}) {
-    console.log('onBackgroundTaskExecution', taskName);
     const executor = taskExecutors.get(taskName);
 
     if (executor) {
@@ -14,7 +15,12 @@ function onBackgroundTaskExecution({taskName}: {taskName: string}) {
     }
 }
 
-const backgroundTasksSubscription = DeviceEventEmitter.addListener('onBackgroundTaskExecution', onBackgroundTaskExecution);
+function addBackgroundTaskListener() {
+    if (subscription) {
+        subscription.remove();
+    }
+    subscription = eventEmitter.addListener('onBackgroundTaskExecution', onBackgroundTaskExecution);
+}
 
 const TaskManager = {
     /**
@@ -35,5 +41,7 @@ const TaskManager = {
         return NativeReactNativeBackgroundTask.defineTask(taskName, taskExecutor);
     },
 };
+
+addBackgroundTaskListener();
 
 export default TaskManager;

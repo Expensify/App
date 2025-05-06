@@ -73,7 +73,7 @@ RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
             // Execute all registered tasks
             [self->_taskExecutors enumerateKeysAndObjectsUsingBlock:^(NSString *taskName, RCTResponseSenderBlock executor, BOOL *stop) {
                 NSLog(@"[ReactNativeBackgroundTask] Executing task: %@", taskName);
-                [self emitOnBackgroundTaskExecution:(taskName)];
+                [self sendEventWithName:@"onBackgroundTaskExecution" body:@{@"taskName": taskName}];
             }];
             
             NSError *scheduleError = nil;
@@ -103,6 +103,13 @@ RCT_EXPORT_METHOD(defineTask:(NSString *)taskName
     }
 
     _taskExecutors[taskName] = taskExecutor;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self sendEventWithName:@"onBackgroundTaskExecution" body:@{@"taskName": taskName}];
+    });
+}
+
+- (NSArray<NSString *> *)supportedEvents {
+  return @[@"onBackgroundTaskExecution"];
 }
 
 // Don't compile this code when we build for the old architecture.
