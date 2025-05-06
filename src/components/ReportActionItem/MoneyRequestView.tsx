@@ -759,11 +759,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
                         <MenuItemWithTopDescription
                             key="attendees"
-                            shouldShowRightIcon
                             title={Array.isArray(transactionAttendees) ? transactionAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : ''}
                             description={`${translate('iou.attendees')} ${
                                 Array.isArray(transactionAttendees) && transactionAttendees.length > 1 && formattedPerAttendeeAmount
-                                    ? `${formattedPerAttendeeAmount} ${translate('common.perPerson')}`
+                                    ? `${CONST.DOT_SEPARATOR} ${formattedPerAttendeeAmount} ${translate('common.perPerson')}`
                                     : ''
                             }`}
                             style={[styles.moneyRequestMenuItem]}
@@ -774,7 +773,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 }
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID));
                             }}
-                            interactive
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
                             shouldRenderAsHTML
                         />
                     </OfflineWithFeedback>
