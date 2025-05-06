@@ -9,7 +9,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {getOriginalMessage, getIOUActionForReportID, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getOriginalTransactionIfBillIsSplit, getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
@@ -79,10 +79,13 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     const {originalTransaction, isBillSplit} = getOriginalTransactionIfBillIsSplit(transaction);
 
-    const IOUaction = isBillSplit && originalTransaction ? getIOUActionForReportID(
-        originalTransaction.comment?.splits?.find((split) => !!split && !!split.chatReportID && split.accountID == sessionAccountID)?.chatReportID, 
-        originalTransaction.transactionID
-    ) : action;
+    const IOUaction =
+        isBillSplit && originalTransaction
+            ? getIOUActionForReportID(
+                  originalTransaction.comment?.splits?.find((split) => !!split && !!split.chatReportID && split.accountID === sessionAccountID)?.chatReportID,
+                  originalTransaction.transactionID,
+              )
+            : action;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);
