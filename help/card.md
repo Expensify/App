@@ -155,7 +155,7 @@ To receive real-time notifications for spending activity on your Expensify Card,
 
 1. From your Expensify Chat inbox, press the dropdown on the logo or avatar in the top left corner.
 2. Select the workspace you want to update the notification settings for.
-3. Press the workspace chat in your inbox (the chat with your workspace’s name as the title).
+3. Press the expense chat in your inbox (the chat with your workspace’s name as the title).
 4. Press the header at the top of the chat.
 5. Press **Settings**.
 6. Press **Notify me about new messages** and select **Immediately**.

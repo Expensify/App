@@ -139,7 +139,7 @@ Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-243240081
 
 1. Launch the app.
 2. Open FAB > Submit expense > Manual.
-3. Submit a manual expense to any user (as long as the user is not the currently opened report and the receiver is not workspace chat).
+3. Submit a manual expense to any user (as long as the user is not the currently opened report and the receiver is not expense chat).
 4. Verify if the destination report is opened after submitting expense.
 
 #### QBO - Preferred exporter/Export date tab do not auto-close after value selected
