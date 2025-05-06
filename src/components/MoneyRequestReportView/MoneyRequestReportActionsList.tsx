@@ -119,7 +119,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
     const {selectionMode} = useMobileSelectionMode();
-    const selectedTransactionsOptions = useSelectedTransactionsActions({report, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    const selectedTransactionsOptions = useSelectedTransactionsActions({report, reportActions, allTransactionsLength: transactions.length, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
