@@ -1,5 +1,5 @@
 ---
-title: Share-Verified-Business-Bank-Account.md
+title: Share Verified Business Bank Account
 description: Learn how to share access to a verified business bank account in Expensify to reimburse employees or pay vendor bills.
 keywords: [Expensify Classic, share bank account, reimburse, vendor payments, Workspace Admin]
 ---

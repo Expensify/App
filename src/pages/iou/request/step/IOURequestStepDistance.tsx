@@ -48,7 +48,7 @@ import {getPersonalPolicy, getPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils
 import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getDistanceInMeters, getRateID, getRequestType, getValidWaypoints, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
+import {getDistanceInMeters, getRateID, getRequestType, getValidWaypoints, hasRoute, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -246,7 +246,7 @@ function IOURequestStepDistance({
             restoreOriginalTransactionFromBackup(transaction?.transactionID, isDraft);
 
             // If the user opens IOURequestStepDistance in offline mode and then goes online, re-open the report to fill in missing fields from the transaction backup
-            if (!transaction?.reportID) {
+            if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
             openReport(transaction?.reportID);
@@ -345,6 +345,7 @@ function IOURequestStepDistance({
                             billable: false,
                             validWaypoints: getValidWaypoints(waypoints, true),
                             customUnitRateID,
+                            attendees: transaction?.comment?.attendees,
                         },
                     });
                     return;
@@ -368,6 +369,7 @@ function IOURequestStepDistance({
                         validWaypoints: getValidWaypoints(waypoints, true),
                         customUnitRateID: DistanceRequestUtils.getCustomUnitRateID(report.reportID),
                         splitShares: transaction?.splitShares,
+                        attendees: transaction?.comment?.attendees,
                     },
                 });
                 return;
@@ -572,7 +574,7 @@ function IOURequestStepDistance({
                         allowBubble
                         pressOnEnter
                         large
-                        style={[styles.w100, styles.mb5, styles.ph4, styles.flexShrink0]}
+                        style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
                         onPress={submitWaypoints}
                         text={buttonText}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}

@@ -32,6 +32,9 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
         }
 
         options[selectedOptionIndexRef.current]?.onSelected?.();
+        if (options[selectedOptionIndexRef.current]?.shouldPreserveSelectionAfterHideModal) {
+            return;
+        }
         clearSelectedTransactions();
     };
 

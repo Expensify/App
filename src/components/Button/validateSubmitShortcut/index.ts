@@ -1,3 +1,4 @@
+import CONST from '@src/CONST';
 import type ValidateSubmitShortcut from './types';
 
 /**
@@ -14,8 +15,8 @@ const validateSubmitShortcut: ValidateSubmitShortcut = (isDisabled, isLoading, e
     if (
         isDisabled ||
         isLoading ||
-        eventTarget.nodeName === 'TEXTAREA' ||
-        (eventTarget.nodeName === 'INPUT' && eventTarget.autocomplete === 'one-time-code') ||
+        eventTarget.nodeName === CONST.ELEMENT_NAME.TEXTAREA ||
+        (eventTarget.nodeName === CONST.ELEMENT_NAME.INPUT && eventTarget.autocomplete === 'one-time-code') ||
         (eventTarget?.contentEditable === 'true' && eventTarget.ariaMultiLine)
     ) {
         return false;

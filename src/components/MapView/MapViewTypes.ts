@@ -23,7 +23,7 @@ type MapViewProps = {
     directionCoordinates?: Coordinate[];
     // Callback to call when the map is idle / ready.
     onMapReady?: () => void;
-    // Whether the map is interactable or not
+    // Whether the map is interactive or not
     interactive?: boolean;
 
     // Distance displayed on the map in meters.

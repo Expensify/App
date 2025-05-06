@@ -107,7 +107,6 @@ import type TransactionViolations from './TransactionViolation';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
-import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
@@ -210,7 +209,6 @@ export type {
     TransactionViolation,
     TransactionViolations,
     TravelSettings,
-    User,
     UserLocation,
     UserMetadata,
     UserWallet,
