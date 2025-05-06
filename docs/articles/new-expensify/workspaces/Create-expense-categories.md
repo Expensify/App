@@ -158,7 +158,7 @@ Approvers can also edit categories on the submitter’s behalf, even after appro
 
 **Can I see an audit trail of category changes on an expense?** 
 
-Yes. When a category is manually edited, Expensify will log the change in the related workspace chat. 
+Yes. When a category is manually edited, Expensify will log the change in the related expense chat. 
 
 **If I change categories in my accounting system, what happens to categories in the workspace?**
 

@@ -132,7 +132,7 @@ Approvers can also edit tags on the submitter’s behalf, even after approval. I
 
 **Can I see an audit trail of tag changes on an expense?** 
 
-Yes. When a tag is manually edited, Expensify will log the change in the related workspace chat. 
+Yes. When a tag is manually edited, Expensify will log the change in the related expense chat. 
 
 **If I change tags in my accounting system, what happens to tags in the workspace?**
 
