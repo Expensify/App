@@ -617,7 +617,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 onClose={hideCreateMenu}
                 shouldEnableMaxHeight={false}
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
-                anchorPosition={canUseLeftHandBar ? styles.createLHBMenuPositionSidebar(windowHeight) : styles.createMenuPositionSidebar(windowHeight)}
+                anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
