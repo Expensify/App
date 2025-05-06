@@ -6,6 +6,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import {getReportActionMessageText} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
@@ -20,12 +21,13 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 jest.mock('@components/ConfirmedRoute.tsx');
 
 describe('SidebarUtils', () => {
-    beforeAll(() =>
+    beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        }),
-    );
+        });
+        initOnyxDerivedValues();
+    });
 
     describe('getReasonAndReportActionThatHasRedBrickRoad', () => {
         it('returns correct reason when report has transaction thread violations', async () => {
