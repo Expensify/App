@@ -1512,15 +1512,15 @@ const translations = {
     lockAccountPage: {
         lockAccount: 'Lock account',
         unlockAccount: 'Unlock account',
-        compromisedDescription: 'If you think your Expensify account is compromised, you can lock it to prevent any changes and block new transactions on your Expensify Card(s).',
+        compromisedDescription: 'If you suspect your Expensify account is compromised, you can lock it to prevent new Expensify Card transactions and block unwanted account changes.',
         domainAdminsDescriptionPartOne: 'For domain admins, ',
-        domainAdminsDescriptionPartTwo: 'this action will lock all Expensify Card activity across your domain(s) ',
-        domainAdminsDescriptionPartThree: 'and prevent any admin actions from being taken with your account.',
-        warning: `Once your account is locked, our team will review it to remove any unauthorized access. After that, you'll need to work with Concierge to help secure the account and restore your access.`,
+        domainAdminsDescriptionPartTwo: 'this action halts all Expensify Card activity and admin actions ',
+        domainAdminsDescriptionPartThree: 'across your domain(s).',
+        warning: `Once your account is locked, our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge to secure your account.`,
     },
     unlockAccountPage: {
         yourAccountIsLocked: 'Your account is locked',
-        chatToConciergeToUnlock: 'Chat to Concierge to resolve the security concerns with your account to unlock it.',
+        chatToConciergeToUnlock: 'Chat with Concierge to resolve security concerns and unlock your account.',
         chatWithConcierge: 'Chat with Concierge',
     },
     passwordPage: {

@@ -1513,16 +1513,16 @@ const translations = {
         lockAccount: 'Bloquear cuenta',
         unlockAccount: 'Desbloquear cuenta',
         compromisedDescription:
-            'Si crees que tu cuenta de Expensify ha sido comprometida, puedes bloquearla para evitar cualquier cambio y bloquear nuevas transacciones en tu(s) tarjeta(s) de Expensify.',
+            'Si sospechas que tu cuenta de Expensify ha sido comprometida, puedes bloquearla para evitar nuevas transacciones con la Tarjeta Expensify y bloquear cambios no deseados en la cuenta.',
         domainAdminsDescriptionPartOne: 'Para los administradores de dominio, ',
-        domainAdminsDescriptionPartTwo: 'esta acción bloqueará toda la actividad de la tarjeta de Expensify en tu(s) dominio(s) ',
-        domainAdminsDescriptionPartThree: 'y evitará que se realicen acciones administrativas con tu cuenta.',
-        warning: `Una vez que tu cuenta esté bloqueada, nuestro equipo la revisará para eliminar cualquier acceso no autorizado. Después de eso, tendrás que trabajar con Concierge para ayudar a asegurar la cuenta y restaurar tu acceso.`,
+        domainAdminsDescriptionPartTwo: 'esta acción detiene toda la actividad de la Tarjeta Expensify y las acciones administrativas ',
+        domainAdminsDescriptionPartThree: 'en todos tus dominios.',
+        warning: `Una vez que tu cuenta esté bloqueada, nuestro equipo investigará y eliminará cualquier acceso no autorizado. Para recuperar el acceso, deberás trabajar con Concierge para asegurar tu cuenta.`,
     },
     unlockAccountPage: {
         yourAccountIsLocked: 'Tu cuenta está bloqueada',
-        chatToConciergeToUnlock: 'Chatea con Concierge para resolver los problemas de seguridad con tu cuenta y desbloquearla.',
-        chatWithConcierge: 'Chatea con Concierge',
+        chatToConciergeToUnlock: 'Chatea con Concierge para resolver los problemas de seguridad y desbloquear tu cuenta.',
+        chatWithConcierge: 'Chatear con Concierge',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
