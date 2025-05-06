@@ -219,7 +219,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         isLargeScreenWidth
                     />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CREATED_BY)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
                         accountID={item.createdBy.accountID}
                         avatar={item.createdBy.avatar}

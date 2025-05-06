@@ -73,7 +73,6 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     groupBy: 'group-by',
     title: 'title',
     assignee: 'assignee',
-    createdBy: 'created-by',
     billable: 'billable',
     reimbursable: 'reimbursable',
 };
@@ -408,8 +407,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.TO ||
                     filterKey === FILTER_KEYS.FEED ||
                     filterKey === FILTER_KEYS.IN ||
-                    filterKey === FILTER_KEYS.ASSIGNEE ||
-                    filterKey === FILTER_KEYS.CREATED_BY) &&
+                    filterKey === FILTER_KEYS.ASSIGNEE) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
@@ -487,12 +485,7 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
             filtersForm[filterKey] = filterValues.filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]?.reportID);
         }
-        if (
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY
-        ) {
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE) {
             filtersForm[filterKey] = filterValues.filter((id) => personalDetails && personalDetails[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
@@ -609,12 +602,7 @@ function getFilterDisplayValue(
     cardFeedNamesWithType: CardFeedNamesWithType,
     policies: OnyxCollection<OnyxTypes.Policy>,
 ) {
-    if (
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY
-    ) {
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE) {
         // login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return personalDetails?.[filterValue]?.displayName || filterValue;
