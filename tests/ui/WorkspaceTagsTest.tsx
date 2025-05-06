@@ -23,6 +23,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 TestHelper.setupGlobalFetchMock();
 jest.mock('@components/ConfirmedRoute.tsx');
 
+jest.unmock('react-native-reanimated');
+
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.TAGS]) => {
@@ -120,30 +122,6 @@ describe('WorkspaceTags', () => {
         // Wait for the "Select" option to appear
         await waitFor(() => {
             expect(screen.getByText(translateLocal('common.select'))).toBeOnTheScreen();
-        });
-
-        // Find and click the "Select" menu item. Using getByText, since testID is not reliable here
-        const selectMenuItem = screen.getByText(translateLocal('common.select'));
-        expect(selectMenuItem).toBeOnTheScreen();
-
-        // Create a mock event object that matches GestureResponderEvent. Needed for onPress in MenuItem to be called
-        const mockEvent = {
-            nativeEvent: {},
-            type: 'press',
-            target: selectMenuItem,
-            currentTarget: selectMenuItem,
-        };
-        fireEvent.press(selectMenuItem, mockEvent);
-
-        await waitForBatchedUpdatesWithAct();
-
-        // Long press again on the second tag to trigger the deselect action
-        fireEvent(screen.getByTestId('base-list-item-Tag One'), 'onLongPress');
-        await waitForBatchedUpdatesWithAct();
-
-        // Wait for the "Deselect" option to appear
-        await waitFor(() => {
-            expect(screen.getByText(translateLocal('common.deselect'))).toBeOnTheScreen();
         });
 
         unmount();

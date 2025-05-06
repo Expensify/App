@@ -21,13 +21,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
+import {getIOUReportIDOfLastAction, getLastMessageTextForReport, hasReportErrors} from '@libs/OptionsListUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, requiresAttentionFromCurrentUser} from '@libs/ReportUtils';
+import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import OptionRowLHNData from './OptionRowLHNData';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
 import type {LHNOptionsListProps, RenderItemProps} from './types';
@@ -40,6 +42,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const flashListRef = useRef<FlashList<Report>>(null);
     const route = useRoute();
 
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -47,6 +50,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: false});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
+    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -56,6 +60,29 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
+    const isGBRorRBRTooltipDismissed =
+        !isLoadingOnyxValue(dismissedProductTrainingMetadata) && isProductTrainingElementDismissed(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GBR_RBR_CHAT, dismissedProductTraining);
+
+    const firstReportIDWithGBRorRBR = useMemo(() => {
+        if (isGBRorRBRTooltipDismissed) {
+            return undefined;
+        }
+        const firstReportWithGBRorRBR = data.find((report) => {
+            const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
+            if (!report) {
+                return false;
+            }
+            if (hasReportErrors(report, itemReportActions)) {
+                return true;
+            }
+            const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
+            const itemParentReportAction = report?.parentReportActionID ? itemParentReportActions?.[report?.parentReportActionID] : undefined;
+            const hasGBR = requiresAttentionFromCurrentUser(report, itemParentReportAction);
+            return hasGBR;
+        });
+
+        return firstReportWithGBRorRBR?.reportID;
+    }, [isGBRorRBRTooltipDismissed, data, reportActions]);
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -178,10 +205,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, itemPolicy, itemReportNameValuePairs);
 
+            const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
+
             return (
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={item}
+                    reportAttributes={reportAttributes ?? {}}
                     oneTransactionThreadReport={itemOneTransactionThreadReport}
                     reportNameValuePairs={itemReportNameValuePairs}
                     reportActions={itemReportActions}
@@ -201,21 +231,24 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     hasDraftComment={hasDraftComment}
                     transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
+                    shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
                 />
             );
         },
         [
-            draftComments,
-            onSelectRow,
-            optionMode,
-            personalDetails,
-            policy,
-            preferredLocale,
-            reportActions,
             data,
             reportNameValuePairs,
-            shouldDisableFocusOptions,
+            reportActions,
+            policy,
             transactions,
+            draftComments,
+            personalDetails,
+            firstReportIDWithGBRorRBR,
+            reportAttributes,
+            optionMode,
+            shouldDisableFocusOptions,
+            onSelectRow,
+            preferredLocale,
             transactionViolations,
             onLayoutItem,
             isOffline,
@@ -244,7 +277,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const onScroll = useCallback<NonNullable<FlashListProps<string>['onScroll']>>(
         (e) => {
-            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
+            // If the layout measurement is 0, it means the FlashList is not displayed but the onScroll may be triggered with offset value 0.
             // We should ignore this case.
             if (e.nativeEvent.layoutMeasurement.height === 0) {
                 return;

@@ -13,7 +13,6 @@ import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -44,15 +43,16 @@ import NAVIGATION_TABS from './NAVIGATION_TABS';
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isTooltipAllowed?: boolean;
+    isTopLevelBar?: boolean;
 };
 
-function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar = false}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {orderedReports} = useSidebarOrderedReports();
-    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
@@ -63,7 +63,9 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
         isTooltipAllowed && selectedTab !== NAVIGATION_TABS.HOME,
     );
     const StyleUtils = useStyleUtils();
-    const {canUseLeftHandBar} = usePermissions();
+
+    // On a wide layout DebugTabView should be rendered only within the navigation tab bar displayed directly on screens.
+    const shouldRenderDebugTabViewOnWideLayout = !!account?.isDebugModeEnabled && !isTopLevelBar;
 
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, orderedReports));
@@ -80,16 +82,12 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
         Navigation.navigate(ROUTES.HOME);
     }, [hideProductTrainingTooltip, selectedTab]);
 
-    // When users do not have access to the leftHandBar beta, then we should take into account the activeWorkspaceID.
-    // Since the introduction of LHB, the workspace switcher is no longer available.
     const navigateToSearch = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SEARCH) {
             return;
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            const defaultCannedQuery = buildCannedSearchQuery();
-
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
             const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
             const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
@@ -99,9 +97,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
                 const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
                 const queryJSON = buildSearchQueryJSON(q);
                 if (queryJSON) {
-                    if (!canUseLeftHandBar) {
-                        queryJSON.policyID = activeWorkspaceID;
-                    }
                     const query = buildSearchQueryString(queryJSON);
                     Navigation.navigate(
                         ROUTES.SEARCH_ROOT.getRoute({
@@ -112,11 +107,10 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
                     return;
                 }
             }
-            // when navigating to search we might have an activePolicyID set from workspace switcher
-            const query = activeWorkspaceID && !canUseLeftHandBar ? `${defaultCannedQuery} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${activeWorkspaceID}` : defaultCannedQuery;
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
         });
-    }, [activeWorkspaceID, canUseLeftHandBar, selectedTab]);
+    }, [selectedTab]);
 
     /**
      * The settings tab is related to SettingsSplitNavigator and WorkspaceSplitNavigator.
@@ -195,17 +189,17 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
         });
     }, [shouldUseNarrowLayout]);
 
-    if (!shouldUseNarrowLayout && canUseLeftHandBar) {
+    if (!shouldUseNarrowLayout) {
         return (
             <>
-                {!!user?.isDebugModeEnabled && (
+                {shouldRenderDebugTabViewOnWideLayout && (
                     <DebugTabView
                         selectedTab={selectedTab}
                         chatTabBrickRoad={chatTabBrickRoad}
                         activeWorkspaceID={activeWorkspaceID}
                     />
                 )}
-                <View style={styles.leftNavigationTabBar}>
+                <View style={styles.leftNavigationTabBarContainer}>
                     <HeaderGap />
                     <View style={styles.flex1}>
                         <PressableWithFeedback
@@ -307,7 +301,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
 
     return (
         <>
-            {!!user?.isDebugModeEnabled && (
+            {!!account?.isDebugModeEnabled && (
                 <DebugTabView
                     selectedTab={selectedTab}
                     chatTabBrickRoad={chatTabBrickRoad}

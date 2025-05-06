@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
+import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FlatList from '@components/FlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
@@ -119,7 +120,12 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
     const {selectionMode} = useMobileSelectionMode();
-    const selectedTransactionsOptions = useSelectedTransactionsActions({report, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    const {
+        options: selectedTransactionsOptions,
+        handleDeleteTransactions,
+        isDeleteModalVisible,
+        hideDeleteModal,
+    } = useSelectedTransactionsActions({report, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
@@ -459,6 +465,17 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                         </PressableWithFeedback>
                     </View>
+                    <ConfirmModal
+                        title={translate('iou.deleteExpense', {count: selectedTransactionsID.length})}
+                        isVisible={isDeleteModalVisible}
+                        onConfirm={handleDeleteTransactions}
+                        onCancel={hideDeleteModal}
+                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsID.length})}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        danger
+                        shouldEnableNewFocusManagement
+                    />
                 </>
             )}
             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, styles.pb4]}>

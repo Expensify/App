@@ -23,7 +23,7 @@ describe('NavigationTabBar', () => {
     describe('Home tab', () => {
         describe('Debug mode enabled', () => {
             beforeEach(() => {
-                Onyx.set(ONYXKEYS.USER, {isDebugModeEnabled: true});
+                Onyx.set(ONYXKEYS.ACCOUNT, {isDebugModeEnabled: true});
             });
             describe('Has GBR', () => {
                 it('renders DebugTabView', async () => {
@@ -78,7 +78,7 @@ describe('NavigationTabBar', () => {
     describe('Settings tab', () => {
         describe('Debug mode enabled', () => {
             beforeEach(() => {
-                Onyx.set(ONYXKEYS.USER, {isDebugModeEnabled: true});
+                Onyx.set(ONYXKEYS.ACCOUNT, {isDebugModeEnabled: true});
             });
             describe('Has GBR', () => {
                 it('renders DebugTabView', async () => {
