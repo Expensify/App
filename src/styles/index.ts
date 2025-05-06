@@ -5530,6 +5530,13 @@ const styles = (theme: ThemeColors) =>
             ...display.dFlex,
         },
 
+        emptyStateFireworksWebStyles: {
+            width: 250,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+            ...display.dFlex,
+        },
+
         workflowApprovalVerticalLine: {
             height: 16,
             width: 1,

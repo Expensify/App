@@ -53,7 +53,7 @@ type EmptySearchViewItem = {
     headerContentStyles: Array<Pick<ViewStyle, 'width' | 'height'>>;
     lottieWebViewStyles?: React.CSSProperties | undefined;
     buttons?: EmptyStateButton[];
-    headerStyle?: ViewStyle;
+    headerStyles?: ViewStyle;
     titleStyles?: TextStyle;
     subtitleStyle?: TextStyle;
     children?: React.ReactNode;
@@ -154,8 +154,9 @@ function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
                     headerMedia: menuItem.emptyState.headerMedia,
                     title: translate(menuItem.emptyState.title),
                     subtitle: translate(menuItem.emptyState.subtitle),
+                    headerStyles: StyleUtils.getBackgroundColorStyle(theme.todoBG),
                     headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.todoBG)],
-                    lottieWebViewStyles: {backgroundColor: theme.todoBG, ...styles.emptyStateFolderWebStyles},
+                    lottieWebViewStyles: styles.emptyStateFireworksWebStyles,
                     buttons: menuItem.emptyState.buttons?.map((button) => ({
                         ...button,
                         buttonText: translate(button.buttonText),
@@ -274,8 +275,9 @@ function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
         theme.todoBG,
         theme.travelBG,
         theme.emptyFolderBG,
-        styles.emptyStateFolderWebStyles,
+        styles.emptyStateFireworksWebStyles,
         styles.textAlignLeft,
+        styles.emptyStateFolderWebStyles,
         tripViewChildren,
         hasResults,
         hasSeenTour,
@@ -296,7 +298,7 @@ function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
                     SkeletonComponent={SearchRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                     headerMedia={content.headerMedia}
-                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
+                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden, content.headerStyles]}
                     title={content.title}
                     titleStyles={content.titleStyles}
                     subtitle={content.subtitle}
