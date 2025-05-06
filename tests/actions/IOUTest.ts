@@ -56,6 +56,7 @@ import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {Accountant} from '@src/types/onyx/IOU';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -358,6 +359,244 @@ describe('actions/IOU', () => {
                     },
                 });
             });
+        });
+
+        it('share with accountant', async () => {
+            const accountant: Required<Accountant> = {login: VIT_EMAIL, accountID: VIT_ACCOUNT_ID};
+            const policy: Policy = {...createRandomPolicy(1), id: 'ABC'};
+            const selfDMReport: Report = {
+                ...createRandomReport(1),
+                reportID: '10',
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            };
+            const policyExpenseChat: Report = {
+                ...createRandomReport(1),
+                reportID: '123',
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+            };
+            const transaction: Transaction = {...createRandomTransaction(1), transactionID: '555'};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
+
+            // Create a tracked expense
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: transaction.merchant,
+                    billable: false,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            expect(Object.values(selfDMReportActionsOnyx ?? {}).length).toBe(2);
+
+            const linkedTrackedExpenseReportAction = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isMoneyRequestAction(reportAction));
+            const reportActionableTrackExpense = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
+
+            mockFetch?.pause?.();
+
+            // Share the tracked expense with an accountant
+            trackExpense({
+                report: policyExpenseChat,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.SHARE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: transaction.merchant,
+                    billable: false,
+                    actionableWhisperReportActionID: reportActionableTrackExpense?.reportActionID,
+                    linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: selfDMReport.reportID,
+                },
+                accountantParams: {
+                    accountant,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const policyExpenseChatOnyx = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            const policyOnyx = await new Promise<OnyxEntry<Policy>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            await mockFetch?.resume?.();
+
+            // Accountant should be invited to the expense report
+            expect(policyExpenseChatOnyx?.participants?.[accountant.accountID]).toBeTruthy();
+
+            // Accountant should be added to the workspace as an admin
+            expect(policyOnyx?.employeeList?.[accountant.login].role).toBe(CONST.POLICY.ROLE.ADMIN);
+        });
+
+        it('share with accountant who is already a member', async () => {
+            const accountant: Required<Accountant> = {login: VIT_EMAIL, accountID: VIT_ACCOUNT_ID};
+            const policy: Policy = {...createRandomPolicy(1), id: 'ABC', employeeList: {[accountant.login]: {email: accountant.login, role: CONST.POLICY.ROLE.USER}}};
+            const selfDMReport: Report = {
+                ...createRandomReport(1),
+                reportID: '10',
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            };
+            const policyExpenseChat: Report = {
+                ...createRandomReport(1),
+                reportID: '123',
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+                participants: {[accountant.accountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            };
+            const transaction: Transaction = {...createRandomTransaction(1), transactionID: '555'};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountant.accountID]: accountant});
+
+            // Create a tracked expense
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: transaction.merchant,
+                    billable: false,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const selfDMReportActionsOnyx = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            expect(Object.values(selfDMReportActionsOnyx ?? {}).length).toBe(2);
+
+            const linkedTrackedExpenseReportAction = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isMoneyRequestAction(reportAction));
+            const reportActionableTrackExpense = Object.values(selfDMReportActionsOnyx ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
+
+            mockFetch?.pause?.();
+
+            // Share the tracked expense with an accountant
+            trackExpense({
+                report: policyExpenseChat,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.SHARE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: transaction.merchant,
+                    billable: false,
+                    actionableWhisperReportActionID: reportActionableTrackExpense?.reportActionID,
+                    linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: selfDMReport.reportID,
+                },
+                accountantParams: {
+                    accountant,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const policyExpenseChatOnyx = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+            const policyOnyx = await new Promise<OnyxEntry<Policy>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            await mockFetch?.resume?.();
+
+            // Accountant should be still a participant in the expense report
+            expect(policyExpenseChatOnyx?.participants?.[accountant.accountID]).toBeTruthy();
+
+            // Accountant role should change to admin
+            expect(policyOnyx?.employeeList?.[accountant.login].role).toBe(CONST.POLICY.ROLE.ADMIN);
         });
     });
 
@@ -4714,7 +4953,7 @@ describe('actions/IOU', () => {
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When a track expense is created
             trackExpense({
-                report: {reportID: ''},
+                report: {reportID: '123', policyID: 'A'},
                 isDraftPolicy: false,
                 action,
                 participantParams: {
@@ -4736,6 +4975,7 @@ describe('actions/IOU', () => {
                     },
                     linkedTrackedExpenseReportID: '1',
                 },
+                accountantParams: action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}} : undefined,
             });
 
             await waitForBatchedUpdates();
