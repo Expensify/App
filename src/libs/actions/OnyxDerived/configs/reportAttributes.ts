@@ -1,7 +1,8 @@
 import {generateReportName, isValidReport} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+import hasKeyTriggeredCompute from '@userActions/OnyxDerived/utils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Report, ReportAttributesDerivedValue, ReportMetadata} from '@src/types/onyx';
 
 let isFullyComputed = false;
 
@@ -19,34 +20,44 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+        ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
     compute: (dependencies, {currentValue, sourceValues}) => {
-        const areAllDependenciesSet = [...dependencies].every((dependency) => dependency !== undefined);
+        // transactions are undefined by default so it needs to be set to an empty object as default
+        const [reports, preferredLocale, personalDetails, transactions = {}, ...rest] = dependencies;
+
+        const areAllDependenciesSet = [reports, preferredLocale, personalDetails, transactions, ...rest].every((dependency) => dependency !== undefined);
         if (!areAllDependenciesSet) {
             return {
                 reports: {},
                 locale: null,
             };
         }
-        const [reports, preferredLocale] = dependencies;
-
-        // if the preferred locale has changed, reset the isFullyComputed flag
-        if (preferredLocale !== currentValue?.locale) {
+        // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
+        if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
             isFullyComputed = false;
         }
 
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
+        const reportMetadataUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_METADATA];
 
         // if we already computed the report attributes and there is no new reports data, return the current value
-        if ((isFullyComputed && reportUpdates === undefined) || !reports) {
+        if ((isFullyComputed && reportUpdates === undefined && reportMetadataUpdates === undefined) || !reports) {
             return currentValue ?? {reports: {}, locale: null};
         }
 
-        const dataToIterate = isFullyComputed && reportUpdates !== undefined ? reportUpdates : reports ?? {};
-        const reportAttributes = Object.keys(dataToIterate).reduce<ReportAttributesDerivedValue['reports']>((acc, reportID) => {
-            // source value sends partial data, so we need an entire report object to do computations
-            const report = reports[reportID];
+        let dataToIterate: Record<string, Report | ReportMetadata | undefined> = reports;
+        if (isFullyComputed) {
+            if (reportUpdates) {
+                dataToIterate = reportUpdates;
+            } else if (reportMetadataUpdates) {
+                dataToIterate = reportMetadataUpdates;
+            }
+        }
 
+        const reportAttributes = Object.keys(dataToIterate).reduce<ReportAttributesDerivedValue['reports']>((acc, key) => {
+            // source value sends partial data, so we need an entire report object to do computations
+            const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${key.replace(ONYXKEYS.COLLECTION.REPORT, '').replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '')}`];
             if (!report || !isValidReport(report)) {
                 return acc;
             }

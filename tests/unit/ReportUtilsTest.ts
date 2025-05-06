@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {beforeAll} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -13,6 +14,7 @@ import {
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildParticipantsFromAccountIDs,
+    buildReportNameFromParticipantNames,
     buildTransactionThread,
     canDeleteReportAction,
     canEditWriteCapability,
@@ -49,7 +51,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
@@ -168,60 +172,60 @@ const personalDetails: PersonalDetailsList = {
     },
 };
 
-// const rules = {
-//     approvalRules: [
-//         {
-//             applyWhen: [
-//                 {
-//                     condition: 'matches',
-//                     field: 'category',
-//                     value: 'cat1',
-//                 },
-//             ],
-//             approver: 'categoryapprover1@test.com',
-//             id: '1',
-//         },
-//         {
-//             applyWhen: [
-//                 {
-//                     condition: 'matches',
-//                     field: 'tag',
-//                     value: 'tag1',
-//                 },
-//             ],
-//             approver: 'tagapprover1@test.com',
-//             id: '2',
-//         },
-//         {
-//             applyWhen: [
-//                 {
-//                     condition: 'matches',
-//                     field: 'category',
-//                     value: 'cat2',
-//                 },
-//             ],
-//             approver: 'categoryapprover2@test.com',
-//             id: '3',
-//         },
-//         {
-//             applyWhen: [
-//                 {
-//                     condition: 'matches',
-//                     field: 'tag',
-//                     value: 'tag2',
-//                 },
-//             ],
-//             approver: 'tagapprover2@test.com',
-//             id: '4',
-//         },
-//     ],
-// };
+const rules = {
+    approvalRules: [
+        {
+            applyWhen: [
+                {
+                    condition: 'matches',
+                    field: 'category',
+                    value: 'cat1',
+                },
+            ],
+            approver: 'categoryapprover1@test.com',
+            id: '1',
+        },
+        {
+            applyWhen: [
+                {
+                    condition: 'matches',
+                    field: 'tag',
+                    value: 'tag1',
+                },
+            ],
+            approver: 'tagapprover1@test.com',
+            id: '2',
+        },
+        {
+            applyWhen: [
+                {
+                    condition: 'matches',
+                    field: 'category',
+                    value: 'cat2',
+                },
+            ],
+            approver: 'categoryapprover2@test.com',
+            id: '3',
+        },
+        {
+            applyWhen: [
+                {
+                    condition: 'matches',
+                    field: 'tag',
+                    value: 'tag2',
+                },
+            ],
+            approver: 'tagapprover2@test.com',
+            id: '4',
+        },
+    ],
+};
 
 const employeeAccountID = 2;
-// const categoryapprover1Email = 'categoryapprover1@test.com';
-// const categoryapprover2Email = 'categoryapprover2@test.com';
-// const tagapprover1Email = 'tagapprover1@test.com';
-// const tagapprover2Email = 'tagapprover2@test.com';
+const categoryapprover1Email = 'categoryapprover1@test.com';
+const categoryapprover2Email = 'categoryapprover2@test.com';
+const tagapprover1Email = 'tagapprover1@test.com';
+const tagapprover2Email = 'tagapprover2@test.com';
 
 const policy: Policy = {
     id: '1',
@@ -2304,112 +2308,110 @@ describe('ReportUtils', () => {
             });
 
             // This test is broken, so I am commenting it out. I have opened up https://github.com/Expensify/App/issues/60854 to get the test fixed
-            // describe('has approver rule', () => {
-            //     describe('has no transaction match with approver rule', () => {
-            //         it('should return list contain submitsTo of ownerAccountID and the forwardsTo of them', () => {
-            //             const policyTest: Policy = {
-            //                 ...createRandomPolicy(0),
-            //                 approver: 'owner@test.com',
-            //                 owner: 'owner@test.com',
-            //                 type: CONST.POLICY.TYPE.CORPORATE,
-            //                 employeeList,
-            //                 rules,
-            //                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-            //             };
-            //             const expenseReport: Report = {
-            //                 ...createRandomReport(0),
-            //                 ownerAccountID: employeeAccountID,
-            //                 type: CONST.REPORT.TYPE.EXPENSE,
-            //             };
-            //             const transaction1: Transaction = {
-            //                 ...createRandomTransaction(0),
-            //                 category: '',
-            //                 tag: '',
-            //                 created: testDate,
-            //                 reportID: expenseReport.reportID,
-            //             };
-            //             const transaction2: Transaction = {
-            //                 ...createRandomTransaction(1),
-            //                 category: '',
-            //                 tag: '',
-            //                 created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
-            //                 reportID: expenseReport.reportID,
-            //             };
-            //             Onyx.multiSet({
-            //                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
-            //                 [ONYXKEYS.COLLECTION.TRANSACTION]: {
-            //                     [transaction1.transactionID]: transaction1,
-            //                     [transaction2.transactionID]: transaction2,
-            //                 },
-            //             }).then(() => {
-            //                 const result = ['owner@test.com'];
-            //                 expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
-            //             });
-            //         });
-            //     });
-            //     describe('has transaction match with approver rule', () => {
-            //         const policyTest: Policy = {
-            //             ...createRandomPolicy(1),
-            //             approver: 'owner@test.com',
-            //             owner: 'owner@test.com',
-            //             type: CONST.POLICY.TYPE.CORPORATE,
-            //             employeeList,
-            //             rules,
-            //             approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-            //         };
-            //         const expenseReport: Report = {
-            //             ...createRandomReport(100),
-            //             ownerAccountID: employeeAccountID,
-            //             type: CONST.REPORT.TYPE.EXPENSE,
-            //         };
-            //         const transaction1: Transaction = {
-            //             ...createRandomTransaction(2),
-            //             category: 'cat1',
-            //             tag: '',
-            //             created: testDate,
-            //             reportID: expenseReport.reportID,
-            //             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
-            //         };
-            //         const transaction2: Transaction = {
-            //             ...createRandomTransaction(3),
-            //             category: '',
-            //             tag: 'tag1',
-            //             created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
-            //             reportID: expenseReport.reportID,
-            //             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
-            //         };
-            //         const transaction3: Transaction = {
-            //             ...createRandomTransaction(4),
-            //             category: 'cat2',
-            //             tag: '',
-            //             created: testDate,
-            //             reportID: expenseReport.reportID,
-            //             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
-            //         };
-            //         const transaction4: Transaction = {
-            //             ...createRandomTransaction(5),
-            //             category: '',
-            //             tag: 'tag2',
-            //             created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
-            //             reportID: expenseReport.reportID,
-            //             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
-            //         };
+            describe('has approver rule', () => {
+                describe('has no transaction match with approver rule', () => {
+                    it('should return list contain submitsTo of ownerAccountID and the forwardsTo of them', () => {
+                        const policyTest: Policy = {
+                            ...createRandomPolicy(0),
+                            approver: 'owner@test.com',
+                            owner: 'owner@test.com',
+                            type: CONST.POLICY.TYPE.CORPORATE,
+                            employeeList,
+                            rules,
+                            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                        };
+                        const expenseReport: Report = {
+                            ...createRandomReport(0),
+                            ownerAccountID: employeeAccountID,
+                            type: CONST.REPORT.TYPE.EXPENSE,
+                        };
+                        const transaction1: Transaction = {
+                            ...createRandomTransaction(0),
+                            category: '',
+                            tag: '',
+                            created: testDate,
+                            reportID: expenseReport.reportID,
+                        };
+                        const transaction2: Transaction = {
+                            ...createRandomTransaction(1),
+                            category: '',
+                            tag: '',
+                            created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                            reportID: expenseReport.reportID,
+                        };
+                        Onyx.multiSet({
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+                            [ONYXKEYS.COLLECTION.TRANSACTION]: {
+                                [transaction1.transactionID]: transaction1,
+                                [transaction2.transactionID]: transaction2,
+                            },
+                        }).then(() => {
+                            const result = ['owner@test.com'];
+                            expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                        });
+                    });
+                });
+                describe('has transaction match with approver rule', () => {
+                    it('should return the list with correct order of category/tag approver sorted by created/inserted of the transaction', () => {
+                        const policyTest: Policy = {
+                            ...createRandomPolicy(1),
+                            approver: 'owner@test.com',
+                            owner: 'owner@test.com',
+                            type: CONST.POLICY.TYPE.CORPORATE,
+                            employeeList,
+                            rules,
+                            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                        };
+                        const expenseReport: Report = {
+                            ...createRandomReport(100),
+                            ownerAccountID: employeeAccountID,
+                            type: CONST.REPORT.TYPE.EXPENSE,
+                        };
+                        const transaction1: Transaction = {
+                            ...createRandomTransaction(1),
+                            category: 'cat1',
+                            tag: '',
+                            created: testDate,
+                            reportID: expenseReport.reportID,
+                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                        };
+                        const transaction2: Transaction = {
+                            ...createRandomTransaction(2),
+                            category: '',
+                            tag: 'tag1',
+                            created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                            reportID: expenseReport.reportID,
+                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                        };
+                        const transaction3: Transaction = {
+                            ...createRandomTransaction(3),
+                            category: 'cat2',
+                            tag: '',
+                            created: testDate,
+                            reportID: expenseReport.reportID,
+                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
+                        };
+                        const transaction4: Transaction = {
+                            ...createRandomTransaction(4),
+                            category: '',
+                            tag: 'tag2',
+                            created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                            reportID: expenseReport.reportID,
+                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
+                        };
 
-            //         beforeAll(async () => {
-            //             await Onyx.merge(ONYXKEYS.COLLECTION.TRANSACTION, {
-            //                 [transaction1.transactionID]: transaction1,
-            //                 [transaction2.transactionID]: transaction2,
-            //                 [transaction3.transactionID]: transaction3,
-            //                 [transaction4.transactionID]: transaction4,
-            //             });
-            //         });
-
-            //         it('should return the list with correct order of category/tag approver sorted by created/inserted of the transaction', () => {
-            //             const result = [categoryapprover2Email, categoryapprover1Email, tagapprover2Email, tagapprover1Email, 'admin@test.com'];
-            //             expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
-            //         });
-            //     });
-            // });
+                        Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, {
+                            transactions_1: transaction1,
+                            transactions_2: transaction2,
+                            transactions_3: transaction3,
+                            transactions_4: transaction4,
+                        }).then(() => {
+                            const result = [categoryapprover2Email, categoryapprover1Email, tagapprover2Email, tagapprover1Email, 'admin@test.com'];
+                            expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                        });
+                    });
+                });
+            });
         });
     });
 
@@ -2456,6 +2458,69 @@ describe('ReportUtils', () => {
         it('should return true if the report is a non-expense report and archived', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedChatReport?.reportID));
             expect(isArchivedNonExpenseReportWithID(archivedChatReport, isReportArchived.current)).toBe(true);
+        });
+    });
+
+    describe('buildReportNameFromParticipantNames', () => {
+        /**
+         * Generates a fake report and matching personal details for specified number of participants.
+         * Participants in the report are directly linked with their personal details.
+         */
+        const generateFakeReportAndParticipantsPersonalDetails = ({count, start = 0}: {count: number; start?: number}): {report: Report; personalDetails: PersonalDetailsList} => {
+            const data = {
+                report: {
+                    ...mockedChatReport,
+                    participants: Object.keys(fakePersonalDetails)
+                        .slice(start, count)
+                        .reduce<Record<string, Participant>>((acc, cur) => {
+                            acc[cur] = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
+                            return acc;
+                        }, {}),
+                },
+                personalDetails: Object.fromEntries(Object.entries(fakePersonalDetails).slice(start, count)),
+            };
+
+            data.personalDetails[currentUserAccountID] = {
+                accountID: currentUserAccountID,
+                displayName: 'CURRENT USER',
+                firstName: 'CURRENT',
+            };
+
+            return data;
+        };
+
+        it('excludes the current user from the report title', () => {
+            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({count: currentUserAccountID + 2}));
+            expect(result).not.toContain('CURRENT');
+        });
+
+        it('limits to a maximum of 5 participants in the title', () => {
+            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({count: 10}));
+            expect(result.split(',').length).toBeLessThanOrEqual(5);
+        });
+
+        it('returns full name if only one participant is present (excluding current user)', () => {
+            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({count: 1}));
+            const {displayName} = fakePersonalDetails[1] ?? {};
+            expect(result).toEqual(displayName);
+        });
+
+        it('returns an empty string if there are no participants or all are excluded', () => {
+            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({start: currentUserAccountID - 1, count: 1}));
+            expect(result).toEqual('');
+        });
+
+        it('handles partial or missing personal details correctly', () => {
+            const {report} = generateFakeReportAndParticipantsPersonalDetails({count: 6});
+
+            const secondUser = fakePersonalDetails[2];
+            const fourthUser = fakePersonalDetails[4];
+
+            const incompleteDetails = {2: secondUser, 4: fourthUser};
+            const result = buildReportNameFromParticipantNames({report, personalDetails: incompleteDetails});
+            const expectedNames = [secondUser?.firstName, fourthUser?.firstName].sort();
+            const resultNames = result.split(', ').sort();
+            expect(resultNames).toEqual(expect.arrayContaining(expectedNames));
         });
     });
 });

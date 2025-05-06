@@ -37,7 +37,7 @@ const canListenPopState = typeof window !== 'undefined' && typeof window.addEven
 function SearchRouterContextProvider({children}: ChildrenProps) {
     const [isSearchRouterDisplayed, setIsSearchRouterDisplayed] = useState(false);
     const searchRouterDisplayedRef = useRef(false);
-    const searchPageInputRef = useRef<AnimatedTextInputRef>();
+    const searchPageInputRef = useRef<AnimatedTextInputRef | undefined>(undefined);
 
     useEffect(() => {
         if (!canListenPopState) {

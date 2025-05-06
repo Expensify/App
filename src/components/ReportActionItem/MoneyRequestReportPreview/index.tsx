@@ -87,6 +87,7 @@ function MoneyRequestReportPreview({
         <TransactionPreview
             chatReportID={chatReportID}
             action={getIOUActionForReportID(item.reportID, item.transactionID)}
+            contextAction={action}
             reportID={item.reportID}
             isBillSplit={isSplitBillAction}
             isTrackExpense={isTrackExpenseAction}
@@ -95,9 +96,11 @@ function MoneyRequestReportPreview({
             isHovered={isHovered}
             iouReportID={iouReportID}
             containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle, containerStyles]}
+            shouldDisplayContextMenu={shouldDisplayContextMenu}
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
+            onPreviewPressed={openReportFromPreview}
             shouldShowIOUData={shouldShowIOUData}
         />
     );
@@ -127,6 +130,7 @@ function MoneyRequestReportPreview({
             onLayout={(e: LayoutChangeEvent) => {
                 setCurrentWidth(e.nativeEvent.layout.width ?? 255);
             }}
+            currentWidth={currentWidth}
             reportPreviewStyles={reportPreviewStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             isInvoice={isInvoice}
