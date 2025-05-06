@@ -31,7 +31,7 @@ type CustomLHNOptionsListProps = {
     data: string[];
 
     /** Callback to fire when a row is selected */
-    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
+    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
 
     /** Toggle between compact and default view of the option */
     optionMode: OptionMode;
@@ -112,7 +112,7 @@ type OptionRowLHNDataProps = {
     lastMessageTextFromReport: string;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
-    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
+    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;

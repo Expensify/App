@@ -13,7 +13,7 @@ const PopoverContext = createContext<PopoverContextValue>({
     setActivePopoverExtraAnchorRef: () => {},
 });
 
-function elementContains(ref: RefObject<View | HTMLElement | Text> | undefined, target: EventTarget | null) {
+function elementContains(ref: RefObject<View | HTMLElement | Text | null> | undefined, target: EventTarget | null) {
     if (ref?.current && 'contains' in ref.current && ref?.current?.contains(target as Node)) {
         return true;
     }
@@ -26,7 +26,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
     const [activePopoverAnchor, setActivePopoverAnchor] = useState<AnchorRef['anchorRef']['current'] | null>(null);
     const [activePopoverExtraAnchorRefs, setActivePopoverExtraAnchorRefs] = useState<AnchorRef['extraAnchorRefs']>([]);
 
-    const closePopover = useCallback((anchorRef?: RefObject<View | HTMLElement | Text>): boolean => {
+    const closePopover = useCallback((anchorRef?: RefObject<View | HTMLElement | Text | null>): boolean => {
         if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
             return false;
         }
@@ -125,7 +125,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
     );
 
     // To set the extra anchor refs for the popover when prop-drilling is not possible
-    const setActivePopoverExtraAnchorRef = useCallback((extraAnchorRef?: RefObject<View | HTMLDivElement | Text>) => {
+    const setActivePopoverExtraAnchorRef = useCallback((extraAnchorRef?: RefObject<View | HTMLDivElement | Text | null>) => {
         if (!extraAnchorRef) {
             return;
         }

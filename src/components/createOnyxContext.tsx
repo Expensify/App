@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import type {ComponentType, ForwardedRef, ForwardRefExoticComponent, PropsWithoutRef, ReactNode, RefAttributes} from 'react';
+import type {ComponentType, ForwardedRef, ForwardRefExoticComponent, PropsWithoutRef, ReactElement, ReactNode, RefAttributes} from 'react';
 import React, {createContext, forwardRef, useContext} from 'react';
 import type {OnyxValue} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -56,7 +56,7 @@ export default <TOnyxKey extends OnyxKey>(onyxKeyName: TOnyxKey): CreateOnyxCont
         transformValue,
     }: WithOnyxKeyProps<TOnyxKey, TNewOnyxKey, TTransformedValue> = {}) {
         return <TProps extends Record<TNewOnyxKey, TTransformedValue>, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) => {
-            function Consumer(props: Omit<TProps, TNewOnyxKey>, ref: ForwardedRef<TRef>): ReactNode {
+            function Consumer(props: Omit<TProps, TNewOnyxKey>, ref: ForwardedRef<TRef>): ReactElement {
                 return (
                     <Context.Consumer>
                         {(value) => {

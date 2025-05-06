@@ -167,7 +167,7 @@ function MoneyReportHeaderOld({policy, report: moneyRequestReport, transactionTh
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const connectedIntegration = getConnectedIntegration(policy);
-    const navigateBackToAfterDelete = useRef<Route>();
+    const navigateBackToAfterDelete = useRef<Route | undefined>(undefined);
     const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = useMemo(() => {
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
