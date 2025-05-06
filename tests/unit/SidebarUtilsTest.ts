@@ -29,6 +29,11 @@ describe('SidebarUtils', () => {
         initOnyxDerivedValues();
     });
 
+    afterAll(async () => {
+        Onyx.clear();
+        await waitForBatchedUpdates();
+    });
+
     describe('getReasonAndReportActionThatHasRedBrickRoad', () => {
         it('returns correct reason when report has transaction thread violations', async () => {
             const MOCK_REPORT: Report = {
