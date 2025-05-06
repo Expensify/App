@@ -119,8 +119,8 @@ function ReportActionCompose({
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
-    const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
-    const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+    const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
+    const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
 
     // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
     const {canUseMultiFilesDragAndDrop} = usePermissions();

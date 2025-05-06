@@ -589,9 +589,9 @@ const translations = {
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Files exceeds ${maxUploadSizeInMB} MB. Please try again.`,
     },
     dropzone: {
-      addAttachments: 'Add attachments',
-      scanReceipts: 'Scan receipts',
-      replaceReceipt: 'Replace receipt',
+        addAttachments: 'Add attachments',
+        scanReceipts: 'Scan receipts',
+        replaceReceipt: 'Replace receipt',
     },
     filePicker: {
         fileError: 'File error',

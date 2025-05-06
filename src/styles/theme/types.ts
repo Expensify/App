@@ -28,8 +28,8 @@ type ThemeColors = {
     textSupporting: Color;
     text: Color;
     textColorfulBackground: Color;
-    textReceiptDropZone: Color,
-    textAttachmentDropZone: Color,
+    textReceiptDropZone: Color;
+    textAttachmentDropZone: Color;
     syntax: Color;
     link: Color;
     linkHover: Color;
@@ -76,7 +76,7 @@ type ThemeColors = {
     uploadPreviewActivityIndicator: Color;
     dropUIBG: Color;
     dropWrapperBG: Color;
-    dropHoverBorderColor: Color,
+    dropHoverBorderColor: Color;
     fileDropUIBG: Color;
     attachmentDropUIBG: Color;
     receiptDropUIBG: Color;
