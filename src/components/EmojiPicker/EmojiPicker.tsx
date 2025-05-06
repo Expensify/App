@@ -83,7 +83,9 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
         wasComposerFocusedProp?: boolean,
     ) => {
         wasComposerFocused.current = wasComposerFocusedProp ?? false;
-        ReportActionComposeFocusManager.preventFocusOnFirstResponderOnce();
+        if (wasComposerFocusedProp) {
+            ReportActionComposeFocusManager.preventFocusOnFirstResponderOnce();
+        }
 
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
