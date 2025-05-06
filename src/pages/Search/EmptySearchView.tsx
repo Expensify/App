@@ -1,14 +1,17 @@
-import React, {useMemo, useState} from 'react';
-import {Linking, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import React, { useMemo, useRef, useState } from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type { GestureResponderEvent, Text as RNText } from 'react-native';
+import { Linking, View } from 'react-native';
+import { useOnyx } from 'react-native-onyx';
+import type { OnyxCollection } from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import type {FeatureListItem} from '@components/FeatureList';
-import {Alert, PiggyBank} from '@components/Icon/Illustrations';
+import type { FeatureListItem } from '@components/FeatureList';
+import { Alert, PiggyBank } from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
@@ -20,21 +23,22 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {startMoneyRequest} from '@libs/actions/IOU';
-import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
-import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
-import {setSelfTourViewed} from '@libs/actions/Welcome';
+import { startMoneyRequest } from '@libs/actions/IOU';
+import { openExternalLink, openOldDotLink } from '@libs/actions/Link';
+import { canActionTask, canModifyTask, completeTask } from '@libs/actions/Task';
+import { setSelfTourViewed } from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
-import {generateReportID} from '@libs/ReportUtils';
-import {getNavatticURL} from '@libs/TourUtils';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import { hasSeenTourSelector } from '@libs/onboardingSelectors';
+import { areAllGroupPoliciesExpenseChatDisabled } from '@libs/PolicyUtils';
+import { generateReportID } from '@libs/ReportUtils';
+import { getNavatticURL } from '@libs/TourUtils';
+import { showContextMenu } from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type { Policy } from '@src/types/onyx';
+import type { SearchDataTypes } from '@src/types/onyx/SearchResults';
+
 
 type EmptySearchViewProps = {
     type: SearchDataTypes;
@@ -63,26 +67,37 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
 
+    const contextMenuAnchor = useRef<RNText>(null);
     const tripViewChildren = useMemo(() => {
+        const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
+            showContextMenu({
+                type: CONST.CONTEXT_MENU_TYPES.LINK,
+                event,
+                selection: CONST.BOOK_TRAVEL_DEMO_URL,
+                contextMenuAnchor: contextMenuAnchor.current,
+            });
+        };
+
         return (
             <>
                 <Text style={[styles.textSupporting, styles.textNormal]}>
                     {translate('travel.subtitle')}{' '}
-                    <TextLink
-                        onPress={() => {
-                            Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
-                        }}
-                        onLongPress={(event) => {
-                            showContextMenu({
-                                type: CONST.CONTEXT_MENU_TYPES.LINK,
-                                event,
-                                selection: CONST.BOOK_TRAVEL_DEMO_URL,
-                                contextMenuAnchor: null,
-                            });
-                        }}
+                    <PressableWithSecondaryInteraction
+                        inline
+                        onSecondaryInteraction={onLongPress}
+                        accessible
+                        accessibilityLabel={translate('travel.bookADemo')}
                     >
-                        {translate('travel.bookADemo')}
-                    </TextLink>
+                        <TextLink
+                            onLongPress={onLongPress}
+                            onPress={() => {
+                                Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
+                            }}
+                            ref={contextMenuAnchor}
+                        >
+                            {translate('travel.bookADemo')}
+                        </TextLink>
+                    </PressableWithSecondaryInteraction>
                     {translate('travel.toLearnMore')}
                 </Text>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1, styles.mb5]}>
