@@ -4,7 +4,8 @@ import Button from '@components/Button';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader';
+import {useSearchContext} from '@components/Search/SearchContext';
+import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -23,11 +24,18 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
     const openMenu = () => setIsModalVisible(true);
     const closeMenu = () => setIsModalVisible(false);
 
+    const {clearSelectedTransactions} = useSearchContext();
+
     const handleOnModalHide = () => {
         if (selectedOptionIndexRef.current === -1) {
             return;
         }
+
         options[selectedOptionIndexRef.current]?.onSelected?.();
+        if (options[selectedOptionIndexRef.current]?.shouldPreserveSelectionAfterHideModal) {
+            return;
+        }
+        clearSelectedTransactions();
     };
 
     const handleOnMenuItemPress = (option: DropdownOption<SearchHeaderOptionValue>, index: number) => {
@@ -37,6 +45,7 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
             return;
         }
         option?.onSelected?.();
+        clearSelectedTransactions();
     };
 
     const handleOnCloseMenu = () => {
@@ -62,6 +71,7 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={handleOnCloseMenu}
                 onModalHide={handleOnModalHide}
+                shouldUseNewModal
             >
                 {options.map((option, index) => (
                     <MenuItem

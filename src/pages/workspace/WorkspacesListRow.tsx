@@ -1,4 +1,5 @@
-import React, {useRef, useState} from 'react';
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -69,6 +70,12 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** is policy defualt */
     isDefault?: boolean;
+
+    /** Whether the bill is loading */
+    isLoadingBill?: boolean;
+
+    /** Function to reset loading spinner icon index */
+    resetLoadingSpinnerIconIndex?: () => void;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -113,14 +120,42 @@ function WorkspacesListRow({
     isJoinRequestPending,
     policyID,
     isDefault,
+    isLoadingBill,
+    resetLoadingSpinnerIconIndex,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const ownerDetails = ownerAccountID && getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID).at(0);
+    const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
+    const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
+
+    useEffect(() => {
+        if (isLoadingBill) {
+            return;
+        }
+        resetLoadingSpinnerIconIndex?.();
+
+        if (!threeDotsMenuRef.current?.isPopupMenuVisible) {
+            return;
+        }
+        threeDotsMenuRef?.current?.hidePopoverMenu();
+    }, [isLoadingBill, resetLoadingSpinnerIconIndex]);
+
+    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
+        if (shouldUseNarrowLayout) {
+            return Promise.resolve({horizontal: 0, vertical: 0});
+        }
+        return new Promise<AnchorPosition>((resolve) => {
+            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                resolve({
+                    horizontal: x + width,
+                    vertical: y + height,
+                });
+            });
+        });
+    }, [shouldUseNarrowLayout]);
 
     if (layoutWidth === CONST.LAYOUT_WIDTH.NONE) {
         // To prevent layout from jumping or rendering for a split second, when
@@ -167,22 +202,13 @@ function WorkspacesListRow({
                     </View>
                     <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
-                            onIconPress={() => {
-                                if (shouldUseNarrowLayout) {
-                                    return;
-                                }
-                                threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                                    setThreeDotsMenuPosition({
-                                        horizontal: x + width,
-                                        vertical: y + height,
-                                    });
-                                });
-                            }}
+                            getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
                             menuItems={menuItems}
-                            anchorPosition={threeDotsMenuPosition}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                             shouldOverlay
                             disabled={shouldDisableThreeDotsMenu}
+                            isNested
+                            threeDotsMenuRef={threeDotsMenuRef}
                         />
                     </View>
                 </View>
@@ -232,7 +258,7 @@ function WorkspacesListRow({
                                     numberOfLines={1}
                                     style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
                                 >
-                                    {ownerDetails.login}
+                                    {Str.removeSMSDomain(ownerDetails?.login ?? '')}
                                 </Text>
                             </View>
                         </>

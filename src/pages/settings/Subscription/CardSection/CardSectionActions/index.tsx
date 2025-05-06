@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -18,7 +18,6 @@ const anchorAlignment = {
 function CardSectionActions() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
@@ -39,12 +38,14 @@ function CardSectionActions() {
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
         if (shouldUseNarrowLayout) {
-            return;
+            return Promise.resolve({horizontal: 0, vertical: 0});
         }
-        threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-            setThreeDotsMenuPosition({
-                horizontal: x + width,
-                vertical: y + height,
+        return new Promise<AnchorPosition>((resolve) => {
+            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                resolve({
+                    horizontal: x + width,
+                    vertical: y + height,
+                });
             });
         });
     }, [shouldUseNarrowLayout]);
@@ -52,9 +53,8 @@ function CardSectionActions() {
     return (
         <View ref={threeDotsMenuContainerRef}>
             <ThreeDotsMenu
-                onIconPress={calculateAndSetThreeDotsMenuPosition}
+                getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
                 menuItems={overflowMenu}
-                anchorPosition={threeDotsMenuPosition}
                 anchorAlignment={anchorAlignment}
                 shouldOverlay
             />

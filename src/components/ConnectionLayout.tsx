@@ -2,13 +2,14 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
@@ -40,7 +41,7 @@ type ConnectionLayoutProps = {
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
 
-    /** The content container style of Scrollview */
+    /** The content container style of ScrollView */
     contentContainerStyle?: StyleProp<ViewStyle> | undefined;
 
     /** Style of the title text */
@@ -106,7 +107,7 @@ function ConnectionLayout({
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
-    const policy = PolicyUtils.getPolicy(policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
     const renderSelectionContent = useMemo(
@@ -132,6 +133,7 @@ function ConnectionLayout({
             shouldBeBlocked={!!shouldBeBlocked || shouldBlockByConnection}
         >
             <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
                 shouldEnableMaxHeight
                 testID={displayName}
@@ -142,7 +144,12 @@ function ConnectionLayout({
                     onBackButtonPress={onBackButtonPress}
                 />
                 {shouldUseScrollView ? (
-                    <ScrollView contentContainerStyle={contentContainerStyle}>{renderSelectionContent}</ScrollView>
+                    <ScrollView
+                        contentContainerStyle={contentContainerStyle}
+                        addBottomSafeAreaPadding
+                    >
+                        {renderSelectionContent}
+                    </ScrollView>
                 ) : (
                     <View style={contentContainerStyle}>{renderSelectionContent}</View>
                 )}

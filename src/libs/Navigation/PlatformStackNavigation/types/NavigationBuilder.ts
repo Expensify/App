@@ -9,9 +9,8 @@ import type {
     ParamListBase,
     RouteProp,
     StackActionHelpers,
-    useNavigationBuilder,
 } from '@react-navigation/native';
-import type {PlatformSpecificEventMap, PlatformSpecificNavigationOptions, PlatformStackNavigationOptions, PlatformStackNavigationState, PlatformStackRouterOptions} from '.';
+import type {PlatformSpecificEventMap, PlatformSpecificNavigationOptions, PlatformStackNavigationState, PlatformStackRouterOptions} from '.';
 
 // Represents the options passed to useNavigationBuilder for creating a custom navigation builder,
 // using the abstracted and custom types from PlatformStackNavigation.
@@ -20,16 +19,14 @@ type PlatformNavigationBuilderOptions<
     EventMap extends PlatformSpecificEventMap & EventMapBase,
     ParamList extends ParamListBase = ParamListBase,
     RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
-> = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, NavigationOptions, EventMap> & NavigationBuilderOptions<NavigationOptions> & RouterOptions;
-
-// Represents the return type of the useNavigationBuilder function using the types from PlatformStackNavigation.
-type PlatformNavigationBuilderResult<
-    NavigationOptions extends PlatformSpecificNavigationOptions,
-    EventMap extends PlatformSpecificEventMap & EventMapBase,
-    ParamList extends ParamListBase = ParamListBase,
-    RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
-    ActionHelpers extends StackActionHelpers<ParamList> = StackActionHelpers<ParamList>,
-> = ReturnType<typeof useNavigationBuilder<PlatformStackNavigationState<ParamList>, RouterOptions, ActionHelpers, PlatformStackNavigationOptions, EventMap, NavigationOptions>>;
+> = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, NavigationOptions, EventMap> &
+    NavigationBuilderOptions<NavigationOptions> &
+    RouterOptions & {
+        persistentScreens?: Array<Extract<keyof ParamList, string>>;
+        defaultCentralScreen?: Extract<keyof ParamList, string>;
+        sidebarScreen?: Extract<keyof ParamList, string>;
+        parentRoute?: RouteProp<ParamListBase>;
+    };
 
 // Represents the type of the navigation object returned by useNavigationBuilder
 type PlatformNavigationBuilderNavigation<
@@ -57,10 +54,4 @@ type PlatformNavigationBuilderDescriptors<
     ParamList extends ParamListBase = ParamListBase,
 > = Record<string, PlatformNavigationBuilderDescriptor<NavigationOptions, EventMap, ParamList>>;
 
-export type {
-    PlatformNavigationBuilderOptions,
-    PlatformNavigationBuilderResult,
-    PlatformNavigationBuilderNavigation,
-    PlatformNavigationBuilderDescriptor,
-    PlatformNavigationBuilderDescriptors,
-};
+export type {PlatformNavigationBuilderOptions, PlatformNavigationBuilderNavigation, PlatformNavigationBuilderDescriptors};

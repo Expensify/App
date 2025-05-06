@@ -38,6 +38,7 @@ import androidx.versionedparcelable.ParcelUtils;
 
 import com.expensify.chat.R;
 import com.expensify.chat.shortcutManagerModule.ShortcutManagerUtils;
+import com.expensify.chat.customairshipextender.PayloadHandler;
 import com.urbanairship.AirshipConfigOptions;
 import com.urbanairship.json.JsonMap;
 import com.urbanairship.json.JsonValue;
@@ -104,7 +105,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         PushMessage message = arguments.getMessage();
         Log.d(TAG, "buildNotification: " + message.toString());
 
-        // Improve notification delivery by categorising as a time-critical message
+        // Improve notification delivery by categorizing as a time-critical message
         builder.setCategory(CATEGORY_MESSAGE);
         builder.setVisibility(NotificationCompat.VISIBILITY_PRIVATE);
 
@@ -119,18 +120,31 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         // Attempt to parse data and apply custom notification styling
-        if (message.containsKey(PAYLOAD_KEY)) {
-            try {
-                JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
-                if (payload.containsKey(ONYX_DATA_KEY)) {
-                    Objects.requireNonNull(payload.get(ONYX_DATA_KEY)).isNull();
-                    Log.d(TAG, "payload contains onxyData");
-                    String alert = message.getExtra(PushMessage.EXTRA_ALERT);
-                    applyMessageStyle(context, builder, payload, arguments.getNotificationId(), alert);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to parse conversation, falling back to default notification style. SendID=" + message.getSendId(), e);
+        if (!message.containsKey(PAYLOAD_KEY)) {
+            return builder;
+        }
+
+        try {
+            String rawPayload = message.getExtra(PAYLOAD_KEY);
+            if (rawPayload == null) {
+              Log.d(TAG, "Failed to parse payload - payload is empty. SendID=" + message.getSendId());
+              return builder;
             }
+
+            PayloadHandler handler = new PayloadHandler();
+            String processedPayload = handler.processPayload(rawPayload);
+            JsonMap payload = JsonValue.parseString(processedPayload).optMap();
+            if (!payload.containsKey(ONYX_DATA_KEY)) {
+                Log.d(TAG, "Failed to process payload - no onyx data. SendID=" + message.getSendId());
+                return builder;
+            }
+
+            Objects.requireNonNull(payload.get(ONYX_DATA_KEY)).isNull();
+            Log.d(TAG, "payload contains onxyData");
+            String alert = message.getExtra(PushMessage.EXTRA_ALERT);
+            applyMessageStyle(context, builder, payload, arguments.getNotificationId(), alert);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to parse conversation, falling back to default notification style. SendID=" + message.getSendId(), e);
         }
 
         return builder;
@@ -207,10 +221,10 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String name = messageData.get("person").getList().get(0).getMap().get("text").getString();
             String avatar = messageData.get("avatar").getString();
             String accountID = Integer.toString(messageData.get("actorAccountID").getInt(-1));
-            
+
             // Use the formatted alert message from the backend. Otherwise fallback on the message in the Onyx data.
             String message = alert != null ? alert : messageData.get("message").getList().get(0).getMap().get("text").getString();
-            String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
+            String subtitle = payload.get("subtitle") == null ? "" : payload.get("subtitle").getString("");
 
             // Create the Person object who sent the latest report comment
             Bitmap personIcon = fetchIcon(context, avatar);
@@ -243,11 +257,11 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             }
 
             // Conversational styling should be applied to groups chats, rooms, and any 1:1 chats with more than one notification (ensuring the large profile image is always shown)
-            if (!roomName.isEmpty()) {
+            if (!subtitle.isEmpty()) {
                 // Create the messaging style notification builder for this notification, associating it with the person who sent the report comment
                 messagingStyle
                         .setGroupConversation(true)
-                        .setConversationTitle(roomName);
+                        .setConversationTitle(subtitle);
             }
             builder.setStyle(messagingStyle);
             builder.setShortcutId(accountID);

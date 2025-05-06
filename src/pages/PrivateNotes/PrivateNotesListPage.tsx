@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
+import {goBackToDetailsPage} from '@libs/ReportUtils';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import CONST from '@src/CONST';
@@ -94,7 +95,7 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo))}
+                onBackButtonPress={() => goBackToDetailsPage(report, route.params.backTo, true)}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <ScrollView

@@ -12,9 +12,7 @@ const migrations = {
     preferredLocale: ONYXKEYS.NVP_PREFERRED_LOCALE,
     preferredEmojiSkinTone: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     frequentlyUsedEmojis: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     private_blockedFromConcierge: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     private_pushNotificationID: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     tryFocusMode: ONYXKEYS.NVP_TRY_FOCUS_MODE,
     introSelected: ONYXKEYS.NVP_INTRO_SELECTED,

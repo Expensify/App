@@ -11,6 +11,7 @@ import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Performance from '@libs/Performance';
 import {createDraftWorkspaceAndNavigateToConfirmationScreen, findSelfDMReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
@@ -26,7 +27,6 @@ import {
 } from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -42,7 +42,7 @@ type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof 
 
 function IOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID, action},
+        params: {iouType, reportID, transactionID, action, backTo},
     },
     transaction,
 }: IOURequestStepParticipantsProps) {
@@ -86,6 +86,10 @@ function IOURequestStepParticipants({
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isMobileSafari = isMobileSafariBrowser();
 
+    useEffect(() => {
+        Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
+    }, []);
+
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the expense is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the expense process.
@@ -109,6 +113,19 @@ function IOURequestStepParticipants({
         resetDraftTransactionsCustomUnit(transactionID);
     }, [isFocused, isMovingTransactionFromTrackExpense, transactionID]);
 
+    const waitForKeyboardDismiss = useCallback(
+        (callback: () => void) => {
+            if (isAndroidNative || isMobileSafari) {
+                KeyboardUtils.dismiss().then(() => {
+                    callback();
+                });
+            } else {
+                callback();
+            }
+        },
+        [isAndroidNative, isMobileSafari],
+    );
+
     const trackExpense = useCallback(() => {
         // If coming from the combined submit/track flow and the user proceeds to just track the expense,
         // we will use the track IOU type in the confirmation flow.
@@ -120,8 +137,16 @@ function IOURequestStepParticipants({
         setCustomUnitRateID(transactionID, rateID);
         setMoneyRequestParticipantsFromReport(transactionID, selfDMReport);
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, transactionID, selfDMReportID);
-        Navigation.navigate(iouConfirmationPageRoute);
-    }, [action, selfDMReport, selfDMReportID, transactionID]);
+        waitForKeyboardDismiss(() => {
+            // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
+            if (backTo) {
+                // We don't want to compare params because we just changed the participants.
+                Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
+            } else {
+                Navigation.navigate(iouConfirmationPageRoute);
+            }
+        });
+    }, [action, backTo, selfDMReport, selfDMReportID, transactionID, waitForKeyboardDismiss]);
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
@@ -159,19 +184,6 @@ function IOURequestStepParticipants({
         [iouType, reportID, trackExpense, transactionID, isMovingTransactionFromTrackExpense],
     );
 
-    const handleNavigation = useCallback(
-        (route: Route) => {
-            if (isAndroidNative || isMobileSafari) {
-                KeyboardUtils.dismiss().then(() => {
-                    Navigation.navigate(route);
-                });
-            } else {
-                Navigation.navigate(route);
-            }
-        },
-        [isAndroidNative, isMobileSafari],
-    );
-
     const goToNextStep = useCallback(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
         const isShareAction = action === CONST.IOU.ACTION.SHARE;
@@ -202,12 +214,25 @@ function IOURequestStepParticipants({
             ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
             : iouConfirmationPageRoute;
 
-        handleNavigation(route);
-    }, [action, participants, iouType, transaction, transactionID, reportID, handleNavigation]);
+        Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
+        waitForKeyboardDismiss(() => {
+            // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
+            if (backTo) {
+                // We don't want to compare params because we just changed the participants.
+                Navigation.goBack(route, {compareParams: false});
+            } else {
+                Navigation.navigate(route);
+            }
+        });
+    }, [action, participants, iouType, transaction, transactionID, reportID, waitForKeyboardDismiss, backTo]);
 
     const navigateBack = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
         navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
-    }, [iouRequestType, iouType, transactionID, reportID, action]);
+    }, [backTo, iouRequestType, iouType, transactionID, reportID, action]);
 
     useEffect(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;

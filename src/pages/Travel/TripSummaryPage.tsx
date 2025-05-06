@@ -1,6 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+import CONFIG from '@src/CONFIG';
 import * as TripReservationUtils from '@src/libs/TripReservationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -34,7 +34,7 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={reservationsData.length === 0 || (!canUseSpotnanaTravel && !NativeModules.HybridAppModule)}
+                shouldShow={reservationsData.length === 0 || (!canUseSpotnanaTravel && !CONFIG.IS_HYBRID_APP)}
             >
                 <HeaderWithBackButton
                     title={translate(`travel.tripDetails`)}

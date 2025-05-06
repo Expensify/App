@@ -1,32 +1,71 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {cancelResetBankAccount, resetNonUSDBankAccount, resetUSDBankAccount} from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type WorkspaceResetBankAccountModalOnyxProps = {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<OnyxTypes.Session>;
-};
-
-type WorkspaceResetBankAccountModalProps = WorkspaceResetBankAccountModalOnyxProps & {
+type WorkspaceResetBankAccountModalProps = {
     /** Reimbursement account data */
     reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
+
+    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
+
+    /** Method to set the state of setUSDBankAccountStep */
+    setUSDBankAccountStep?: (step: string | null) => void;
+
+    /** Method to set the state of setNonUSDBankAccountStep */
+    setNonUSDBankAccountStep?: (step: string | null) => void;
+
+    /** Whether the workspace currency is set to non USD currency */
+    isNonUSDWorkspace: boolean;
 };
 
-function WorkspaceResetBankAccountModal({reimbursementAccount, session}: WorkspaceResetBankAccountModalProps) {
+function WorkspaceResetBankAccountModal({
+    reimbursementAccount,
+    setShouldShowConnectedVerifiedBankAccount,
+    setUSDBankAccountStep,
+    setNonUSDBankAccountStep,
+    isNonUSDWorkspace,
+}: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const policyID = reimbursementAccount?.achData?.policyID;
     const achData = reimbursementAccount?.achData;
     const isInOpenState = achData?.state === BankAccount.STATE.OPEN;
     const bankAccountID = achData?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
+
+    const handleConfirm = () => {
+        if (isNonUSDWorkspace) {
+            resetNonUSDBankAccount(policyID);
+
+            if (setShouldShowConnectedVerifiedBankAccount) {
+                setShouldShowConnectedVerifiedBankAccount(false);
+            }
+
+            if (setNonUSDBankAccountStep) {
+                setNonUSDBankAccountStep(null);
+            }
+        } else {
+            resetUSDBankAccount(bankAccountID, session, policyID);
+
+            if (setShouldShowConnectedVerifiedBankAccount) {
+                setShouldShowConnectedVerifiedBankAccount(false);
+            }
+
+            if (setUSDBankAccountStep) {
+                setUSDBankAccountStep(null);
+            }
+        }
+    };
 
     return (
         <ConfirmModal
@@ -45,8 +84,8 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session}: Workspa
                 )
             }
             danger
-            onCancel={BankAccounts.cancelResetFreePlanBankAccount}
-            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID, session, achData?.policyID ?? '-1')}
+            onCancel={cancelResetBankAccount}
+            onConfirm={handleConfirm}
             shouldShowCancelButton
             isVisible
         />
@@ -55,8 +94,4 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session}: Workspa
 
 WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';
 
-export default withOnyx<WorkspaceResetBankAccountModalProps, WorkspaceResetBankAccountModalOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(WorkspaceResetBankAccountModal);
+export default WorkspaceResetBankAccountModal;

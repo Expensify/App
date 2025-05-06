@@ -172,13 +172,13 @@ type IOU = {
 /** Model of IOU attendee */
 type Attendee = {
     /** IOU attendee email */
-    email?: string;
+    email: string;
 
     /** IOU attendee display name */
-    displayName?: string;
+    displayName: string;
 
     /** IOU attendee avatar url */
-    avatarUrl?: string;
+    avatarUrl: string;
 
     /** Account ID */
     accountID?: number;
@@ -202,5 +202,14 @@ type Attendee = {
     reportID?: string;
 };
 
+/** Model of IOU accountant */
+type Accountant = {
+    /** Account ID */
+    accountID?: number;
+
+    /** Account login */
+    login?: string;
+};
+
 export default IOU;
-export type {Participant, Split, Attendee};
+export type {Participant, Split, Attendee, Accountant};

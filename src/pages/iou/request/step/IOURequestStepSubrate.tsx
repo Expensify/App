@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -10,15 +10,15 @@ import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type BaseModalProps from '@components/Modal/types';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -47,6 +47,7 @@ type CommentSubrate = {
     id: string;
     quantity: number;
     name: string;
+    rate: number;
 };
 
 function getSubrateOptions(subRates: Subrate[], filledSubRates: CommentSubrate[], currentSubrateID?: string) {
@@ -69,13 +70,13 @@ function IOURequestStepSubrate({
     const styles = useThemeStyles();
     const policy = usePolicy(report?.policyID);
     const customUnit = getPerDiemCustomUnit(policy);
-    const {windowWidth} = useWindowDimensions();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const textInputRef = useRef<AnimatedTextInputRef>(null);
     const parsedIndex = parseInt(pageIndex, 10);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
     const allSubrates = transaction?.comment?.customUnit?.subRates ?? [];
@@ -183,7 +184,7 @@ function IOURequestStepSubrate({
                     onBackButtonPress={goBack}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     shouldSetModalVisibility={false}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
@@ -228,13 +229,18 @@ function IOURequestStepSubrate({
                             value={subrateValue}
                             defaultValue={currentSubrate?.id}
                             items={validOptions}
-                            onValueChange={(value) => setSubrateValue(value as string)}
+                            onValueChange={(value) => {
+                                setSubrateValue(value as string);
+                                InteractionManager.runAfterInteractions(() => {
+                                    textInputRef.current?.focus();
+                                });
+                            }}
                         />
                     </View>
                     <InputWrapperWithRef
                         InputComponent={TextInput}
                         inputID={`quantity${pageIndex}`}
-                        ref={inputCallbackRef}
+                        ref={textInputRef}
                         containerStyles={[styles.mt4]}
                         label={translate('iou.quantity')}
                         value={quantityValue}

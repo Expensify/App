@@ -15,6 +15,7 @@
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
+* [HybridApp](#HybridApp)
 * [Philosophy](#Philosophy)
 * [Security](#Security)
 * [Internationalization](#Internationalization)
@@ -25,9 +26,10 @@
 * [Offline First](contributingGuides/OFFLINE_UX.md)
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
-* [Contributor License Agreement](contributingGuides/CLA.md)
+* [Contributor License Agreement](CLA.md)
 * [React StrictMode](contributingGuides/STRICT_MODE.md)
 * [Left Hand Navigation(LHN)](contributingGuides/LEFT_HAND_NAVIGATION.md)
+* [HybridApp - additional info & troubleshooting](contributingGuides/HYBRID_APP.md)
 
 ----
 
@@ -412,14 +414,14 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 By default, Onyx will not evict anything from storage and will presume all keys are "unsafe" to remove unless explicitly told otherwise.
 
 **To flag a key as safe for removal:**
-- Add the key to the `safeEvictionKeys` option in `Onyx.init(options)`
+- Add the key to the `evictableKeys` option in `Onyx.init(options)`
 - Implement `canEvict` in the Onyx config for each component subscribing to a key
 - The key will only be deleted when all subscribers return `true` for `canEvict`
 
 e.g.
 ```js
 Onyx.init({
-    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+    evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
 });
 ```
 
@@ -456,19 +458,21 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
 ## Getting started with HybridApp
 
 1. If you haven't, please follow [these instructions](https://github.com/Expensify/App?tab=readme-ov-file#getting-started) to setup the NewDot local environment.
-2. Run `git submodule update --init --progress --depth 100` to download the `Mobile-Expensify` sourcecode.
-- If you have access to `Mobile-Expensify` and the command fails, add this to your `~/.gitconfig` file:
+2. In the root directory, run `git submodule init`
+3. Run `git submodule update`
+    - If this takes too long, try `git submodule update --init --progress --depth 100` (Note: this makes it difficult to checkout remote branches in the submodule)
+    - If you have access to `Mobile-Expensify` and the command fails, add this to your `~/.gitconfig` file:
 
     ```
     [url "https://github.com/"]
         insteadOf = ssh://git@github.com/
     ```
-- To prevent `Mobile-Expensify` submodule commit hash changes from appearing in `git status`, configure Git to ignore them by adding this to your local `.git/config`:
+    - To prevent `Mobile-Expensify` submodule commit hash changes from appearing in `git status`, configure Git to ignore them by adding this to your local `.git/config` (This ensures that submodule changes are ignored unless you deliberately update them):
     ```
     [submodule "Mobile-Expensify"]
         ignore = all
     ```
-    This ensures that submodule changes are ignored unless you deliberately update them.
+4. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App
 
 
 > [!Note]  
@@ -531,6 +535,15 @@ The primary difference is that the native code, which runs React Native, is loca
 
 The `Mobile-Expensify` directory is a **Git submodule**. This means it points to a specific commit on the `Mobile-Expensify` repository.  
 
+If you'd like to fetch the submodule while executing the `git pull` command in `Expensify/App` instead of updating it manually you can run this command in the root of the project: 
+
+```
+git config submodule.recurse true
+```
+
+> [!WARNING]  
+> Please, remember that the submodule will get updated automatically only after executing the `git pull` command - if you switch between branches it is still recommended to execute `git submodule update` to make sure you're working on a compatible submodule version!
+
 If you'd like to download the most recent changes from the `main` branch, please use the following command:
 ```bash
 git submodule update --remote
@@ -546,25 +559,9 @@ If you'd like to add HybridApp-specific patches, use the `--patch-dir` flag:
 
 `npx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
 
-### HybridApp troubleshooting
+### Additional information and troubleshooting
 
-#### Cleaning the repo
-- `npm run clean` - deep clean of all HybridApp artifacts (including NewDot's `node_modules`)
-- `npm run clean -- --ios` - clean only iOS HybridApp artifacts (`Pods`, `build` folder, `DerivedData`)
-- `npm run clean -- --android` - clean only Android HybridApp artifacts (`.cxx`, `build`, and `.gradle` folders, execute `./gradlew clean`)
-
-If you'd like to do it manually, remember to `cd Mobile-Expensify` first!
-
-#### Common errors
-1. **Please check your internet connection** - set `_isOnDev` in `api.js` to always return `false` 
-2. **CDN: trunk URL couldn't be downloaded** - `cd Mobile-Expensify/iOS && pod repo remove trunk`
-
-3. **Task :validateSigningRelease FAILED** - open `Mobile-Expensify/Android/build.gradle` and do the following:
-    ```
-    - signingConfig signingConfigs.release
-    + signingConfig signingConfigs.debug
-    ```
-4. **Build service could not create build operation: unknown error while handling message: MsgHandlingError(message: "unable to initiate PIF transfer session (operation in progress?)")** - reopen XCode
+If you seek some additional information you can always refer to the [extended version](contributingGuides/HYBRID_APP.md) of the docs for HybridApp. You can find there extended explanation of some of the concepts, pro tips, and most common errors.
 
 ----
 
@@ -813,6 +810,16 @@ The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/
 ### finishReleaseCycle
 The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging (with a new `PATCH` version), and creates a new `StagingDeployCash` deploy checklist.
 
+### testBuild
+The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (standalone iOS, standalone Android, web, and desktop) directly from pull requests in the App repository. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. To initiate this workflow, the PR number from the App repository is required as input.
+
+### testBuildHybrid
+The [`testBuildHybrid` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuildHybrid.yml) builds ad-hoc staging versions of hybrid apps (iOS and Android) from pull requests submitted to the App and Mobile-Expensify repositories. This workflow facilitates testing changes by accepting up to two inputs:
+- A PR number from the App repository for testing New Dot (ND) changes.
+- A PR number from the Mobile-Expensify repository for testing Old Dot (OD) changes.
+
+Both PR numbers can be entered simultaneously if the changes from both repositories need to be combined and tested. Additionally, contributors can explicitly link related PRs from the Mobile-Expensify repository in the App repository PR description if required. Guidance on linking PRs can be found [in PR template](https://github.com/Expensify/App/blob/main/.github/PULL_REQUEST_TEMPLATE.md?plain=1#L25-L30)
+
 ## Local production builds
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
 
@@ -844,3 +851,93 @@ In order to compile a production iOS build, run `npm run ios-build`, this will g
 
 #### Local production build the Android app
 To build an APK to share run (e.g. via Slack), run `npm run android-build`, this will generate a new APK in the `android/app` folder.
+
+# Onyx derived values
+Onyx derived values are special Onyx keys which contain values derived from other Onyx values. These are available as a performance optimization, so that if the result of a common computation of Onyx values is needed in many places across the app, the computation can be done only as needed in a centralized location, and then shared across the app. Once created, Onyx derived values are stored and consumed just like any other Onyx value.
+
+## When to use derived values?
+
+1. **Complex Computations Across Multiple Components**
+   - Multiple components need the same computed value from one or more Onyx keys
+   - The computation is expensive (e.g., filtering large arrays, complex object transformations)
+   - The result needs to be cached and shared to avoid redundant calculations
+
+2. **Performance Critical Paths**
+   - The computation appears in frequently rendered components
+   - Profiling shows the same calculation being done repeatedly
+   - The computation involves multiple Onyx dependencies that change independently
+
+3. **Data Aggregation and Transformation**
+   - You need to combine data from multiple Onyx keys into a single, normalized structure
+   - The transformation logic is complex and reusable
+   - The derived data structure is used in multiple places
+
+4. **State-Dependent Calculations**
+   - The value depends on multiple pieces of state that can change independently
+   - The relationship between states is complex (e.g., filtering + sorting + grouping)
+   - Changes in any dependency should trigger a recalculation
+
+## When not to use derived values?
+
+1. **Simple or Local Computations**
+   - The computation is trivial (e.g., simple string manipulation, basic math)
+   - The value is only used in one component
+
+2. **Component-Specific Logic**
+   - The computation is specific to a single component's UI state
+   - The logic involves component-local state
+
+3. **Temporary or Volatile Data**
+   - The computed value is only needed temporarily
+   - The data doesn't need to persist across component unmounts
+   - The computation depends on non-Onyx values
+
+## Creating new Onyx derived values
+1. Add the new Onyx key. The keys for Onyx derived values are stored in `ONYXKEYS.ts`, in the `ONYXKEYS.DERIVED` object.
+2. Declare the type for the derived value in `ONYXKEYS.ts`, in the `OnyxDerivedValuesMapping` type.
+3. Add the derived value config to `ONYX_DERIVED_VALUES` in `src/libs/OnyxDerived.ts`. A derived value config is defined by:
+   1. The Onyx key for the derived value
+   2. An array of dependent Onyx keys (which can be any keys, not including the one from the previous step. Including other derived values!)
+   3. A `compute` function, which takes an array of dependent Onyx values (in the same order as the array of keys from the previous step), and returns a value matching the type you declared in `OnyxDerivedValuesMapping`
+
+## Best practices
+
+1. **Keep computations pure and predictable**
+   ```typescript
+      // GOOD ✅
+   compute: ([reports, personalDetails]) => {
+     // Pure function, only depends on input
+     return reports.map(report => ({
+       ...report,
+       authorName: personalDetails[report.authorID]?.displayName
+     }));
+   }
+
+   // BAD ❌
+   compute: ([reports]) => {
+     // Don't use external state or cause side effects
+     const currentUser = getCurrentUser(); // External dependency!
+     sendAnalytics('computation-done'); // Side effect!
+     return reports;
+   }
+   ```
+2. **Handle edge cases**
+   ```typescript
+   // GOOD ✅
+   compute: ([reports, personalDetails]: [Report[], PersonalDetails]): DerivedType => {
+     if (!reports?.length || !personalDetails) {
+       return { items: [], count: 0 };
+     }
+     // Rest of computation...
+   }
+
+   // BAD ❌
+   compute: ([reports, personalDetails]) => {
+     // Missing type safety and edge cases
+     return reports.map(report => personalDetails[report.id]);
+   }
+   ```
+
+3. **Document derived values**
+   - Explain the purpose and dependencies
+   - Document any special cases or performance considerations

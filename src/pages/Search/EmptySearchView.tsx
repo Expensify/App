@@ -2,26 +2,27 @@ import React, {useMemo, useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {FeatureListItem} from '@components/FeatureList';
 import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
+import ScrollView from '@components/ScrollView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
 import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
-import {bookATrip} from '@libs/actions/Travel';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
@@ -56,14 +57,12 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [modalVisible, setModalVisible] = useState(false);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
 
-    const [ctaErrorMessage, setCtaErrorMessage] = useState('');
-
-    const subtitleComponent = useMemo(() => {
+    const tripViewChildren = useMemo(() => {
         return (
             <>
                 <Text style={[styles.textSupporting, styles.textNormal]}>
@@ -77,7 +76,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     </TextLink>
                     {translate('travel.toLearnMore')}
                 </Text>
-                <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1]}>
+                <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1, styles.mb5]}>
                     {tripsFeatures.map((tripsFeature) => (
                         <View
                             key={tripsFeature.translationKey}
@@ -97,28 +96,24 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                         </View>
                     ))}
                 </View>
-                {!!ctaErrorMessage && (
-                    <DotIndicatorMessage
-                        style={styles.mt1}
-                        messages={{error: ctaErrorMessage}}
-                        type="error"
-                    />
-                )}
+                <BookTravelButton text={translate('search.searchResults.emptyTripResults.buttonText')} />
             </>
         );
-    }, [styles, translate, ctaErrorMessage]);
+    }, [styles, translate]);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const onboardingPurpose = introSelected?.choice;
     const {environment} = useEnvironment();
     const navatticURL = getNavatticURL(environment, onboardingPurpose);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
+        canBeMissing: true,
     });
     const viewTourTaskReportID = introSelected?.viewTour;
-    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const isReportArchived = useReportIsArchived(viewTourTaskReport?.parentReportID);
+    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isReportArchived);
     const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const content = useMemo(() => {
@@ -129,14 +124,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
-                    subtitle: subtitleComponent,
-                    buttons: [
-                        {
-                            buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
-                            buttonAction: () => bookATrip(translate, setCtaErrorMessage, ctaErrorMessage),
-                            success: true,
-                        },
-                    ],
+                    children: tripViewChildren,
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -144,12 +132,12 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
-                        subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
+                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                         buttons: [
                             ...(!hasSeenTour
                                 ? [
                                       {
-                                          buttonText: translate('emptySearchView.takeATour'),
+                                          buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();
@@ -184,12 +172,12 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
-                        subtitle: translate('search.searchResults.emptyInvoiceResults.subtitle'),
+                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyInvoiceResults.subtitle'),
                         buttons: [
                             ...(!hasSeenTour
                                 ? [
                                       {
-                                          buttonText: translate('emptySearchView.takeATour'),
+                                          buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();
@@ -236,9 +224,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         translate,
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
-        subtitleComponent,
+        tripViewChildren,
         hasSeenTour,
-        ctaErrorMessage,
         navatticURL,
         shouldRedirectToExpensifyClassic,
         hasResults,
@@ -249,19 +236,25 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
 
     return (
         <>
-            <EmptyStateComponent
-                SkeletonComponent={SearchRowSkeleton}
+            <ScrollView
                 showsVerticalScrollIndicator={false}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={content.headerMedia}
-                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
-                title={content.title}
-                titleStyles={content.titleStyles}
-                subtitle={content.subtitle}
-                buttons={content.buttons}
-                headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
-                lottieWebViewStyles={content.lottieWebViewStyles}
-            />
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+            >
+                <EmptyStateComponent
+                    SkeletonComponent={SearchRowSkeleton}
+                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                    headerMedia={content.headerMedia}
+                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
+                    title={content.title}
+                    titleStyles={content.titleStyles}
+                    subtitle={content.subtitle}
+                    buttons={content.buttons}
+                    headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
+                    lottieWebViewStyles={content.lottieWebViewStyles}
+                >
+                    {content.children}
+                </EmptyStateComponent>
+            </ScrollView>
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
                 isVisible={modalVisible}

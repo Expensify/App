@@ -476,6 +476,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Credentials of the current QBO connection */
     credentials: QBOCredentials;
+
+    /** The accounting Method for NetSuite conenction config */
+    accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 }>;
 
 /**
@@ -1281,69 +1284,77 @@ type QBDConnectionData = {
 };
 
 /**
+ * Export config for QuickBooks Desktop
+ */
+type QBDExportConfig = {
+    /** E-mail of the exporter */
+    exporter: string;
+
+    /** Defines how reimbursable expenses are exported */
+    reimbursable: QBDReimbursableExportAccountType;
+
+    /** Account that receives the reimbursable expenses */
+    reimbursableAccount: string;
+
+    /** Export date type */
+    exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+
+    /** Defines how non-reimbursable expenses are exported */
+    nonReimbursable: QBDNonReimbursableExportAccountType;
+
+    /** Account that receives the non reimbursable expenses */
+    nonReimbursableAccount: string;
+
+    /** Default vendor of non reimbursable bill */
+    nonReimbursableBillDefaultVendor: string;
+};
+
+/**
  * User configuration for the QuickBooks Desktop accounting integration.
  */
-type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** API provider */
-    apiProvider: string;
+type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** API provider */
+        apiProvider: string;
 
-    /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
-    autoSync: {
-        /** Job ID of the synchronization */
-        jobID: string;
+        /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
+        autoSync: {
+            /** Job ID of the synchronization */
+            jobID: string;
 
-        /** Whether changes made in QuickBooks Desktop should be reflected into the app automatically */
-        enabled: boolean;
-    };
+            /** Whether changes made in QuickBooks Desktop should be reflected into the app automatically */
+            enabled: boolean;
+        };
 
-    /** Whether a check to be printed */
-    markChecksToBePrinted: boolean;
+        /** Whether a check to be printed */
+        markChecksToBePrinted: boolean;
 
-    /** Determines if a vendor should be automatically created */
-    shouldAutoCreateVendor: boolean;
+        /** Determines if a vendor should be automatically created */
+        shouldAutoCreateVendor: boolean;
 
-    /** Whether items is imported */
-    importItems: boolean;
+        /** Whether items is imported */
+        importItems: boolean;
 
-    /** Configuration of the export */
-    export: {
-        /** E-mail of the exporter */
-        exporter: string;
+        /** Configuration of the export */
+        export: QBDExportConfig;
 
-        /** Defines how reimbursable expenses are exported */
-        reimbursable: QBDReimbursableExportAccountType;
+        /** Configuration of import settings from QuickBooks Desktop to the app */
+        mappings: {
+            /** How QuickBooks Desktop classes displayed as */
+            classes: IntegrationEntityMap;
 
-        /** Account that receives the reimbursable expenses */
-        reimbursableAccount: string;
+            /** How QuickBooks Desktop customers displayed as */
+            customers: IntegrationEntityMap;
+        };
 
-        /** Export date type */
-        exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+        /** Whether new categories are enabled in chart of accounts */
+        enableNewCategories: boolean;
 
-        /** Defines how non-reimbursable expenses are exported */
-        nonReimbursable: QBDNonReimbursableExportAccountType;
-
-        /** Account that receives the non reimbursable expenses */
-        nonReimbursableAccount: string;
-
-        /** Default vendor of non reimbursable bill */
-        nonReimbursableBillDefaultVendor: string;
-    };
-
-    /** Configuration of import settings from QuickBooks Desktop to the app */
-    mappings: {
-        /** How QuickBooks Desktop classes displayed as */
-        classes: IntegrationEntityMap;
-
-        /** How QuickBooks Desktop customers displayed as */
-        customers: IntegrationEntityMap;
-    };
-
-    /** Whether new categories are enabled in chart of accounts */
-    enableNewCategories: boolean;
-
-    /** Collections of form field errors */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+        /** Collections of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    keyof QBDExportConfig
+>;
 
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
@@ -1419,6 +1430,24 @@ type ACHAccount = {
 
     /** E-mail of the reimburser */
     reimburser: string;
+};
+
+/** Prohibited expense types */
+type ProhibitedExpenses = {
+    /** Whether the policy prohibits alcohol expenses */
+    alcohol?: boolean;
+
+    /** Whether the policy prohibits hotel incidental expenses */
+    hotelIncidentals?: boolean;
+
+    /** Whether the policy prohibits gambling expenses */
+    gambling?: boolean;
+
+    /** Whether the policy prohibits tobacco expenses */
+    tobacco?: boolean;
+
+    /** Whether the policy prohibits adult entertainment expenses */
+    adultEntertainment?: boolean;
 };
 
 /** Day of the month to schedule submission  */
@@ -1759,6 +1788,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             expenseRules?: ExpenseRule[];
         };
 
+        /** A set of custom rules defined with natural language */
+        customRules?: string;
+
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
 
@@ -1812,6 +1844,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the eReceipts are enabled */
         eReceipts?: boolean;
+
+        /** Settings for the Policy's prohibited expenses */
+        prohibitedExpenses?: ProhibitedExpenses;
 
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
@@ -1902,7 +1937,6 @@ export type {
     IntegrationEntityMap,
     PolicyFeatureName,
     PolicyDetailsForNonMembers,
-    PendingJoinRequestPolicy,
     PolicyConnectionName,
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
@@ -1923,13 +1957,11 @@ export type {
     NetSuiteSubsidiary,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
-    NetSuiteCustomListSource,
     NetSuiteCustomFieldMapping,
     NetSuiteAccount,
     NetSuiteVendor,
     InvoiceItem,
     NetSuiteTaxAccount,
-    NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
     SageIntacctMappingValue,
     SageIntacctMappingType,
@@ -1946,4 +1978,5 @@ export type {
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,
+    ProhibitedExpenses,
 };

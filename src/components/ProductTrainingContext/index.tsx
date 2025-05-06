@@ -1,14 +1,22 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanel from '@hooks/useSidePanel';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {parseFSAttributes} from '@libs/Fullstory';
+import getPlatform from '@libs/getPlatform';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
+import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces} from '@libs/PolicyUtils';
+import isProductTrainingElementDismissed from '@libs/TooltipUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -22,6 +30,18 @@ type ProductTrainingContextType = {
     unregisterTooltip: (tooltipName: ProductTrainingTooltipName) => void;
 };
 
+type ProductTrainingContextConfig = {
+    /**
+     * Callback to be called when the tooltip is dismissed
+     */
+    onDismiss?: () => void;
+
+    /**
+     * Callback to be called when the tooltip is confirmed
+     */
+    onConfirm?: () => void;
+};
+
 const ProductTrainingContext = createContext<ProductTrainingContextType>({
     shouldRenderTooltip: () => false,
     registerTooltip: () => {},
@@ -29,17 +49,36 @@ const ProductTrainingContext = createContext<ProductTrainingContextType>({
 });
 
 function ProductTrainingContextProvider({children}: ChildrenProps) {
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const [isOnboardingCompleted = true, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
+        canBeMissing: true,
     });
 
-    const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
+
+    const isUserPolicyEmployee = useMemo(() => {
+        if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
+            return false;
+        }
+        return getActiveEmployeeWorkspaces(allPolicies, currentUserLogin).length > 0;
+    }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
+
+    const isUserPolicyAdmin = useMemo(() => {
+        if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
+            return false;
+        }
+        return getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
+    }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
+
+    const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isModalVisible = modal?.isVisible || modal?.willAlertModalBecomeVisible;
 
@@ -83,7 +122,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
-            const isDismissed = !!dismissedProductTraining?.[tooltipName];
+            const isDismissed = isProductTrainingElementDismissed(tooltipName, dismissedProductTraining);
 
             if (isDismissed) {
                 return false;
@@ -98,16 +137,34 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
-            // We need to make an exception for the QAB tooltip because it is shown in a modal, otherwise it would be hidden if a modal is visible
-            if (tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON && isModalVisible) {
+            // We need to make an exception for these tooltips because it is shown in a modal, otherwise it would be hidden if a modal is visible
+            if (
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
+                isModalVisible
+            ) {
                 return false;
             }
 
             return tooltipConfig.shouldShow({
                 shouldUseNarrowLayout,
+                isUserPolicyEmployee,
+                isUserPolicyAdmin,
+                hasBeenAddedToNudgeMigration,
             });
         },
-        [dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, isOnboardingCompletedMetadata, shouldUseNarrowLayout, isModalVisible, isLoadingApp],
+        [
+            dismissedProductTraining,
+            hasBeenAddedToNudgeMigration,
+            isOnboardingCompleted,
+            isOnboardingCompletedMetadata,
+            shouldUseNarrowLayout,
+            isModalVisible,
+            isLoadingApp,
+            isUserPolicyEmployee,
+            isUserPolicyAdmin,
+        ],
     );
 
     const registerTooltip = useCallback(
@@ -152,10 +209,11 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     return <ProductTrainingContext.Provider value={contextValue}>{children}</ProductTrainingContext.Provider>;
 }
 
-const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shouldShow = true) => {
+const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shouldShow = true, config: ProductTrainingContextConfig = {}) => {
     const context = useContext(ProductTrainingContext);
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {shouldHideToolTip} = useSidePanel();
     const {translate} = useLocalize();
 
     if (!context) {
@@ -165,67 +223,155 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const {shouldRenderTooltip, registerTooltip, unregisterTooltip} = context;
 
     useEffect(() => {
-        if (shouldShow) {
-            registerTooltip(tooltipName);
+        if (!shouldShow) {
+            return;
         }
+        registerTooltip(tooltipName);
         return () => {
             unregisterTooltip(tooltipName);
         };
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
 
+    /**
+     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
+     * to ensure necessary properties are available for further processing.
+     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
+     * updated attribute values.
+     */
+    useLayoutEffect(parseFSAttributes, []);
+
+    const shouldShowProductTrainingTooltip = useMemo(() => {
+        return shouldShow && shouldRenderTooltip(tooltipName) && !shouldHideToolTip;
+    }, [shouldRenderTooltip, tooltipName, shouldShow, shouldHideToolTip]);
+
+    const hideTooltip = useCallback(
+        (isDismissedUsingCloseButton = false) => {
+            if (!shouldShowProductTrainingTooltip) {
+                return;
+            }
+            const tooltip = TOOLTIPS[tooltipName];
+            tooltip.onHideTooltip(isDismissedUsingCloseButton);
+            unregisterTooltip(tooltipName);
+        },
+        [tooltipName, shouldShowProductTrainingTooltip, unregisterTooltip],
+    );
+
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
         return (
-            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap3, styles.p2]}>
-                <Icon
-                    src={Expensicons.Lightbulb}
-                    fill={theme.tooltipHighlightText}
-                    medium
-                />
-                <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
-                    {tooltip.content.map(({text, isBold}) => {
-                        const translatedText = translate(text);
-                        return (
-                            <Text
-                                key={text}
-                                style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
-                            >
-                                {translatedText}
-                            </Text>
-                        );
-                    })}
-                </Text>
+            <View
+                fsClass={CONST.FULL_STORY.UNMASK}
+                testID={CONST.FULL_STORY.UNMASK}
+            >
+                <View
+                    style={[
+                        styles.alignItemsCenter,
+                        styles.flexRow,
+                        tooltip?.shouldRenderActionButtons ? styles.justifyContentStart : styles.justifyContentCenter,
+                        styles.flexWrap,
+                        styles.textAlignCenter,
+                        styles.gap3,
+                        styles.pv2,
+                        styles.ph1,
+                    ]}
+                >
+                    <Icon
+                        src={Expensicons.Lightbulb}
+                        fill={theme.tooltipHighlightText}
+                        medium
+                    />
+                    <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
+                        {tooltip.content.map(({text, isBold}) => {
+                            const translatedText = translate(text);
+                            return (
+                                <Text
+                                    key={text}
+                                    style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
+                                >
+                                    {translatedText}
+                                </Text>
+                            );
+                        })}
+                    </Text>
+                    {!tooltip?.shouldRenderActionButtons && (
+                        <PressableWithoutFeedback
+                            // On some Samsung devices, `onPress` is never triggered.
+                            // So, we use `onPressIn` for Android to ensure the button is pressable.
+                            onPressIn={
+                                getPlatform() === CONST.PLATFORM.ANDROID
+                                    ? () => {
+                                          hideTooltip(true);
+                                      }
+                                    : undefined
+                            }
+                            // For other platforms, we stick with `onPress`.
+                            onPress={
+                                getPlatform() !== CONST.PLATFORM.ANDROID
+                                    ? () => {
+                                          hideTooltip(true);
+                                      }
+                                    : undefined
+                            }
+                            shouldUseAutoHitSlop
+                            accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
+                            role={CONST.ROLE.BUTTON}
+                        >
+                            <Icon
+                                src={Expensicons.Close}
+                                fill={theme.icon}
+                                width={variables.iconSizeSemiSmall}
+                                height={variables.iconSizeSemiSmall}
+                            />
+                        </PressableWithoutFeedback>
+                    )}
+                </View>
+                {!!tooltip?.shouldRenderActionButtons && (
+                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph2, styles.pv2, styles.gap2]}>
+                        <Button
+                            success
+                            text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
+                            style={[styles.flex1]}
+                            onPress={config.onConfirm}
+                        />
+                        <Button
+                            text={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
+                            style={[styles.flex1]}
+                            onPress={config.onDismiss}
+                        />
+                    </View>
+                )}
             </View>
         );
     }, [
+        tooltipName,
         styles.alignItemsCenter,
         styles.flexRow,
-        styles.flexWrap,
-        styles.gap3,
+        styles.justifyContentStart,
         styles.justifyContentCenter,
-        styles.mw100,
-        styles.p2,
-        styles.productTrainingTooltipText,
+        styles.flexWrap,
         styles.textAlignCenter,
-        styles.textBold,
+        styles.gap3,
+        styles.pv2,
+        styles.ph1,
+        styles.productTrainingTooltipText,
         styles.textWrap,
+        styles.mw100,
+        styles.flex1,
+        styles.justifyContentBetween,
+        styles.ph2,
+        styles.gap2,
+        styles.textBold,
         theme.tooltipHighlightText,
-        tooltipName,
+        theme.icon,
         translate,
+        config.onConfirm,
+        config.onDismiss,
+        hideTooltip,
     ]);
 
-    const shouldShowProductTrainingTooltip = useMemo(() => {
-        return shouldShow && shouldRenderTooltip(tooltipName);
-    }, [shouldRenderTooltip, tooltipName, shouldShow]);
-
     const hideProductTrainingTooltip = useCallback(() => {
-        if (!shouldShowProductTrainingTooltip) {
-            return;
-        }
-        const tooltip = TOOLTIPS[tooltipName];
-        tooltip.onHideTooltip();
-        unregisterTooltip(tooltipName);
-    }, [tooltipName, shouldShowProductTrainingTooltip, unregisterTooltip]);
+        hideTooltip(false);
+    }, [hideTooltip]);
 
     return {
         renderProductTrainingTooltip,

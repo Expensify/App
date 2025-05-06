@@ -11,14 +11,16 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as IOUUtils from '@libs/IOUUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import Parser from '@libs/Parser';
+import {getPersonalPolicy} from '@libs/PolicyUtils';
+import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {canEditMoneyRequest} from '@libs/ReportUtils';
+import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import * as IOU from '@userActions/IOU';
+import {setDraftSplitTransaction, setMoneyRequestDescription, updateMoneyRequestDescription} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -43,9 +45,9 @@ function IOURequestStepDescription({
     report,
 }: IOURequestStepDescriptionProps) {
     const policy = usePolicy(report?.policyID);
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;
         if (action === CONST.IOU.ACTION.EDIT) {
@@ -57,15 +59,24 @@ function IOURequestStepDescription({
         canEvict: false,
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         selector: (reportActions) => reportActions?.[report?.parentReportActionID || reportActionID],
+        canBeMissing: true,
     });
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput(true);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
-    const currentDescription = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
-    const descriptionRef = useRef(currentDescription);
+    const isTransactionDraft = shouldUseTransactionDraft(action);
+
+    const currentDescriptionInMarkdown = useMemo(() => {
+        if (!isTransactionDraft) {
+            return Parser.htmlToMarkdown(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '');
+        }
+        return isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
+    }, [isTransactionDraft, isEditingSplitBill, splitDraftTransaction, transaction?.comment?.comment]);
+
+    const descriptionRef = useRef(currentDescriptionInMarkdown);
     const isSavedRef = useRef(false);
 
     /**
@@ -76,7 +87,7 @@ function IOURequestStepDescription({
             const errors = {};
 
             if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
-                ErrorUtils.addErrorMessage(
+                addErrorMessage(
                     errors,
                     'moneyRequestComment',
                     translate('common.error.characterLimitExceedCounter', {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT}),
@@ -105,23 +116,22 @@ function IOURequestStepDescription({
         const newComment = value.moneyRequestComment.trim();
 
         // Only update comment if it has changed
-        if (newComment === currentDescription) {
+        if (newComment === currentDescriptionInMarkdown) {
             navigateBack();
             return;
         }
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            IOU.setDraftSplitTransaction(transaction?.transactionID, {comment: newComment});
+            setDraftSplitTransaction(transaction?.transactionID, {comment: newComment});
             navigateBack();
             return;
         }
-        const isTransactionDraft = IOUUtils.shouldUseTransactionDraft(action);
 
-        IOU.setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
+        setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
 
         if (action === CONST.IOU.ACTION.EDIT) {
-            IOU.updateMoneyRequestDescription(transaction?.transactionID, reportID, newComment, policy, policyTags, policyCategories);
+            updateMoneyRequestDescription(transaction?.transactionID, reportID, newComment, policy, policyTags, policyCategories);
         }
 
         navigateBack();
@@ -129,10 +139,13 @@ function IOURequestStepDescription({
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
-    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
+    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportActionsUtils.isMoneyRequestAction(reportAction) || !ReportUtils.canEditMoneyRequest(reportAction));
-    const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction));
+    const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
+    const getDescriptionHint = () => {
+        return transaction?.category && policyCategories ? policyCategories[transaction?.category]?.commentHint ?? '' : '';
+    };
 
     return (
         <StepScreenWrapper
@@ -149,6 +162,7 @@ function IOURequestStepDescription({
                 validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <View style={styles.mb4}>
                     <InputWrapper
@@ -156,7 +170,7 @@ function IOURequestStepDescription({
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         name={INPUT_IDS.MONEY_REQUEST_COMMENT}
-                        defaultValue={currentDescription}
+                        defaultValue={currentDescriptionInMarkdown}
                         onValueChange={updateDescriptionRef}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
@@ -164,9 +178,10 @@ function IOURequestStepDescription({
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
-                        isMarkdownEnabled
+                        type="markdown"
                         excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
                         ref={inputCallbackRef}
+                        hint={getDescriptionHint()}
                     />
                 </View>
             </FormProvider>
@@ -175,7 +190,7 @@ function IOURequestStepDescription({
                     if (isSavedRef.current) {
                         return false;
                     }
-                    return descriptionRef.current !== currentDescription;
+                    return descriptionRef.current !== currentDescriptionInMarkdown;
                 }}
             />
         </StepScreenWrapper>

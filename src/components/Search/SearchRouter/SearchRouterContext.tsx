@@ -1,7 +1,10 @@
 import React, {useContext, useMemo, useRef, useState} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import isSearchTopmostCentralPane from '@navigation/isSearchTopmostCentralPane';
-import * as Modal from '@userActions/Modal';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import {navigationRef} from '@libs/Navigation/Navigation';
+import {close} from '@userActions/Modal';
+import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SearchRouterContext = {
@@ -27,11 +30,11 @@ const Context = React.createContext<SearchRouterContext>(defaultSearchContext);
 function SearchRouterContextProvider({children}: ChildrenProps) {
     const [isSearchRouterDisplayed, setIsSearchRouterDisplayed] = useState(false);
     const searchRouterDisplayedRef = useRef(false);
-    const searchPageInputRef = useRef<AnimatedTextInputRef>();
+    const searchPageInputRef = useRef<AnimatedTextInputRef | undefined>(undefined);
 
     const routerContext = useMemo(() => {
         const openSearchRouter = () => {
-            Modal.close(
+            close(
                 () => {
                     setIsSearchRouterDisplayed(true);
                     searchRouterDisplayedRef.current = true;
@@ -49,7 +52,9 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         // So we need a function that is based on ref to correctly open/close it
         // When user is on `/search` page we focus the Input instead of showing router
         const toggleSearch = () => {
-            const isUserOnSearchPage = isSearchTopmostCentralPane();
+            const searchFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+            const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
+            const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
 
             if (isUserOnSearchPage && searchPageInputRef.current) {
                 if (searchPageInputRef.current.isFocused()) {

@@ -1,19 +1,18 @@
 import React, {useCallback, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -40,7 +39,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
@@ -70,6 +69,12 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 
     /** If the action is being hovered */
     isHovered?: boolean;
+
+    /** If the action is being actived */
+    isActive?: boolean;
+
+    /** Policies */
+    policies?: OnyxCollection<Policy>;
 };
 
 const showUserDetails = (accountID: number | undefined) => {
@@ -93,22 +98,29 @@ function ReportActionItemSingle({
     report,
     iouReport,
     isHovered = false,
+    isActive = false,
+    policies,
 }: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const personalDetails = usePersonalDetails();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+    });
+    const [innerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+    });
+    const activePolicies = policies ?? innerPolicies;
     const policy = usePolicy(report?.policyID);
     const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const actorAccountID = getReportActionActorAccountID(action, iouReport, report);
-    const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
-    );
+    const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
+    const invoiceReceiverPolicy =
+        report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? activePolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
 
-    let displayName = getDisplayNameForParticipant(actorAccountID);
+    let displayName = getDisplayNameForParticipant({accountID: actorAccountID, personalDetailsData: personalDetails});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -121,7 +133,7 @@ function ReportActionItemSingle({
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
     if (isWorkspaceActor) {
-        displayName = getPolicyName(report, undefined, policy);
+        displayName = getPolicyName({report, policy});
         actorHint = displayName;
         avatarSource = getWorkspaceIcon(report, policy).source;
         avatarId = report?.policyID;
@@ -131,6 +143,8 @@ function ReportActionItemSingle({
         avatarId = delegatePersonalDetails?.accountID;
     } else if (isReportPreviewAction && isTripRoom) {
         displayName = report?.reportName ?? '';
+        avatarSource = personalDetails?.[ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.avatar;
+        avatarId = ownerAccountID;
     }
 
     // If this is a report preview, display names and avatars of both people involved
@@ -150,7 +164,7 @@ function ReportActionItemSingle({
             // The ownerAccountID and actorAccountID can be the same if a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
             const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
             const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
-            const secondaryDisplayName = getDisplayNameForParticipant(secondaryAccountId);
+            const secondaryDisplayName = getDisplayNameForParticipant({accountID: secondaryAccountId});
 
             secondaryAvatar = {
                 source: secondaryUserAvatar,
@@ -162,13 +176,13 @@ function ReportActionItemSingle({
     } else if (!isWorkspaceActor) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const avatarIconIndex = report?.isOwnPolicyExpenseChat || isPolicyExpenseChat(report) ? 0 : 1;
-        const reportIcons = getIcons(report, {});
+        const reportIcons = getIcons(report, personalDetails, undefined, undefined, undefined, policy);
 
         secondaryAvatar = reportIcons.at(avatarIconIndex) ?? {name: '', source: '', type: CONST.ICON_TYPE_AVATAR};
     } else if (isInvoiceReportUtils(iouReport)) {
         const secondaryAccountId = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
         const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
-        const secondaryDisplayName = getDisplayNameForParticipant(secondaryAccountId);
+        const secondaryDisplayName = getDisplayNameForParticipant({accountID: secondaryAccountId});
 
         secondaryAvatar = {
             source: secondaryUserAvatar,
@@ -210,9 +224,9 @@ function ReportActionItemSingle({
                 Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID, Navigation.getReportRHPActiveRoute()));
                 return;
             }
-            showUserDetails(action?.delegateAccountID ? action.delegateAccountID : actorAccountID);
+            showUserDetails(Number(icon.id));
         }
-    }, [isWorkspaceActor, reportID, actorAccountID, action?.delegateAccountID, iouReportID, displayAllActors]);
+    }, [isWorkspaceActor, reportID, iouReportID, displayAllActors, icon.id]);
 
     const shouldDisableDetailPage = useMemo(
         () =>
@@ -221,6 +235,15 @@ function ReportActionItemSingle({
         [action, isWorkspaceActor, actorAccountID],
     );
 
+    const getBackgroundColor = () => {
+        if (isActive) {
+            return theme.messageHighlightBG;
+        }
+        if (isHovered) {
+            return theme.hoverComponentBG;
+        }
+        return theme.sidebar;
+    };
     const getAvatar = () => {
         if (shouldShowSubscriptAvatar) {
             return (
@@ -228,6 +251,7 @@ function ReportActionItemSingle({
                     mainAvatar={icon}
                     secondaryAvatar={secondaryAvatar}
                     noMargin
+                    backgroundColor={getBackgroundColor()}
                 />
             );
         }

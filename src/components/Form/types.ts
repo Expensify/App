@@ -27,7 +27,7 @@ import type TimeModalPicker from '@components/TimeModalPicker';
 import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
-import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
+import type BusinessTypePicker from '@pages/ReimbursementAccount/USD/BusinessInfo/subSteps/TypeBusiness/BusinessTypePicker';
 import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/import/DimensionTypeSelector';
 import type NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
 import type NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
@@ -118,6 +118,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     autoGrowHeight?: boolean;
     blurOnSubmit?: boolean;
     shouldSubmitForm?: boolean;
+    uncontrolled?: boolean;
 };
 
 type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;
@@ -162,29 +163,25 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
     /** Disable press on enter for submit button */
     disablePressOnEnter?: boolean;
+
+    /** Render extra button above submit button */
+    shouldRenderFooterAboveSubmit?: boolean;
+    /**
+     * Determines whether the form should automatically scroll to the end upon rendering or when the value changes.
+     * If `true`, the form will smoothly scroll to the bottom after interactions have completed.
+     */
+    shouldScrollToEnd?: boolean;
 };
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;
     resetErrors: () => void;
     resetFormFieldError: (fieldID: keyof Form) => void;
+    submit: () => void;
 };
 
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
 
 type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, string | undefined>>;
 
-export type {
-    FormProps,
-    ValidInputs,
-    InputComponentValueProps,
-    FormValue,
-    ValueTypeKey,
-    FormOnyxValues,
-    FormOnyxKeys,
-    FormInputErrors,
-    InputRefs,
-    InputComponentBaseProps,
-    ValueTypeMap,
-    FormRef,
-};
+export type {FormProps, ValidInputs, InputComponentValueProps, FormValue, ValueTypeKey, FormOnyxValues, FormOnyxKeys, FormInputErrors, InputRefs, InputComponentBaseProps, FormRef};

@@ -43,6 +43,7 @@ const includeModules = [
     'expo-av',
     'expo-image-manipulator',
     'expo-modules-core',
+    'react-native-webrtc-web-shim',
 ].join('|');
 
 const environmentToLogoSuffixMap: Record<string, string> = {
@@ -121,7 +122,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {from: 'assets/sounds', to: 'sounds'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
-                {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
                 {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
                 {from: '.well-known/assetlinks.json', to: '.well-known/assetlinks.json'},
 
@@ -179,6 +179,12 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
             // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
             {
+                // eslint-disable-next-line prefer-regex-literals
+                test: new RegExp('node_modules/pdfjs-dist/build/pdf.worker.min.mjs'),
+                type: 'asset/source',
+            },
+            {
+                // eslint-disable-next-line prefer-regex-literals
                 test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs'),
                 type: 'asset/source',
             },
@@ -288,7 +294,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
 
     optimization: {
         minimizer: [
-            // default settings accordint to https://webpack.js.org/configuration/optimization/#optimizationminimizer
+            // default settings according to https://webpack.js.org/configuration/optimization/#optimizationminimizer
             // with addition of preserving the class name for ImageManipulator (expo module)
             new TerserPlugin({
                 terserOptions: {
@@ -297,6 +303,10 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     },
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     keep_classnames: /ImageManipulator|ImageModule/,
+                    mangle: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        keep_fnames: true,
+                    },
                 },
             }),
             '...',

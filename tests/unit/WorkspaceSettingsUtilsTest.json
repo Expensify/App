@@ -42,13 +42,15 @@
         "transactionViolations_3106135972713435169": [
             {
                 "name": "missingCategory",
-                "type": "violation"
+                "type": "violation",
+                "showInReview": true
             }
         ],
         "transactionViolations_3690687111940510713": [
             {
                 "name": "missingCategory",
-                "type": "violation"
+                "type": "violation",
+                "showInReview": true
             }
         ]
     },

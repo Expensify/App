@@ -14,9 +14,9 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@src/libs/Permissions');
-jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
-jest.mock('@src/hooks/useIsCurrentRouteHome');
 jest.mock('@src/components/Icon/Expensicons');
+jest.mock('@src/hooks/useRootNavigationState');
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'email1@test.com';
@@ -25,7 +25,7 @@ describe('Sidebar', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
 
@@ -58,7 +58,6 @@ describe('Sidebar', () => {
             };
 
             const reportNameValuePairs = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: DateUtils.getDBTime(),
             };
 
@@ -121,7 +120,6 @@ describe('Sidebar', () => {
                 },
             };
             const reportNameValuePairs = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: DateUtils.getDBTime(),
             };
 

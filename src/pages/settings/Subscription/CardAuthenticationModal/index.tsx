@@ -6,8 +6,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import {clearPaymentCard3dsVerification, verifySetupIntent} from '@userActions/PaymentMethods';
+import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -26,7 +26,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
 
     const onModalClose = useCallback(() => {
         setIsVisible(false);
-        PaymentMethods.clearPaymentCard3dsVerification();
+        clearPaymentCard3dsVerification();
     }, []);
 
     useEffect(() => {
@@ -41,9 +41,9 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
             const message = event.data;
             if (message === CONST.GBP_AUTHENTICATION_COMPLETE) {
                 if (policyID) {
-                    PolicyActions.verifySetupIntentAndRequestPolicyOwnerChange(policyID);
+                    verifySetupIntentAndRequestPolicyOwnerChange(policyID);
                 } else {
-                    PaymentMethods.verifySetupIntent(session?.accountID ?? -1, true);
+                    verifySetupIntent(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, true);
                 }
                 onModalClose();
             }
@@ -77,6 +77,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                     shouldShowCloseButton
                     onCloseButtonPress={onModalClose}
                     shouldShowBackButton={false}
+                    shouldDisplayHelpButton={false}
                 />
                 {isLoading && <FullScreenLoadingIndicator />}
                 <View style={[styles.flex1]}>

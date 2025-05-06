@@ -109,7 +109,8 @@ type ThemeColors = {
     // e.g. the StatusBar displays either "light-content" or "dark-content" based on the theme
     statusBarStyle: StatusBarStyle;
     navigationBarButtonsStyle: NavBarButtonStyle;
+    translucentNavigationBarBackgroundColor: Color;
     colorScheme: ColorScheme;
 };
 
-export {type ThemePreference, type ThemePreferenceWithoutSystem, type ThemeColors, type Color};
+export {type ThemePreferenceWithoutSystem, type ThemeColors, type Color};

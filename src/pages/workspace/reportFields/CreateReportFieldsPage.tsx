@@ -10,19 +10,19 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportField from '@libs/actions/Policy/ReportField';
 import DateUtils from '@libs/DateUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {hasAccountingConnections} from '@libs/PolicyUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import {createReportField, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
-import * as ErrorUtils from '@src/libs/ErrorUtils';
-import * as ValidationUtils from '@src/libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -34,7 +34,7 @@ type CreateReportFieldsPageProps = WithPolicyAndFullscreenLoadingProps & Platfor
 
 const defaultDate = DateUtils.extractDate(new Date().toString());
 
-function CreateReportFieldsPage({
+function WorkspaceCreateReportFieldsPage({
     policy,
     route: {
         params: {policyID},
@@ -49,7 +49,7 @@ function CreateReportFieldsPage({
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            ReportField.createReportField(policyID, {
+            createReportField(policyID, {
                 name: values[INPUT_IDS.NAME],
                 type: values[INPUT_IDS.TYPE],
                 initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',
@@ -61,33 +61,46 @@ function CreateReportFieldsPage({
 
     const validateForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
-            const {name, type} = values;
+            const {name, type, initialValue: formInitialValue} = values;
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
-            if (!ValidationUtils.isRequiredFulfilled(name)) {
+            if (!isRequiredFulfilled(name)) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.reportFieldNameRequiredError');
             } else if (Object.values(policy?.fieldList ?? {}).some((reportField) => reportField.name === name)) {
                 errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
             } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(
+                addErrorMessage(
                     errors,
                     INPUT_IDS.NAME,
                     translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}),
                 );
             }
 
-            if (!ValidationUtils.isRequiredFulfilled(type)) {
+            if (!isRequiredFulfilled(type)) {
                 errors[INPUT_IDS.TYPE] = translate('workspace.reportFields.reportFieldTypeRequiredError');
+            }
+
+            // formInitialValue can be undefined because the InitialValue component is rendered conditionally.
+            // If it's not been rendered when the validation is executed, formInitialValue will be undefined.
+            if (type === CONST.REPORT_FIELD_TYPES.TEXT && !!formInitialValue && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', {
+                    length: formInitialValue.length,
+                    limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH,
+                });
+            }
+
+            if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
             }
 
             return errors;
         },
-        [policy?.fieldList, translate],
+        [availableListValuesLength, policy?.fieldList, translate],
     );
 
     useEffect(() => {
-        ReportField.setInitialCreateReportFieldsForm();
+        setInitialCreateReportFieldsForm();
     }, []);
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
@@ -99,12 +112,12 @@ function CreateReportFieldsPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
-            shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
+            shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={CreateReportFieldsPage.displayName}
+                testID={WorkspaceCreateReportFieldsPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -121,6 +134,7 @@ function CreateReportFieldsPage({
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
                     disablePressOnEnter={!!modal?.isVisible}
+                    addBottomSafeAreaPadding
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>
@@ -135,6 +149,7 @@ function CreateReportFieldsPage({
                                 maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                                 multiline={false}
                                 role={CONST.ROLE.PRESENTATION}
+                                required
                             />
                             <InputWrapper
                                 InputComponent={TypeSelector}
@@ -194,6 +209,6 @@ function CreateReportFieldsPage({
     );
 }
 
-CreateReportFieldsPage.displayName = 'CreateReportFieldsPage';
+WorkspaceCreateReportFieldsPage.displayName = 'WorkspaceCreateReportFieldsPage';
 
-export default withPolicyAndFullscreenLoading(CreateReportFieldsPage);
+export default withPolicyAndFullscreenLoading(WorkspaceCreateReportFieldsPage);

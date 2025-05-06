@@ -1,6 +1,7 @@
 import React, {useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,7 +11,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
-import * as IOU from '@userActions/IOU';
+import {setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ROUTES from '@src/ROUTES';
@@ -43,39 +44,41 @@ function IOURequestStepUpgrade({
                     Navigation.goBack();
                 }}
             />
-            {!!isUpgraded && (
-                <UpgradeConfirmation
-                    onConfirmUpgrade={() => {
-                        IOU.setMoneyRequestParticipants(transactionID, [
-                            {
-                                selected: true,
-                                accountID: 0,
-                                isPolicyExpenseChat: true,
-                                reportID: policyDataRef.current?.expenseChatReportID ?? '-1',
-                                policyID: policyDataRef.current?.policyID,
-                                searchText: policyDataRef.current?.policyName,
-                            },
-                        ]);
-                        Navigation.goBack();
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID ?? '-1'));
-                    }}
-                    policyName=""
-                    isCategorizing
-                />
-            )}
-            {!isUpgraded && (
-                <UpgradeIntro
-                    feature={feature}
-                    onUpgrade={() => {
-                        const policyData = Policy.createWorkspace();
-                        setIsUpgraded(true);
-                        policyDataRef.current = policyData;
-                    }}
-                    buttonDisabled={isOffline}
-                    loading={false}
-                    isCategorizing
-                />
-            )}
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                {!!isUpgraded && (
+                    <UpgradeConfirmation
+                        onConfirmUpgrade={() => {
+                            setMoneyRequestParticipants(transactionID, [
+                                {
+                                    selected: true,
+                                    accountID: 0,
+                                    isPolicyExpenseChat: true,
+                                    reportID: policyDataRef.current?.expenseChatReportID,
+                                    policyID: policyDataRef.current?.policyID,
+                                    searchText: policyDataRef.current?.policyName,
+                                },
+                            ]);
+                            Navigation.goBack();
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
+                        }}
+                        policyName=""
+                        isCategorizing
+                    />
+                )}
+                {!isUpgraded && (
+                    <UpgradeIntro
+                        feature={feature}
+                        onUpgrade={() => {
+                            const policyData = Policy.createWorkspace('', false, '', undefined, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
+                            setIsUpgraded(true);
+                            policyDataRef.current = policyData;
+                        }}
+                        buttonDisabled={isOffline}
+                        loading={false}
+                        isCategorizing
+                    />
+                )}
+            </ScrollView>
         </ScreenWrapper>
     );
 }

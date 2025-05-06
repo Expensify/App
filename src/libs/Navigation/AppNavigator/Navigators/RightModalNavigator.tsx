@@ -1,15 +1,13 @@
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
-import {isSafari} from '@libs/Browser';
+import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
-import useSideModalStackScreenOptions from '@libs/Navigation/AppNavigator/useSideModalStackScreenOptions';
+import useCustomScreenOptions from '@libs/Navigation/AppNavigator/useCustomScreenOptions';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -26,23 +24,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
-    const customInterpolator = useModalCardStyleInterpolator();
-    const modalNavigatorOptions = useSideModalStackScreenOptions();
 
-    const screenOptions = useMemo(() => {
-        // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
-        if (isSafari()) {
-            return {
-                ...modalNavigatorOptions,
-                web: {
-                    ...modalNavigatorOptions.web,
-                    cardStyleInterpolator: (props: StackCardInterpolationProps) => customInterpolator({props}),
-                },
-            };
-        }
-
-        return modalNavigatorOptions;
-    }, [customInterpolator, modalNavigatorOptions]);
+    const screenOptions = useCustomScreenOptions();
 
     return (
         <NoDropZone>
@@ -87,6 +70,15 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.SettingsModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH}
+                        component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
+                        listeners={{
+                            beforeRemove: () => {
+                                InteractionManager.runAfterInteractions(clearTwoFactorAuthData);
+                            },
+                        }}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_CHAT}
                         component={ModalStackNavigators.NewChatModalStackNavigator}
                     />
@@ -99,8 +91,16 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.DebugModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION}
+                        component={ModalStackNavigators.NewReportWorkspaceSelectionModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.REPORT_DETAILS}
                         component={ModalStackNavigators.ReportDetailsModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE}
+                        component={ModalStackNavigators.ReportChangeWorkspaceModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.REPORT_SETTINGS}

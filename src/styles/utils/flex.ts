@@ -65,6 +65,10 @@ export default {
         justifyContent: 'space-around',
     },
 
+    justifyContentEvenly: {
+        justifyContent: 'space-evenly',
+    },
+
     alignSelfStretch: {
         alignSelf: 'stretch',
     },

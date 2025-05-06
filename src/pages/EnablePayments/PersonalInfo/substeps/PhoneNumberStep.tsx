@@ -5,7 +5,8 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
+import {getFieldRequiredErrors, isValidPhoneNumber, isValidUSPhone} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
@@ -21,11 +22,17 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.phoneNumber && !ValidationUtils.isValidUSPhone(values.phoneNumber, true)) {
-                errors.phoneNumber = translate('bankAccount.error.phoneNumber');
+            if (values.phoneNumber) {
+                const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber);
+                const e164FormattedPhoneNumber = formatE164PhoneNumber(values.phoneNumber);
+
+                if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidUSPhone(e164FormattedPhoneNumber)) {
+                    errors.phoneNumber = translate('common.error.phoneNumber');
+                }
             }
+
             return errors;
         },
         [translate],
@@ -46,11 +53,14 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             formTitle={translate('personalInfoStep.whatsYourPhoneNumber')}
             formDisclaimer={translate('personalInfoStep.weNeedThisToVerify')}
             validate={validate}
-            onSubmit={handleSubmit}
+            onSubmit={(values) => {
+                handleSubmit({...values, phoneNumber: formatE164PhoneNumber(values.phoneNumber) ?? ''});
+            }}
             inputId={PERSONAL_INFO_STEP_KEY.PHONE_NUMBER}
             inputLabel={translate('common.phoneNumber')}
             inputMode={CONST.INPUT_MODE.TEL}
             defaultValue={defaultPhoneNumber}
+            enabledWhenOffline
         />
     );
 }

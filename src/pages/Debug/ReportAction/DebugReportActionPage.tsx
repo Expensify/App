@@ -7,13 +7,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DebugUtils from '@libs/DebugUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
 import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import Debug from '@userActions/Debug';
@@ -36,7 +36,7 @@ function DebugReportActionPage({
         canEvict: false,
         selector: (reportActions) => reportActions?.[reportActionID],
     });
-    const transactionID = ReportActionsUtils.getLinkedTransactionID(reportAction);
+    const transactionID = getLinkedTransactionID(reportAction);
 
     const DebugDetailsTab = useCallback(
         () => (
@@ -73,7 +73,15 @@ function DebugReportActionPage({
 
     const DebugJSONTab = useCallback(() => <DebugJSON data={reportAction ?? {}} />, [reportAction]);
 
-    const DebugReportActionPreviewTab = useCallback(() => <DebugReportActionPreview reportAction={reportAction} />, [reportAction]);
+    const DebugReportActionPreviewTab = useCallback(
+        () => (
+            <DebugReportActionPreview
+                reportAction={reportAction}
+                reportID={reportID}
+            />
+        ),
+        [reportAction, reportID],
+    );
 
     const routes = useMemo<DebugTabNavigatorRoutes>(
         () => [
@@ -88,7 +96,7 @@ function DebugReportActionPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMinHeight={canUseTouchScreen()}
             testID={DebugReportActionPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
