@@ -53,14 +53,14 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
         const selectedTransactions = selectedTransactionsID.map((transactionID) => getTransaction(transactionID)).filter((t) => !!t);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-        let canHoldTransactions =  selectedTransactions.length > 0 && isMoneyRequestReport && !isReportReimbursed;
+        let canHoldTransactions = selectedTransactions.length > 0 && isMoneyRequestReport && !isReportReimbursed;
         let canUnholdTransactions = selectedTransactions.length > 0 && isMoneyRequestReport;
 
         selectedTransactions.forEach((selectedTransaction) => {
             if (!canHoldTransactions && !canHoldTransactions) {
                 return;
             }
-            
+
             if (!selectedTransaction?.transactionID) {
                 canHoldTransactions = false;
                 canUnholdTransactions = false;
@@ -72,7 +72,7 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
             canHoldTransactions = canHoldTransactions && canHoldRequest;
             canUnholdTransactions = canUnholdTransactions && canUnholdRequest;
         });
-        
+
         if (canHoldTransactions) {
             options.push({
                 text: translate('iou.hold'),
