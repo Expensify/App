@@ -457,7 +457,7 @@ function ReportActionsList({
             return;
         }
         InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.scrollToIndex(lastIOUActionWithErrorIndex);
+            reportScrollManager.scrollToBottom();
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [lastAction]);
