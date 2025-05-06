@@ -380,31 +380,14 @@ function AttachmentModalBaseContent({
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
-    const {headerTitle, shouldShowDownloadButton, shouldShowThreeDotsButton} = useMemo(() => {
-        let headerTitleNew = headerTitleProp;
-        let shouldShowDownloadButtonNew = false;
-        let shouldShowThreeDotsButtonNew = false;
-
+    const headerTitle = useMemo(() => headerTitleProp ?? translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment'), [headerTitleProp, isReceiptAttachment, translate]);
+    const shouldShowThreeDotsButton = useMemo(() => isReceiptAttachment && threeDotsMenuItems.length !== 0, [isReceiptAttachment, threeDotsMenuItems.length]);
+    const shouldShowDownloadButton = useMemo(() => {
         if (!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) {
-            headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
-            shouldShowDownloadButtonNew = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
-            shouldShowThreeDotsButtonNew = isReceiptAttachment && threeDotsMenuItems.length !== 0;
+            return allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
         }
-
-        return {headerTitle: headerTitleNew, shouldShowDownloadButton: shouldShowDownloadButtonNew, shouldShowThreeDotsButton: shouldShowThreeDotsButtonNew};
-    }, [
-        allowDownload,
-        headerTitleProp,
-        isDownloadButtonReadyToBeShown,
-        isLocalSource,
-        isOffline,
-        isReceiptAttachment,
-        report,
-        shouldShowNotFoundPage,
-        threeDotsMenuItems.length,
-        translate,
-        type,
-    ]);
+        return false;
+    }, [allowDownload, isDownloadButtonReadyToBeShown, isLocalSource, isOffline, isReceiptAttachment, report, shouldShowNotFoundPage, type]);
 
     const isPDFLoadError = useRef(false);
     const onPdfLoadError = useCallback(() => {

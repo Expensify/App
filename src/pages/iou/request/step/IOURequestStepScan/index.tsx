@@ -84,6 +84,7 @@ function IOURequestStepScan({
     },
     transaction,
     currentUserPersonalDetails,
+    isTooltipAllowed = false,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -604,7 +605,7 @@ function IOURequestStepScan({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive && !isUserInvitedToWorkspace(),
+        isTooltipAllowed && !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive && !isUserInvitedToWorkspace(),
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
@@ -917,7 +918,7 @@ function IOURequestStepScan({
                             wrapperStyle={styles.productTrainingTooltipWrapper}
                             shiftVertical={-elementTop}
                         >
-                            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                                 {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                             </View>
                         </EducationalTooltip>

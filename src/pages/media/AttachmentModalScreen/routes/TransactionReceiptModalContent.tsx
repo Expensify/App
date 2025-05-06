@@ -1,18 +1,16 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
+import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isOneTransactionThread, isTrackExpenseReport} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
 import {getRequestType, hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type AttachmentModalRouteProps from './types';
@@ -23,15 +21,13 @@ function TransactionReceiptModalContent({
     transactionID = '',
     readonly: readonlyProp,
     isFromReviewDuplicates: isFromReviewDuplicatesProp,
-    isReceiptAttachment,
     iouAction,
     iouType,
 }: AttachmentModalRouteProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
-
-    const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
-    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
 
     const isDraftTransaction = !!iouAction;
     const transaction = isDraftTransaction ? transactionDraft : transactionMain;
@@ -49,7 +45,6 @@ function TransactionReceiptModalContent({
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
 
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
 
     useEffect(() => {
         if ((!!report && !!transaction) || isDraftTransaction) {
@@ -94,43 +89,6 @@ function TransactionReceiptModalContent({
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [receiptPath]);
-
-    /**
-     * Close the confirm modals.
-     */
-    const closeConfirmModal = useCallback(() => {
-        setIsAttachmentInvalid(false);
-        setIsDeleteReceiptConfirmModalVisible(false);
-    }, [setIsAttachmentInvalid]);
-
-    const isOverlayModalVisible = useMemo(
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        () => (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid),
-        [isReceiptAttachment, isDeleteReceiptConfirmModalVisible, isAttachmentInvalid],
-    );
-
-    const onClose = useCallback(() => {
-        if (isOverlayModalVisible) {
-            closeConfirmModal?.();
-            return;
-        }
-
-        // Receipt Page can be opened either from Reports or from Search RHP view
-        // We have to handle going back to correct screens, if it was opened from RHP just close the modal, otherwise go to Report Page
-        const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-        const secondToLastRoute = rootState.routes.at(-2);
-        if (secondToLastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || isDraftTransaction) {
-            Navigation.dismissModal();
-        } else {
-            const isOneTransactionThreadValue = isOneTransactionThread(report?.reportID, report?.parentReportID, parentReportAction);
-            const dismissModalReportID = isOneTransactionThreadValue ? report?.parentReportID : report?.reportID;
-            if (!dismissModalReportID) {
-                Navigation.dismissModal();
-                return;
-            }
-            Navigation.dismissModalWithReport({reportID: dismissModalReportID});
-        }
-    }, [closeConfirmModal, isDraftTransaction, isOverlayModalVisible, parentReportAction, report?.parentReportID, report?.reportID]);
 
     const moneyRequestReportID = isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
     const isTrackExpenseReportValue = isTrackExpenseReport(report);
@@ -187,7 +145,6 @@ function TransactionReceiptModalContent({
         <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
-            onClose={onClose}
         />
     );
 }
