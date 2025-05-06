@@ -334,4 +334,4 @@ function getTransactionThreadPrimaryAction(
     return '';
 }
 
-export {getReportPrimaryAction, getTransactionThreadPrimaryAction};
+export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction};

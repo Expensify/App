@@ -35,6 +35,9 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
+
+    /** Whether selecting multiple transactions at once is allowed */
+    canSelectMultiple: boolean | undefined;
 };
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
@@ -52,6 +55,9 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
+
+    /** Whether selecting multiple transactions at once is allowed */
+    canSelectMultiple: boolean | undefined;
 };
 
 type ReportCellProps = {
@@ -78,7 +84,7 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
     );
 }
 
-function FirstHeaderRow<TItem extends ListItem>({policy, report: moneyRequestReport, item, onCheckboxPress, isDisabled}: FirstRowReportHeaderProps<TItem>) {
+function FirstHeaderRow<TItem extends ListItem>({policy, report: moneyRequestReport, item, onCheckboxPress, isDisabled, canSelectMultiple}: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const reportItem = item as unknown as ReportListItemType;
@@ -86,15 +92,17 @@ function FirstHeaderRow<TItem extends ListItem>({policy, report: moneyRequestRep
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pr3, styles.pl3, styles.gap3]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex5]}>
-                <Checkbox
-                    onPress={() => onCheckboxPress?.(item)}
-                    isChecked={item.isSelected}
-                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
-                    disabled={!!isDisabled || item.isDisabledCheckbox}
-                    accessibilityLabel={item.text ?? ''}
-                    shouldStopMouseDownPropagation
-                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
-                />
+                {!!canSelectMultiple && (
+                    <Checkbox
+                        onPress={() => onCheckboxPress?.(item)}
+                        isChecked={item.isSelected}
+                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+                        disabled={!!isDisabled || item.isDisabledCheckbox}
+                        accessibilityLabel={item.text ?? ''}
+                        shouldStopMouseDownPropagation
+                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
+                    />
+                )}
                 <ReportSearchHeader
                     report={moneyRequestReport}
                     policy={policy}
@@ -113,7 +121,15 @@ function FirstHeaderRow<TItem extends ListItem>({policy, report: moneyRequestRep
     );
 }
 
-function ReportListItemHeader<TItem extends ListItem>({policy, report: moneyRequestReport, item, onSelectRow, onCheckboxPress, isDisabled}: ReportListItemHeaderProps<TItem>) {
+function ReportListItemHeader<TItem extends ListItem>({
+    policy,
+    report: moneyRequestReport,
+    item,
+    onSelectRow,
+    onCheckboxPress,
+    isDisabled,
+    canSelectMultiple,
+}: ReportListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const reportItem = item as unknown as ReportListItemType;
     const {currentSearchHash} = useSearchContext();
@@ -131,6 +147,7 @@ function ReportListItemHeader<TItem extends ListItem>({policy, report: moneyRequ
                 policy={policy}
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
+                canSelectMultiple={canSelectMultiple}
             />
             <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pr3, styles.pl3]}>
                 <UserInfoCellsWithArrow
@@ -161,6 +178,7 @@ function ReportListItemHeader<TItem extends ListItem>({policy, report: moneyRequ
                 policy={policy}
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
+                canSelectMultiple={canSelectMultiple}
             />
             <View style={[styles.mr3, styles.ml3]}>
                 <View style={[styles.borderBottom]} />

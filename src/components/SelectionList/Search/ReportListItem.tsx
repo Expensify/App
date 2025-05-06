@@ -90,6 +90,7 @@ function ReportListItem<TItem extends ListItem>({
                     onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabled}
+                    canSelectMultiple={canSelectMultiple}
                 />
                 {reportItem.transactions.length > 0 ? (
                     reportItem.transactions.map((transaction) => (

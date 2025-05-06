@@ -33,6 +33,7 @@ import Performance from '@libs/Performance';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
+import {isAddExpenseAction} from '@libs/ReportPrimaryActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     getBankAccountRoute,
@@ -58,7 +59,7 @@ import {
 import {getMerchant, hasPendingUI, isCardTransaction, isPartialMerchant, isPending, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
-import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, startMoneyRequest, submitReport} from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -536,6 +537,41 @@ function MoneyRequestReportPreviewContent({
         ),
     };
 
+    const emptyReportPreviewAction = useMemo(() => {
+        if (!iouReport) {
+            return CONST.REPORT.PRIMARY_ACTIONS.VIEW;
+        }
+
+        if (isAddExpenseAction(iouReport, transactions ?? [])) {
+            return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
+        }
+
+        return CONST.REPORT.PRIMARY_ACTIONS.VIEW;
+    }, [iouReport, transactions]);
+
+    const emptyReportPreviewActions = {
+        [CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE]: (
+            <Button
+                success
+                text={translate('iou.addExpense')}
+                onPress={() => {
+                    if (!iouReportID) {
+                        return;
+                    }
+                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID);
+                }}
+            />
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.VIEW]: (
+            <Button
+                text={translate('common.view')}
+                onPress={() => {
+                    openReportFromPreview();
+                }}
+            />
+        ),
+    };
+
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -666,12 +702,7 @@ function MoneyRequestReportPreviewContent({
                                         ListFooterComponent={<View style={styles.pl2} />}
                                         ListHeaderComponent={<View style={styles.pr2} />}
                                     />
-                                    {shouldShowEmptyPlaceholder && (
-                                        <EmptyMoneyRequestReportPreview
-                                            reportPreviewStyles={reportPreviewStyles}
-                                            reportId={iouReportID}
-                                        />
-                                    )}
+                                    {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview emptyReportPreviewAction={emptyReportPreviewActions[emptyReportPreviewAction]} />}
                                 </View>
                                 {shouldUseNarrowLayout && transactions.length > 1 && (
                                     <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>

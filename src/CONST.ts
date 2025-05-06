@@ -1211,6 +1211,7 @@ const CONST = {
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
             ADD_EXPENSE: 'addExpense',
+            VIEW: 'view',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
