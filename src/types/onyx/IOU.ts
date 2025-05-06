@@ -223,5 +223,14 @@ type Attendee = {
     reportID?: string;
 };
 
+/** Model of IOU accountant */
+type Accountant = {
+    /** Account ID */
+    accountID?: number;
+
+    /** Account login */
+    login?: string;
+};
+
 export default IOU;
-export type {Participant, Split, Attendee, SplitExpense};
+export type {Participant, Split, Attendee, Accountant, SplitExpense};
