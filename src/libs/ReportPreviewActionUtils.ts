@@ -11,6 +11,7 @@ import {
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
+    isPolicyAdmin,
     isPrefferedExporter,
 } from './PolicyUtils';
 import {
@@ -31,10 +32,11 @@ import {
     isPayer,
     isProcessingReport,
     isReportApproved,
+    isReportManuallyReimbursed,
     isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {isReceiptBeingScanned} from './TransactionUtils';
+import {allHavePendingRTERViolation, isReceiptBeingScanned, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
 function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[]) {
     const isExpense = isExpenseReport(report);
@@ -167,6 +169,16 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
 
     if (!hasAnyViolations || !(isSubmitter || isApprover) || isReimbursed) {
         return false;
+    }
+
+    // We handle RTER violations independently because those are not configured via policy workflows
+    const isAdmin = isPolicyAdmin(policy);
+    const transactionIDs = transactions?.map((transaction) => transaction.transactionID) ?? [];
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
+
+    if (hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isAdmin || isSubmitter) && !isReportApproved({report}) && !isReportManuallyReimbursed(report))) {
+        return true;
     }
 
     if (policy) {

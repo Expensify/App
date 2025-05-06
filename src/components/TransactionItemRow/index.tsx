@@ -5,18 +5,18 @@ import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import type {TableColumnSize} from '@components/Search/types';
+import DateCell from '@components/SelectionList/Search/DateCell';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMerchant} from '@libs/TransactionUtils';
+import {getCreated as getTransactionCreated, getMerchant} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
-import DateCell from './DataCells/DateCell';
 import MerchantCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
 import TagCell from './DataCells/TagCell';
@@ -48,6 +48,7 @@ function TransactionItemRow({
     const theme = useTheme();
 
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
+    const createdAt = getTransactionCreated(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
@@ -91,9 +92,9 @@ function TransactionItemRow({
                                     <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
                                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
                                             <DateCell
-                                                transactionItem={transactionItem}
-                                                shouldShowTooltip={shouldShowTooltip}
-                                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                                created={createdAt}
+                                                showTooltip={shouldShowTooltip}
+                                                isLargeScreenWidth={!shouldUseNarrowLayout}
                                             />
                                             <Text style={[styles.textMicroSupporting]}> • </Text>
                                             <TypeCell
@@ -181,9 +182,9 @@ function TransactionItemRow({
                                     </View>
                                     <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide)]}>
                                         <DateCell
-                                            transactionItem={transactionItem}
-                                            shouldShowTooltip={shouldShowTooltip}
-                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                            created={createdAt}
+                                            showTooltip={shouldShowTooltip}
+                                            isLargeScreenWidth={!shouldUseNarrowLayout}
                                         />
                                     </View>
                                     <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
