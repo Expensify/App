@@ -164,12 +164,11 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                                     ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, reportField.fieldID, Navigation.getReportRHPActiveRoute()),
                                                 );
                                             }}
-                                            shouldShowRightIcon
-                                            disabled={isFieldDisabled}
+                                            shouldShowRightIcon={!isFieldDisabled}
                                             wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                                             shouldGreyOutWhenDisabled={false}
                                             numberOfLinesTitle={0}
-                                            interactive
+                                            interactive={!isFieldDisabled}
                                             shouldStackHorizontally={false}
                                             onSecondaryInteraction={() => {}}
                                             titleWithTooltips={[]}
