@@ -18,6 +18,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     getReportTransactions,
+    hasExportError as hasExportErrorUtil,
     hasMissingSmartscanFields,
     hasNoticeTypeViolations,
     hasViolations,
@@ -26,6 +27,7 @@ import {
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
+    isExported as isExportedUtil,
     isInvoiceReport,
     isIOUReport,
     isOpenReport,
@@ -34,8 +36,6 @@ import {
     isReportApproved,
     isReportManuallyReimbursed,
     isSettled,
-    isExported as isExportedUtil,
-    hasExportError as hasExportErrorUtil,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isReceiptBeingScanned, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
