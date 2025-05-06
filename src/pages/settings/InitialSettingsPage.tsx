@@ -115,7 +115,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
     const freeTrialText = getFreeTrialText(policies);
-    const shouldOpenBookACall = tryNewDot?.classicRedirect?.dismissed === false;
+    const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
 
     const isScreenFocused = useIsAccountSettingsRouteActive(shouldUseNarrowLayout);
 
@@ -262,8 +262,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                         : {
                               action() {
                                   resetExitSurveyForm(() => {
-                                      if (shouldOpenBookACall) {
-                                          Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
+                                      if (shouldOpenSurveyReasonPage) {
+                                          Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON.route);
                                           return;
                                       }
                                       Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
@@ -298,7 +298,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, setRootStatusBarEnabled, shouldOpenBookACall, signOut]);
+    }, [styles.pt4, setRootStatusBarEnabled, shouldOpenSurveyReasonPage, signOut]);
 
     /**
      * Retuns JSX.Element with menu items

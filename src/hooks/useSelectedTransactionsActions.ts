@@ -2,6 +2,7 @@ import {useCallback, useMemo, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
 import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -16,7 +17,19 @@ import useLocalize from './useLocalize';
 const HOLD = 'HOLD';
 const UNHOLD = 'UNHOLD';
 
-function useSelectedTransactionsActions({report, reportActions, session, onExportFailed}: {report?: Report; reportActions: ReportAction[]; session?: Session; onExportFailed?: () => void}) {
+function useSelectedTransactionsActions({
+    report,
+    reportActions,
+    allTransactionsLength,
+    session,
+    onExportFailed,
+}: {
+    report?: Report;
+    reportActions: ReportAction[];
+    allTransactionsLength: number;
+    session?: Session;
+    onExportFailed?: () => void;
+}) {
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -34,8 +47,11 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
 
         transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
         setSelectedTransactionsID([]);
+        if (allTransactionsLength - transactionsWithActions.length <= 1) {
+            turnOffMobileSelectionMode();
+        }
         setIsDeleteModalVisible(false);
-    }, [reportActions, selectedTransactionsID, setSelectedTransactionsID]);
+    }, [allTransactionsLength, reportActions, selectedTransactionsID, setSelectedTransactionsID]);
 
     const showDeleteModal = useCallback(() => {
         setIsDeleteModalVisible(true);
