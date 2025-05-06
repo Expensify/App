@@ -135,11 +135,11 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         accountingIcon = Expensicons.MicrosoftDynamicsSquare;
                         break;
                     }
-                    case CONST.POLICY.CONNECTIONS.NAME.OTHER: {
-                        text = translate('workspace.accounting.other');
-                        accountingIcon = Expensicons.Connect;
-                        break;
-                    }
+                    // case CONST.POLICY.CONNECTIONS.NAME.OTHER: {
+                    //     text = translate('workspace.accounting.other');
+                    //     accountingIcon = Expensicons.Connect;
+                    //     break;
+                    // }
                     default: {
                         return;
                     }
@@ -173,7 +173,21 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             ),
             isSelected: userReportedIntegration === null,
         };
-        return [...policyAccountingOptions, noneAccountingOption];
+        const othersAccountingOption: OnboardingListItem = {
+            keyForList: CONST.POLICY.CONNECTIONS.NAME.OTHER,
+            text: translate('workspace.accounting.other'),
+            leftElement: (
+                <Icon
+                    src={Expensicons.Connect}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
+                    //  fill={theme.warning}
+                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3, styles.onboardingSmallIcon]}
+                />
+            ),
+            isSelected: userReportedIntegration === CONST.POLICY.CONNECTIONS.NAME.OTHER,
+        };
+        return [...policyAccountingOptions, othersAccountingOption, noneAccountingOption];
     }, [StyleUtils, styles.mr3, styles.onboardingSmallIcon, theme.success, translate, userReportedIntegration]);
 
     const renderOption = useCallback(
@@ -286,6 +300,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     ]);
 
     const numColumns = isSmallScreenWidth ? 1 : 2;
+    const minListHeight = (accountingOptions.length - 0.5) * variables.optionRowHeight;
 
     return (
         <ScreenWrapper
@@ -300,7 +315,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 progressBarPercentage={80}
                 onBackButtonPress={Navigation.goBack}
             />
-            <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
+            <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, {minHeight: minListHeight}]}>
                 <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.accounting.title')}</Text>
                 <FlatList
                     data={accountingOptions}
