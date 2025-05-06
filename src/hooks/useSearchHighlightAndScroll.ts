@@ -109,10 +109,7 @@ function useSearchHighlightAndScroll({searchResults, queryJSON}: UseSearchHighli
                 }
 
                 // Extract the ID from the key
-                const newID = newSearchResultKey.replace(
-                    isChat ? ONYXKEYS.COLLECTION.REPORT_ACTIONS : ONYXKEYS.COLLECTION.TRANSACTION,
-                    ''
-                );
+                const newID = newSearchResultKey.replace(isChat ? ONYXKEYS.COLLECTION.REPORT_ACTIONS : ONYXKEYS.COLLECTION.TRANSACTION, '');
 
                 // Find the index of the item in the data array
                 const indexOfNewItem = data.findIndex((item) => {
@@ -128,9 +125,7 @@ function useSearchHighlightAndScroll({searchResults, queryJSON}: UseSearchHighli
 
                         // Handle ReportListItemType with transactions array
                         if ('transactions' in item && Array.isArray(item.transactions)) {
-                            return item.transactions.some(
-                                (transaction) => transaction?.transactionID === newID
-                            );
+                            return item.transactions.some((transaction) => transaction?.transactionID === newID);
                         }
                     }
 
@@ -144,7 +139,7 @@ function useSearchHighlightAndScroll({searchResults, queryJSON}: UseSearchHighli
                 return ref;
             };
         },
-        [newSearchResultKey, isChat]
+        [newSearchResultKey, isChat],
     );
 
     return {newSearchResultKey, handleSelectionListScroll};
@@ -188,4 +183,3 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
 
 export default useSearchHighlightAndScroll;
 export type {UseSearchHighlightAndScroll};
-
