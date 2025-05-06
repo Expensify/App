@@ -4,7 +4,9 @@ import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -14,6 +16,9 @@ type SingleSelectItem<T> = {
 };
 
 type SingleSelectPopupProps<T> = {
+    /** The label to show when in an overlay on mobile */
+    label: string;
+
     /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
 
@@ -27,9 +32,11 @@ type SingleSelectPopupProps<T> = {
     onChange: (item: SingleSelectItem<T> | null) => void;
 };
 
-function SingleSelectPopup<T extends string>({value, items, closeOverlay, onChange}: SingleSelectPopupProps<T>) {
+function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange}: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [selectedItem, setSelectedItem] = useState(value);
 
     const initiallyFocusedOptionKey = selectedItem?.value;
@@ -60,7 +67,9 @@ function SingleSelectPopup<T extends string>({value, items, closeOverlay, onChan
     }, [items]);
 
     return (
-        <View style={[styles.pv4, styles.gap2]}>
+        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
+            {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
+
             <SelectionList
                 initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                 shouldSingleExecuteRowSelect

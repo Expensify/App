@@ -3,7 +3,9 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import MenuItem from '@components/MenuItem';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
@@ -19,9 +21,14 @@ type RootViewProps = {
 function RootView({value, applyChanges, resetChanges, setView}: RootViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const label = translate('common.date');
 
     return (
-        <View style={[styles.pv4, styles.gap4]}>
+        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
+            {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
+
             <View>
                 {Object.values(CONST.SEARCH.DATE_FILTERS).map((dateType) => {
                     const dateValue = value[dateType];

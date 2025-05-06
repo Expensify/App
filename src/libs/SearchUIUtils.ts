@@ -1046,10 +1046,11 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
 function isSearchDataLoaded(currentSearchResults: SearchResults | undefined, lastNonEmptySearchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const {status} = queryJSON ?? {};
+
     const isDataLoaded =
-        searchResults?.data !== undefined && searchResults?.search?.type === queryJSON?.type && Array.isArray(status)
-            ? searchResults?.search?.status === status.join(',')
-            : searchResults?.search?.status === status;
+        searchResults?.data !== undefined &&
+        searchResults?.search?.type === queryJSON?.type &&
+        (Array.isArray(status) ? searchResults?.search?.status === status.join(',') : searchResults?.search?.status === status);
 
     return isDataLoaded;
 }

@@ -154,6 +154,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
             return (
                 <SingleSelectPopup
+                    label={translate('common.type')}
                     value={value}
                     items={typeOptions}
                     closeOverlay={closeOverlay}
@@ -168,7 +169,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [queryJSON, status, type],
+        [queryJSON, status, translate, type],
     );
 
     const statusComponent = useCallback(
@@ -179,6 +180,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
             return (
                 <MultiSelectPopup
+                    label={translate('common.status')}
                     items={items}
                     value={value}
                     closeOverlay={closeOverlay}
@@ -190,7 +192,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [groupBy, queryJSON, status, type],
+        [groupBy, queryJSON, status, translate, type],
     );
 
     const datePickerComponent = useCallback(
