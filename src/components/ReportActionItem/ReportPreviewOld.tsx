@@ -23,6 +23,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,7 +64,6 @@ import {
     hasWarningTypeViolations,
     isAllowedToApproveExpenseReport,
     isAllowedToSubmitDraftExpenseReport,
-    isArchivedReportWithID,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPayAtEndExpenseReport,
@@ -257,7 +257,7 @@ function ReportPreviewOld({
         formattedMerchant = null;
     }
 
-    const isArchived = isArchivedReportWithID(iouReport?.reportID);
+    const isArchived = useReportIsArchived(iouReport?.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
     const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, violations);
@@ -494,7 +494,7 @@ function ReportPreviewOld({
             return;
         }
 
-        thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBSUP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBSUP_DURATION})) : 1);
+        thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     const openReportFromPreview = useCallback(() => {

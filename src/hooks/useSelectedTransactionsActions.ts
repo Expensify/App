@@ -5,8 +5,8 @@ import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canDeleteCardTransactionByLiabilityType, canDeleteTransaction, isMoneyRequestReport as isMoneyRequestReportUtils} from '@libs/ReportUtils';
-import {getTransaction, isOnHold} from '@libs/TransactionUtils';
+import {canDeleteCardTransactionByLiabilityType, canDeleteTransaction, canHoldUnholdReportAction, isMoneyRequestReport as isMoneyRequestReportUtils} from '@libs/ReportUtils';
+import {getTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session} from '@src/types/onyx';
@@ -25,14 +25,28 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
             return [];
         }
         const options = [];
-        const selectedTransactions = selectedTransactionsID.map((transactionID) => getTransaction(transactionID)).filter((t) => !!t);
-
-        const anyTransactionOnHold = selectedTransactions.some(isOnHold);
-        const allTransactionOnHold = selectedTransactions.every(isOnHold);
-        const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
+        const selectedTransactions = selectedTransactionsID.map((transactionID) => getTransaction(transactionID)).filter((t) => !!t);
+        const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+        let canHoldTransactions = isMoneyRequestReport && !isReportReimbursed;
+        let canUnholdTransactions = isMoneyRequestReport;
 
-        if (isMoneyRequestReport && !anyTransactionOnHold && selectedTransactions.length === 1 && !isReportReimbursed) {
+        selectedTransactions.forEach((selectedTransaction) => {
+            if (!selectedTransaction?.transactionID) {
+                canHoldTransactions = false;
+                canUnholdTransactions = false;
+                return true;
+            }
+            const iouReportAction = getIOUActionForTransactionID(reportActions, selectedTransaction.transactionID);
+            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(iouReportAction);
+
+            canHoldTransactions = canHoldTransactions && canHoldRequest;
+            canUnholdTransactions = canUnholdTransactions && canUnholdRequest;
+
+            return !(canHoldTransactions || canUnholdTransactions);
+        });
+
+        if (canHoldTransactions) {
             options.push({
                 text: translate('iou.hold'),
                 icon: Expensicons.Stopwatch,
@@ -46,7 +60,7 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
             });
         }
 
-        if (isMoneyRequestReport && allTransactionOnHold && selectedTransactions.length === 1) {
+        if (canUnholdTransactions) {
             options.push({
                 text: translate('iou.unhold'),
                 icon: Expensicons.Stopwatch,

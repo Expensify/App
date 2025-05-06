@@ -78,6 +78,7 @@ function IOURequestStepScan({
     },
     transaction,
     currentUserPersonalDetails,
+    isTooltipAllowed = false,
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -544,7 +545,7 @@ function IOURequestStepScan({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive && !isUserInvitedToWorkspace(),
+        isTooltipAllowed && !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive && !isUserInvitedToWorkspace(),
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
@@ -834,22 +835,20 @@ function IOURequestStepScan({
                             height={CONST.RECEIPT.SHUTTER_SIZE}
                         />
                     </PressableWithFeedback>
-                    {hasFlash && (
-                        <PressableWithFeedback
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('receipt.flash')}
-                            style={[styles.alignItemsEnd]}
-                            disabled={cameraPermissionStatus !== RESULTS.GRANTED}
-                            onPress={() => setFlash((prevFlash) => !prevFlash)}
-                        >
-                            <Icon
-                                height={32}
-                                width={32}
-                                src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
-                                fill={theme.textSupporting}
-                            />
-                        </PressableWithFeedback>
-                    )}
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.flash')}
+                        style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
+                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                        onPress={() => setFlash((prevFlash) => !prevFlash)}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
+                            fill={theme.textSupporting}
+                        />
+                    </PressableWithFeedback>
                 </View>
                 {startLocationPermissionFlow && !!fileResize && (
                     <LocationPermissionModal

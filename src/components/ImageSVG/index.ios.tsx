@@ -3,11 +3,12 @@ import React from 'react';
 import type {ImageSourcePropType} from 'react-native';
 import type ImageSVGProps from './types';
 
-function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cover', style}: ImageSVGProps) {
+function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cover', style, onLoadEnd}: ImageSVGProps) {
     const tintColorProp = fill ? {tintColor: fill} : {};
 
     return (
         <Image
+            onLoadEnd={onLoadEnd}
             contentFit={contentFit}
             source={src as ImageSourcePropType}
             style={[{width, height}, style]}
