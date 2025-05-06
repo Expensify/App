@@ -21,7 +21,7 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.NVP_TRYNEWDOT,
+    key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (tryNewDot) => {
         handleChangeInHybridAppSignInFlow(currentHybridApp, tryNewDot, currentCredentials);
     },

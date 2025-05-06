@@ -33,7 +33,7 @@ type InitialURLContextProviderProps = AppProps & {
 function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}: InitialURLContextProviderProps) {
     const [initialURL, setInitialURL] = useState<Route | undefined>();
     const {splashScreenState, setSplashScreenState} = useSplashScreenStateContext();
-    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     // We use `setupCalled` ref to guarantee that `signInAfterTransitionFromOldDot` is called once.
     const setupCalled = useRef(false);
 
