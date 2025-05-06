@@ -141,6 +141,7 @@ import type {
     RemoveMemberPromptParams,
     RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
+    RenamedWorkspaceNameActionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -5039,7 +5040,10 @@ const translations = {
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers, and hyphens',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
-        renamedRoomAction: ({oldName, newName, actorName}: RenamedRoomActionParams) => `${actorName ? `${actorName} ` : ''}renamed this room to "${newName}" (previously "${oldName}")`,
+        renamedRoomAction: ({oldName, newName, actorName, isExpenseReport}: RenamedRoomActionParams) => {
+            const actor = actorName ? `${actorName} ` : '';
+            return isExpenseReport ? `${actor}renamed to "${newName}" (previously "${oldName}")` : `${actor}renamed this room to "${newName}" (previously "${oldName}")`;
+        },
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Room renamed to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
@@ -5096,7 +5100,7 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
-        renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
+        renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription
                 ? `set the description of this workspace to "${newDescription}"`

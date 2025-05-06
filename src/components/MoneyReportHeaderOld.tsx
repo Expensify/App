@@ -197,7 +197,12 @@ function MoneyReportHeaderOld({policy, report: moneyRequestReport, transactionTh
 
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
-    const selectedTransactionsOptions = useSelectedTransactionsActions({report: moneyRequestReport, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    const {
+        options: selectedTransactionsOptions,
+        handleDeleteTransactions,
+        isDeleteModalVisible,
+        hideDeleteModal,
+    } = useSelectedTransactionsActions({report: moneyRequestReport, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
@@ -654,6 +659,19 @@ function MoneyReportHeaderOld({policy, report: moneyRequestReport, transactionTh
                 danger
                 shouldEnableNewFocusManagement
             />
+
+            <ConfirmModal
+                title={translate('iou.deleteExpense', {count: selectedTransactionsID.length})}
+                isVisible={isDeleteModalVisible}
+                onConfirm={handleDeleteTransactions}
+                onCancel={hideDeleteModal}
+                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsID.length})}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+                shouldEnableNewFocusManagement
+            />
+
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
