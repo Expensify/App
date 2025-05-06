@@ -12,9 +12,9 @@ function ReportSearchHeader({report, policy, style, transactions}: ReportSearchH
             <AvatarWithDisplayName
                 report={report}
                 policy={policy}
-                shouldEnableDetailPageNavigation
                 transactions={transactions}
                 useCustomSearchTitleName
+                shouldEnableDetailPageNavigation={false}
             />
         );
     }, [report, policy, transactions]);
