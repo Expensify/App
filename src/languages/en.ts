@@ -438,6 +438,9 @@ const translations = {
         websiteExample: 'e.g. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
+        title: 'Title',
+        assignee: 'Assignee',
+        createdBy: 'Created by',
         with: 'with',
         shareCode: 'Share code',
         share: 'Share',
@@ -524,6 +527,7 @@ const translations = {
         offlinePrompt: "You can't take this action right now.",
         outstanding: 'Outstanding',
         chats: 'Chats',
+        tasks: 'Tasks',
         unread: 'Unread',
         sent: 'Sent',
         links: 'Links',
@@ -548,6 +552,7 @@ const translations = {
         reimbursable: 'Reimbursable',
         editYourProfile: 'Edit your profile',
         comments: 'Comments',
+        sharedIn: 'Shared in',
         unreported: 'Unreported',
     },
     supportalNoAccess: {
@@ -1164,6 +1169,7 @@ const translations = {
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
         attendees: 'Attendees',
+        whoIsYourAccountant: 'Who is your accountant?',
         paymentComplete: 'Payment complete',
         time: 'Time',
         startDate: 'Start date',
@@ -4854,7 +4860,7 @@ const translations = {
             description1: 'Your final bill for this subscription will be',
             description2: ({date}: DateParams) => `See your breakdown below for ${date}:`,
             subscription:
-                'This will end your subscription with Expensify, delete your remaining workspace and all members will lose access moving forward. If you want to remove just yourself, have another admin take over billing, and at that point, you can remove yourself from this workspace.',
+                'Heads up! This action will end your Expensify subscription, delete this workspace, and remove all workspace members. If you want to keep this workspace and only remove yourself, have another admin take over billing first.',
             genericFailureMessage: 'An error occurred while paying your bill. Please try again.',
         },
         restrictedAction: {
@@ -5145,6 +5151,7 @@ const translations = {
         description: 'Description',
         assignee: 'Assignee',
         completed: 'Completed',
+        action: 'Complete',
         messages: {
             created: ({title}: TaskCreatedActionParams) => `task for ${title}`,
             completed: 'marked as complete',
@@ -5230,6 +5237,7 @@ const translations = {
             link: 'Link',
             pinned: 'Pinned',
             unread: 'Unread',
+            completed: 'Completed',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Less than ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Greater than ${amount ?? ''}`,
@@ -5922,7 +5930,7 @@ const translations = {
             perMemberMonth: 'per member/month',
             collect: {
                 title: 'Collect',
-                description: 'The SMB plan that gives you expense, travel, and chat.',
+                description: 'The small business plan that gives you expense, travel, and chat.',
                 priceAnnual: ({lower, upper}: YourPlanPriceParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 benefit1: 'Receipt scanning',
@@ -6227,6 +6235,17 @@ const translations = {
             part2: ', start chatting,',
             part3: '\nand more.',
             part4: ' Try it out!',
+        },
+        GBRRBRChat: {
+            part1: 'You’ll see 🟢 on ',
+            part2: 'actions to take',
+            part3: ',\nand 🔴 on ',
+            part4: 'errors to review.',
+        },
+        accountSwitcher: {
+            part1: 'Access your ',
+            part2: 'Copilot accounts',
+            part3: ' here',
         },
         expenseReportsFilter: {
             part1: 'Welcome! Find all of your',
