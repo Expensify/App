@@ -31,7 +31,7 @@ function AnimatedSettlementButton({
     const {translate} = useLocalize();
 
     const isAnimationRunning = isPaidAnimationRunning || isApprovedAnimationRunning;
-    const buttonDuration = isPaidAnimationRunning ? CONST.ANIMATION_PAID_DURATION : CONST.ANIMATION_THUMBSUP_DURATION;
+    const buttonDuration = isPaidAnimationRunning ? CONST.ANIMATION_PAID_DURATION : CONST.ANIMATION_THUMBS_UP_DURATION;
     const buttonDelay = CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
     const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
     const buttonMarginTop = useSharedValue<number>(gap);

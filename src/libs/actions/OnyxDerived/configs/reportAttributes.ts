@@ -1,5 +1,6 @@
 import {generateReportName, isValidReport} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+import hasKeyTriggeredCompute from '@userActions/OnyxDerived/utils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAttributesDerivedValue, ReportMetadata} from '@src/types/onyx';
 
@@ -22,17 +23,18 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
     compute: (dependencies, {currentValue, sourceValues}) => {
-        const areAllDependenciesSet = [...dependencies].every((dependency) => dependency !== undefined);
+        // transactions are undefined by default so it needs to be set to an empty object as default
+        const [reports, preferredLocale, personalDetails, transactions = {}, ...rest] = dependencies;
+
+        const areAllDependenciesSet = [reports, preferredLocale, personalDetails, transactions, ...rest].every((dependency) => dependency !== undefined);
         if (!areAllDependenciesSet) {
             return {
                 reports: {},
                 locale: null,
             };
         }
-        const [reports, preferredLocale] = dependencies;
-
-        // if the preferred locale has changed, reset the isFullyComputed flag
-        if (preferredLocale !== currentValue?.locale) {
+        // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
+        if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
             isFullyComputed = false;
         }
 

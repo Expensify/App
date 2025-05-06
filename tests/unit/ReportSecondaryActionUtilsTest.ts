@@ -6,6 +6,7 @@ import type {Policy, Report, ReportAction, Transaction, TransactionViolation} fr
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'tester@mail.com';
+const OTHER_USER_EMAIL = 'tester1@mail.com';
 
 const SESSION = {
     email: CURRENT_USER_EMAIL,
@@ -70,6 +71,7 @@ describe('getSecondaryAction', () => {
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
         } as unknown as Report;
         const policy = {
             approver: CURRENT_USER_EMAIL,
@@ -98,6 +100,7 @@ describe('getSecondaryAction', () => {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            managerID: CURRENT_USER_ACCOUNT_ID,
         } as unknown as Report;
         const policy = {} as unknown as Policy;
         const TRANSACTION_ID = 'TRANSACTION_ID';
@@ -125,6 +128,7 @@ describe('getSecondaryAction', () => {
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            managerID: CURRENT_USER_ACCOUNT_ID,
         } as unknown as Report;
         const policy = {role: CONST.POLICY.ROLE.ADMIN} as unknown as Policy;
         const TRANSACTION_ID = 'TRANSACTION_ID';
@@ -322,7 +326,24 @@ describe('getSecondaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         } as unknown as Report;
         const policy = {
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {export: {exporter: CURRENT_USER_EMAIL}, autoSync: {enabled: true}}}},
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {export: {exporter: CURRENT_USER_EMAIL}, autoSync: {enabled: false}}}},
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions(report, [], {}, policy);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED)).toBe(true);
+    });
+
+    it('includes MARK_AS_EXPORTED option for expense report admin', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        } as unknown as Report;
+        const policy = {
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {export: {exporter: OTHER_USER_EMAIL}, autoSync: {enabled: true}}}},
+            role: CONST.POLICY.ROLE.ADMIN,
         } as unknown as Policy;
 
         const result = getSecondaryReportActions(report, [], {}, policy);

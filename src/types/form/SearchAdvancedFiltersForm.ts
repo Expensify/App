@@ -66,6 +66,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.GROUP_BY]: string;
         [FILTER_KEYS.TYPE]: string;
         [FILTER_KEYS.STATUS]: string[] | string;
+        [FILTER_KEYS.GROUP_BY]: string;
         [FILTER_KEYS.DATE_AFTER]: string;
         [FILTER_KEYS.DATE_BEFORE]: string;
         [FILTER_KEYS.DATE_ON]: string;
