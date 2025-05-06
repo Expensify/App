@@ -472,6 +472,7 @@ function getOptionData({
         isAllowedToComment: true,
         isDeletedParentAction: false,
         isConciergeChat: false,
+        shouldShowGreenDot: false,
     };
 
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
@@ -518,6 +519,7 @@ function getOptionData({
     result.hasParentAccess = report.hasParentAccess;
     result.isConciergeChat = isConciergeChatReport(report);
     result.participants = report.participants;
+    result.shouldShowGreenDot = result.brickRoadIndicator !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && requiresAttentionFromCurrentUser(report, parentReportAction);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || isExpenseReport(report);
     const subtitle = getChatRoomSubtitle(report);
