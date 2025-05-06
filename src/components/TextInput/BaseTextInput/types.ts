@@ -52,7 +52,7 @@ type CustomBaseTextInputProps = {
     disableKeyboard?: boolean;
 
     /**
-     * Autogrow input container length based on the entered text.
+     *   input container length based on the entered text.
      */
     autoGrow?: boolean;
 
@@ -60,7 +60,7 @@ type CustomBaseTextInputProps = {
     autoGrowExtraSpace?: number;
 
     /**
-     * Autogrow input container height based on the entered text
+     * Auto grow input container height based on the entered text
      */
     autoGrowHeight?: boolean;
 
@@ -177,4 +177,4 @@ type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
 
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 
-export type {BaseTextInputProps, BaseTextInputRef, CustomBaseTextInputProps, InputType};
+export type {BaseTextInputProps, BaseTextInputRef, InputType};

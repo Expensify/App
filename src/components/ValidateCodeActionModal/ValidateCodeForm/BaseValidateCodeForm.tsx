@@ -23,7 +23,6 @@ import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ValidateMagicCodeAction} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -37,20 +36,25 @@ type ValidateCodeFormError = {
 };
 
 type ValidateCodeFormProps = {
-    /** If the magic code has been resent previously */
-    hasMagicCodeBeenSent?: boolean;
-
     /** Specifies autocomplete hints for the system, so it can provide autofill */
     autoComplete?: AutoCompleteVariant;
 
     /** Forwarded inner ref */
     innerRef?: ForwardedRef<ValidateCodeFormHandle>;
 
-    /** The state of magic code that being sent */
-    validateCodeAction?: ValidateMagicCodeAction;
+    hasMagicCodeBeenSent?: boolean;
 
-    /** The pending action for submitting form */
-    validatePendingAction?: PendingAction | null;
+    /** The pending action of magic code being sent
+     * if not supplied, we will retrieve it from the validateCodeAction above: `validateCodeAction.pendingFields.validateCodeSent`
+     */
+    validatePendingAction?: PendingAction;
+
+    /** The field where any magic code error will be stored. e.g. if replacing a card and magic code fails, it'll be stored in:
+     * {"errorFields": {"replaceLostCard": {<timestamp>}}}
+     * If replacing a virtual card, the errorField wil be 'reportVirtualCard', etc.
+     * These values are set in the backend, please reach out to an internal engineer if you're adding a validate code modal to a flow.
+     */
+    validateCodeActionErrorField: string;
 
     /** The error of submitting  */
     validateError?: Errors;
@@ -76,6 +80,9 @@ type ValidateCodeFormProps = {
     /** Whether the form is loading or not */
     isLoading?: boolean;
 
+    /** Whether to allow auto submit again after the previous attempt fails */
+    allowResubmit?: boolean;
+
     /** Whether to show skip button */
     shouldShowSkipButton?: boolean;
 
@@ -84,10 +91,10 @@ type ValidateCodeFormProps = {
 };
 
 function BaseValidateCodeForm({
-    hasMagicCodeBeenSent,
     autoComplete = 'one-time-code',
     innerRef = () => {},
-    validateCodeAction,
+    hasMagicCodeBeenSent,
+    validateCodeActionErrorField,
     validatePendingAction,
     validateError,
     handleSubmitForm,
@@ -97,6 +104,7 @@ function BaseValidateCodeForm({
     hideSubmitButton,
     submitButtonText,
     isLoading,
+    allowResubmit,
     shouldShowSkipButton = false,
     handleSkipButtonPress,
 }: ValidateCodeFormProps) {
@@ -111,14 +119,16 @@ function BaseValidateCodeForm({
     const [account = {}] = useOnyx(ONYXKEYS.ACCOUNT, {
         canBeMissing: true,
     });
+
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const latestActionVerifiedError = getLatestErrorField(validateCodeAction, 'actionVerified');
-
-    const timerRef = useRef<NodeJS.Timeout>();
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
+    const validateCodeSent = useMemo(() => hasMagicCodeBeenSent ?? validateCodeAction?.validateCodeSent, [hasMagicCodeBeenSent, validateCodeAction?.validateCodeSent]);
+    const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
+    const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     useImperativeHandle(innerRef, () => ({
         focus() {
@@ -165,11 +175,11 @@ function BaseValidateCodeForm({
     );
 
     useEffect(() => {
-        if (!hasMagicCodeBeenSent) {
+        if (!validateCodeSent) {
             return;
         }
         inputValidateCodeRef.current?.clear();
-    }, [hasMagicCodeBeenSent]);
+    }, [validateCodeSent]);
 
     useEffect(() => {
         if (timeRemaining > 0) {
@@ -199,18 +209,26 @@ function BaseValidateCodeForm({
             setValidateCode(text);
             setFormError({});
 
-            if (!isEmptyObject(validateError) || !isEmptyObject(latestActionVerifiedError)) {
+            if (!isEmptyObject(validateError) || !isEmptyObject(latestValidateCodeError)) {
+                // Clear flow specific error
                 clearError();
-                clearValidateCodeActionError('actionVerified');
+
+                // Clear "incorrect magic code" error
+                clearValidateCodeActionError(validateCodeActionErrorField);
             }
         },
-        [validateError, clearError, latestActionVerifiedError],
+        [validateError, clearError, latestValidateCodeError, validateCodeActionErrorField],
     );
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
+        // Clear flow specific error
+        clearError();
+
+        // Clear "incorrect magic" code error
+        clearValidateCodeActionError(validateCodeActionErrorField);
         setCanShowError(true);
         if (!validateCode.trim()) {
             setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
@@ -224,7 +242,7 @@ function BaseValidateCodeForm({
 
         setFormError({});
         handleSubmitForm(validateCode);
-    }, [validateCode, handleSubmitForm]);
+    }, [validateCode, handleSubmitForm, validateCodeActionErrorField, clearError]);
 
     const errorText = useMemo(() => {
         if (!canShowError) {
@@ -237,6 +255,10 @@ function BaseValidateCodeForm({
     }, [canShowError, formError, account, translate]);
 
     const shouldShowTimer = timeRemaining > 0 && !isOffline;
+
+    // latestValidateCodeError only holds an error related to bad magic code
+    // while validateError holds flow-specific errors
+    const finalValidateError = !isEmptyObject(latestValidateCodeError) ? latestValidateCodeError : validateError;
     return (
         <>
             <MagicCodeInput
@@ -246,9 +268,10 @@ function BaseValidateCodeForm({
                 value={validateCode}
                 onChangeText={onTextInput}
                 errorText={errorText}
-                hasError={canShowError ? !isEmptyObject(validateError) : false}
+                hasError={canShowError && !isEmptyObject(finalValidateError)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
+                allowResubmit={allowResubmit}
             />
             {shouldShowTimer && (
                 <Text style={[styles.mt5]}>
@@ -258,9 +281,8 @@ function BaseValidateCodeForm({
             )}
             <OfflineWithFeedback
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
-                errors={latestActionVerifiedError}
                 errorRowStyles={[styles.mt2]}
-                onClose={() => clearValidateCodeActionError('actionVerified')}
+                onClose={() => clearValidateCodeActionError(validateCodeActionErrorField)}
             >
                 {!shouldShowTimer && (
                     <View style={[styles.mt5, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
@@ -279,7 +301,7 @@ function BaseValidateCodeForm({
                     </View>
                 )}
             </OfflineWithFeedback>
-            {!!hasMagicCodeBeenSent && (
+            {!!validateCodeSent && (
                 <DotIndicatorMessage
                     type="success"
                     style={[styles.mt6, styles.flex0]}
@@ -291,9 +313,14 @@ function BaseValidateCodeForm({
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
-                errors={canShowError ? validateError : undefined}
+                errors={canShowError ? finalValidateError : undefined}
                 errorRowStyles={[styles.mt2, styles.textWrap]}
-                onClose={() => clearError()}
+                onClose={() => {
+                    clearError();
+                    if (!isEmptyObject(validateCodeAction?.errorFields) && validateCodeActionErrorField) {
+                        clearValidateCodeActionError(validateCodeActionErrorField);
+                    }
+                }}
                 style={buttonStyles}
             >
                 {shouldShowSkipButton && (

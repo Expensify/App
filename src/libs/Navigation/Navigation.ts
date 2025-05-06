@@ -1,4 +1,4 @@
-import {getActionFromState} from '@react-navigation/core';
+import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
@@ -17,14 +17,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
+import type {Account, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getPolicyIDFromState from './helpers/getPolicyIDFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
-import {isFullScreenName} from './helpers/isNavigatorName';
+import {isFullScreenName, isOnboardingFlowName} from './helpers/isNavigatorName';
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
@@ -37,6 +37,14 @@ import {linkingConfig} from './linkingConfig';
 import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
 
+// Routes which are part of the flow to set up 2FA
+const SET_UP_2FA_ROUTES: Route[] = [
+    ROUTES.REQUIRE_TWO_FACTOR_AUTH,
+    ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
+    ROUTES.SETTINGS_2FA_VERIFY.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
+    ROUTES.SETTINGS_2FA_SUCCESS.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
+];
+
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -45,6 +53,18 @@ Onyx.connect({
         allReports = value;
     },
 });
+
+let account: OnyxEntry<Account>;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value;
+    },
+});
+
+function shouldShowRequire2FAPage() {
+    return !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth;
+}
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -62,10 +82,21 @@ function setShouldPopAllStateOnUP(shouldPopAllStateFlag: boolean) {
     shouldPopAllStateOnUP = shouldPopAllStateFlag;
 }
 
+type CanNavigateParams = {
+    route?: Route;
+    backToRoute?: Route;
+};
+
 /**
- * Checks if the navigationRef is ready to perform a method.
+ * Checks if the route can be navigated to based on whether the navigation ref is ready and if 2FA is required to be set up.
  */
-function canNavigate(methodName: string, params: Record<string, unknown> = {}): boolean {
+function canNavigate(methodName: string, params: CanNavigateParams = {}): boolean {
+    // Block navigation if 2FA is required and the targetRoute is not part of the flow to enable 2FA
+    const targetRoute = params.route ?? params.backToRoute;
+    if (shouldShowRequire2FAPage() && targetRoute && !SET_UP_2FA_ROUTES.includes(targetRoute)) {
+        Log.info(`[Navigation] Blocked navigation because 2FA is required to be set up to access route: ${targetRoute}`);
+        return false;
+    }
     if (navigationRef.isReady()) {
         return true;
     }
@@ -159,10 +190,12 @@ function isActiveRoute(routePath: Route): boolean {
  */
 function navigate(route: Route, options?: LinkToOptions) {
     if (!canNavigate('navigate', {route})) {
-        // Store intended route if the navigator is not yet available,
-        // we will try again after the NavigationContainer is ready
-        Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
-        pendingRoute = route;
+        if (!navigationRef.isReady()) {
+            // Store intended route if the navigator is not yet available,
+            // we will try again after the NavigationContainer is ready
+            Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
+            pendingRoute = route;
+        }
         return;
     }
 
@@ -256,7 +289,7 @@ const defaultGoBackOptions: Required<GoBackOptions> = {
  * @param options - Optional configuration that affects navigation logic, such as parameter comparison.
  */
 function goUp(backToRoute: Route, options?: GoBackOptions) {
-    if (!canNavigate('goUp') || !navigationRef.current) {
+    if (!canNavigate('goUp', {backToRoute}) || !navigationRef.current) {
         Log.hmmm(`[Navigation] Unable to go up. Can't navigate.`);
         return;
     }
@@ -307,7 +340,7 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
  * @param options - Optional configuration that affects navigation logic
  */
 function goBack(backToRoute?: Route, options?: GoBackOptions) {
-    if (!canNavigate('goBack')) {
+    if (!canNavigate('goBack', {backToRoute})) {
         return;
     }
 
@@ -565,9 +598,10 @@ const dismissModal = (ref = navigationRef) => {
 const dismissModalWithReport = (navigateToReportPayload: NavigateToReportWithPolicyCheckPayload, ref = navigationRef) => {
     isNavigationReady().then(() => {
         const topmostReportID = getTopmostReportId();
-        const areReportsIDsDefined = !!topmostReportID && !!navigateToReportPayload.reportID;
+        const navigateToReportID = navigateToReportPayload.reportID ?? navigateToReportPayload.report?.reportID;
+        const areReportsIDsDefined = !!topmostReportID && !!navigateToReportID;
         const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
-        if (topmostReportID === navigateToReportPayload.reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
+        if (topmostReportID === navigateToReportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             dismissModal();
             return;
         }
@@ -630,6 +664,12 @@ function removeScreenByKey(key: string) {
     });
 }
 
+function isOnboardingFlow() {
+    const state = navigationRef.getRootState();
+    const currentFocusedRoute = findFocusedRoute(state);
+    return isOnboardingFlowName(currentFocusedRoute?.name);
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -661,6 +701,7 @@ export default {
     switchPolicyID,
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
+    isOnboardingFlow,
 };
 
 export {navigationRef};
