@@ -17,6 +17,7 @@ import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
     getFormattedCreated,
+    getTransaction,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
@@ -42,11 +43,16 @@ const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     login: undefined,
 };
 
-function getIOUData(managerID: number, ownerAccountID: number, personalDetails: OnyxTypes.PersonalDetailsList | undefined) {
-    const fromID = managerID;
-    const toID = ownerAccountID;
+function getIOUData(managerID: number, ownerAccountID: number, isIOUReport: boolean, personalDetails: OnyxTypes.PersonalDetailsList | undefined, amount: number) {
+    let fromID = ownerAccountID;
+    let toID = managerID;
 
-    return fromID && toID
+    if (amount < 0) {
+        fromID = managerID;
+        toID = ownerAccountID;
+    }
+
+    return fromID && toID && isIOUReport
         ? {
               from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
               to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,
@@ -103,6 +109,30 @@ type TranslationPathOrText = {
 
 const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
 
+const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
+    const {originalTransactionID, source, splits} = transaction?.comment ?? {};
+
+    if (splits && splits.length > 0) {
+        return {isBillSplit: true, originalTransaction: getTransaction(originalTransactionID) ?? transaction};
+    }
+
+    if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
+        return {isBillSplit: false, originalTransaction: transaction};
+    }
+
+    const originalTransaction = getTransaction(originalTransactionID);
+
+    return {isBillSplit: !!originalTransaction, originalTransaction: originalTransaction ?? transaction};
+};
+
+function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, hasFieldErrors: boolean, violationMessage: string): TranslationPathOrText {
+    const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
+    const isTooLong = violationsCount > 1 || violationMessage.length > CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW;
+    const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
+
+    return isTooLong || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
+}
+
 function getTransactionPreviewTextAndTranslationPaths({
     iouReport,
     transaction,
@@ -149,11 +179,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (violationMessage && RBRMessage === undefined) {
-        const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
-        const isTooLong = violationsCount > 1 || violationMessage.length > 15;
-        const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
-
-        RBRMessage = isTooLong || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
+        RBRMessage = getViolationTranslatePath(violations, hasFieldErrors, violationMessage);
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
@@ -203,10 +229,6 @@ function getTransactionPreviewTextAndTranslationPaths({
         isPreviewHeaderTextComplete = true;
     }
 
-    if (shouldShowRBR && transaction) {
-        isPreviewHeaderTextComplete = true;
-    }
-
     if (!isPreviewHeaderTextComplete) {
         if (hasViolationsOfTypeNotice && transaction && !isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID)) {
             previewHeaderText.push(dotSeparator, {translationPath: 'violations.reviewRequired'});
@@ -219,7 +241,8 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    let displayAmountText: TranslationPathOrText = isScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(requestAmount, requestCurrency)};
+    const amount = isBillSplit ? getOriginalTransactionIfBillIsSplit(transaction).originalTransaction?.amount : requestAmount;
+    let displayAmountText: TranslationPathOrText = isScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
     }
@@ -232,7 +255,6 @@ function getTransactionPreviewTextAndTranslationPaths({
         displayAmountText,
         displayDeleteAmountText,
         previewHeaderText,
-        showCashOrCard,
     };
 }
 
@@ -275,7 +297,6 @@ function createTransactionPreviewConditionals({
     const isFullySettled = isMoneyRequestSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
-    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
     const shouldShowCategory = !!category && isReportAPolicyExpenseChat;
@@ -303,7 +324,6 @@ function createTransactionPreviewConditionals({
     const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning;
 
     return {
-        shouldDisableOnPress,
         shouldShowSkeleton,
         shouldShowTag,
         shouldShowRBR,
@@ -315,5 +335,12 @@ function createTransactionPreviewConditionals({
     };
 }
 
-export {getReviewNavigationRoute, getIOUData, getTransactionPreviewTextAndTranslationPaths, createTransactionPreviewConditionals};
+export {
+    getReviewNavigationRoute,
+    getIOUData,
+    getTransactionPreviewTextAndTranslationPaths,
+    createTransactionPreviewConditionals,
+    getOriginalTransactionIfBillIsSplit,
+    getViolationTranslatePath,
+};
 export type {TranslationPathOrText};

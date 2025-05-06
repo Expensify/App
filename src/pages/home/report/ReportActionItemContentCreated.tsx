@@ -50,7 +50,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     const {report, action, transactionThreadReport} = contextValue;
 
     const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report?.policyID);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
 
     const transactionCurrency = getCurrency(transaction);
 
