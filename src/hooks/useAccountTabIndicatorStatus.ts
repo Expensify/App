@@ -16,14 +16,14 @@ type AccountTabIndicatorStatusResult = {
 
 function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
     const theme = useTheme();
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`, {canBeMissing: true});
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
 
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return

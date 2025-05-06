@@ -19,8 +19,8 @@ type WorkspacesTabIndicatorStatusResult = {
 
 function useWorkspacesTabIndicatorStatus(): WorkspacesTabIndicatorStatusResult {
     const theme = useTheme();
-    const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
