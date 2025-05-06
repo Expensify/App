@@ -206,7 +206,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         handleDeleteTransactions,
         isDeleteModalVisible: hookDeleteModalVisible,
         hideDeleteModal,
-    } = useSelectedTransactionsActions({report: moneyRequestReport, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    } = useSelectedTransactionsActions({
+        report: moneyRequestReport,
+        reportActions,
+        allTransactionsLength: transactions.length,
+        session,
+        onExportFailed: () => setIsDownloadErrorModalVisible(true),
+    });
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
