@@ -79,6 +79,8 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
 };
 
+const onScrollToIndexFailed = () => {};
+
 function SearchList(
     {
         data,
@@ -390,6 +392,7 @@ function SearchList(
                 ListFooterComponent={ListFooterComponent}
                 removeClippedSubviews
                 onViewableItemsChanged={onViewableItemsChanged}
+                onScrollToIndexFailed={onScrollToIndexFailed}
             />
             <Modal
                 isVisible={isModalVisible}
