@@ -45,6 +45,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import useSearchPusherUpdates from '@hooks/useSearchPusherUpdates';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import SearchScopeProvider from './SearchScopeProvider';
@@ -156,7 +157,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
@@ -202,14 +202,19 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         search({queryJSON, offset});
     }, [isOffline, offset, queryJSON]);
 
-    const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
-        searchResults,
+    // Use custom hook to detect and handle Pusher updates
+    useSearchPusherUpdates({
+        isOffline,
+        queryJSON,
         transactions,
         previousTransactions,
-        queryJSON,
-        offset,
         reportActions,
-        previousReportActions,
+        searchResults,
+    });
+
+    const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
+        searchResults,
+        queryJSON,
     });
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
