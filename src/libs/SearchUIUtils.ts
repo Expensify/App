@@ -1,6 +1,6 @@
 import type {TextStyle, ViewStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import DotLottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -17,7 +17,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import {PersonalDetails, Policy} from '@src/types/onyx';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
@@ -43,15 +42,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {
-    areAllGroupPoliciesExpenseChatDisabled,
-    getActivePolicy,
-    getAllPolicies,
-    getAllSharedPolicies,
-    getGroupPaidPoliciesWithExpenseChatEnabled,
-    getPolicy,
-    isPaidGroupPolicy,
-} from './PolicyUtils';
+import {getActivePolicy, getAllSharedPolicies, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
     getIcons,
@@ -952,7 +943,7 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                                 interceptAnonymousUser(() => {
                                     const activePolicy = getActivePolicy();
                                     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
-                                    const personalDetails = getPersonalDetailsForAccountID(session.accountID) as PersonalDetails;
+                                    const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
 
                                     let workspaceIDForReportCreation: string | undefined;
 
