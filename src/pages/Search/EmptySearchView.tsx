@@ -1,14 +1,14 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type { GestureResponderEvent, Text as RNText } from 'react-native';
-import { Linking, View } from 'react-native';
-import { useOnyx } from 'react-native-onyx';
-import type { OnyxCollection } from 'react-native-onyx';
+import type {GestureResponderEvent, Text as RNText} from 'react-native';
+import {Linking, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import type { FeatureListItem } from '@components/FeatureList';
-import { Alert, PiggyBank } from '@components/Icon/Illustrations';
+import type {FeatureListItem} from '@components/FeatureList';
+import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
@@ -23,22 +23,21 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { startMoneyRequest } from '@libs/actions/IOU';
-import { openExternalLink, openOldDotLink } from '@libs/actions/Link';
-import { canActionTask, canModifyTask, completeTask } from '@libs/actions/Task';
-import { setSelfTourViewed } from '@libs/actions/Welcome';
+import {startMoneyRequest} from '@libs/actions/IOU';
+import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
+import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
+import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import { hasSeenTourSelector } from '@libs/onboardingSelectors';
-import { areAllGroupPoliciesExpenseChatDisabled } from '@libs/PolicyUtils';
-import { generateReportID } from '@libs/ReportUtils';
-import { getNavatticURL } from '@libs/TourUtils';
-import { showContextMenu } from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {hasSeenTourSelector} from '@libs/onboardingSelectors';
+import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
+import {generateReportID} from '@libs/ReportUtils';
+import {getNavatticURL} from '@libs/TourUtils';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Policy } from '@src/types/onyx';
-import type { SearchDataTypes } from '@src/types/onyx/SearchResults';
-
+import type {Policy} from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
     type: SearchDataTypes;
