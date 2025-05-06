@@ -12,7 +12,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCreated as getTransactionCreated, getMerchant} from '@libs/TransactionUtils';
+import {getMerchant, getCreated as getTransactionCreated} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CategoryCell from './DataCells/CategoryCell';
