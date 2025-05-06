@@ -247,12 +247,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const filters = useMemo(() => {
         const typeValue = typeOptions.find((option) => option.value === type) ?? null;
         const statusValue = getStatusOptions(type, groupBy).filter((option) => status.includes(option.value));
-        const fromValue = filterFormValues.from ?? [];
         const dateValue = [
             filterFormValues.dateAfter ? `${translate('common.after')} ${DateUtils.formatToReadableString(filterFormValues.dateAfter)}` : null,
             filterFormValues.dateBefore ? `${translate('common.before')} ${DateUtils.formatToReadableString(filterFormValues.dateBefore)}` : null,
             filterFormValues.dateOn ? `${translate('common.on')} ${DateUtils.formatToReadableString(filterFormValues.dateOn)}` : null,
-        ].filter((date): date is string => !!date);
+        ].filter(Boolean) as string[];
+        const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
 
         const filterList = [
             {
@@ -291,6 +291,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         datePickerComponent,
         userPickerComponent,
         status,
+        personalDetails,
     ]);
 
     if (hasErrors) {

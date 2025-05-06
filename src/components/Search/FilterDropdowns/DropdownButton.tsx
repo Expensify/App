@@ -79,11 +79,16 @@ function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
             <Button
                 small
                 ref={triggerRef}
-                innerStyles={[isOverlayVisible && styles.buttonHoveredBG]}
+                innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}]}
                 onPress={toggleOverlay}
             >
-                <CaretWrapper style={styles.flex1}>
-                    <Text style={styles.textMicroBold}>{buttonText}</Text>
+                <CaretWrapper style={styles.w100}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textMicroBold, styles.flex1]}
+                    >
+                        {buttonText}
+                    </Text>
                 </CaretWrapper>
             </Button>
 

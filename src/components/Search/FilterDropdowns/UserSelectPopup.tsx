@@ -31,12 +31,13 @@ type UserSelectPopupProps = {
 };
 
 function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {options} = useOptionsList();
     const personalDetails = usePersonalDetails();
 
     const initialSelectedData: OptionData[] = useMemo(() => {
-        const options = value
+        const initialOptions = value
             .map((accountID) => {
                 const participant = personalDetails?.[accountID];
 
@@ -46,46 +47,47 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
                 return getSelectedOptionData(participant);
             })
-            .filter((option): option is OptionData => !!option);
+            .filter(Boolean) as OptionData[];
 
-        return options;
+        return initialOptions;
+
+        // The initial value of a useState only gets calculated once, so we dont need to keep calculating this initial state
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedItems, setSelectedItems] = useState<OptionData[]>(initialSelectedData);
+    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelectedData);
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
-    const {options} = useOptionsList();
-
     // A list of all reports and personal details the user has access to
-    const defaultOptions = useMemo(() => {
+    const validOptions = useMemo(() => {
         return getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
             {
-                selectedOptions: selectedItems,
+                selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             },
         );
-    }, [options.personalDetails, options.reports, selectedItems]);
+    }, [options.personalDetails, options.reports, selectedOptions]);
 
     // Takes the list of all options & filters them based on the search term
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
-            selectedOptions: selectedItems,
+        return filterAndOrderOptions(validOptions, cleanSearchTerm, {
+            selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
-    }, [cleanSearchTerm, defaultOptions, selectedItems]);
+    }, [cleanSearchTerm, validOptions, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
 
-        const formattedResults = formatSectionsFromSearchTerm(cleanSearchTerm, selectedItems, filteredOptions.recentReports, filteredOptions.personalDetails, personalDetails, true);
-
-        const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === filteredOptions.currentUserOption?.accountID);
+        const formattedResults = formatSectionsFromSearchTerm(cleanSearchTerm, selectedOptions, filteredOptions.recentReports, filteredOptions.personalDetails, personalDetails, true);
+        const currentUserSelected = formattedResults.section.data.find((option) => option.accountID === filteredOptions.currentUserOption?.accountID);
 
         if (filteredOptions.currentUserOption) {
             const formattedName = getDisplayNameForParticipant({
@@ -93,8 +95,8 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 shouldAddCurrentUserPostfix: true,
                 personalDetailsData: personalDetails,
             });
-            if (selectedCurrentUser) {
-                selectedCurrentUser.text = formattedName;
+            if (currentUserSelected) {
+                currentUserSelected.text = formattedName;
             } else {
                 filteredOptions.currentUserOption.text = formattedName;
                 filteredOptions.recentReports = [filteredOptions.currentUserOption, ...filteredOptions.recentReports];
@@ -122,11 +124,11 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             sections: newSections,
             headerMessage: message,
         };
-    }, [cleanSearchTerm, selectedItems, filteredOptions, personalDetails, translate]);
+    }, [cleanSearchTerm, selectedOptions, filteredOptions, personalDetails, translate]);
 
     const selectUser = useCallback(
         (option: Option) => {
-            const optionIndex = selectedItems.findIndex((selectedOption: Option) => {
+            const optionIndex = selectedOptions.findIndex((selectedOption: Option) => {
                 const matchesAccountID = selectedOption.accountID && selectedOption.accountID === option?.accountID;
                 const matchesReportID = selectedOption.reportID && selectedOption.reportID === option?.reportID;
 
@@ -136,23 +138,23 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             });
 
             if (optionIndex === -1) {
-                setSelectedItems([...selectedItems, getSelectedOptionData(option)]);
+                setSelectedOptions([...selectedOptions, getSelectedOptionData(option)]);
             } else {
-                const newSelectedOptions = [...selectedItems.slice(0, optionIndex), ...selectedItems.slice(optionIndex + 1)];
-                setSelectedItems(newSelectedOptions);
+                const newSelectedOptions = [...selectedOptions.slice(0, optionIndex), ...selectedOptions.slice(optionIndex + 1)];
+                setSelectedOptions(newSelectedOptions);
             }
         },
-        [selectedItems],
+        [selectedOptions],
     );
 
     const applyChanges = useCallback(() => {
-        const accountIDs = selectedItems.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
+        const accountIDs = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
         onChange(accountIDs);
         closeOverlay();
-    }, [closeOverlay, onChange, selectedItems]);
+    }, [closeOverlay, onChange, selectedOptions]);
 
     const resetChanges = () => {
-        setSelectedItems([]);
+        setSelectedOptions([]);
     };
 
     useEffect(() => {
@@ -191,10 +193,8 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             textInputLabel={translate('selectionList.searchForSomeone')}
             textInputValue={searchTerm}
             footerContent={<FooterContent />}
-            onChangeText={(term) => {
-                setSearchTerm(term);
-            }}
             onSelectRow={selectUser}
+            onChangeText={setSearchTerm}
         />
     );
 }
