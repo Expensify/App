@@ -82,7 +82,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onboarding
         const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
         return (
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle, styles.alignItemsCenter]}>
-                <View style={styles.w50}>{onboardingHelpDropdownButton}</View>
+                <View style={[shouldUseNarrowLayout && styles.w50]}>{onboardingHelpDropdownButton}</View>
                 {GuideBookingButton}
                 <Button
                     success
