@@ -1534,6 +1534,12 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
+        textDropZone: {
+            ...headlineFont,
+            fontSize: variables.fontSizeXLarge,
+            textAlign: 'center',
+        },
+
         subTextFileUpload: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightLarge,
@@ -4014,9 +4020,17 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.attachmentDropUIBG,
         },
 
+        attachmentDropText: {
+            color: theme.textAttachmentDropZone,
+        },
+
         receiptDropOverlay: {
             backgroundColor: theme.receiptDropUIBG,
             zIndex: 2,
+        },
+
+        receiptDropText: {
+            color: theme.textReceiptDropZone,
         },
 
         isDraggingOver: {

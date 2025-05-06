@@ -927,6 +927,7 @@ function IOURequestStepConfirmation({
                             icon={Expensicons.ReplaceReceipt}
                             dropStyles={styles.receiptDropOverlay}
                             dropTitle={translate('dropzone.replaceReceipt')}
+                            dropTextStyles={styles.receiptDropText}
                         />
                     ) : (
                         <ReceiptDropUI

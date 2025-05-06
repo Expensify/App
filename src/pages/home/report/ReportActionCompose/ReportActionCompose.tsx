@@ -485,6 +485,38 @@ function ReportActionCompose({
                                         didHideComposerInput={didHideComposerInput}
                                     />
                                     {/* TODO: remove isMultiFilesBetaEnabled check after the feature is enabled */}
+                                    {isMultiFilesBetaEnabled ? (
+                                        <DropZoneUI
+                                            onDrop={(event: DragEvent) => {
+                                                if (isAttachmentPreviewActive) {
+                                                    return;
+                                                }
+                                                const data = event.dataTransfer?.files[0];
+                                                if (data) {
+                                                    data.uri = URL.createObjectURL(data);
+                                                    displayFileInModal(data);
+                                                }
+                                            }}
+                                            icon={Expensicons.MessageInABottle}
+                                            dropTitle={translate('dropzone.addAttachments')}
+                                            dropStyles={styles.attachmentDropOverlay}
+                                            dropTextStyles={styles.attachmentDropText}
+                                        />
+                                    ) : (
+                                        <DropZoneUI
+                                            onDrop={(event: DragEvent) => {
+                                                if (isAttachmentPreviewActive) {
+                                                    return;
+                                                }
+                                                const data = event.dataTransfer?.files[0];
+                                                if (data) {
+                                                    data.uri = URL.createObjectURL(data);
+                                                    displayFileInModal(data);
+                                                }
+                                            }}
+                                            icon={Expensicons.DragAndDrop}
+                                        />
+                                    )}
                                     <DropZoneUI
                                         onDrop={(event: DragEvent) => {
                                             if (isAttachmentPreviewActive) {
@@ -499,6 +531,7 @@ function ReportActionCompose({
                                         icon={isMultiFilesBetaEnabled ? Expensicons.MessageInABottle : Expensicons.DragAndDrop}
                                         dropTitle={isMultiFilesBetaEnabled ? translate('dropzone.addAttachments') : ''}
                                         dropStyles={isMultiFilesBetaEnabled ? styles.attachmentDropOverlay : styles.reportDropOverlay}
+                                        dropTextStyles={isMultiFilesBetaEnabled ? styles.attachmentDropText : styles.textDropZone}
                                     />
                                 </>
                             )}

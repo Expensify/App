@@ -952,6 +952,7 @@ function IOURequestStepScan({
                                 icon={Expensicons.SmartScan}
                                 dropStyles={styles.receiptDropOverlay}
                                 dropTitle={translate('dropzone.scanReceipts')}
+                                dropTextStyles={styles.receiptDropText}
                             />
                         ) : (
                             <ReceiptDropUI

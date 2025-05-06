@@ -1,5 +1,5 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -19,9 +19,12 @@ type DropZoneUIProps = {
 
     /** Custom styles for the drop zone */
     dropStyles?: StyleProp<ViewStyle>;
+
+    /** Custom styles for the drop zone text */
+    dropTextStyles?: StyleProp<TextStyle>;
 };
 
-function DropZoneUI({onDrop, icon, dropTitle, dropStyles}: DropZoneUIProps) {
+function DropZoneUI({onDrop, icon, dropTitle, dropStyles, dropTextStyles}: DropZoneUIProps) {
     const styles = useThemeStyles();
 
     return (
@@ -37,7 +40,7 @@ function DropZoneUI({onDrop, icon, dropTitle, dropStyles}: DropZoneUIProps) {
                                 height={100}
                             />
                         </View>
-                        <Text style={[styles.textHeadline]}>{dropTitle}</Text>
+                        <Text style={[styles.textDropZone, dropTextStyles]}>{dropTitle}</Text>
                     </View>
                 </View>
             </View>

@@ -2,7 +2,6 @@ import type {ValueOf} from 'type-fest';
 import type {NavBarButtonStyle} from '@libs/NavBarManager/types';
 import type CONST from '@src/CONST';
 import type {ColorScheme, StatusBarStyle} from '..';
-import colors from '@styles/theme/colors';
 
 type Color = string;
 
@@ -29,6 +28,8 @@ type ThemeColors = {
     textSupporting: Color;
     text: Color;
     textColorfulBackground: Color;
+    textReceiptDropZone: Color,
+    textAttachmentDropZone: Color,
     syntax: Color;
     link: Color;
     linkHover: Color;

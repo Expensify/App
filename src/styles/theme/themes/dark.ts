@@ -22,6 +22,8 @@ const darkTheme = {
     textSupporting: colors.productDark800,
     text: colors.productDark900,
     textColorfulBackground: colors.ivory,
+    textReceiptDropZone: colors.green700,
+    textAttachmentDropZone: colors.blue700,
     syntax: colors.productDark800,
     link: colors.blue300,
     linkHover: colors.blue100,
