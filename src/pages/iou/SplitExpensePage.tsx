@@ -1,0 +1,181 @@
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import SplitListItem from '@components/SelectionList/SplitListItem';
+import type {SectionListDataType, SplitListItemType} from '@components/SelectionList/types';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {addSplitExpense, completeSplitTransaction, updateSplitExpenseAmmount} from '@libs/actions/IOU';
+import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SplitExpenseParamList} from '@libs/Navigation/types';
+import type {TransactionDetails} from '@libs/ReportUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
+import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
+import {getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.RIGHT_MODAL.SPLIT_EXPENSE>;
+
+function SplitExpensePage({route}: SplitExpensePageProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${route.params.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+
+    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+
+    const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + Math.abs(Number(item.amount)), 0), [draftTransaction]);
+
+    useEffect(() => {
+        setErrorMessage(null);
+    }, [sumOfSplitExpenses]);
+
+    const onAddSplitExpense = useCallback(() => {
+        addSplitExpense(transaction, draftTransaction);
+    }, [draftTransaction, transaction]);
+
+    const onSaveSplitExpense = useCallback(() => {
+        if (sumOfSplitExpenses > Math.abs(Number(transactionDetails?.amount))) {
+            const difference = sumOfSplitExpenses - Math.abs(Number(transactionDetails?.amount));
+            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            return;
+        }
+        if (sumOfSplitExpenses < Math.abs(Number(transactionDetails?.amount))) {
+            const difference = Math.abs(Number(transactionDetails?.amount)) - sumOfSplitExpenses;
+            setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            return;
+        }
+
+        if ((draftTransaction?.comment?.splitExpenses ?? []).find((item) => item.amount === 0)) {
+            setErrorMessage(translate('iou.splitExpenseZeroAmount'));
+            return;
+        }
+
+        completeSplitTransaction(draftTransaction, false);
+    }, [draftTransaction, sumOfSplitExpenses, transactionDetails?.amount, transactionDetails?.currency, translate]);
+
+    const onSplitExpenseAmountChange = useCallback(
+        (currentItemTransactionID: string, value: number) => {
+            const amountInCents = convertToBackendAmount(value);
+            updateSplitExpenseAmmount(draftTransaction, currentItemTransactionID, amountInCents);
+        },
+        [draftTransaction],
+    );
+
+    const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? ''), [translate]);
+
+    const [sections] = useMemo(() => {
+        const previewText = getTransactionPreviewTextAndTranslationPaths({
+            transaction,
+            transactionDetails: getTransactionDetails(draftTransaction) ?? {},
+            iouReport: undefined,
+            action: undefined,
+            violations: [],
+            isBillSplit: false,
+            shouldShowRBR: false,
+        });
+
+        const headerText = previewText.previewHeaderText.reduce((text, currentKey) => {
+            return `${text}${getTranslatedText(currentKey)}`;
+        }, '');
+
+        const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map(
+            (item): SplitListItemType => ({
+                ...item,
+                headerText,
+                originalAmount: Number(transactionDetails?.amount),
+                amount: Math.abs(Number(item.amount)),
+                merchant: draftTransaction?.merchant ?? '',
+                currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
+                transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                onSplitExpenseAmountChange,
+            }),
+        );
+
+        const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
+
+        return [newSections];
+    }, [transaction, draftTransaction, getTranslatedText, transactionDetails?.amount, onSplitExpenseAmountChange]);
+
+    const headerContent = useMemo(
+        () => (
+            <View style={[styles.w100, styles.ph5, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+                <Button
+                    success
+                    onPress={onAddSplitExpense}
+                    icon={Expensicons.Plus}
+                    text={translate('iou.addSplit')}
+                    style={[shouldUseNarrowLayout && styles.flex1]}
+                />
+            </View>
+        ),
+        [onAddSplitExpense, shouldUseNarrowLayout, styles.flex1, styles.flexRow, styles.gap2, styles.mb3, styles.ph5, styles.w100, translate],
+    );
+
+    const footerContent = useMemo(() => {
+        return (
+            <>
+                {!!errorMessage && (
+                    <FormHelpMessage
+                        style={[styles.ph1, styles.mb2]}
+                        isError
+                        message={errorMessage}
+                    />
+                )}
+                <Button
+                    success
+                    large
+                    style={[styles.w100]}
+                    text={translate('common.save')}
+                    onPress={onSaveSplitExpense}
+                    pressOnEnter
+                    enterKeyEventListenerPriority={1}
+                />
+            </>
+        );
+    }, [onSaveSplitExpense, styles.mb2, styles.ph1, styles.w100, translate, errorMessage]);
+
+    return (
+        <FullPageNotFoundView shouldShow={!route.params.reportID || isEmptyObject(draftTransaction)}>
+            <ScreenWrapper testID={SplitExpensePage.displayName}>
+                <HeaderWithBackButton
+                    title={translate('iou.split')}
+                    subtitle={translate('iou.splitExpenseSubtitle', {
+                        amount: convertToDisplayString(transactionDetails?.amount, transactionDetails?.currency),
+                        merchant: draftTransaction?.merchant ?? '',
+                    })}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                />
+                <SelectionList
+                    onSelectRow={() => {}}
+                    headerContent={headerContent}
+                    sections={sections}
+                    ListItem={SplitListItem}
+                    shouldUseDynamicMaxToRenderPerBatch
+                    footerContent={footerContent}
+                />
+            </ScreenWrapper>
+        </FullPageNotFoundView>
+    );
+}
+SplitExpensePage.displayName = 'SplitExpensePage';
+
+export default SplitExpensePage;

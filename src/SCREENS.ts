@@ -213,6 +213,7 @@ const SCREENS = {
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
+        SPLIT_EXPENSE: 'Split_Expense',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     ONBOARDING_MODAL: {

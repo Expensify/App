@@ -21,7 +21,7 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -348,6 +348,29 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** The React element that will be shown as a footer */
     FooterComponent?: ReactElement;
 };
+
+type SplitListItemType = ListItem &
+    SplitExpense & {
+        /** Item header text */
+        headerText: string;
+
+        /** Merchant or vendor name */
+        merchant: string;
+
+        /** Currency code */
+        currency: string;
+
+        /** ID of split expense */
+        transactionID: string;
+
+        /** Original amount before split */
+        originalAmount: number;
+
+        /** Function for updating amount */
+        onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
+    };
+
+type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
@@ -752,4 +775,6 @@ export type {
     ChatListItemProps,
     SearchListItem,
     SortableColumnName,
+    SplitListItemProps,
+    SplitListItemType,
 };

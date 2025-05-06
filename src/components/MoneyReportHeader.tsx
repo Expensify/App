@@ -58,6 +58,7 @@ import {
     deleteMoneyRequest,
     getNavigationUrlOnMoneyRequestDelete,
     getNextApproverAccountID,
+    initSplitExpense,
     payInvoice,
     payMoneyRequest,
     startMoneyRequest,
@@ -582,6 +583,17 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 }
 
                 changeMoneyRequestHoldStatus(requestParentReportAction);
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
+            text: translate('iou.split'),
+            icon: Expensicons.ArrowSplit,
+            value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
+            onSelected: () => {
+                initSplitExpense(transaction, moneyRequestReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+                Navigation.navigate(
+                    ROUTES.SPLIT_EXPENSE.getRoute(moneyRequestReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), transaction?.transactionID, Navigation.getReportRHPActiveRoute()),
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {

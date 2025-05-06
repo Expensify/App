@@ -27,6 +27,8 @@ import type {
     SetNameValuePairParams,
     ShareTrackedExpenseParams,
     SplitBillParams,
+    SplitTransactionParams,
+    SplitTransactionSplitsParam,
     StartSplitBillParams,
     SubmitReportParams,
     TrackExpenseParams,
@@ -54,6 +56,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStep} from '@libs/NextStepUtils';
+import * as NumberUtils from '@libs/NumberUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
@@ -212,7 +215,7 @@ import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
 import {completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
-import {removeDraftTransaction} from './TransactionEdit';
+import {removeDraftSplitTransaction, removeDraftTransaction} from './TransactionEdit';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -851,6 +854,144 @@ function initMoneyRequest(
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         splitPayerAccountIDs: currentUserPersonalDetails ? [currentUserPersonalDetails.accountID] : undefined,
     });
+}
+
+/**
+ * Initialize split expense info
+ */
+function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportID: string) {
+    if (!transaction) {
+        return;
+    }
+    const {amount = 0, modifiedAmount, modifiedMerchant, modifiedCurrency, merchant, currency = CONST.CURRENCY.USD} = transaction;
+
+    const currentAmount = Number(modifiedAmount) || amount;
+    const currentMerchant = String(modifiedMerchant) || merchant;
+    const currentCurrency = String(modifiedCurrency) || currency;
+
+    const draftTransaction = buildOptimisticTransaction({
+        originalTransactionID: transaction.transactionID,
+        transactionParams: {
+            splitExpenses: [
+                {
+                    transactionID: NumberUtils.rand64(),
+                    amount: currentAmount / 2,
+                    description: transaction?.comment?.comment,
+                    category: transaction?.category,
+                    tags: transaction?.tag ? [transaction?.tag] : [],
+                    created: DateUtils.getDBTime(),
+                },
+                {
+                    transactionID: NumberUtils.rand64(),
+                    amount: currentAmount / 2,
+                    description: transaction?.comment?.comment,
+                    category: transaction?.category,
+                    tags: transaction?.tag ? [transaction?.tag] : [],
+                    created: DateUtils.getDBTime(),
+                },
+            ],
+            amount: currentAmount,
+            currency: currentCurrency,
+            merchant: currentMerchant,
+            reportID,
+        },
+    });
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction?.transactionID}`, draftTransaction);
+}
+
+/**
+ * Add new split expense
+ */
+function addSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
+    if (!transaction || !draftTransaction) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`, {
+        comment: {
+            splitExpenses: [
+                ...(draftTransaction.comment?.splitExpenses ?? []),
+                {
+                    transactionID: NumberUtils.rand64(),
+                    amount: 0,
+                    description: transaction?.comment?.comment,
+                    category: transaction?.category,
+                    tags: transaction?.tag ? [transaction?.tag] : [],
+                    created: DateUtils.getDBTime(),
+                },
+            ],
+        },
+    });
+}
+
+/**
+ * Update split expense ammount
+ */
+function updateSplitExpenseAmmount(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number) {
+    if (!draftTransaction?.transactionID || !currentItemTransactionID) {
+        return;
+    }
+
+    const updatedSplitExpenses = draftTransaction.comment?.splitExpenses?.map((splitExpense) => {
+        if (splitExpense.transactionID === currentItemTransactionID) {
+            return {
+                ...splitExpense,
+                amount,
+            };
+        }
+        return splitExpense;
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${draftTransaction?.comment?.originalTransactionID}`, {
+        comment: {
+            splitExpenses: updatedSplitExpenses,
+        },
+    });
+}
+
+function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, isReverseSplitOperation = false) {
+    const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+
+    // const optimisticTransactions = draftTransaction?.comment?.splitExpenses?.map((splitExpense) => {
+    //     return buildOptimisticTransaction({
+    //         originalTransactionID,
+    //         existingTransactionID: splitExpense.transactionID,
+    //         transactionParams: {
+    //             amount: splitExpense.amount ?? 0,
+    //             currency: draftTransaction?.currency,
+    //             created: splitExpense.created,
+    //             merchant: draftTransaction?.merchant,
+    //             comment: splitExpense.description,
+    //             reportID: draftTransaction?.reportID,
+    //             category: splitExpense.category,
+    //             tag: splitExpense.tags?.[0],
+    //         }
+    //     })
+    // });
+
+    const splits =
+        draftTransaction?.comment?.splitExpenses?.map((splitExpense) => ({
+            amount: splitExpense.amount ?? 0,
+            category: splitExpense.category,
+            tag: splitExpense.tags?.[0],
+            created: splitExpense.created ?? '',
+            merchant: draftTransaction?.merchant,
+            transactionID: splitExpense.transactionID,
+            comment: {
+                comment: splitExpense.description,
+            },
+        })) ?? ([] as SplitTransactionSplitsParam);
+
+    const parameters: SplitTransactionParams = {
+        splits: JSON.stringify(splits),
+        isReverseSplitOperation,
+        transactionID: originalTransactionID,
+    };
+
+    // API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+    // InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
+    // dismissModalAndOpenReportInInboxTab(draftTransaction?.reportID);
 }
 
 function createDraftTransaction(transaction: OnyxTypes.Transaction) {
@@ -10707,5 +10848,9 @@ export {
     canSubmitReport,
     submitPerDiemExpense,
     calculateDiffAmount,
+    initSplitExpense,
+    addSplitExpense,
+    updateSplitExpenseAmmount,
+    completeSplitTransaction,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};

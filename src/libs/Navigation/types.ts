@@ -1588,6 +1588,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
+    [SCREENS.RIGHT_MODAL.SPLIT_EXPENSE]: NavigatorScreenParams<SplitExpenseParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -1954,6 +1955,14 @@ type MissingPersonalDetailsParamList = {
     [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: undefined;
 };
 
+type SplitExpenseParamList = {
+    [SCREENS.RIGHT_MODAL.SPLIT_EXPENSE]: {
+        reportID: string;
+        transactionID: string;
+        backTo?: Routes;
+    };
+};
+
 type DebugParamList = {
     [SCREENS.DEBUG.REPORT]: {
         reportID: string;
@@ -2082,4 +2091,5 @@ export type {
     WorkspaceScreenName,
     SettingsTabScreenName,
     TestDriveDemoNavigatorParamList,
+    SplitExpenseParamList,
 };

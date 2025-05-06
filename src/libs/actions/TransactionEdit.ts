@@ -85,4 +85,12 @@ function removeDraftTransaction(transactionID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-export {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup, createDraftTransaction, removeDraftTransaction};
+function removeDraftSplitTransaction(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, null);
+}
+
+export {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup, createDraftTransaction, removeDraftTransaction, removeDraftSplitTransaction};

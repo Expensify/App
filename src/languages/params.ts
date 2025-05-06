@@ -695,7 +695,18 @@ type CurrencyInputDisabledTextParams = {
     currency: string;
 };
 
+type SplitExpenseSubtitleParams = {
+    amount: string;
+    merchant: string;
+};
+
+type TotalAmountGreaterOrLessThanOriginalParams = {
+    amount: string;
+};
+
 export type {
+    SplitExpenseSubtitleParams,
+    TotalAmountGreaterOrLessThanOriginalParams,
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
     ImportedTagsMessageParams,

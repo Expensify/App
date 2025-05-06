@@ -33,7 +33,7 @@ import {
     isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, isPending, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -43,6 +43,18 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     }
 
     return canAddTransaction(report);
+}
+
+function isSplitAction(report: Report, reportTransactions: Transaction[]) {
+    const transaction = reportTransactions.at(0);
+    const isIOUReport = isIOUReportUtils(report);
+    const isPendingStatus = isPending(transaction);
+
+    if (isIOUReport || isPendingStatus) {
+        return false;
+    }
+
+    return isExpenseReportUtils(report);
 }
 
 function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
@@ -435,6 +447,10 @@ function getSecondaryReportActions(
 
     if (isHoldAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
+    }
+
+    if (isSplitAction(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD);

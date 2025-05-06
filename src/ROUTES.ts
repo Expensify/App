@@ -567,6 +567,15 @@ const ROUTES = {
             return getUrlWithBackToParam(route, backTo);
         },
     },
+    SPLIT_EXPENSE: {
+        route: 'r/:reportID/split-expense/:transactionID',
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, backTo?: string) => {
+            if (!reportID || !transactionID) {
+                Log.warn('Invalid reportID or transactionID is used to build the SPLIT_EXPENSE route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/split-expense/${transactionID}`, backTo);
+        },
+    },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?/:searchHash?',
         getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string, searchHash?: number) => {
