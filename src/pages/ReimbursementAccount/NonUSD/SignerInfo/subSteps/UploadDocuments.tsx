@@ -2,9 +2,10 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
+import Button from '@components/Button';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import Button from '@components/Button';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
@@ -12,6 +13,8 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
+import fileDownload from '@libs/fileDownload';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForSignerInfo';
 import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
@@ -19,9 +22,6 @@ import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/For
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import fileDownload from '@libs/fileDownload';
-import {getEnvironmentURL} from '@libs/Environment/Environment';
 
 type UploadDocumentsProps = SubStepProps;
 
@@ -116,7 +116,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
         fileDownload(`${environmentUrl}/pdfs/PDSAndFSG.pdf`, 'PDSAndFSG.pdf');
         setIsPDSandFSGDownloadedTouchedTouched(true);
         setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[signerInfoKeys.DOWNLOADED_PDS_AND_FSG]: true});
-    }
+    };
 
     return (
         <FormProvider
@@ -238,7 +238,10 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
             {isDocumentNeededStatus.isPRDandFSGNeeded && (
                 <View style={[styles.alignItemsStart]}>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PDSandFSG')}</Text>
-                    <Button onPress={handleDownload} text={translate('common.download')} />
+                    <Button
+                        onPress={handleDownload}
+                        text={translate('common.download')}
+                    />
                     {!isPDSandFSGDownloaded && isPDSandFSGDownloadedTouched && (
                         <DotIndicatorMessage
                             style={[styles.formError, styles.mt3]}
