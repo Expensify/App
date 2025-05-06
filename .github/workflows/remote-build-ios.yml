@@ -16,13 +16,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - scheme: 'New Expensify Dev'
+          - project_root: ./
+            scheme: 'New Expensify Dev'
             configuration: 'DebugDevelopment'
-            is_hybrid_build: false
 
-          - scheme: 'Expensify Dev'
-            configuration: 'Debug'
+          - project_root: Mobile-Expensify/
             is_hybrid_build: true
+            scheme: 'Expensify Dev'
+            configuration: 'Debug'
     steps:
       - name: Checkout
         # v4
@@ -39,7 +40,7 @@ jobs:
       - name: RNEF Remote Build - iOS
         uses: callstackincubator/ios@f8aeffabe13be32e9aa69b86726de67bff5a694e
         env:
-          IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
+          PROJECT_ROOT_PATH: ${{ matrix.project_root }}
         with:
           destination: simulator
           scheme: ${{ matrix.scheme }}
