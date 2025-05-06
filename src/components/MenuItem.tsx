@@ -546,7 +546,7 @@ function MenuItem(
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
         if (shouldRenderAsHTML) {
-            titleToWrap = title ? convertToLTR(title) : '';
+            titleToWrap = title || '';
         }
 
         if (shouldParseTitle) {
