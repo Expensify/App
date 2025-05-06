@@ -59,6 +59,7 @@ import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@lib
 import Parser from '@libs/Parser';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import Performance from '@libs/Performance';
+import Permissions from '@libs/Permissions';
 import {getAccountIDsByLogins, getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
@@ -789,6 +790,12 @@ let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
+});
+
+let betas: OnyxEntry<OnyxTypes.Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (betas = value),
 });
 
 /**
@@ -5242,7 +5249,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         Navigation.removeScreenByKey(trackReport.key);
     }
 
-    if (activeReportID) {
+    if (activeReportID && (!isMoneyRequestReport || !Permissions.canUseTableReportView(betas))) {
         notifyNewAction(activeReportID, payeeAccountID);
     }
 }
@@ -7120,7 +7127,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
     dismissModalAndOpenReportInInboxTab(activeReportID);
-    notifyNewAction(activeReportID, userAccountID);
+
+    if (!isMoneyRequestReport || !Permissions.canUseTableReportView(betas)) {
+        notifyNewAction(activeReportID, userAccountID);
+    }
 }
 
 type UpdateMoneyRequestAmountAndCurrencyParams = {
