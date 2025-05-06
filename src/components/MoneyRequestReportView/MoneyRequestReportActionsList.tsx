@@ -374,7 +374,17 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                 />
             );
         },
-        [visibleReportActions, reportActions, parentReportAction, report, transactionThreadReport, mostRecentIOUReportActionID, unreadMarkerReportActionID, firstVisibleReportActionID],
+        [
+            visibleReportActions,
+            reportActions,
+            parentReportAction,
+            report,
+            transactionThreadReport,
+            mostRecentIOUReportActionID,
+            unreadMarkerReportActionID,
+            firstVisibleReportActionID,
+            linkedReportActionID,
+        ],
     );
 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
