@@ -25,13 +25,14 @@ function setCloseModal(onClose: () => void) {
 }
 
 /**
- * Close topmost modal
+ * Close the topmost or a specific modal based on an offset from the top
  */
 function closeTop(topModalOffset?: number) {
     if (closeModals.length === 0) {
         return;
     }
 
+    // Add bounds to the offset to ensure it's not out of bounds and use topmost modal by default.
     const startFromTopMostModal = topModalOffset === undefined ? -1 : Math.max(Math.min(-topModalOffset - 1, -1), -closeModals.length);
 
     const modalCloseCallback = closeModals.splice(startFromTopMostModal, 1).at(0);
