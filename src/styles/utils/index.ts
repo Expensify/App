@@ -1768,7 +1768,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
     ],
     getRowChildWidth: (columnCount: number, gap: number, containerWidth: number): StyleProp<ViewStyle> => ({
-        width: (containerWidth - gap) / columnCount,
+        width: parseFloat(((parseFloat(containerWidth.toFixed(1)) - gap) / columnCount).toFixed(1)),
     }),
     getResetStyle: <K extends TextStyle | ViewStyle>(keys: Array<keyof K>) =>
         keys.reduce((styleobj: Nullable<K>, key) => {

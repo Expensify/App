@@ -9,7 +9,7 @@ type ScheduleCallDraft = {
     /**
      * Time of the day of the guide that is being booked for the call
      */
-    timeSlot?: string;
+    timeSlot?: string | null;
     /**
      * Guide details to whom call has been booked
      */

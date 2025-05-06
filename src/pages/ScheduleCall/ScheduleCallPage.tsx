@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {compareAsc, format, parse} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -57,7 +57,7 @@ function ScheduleCallPage() {
     const calendlySchedule = adminReportNameValuePairs?.calendlySchedule;
 
     const [containerWidth, setContainerWidth] = useState(0);
-    const slotWidthStyle = styleUtils.getRowChildWidth(2, 8, containerWidth);
+    const slotWidthStyle = containerWidth ? styleUtils.getRowChildWidth(2, 8, containerWidth) : undefined;
 
     useEffect(() => {
         if (!reportID) {
@@ -65,6 +65,13 @@ function ScheduleCallPage() {
         }
         getGuideCallAvailabilitySchedule(reportID);
     }, [reportID]);
+
+    // Clear selected time when user comes back to the selection screen
+    useFocusEffect(
+        useCallback(() => {
+            saveBookingDraft({timeSlot: null});
+        }, []),
+    );
 
     const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
         saveBookingDraft({date});
@@ -174,28 +181,29 @@ function ScheduleCallPage() {
                                         setContainerWidth(width);
                                     }}
                                 >
-                                    {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
-                                        <Button
-                                            key={`time-slot-${timeSlot.startTime}`}
-                                            large
-                                            success={scheduleCallDraft?.timeSlot === timeSlot?.startTime}
-                                            onPress={() => {
-                                                saveBookingDraft({
-                                                    timeSlot: timeSlot.startTime,
-                                                    guide: {
-                                                        scheduleURL: timeSlot.scheduleURL,
-                                                        accountID: timeSlot.guideAccountID,
-                                                        email: timeSlot.guideEmail,
-                                                    },
-                                                    reportID,
-                                                });
-                                                Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATON.getRoute(reportID));
-                                            }}
-                                            shouldEnableHapticFeedback
-                                            style={[slotWidthStyle]}
-                                            text={format(timeSlot.startTime, 'p')}
-                                        />
-                                    ))}
+                                    {slotWidthStyle &&
+                                        timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
+                                            <Button
+                                                key={`time-slot-${timeSlot.startTime}`}
+                                                large
+                                                success={scheduleCallDraft?.timeSlot === timeSlot?.startTime}
+                                                onPress={() => {
+                                                    saveBookingDraft({
+                                                        timeSlot: timeSlot.startTime,
+                                                        guide: {
+                                                            scheduleURL: timeSlot.scheduleURL,
+                                                            accountID: timeSlot.guideAccountID,
+                                                            email: timeSlot.guideEmail,
+                                                        },
+                                                        reportID,
+                                                    });
+                                                    Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATON.getRoute(reportID));
+                                                }}
+                                                shouldEnableHapticFeedback
+                                                style={slotWidthStyle}
+                                                text={format(timeSlot.startTime, 'p')}
+                                            />
+                                        ))}
                                 </View>
                             </View>
                         )}
