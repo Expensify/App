@@ -75,7 +75,7 @@ index 2a7660c..b1ec495 100644
  
  /**
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
-index a077ccc..ea82c98 100644
+index a077ccc..47ea679 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 +++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
 @@ -42,6 +42,7 @@ type TextInputInstance = HostInstance & {
@@ -91,7 +91,7 @@ index a077ccc..ea82c98 100644
              }
            },
 +          preventFocusOnFirstResponderOnce: () => {
-+            if (inputRef.current != null) {
++            if (inputRef.current != null && Platform.OS !== 'android') {
 +              viewCommands.preventFocusOnFirstResponderOnce(inputRef.current);
 +            }
 +          },
@@ -171,7 +171,7 @@ index 673043c..0223a60 100644
  
  - (NSString *)returnKeyTypeToString:(UIReturnKeyType)returnKeyType
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h
-index f674d98..5b55b66 100644
+index f674d98..5da73f7 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputNativeCommands.h
 @@ -19,6 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
@@ -185,7 +185,7 @@ index f674d98..5b55b66 100644
 @@ -109,6 +110,19 @@ RCTTextInputHandleCommand(id<RCTTextInputViewProtocol> componentView, const NSSt
      return;
    }
-   
+ 
 +  if ([commandName isEqualToString:@"preventFocusOnFirstResponderOnce"]) {
 +#if RCT_DEBUG
 +    if ([args count] != 0) {
@@ -228,13 +228,13 @@ index 5acaa45..5afe0e9 100644
  }
  
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
-index 3fb7fa5..f92aa97 100644
+index 3fb7fa5..d01170f 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
 +++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputProps.h
 @@ -73,6 +73,8 @@ class BaseTextInputProps : public ViewProps, public BaseTextProps {
  
    bool multiline{false};
-   
+ 
 +  bool preventFocusOnFirstResponder{false};
 +
    SubmitBehavior getNonDefaultSubmitBehavior() const;
