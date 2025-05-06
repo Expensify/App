@@ -150,7 +150,13 @@ function filterOutRangesWithCorrectValue(
 
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
     const expenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE) as string[];
-    const statusList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP}) as string[];
+    const statusList = Object.values({
+        ...CONST.SEARCH.STATUS.EXPENSE,
+        ...CONST.SEARCH.STATUS.INVOICE,
+        ...CONST.SEARCH.STATUS.CHAT,
+        ...CONST.SEARCH.STATUS.TRIP,
+        ...CONST.SEARCH.STATUS.TASK,
+    }) as string[];
     const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
 
@@ -164,6 +170,8 @@ function filterOutRangesWithCorrectValue(
 
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value);
 
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
