@@ -3,7 +3,7 @@ import {open} from 'react-native-nitro-sqlite';
 import type {OnyxSQLiteKeyValuePair} from 'react-native-onyx';
 import Share from 'react-native-share';
 import CONST from '@src/CONST';
-import * as ExportOnyxState from './common';
+import {maskOnyxState} from './common';
 
 const readFromOnyxDatabase = () =>
     new Promise((resolve) => {
@@ -40,7 +40,7 @@ const shareAsFile = (value: string) => {
 };
 
 export default {
-    maskOnyxState: ExportOnyxState.maskOnyxState,
+    maskOnyxState,
     readFromOnyxDatabase,
     shareAsFile,
 };
