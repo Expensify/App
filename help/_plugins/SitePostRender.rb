@@ -188,7 +188,7 @@ module Jekyll
       when 'h6' then "#{indent}<Text style={[styles.textHeadlineH6, styles.mv4]}>#{node.text.strip}</Text>"
     
       when 'p'
-        inner = node.children.map { |c| html_node_to_RN(c, 0) }.join
+        inner = node.children.map { |c| html_node_to_RN(c, indent_level + 1) }.join
         prev = node.previous_element
         next_el = node.next_element
       
@@ -200,11 +200,18 @@ module Jekyll
     
       when 'ul'
         items = node.xpath('./li').map do |li|
-          li_text = li.children.map { |child| html_node_to_RN(child, 0) }.join.strip
-          "#{indent}  <Text style={styles.textNormal}>#{li_text}</Text>"
+          contains_ul = li.xpath('.//ul').any?
+
+          li_parts = li.children.map { |child| html_node_to_RN(child, indent_level + 3) }.join
+        
+          if contains_ul
+            "#{'  ' * (indent_level + 2)}<>\n#{li_parts}\n#{'  ' * (indent_level + 1)}</>"
+          else
+            "#{'  ' * (indent_level + 2)}<Text style={styles.textNormal}>#{li_parts}</Text>"
+          end
         end
 
-        <<~TS.strip
+        <<~TS.chomp
           #{indent}<BulletList
           #{indent}  styles={styles}
           #{indent}  items={[
