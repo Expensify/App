@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -9,11 +10,11 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {Option, Section} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, formatSectionsFromSearchTerm, getValidOptions} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function getSelectedOptionData(option: Option): OptionData {
     return {...option, selected: true, reportID: option.reportID ?? '-1'};
@@ -36,6 +37,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const {options} = useOptionsList();
     const personalDetails = usePersonalDetails();
 
+    // Since accountIDs are passed as value, we need to "populate" them into OptionData
     const initialSelectedData: OptionData[] = useMemo(() => {
         const initialOptions = value
             .map((accountID) => {
@@ -58,73 +60,70 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelectedData);
-    const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
-    // A list of all reports and personal details the user has access to
-    const validOptions = useMemo(() => {
-        return getValidOptions(
+    const cleanSearchTerm = searchTerm.trim().toLowerCase();
+
+    // Get a list of all options/personal details and filter them by the current search term
+    const listData = useMemo(() => {
+        const optionsList = getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
             {
-                selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             },
         );
-    }, [options.personalDetails, options.reports, selectedOptions]);
 
-    // Takes the list of all options & filters them based on the search term
-    const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(validOptions, cleanSearchTerm, {
-            selectedOptions,
+        const filteredOptionsList = filterAndOrderOptions(optionsList, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
-    }, [cleanSearchTerm, validOptions, selectedOptions]);
+
+        const personalDetailList = filteredOptionsList.personalDetails.map((participant) => ({
+            ...participant,
+            isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
+        }));
+
+        const recentReportList = filteredOptionsList.recentReports.map((report) => ({
+            ...report,
+            isSelected: selectedOptions.some((selectedOption) => selectedOption.reportID === report.reportID),
+        }));
+
+        const currentUserOption = filteredOptionsList.currentUserOption
+            ? {
+                  ...filteredOptionsList.currentUserOption,
+                  isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === filteredOptionsList.currentUserOption?.accountID),
+              }
+            : null;
+
+        return {personalDetails: personalDetailList, recentReports: recentReportList, currentUserOption};
+    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [];
+        const newSections: Section[] = [
+            ...(listData.currentUserOption ? [{title: '', data: [listData.currentUserOption], shouldShow: true}] : []),
+            {
+                title: '',
+                data: listData.recentReports,
+                shouldShow: listData.recentReports.length > 0,
+            },
+            {
+                title: '',
+                data: listData.personalDetails,
+                shouldShow: listData.personalDetails.length > 0,
+            },
+        ];
 
-        const formattedResults = formatSectionsFromSearchTerm(cleanSearchTerm, selectedOptions, filteredOptions.recentReports, filteredOptions.personalDetails, personalDetails, true);
-        const currentUserSelected = formattedResults.section.data.find((option) => option.accountID === filteredOptions.currentUserOption?.accountID);
-
-        if (filteredOptions.currentUserOption) {
-            const formattedName = getDisplayNameForParticipant({
-                accountID: filteredOptions.currentUserOption.accountID,
-                shouldAddCurrentUserPostfix: true,
-                personalDetailsData: personalDetails,
-            });
-            if (currentUserSelected) {
-                currentUserSelected.text = formattedName;
-            } else {
-                filteredOptions.currentUserOption.text = formattedName;
-                filteredOptions.recentReports = [filteredOptions.currentUserOption, ...filteredOptions.recentReports];
-            }
-        }
-
-        newSections.push(formattedResults.section);
-
-        newSections.push({
-            title: '',
-            data: filteredOptions.recentReports,
-            shouldShow: filteredOptions.recentReports.length > 0,
-        });
-
-        newSections.push({
-            title: '',
-            data: filteredOptions.personalDetails,
-            shouldShow: filteredOptions.personalDetails.length > 0,
-        });
-
-        const noResultsFound = filteredOptions.personalDetails.length === 0 && filteredOptions.recentReports.length === 0 && !filteredOptions.currentUserOption;
+        const noResultsFound = listData.personalDetails.length === 0 && listData.recentReports.length === 0 && !listData.currentUserOption;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {
             sections: newSections,
             headerMessage: message,
         };
-    }, [cleanSearchTerm, selectedOptions, filteredOptions, personalDetails, translate]);
+    }, [listData, translate]);
 
     const selectUser = useCallback(
         (option: Option) => {
@@ -161,6 +160,8 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         Report.searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
+    const isLoadingNewOptions = !!isSearchingForReports;
+
     const FooterContent = useCallback(
         () => (
             <View style={[styles.flexRow, styles.gap2]}>
@@ -185,6 +186,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     return (
         <SelectionList
             canSelectMultiple
+            shouldClearInputOnSelect={false}
             headerMessage={headerMessage}
             sections={sections}
             containerStyle={[styles.pt4, styles.mh65vh]}
@@ -195,6 +197,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             footerContent={<FooterContent />}
             onSelectRow={selectUser}
             onChangeText={setSearchTerm}
+            isLoadingNewOptions={isLoadingNewOptions}
         />
     );
 }

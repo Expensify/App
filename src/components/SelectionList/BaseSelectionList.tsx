@@ -136,6 +136,7 @@ function BaseSelectionList<TItem extends ListItem>(
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
         addBottomSafeAreaPadding = false,
+        shouldClearInputOnSelect = true,
         addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
         fixedNumItemsForLoader,
         loaderSpeed,
@@ -389,8 +390,12 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [selectedItemIndex]);
 
     const clearInputAfterSelect = useCallback(() => {
+        if (!shouldClearInputOnSelect) {
+            return;
+        }
+
         onChangeText?.('');
-    }, [onChangeText]);
+    }, [onChangeText, shouldClearInputOnSelect]);
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.

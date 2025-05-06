@@ -612,6 +612,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
 
+    /** Whether we should clear the search input when an item is selected */
+    shouldClearInputOnSelect?: boolean;
+
     /** Callback to fire when the text input changes */
     onArrowFocus?: (focusedItem: TItem) => void;
 

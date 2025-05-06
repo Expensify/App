@@ -101,7 +101,6 @@ function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
                 anchorPosition={popoverTriggerPosition}
                 anchorAlignment={ANCHOR_ORIGIN}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-                shoudSwitchPositionIfOverflow
                 shouldEnableNewFocusManagement
                 shouldMeasureAnchorPositionFromTop={false}
                 innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}}
