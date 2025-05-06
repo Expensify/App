@@ -78,7 +78,6 @@ import {
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
-    getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
@@ -97,6 +96,7 @@ import {
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isIOURequestReportAction,
+    isMarkAsClosedAction,
     isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
@@ -138,6 +138,7 @@ import {
     isArchivedNonExpenseReport,
     isChatThread,
     isCompletedTaskReport,
+    isExpenseReport,
     isTaskReport,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
@@ -968,8 +969,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = <ReportActionItemBasicMessage message={modifiedExpenseMessage} />;
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) {
-            const wasSubmittedViaHarvesting = getOriginalMessage(action)?.harvesting ?? false;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
+            const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? getOriginalMessage(action)?.harvesting ?? false : false;
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage>
@@ -1039,8 +1040,6 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
             children = <ReportActionItemBasicMessage message={getWorkspaceNameUpdatedMessage(action)} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION) {
-            children = <ReportActionItemBasicMessage message={getWorkspaceDescriptionUpdatedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
             children = <ReportActionItemBasicMessage message={getWorkspaceCurrencyUpdateMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
@@ -1100,7 +1099,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (isRenamedAction(action)) {
-            const message = getRenamedAction(action);
+            const message = getRenamedAction(action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
             const {label, errorMessage} = getOriginalMessage(action) ?? {label: '', errorMessage: ''};
