@@ -642,15 +642,15 @@ function AdvancedSearchFilters() {
     const sections: SectionType[] = [
         {
             titleTranslationKey: 'common.general',
-            items: filters[0] || [],
+            items: filters.at(0) || [],
         },
         {
             titleTranslationKey: 'common.expenses',
-            items: filters[1] || [],
+            items: filters.at(1) || [],
         },
         {
             titleTranslationKey: 'common.reports',
-            items: filters[2] || [],
+            items: filters.at(2) || [],
         },
     ];
 
