@@ -204,15 +204,14 @@ jobs:
       - name: Install bundletool
         run: |
           readonly BUNDLETOOL_VERSION="1.18.1"
-          readonly CHECKSUMS_FILE="android/bundletool-${BUNDLETOOL_VERSION}-checksum.txt"
           readonly BUNDLETOOL_URL="https://github.com/google/bundletool/releases/download/${BUNDLETOOL_VERSION}/bundletool-all-${BUNDLETOOL_VERSION}.jar"
 
           # Download jar from GitHub Release
           curl -L -o bundletool.jar "$BUNDLETOOL_URL"
 
           # Validate checksum
+          readonly EXPECTED_SHA="675786493983787ffa11550bdb7c0715679a44e1643f3ff980a529e9c822595c"
           SHA="$(sha256sum bundletool.jar | cut -d ' ' -f1)"
-          EXPECTED_SHA="$(cat "$CHECKSUMS_FILE")"
           if [[ "$SHA" != "$EXPECTED_SHA" ]]; then
             echo "SHA mismatch: expected $EXPECTED_SHA but got $ACTUAL_SHA"
             exit 1
