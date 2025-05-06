@@ -28,6 +28,7 @@ import TextLink from '@components/TextLink';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -130,8 +131,8 @@ function IOURequestStepScan({
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
 
-    // TODO: remove isMultiFilesBetaEnabled check after the feature is enabled
-    const isMultiFilesBetaEnabled = true;
+    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
+    const {canUseMultiFilesDragAndDrop} = usePermissions();
 
     const platform = getPlatform(true);
 
@@ -939,8 +940,8 @@ function IOURequestStepScan({
                                 {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                             </View>
                         </EducationalTooltip>
-                        {/* TODO: remove isMultiFilesBetaEnabled check after the feature is enabled */}
-                        {isMultiFilesBetaEnabled ? (
+                        {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
+                        {canUseMultiFilesDragAndDrop ? (
                             <DropZoneUI
                                 onDrop={(e) => {
                                     const file = e?.dataTransfer?.files[0];

@@ -24,6 +24,7 @@ import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLen
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -120,8 +121,8 @@ function ReportActionCompose({
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
 
-    // TODO: remove isMultiFilesBetaEnabled check after the feature is enabled
-    const isMultiFilesBetaEnabled = true;
+    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
+    const {canUseMultiFilesDragAndDrop} = usePermissions();
 
     /**
      * Updates the Highlight state of the composer
@@ -484,8 +485,8 @@ function ReportActionCompose({
                                         onValueChange={onValueChange}
                                         didHideComposerInput={didHideComposerInput}
                                     />
-                                    {/* TODO: remove isMultiFilesBetaEnabled check after the feature is enabled */}
-                                    {isMultiFilesBetaEnabled ? (
+                                    {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
+                                    {canUseMultiFilesDragAndDrop ? (
                                         <DropZoneUI
                                             onDrop={(event: DragEvent) => {
                                                 if (isAttachmentPreviewActive) {
@@ -517,22 +518,6 @@ function ReportActionCompose({
                                             icon={Expensicons.DragAndDrop}
                                         />
                                     )}
-                                    <DropZoneUI
-                                        onDrop={(event: DragEvent) => {
-                                            if (isAttachmentPreviewActive) {
-                                                return;
-                                            }
-                                            const data = event.dataTransfer?.files[0];
-                                            if (data) {
-                                                data.uri = URL.createObjectURL(data);
-                                                displayFileInModal(data);
-                                            }
-                                        }}
-                                        icon={isMultiFilesBetaEnabled ? Expensicons.MessageInABottle : Expensicons.DragAndDrop}
-                                        dropTitle={isMultiFilesBetaEnabled ? translate('dropzone.addAttachments') : ''}
-                                        dropStyles={isMultiFilesBetaEnabled ? styles.attachmentDropOverlay : styles.reportDropOverlay}
-                                        dropTextStyles={isMultiFilesBetaEnabled ? styles.attachmentDropText : styles.textDropZone}
-                                    />
                                 </>
                             )}
                         </AttachmentModal>

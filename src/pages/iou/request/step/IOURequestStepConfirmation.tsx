@@ -19,6 +19,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import DateUtils from '@libs/DateUtils';
@@ -155,8 +156,8 @@ function IOURequestStepConfirmation({
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
 
-    // TODO: remove isMultiFilesBetaEnabled check after the feature is enabled
-    const isMultiFilesBetaEnabled = true;
+    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
+    const {canUseMultiFilesDragAndDrop} = usePermissions();
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -914,8 +915,8 @@ function IOURequestStepConfirmation({
                     />
                     {(isLoading || isLoadingReceipt) && <FullScreenLoadingIndicator />}
                     {PDFThumbnailView}
-                    {/* TODO: remove isMultiFilesBetaEnabled check after the feature is enabled */}
-                    {isMultiFilesBetaEnabled ? (
+                    {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
+                    {canUseMultiFilesDragAndDrop ? (
                         <DropZoneUI
                             onDrop={(e) => {
                                 const file = e?.dataTransfer?.files[0];
