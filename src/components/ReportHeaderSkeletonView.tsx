@@ -21,8 +21,7 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const smallScreenHeight = styles.appContentHeader.height;
-    const height = !shouldUseNarrowLayout ? styles.headerBarDesktopHeight.height : smallScreenHeight;
+    const height = styles.headerBarHeight.height;
     const radius = 20;
     const circleY = height / 2;
     const circleTopY = circleY - radius;

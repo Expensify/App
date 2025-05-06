@@ -29,6 +29,7 @@ import {
     addPendingContactMethod,
     clearContactMethod,
     clearContactMethodErrors,
+    clearPendingContactActionErrors,
     clearUnvalidatedNewContactMethodAction,
     requestValidateCodeAction,
 } from '@userActions/User';
@@ -47,13 +48,13 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
 
-    const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
+    const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE.getRoute();
 
     const hasFailedToSendVerificationCode = !!pendingContactAction?.errorFields?.actionVerified;
 
@@ -121,7 +122,7 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
     );
 
     const onBackButtonPress = useCallback(() => {
-        if (navigateBackTo === ROUTES.SETTINGS_PROFILE) {
+        if (navigateBackTo === ROUTES.SETTINGS_PROFILE.getRoute()) {
             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
             return;
         }
@@ -179,7 +180,7 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
                     )}
                 </FormProvider>
                 <ValidateCodeActionModal
-                    validatePendingAction={pendingContactAction?.pendingFields?.actionVerified}
+                    validateCodeActionErrorField="addedLogin"
                     validateError={validateLoginError}
                     handleSubmitForm={addNewContactMethod}
                     clearError={() => {
@@ -187,6 +188,7 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
                             return;
                         }
                         clearContactMethodErrors(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod ?? contactMethod), 'addedLogin');
+                        clearPendingContactActionErrors();
                     }}
                     onClose={() => {
                         if (pendingContactAction?.contactMethod) {
@@ -196,7 +198,6 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
                         setIsValidateCodeActionModalVisible(false);
                     }}
                     isVisible={isValidateCodeActionModalVisible}
-                    hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                     title={translate('delegate.makeSureItIsYou')}
                     sendValidateCode={() => requestValidateCodeAction()}
                     descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod})}

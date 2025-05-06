@@ -52,7 +52,7 @@ type CustomBaseTextInputProps = {
     disableKeyboard?: boolean;
 
     /**
-     * Autogrow input container length based on the entered text.
+     *   input container length based on the entered text.
      */
     autoGrow?: boolean;
 
@@ -60,7 +60,7 @@ type CustomBaseTextInputProps = {
     autoGrowExtraSpace?: number;
 
     /**
-     * Autogrow input container height based on the entered text
+     * Auto grow input container height based on the entered text
      */
     autoGrowHeight?: boolean;
 
@@ -93,9 +93,6 @@ type CustomBaseTextInputProps = {
 
     /** Callback to update the value on Form when input is used in the Form component. */
     onInputChange?: (value: string) => void;
-
-    /** Whether we should wait before focusing the TextInput, useful when using transitions  */
-    shouldDelayFocus?: boolean;
 
     /** Indicate whether input is multiline */
     multiline?: boolean;
@@ -148,6 +145,9 @@ type CustomBaseTextInputProps = {
     /** Style for the loading spinner */
     loadingSpinnerStyle?: StyleProp<ViewStyle>;
 
+    /** Style for the icon container */
+    iconContainerStyle?: StyleProp<ViewStyle>;
+
     /** The width of inner content */
     contentWidth?: number;
 
@@ -165,10 +165,16 @@ type CustomBaseTextInputProps = {
 
     /** Whether the input should be enforced to be uncontrolled. Default is `false` */
     uncontrolled?: boolean;
+
+    /** Whether the clear button should always be displayed */
+    shouldHideClearButton?: boolean;
+
+    /** Callback when the input is cleared using the clear button */
+    onClearInput?: () => void;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
 
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 
-export type {BaseTextInputProps, BaseTextInputRef, CustomBaseTextInputProps, InputType};
+export type {BaseTextInputProps, BaseTextInputRef, InputType};

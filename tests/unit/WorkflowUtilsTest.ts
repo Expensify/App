@@ -206,6 +206,21 @@ describe('WorkflowUtils', () => {
             expect(approvalWorkflows).toEqual([]);
         });
 
+        it('Should not include users that submit to non-employee user', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: undefined,
+                    submitsTo: '2@example.com',
+                },
+            };
+            const defaultApprover = '1@example.com';
+
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+
+            expect(approvalWorkflows).toEqual([]);
+        });
+
         it('Should transform all users into one default workflow', () => {
             const employees: PolicyEmployeeList = {
                 '1@example.com': {

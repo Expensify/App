@@ -70,6 +70,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Cardholder account ID */
     accountID?: number;
 
+    /** Card's primary account identifier token */
+    token?: string;
+
     /** Additional card data */
     nameValuePairs?: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Type of card spending limits */
@@ -98,6 +101,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Is a virtual card */
         isVirtual?: boolean;
+
+        /** Is a travel card */
+        isTravelCard?: boolean;
 
         /** Previous card state */
         previousState?: number;

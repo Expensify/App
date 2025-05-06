@@ -3,17 +3,17 @@ import {render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
-import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
 import DebugTabView from '@components/Navigation/DebugTabView';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import OnyxProvider from '@components/OnyxProvider';
-import {ReportIDsContextProvider} from '@hooks/useReportIDs';
+import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 jest.mock('@src/hooks/useRootNavigationState');
 
-describe('BottomTabBar', () => {
+describe('NavigationTabBar', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -23,7 +23,7 @@ describe('BottomTabBar', () => {
     describe('Home tab', () => {
         describe('Debug mode enabled', () => {
             beforeEach(() => {
-                Onyx.set(ONYXKEYS.USER, {isDebugModeEnabled: true});
+                Onyx.set(ONYXKEYS.ACCOUNT, {isDebugModeEnabled: true});
             });
             describe('Has GBR', () => {
                 it('renders DebugTabView', async () => {
@@ -37,9 +37,9 @@ describe('BottomTabBar', () => {
                     });
 
                     render(
-                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportIDsContextProvider]}>
+                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportIDsContextProvider]}>
                             <NavigationContainer>
-                                <BottomTabBar selectedTab={BOTTOM_TABS.HOME} />
+                                <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />
                             </NavigationContainer>
                         </ComposeProviders>,
                     );
@@ -63,9 +63,9 @@ describe('BottomTabBar', () => {
                     });
 
                     render(
-                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportIDsContextProvider]}>
+                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportIDsContextProvider]}>
                             <NavigationContainer>
-                                <BottomTabBar selectedTab={BOTTOM_TABS.HOME} />
+                                <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />
                             </NavigationContainer>
                         </ComposeProviders>,
                     );
@@ -78,7 +78,7 @@ describe('BottomTabBar', () => {
     describe('Settings tab', () => {
         describe('Debug mode enabled', () => {
             beforeEach(() => {
-                Onyx.set(ONYXKEYS.USER, {isDebugModeEnabled: true});
+                Onyx.set(ONYXKEYS.ACCOUNT, {isDebugModeEnabled: true});
             });
             describe('Has GBR', () => {
                 it('renders DebugTabView', async () => {
@@ -96,9 +96,9 @@ describe('BottomTabBar', () => {
                     });
 
                     render(
-                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportIDsContextProvider]}>
+                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportIDsContextProvider]}>
                             <NavigationContainer>
-                                <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />
+                                <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />
                             </NavigationContainer>{' '}
                         </ComposeProviders>,
                     );
@@ -121,9 +121,9 @@ describe('BottomTabBar', () => {
                     });
 
                     render(
-                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportIDsContextProvider]}>
+                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportIDsContextProvider]}>
                             <NavigationContainer>
-                                <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />
+                                <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />
                             </NavigationContainer>{' '}
                         </ComposeProviders>,
                     );

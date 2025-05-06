@@ -6,7 +6,7 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import {useReportIDs} from '@hooks/useReportIDs';
+import {useSidebarOrderedReportIDs} from '@hooks/useSidebarOrderedReportIDs';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getAssignedSupportData, openWorkspace} from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -26,7 +26,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT});
 
-    const {orderedReportIDs, currentReportID, policyMemberAccountIDs} = useReportIDs();
+    const {orderedReportIDs, currentReportID, policyMemberAccountIDs} = useSidebarOrderedReportIDs();
 
     const previousActiveWorkspaceID = usePrevious(activeWorkspaceID);
 

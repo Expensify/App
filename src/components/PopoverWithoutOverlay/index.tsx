@@ -72,46 +72,17 @@ function PopoverWithoutOverlay(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isVisible]);
 
-    const {
-        paddingTop: safeAreaPaddingTop,
-        paddingBottom: safeAreaPaddingBottom,
-        paddingLeft: safeAreaPaddingLeft,
-        paddingRight: safeAreaPaddingRight,
-    } = useMemo(() => StyleUtils.getPlatformSafeAreaPadding(insets), [StyleUtils, insets]);
-
     const modalPaddingStyles = useMemo(
         () =>
             StyleUtils.getModalPaddingStyles({
-                safeAreaPaddingTop,
-                safeAreaPaddingBottom,
-                safeAreaPaddingLeft,
-                safeAreaPaddingRight,
                 shouldAddBottomSafeAreaMargin,
                 shouldAddTopSafeAreaMargin,
                 shouldAddBottomSafeAreaPadding,
                 shouldAddTopSafeAreaPadding,
-                modalContainerStyleMarginTop: modalContainerStyle.marginTop,
-                modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
-                modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
-                modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                modalContainerStyle,
                 insets,
             }),
-        [
-            StyleUtils,
-            insets,
-            modalContainerStyle.marginBottom,
-            modalContainerStyle.marginTop,
-            modalContainerStyle.paddingBottom,
-            modalContainerStyle.paddingTop,
-            safeAreaPaddingBottom,
-            safeAreaPaddingLeft,
-            safeAreaPaddingRight,
-            safeAreaPaddingTop,
-            shouldAddBottomSafeAreaMargin,
-            shouldAddBottomSafeAreaPadding,
-            shouldAddTopSafeAreaMargin,
-            shouldAddTopSafeAreaPadding,
-        ],
+        [StyleUtils, insets, modalContainerStyle, shouldAddBottomSafeAreaMargin, shouldAddBottomSafeAreaPadding, shouldAddTopSafeAreaMargin, shouldAddTopSafeAreaPadding],
     );
 
     if (!isVisible) {
@@ -120,7 +91,7 @@ function PopoverWithoutOverlay(
 
     return (
         <View
-            style={[modalStyle, {zIndex: variables.popoverzIndex}]}
+            style={[modalStyle, {zIndex: variables.popoverZIndex}]}
             ref={viewRef(withoutOverlayRef)}
             // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
             onClick={(e) => e.stopPropagation()}

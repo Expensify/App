@@ -9,7 +9,9 @@ import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
 import {addTrailingForwardSlash} from './libs/Url';
+import ONYXKEYS from './ONYXKEYS';
 import SCREENS from './SCREENS';
+import variables from './styles/variables';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
@@ -18,7 +20,6 @@ const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
 const DEFAULT_NUMBER_ID = 0;
-
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
@@ -119,6 +120,15 @@ const selfGuidedTourTask: OnboardingTask = {
     mediaAttributes: {},
     title: ({navatticURL}) => `Take a [2-minute tour](${navatticURL})`,
     description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
+};
+
+const getTestDriveTaskName = (testDriveURL?: string) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive');
+const testDriveTask: OnboardingTask = {
+    type: 'viewTour',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: ({testDriveURL}) => getTestDriveTaskName(testDriveURL),
+    description: ({testDriveURL}) => `[Take a quick product tour](${testDriveURL}) to see why Expensify is the fastest way to do your expenses.`,
 };
 
 const createWorkspaceTask: OnboardingTask = {
@@ -282,6 +292,7 @@ const onboardingCompanySize = {
 type OnboardingInvite = ValueOf<typeof onboardingInviteTypes>;
 
 type OnboardingTaskLinks = Partial<{
+    onboardingCompanySize: OnboardingCompanySize;
     integrationName: string;
     workspaceSettingsLink: string;
     workspaceCategoriesLink: string;
@@ -289,6 +300,8 @@ type OnboardingTaskLinks = Partial<{
     workspaceMembersLink: string;
     workspaceAccountingLink: string;
     navatticURL: string;
+    testDriveURL: string;
+    corporateCardLink: string;
 }>;
 
 type OnboardingTask = {
@@ -301,7 +314,7 @@ type OnboardingTask = {
 
 type OnboardingMessage = {
     /** Text message that will be displayed first */
-    message: string;
+    message: string | ((params: OnboardingTaskLinks) => string);
 
     /** Video object to be displayed after initial description message */
     video?: Video;
@@ -382,16 +395,23 @@ const CONST = {
         IN: 'in',
         OUT: 'out',
     },
-    POPOVER_ACCOUNT_SWITCHER_POSITION: {
-        horizontal: 12,
-        vertical: 80,
+    ELEMENT_NAME: {
+        INPUT: 'INPUT',
+        TEXTAREA: 'TEXTAREA',
     },
+    POPOVER_ACCOUNT_SWITCHER_POSITION: {
+        horizontal: 12 + variables.navigationTabBarSize,
+        vertical: 72,
+    },
+    POPOVER_DATE_WIDTH: 338,
+    POPOVER_DATE_MAX_HEIGHT: 366,
+    POPOVER_DATE_MIN_HEIGHT: 322,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
     ANIMATION_PAID_CHECKMARK_DELAY: 300,
-    ANIMATION_THUMBSUP_DURATION: 250,
-    ANIMATION_THUMBSUP_DELAY: 200,
+    ANIMATION_THUMBS_UP_DURATION: 250,
+    ANIMATION_THUMBS_UP_DELAY: 200,
     ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
@@ -677,9 +697,10 @@ const CONST = {
     },
     NON_USD_BANK_ACCOUNT: {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
-        FILE_LIMIT: 10,
+        FILE_LIMIT: 1,
         TOTAL_FILES_SIZE_LIMIT: 5242880,
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
+        CURRENT_USER_KEY: 'currentUser',
         STEP: {
             COUNTRY: 'CountryStep',
             BANK_INFO: 'BankInfoStep',
@@ -734,7 +755,6 @@ const CONST = {
                 FULL_NAME: 'fullName',
                 RESIDENTIAL_ADDRESS: 'residentialAddress',
             },
-            CURRENT_USER_KEY: 'currentUser',
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEP_HEADER_HEIGHT: 40,
@@ -743,7 +763,26 @@ const CONST = {
                 IS_DIRECTOR: 1,
                 ENTER_EMAIL: 2,
                 SIGNER_DETAILS_FORM: 3,
-                HANG_TIGHT: 4,
+                DIRECTOR_DETAILS_FORM: 4,
+                HANG_TIGHT: 5,
+            },
+            SIGNER_INFO_DATA: {
+                SIGNER_PREFIX: 'signer',
+                FULL_NAME: 'signerFullName',
+                DATE_OF_BIRTH: 'signerDateOfBirth',
+                JOB_TITLE: 'signerJobTitle',
+                EMAIL: 'signerEmail',
+                ADDRESS: 'signerCompleteResidentialAddress',
+                STREET: 'signer_street',
+                CITY: 'signer_city',
+                STATE: 'signer_state',
+                ZIP_CODE: 'signer_zipCode',
+                COUNTRY: 'signer_nationality',
+                PROOF_OF_DIRECTORS: 'proofOfDirectors',
+                COPY_OF_ID: 'signerCopyOfID',
+                ADDRESS_PROOF: 'signerAddressProof',
+                CODICE_FISCALE: 'signerCodiceFiscale',
+                DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
             },
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
@@ -767,13 +806,14 @@ const CONST = {
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
-        NEWDOT_PDF_EXPORT: 'newDotPDFExport',
-        NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
-        HELP_SIDE_PANEL: 'newDotHelpSidePanel',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
+        WALLET: 'newdotWallet',
+        GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
+        PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
+        IS_TRAVEL_VERIFIED: 'isTravelVerified',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1034,7 +1074,8 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
-    LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
+    LIST_OF_RESTRICTED_BUSINESSES:
+        'https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#are-there-certain-industries-or-businesses-for-which-expensify-cannot-process-automatic-in-app-payments',
     TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
@@ -1060,6 +1101,8 @@ const CONST = {
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
+    MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
+    CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1069,6 +1112,12 @@ const CONST = {
         EMPLOYEE_TOUR_PRODUCTION: 'https://expensify.navattic.com/35609gb',
         EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
         COMPLETED: 'completed',
+    },
+    STORYLANE: {
+        ADMIN_TOUR_PRODUCTION: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
+        ADMIN_TOUR_MOBILE_PRODUCTION: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
+        ADMIN_TOUR_STAGING: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
+        ADMIN_TOUR_MOBILE_STAGING: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -1137,7 +1186,7 @@ const CONST = {
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
-        UNREPORTED_REPORTID: '0',
+        UNREPORTED_REPORT_ID: '0',
         SPLIT_REPORTID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1151,6 +1200,7 @@ const CONST = {
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+            ADD_EXPENSE: 'addExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1160,6 +1210,25 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+            ADD_EXPENSE: 'addExpense',
+        },
+        TRANSACTION_PRIMARY_ACTIONS: {
+            REMOVE_HOLD: 'removeHold',
+            REVIEW_DUPLICATES: 'reviewDuplicates',
+            MARK_AS_CASH: 'markAsCash',
+        },
+        REPORT_PREVIEW_ACTIONS: {
+            VIEW: 'view',
+            REVIEW: 'review',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
+        },
+        TRANSACTION_SECONDARY_ACTIONS: {
+            HOLD: 'hold',
+            VIEW_DETAILS: 'viewDetails',
+            DELETE: 'delete',
         },
         ACTIONS: {
             LIMIT: 50,
@@ -1203,6 +1272,8 @@ const CONST = {
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
+                MOVED_TRANSACTION: 'MOVEDTRANSACTION',
+                UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
@@ -1234,6 +1305,7 @@ const CONST = {
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
                 UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
+                CONCIERGE_CATEGORY_OPTIONS: 'CONCIERGECATEGORYOPTIONS',
                 POLICY_CHANGE_LOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -1315,7 +1387,7 @@ const CONST = {
                 },
             },
             THREAD_DISABLED: ['CREATED'],
-            // Used when displaying reportActions list to handle of unread messages icon/button
+            // Used when displaying reportActions list to handle unread messages icon/button
             SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
             ACTION_VISIBLE_THRESHOLD: 250,
         },
@@ -1460,12 +1532,13 @@ const CONST = {
         MODAL_TYPE: {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
-            CENTERED_SWIPABLE_TO_RIGHT: 'centered_swipable_to_right',
+            CENTERED_SWIPEABLE_TO_RIGHT: 'centered_swipable_to_right',
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
             CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
+            FULLSCREEN: 'fullscreen',
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',
@@ -1500,6 +1573,9 @@ const CONST = {
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         SEND_MESSAGE: 'send_message',
+        OPEN_CREATE_EXPENSE: 'open_create_expense',
+        OPEN_CREATE_EXPENSE_CONTACT: 'open_create_expense_contact',
+        OPEN_CREATE_EXPENSE_APPROVE: 'open_create_expense_approve',
         APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
         APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
         APPLY_HTTPS_UPDATES: 'apply_https_updates',
@@ -1523,6 +1599,7 @@ const CONST = {
         PUSHER_PING_PONG: 'pusher_ping_pong',
         LOCATION_UPDATE_INTERVAL: 5000,
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
+        SKELETON_ANIMATION_SPEED: 3,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1665,6 +1742,10 @@ const CONST = {
         },
     },
     OPEN_AI_REALTIME_API: 'https://api.openai.com/v1/realtime',
+    OPEN_AI_TOOL_NAMES: {
+        END_CALL: 'EndCall',
+        SEND_RECAP_IN_ADMINS_ROOM: 'SendRecapInAdminsRoom',
+    },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
     WEEK_STARTS_ON: 1, // Monday
@@ -1695,16 +1776,15 @@ const CONST = {
     // 8 alphanumeric characters
     RECOVERY_CODE_REGEX_STRING: /^[a-zA-Z0-9]{8}$/,
 
-    // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
-    // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
-    VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
+    // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags.
+    VALIDATE_FOR_HTML_TAG_REGEX: /<\/?\w*((\s+\w+(\s*=\s*(?:"(.|\n)*?"|'(.|\n)*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g,
 
     // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
     // so when we are using search, we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
     // More info https://github.com/Expensify/App/issues/8007
     EMAIL_SEARCH_REGEX: /\.(?=[^\s@]*@)/g,
 
-    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
+    VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
 
@@ -1788,6 +1868,7 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
+    ATTACHMENT_REGEX: /<video |<img /,
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
@@ -1854,6 +1935,7 @@ const CONST = {
         OFFICE: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         RTF: 'application/rtf',
         ZIP: 'application/zip',
+        APP_TEXT: 'application/txt',
         RFC822: 'message/rfc822',
         TEXT: 'text/plain',
         HTML: 'text/html',
@@ -1870,6 +1952,7 @@ const CONST = {
         MP4: 'video/mp4',
         MP2T: 'video/mp2t',
         WEBM: 'video/webm',
+        VIDEO_MPEG: 'video/mpeg',
         AVC: 'video/avc',
         HEVC: 'video/hevc',
         XVND8: 'video/x-vnd.on2.vp8',
@@ -2022,6 +2105,7 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
+        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     XERO_CONFIG: {
@@ -2076,6 +2160,7 @@ const CONST = {
         },
         SYNC_ITEMS: 'syncItems',
         TAX: 'tax',
+        TAX_SOLUTION_ID: 'taxSolutionID',
         EXPORT: 'export',
         EXPORT_DATE: 'exportDate',
         NON_REIMBURSABLE_CREDIT_CARD_VENDOR: 'nonReimbursableCreditCardChargeDefaultVendor',
@@ -3062,7 +3147,7 @@ const CONST = {
     },
 
     AVATAR_SIZE: {
-        XLARGE: 'xlarge',
+        X_LARGE: 'xlarge',
         LARGE: 'large',
         MEDIUM: 'medium',
         DEFAULT: 'default',
@@ -3301,6 +3386,8 @@ const CONST = {
         DEFAULT: 'default',
     },
     SUBSCRIPTION: {
+        TEAM_2025_PRICING_START_DATE: new Date(2025, 3, 1),
+        PRICING_TYPE_2025: 'team2025Pricing',
         TYPE: {
             ANNUAL: 'yearly2018',
             PAYPERUSE: 'monthly2018',
@@ -3316,6 +3403,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1000,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.AUD]: {
@@ -3326,6 +3414,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 800,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.GBP]: {
@@ -3336,6 +3425,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 800,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.NZD]: {
@@ -3346,6 +3436,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1600,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
                 },
             },
         };
@@ -3363,6 +3454,7 @@ const CONST = {
         SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
         SSN_FULL_NINE: /^(?!0000)[0-9]{9}$/,
         NUMBER: /^[0-9]+$/,
+        PHONE_NUMBER: /^\+?[0-9]{4,17}$/,
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
@@ -3606,6 +3698,7 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
+        REPORT: 'report',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -3943,61 +4036,34 @@ const CONST = {
         ZW: 'Zimbabwe',
     },
 
-    ALL_EUROPEAN_COUNTRIES: {
-        AL: 'Albania',
-        AD: 'Andorra',
+    ALL_EUROPEAN_UNION_COUNTRIES: {
         AT: 'Austria',
-        BY: 'Belarus',
         BE: 'Belgium',
-        BA: 'Bosnia & Herzegovina',
         BG: 'Bulgaria',
         HR: 'Croatia',
         CY: 'Cyprus',
         CZ: 'Czech Republic',
         DK: 'Denmark',
         EE: 'Estonia',
-        FO: 'Faroe Islands',
         FI: 'Finland',
         FR: 'France',
-        GE: 'Georgia',
         DE: 'Germany',
-        GI: 'Gibraltar',
         GR: 'Greece',
-        GL: 'Greenland',
         HU: 'Hungary',
-        IS: 'Iceland',
         IE: 'Ireland',
-        IM: 'Isle of Man',
         IT: 'Italy',
-        JE: 'Jersey',
-        XK: 'Kosovo',
-        LV: 'Latvia',
-        LI: 'Liechtenstein',
         LT: 'Lithuania',
         LU: 'Luxembourg',
+        LV: 'Latvia',
         MT: 'Malta',
-        MD: 'Moldova',
-        MC: 'Monaco',
-        ME: 'Montenegro',
         NL: 'Netherlands',
-        MK: 'North Macedonia',
-        NO: 'Norway',
         PL: 'Poland',
         PT: 'Portugal',
         RO: 'Romania',
-        RU: 'Russia',
-        SM: 'San Marino',
-        RS: 'Serbia',
         SK: 'Slovakia',
         SI: 'Slovenia',
         ES: 'Spain',
-        SJ: 'Svalbard & Jan Mayen',
         SE: 'Sweden',
-        CH: 'Switzerland',
-        TR: 'Turkey',
-        UA: 'Ukraine',
-        GB: 'United Kingdom',
-        VA: 'Vatican City',
     },
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
@@ -4977,6 +5043,19 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
+    MERGE_ACCOUNT_RESULTS: {
+        SUCCESS: 'success',
+        ERR_2FA: 'err_2fa',
+        ERR_NO_EXIST: 'err_no_exist',
+        ERR_SMART_SCANNER: 'err_smart_scanner',
+        ERR_INVOICING: 'err_invoicing',
+        ERR_SAML_PRIMARY_LOGIN: 'err_saml_primary_login',
+        ERR_SAML_DOMAIN_CONTROL: 'err_saml_domain_control',
+        ERR_SAML_NOT_SUPPORTED: 'err_saml_not_supported',
+        ERR_ACCOUNT_LOCKED: 'err_account_locked',
+        TOO_MANY_ATTEMPTS: 'too_many_attempts',
+        ACCOUNT_UNVALIDATED: 'account_unvalidated',
+    },
     DELEGATE_ROLE: {
         ALL: 'all',
         SUBMITTER: 'submitter',
@@ -4987,7 +5066,7 @@ const CONST = {
             SUBMITTER: 'submitter',
         },
     },
-    DELEGATE_ROLE_HELPDOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
+    DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
     STRIPE_GBP_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
@@ -5060,6 +5139,11 @@ const CONST = {
     },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
+    IMAGE_TEST_ID: 'Image',
+    IMAGE_SVG_TEST_ID: 'ImageSVG',
+    VIDEO_PLAYER_TEST_ID: 'VideoPlayer',
+    LOTTIE_VIEW_TEST_ID: 'LottieView',
+
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
     HORIZONTAL_SPACER: {
@@ -5103,6 +5187,7 @@ const CONST = {
             VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business-v2.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
+        TEST_DRIVE_COVER_ASPECT_RATIO: 500 / 300,
     },
 
     /**
@@ -5218,6 +5303,7 @@ const CONST = {
         TAX_RATE_CHANGED: 'taxRateChanged',
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
+        RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
@@ -5228,6 +5314,7 @@ const CONST = {
 
     REPORT_VIOLATIONS: {
         FIELD_REQUIRED: 'fieldRequired',
+        RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW: 40,
     },
 
     REPORT_VIOLATIONS_EXCLUDED_FIELDS: {
@@ -5314,10 +5401,83 @@ const CONST = {
         [onboardingChoices.EMPLOYER]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.SUBMIT]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.MANAGE_TEAM]: {
-            message: 'Here are some important tasks to help get your team’s expenses under control.',
+            message: ({onboardingCompanySize: companySize}) => `Here is a task list I’d recommend for a company of your size with ${companySize} submitters:`,
             tasks: [
                 createWorkspaceTask,
-                selfGuidedTourTask,
+                testDriveTask,
+                {
+                    type: 'addAccountingIntegration',
+                    autoCompleted: false,
+                    mediaAttributes: {
+                        [`${CLOUDFRONT_URL}/${
+                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]
+                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${
+                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]
+                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${
+                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]
+                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                    },
+                    title: ({integrationName, workspaceAccountingLink}) => `Connect to [${integrationName}](${workspaceAccountingLink})`,
+                    description: ({integrationName, workspaceAccountingLink}) =>
+                        `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
+                        '\n' +
+                        `Here’s how to connect to ${integrationName}:\n` +
+                        '\n' +
+                        '1. Click *Settings*.\n' +
+                        '2. Go to *Workspaces*.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click *Accounting*.\n' +
+                        `5. Find ${integrationName}.\n` +
+                        '6. Click *Connect*.\n' +
+                        '\n' +
+                        `${
+                            integrationName && connectionsVideoPaths[integrationName]
+                                ? `[Take me to accounting](${workspaceAccountingLink}).\n\n![Connect to ${integrationName}](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
+                                : `[Take me to accounting](${workspaceAccountingLink}).`
+                        }`,
+                },
+                {
+                    type: 'connectCorporateCard',
+                    title: ({corporateCardLink}) => `Connect [your corporate card](${corporateCardLink})`,
+                    description: ({corporateCardLink}) =>
+                        `Connect your corporate card to automatically import and code expenses.\n` +
+                        '\n' +
+                        'Here’s how to invite your team:\n' +
+                        '\n' +
+                        '1. Click *Workspaces*.\n' +
+                        '2. Select your workspace.\n' +
+                        '3. Click *Corporate cards*.\n' +
+                        '4. Follow the prompts to connect your card.\n' +
+                        '\n' +
+                        `[Take me to connect my corporate card](${corporateCardLink}).`,
+                    autoCompleted: false,
+                    mediaAttributes: {},
+                },
+                {
+                    type: 'inviteTeam',
+                    autoCompleted: false,
+                    mediaAttributes: {
+                        [`${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-invite_members.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                    },
+                    title: ({workspaceMembersLink}) => `Invite [your team](${workspaceMembersLink})`,
+                    description: ({workspaceMembersLink}) =>
+                        '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
+                        '\n' +
+                        'Here’s how to invite your team:\n' +
+                        '\n' +
+                        '1. Click *Settings*.\n' +
+                        '2. Go to *Workspaces*.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click *Members* > *Invite member*.\n' +
+                        '5. Enter emails or phone numbers. \n' +
+                        '6. Add a custom invite message if you’d like!\n' +
+                        '\n' +
+                        `[Take me to workspace members](${workspaceMembersLink}).\n` +
+                        '\n' +
+                        `![Invite your team](${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+                },
                 {
                     type: 'setupCategoriesAndTags',
                     autoCompleted: false,
@@ -5352,62 +5512,6 @@ const CONST = {
                         `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                         '\n' +
                         `![Set up tags](${CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
-                },
-                {
-                    type: 'inviteTeam',
-                    autoCompleted: false,
-                    mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-invite_members.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                    },
-                    title: ({workspaceMembersLink}) => `Invite [your team](${workspaceMembersLink})`,
-                    description: ({workspaceMembersLink}) =>
-                        '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
-                        '\n' +
-                        'Here’s how to invite your team:\n' +
-                        '\n' +
-                        '1. Click *Settings*.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *Members* > *Invite member*.\n' +
-                        '5. Enter emails or phone numbers. \n' +
-                        '6. Add a custom invite message if you’d like!\n' +
-                        '\n' +
-                        `[Take me to workspace members](${workspaceMembersLink}).\n` +
-                        '\n' +
-                        `![Invite your team](${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
-                },
-                {
-                    type: 'addAccountingIntegration',
-                    autoCompleted: false,
-                    mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                    },
-                    title: ({integrationName, workspaceAccountingLink}) => `Connect to [${integrationName}](${workspaceAccountingLink})`,
-                    description: ({integrationName, workspaceAccountingLink}) =>
-                        `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
-                        '\n' +
-                        `Here’s how to connect to ${integrationName}:\n` +
-                        '\n' +
-                        '1. Click *Settings*.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *Accounting*.\n' +
-                        `5. Find ${integrationName}.\n` +
-                        '6. Click *Connect*.\n' +
-                        '\n' +
-                        `${
-                            integrationName && connectionsVideoPaths[integrationName]
-                                ? `[Take me to accounting](${workspaceAccountingLink}).\n\n![Connect to ${integrationName}](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
-                                : `[Take me to accounting](${workspaceAccountingLink}).`
-                        }`,
                 },
             ],
         },
@@ -5497,14 +5601,12 @@ const CONST = {
                     type: 'reviewWorkspaceSettings',
                     autoCompleted: false,
                     mediaAttributes: {},
-                    title: 'Review your workspace settings',
-                    description:
-                        "Here's how to review and update your workspace settings:" +
-                        '\n' +
-                        '1. Click *Settings*.' +
-                        '2. Go to *Workspaces* > [Your workspace].' +
-                        '\n' +
-                        "Make any changes there and we'll track them in the #admins room.",
+                    title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
+                    description: ({workspaceSettingsLink}) =>
+                        "Here's how to review and update your workspace settings:\n" +
+                        '1. Click the settings tab.\n' +
+                        '2. Click *Workspaces* > [Your workspace].\n' +
+                        `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
                 },
                 {
                     type: 'submitExpense',
@@ -5557,6 +5659,9 @@ const CONST = {
             DEBUG: 'DEBUG',
         },
     },
+
+    // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
+    MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
@@ -5587,6 +5692,7 @@ const CONST = {
                 COMPANY_TYPE: 5,
                 INCORPORATION_DATE: 6,
                 INCORPORATION_STATE: 7,
+                INCORPORATION_CODE: 8,
             },
             UBO: {
                 LEGAL_NAME: 0,
@@ -6278,6 +6384,7 @@ const CONST = {
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
+        LAST_VISITED_SETTINGS_TAB_PATH: 'LAST_VISITED_SETTINGS_TAB_PATH',
     },
 
     RESERVATION_TYPE: {
@@ -6335,6 +6442,7 @@ const CONST = {
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
+            TASK: 'task',
             TRIP: 'trip',
             CHAT: 'chat',
         },
@@ -6367,6 +6475,10 @@ const CONST = {
         GROUP_BY: {
             REPORTS: 'reports',
         },
+        BOOLEAN: {
+            YES: 'yes',
+            NO: 'no',
+        },
         TABLE_COLUMN_SIZES: {
             NORMAL: 'normal',
             WIDE: 'wide',
@@ -6374,6 +6486,7 @@ const CONST = {
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
+                UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
@@ -6398,6 +6511,11 @@ const CONST = {
                 LINKS: 'links',
                 PINNED: 'pinned',
             },
+            TASK: {
+                ALL: 'all',
+                OUTSTANDING: 'outstanding',
+                COMPLETED: 'completed',
+            },
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -6412,6 +6530,10 @@ const CONST = {
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'createdBy',
+            IN: 'in',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -6428,7 +6550,6 @@ const CONST = {
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
-            POLICY_ID: 'policyID',
             GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
@@ -6453,6 +6574,12 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'createdBy',
+            REIMBURSABLE: 'reimbursable',
+            BILLABLE: 'billable',
+            POLICY_ID: 'policyID',
         },
         EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
@@ -6488,11 +6615,25 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'created-by',
+            REIMBURSABLE: 'reimbursable',
+            BILLABLE: 'billable',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
             AFTER: 'After',
         },
+        SNAPSHOT_ONYX_KEYS: [
+            ONYXKEYS.COLLECTION.REPORT,
+            ONYXKEYS.COLLECTION.POLICY,
+            ONYXKEYS.COLLECTION.TRANSACTION,
+            ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+            ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            ONYXKEYS.PERSONAL_DETAILS_LIST,
+            ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+        ],
     },
 
     EXPENSE: {
@@ -6853,9 +6994,9 @@ const CONST = {
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
-        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
+        CONCIERGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
         BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
@@ -6863,6 +7004,9 @@ const CONST = {
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
+        GBR_RBR_CHAT: 'chatGBRRBR',
+        ACCOUNT_SWITCHER: 'accountSwitcher',
+        EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
@@ -6896,12 +7040,22 @@ const CONST = {
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
+
+    CALENDAR_PICKER_DAY_HEIGHT: 45,
+    MAX_CALENDAR_PICKER_ROWS: 6,
+
     ILLUSTRATION_ASPECT_RATIO: 39 / 22,
 
     OFFLINE_INDICATOR_HEIGHT: 25,
 
     BILLING: {
-        TYPE_FAILED_2018: 'typeFailed2018',
+        TYPE_FAILED_2018: 'failed_2018',
+    },
+
+    TEST_DRIVE: {
+        ONBOARDING_TASK_NAME: getTestDriveTaskName(),
+        EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
+        EMBEDDED_DEMO_IFRAME_TITLE: 'Test Drive',
     },
 } as const;
 
@@ -6922,6 +7076,7 @@ export type {
     IOUType,
     OnboardingPurpose,
     OnboardingCompanySize,
+    OnboardingTaskLinks,
     IOURequestType,
     SubscriptionType,
     FeedbackSurveyOptionID,
@@ -6930,5 +7085,7 @@ export type {
     OnboardingAccounting,
     IOUActionParams,
 };
+
+export {getTestDriveTaskName};
 
 export default CONST;

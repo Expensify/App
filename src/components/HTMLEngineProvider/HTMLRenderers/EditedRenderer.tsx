@@ -5,7 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 
 function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps}: CustomRendererProps<TBlock>) {
     const theme = useTheme();
@@ -14,13 +13,7 @@ function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps
     const isPendingDelete = !!(tnode.attributes.deleted !== undefined);
     return (
         <Text fontSize={variables.fontSizeSmall}>
-            <Text
-                style={styles.userSelectNone}
-                fontSize={variables.fontSizeSmall}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-            >
-                {' '}
-            </Text>
+            <Text fontSize={variables.fontSizeSmall}> </Text>
             <Text
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultRendererProps}

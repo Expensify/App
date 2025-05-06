@@ -5,9 +5,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
-import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {generateCustomUnitID, importPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
@@ -15,12 +15,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Rate} from '@src/types/onyx/Policy';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: string[], perDiemCurrency: string[], perDiemAmount: string[]) {
     const perDiemUnits: Record<string, Rate> = {};
@@ -46,7 +48,7 @@ function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: stri
 type ImportedPerDiemPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_IMPORTED>;
 function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [isImportingPerDiemRates, setIsImportingPerDiemRates] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
@@ -54,6 +56,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const policy = usePolicy(policyID);
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
+    const {setIsClosing} = useCloseImportPage();
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -76,13 +79,9 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
 
-        if (!requiredColumns.every((requiredColumn) => columns.includes(requiredColumn.value))) {
-            // eslint-disable-next-line rulesdir/prefer-early-return
-            requiredColumns.forEach((requiredColumn) => {
-                if (!columns.includes(requiredColumn.value)) {
-                    errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: requiredColumn.text});
-                }
-            });
+        const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
+        if (missingRequiredColumns) {
+            errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: missingRequiredColumns.text});
         } else {
             const duplicate = findDuplicate(columns);
             const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
@@ -126,21 +125,25 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         }
     }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policyID, perDiemCustomUnit?.customUnitID]);
 
-    const spreadsheetColumns = spreadsheet?.data;
-    if (!spreadsheetColumns) {
+    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
     }
 
+    const spreadsheetColumns = spreadsheet?.data;
+    if (!spreadsheetColumns) {
+        return <NotFoundPage />;
+    }
+
     const closeImportPageAndModal = () => {
+        setIsClosing(true);
         setIsImportingPerDiemRates(false);
-        closeImportPage();
         Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID));
     };
 
     return (
         <ScreenWrapper
             testID={ImportedPerDiemPage.displayName}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.perDiem.importPerDiemRates')}

@@ -10,8 +10,9 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {BankInfoSubStepProps} from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
+import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
+import getInputForValueSet from '@pages/ReimbursementAccount/NonUSD/utils/getInputForValueSet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
@@ -34,8 +35,8 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
         return acc;
     }, {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>);
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const defaultValues = useMemo(
         () => getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount),
         [subStepKeys, reimbursementAccount, reimbursementAccountDraft],
@@ -79,6 +80,10 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
 
     const inputs = useMemo(() => {
         return accountHolderDetailsFields?.map((field) => {
+            if (field.valueSet !== undefined) {
+                return getInputForValueSet(field, String(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
+            }
+
             if (field.id === ACCOUNT_HOLDER_COUNTRY) {
                 return (
                     <View
@@ -116,7 +121,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                 </View>
             );
         });
-    }, [accountHolderDetailsFields, styles.mb6, styles.mhn5, defaultValues, isEditing, defaultBankAccountCountry, translate]);
+    }, [accountHolderDetailsFields, styles, defaultValues, isEditing, defaultBankAccountCountry, translate]);
 
     return (
         <FormProvider

@@ -10,15 +10,15 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubstitutionsMap';
-import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
-import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
+import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
-import HelpButton from '@components/SidePane/HelpComponents/HelpButton';
+import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -59,10 +59,11 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const theme = useTheme();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const taxRates = useMemo(() => getAllTaxRates(), []);
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const cardFeedNamesWithType = useMemo(() => {
         return getCardFeedNamesWithType({workspaceCardFeeds, translate});
@@ -70,7 +71,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const {inputQuery: originalInputQuery} = queryJSON;
     const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
     const [shouldUseAnimation, setShouldUseAnimation] = useState(false);
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies);
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
@@ -109,9 +110,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [isDefaultQuery, queryText]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies);
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [cardFeedNamesWithType, allCards, originalInputQuery, personalDetails, reports, taxRates]);
+    }, [cardFeedNamesWithType, allCards, originalInputQuery, personalDetails, reports, taxRates, policies]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
@@ -155,7 +156,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, queryJSON.policyID);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions);
 
             if (!updatedQuery) {
                 return;
@@ -170,7 +171,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 setAutocompleteQueryValue('');
             }
         },
-        [autocompleteSubstitutions, hideSearchRouterList, originalInputQuery, queryJSON.policyID],
+        [autocompleteSubstitutions, hideSearchRouterList, originalInputQuery],
     );
 
     const onListItemPress = useCallback(
@@ -246,6 +247,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             <SearchInputSelectionWrapper
                                 value={textInputValue}
                                 substitutionMap={autocompleteSubstitutions}
+                                selection={selection}
                                 onSearchQueryChange={onSearchQueryChange}
                                 isFullWidth
                                 onSubmit={() => {
@@ -279,7 +281,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 autocompleteQueryValue={autocompleteQueryValue}
                                 searchQueryItem={searchQueryItem}
                                 onListItemPress={onListItemPress}
-                                setTextQuery={setTextInputValue}
+                                setTextQuery={setTextAndUpdateSelection}
                                 updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                                 ref={listRef}
                             />

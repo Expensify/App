@@ -8,6 +8,7 @@ import Modal from '@components/Modal';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
 import useLocalize from '@hooks/useLocalize';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
+import {close} from '@libs/actions/Modal';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -43,7 +44,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
                 <RequireTwoFactorAuthenticationModal
                     onSubmit={() => {
                         setIsRequire2FAModalOpen(false);
-                        Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID)));
+                        close(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID))));
                     }}
                     onCancel={() => setIsRequire2FAModalOpen(false)}
                     isVisible={isRequire2FAModalOpen}

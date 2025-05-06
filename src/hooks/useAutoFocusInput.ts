@@ -5,9 +5,11 @@ import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
-import useSidePane from './useSidePane';
+import useSidePanel from './useSidePanel';
 
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
@@ -17,6 +19,8 @@ type UseAutoFocusInput = {
 export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const isPopoverVisible = modal?.willAlertModalBecomeVisible && modal?.isPopover;
 
     const {splashScreenState} = useSplashScreenStateContext();
 
@@ -24,7 +28,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
+        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
             return;
         }
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
@@ -38,7 +42,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState]);
+    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible]);
 
     useFocusEffect(
         useCallback(() => {
@@ -55,16 +59,16 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         }, []),
     );
 
-    // Trigger focus when side pane transition ends
-    const {isSidePaneTransitionEnded, shouldHideSidePane} = useSidePane();
-    const prevShouldHideSidePane = usePrevious(shouldHideSidePane);
+    // Trigger focus when Side Panel transition ends
+    const {isSidePanelTransitionEnded, shouldHideSidePanel} = useSidePanel();
+    const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
     useEffect(() => {
-        if (!shouldHideSidePane || prevShouldHideSidePane) {
+        if (!shouldHideSidePanel || prevShouldHideSidePanel) {
             return;
         }
 
-        setIsScreenTransitionEnded(isSidePaneTransitionEnded);
-    }, [isSidePaneTransitionEnded, shouldHideSidePane, prevShouldHideSidePane]);
+        setIsScreenTransitionEnded(isSidePanelTransitionEnded);
+    }, [isSidePanelTransitionEnded, shouldHideSidePanel, prevShouldHideSidePanel]);
 
     const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;

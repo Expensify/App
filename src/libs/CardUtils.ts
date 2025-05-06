@@ -65,14 +65,6 @@ function isExpensifyCard(cardID?: number) {
 
 /**
  * @param cardID
- * @returns boolean if the cardID is in the cardList from ONYX. Includes Expensify Cards.
- */
-function isCorporateCard(cardID: number) {
-    return !!allCards[cardID];
-}
-
-/**
- * @param cardID
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
 function getCardDescription(cardID?: number, cards: CardList = allCards) {
@@ -88,12 +80,23 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
     return cardDescriptor ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
-function isCard(item: Card | Record<string, string>): item is Card {
-    return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
+/**
+ * @param transactionCardName
+ * @param cardID
+ * @param cards
+ * @returns company card name
+ */
+function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards?: CardList) {
+    if (!cardID || isExpensifyCard(cardID) || !cards?.[cardID]) {
+        return transactionCardName;
+    }
+    const card = cards[cardID];
+
+    return card.cardName;
 }
 
-function isCardIssued(card: Card) {
-    return !!card?.nameValuePairs?.isVirtual || card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+function isCard(item: Card | Record<string, string>): item is Card {
+    return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
 }
 
 function isCardHiddenFromSearch(card: Card) {
@@ -187,9 +190,10 @@ function maskCard(lastFour = ''): string {
  *
  * @param cardName - card name with XXXX in the middle.
  * @param feed - card feed.
+ * @param showOriginalName - show original card name instead of masked.
  * @returns - The masked card string.
  */
-function maskCardNumber(cardName: string | undefined, feed: string | undefined): string {
+function maskCardNumber(cardName?: string, feed?: string, showOriginalName?: boolean): string {
     if (!cardName || cardName === '') {
         return '';
     }
@@ -198,7 +202,10 @@ function maskCardNumber(cardName: string | undefined, feed: string | undefined):
     const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
 
     if (hasSpace) {
-        return cardName;
+        if (showOriginalName) {
+            return cardName;
+        }
+        return cardName.replace(/ - \d{4}$/, '');
     }
 
     if (isAmexBank && maskedString.length === 15) {
@@ -209,21 +216,19 @@ function maskCardNumber(cardName: string | undefined, feed: string | undefined):
 }
 
 /**
- * Finds physical card in a list of cards
+ * Returns last 4 number from company card name
  *
- * @returns a physical card object (or undefined if none is found)
+ * @param cardName - card name with dash in the middle and 4 numbers in the end.
+ * @returns - Last 4 numbers
  */
-function findPhysicalCard(cards: Card[]) {
-    return cards.find((card) => !card?.nameValuePairs?.isVirtual);
-}
-
-/**
- * Checks if any of the cards in the list have detected fraud
- *
- * @param cardList - collection of assigned cards
- */
-function hasDetectedFraud(cardList: Record<string, Card>): boolean {
-    return Object.values(cardList).some((card) => card.fraud !== CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE);
+function lastFourNumbersFromCardName(cardName: string | undefined): string {
+    const name = cardName ?? '';
+    const hasSpace = /\s/.test(name);
+    const match = name.match(/(\d{4})$/);
+    if (!cardName || cardName === '' || !hasSpace || !match) {
+        return '';
+    }
+    return match[1];
 }
 
 function getMCardNumberString(cardNumber: string): string {
@@ -250,17 +255,19 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
 }
 
-function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
+function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, personalDetails: OnyxEntry<PersonalDetailsList>, policyMembersAccountIDs: number[]): Card[] {
     const {cardList, ...cards} = cardsList ?? {};
-    return Object.values(cards).sort((cardA: Card, cardB: Card) => {
-        const userA = cardA.accountID ? personalDetails?.[cardA.accountID] ?? {} : {};
-        const userB = cardB.accountID ? personalDetails?.[cardB.accountID] ?? {} : {};
+    return Object.values(cards)
+        .filter((card: Card) => card.accountID && policyMembersAccountIDs.includes(card.accountID))
+        .sort((cardA: Card, cardB: Card) => {
+            const userA = cardA.accountID ? personalDetails?.[cardA.accountID] ?? {} : {};
+            const userB = cardB.accountID ? personalDetails?.[cardB.accountID] ?? {} : {};
 
-        const aName = getDisplayNameOrDefault(userA);
-        const bName = getDisplayNameOrDefault(userB);
+            const aName = getDisplayNameOrDefault(userA);
+            const bName = getDisplayNameOrDefault(userB);
 
-        return localeCompare(aName, bName);
-    });
+            return localeCompare(aName, bName);
+        });
 }
 
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, illustrations: IllustrationsType): IconAsset {
@@ -430,16 +437,31 @@ function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): bool
 }
 
 /** Returns list of cards which can be assigned */
-function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined) {
+function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards) {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
     const assignedCards = Object.values(cards).map((card) => card.cardName);
 
+    // Get cards assigned across all workspaces
+    const allWorkspaceAssignedCards = new Set<string>();
+    Object.values(workspaceCardFeeds ?? {}).forEach((workspaceCards) => {
+        if (!workspaceCards) {
+            return;
+        }
+        const {cardList, ...workspaceCardItems} = workspaceCards;
+        Object.values(workspaceCardItems).forEach((card) => {
+            if (!card.cardName) {
+                return;
+            }
+            allWorkspaceAssignedCards.add(card.cardName);
+        });
+    });
+
     if (directFeed) {
-        const unassignedDirectFeedCards = directFeed.accountList.filter((cardNumber) => !assignedCards.includes(cardNumber));
+        const unassignedDirectFeedCards = directFeed.accountList.filter((cardNumber) => !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber));
         return Object.fromEntries(unassignedDirectFeedCards.map((cardNumber) => [cardNumber, cardNumber]));
     }
 
-    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.includes(cardNumber)));
+    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber)));
 }
 
 function hasOnlyOneCardToAssign(list: FilteredCardList) {
@@ -562,9 +584,19 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
+function getFundIdFromSettingsKey(key: string) {
+    const prefix = ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS;
+    if (!key?.startsWith(prefix)) {
+        return CONST.DEFAULT_NUMBER_ID;
+    }
+    const fundIDStr = key.substring(prefix.length);
+
+    const fundID = Number(fundIDStr);
+    return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
+}
+
 export {
     isExpensifyCard,
-    isCorporateCard,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,
@@ -572,8 +604,6 @@ export {
     maskCard,
     maskCardNumber,
     getCardDescription,
-    findPhysicalCard,
-    hasDetectedFraud,
     getMCardNumberString,
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
@@ -595,14 +625,16 @@ export {
     mergeCardListWithWorkspaceFeeds,
     isCard,
     getAllCardsForWorkspace,
-    isCardIssued,
     isCardHiddenFromSearch,
     getFeedType,
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
     isSmartLimitEnabled,
+    lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,
     hasCardListObject,
     isExpensifyCardFullySetUp,
     filterInactiveCards,
+    getFundIdFromSettingsKey,
+    getCompanyCardDescription,
 };

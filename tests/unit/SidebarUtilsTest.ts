@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import {getReportActionMessageText} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -15,11 +17,13 @@ import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@components/ConfirmedRoute.tsx');
+
 describe('SidebarUtils', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
 
@@ -60,6 +64,7 @@ describe('SidebarUtils', () => {
                     {
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                         name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        showInReview: true,
                     },
                 ],
             };
@@ -74,8 +79,17 @@ describe('SidebarUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
             });
 
+            // Simulate how components determind if a report is archived by using this hook
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>) ?? {};
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                    MOCK_REPORT,
+                    MOCK_REPORT_ACTIONS,
+                    false,
+                    MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
+                    isReportArchived.current,
+                ) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
         });
@@ -92,7 +106,8 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS) ?? {};
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -104,7 +119,9 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, true, MOCK_TRANSACTION_VIOLATIONS) ?? {};
+            // Simulate how components determind if a report is archived by using this hook
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, true, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_VIOLATIONS);
         });
@@ -133,7 +150,9 @@ describe('SidebarUtils', () => {
             };
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS) ?? {};
+            // Simulate how components determind if a report is archived by using this hook
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -150,7 +169,9 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS) ?? {};
+            // Simulate how components determind if a report is archived by using this hook
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -180,7 +201,10 @@ describe('SidebarUtils', () => {
             };
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const {reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS) ?? {};
+            // Simulate how components determind if a report is archived by using this hook
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const {reportAction} =
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current) ?? {};
 
             expect(reportAction).toMatchObject<ReportAction>(MOCK_REPORT_ACTION);
         });
@@ -192,7 +216,9 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            // Simulate how components determind if a report is archived by using this hook
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBeNull();
         });
@@ -209,6 +235,7 @@ describe('SidebarUtils', () => {
 
             const optionDataPinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_PINNED,
+                reportAttributes: {},
                 reportNameValuePairs: {},
                 reportActions: {},
                 personalDetails: {},
@@ -220,6 +247,7 @@ describe('SidebarUtils', () => {
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
+                reportAttributes: {},
                 reportNameValuePairs: {},
                 reportActions: {},
                 personalDetails: {},
@@ -268,7 +296,9 @@ describe('SidebarUtils', () => {
             };
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            // Simulate how components determind if a report is archived by using this hook
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBeNull();
         });
@@ -311,6 +341,7 @@ describe('SidebarUtils', () => {
                     {
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                         name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        showInReview: true,
                     },
                 ],
             };
@@ -325,7 +356,78 @@ describe('SidebarUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
             });
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>);
+            // Simulate how components determind if a report is archived by using this hook
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const result = SidebarUtils.shouldShowRedBrickRoad(
+                MOCK_REPORT,
+                MOCK_REPORT_ACTIONS,
+                false,
+                MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
+                isReportArchived.current,
+            );
+
+            expect(result).toBe(true);
+        });
+
+        it('returns true when report has transaction thread notice type violation', async () => {
+            const MOCK_REPORT: Report = {
+                reportID: '1',
+                ownerAccountID: 12345,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID: '6',
+            };
+
+            const MOCK_REPORTS: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT,
+            };
+
+            const MOCK_REPORT_ACTIONS: ReportActions = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1': {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:20:44.171',
+                },
+            };
+
+            const MOCK_TRANSACTION = {
+                transactionID: '1',
+                amount: 10,
+                modifiedAmount: 10,
+                reportID: MOCK_REPORT.reportID,
+            };
+
+            const MOCK_TRANSACTION_VIOLATIONS: TransactionViolationsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION.transactionID}` as const]: [
+                    {
+                        type: CONST.VIOLATION_TYPES.NOTICE,
+                        name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                        showInReview: true,
+                    },
+                ],
+            };
+
+            await Onyx.multiSet({
+                ...MOCK_REPORTS,
+                ...MOCK_TRANSACTION_VIOLATIONS,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                [ONYXKEYS.SESSION]: {
+                    accountID: 12345,
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+            });
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const result = SidebarUtils.shouldShowRedBrickRoad(
+                MOCK_REPORT,
+                MOCK_REPORT_ACTIONS,
+                false,
+                MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
+                isReportArchived.current,
+            );
 
             expect(result).toBe(true);
         });
@@ -342,7 +444,8 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBe(true);
         });
@@ -354,7 +457,8 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, true, MOCK_TRANSACTION_VIOLATIONS);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, true, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBe(true);
         });
@@ -383,7 +487,8 @@ describe('SidebarUtils', () => {
             };
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBe(true);
         });
@@ -400,7 +505,8 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBe(true);
         });
@@ -412,7 +518,8 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBe(false);
         });
@@ -431,7 +538,9 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            // Simulate how components determind if a report is archived by using this hook
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS, isReportArchived.current);
 
             expect(result).toBe(false);
         });
@@ -504,6 +613,7 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.getOptionData({
                 report,
                 reportActions,
+                reportAttributes: {},
                 reportNameValuePairs: {},
                 hasViolations: false,
                 personalDetails: {},
@@ -516,6 +626,67 @@ describe('SidebarUtils', () => {
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
             expect(result?.alternateText).toBe(`${lastAction.person?.[0].text}: ${getReportActionMessageText(lastAction)}`);
         });
+
+        it('returns @Hidden as an alternate text if the last action mentioned account has no name', async () => {
+            // When a report has last action with mention of an account that has no name
+            const report: Report = {
+                ...createRandomReport(4),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                lastMessageText: '@unexisting@gmail.com',
+                lastVisibleActionCreated: '2025-01-20 12:30:03.784',
+            };
+
+            const mentionedAccountID = 19797552;
+            const lastAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT> = {
+                ...createRandomReportAction(2),
+                message: [
+                    {
+                        html: `<mention-user accountID="${mentionedAccountID}"/>`,
+                        text: '@unexisting@gmal.com',
+                        type: 'COMMENT',
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user accountID="${mentionedAccountID}"/>`,
+                    whisperedTo: [],
+                    lastModified: '2025-05-01 13:23:25.209',
+                    mentionedAccountIDs: [mentionedAccountID],
+                },
+                pendingAction: undefined,
+                previousMessage: undefined,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: 119086,
+                person: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: 'f50',
+                    },
+                ],
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[mentionedAccountID]: {accountID: mentionedAccountID, firstName: '', lastName: ''}});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportActions,
+                reportAttributes: {},
+                reportNameValuePairs: {},
+                hasViolations: false,
+                personalDetails: {},
+                policy: undefined,
+                parentReportAction: undefined,
+                preferredLocale: CONST.LOCALES.EN,
+                oneTransactionThreadReport: undefined,
+            });
+
+            // Then the alternate text should show @Hidden.
+            expect(result?.alternateText).toBe(`f50: @Hidden`);
+        });
+
         describe('Alternative text', () => {
             afterEach(async () => {
                 Onyx.clear();
@@ -544,9 +715,47 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
+                    reportAttributes: {},
                     reportNameValuePairs,
                     reportActions: {},
                     personalDetails: {},
+                    preferredLocale,
+                    policy,
+                    parentReportAction: undefined,
+                    hasViolations: false,
+                    lastMessageTextFromReport: 'test message',
+                    oneTransactionThreadReport: undefined,
+                });
+
+                expect(optionData?.alternateText).toBe(`test message`);
+            });
+            it("The text should not contain the last actor's name at prefix if the report is archived.", async () => {
+                const preferredLocale = 'en';
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                };
+                const report: Report = {
+                    ...createRandomReport(2),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    policyID: policy.id,
+                    policyName: policy.name,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastActorAccountID: 1,
+                };
+                const reportNameValuePairs = {
+                    private_isArchived: DateUtils.getDBTime(),
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+
+                const optionData = SidebarUtils.getOptionData({
+                    report,
+                    reportAttributes: {},
+                    reportNameValuePairs,
+                    reportActions: {},
+                    personalDetails: LHNTestUtils.fakePersonalDetails,
                     preferredLocale,
                     policy,
                     parentReportAction: undefined,
@@ -577,6 +786,7 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
+                    reportAttributes: {},
                     reportNameValuePairs,
                     reportActions: {},
                     personalDetails: {},
@@ -614,6 +824,7 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
+                    reportAttributes: {},
                     reportNameValuePairs,
                     reportActions: {},
                     personalDetails: {},
@@ -681,6 +892,7 @@ describe('SidebarUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
                 const result = SidebarUtils.getOptionData({
                     report,
+                    reportAttributes: {},
                     reportActions,
                     reportNameValuePairs: {},
                     hasViolations: false,
@@ -692,7 +904,80 @@ describe('SidebarUtils', () => {
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
-                expect(result?.alternateText).toBe(`You invited 1 user`);
+                expect(result?.alternateText).toBe(`You invited 1 member`);
+            });
+            it('returns the last action message as an alternate text if the action is MOVED type', async () => {
+                // When a report has last action of MOVED type
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    pendingAction: null,
+                };
+                const session = {
+                    authToken: 'sensitive-auth-token',
+                    encryptedAuthToken: 'sensitive-encrypted-token',
+                    email: 'user@example.com',
+                    accountID: 12345,
+                };
+                const report: Report = {
+                    ...createRandomReport(4),
+                    chatType: 'policyRoom',
+                    lastMessageHtml: '',
+                    lastMessageText: '',
+                    lastVisibleActionCreated: '2025-04-27 12:30:03.784',
+                    participants: {
+                        '12345': {
+                            notificationPreference: 'daily',
+                        },
+                    },
+                    policyID: '1',
+                };
+                const lastAction: ReportAction = {
+                    ...createRandomReportAction(2),
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: "moved this report to the <a href='https://new.expensify.com/r/1325702002189143' target='_blank' rel='noreferrer noopener'>Three&#039;s Workspace</a> workspace",
+                            text: "moved this report to the Three's Workspace workspace",
+                            isEdited: false,
+                            whisperedTo: [],
+                            isDeletedParentAction: false,
+                            deleted: '',
+                        },
+                    ],
+                    originalMessage: {
+                        lastModified: '2025-04-27 12:32:10.416',
+                        targetAccountIDs: [19268914],
+                    },
+                    actorAccountID: 12345,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+                    person: [
+                        {
+                            type: 'TEXT',
+                            style: 'strong',
+                            text: 'f50',
+                        },
+                    ],
+                };
+                const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                await Onyx.set(ONYXKEYS.SESSION, session);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+                const result = SidebarUtils.getOptionData({
+                    report,
+                    reportAttributes: {},
+                    reportActions,
+                    reportNameValuePairs: {},
+                    hasViolations: false,
+                    personalDetails: {},
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
+                    oneTransactionThreadReport: undefined,
+                });
+
+                // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
+                expect(result?.alternateText).toBe(`${lastAction.person?.[0].text}: ${getReportActionMessageText(lastAction)}`);
             });
         });
     });
