@@ -573,13 +573,13 @@ class GithubUtils {
     /**
      * Get commits between two tags via the GitHub API
      */
-    static async getCommitHistoryBetweenTags(fromTag: string, toTag: string): Promise<CommitType[]> {
-        console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    static async getCommitHistoryBetweenTags(fromTag: string, toTag: string, repo: string): Promise<CommitType[]> {
+        console.log('Getting pull requests merged between the following tags:', fromTag, toTag, 'for repo:', repo);
 
         try {
             const {data: comparison} = await this.octokit.repos.compareCommits({
                 owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
+                repo,
                 base: fromTag,
                 head: toTag,
             });
