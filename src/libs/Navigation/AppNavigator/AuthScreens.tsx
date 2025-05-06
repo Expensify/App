@@ -26,7 +26,7 @@ import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import Animations, { InternalPlatformAnimations } from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
@@ -713,7 +713,15 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.basicModalNavigator}
+                    options={{
+                        ...rootNavigatorScreenOptions.basicModalNavigator,
+                        native: {
+                            contentStyle: {
+                                backgroundColor: theme.overlay,
+                            },
+                            animation: InternalPlatformAnimations.SLIDE_FROM_BOTTOM,
+                        },
+                    }}
                     component={TestToolsModalNavigator}
                     listeners={modalScreenListeners}
                 />

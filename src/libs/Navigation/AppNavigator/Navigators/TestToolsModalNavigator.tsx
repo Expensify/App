@@ -1,5 +1,6 @@
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import TestToolsModalPage from '@components/TestToolsModalPage';
@@ -26,6 +27,10 @@ function TestToolsModalNavigator() {
         toggleTestToolsModal();
     }, []);
 
+    const handleInnerPress = useCallback((e: GestureResponderEvent) => {
+        e.stopPropagation();
+    }, []);
+
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleOuterClick, {shouldBubble: true});
 
     return (
@@ -34,11 +39,13 @@ function TestToolsModalNavigator() {
             <View
                 ref={outerViewRef}
                 onClick={handleOuterClick}
+                onTouchEnd={handleOuterClick}
                 style={styles.TestToolsNavigatorOuterView(shouldUseNarrowLayout)}
             >
                 <FocusTrapForScreens>
                     <View
                         onClick={(e) => e.stopPropagation()}
+                        onTouchEnd={handleInnerPress}
                         style={styles.TestToolsNavigatorInnerView(shouldUseNarrowLayout, isAuthenticated)}
                     >
                         <Stack.Navigator screenOptions={{headerShown: false}}>
