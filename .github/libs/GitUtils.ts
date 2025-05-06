@@ -102,8 +102,8 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
  */
-async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
-    const commitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag, CONST.APP_REPO);
+async function getPullRequestsDeployedBetween(fromTag: string, toTag: string, repo: string) {
+    const commitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag, repo);
     const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
     core.startGroup('Locate PRs from Git commits');
     core.info(`Found ${commitList.length} commits.`);

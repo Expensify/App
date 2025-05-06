@@ -11575,7 +11575,7 @@ async function run() {
         const previousChecklistData = GithubUtils_1.default.getStagingDeployCashData(previousChecklist);
         const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag);
+        const mergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST_1.default.APP_REPO);
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
         core.info('Deployed PRs include cherry-picked PRs released with previous checklist, these must be excluded');
@@ -11867,8 +11867,8 @@ function getValidMergedPRs(commits) {
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
  */
-async function getPullRequestsDeployedBetween(fromTag, toTag) {
-    const commitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag, CONST_1.default.APP_REPO);
+async function getPullRequestsDeployedBetween(fromTag, toTag, repo) {
+    const commitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag, repo);
     const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
     core.startGroup('Locate PRs from Git commits');
     core.info(`Found ${commitList.length} commits.`);
