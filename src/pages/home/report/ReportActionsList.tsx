@@ -449,7 +449,6 @@ function ReportActionsList({
 
     const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
     const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
-    const lastIOUActionWithErrorIndex = sortedVisibleReportActions.findIndex((action) => action.errors);
     const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
 
     useEffect(() => {
