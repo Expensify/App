@@ -569,7 +569,7 @@ describe('SidebarUtils', () => {
         });
     });
 
-    describe('getOptionsData', () => {
+    describe('getOptionData', () => {
         it('returns the last action message as an alternate text if the action is POLICYCHANGELOG_LEAVEROOM type', async () => {
             // When a report has last action of POLICYCHANGELOG_LEAVEROOM type
             const report: Report = {
