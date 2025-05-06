@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
@@ -156,7 +156,7 @@ function isPayAction(report: Report, policy?: Policy, reportNameValuePairs?: Rep
     return policy?.role === CONST.POLICY.ROLE.ADMIN;
 }
 
-function isExportAction(report: Report, policy?: Policy) {
+function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]) {
     if (!policy) {
         return false;
     }
@@ -173,7 +173,6 @@ function isExportAction(report: Report, policy?: Policy) {
 
     const connectedIntegration = getConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const reportActions = getAllReportActions(report.reportID);
     const isExported = isExportedUtil(reportActions);
     if (isExported) {
         return false;
@@ -270,6 +269,7 @@ function getReportPrimaryAction(
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
+    reportActions?: ReportAction[],
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     if (isAddExpenseAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
@@ -299,7 +299,7 @@ function getReportPrimaryAction(
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
-    if (isExportAction(report, policy)) {
+    if (isExportAction(report, policy, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 

@@ -1,7 +1,7 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
@@ -34,6 +34,8 @@ import {
     isReportApproved,
     isReportManuallyReimbursed,
     isSettled,
+    isExported as isExportedUtil,
+    hasExportError as hasExportErrorUtil,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isReceiptBeingScanned, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
@@ -134,7 +136,7 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
     return policy?.role === CONST.POLICY.ROLE.ADMIN;
 }
 
-function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, reportActions?: OnyxEntry<ReportActions> | ReportAction[]) {
     const isExpense = isExpenseReport(report);
     const isExporter = policy ? isPrefferedExporter(policy) : false;
     const isReimbursed = isSettled(report);
@@ -150,7 +152,13 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
-    if (syncEnabled) {
+    const isExported = isExportedUtil(reportActions);
+    if (isExported) {
+        return false;
+    }
+
+    const hasExportError = hasExportErrorUtil(reportActions);
+    if (syncEnabled && !hasExportError) {
         return false;
     }
 
@@ -194,6 +202,7 @@ function getReportPreviewAction(
     policy?: Policy,
     transactions?: Transaction[],
     reportNameValuePairs?: ReportNameValuePairs,
+    reportActions?: OnyxEntry<ReportActions> | ReportAction[],
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -207,7 +216,7 @@ function getReportPreviewAction(
     if (canPay(report, violations, policy, reportNameValuePairs)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, violations, policy)) {
+    if (canExport(report, violations, policy, reportActions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
     if (canReview(report, violations, policy, transactions)) {

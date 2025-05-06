@@ -10324,11 +10324,33 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
         return false;
     }
 
+    let exportIntegrationActionsCount = 0;
+    let integrationMessageActionsCount = 0;
+
     if (Array.isArray(reportActions)) {
-        return reportActions.some((action) => isExportIntegrationAction(action));
+        for (const action of reportActions) {
+            if (isExportIntegrationAction(action)) {
+                exportIntegrationActionsCount++;
+            }
+            if (isIntegrationMessageAction(action)) {
+                integrationMessageActionsCount++;
+            }
+        }
+    } else {
+        for (const action of Object.values(reportActions)) {
+            if (isExportIntegrationAction(action)) {
+                exportIntegrationActionsCount++;
+            }
+            if (isIntegrationMessageAction(action)) {
+                integrationMessageActionsCount++;
+            }
+        }
     }
 
-    return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
+    // We need to make sure that there was at least one successful export to consider the report exported.
+    // We add one EXPORTINTEGRATION action to the report when we start exporting it (with pendingAction: 'add') and then another EXPORTINTEGRATION when the export finishes successfully.
+    // If the export fails, we add an INTEGRATIONS_MESSAGE action to the report, but the initial EXPORTINTEGRATION action is still present, so we compare the counts of these two actions to determine if the report was exported successfully.
+    return exportIntegrationActionsCount > integrationMessageActionsCount;
 }
 
 function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
