@@ -538,7 +538,7 @@ function AttachmentModal({
                                 iouType,
                                 draftTransactionID ?? transaction?.transactionID,
                                 report?.reportID,
-                                Navigation.getActiveRouteWithoutParams(),
+                                Navigation.getActiveRoute(),
                             ),
                         );
                     }
