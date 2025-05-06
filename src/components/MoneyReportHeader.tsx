@@ -201,7 +201,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
-    const selectedTransactionsOptions = useSelectedTransactionsActions({report: moneyRequestReport, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    const selectedTransactionsOptions = useSelectedTransactionsActions({
+        report: moneyRequestReport,
+        reportActions,
+        allTransactionsLength: transactions.length,
+        session,
+        onExportFailed: () => setIsDownloadErrorModalVisible(true),
+    });
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
