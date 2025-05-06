@@ -356,6 +356,8 @@ function FeatureTrainingModal({
                             KeyboardUtils.dismiss();
                         }}
                         accessible={false}
+                        disabled={!shouldUseNarrowLayout}
+                        style={styles.cursorDefault}
                     >
                         <View
                             style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), safeAreaPaddingBottomStyle]}

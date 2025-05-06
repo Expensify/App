@@ -1213,7 +1213,7 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount: testDriveIOUParams.transaction.amount,
         currency: testDriveIOUParams.transaction.currency,
-        comment: '',
+        comment: testDriveIOUParams.transaction.comment?.comment ?? '',
         participants: testDriveIOUParams.transaction.participants ?? [],
         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
         iouReportID: testDriveIOUParams.iouOptimisticParams.report.reportID,

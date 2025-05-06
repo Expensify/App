@@ -34,7 +34,7 @@ function BaseTestDriveModal({description, onConfirm, children, shouldCloseOnConf
             onHelp={skipTestDrive}
             onConfirm={onConfirm}
             shouldRenderSVG={false}
-            modalInnerContainerStyle={shouldUseNarrowLayout ? styles.pt0 : styles.testDriveModalContainer}
+            modalInnerContainerStyle={styles.testDriveModalContainer(shouldUseNarrowLayout)}
             contentInnerContainerStyles={contentInnerContainerStyles}
             shouldCloseOnConfirm={shouldCloseOnConfirm}
             shouldRenderHTMLDescription={shouldRenderHTMLDescription}

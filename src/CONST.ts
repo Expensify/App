@@ -7044,8 +7044,6 @@ const CONST = {
             DESCRIPTION: 'My test drive receipt!',
             MERCHANT: "Tommy's Tires",
             CREATED: '2025-04-02',
-            FILENAME: 'test_receipt',
-            FILE_TYPE: 'image/jpg',
         },
     },
 } as const;

@@ -13,7 +13,7 @@ const setTestReceipt: SetTestReceipt = (asset, assetExtension, onFileRead) => {
 
         ReactNativeBlobUtil.config({
             fileCache: true,
-            appendExt: 'png',
+            appendExt: assetExtension,
             path,
         })
             .fetch('GET', source)

@@ -154,6 +154,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields?: boolean;
 
+    /** Whether we should show the amount field. */
+    shouldShowAmountField?: boolean;
+
     /** A flag for verifying that the current report is a sub-report of a workspace chat */
     isPolicyExpenseChat?: boolean;
 
@@ -198,6 +201,7 @@ function MoneyRequestConfirmationList({
     isPolicyExpenseChat = false,
     iouCategory = '',
     shouldShowSmartScanFields = true,
+    shouldShowAmountField = true,
     isEditingSplitBill,
     iouCurrencyCode,
     isReceiptEditable,
@@ -1084,7 +1088,7 @@ function MoneyRequestConfirmationList({
             shouldShowCategories={shouldShowCategories}
             shouldShowMerchant={shouldShowMerchant}
             shouldShowSmartScanFields={shouldShowSmartScanFields}
-            shouldShowAmountField={!isPerDiemRequest}
+            shouldShowAmountField={shouldShowAmountField}
             shouldShowTax={shouldShowTax}
             transaction={transaction}
             transactionID={transactionID}
