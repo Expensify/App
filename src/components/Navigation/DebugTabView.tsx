@@ -104,10 +104,13 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
     const {orderedReportIDs} = useSidebarOrderedReportIDs();
-    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])});
+    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]),
+        canBeMissing: true,
+    });
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
