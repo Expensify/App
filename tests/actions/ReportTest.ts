@@ -1623,10 +1623,10 @@ describe('actions/Report', () => {
 
             Report.completeOnboarding({
                 engagementChoice,
-                onboardingMessage: CONST.ONBOARDING_MESSAGES.newDotManageTeam,
+                onboardingMessage: CONST.ONBOARDING_MESSAGES[engagementChoice],
                 adminsChatReportID,
                 onboardingPolicyID,
-                companySize: '1-10',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
                 userReportedIntegration: null,
             });
 
