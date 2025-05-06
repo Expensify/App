@@ -5304,7 +5304,6 @@ const CONST = {
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
-        OVER_TRIP_LIMIT: 'overTripLimit',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
