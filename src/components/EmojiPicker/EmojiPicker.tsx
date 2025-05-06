@@ -14,6 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AnchorOrigin, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, OnModalHideValue, OnWillShowPicker} from '@libs/actions/EmojiPickerAction';
 import {isMobileChrome} from '@libs/Browser';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import EmojiPickerMenu from './EmojiPickerMenu';
@@ -46,6 +47,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
     const onEmojiSelected = useRef<OnEmojiSelected>(() => {});
     const activeEmoji = useRef<string | undefined>(undefined);
     const emojiSearchInput = useRef<BaseTextInputRef | null>(null);
+    const wasComposerFocused = useRef(false);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -78,7 +80,11 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
         onWillShow?: OnWillShowPicker,
         id?: string,
         activeEmojiValue?: string,
+        wasComposerFocusedProp?: boolean,
     ) => {
+        wasComposerFocused.current = wasComposerFocusedProp ?? false;
+        ReportActionComposeFocusManager.preventFocusOnFirstResponderOnce();
+
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
         activeEmoji.current = activeEmojiValue;
@@ -120,6 +126,12 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             }
 
             emojiPopoverAnchorRef.current = null;
+
+            if (wasComposerFocused.current) {
+                ReportActionComposeFocusManager.composerRef.current?.focus();
+                // ReportActionComposeFocusManager.focus();
+                wasComposerFocused.current = false;
+            }
         };
         setIsEmojiPickerVisible(false);
     };

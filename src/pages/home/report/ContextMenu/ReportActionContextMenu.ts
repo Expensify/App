@@ -59,6 +59,7 @@ type ReportActionContextMenu = {
     clearActiveReportAction: () => void;
     contentRef: RefObject<View>;
     isContextMenuOpening: boolean;
+    wasComposerFocused: boolean;
 };
 
 const contextMenuRef = React.createRef<ReportActionContextMenu>();

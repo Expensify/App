@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {AnchorDimensions} from '@src/styles';
@@ -76,6 +77,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         width: 0,
         height: 0,
     });
+
+    const [wasComposerFocused, setWasComposerFocused] = useState(false);
 
     const onPopoverShow = useRef(() => {});
     const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
@@ -169,6 +172,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             shouldCloseOnTarget = false,
             isOverflowMenu = false,
         } = showContextMenuParams;
+        setWasComposerFocused(ReportActionComposeFocusManager.isFocused());
+
         const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = report;
         const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
@@ -321,6 +326,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         clearActiveReportAction,
         contentRef,
         isContextMenuOpening,
+        wasComposerFocused,
     }));
 
     const reportAction = reportActionRef.current;
@@ -341,6 +347,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
                 shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
+                shouldEnableNewFocusManagement
+                restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldUseNewModal
             >
                 <BaseReportActionContextMenu
