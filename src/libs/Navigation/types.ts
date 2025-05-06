@@ -1324,6 +1324,16 @@ type MoneyRequestNavigatorParamList = {
         /** Hash that includes info about what is searched for */
         searchHash?: number;
     };
+    [SCREENS.MONEY_REQUEST.DECLINE]: {
+        /** ID of the transaction the page was opened for */
+        transactionID: string;
+
+        /** ID of the report that user is providing hold reason to */
+        reportID: string;
+
+        /** Link to previous page */
+        backTo: ExpensifyRoute;
+    };
     [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;

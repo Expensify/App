@@ -21,6 +21,7 @@ import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
+    declineMoneyRequestReason,
     getArchiveReason,
     getBankAccountRoute,
     getIntegrationIcon,
@@ -639,7 +640,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.DECLINE,
             onSelected: () => {
                 if (dismissedDeclineUseExplanation) {
-                    Navigation.navigate(ROUTES.DECLINE_MONEY_REQUEST.getRoute(Navigation.getReportRHPActiveRoute()));
+                    if (requestParentReportAction) {
+                        declineMoneyRequestReason(requestParentReportAction);
+                    }
                 } else {
                     setIsDeclineEducationalModalVisible(true);
                 }

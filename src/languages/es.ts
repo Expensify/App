@@ -1200,6 +1200,9 @@ const translations = {
             declineExpenseTitlePrefix: 'Rechazar un gasto',
             declineExpenseTitle: 'cuando no tienes intención de aprobarlo o pagarlo.',
             declineExpenseDescription: 'Los gastos rechazados se eliminan de los informes y deben volver a enviarse.',
+            reasonPageTitle: 'Rechazar gastos',
+            reasonPageDescription1: 'Rechace un gasto si no planea aprobarlo ni pagarlo. De lo contrario, use "Retener" para pausar el gasto y solicitar más información.',
+            reasonPageDescription2: 'Si va a rechazar el gasto, agregue un comentario para explicar por qué:',
         }
     },
     share: {

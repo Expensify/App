@@ -1201,6 +1201,9 @@ const translations = {
             declineExpenseTitlePrefix: 'Decline an expense',
             declineExpenseTitle: 'when you don\'t intend to approve or pay it.',
             declineExpenseDescription: 'Declined expenses are removed from reports and must be resubmitted.',
+            reasonPageTitle: 'Decline expense',
+            reasonPageDescription1: 'Decline an expense if you don\'t ever plan on approving or paying it. Otherwise, use "hold" to pause the epxnse and ask for more context.',
+            reasonPageDescription2: 'If you\'re going to decline the expense, please add a comment to explain why:',
         }
     },
     share: {
