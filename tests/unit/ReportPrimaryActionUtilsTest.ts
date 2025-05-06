@@ -180,11 +180,13 @@ describe('getPrimaryAction', () => {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: -300,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
         const TRANSACTION_ID = 'TRANSACTION_ID';
 
         const transaction = {

@@ -4,19 +4,15 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
@@ -35,7 +31,6 @@ import ROUTES from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
-import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 
 type MoneyRequestReportViewProps = {
     /** The report */
@@ -94,7 +89,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {translate} = useLocalize();
 
     const reportID = report?.reportID;
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
@@ -122,10 +116,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         goBackFromSearchMoneyRequest(activeWorkspaceID);
         InteractionManager.runAfterInteractions(() => removeFailedReport(reportID));
     }, [activeWorkspaceID, reportID]);
-
-    const {selectionMode} = useMobileSelectionMode();
-
-    const {setSelectedTransactionsID} = useMoneyRequestReportContext();
 
     // Special case handling a report that is a transaction thread
     // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
@@ -210,17 +200,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 errorRowStyles={[styles.ph5, styles.mv2]}
             >
                 <HeaderGap />
-                {selectionMode?.isEnabled ? (
-                    <HeaderWithBackButton
-                        title={translate('common.selectMultiple')}
-                        onBackButtonPress={() => {
-                            setSelectedTransactionsID([]);
-                            turnOffMobileSelectionMode();
-                        }}
-                    />
-                ) : (
-                    reportHeaderView
-                )}
+                {reportHeaderView}
                 <View style={[styles.overflowHidden, styles.flex1]}>
                     {shouldDisplayMoneyRequestActionsList ? (
                         <MoneyRequestReportActionsList
