@@ -6,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import DropZoneUI from '@components/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -153,6 +154,9 @@ function IOURequestStepConfirmation({
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile && !isTestTransaction;
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
+
+    // TODO: remove isMultiFilesBetaEnabled check after the feature is enabled
+    const isMultiFilesBetaEnabled = true;
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -910,15 +914,31 @@ function IOURequestStepConfirmation({
                     />
                     {(isLoading || isLoadingReceipt) && <FullScreenLoadingIndicator />}
                     {PDFThumbnailView}
-                    <ReceiptDropUI
-                        onDrop={(e) => {
-                            const file = e?.dataTransfer?.files[0];
-                            if (file) {
-                                file.uri = URL.createObjectURL(file);
-                                setReceiptOnDrop(file);
-                            }
-                        }}
-                    />
+                    {/* TODO: remove isMultiFilesBetaEnabled check after the feature is enabled */}
+                    {isMultiFilesBetaEnabled ? (
+                        <DropZoneUI
+                            onDrop={(e) => {
+                                const file = e?.dataTransfer?.files[0];
+                                if (file) {
+                                    file.uri = URL.createObjectURL(file);
+                                    setReceiptOnDrop(file);
+                                }
+                            }}
+                            icon={Expensicons.ReplaceReceipt}
+                            dropStyles={styles.receiptDropOverlay}
+                            dropTitle={translate('dropzone.replaceReceipt')}
+                        />
+                    ) : (
+                        <ReceiptDropUI
+                            onDrop={(e) => {
+                                const file = e?.dataTransfer?.files[0];
+                                if (file) {
+                                    file.uri = URL.createObjectURL(file);
+                                    setReceiptOnDrop(file);
+                                }
+                            }}
+                        />
+                    )}
                     <ConfirmModal
                         title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                         onConfirm={hideReceiptModal}

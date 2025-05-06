@@ -120,6 +120,7 @@ function ReportActionCompose({
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
 
+    // TODO: remove isMultiFilesBetaEnabled check after the feature is enabled
     const isMultiFilesBetaEnabled = true;
 
     /**
@@ -483,6 +484,7 @@ function ReportActionCompose({
                                         onValueChange={onValueChange}
                                         didHideComposerInput={didHideComposerInput}
                                     />
+                                    {/* TODO: remove isMultiFilesBetaEnabled check after the feature is enabled */}
                                     <DropZoneUI
                                         onDrop={(event: DragEvent) => {
                                             if (isAttachmentPreviewActive) {
