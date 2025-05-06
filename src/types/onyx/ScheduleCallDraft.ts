@@ -9,7 +9,7 @@ type ScheduleCallDraft = {
     /**
      * Time of the day of the guide that is being booked for the call
      */
-    slotTime?: string;
+    timeSlot?: string;
     /**
      * Guide details to whom call has been booked
      */
@@ -24,9 +24,9 @@ type ScheduleCallDraft = {
         email: string;
 
         /**
-         * Calendly url for guide's schedule
+         * Calendly URL for guide's schedule
          */
-        scheduleUrl: string;
+        scheduleURL: string;
     };
 
     /**

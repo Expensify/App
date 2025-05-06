@@ -1991,7 +1991,7 @@ type DebugParamList = {
 };
 
 type ScheduleCallParamList = {
-    [SCREENS.SCHEDULE_CALL.BOOK_CALL]: {
+    [SCREENS.SCHEDULE_CALL.BOOK]: {
         reportID: string;
     };
     [SCREENS.SCHEDULE_CALL.CONFIRMATION]: {

@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import {addMinutes, format} from 'date-fns';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -18,9 +19,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmBooking} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ScheduleCallParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
 
 function ScheduleCallConfirmationPage() {
@@ -30,15 +34,16 @@ function ScheduleCallConfirmationPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
     const personalDetails = usePersonalDetails();
+    const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.CONFIRMATION>>();
 
     const confirm = useCallback(() => {
-        if (!scheduleCallDraft?.slotTime || !scheduleCallDraft?.date || !scheduleCallDraft.guide || !scheduleCallDraft.reportID) {
+        if (!scheduleCallDraft?.timeSlot || !scheduleCallDraft?.date || !scheduleCallDraft.guide || !scheduleCallDraft.reportID) {
             return;
         }
         confirmBooking(
             {
                 date: scheduleCallDraft.date,
-                slotTime: scheduleCallDraft.slotTime,
+                timeSlot: scheduleCallDraft.timeSlot,
                 guide: scheduleCallDraft.guide,
                 reportID: scheduleCallDraft.reportID,
             },
@@ -52,16 +57,16 @@ function ScheduleCallConfirmationPage() {
     );
 
     const dateTimeString = useMemo(() => {
-        if (!scheduleCallDraft?.slotTime || !scheduleCallDraft.date) {
+        if (!scheduleCallDraft?.timeSlot || !scheduleCallDraft.date) {
             return '';
         }
         const dateString = format(scheduleCallDraft.date, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
-        const timeString = `${DateUtils.formatToLocalTime(scheduleCallDraft?.slotTime)} - ${DateUtils.formatToLocalTime(addMinutes(scheduleCallDraft?.slotTime, 30))}`;
+        const timeString = `${DateUtils.formatToLocalTime(scheduleCallDraft?.timeSlot)} - ${DateUtils.formatToLocalTime(addMinutes(scheduleCallDraft?.timeSlot, 30))}`;
 
         const timeZoneStirng = timezone.selected;
 
         return `${dateString} from ${timeString} ${timeZoneStirng}`;
-    }, [scheduleCallDraft?.date, scheduleCallDraft?.slotTime, timezone.selected]);
+    }, [scheduleCallDraft?.date, scheduleCallDraft?.timeSlot, timezone.selected]);
 
     return (
         <ScreenWrapper
@@ -70,7 +75,12 @@ function ScheduleCallConfirmationPage() {
         >
             <HeaderWithBackButton
                 title={translate('scheduledCall.confirmation.title')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => {
+                    if (!route?.params?.reportID) {
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK.getRoute(route?.params?.reportID));
+                }}
             />
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>

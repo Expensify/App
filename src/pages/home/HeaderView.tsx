@@ -75,6 +75,7 @@ import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import { clearBookingDraft } from '@libs/actions/ScheduleCall';
 import TalkToSalesButton from './TalkToSalesButton';
 
 type HeaderViewProps = {
@@ -164,7 +165,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         return true;
     };
 
-    const shouldShowGuideBooking = !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
+    const shouldShowGuideBooking = true || !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
@@ -223,6 +224,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 if (!report?.reportID) {
                     return;
                 }
+                clearBookingDraft();
                 Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK.getRoute(report?.reportID));
             }}
             style={shouldUseNarrowLayout && shouldShowGuideBookingButtonInEarlyDiscountBanner && styles.earlyDiscountButton}

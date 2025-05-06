@@ -716,7 +716,7 @@ const SCREENS = {
         TRANSACTION_VIOLATION: 'Debug_Transaction_Violation',
     },
     SCHEDULE_CALL: {
-        BOOK_CALL: 'ScheduleCall_Book_Call',
+        BOOK: 'ScheduleCall_Book',
         CONFIRMATION: 'ScheduleCall_Confirmation',
     },
 } as const;

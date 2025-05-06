@@ -752,7 +752,7 @@ const DebugModalStackNavigator = createModalStackNavigator<DebugParamList>({
 });
 
 const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallParamList>({
-    [SCREENS.SCHEDULE_CALL.BOOK_CALL]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallPage').default,
+    [SCREENS.SCHEDULE_CALL.BOOK]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallPage').default,
     [SCREENS.SCHEDULE_CALL.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallConfirmationPage').default,
 });
 

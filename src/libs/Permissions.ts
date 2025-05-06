@@ -35,7 +35,7 @@ function canUseLinkPreviews(): boolean {
 }
 
 function canUseMergeAccounts(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS) || canUseAllBetas(betas);
+    return true || !!betas?.includes(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS) || canUseAllBetas(betas);
 }
 
 function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {

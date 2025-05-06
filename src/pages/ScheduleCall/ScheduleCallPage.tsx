@@ -34,14 +34,14 @@ type TimeSlot = {
     guideAccountID: number;
     guideEmail: string;
     startTime: string;
-    scheduleUrl: string;
+    scheduleURL: string;
 };
 
 function ScheduleCallPage() {
     const styles = useThemeStyles();
     const styleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK_CALL>>();
+    const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK>>();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
@@ -54,7 +54,6 @@ function ScheduleCallPage() {
         }),
         canBeMissing: true,
     });
-    const [adminRoomsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const calendlySchedule = adminReportNameValuePairs?.calendlySchedule;
 
     const [containerWidth, setContainerWidth] = useState(0);
@@ -64,8 +63,8 @@ function ScheduleCallPage() {
         if (!reportID) {
             return;
         }
-        getGuideCallAvailabilitySchedule(adminRoomsReport?.policyID, reportID, currentUserPersonalDetails.accountID);
-    }, [reportID, adminRoomsReport?.policyID, currentUserPersonalDetails.accountID]);
+        getGuideCallAvailabilitySchedule(reportID);
+    }, [reportID]);
 
     const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
         saveBookingDraft({date});
@@ -84,7 +83,7 @@ function ScheduleCallPage() {
                     guideAccountID: Number(guideAccountID),
                     guideEmail: guideSchedule.guideEmail,
                     startTime: timeSlot.startTime,
-                    scheduleUrl: timeSlot.schedulingURL,
+                    scheduleURL: timeSlot.schedulingURL,
                 });
             });
             return allSlots;
@@ -147,6 +146,7 @@ function ScheduleCallPage() {
                             </View>
                         </View>
                         <MenuItemWithTopDescription
+                            interactive={false}
                             title={timezone.selected}
                             description={translate('timezonePage.timezone')}
                             style={[styles.mt3, styles.mb3]}
@@ -178,12 +178,12 @@ function ScheduleCallPage() {
                                         <Button
                                             key={`time-slot-${timeSlot.startTime}`}
                                             large
-                                            success={scheduleCallDraft?.slotTime === timeSlot?.startTime}
+                                            success={scheduleCallDraft?.timeSlot === timeSlot?.startTime}
                                             onPress={() => {
                                                 saveBookingDraft({
-                                                    slotTime: timeSlot.startTime,
+                                                    timeSlot: timeSlot.startTime,
                                                     guide: {
-                                                        scheduleUrl: timeSlot.scheduleUrl,
+                                                        scheduleURL: timeSlot.scheduleURL,
                                                         accountID: timeSlot.guideAccountID,
                                                         email: timeSlot.guideEmail,
                                                     },
