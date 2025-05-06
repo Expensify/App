@@ -70,8 +70,14 @@ function useSearchHighlightAndScroll({searchResults, queryJSON}: UseSearchHighli
         }
 
         const newTransactionID = newTransactionIDs.at(0) ?? '';
-        const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`;
 
+        const isFirstTransaction = currentTransactionIDs.indexOf(newTransactionID) === 0;
+        if (isFirstTransaction) {
+            highlightedIDs.current.add(newTransactionID);
+            return;
+        }
+
+        const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`;
         setNewSearchResultKey(newTransactionKey);
         highlightedIDs.current.add(newTransactionID);
     }, [searchResults?.data, previousSearchResults, isChat]);
