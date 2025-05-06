@@ -202,7 +202,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         search({queryJSON, offset});
     }, [isOffline, offset, queryJSON]);
 
-    // Create a ref to track if we're currently opening a report
     const isOpeningReportRef = useRef(false);
 
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
@@ -310,7 +309,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             clearSelectedTransactions();
             turnOffMobileSelectionMode();
 
-            // Make sure the flag is reset when the component unmounts
             isOpeningReportRef.current = false;
         },
         [isFocused, clearSelectedTransactions],
@@ -381,9 +379,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 return;
             }
 
-            // Set the flag to indicate we're opening a report to prevent unnecessary search API calls
             isOpeningReportRef.current = true;
-
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
 
@@ -402,11 +398,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
             if (canUseTableReportView && shouldHandleTransactionAsReport) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
-
-                // // Reset the flag after navigation completes
-                // setTimeout(() => {
-                    isOpeningReportRef.current = false;
-                // }, 500);
+                isOpeningReportRef.current = false;
                 return;
             }
 
@@ -422,11 +414,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         transactionID: item.transactionID,
                     }),
                 );
-
-                // // Reset the flag after navigation completes
-                // setTimeout(() => {
-                    isOpeningReportRef.current = false;
-                // }, 500);
+                isOpeningReportRef.current = false;
                 return;
             }
 
@@ -434,19 +422,13 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 const reportActionID = item.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
 
-                // Reset the flag after navigation completes
-                // setTimeout(() => {
-                    isOpeningReportRef.current = false;
-                // }, 500);
+                isOpeningReportRef.current = false;
                 return;
             }
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
 
-            // Reset the flag after navigation completes
-            // setTimeout(() => {
-                isOpeningReportRef.current = false;
-            // }, 500);
+            isOpeningReportRef.current = false;
         },
         [canUseTableReportView, hash, selectionMode?.isEnabled, toggleTransaction],
     );

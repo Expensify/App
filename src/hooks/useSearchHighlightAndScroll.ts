@@ -55,7 +55,6 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
 
         // Check if there is a change in the transactions or report actions list
         if (((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) && !isOpeningReport) {
-            // Skip search when navigating to a report (isOpeningReport = true)
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
             // We don't want to highlight these old items, even if they appear new in the current search results.
@@ -64,7 +63,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // Set the flag indicating the search is triggered by the hook
             triggeredByHookRef.current = true;
 
-            // Trigger the search only when not opening a report
+            // Trigger the search
             search({queryJSON, offset});
 
             // Set the ref to prevent further triggers until reset
