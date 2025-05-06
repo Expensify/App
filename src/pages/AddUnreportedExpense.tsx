@@ -65,7 +65,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             shouldEnableKeyboardAvoidingView={false}
             includeSafeAreaPaddingBottom
             shouldShowOfflineIndicator={false}
-            includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
             testID={NewChatSelectorPage.displayName}
             focusTrapSettings={{active: false}}
