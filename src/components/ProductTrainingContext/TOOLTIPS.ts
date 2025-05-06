@@ -12,6 +12,8 @@ const {
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
+    GBR_RBR_CHAT,
+    ACCOUNT_SWITCHER,
     EXPENSE_REPORTS_FILTER,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
@@ -19,6 +21,7 @@ type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_
 
 type ShouldShowConditionProps = {
     shouldUseNarrowLayout: boolean;
+    isUserPolicyEmployee: boolean;
     isUserPolicyAdmin: boolean;
     hasBeenAddedToNudgeMigration: boolean;
 };
@@ -60,11 +63,12 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.globalCreateTooltip.part1', isBold: true},
             {text: 'productTrainingTooltip.globalCreateTooltip.part2', isBold: false},
             {text: 'productTrainingTooltip.globalCreateTooltip.part3', isBold: false},
+            {text: 'productTrainingTooltip.globalCreateTooltip.part4', isBold: false},
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(GLOBAL_CREATE_TOOLTIP, isDismissedUsingCloseButton),
         name: GLOBAL_CREATE_TOOLTIP,
-        priority: 1200,
-        shouldShow: () => true,
+        priority: 1950,
+        shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {
         content: [
@@ -80,13 +84,35 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [LHN_WORKSPACE_CHAT_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: false},
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part3', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: true},
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP, isDismissedUsingCloseButton),
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
-        priority: 800,
+        priority: 1800,
+        shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
+    },
+    [GBR_RBR_CHAT]: {
+        content: [
+            {text: 'productTrainingTooltip.GBRRBRChat.part1', isBold: false},
+            {text: 'productTrainingTooltip.GBRRBRChat.part2', isBold: true},
+            {text: 'productTrainingTooltip.GBRRBRChat.part3', isBold: false},
+            {text: 'productTrainingTooltip.GBRRBRChat.part4', isBold: true},
+        ],
+        onHideTooltip: () => dismissProductTraining(GBR_RBR_CHAT),
+        name: GBR_RBR_CHAT,
+        priority: 1900,
+        shouldShow: () => true,
+    },
+    [ACCOUNT_SWITCHER]: {
+        content: [
+            {text: 'productTrainingTooltip.accountSwitcher.part1', isBold: false},
+            {text: 'productTrainingTooltip.accountSwitcher.part2', isBold: true},
+            {text: 'productTrainingTooltip.accountSwitcher.part3', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(ACCOUNT_SWITCHER),
+        name: ACCOUNT_SWITCHER,
+        priority: 1600,
         shouldShow: () => true,
     },
     [EXPENSE_REPORTS_FILTER]: {
