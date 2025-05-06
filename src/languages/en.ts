@@ -928,6 +928,7 @@ const translations = {
         share: 'Share',
         participants: 'Participants',
         createExpense: 'Create expense',
+        addExpense: 'Add expense',
         chooseRecipient: 'Choose recipient',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Create ${amount} expense`,
         confirmDetails: 'Confirm details',
@@ -1168,6 +1169,7 @@ const translations = {
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
         attendees: 'Attendees',
+        whoIsYourAccountant: 'Who is your accountant?',
         paymentComplete: 'Payment complete',
         time: 'Time',
         startDate: 'Start date',
@@ -4857,7 +4859,7 @@ const translations = {
             description1: 'Your final bill for this subscription will be',
             description2: ({date}: DateParams) => `See your breakdown below for ${date}:`,
             subscription:
-                'This will end your subscription with Expensify, delete your remaining workspace and all members will lose access moving forward. If you want to remove just yourself, have another admin take over billing, and at that point, you can remove yourself from this workspace.',
+                'Heads up! This action will end your Expensify subscription, delete this workspace, and remove all workspace members. If you want to keep this workspace and only remove yourself, have another admin take over billing first.',
             genericFailureMessage: 'An error occurred while paying your bill. Please try again.',
         },
         restrictedAction: {
@@ -5193,12 +5195,12 @@ const translations = {
             },
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",
-                subtitle: 'Create an expense or take a tour of Expensify to learn more.',
+                subtitle: 'Create an expense or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to create an expense.',
             },
             emptyInvoiceResults: {
                 title: "You haven't created any \ninvoices yet",
-                subtitle: 'Send an invoice or take a tour of Expensify to learn more.',
+                subtitle: 'Send an invoice or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to send an invoice.',
             },
             emptyTripResults: {
@@ -5685,7 +5687,7 @@ const translations = {
             return message;
         },
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
-            const preMessage = 'Prohibited Expense: ';
+            const preMessage = 'Prohibited expense:';
             switch (prohibitedExpenseType) {
                 case 'alcohol':
                     return `${preMessage} Alcohol`;
@@ -5694,9 +5696,9 @@ const translations = {
                 case 'tobacco':
                     return `${preMessage} Tobacco`;
                 case 'adultEntertainment':
-                    return `${preMessage} Adult Entertainment`;
+                    return `${preMessage} Adult entertainment`;
                 case 'hotelIncidentals':
-                    return `${preMessage} Hotel Incidentals`;
+                    return `${preMessage} Hotel incidentals`;
                 default:
                     return `${preMessage}${prohibitedExpenseType}`;
             }
@@ -5927,7 +5929,7 @@ const translations = {
             perMemberMonth: 'per member/month',
             collect: {
                 title: 'Collect',
-                description: 'The SMB plan that gives you expense, travel, and chat.',
+                description: 'The small business plan that gives you expense, travel, and chat.',
                 priceAnnual: ({lower, upper}: YourPlanPriceParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 benefit1: 'Receipt scanning',
@@ -6194,11 +6196,7 @@ const translations = {
         },
     },
     emptySearchView: {
-        takeATour: 'Take a tour',
-    },
-    tour: {
-        takeATwoMinuteTour: 'Take a 2-minute tour',
-        exploreExpensify: 'Explore everything Expensify has to offer',
+        takeATestDrive: 'Take a test drive',
     },
     migratedUserWelcomeModal: {
         title: 'Travel and expense, at the speed of chat',
@@ -6228,14 +6226,25 @@ const translations = {
             part4: 'chat about expenses.',
         },
         workspaceChatTooltip: {
-            part1: 'Submit expenses',
-            part2: ' and chat with',
-            part3: '\napprovers here!',
+            part1: 'Chat with ',
+            part2: 'approvers',
         },
         globalCreateTooltip: {
             part1: 'Create expenses',
             part2: ', start chatting,',
-            part3: '\nand more!',
+            part3: '\nand more.',
+            part4: ' Try it out!',
+        },
+        GBRRBRChat: {
+            part1: 'You’ll see 🟢 on ',
+            part2: 'actions to take',
+            part3: ',\nand 🔴 on ',
+            part4: 'errors to review.',
+        },
+        accountSwitcher: {
+            part1: 'Access your ',
+            part2: 'Copilot accounts',
+            part3: ' here',
         },
         expenseReportsFilter: {
             part1: 'Welcome! Find all of your',
@@ -6267,6 +6276,10 @@ const translations = {
         hangUp: 'Hang up',
     },
     testDrive: {
+        quickAction: {
+            takeATwoMinuteTestDrive: 'Take a 2-minute test drive',
+            exploreExpensify: 'Explore everything Expensify has to offer',
+        },
         modal: {
             title: 'Take us for a test drive',
             description: 'Take a quick product tour to get up to speed fast. No pit stops required!',
