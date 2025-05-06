@@ -11,17 +11,20 @@ function sortEmailObjects(emails?: StringHolder[]): string[] {
     }
 
     const expensifyDomain = CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN.toLowerCase();
+    const filteredEmails: string[] = [];
+    for (const email of emails) {
+        if (email?.value) {
+            filteredEmails.push(email.value);
+        }
+    }
 
-    return emails
-        .filter((email) => email?.value)
-        .map((email) => email.value)
-        .sort((a, b) => {
-            const isExpensifyA = a.toLowerCase().includes(expensifyDomain);
-            const isExpensifyB = b.toLowerCase().includes(expensifyDomain);
+    return filteredEmails.sort((a, b) => {
+        const isExpensifyA = a.toLowerCase().includes(expensifyDomain);
+        const isExpensifyB = b.toLowerCase().includes(expensifyDomain);
 
-            // Prioritize Expensify emails, then sort alphabetically
-            return isExpensifyA !== isExpensifyB ? Number(isExpensifyB) - Number(isExpensifyA) : a.localeCompare(b);
-        });
+        // Prioritize Expensify emails, then sort alphabetically
+        return isExpensifyA !== isExpensifyB ? Number(isExpensifyB) - Number(isExpensifyA) : a.localeCompare(b);
+    });
 }
 
 const getContacts = (deviceContacts: DeviceContact[] | []): Array<SearchOption<PersonalDetails>> => {
