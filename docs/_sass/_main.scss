@@ -617,18 +617,46 @@ button {
                 bottom: 8px;
                 left: 8px;
 
+                .vjs-playing,
+                .vjs-paused {
+                    color: var(--color-white);
+                    height: 100%;
+                    width: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-right: 4px;
+                    margin-left: 12px;
+                }
+
+                .vjs-playing {
+                    background: url('/assets/images/pause.svg');
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    background-size: contain;
+                }
+
                 .vjs-paused {
                     background: url('/assets/images/play.svg');
                     background-repeat: no-repeat;
                     background-position: center;
                     background-size: contain;
-                    font-size: 8px;
-                    color: var(--color-white);
-                    height: 32px;
-                    width: 32px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
+                }
+
+                .vjs-icon-placeholder:before {
+                    font-size: 20px;
+                }
+
+                .vjs-fullscreen-control {
+                    .vjs-icon-placeholder:before {
+                        content: '';
+                        background: url('/assets/images/fullscreen.svg');
+                        background-repeat: no-repeat;
+                        background-position: center;
+                        background-size: contain;
+                        width: 20px;
+                        margin-left: 4px;
+                    }
                 }
 
                 .vjs-control:focus {
