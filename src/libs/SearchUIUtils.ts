@@ -1,6 +1,6 @@
 import type {TextStyle, ViewStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import DotLottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -17,6 +17,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import {PersonalDetails, Policy} from '@src/types/onyx';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
@@ -33,14 +34,24 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {getAdminPolicies, getApproverPolicies, getExporterPolicies} from './actions/Policy/Policy';
+import {createNewReport} from './actions/Report';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import interceptAnonymousUser from './interceptAnonymousUser';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getAllSharedPolicies, getPolicy} from './PolicyUtils';
+import {
+    areAllGroupPoliciesExpenseChatDisabled,
+    getActivePolicy,
+    getAllPolicies,
+    getAllSharedPolicies,
+    getGroupPaidPoliciesWithExpenseChatEnabled,
+    getPolicy,
+    isPaidGroupPolicy,
+} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
     getIcons,
@@ -59,6 +70,7 @@ import {
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
+import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
 
@@ -936,7 +948,33 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
                         {
                             success: true,
                             buttonText: 'report.newReport.createReport',
-                            buttonAction: () => {},
+                            buttonAction: () => {
+                                interceptAnonymousUser(() => {
+                                    const activePolicy = getActivePolicy();
+                                    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
+                                    const personalDetails = getPersonalDetailsForAccountID(session.accountID) as PersonalDetails;
+
+                                    let workspaceIDForReportCreation: string | undefined;
+
+                                    // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
+                                    if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                        workspaceIDForReportCreation = activePolicy.id;
+                                    } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                        workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
+                                    }
+
+                                    if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
+                                        const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
+                                        Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                        });
+                                        return;
+                                    }
+
+                                    // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
+                                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                });
+                            },
                         },
                     ],
                 },
