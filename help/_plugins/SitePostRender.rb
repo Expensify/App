@@ -202,12 +202,17 @@ module Jekyll
         items = node.xpath('./li').map do |li|
           contains_ul = li.xpath('.//ul').any?
 
-          li_parts = li.children.map { |child| html_node_to_RN(child, indent_level + 3) }.join
+          li_parts = li.children.map { |child| html_node_to_RN(child, 0) }
         
           if contains_ul
-            "#{'  ' * (indent_level + 2)}<>\n#{li_parts}\n#{'  ' * (indent_level + 1)}</>"
+
+            indented_li_parts = li_parts.map do |part|
+              part.lines.map { |line| "#{'  ' * (indent_level + 3)}#{line.rstrip}" }.join("\n")
+            end.join("\n")
+            
+            "#{'  ' * (indent_level + 2)}<>\n#{indented_li_parts}\n#{'  ' * (indent_level + 2)}</>"
           else
-            "#{'  ' * (indent_level + 2)}<Text style={styles.textNormal}>#{li_parts}</Text>"
+            "#{'  ' * (indent_level + 2)}<Text style={styles.textNormal}>#{li_parts.join}</Text>"
           end
         end
 
