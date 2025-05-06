@@ -1575,7 +1575,7 @@ describe('actions/IOU', () => {
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
 
-        it('trigger notifyNewAction when doing the money request without canUseTableReportView permission', async () => {
+        it('trigger notifyNewAction when doing the money request without canUseTableReportView permission', () => {
             requestMoney({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participantParams: {
@@ -1633,7 +1633,7 @@ describe('actions/IOU', () => {
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
 
-        it('trigger notifyNewAction when doing the money request without canUseTableReportView permission', async () => {
+        it('trigger notifyNewAction when doing the money request without canUseTableReportView permission', () => {
             createDistanceRequest({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participants: [],
