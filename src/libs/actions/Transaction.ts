@@ -272,10 +272,6 @@ function getOnyxDataForRouteRequest(transactionID: string, transactionState: Tra
     };
 }
 
-function isRecentWaypoint(waypoint: WaypointCollection[string]): waypoint is RecentWaypoint {
-    return 'pendingAction' in waypoint;
-}
-
 /**
  * Sanitizes the waypoints by removing the pendingAction property.
  *
@@ -284,7 +280,7 @@ function isRecentWaypoint(waypoint: WaypointCollection[string]): waypoint is Rec
  */
 function sanitizeRecentWaypoints(waypoints: WaypointCollection): WaypointCollection {
     return Object.entries(waypoints).reduce((acc: WaypointCollection, [key, waypoint]) => {
-        if (isRecentWaypoint(waypoint)) {
+        if ('pendingAction' in waypoint) {
             const {pendingAction, ...rest} = waypoint;
             acc[key] = rest;
         } else {
