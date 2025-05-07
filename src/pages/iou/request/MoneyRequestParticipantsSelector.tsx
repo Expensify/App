@@ -130,6 +130,9 @@ function MoneyRequestParticipantsSelector({
                 // sees the option to submit an expense from their admin on their own Workspace Chat.
                 includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
 
+                // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
+                excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
+
                 includeP2P: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,

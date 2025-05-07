@@ -5,12 +5,15 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {exportReportToCSV, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,7 +34,6 @@ import {
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
     isAllowedToApproveExpenseReport,
-    isArchivedReportWithID,
     isExported as isExportedUtils,
     isInvoiceReport,
     isProcessingReport,
@@ -185,7 +187,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, moneyRequestReport, policy, violations);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
-    const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
+    const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason, canBeMissing: true});
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`, {canBeMissing: true});
@@ -199,7 +201,18 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
-    const selectedTransactionsOptions = useSelectedTransactionsActions({report: moneyRequestReport, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    const {
+        options: selectedTransactionsOptions,
+        handleDeleteTransactions,
+        isDeleteModalVisible: hookDeleteModalVisible,
+        hideDeleteModal,
+    } = useSelectedTransactionsActions({
+        report: moneyRequestReport,
+        reportActions,
+        allTransactionsLength: transactions.length,
+        session,
+        onExportFailed: () => setIsDownloadErrorModalVisible(true),
+    });
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
@@ -338,7 +351,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     };
 
     const statusBarProps = getStatusBarProps();
-    const shouldAddGapToContents = shouldUseNarrowLayout && (!!statusBarProps || shouldShowNextStep);
+    const shouldAddGapToContents = shouldUseNarrowLayout && shouldShowSelectedTransactionsButton && (!!statusBarProps || shouldShowNextStep);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -659,6 +672,20 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [connectedIntegrationName, styles.noWrap, styles.textStrong, translate],
     );
 
+    const {selectionMode} = useMobileSelectionMode();
+
+    if (selectionMode?.isEnabled) {
+        return (
+            <HeaderWithBackButton
+                title={translate('common.selectMultiple')}
+                onBackButtonPress={() => {
+                    setSelectedTransactionsID([]);
+                    turnOffMobileSelectionMode();
+                }}
+            />
+        );
+    }
+
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
@@ -810,6 +837,17 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 }}
                 onCancel={() => setIsDeleteModalVisible(false)}
                 prompt={translate('iou.deleteConfirmation', {count: 1})}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+                shouldEnableNewFocusManagement
+            />
+            <ConfirmModal
+                title={translate('iou.deleteExpense', {count: selectedTransactionsID.length})}
+                isVisible={hookDeleteModalVisible}
+                onConfirm={handleDeleteTransactions}
+                onCancel={hideDeleteModal}
+                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsID.length})}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger

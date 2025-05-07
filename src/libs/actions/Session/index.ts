@@ -69,6 +69,9 @@ const INVALID_TOKEN = 'pizza';
 
 let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
+
+let hasSwitchedAccountInHybridMode = false;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -308,6 +311,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 policyID: activePolicyID ?? '',
                 accountID: session.accountID ? String(session.accountID) : '',
             });
+            hasSwitchedAccountInHybridMode = true;
         }
 
         onyxSetParams = {
@@ -335,6 +339,10 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             } else {
                 redirectToSignIn().then(() => {
                     Onyx.multiSet(onyxSetParams);
+
+                    if (hasSwitchedAccountInHybridMode) {
+                        openApp();
+                    }
                 });
             }
         })
