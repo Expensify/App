@@ -79,9 +79,9 @@ import type {ReceiptFile} from './types';
 function IOURequestStepScan({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID: firstTransactionID, backTo},
+        params: {action, iouType, reportID, transactionID: initialTransactionID, backTo},
     },
-    transaction: firstTransaction,
+    transaction: initialTransaction,
     currentUserPersonalDetails,
     isTooltipAllowed = false,
 }: IOURequestStepScanProps) {
@@ -102,7 +102,7 @@ function IOURequestStepScan({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${firstTransactionID}`, {canBeMissing: true});
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
@@ -115,9 +115,9 @@ function IOURequestStepScan({
 
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
-    const defaultTaxCode = getDefaultTaxCode(policy, firstTransaction);
-    const transactionTaxCode = (firstTransaction?.taxCode ? firstTransaction?.taxCode : defaultTaxCode) ?? '';
-    const transactionTaxAmount = firstTransaction?.taxAmount ?? 0;
+    const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
+    const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -249,38 +249,38 @@ function IOURequestStepScan({
     const navigateToParticipantPage = useCallback(() => {
         switch (iouType) {
             case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, firstTransactionID, reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, initialTransactionID, reportID));
                 break;
             case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, firstTransactionID, reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, initialTransactionID, reportID));
                 break;
             default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, firstTransactionID, reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, reportID));
         }
-    }, [iouType, reportID, firstTransactionID]);
+    }, [iouType, reportID, initialTransactionID]);
 
     const navigateToConfirmationPage = useCallback(
         (isTestTransaction = false, reportIDParam: string | undefined = undefined) => {
             switch (iouType) {
                 case CONST.IOU.TYPE.REQUEST:
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, firstTransactionID, reportID));
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, initialTransactionID, reportID));
                     break;
                 case CONST.IOU.TYPE.SEND:
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, firstTransactionID, reportID));
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, initialTransactionID, reportID));
                     break;
                 default:
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                             CONST.IOU.ACTION.CREATE,
                             isTestTransaction ? CONST.IOU.TYPE.SUBMIT : iouType,
-                            firstTransactionID,
+                            initialTransactionID,
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             reportIDParam || reportID,
                         ),
                     );
             }
         },
-        [iouType, reportID, firstTransactionID],
+        [iouType, reportID, initialTransactionID],
     );
 
     const createTransaction = useCallback(
@@ -325,7 +325,7 @@ function IOURequestStepScan({
 
     const buildOptimisticTransaction = useCallback((): Transaction => {
         const newTransactionID = generatePolicyID(); // TODO: replace generatePolicyID
-        const {comment, currency, category, iouRequestType, isFromGlobalCreate, splitPayerAccountIDs} = firstTransaction ?? {};
+        const {comment, currency, category, iouRequestType, isFromGlobalCreate, splitPayerAccountIDs} = initialTransaction ?? {};
         const newTransaction = {
             amount: 0,
             comment,
@@ -342,7 +342,7 @@ function IOURequestStepScan({
         } as Transaction;
         createDraftTransaction(newTransaction);
         return newTransaction;
-    }, [firstTransaction, reportID]);
+    }, [initialTransaction, reportID]);
 
     const navigateToConfirmationStep = useCallback(
         (files: ReceiptFile[], locationPermissionGranted = false, isTestTransaction = false) => {
@@ -357,7 +357,7 @@ function IOURequestStepScan({
                 if (!managerMcTestParticipant.reportID && report?.reportID) {
                     reportIDParam = generateReportID();
                 }
-                setMoneyRequestParticipants(firstTransactionID, [{...managerMcTestParticipant, reportID: reportIDParam, selected: true}], true).then(() => {
+                setMoneyRequestParticipants(initialTransactionID, [{...managerMcTestParticipant, reportID: reportIDParam, selected: true}], true).then(() => {
                     navigateToConfirmationPage(true, reportIDParam);
                 });
                 return;
@@ -496,7 +496,7 @@ function IOURequestStepScan({
                     ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                         CONST.IOU.ACTION.CREATE,
                         iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
-                        firstTransactionID,
+                        initialTransactionID,
                         activePolicyExpenseChat?.reportID,
                     ),
                 );
@@ -512,7 +512,7 @@ function IOURequestStepScan({
             report,
             reportNameValuePairs,
             iouType,
-            firstTransactionID,
+            initialTransactionID,
             navigateToConfirmationPage,
             shouldSkipConfirmation,
             personalDetails,
@@ -528,9 +528,9 @@ function IOURequestStepScan({
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
             navigateBack();
-            replaceReceipt({transactionID: firstTransactionID, file: file as File, source});
+            replaceReceipt({transactionID: initialTransactionID, file: file as File, source});
         },
-        [firstTransactionID],
+        [initialTransactionID],
     );
 
     /**
@@ -560,8 +560,8 @@ function IOURequestStepScan({
                         return;
                     }
 
-                    setMoneyRequestReceipt(firstTransactionID, file.uri, filename, !isEditing, file.type, true);
-                    navigateToConfirmationStep([{file, source: file.uri, transactionID: firstTransactionID}], false, true);
+                    setMoneyRequestReceipt(initialTransactionID, file.uri, filename, !isEditing, file.type, true);
+                    navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);
                 })
                 .catch((error) => {
                     Log.warn('Error downloading test receipt:', {message: error});
@@ -569,7 +569,7 @@ function IOURequestStepScan({
         } catch (error) {
             Log.warn('Error in setTestReceiptAndNavigate:', {message: error});
         }
-    }, [firstTransactionID, isEditing, navigateToConfirmationStep]);
+    }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
@@ -600,18 +600,18 @@ function IOURequestStepScan({
             // Store the receipt on the transaction object in Onyx
             // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
             // So, let us also save the file type in receipt for later use during blob fetch
-            setMoneyRequestReceipt(firstTransactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
+            setMoneyRequestReceipt(initialTransactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
 
             if (isEditing) {
                 updateScanAndNavigate(file, file?.uri ?? '');
                 return;
             }
 
-            const newReceiptFiles = [{file, source: file?.uri ?? '', transactionID: firstTransactionID}];
+            const newReceiptFiles = [{file, source: file?.uri ?? '', transactionID: initialTransactionID}];
 
             if (shouldSkipConfirmation) {
                 setReceiptFiles(newReceiptFiles);
-                const gpsRequired = firstTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
+                const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
 
                 if (gpsRequired) {
                     const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
@@ -671,8 +671,8 @@ function IOURequestStepScan({
                     .then((photo: PhotoFile) => {
                         // Store the receipt on the transaction object in Onyx
                         const source = getPhotoSource(photo.path);
-                        const transaction = receiptFiles.length > 0 ? buildOptimisticTransaction() : firstTransaction;
-                        const transactionID = transaction?.transactionID ?? firstTransactionID;
+                        const transaction = receiptFiles.length > 0 ? buildOptimisticTransaction() : initialTransaction;
+                        const transactionID = transaction?.transactionID ?? initialTransactionID;
 
                         setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
 
@@ -722,8 +722,8 @@ function IOURequestStepScan({
         isPlatformMuted,
         receiptFiles,
         buildOptimisticTransaction,
-        firstTransaction,
-        firstTransactionID,
+        initialTransaction,
+        initialTransactionID,
         isEditing,
         shouldSkipConfirmation,
         navigateToConfirmationStep,
