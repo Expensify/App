@@ -215,7 +215,6 @@ function AttachmentModal({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
     const attachmentErrors = useAttachmentErrors();
-    const {clearAttachmentErrors, isErrorInAttachment} = attachmentErrors;
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -493,7 +492,7 @@ function AttachmentModal({
     const headerTitleNew = headerTitle ?? translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
     const shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     let shouldShowDownloadButton = false;
-    if ((!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) && !isErrorInAttachment(sourceState)) {
+    if ((!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) && !attachmentErrors.isErrorInAttachment(sourceState)) {
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
     }
     const context = useMemo(
@@ -528,7 +527,7 @@ function AttachmentModal({
                         onModalHide();
                     }
                     setShouldLoadAttachment(false);
-                    clearAttachmentErrors();
+                    attachmentErrors.clearAttachmentErrors();
                     if (isPDFLoadError.current) {
                         setIsAttachmentInvalid(true);
                         setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');

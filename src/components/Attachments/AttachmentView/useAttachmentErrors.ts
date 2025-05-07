@@ -12,22 +12,14 @@ type AttachmentErrors = Record<string, boolean> | Record<string, never>;
 function useAttachmentErrors() {
     const [attachmentErrors, setAttachmentErrors] = useState<AttachmentErrors>({});
 
-    const setAttachmentError = useCallback(
-        (key: unknown, state = true) => {
-            const url = JSON.stringify(key);
-            const attachmentError = attachmentErrors[url];
-            // eslint-disable-next-line eqeqeq
-            if (attachmentError == state) {
-                return;
-            }
+    const setAttachmentError = useCallback((key: unknown) => {
+        const url = JSON.stringify(key);
 
-            setAttachmentErrors({
-                ...attachmentErrors,
-                [url]: state,
-            });
-        },
-        [attachmentErrors],
-    );
+        setAttachmentErrors((prevState) => ({
+            ...prevState,
+            [url]: true,
+        }));
+    }, []);
 
     const clearAttachmentErrors = useCallback(() => {
         setAttachmentErrors({});
