@@ -79,7 +79,7 @@ function ScheduleCallConfirmationPage() {
                     if (!route?.params?.reportID) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK.getRoute(route?.params?.reportID));
+                    Navigation.goBack(ROUTES.SCHEDULE_CALL_BOOK.getRoute(route?.params?.reportID));
                 }}
             />
             <FullPageOfflineBlockingView>
