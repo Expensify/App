@@ -294,7 +294,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         if (!isDistanceRequest && !isPerDiemRequest) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
-        if (isSplitTransaction(transaction).isSplit) {
+        if (isSplitTransaction(transaction)) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
         }
         if (isCancelled) {

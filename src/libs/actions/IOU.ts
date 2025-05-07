@@ -364,6 +364,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     receipt?: Receipt;
     waypoints?: WaypointCollection;
     comment?: string;
+    originalTransactionID?: string;
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
@@ -3144,6 +3145,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID,
         existingTransaction,
+        originalTransactionID: transactionParams.originalTransactionID,
         policy,
         transactionParams: {
             amount: isExpenseReport(iouReport) ? -amount : amount,
@@ -10741,11 +10743,8 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
     if (!transaction) {
         return;
     }
-    const {amount = 0, modifiedAmount, modifiedMerchant, modifiedCurrency, merchant, currency = CONST.CURRENCY.USD, participants} = transaction;
 
-    const currentAmount = Number(modifiedAmount) || amount;
-    const currentMerchant = String(modifiedMerchant) || merchant;
-    const currentCurrency = String(modifiedCurrency) || currency;
+    const transactionDetails = getTransactionDetails(transaction);
 
     const draftTransaction = buildOptimisticTransaction({
         originalTransactionID: transaction.transactionID,
@@ -10753,25 +10752,25 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
             splitExpenses: [
                 {
                     transactionID: NumberUtils.rand64(),
-                    amount: currentAmount / 2,
-                    description: transaction?.comment?.comment,
-                    category: transaction?.category,
+                    amount: Number(transactionDetails?.amount) / 2,
+                    description: transactionDetails?.comment,
+                    category: transactionDetails?.category,
                     tags: transaction?.tag ? [transaction?.tag] : [],
                     created: DateUtils.getDBTime(),
                 },
                 {
                     transactionID: NumberUtils.rand64(),
-                    amount: currentAmount / 2,
+                    amount: Number(transactionDetails?.amount) / 2,
                     description: transaction?.comment?.comment,
                     category: transaction?.category,
                     tags: transaction?.tag ? [transaction?.tag] : [],
                     created: DateUtils.getDBTime(),
                 },
             ],
-            amount: currentAmount,
-            currency: currentCurrency,
-            merchant: currentMerchant,
-            participants,
+            amount: Number(transactionDetails?.amount),
+            currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
+            merchant: transactionDetails?.merchant ?? '',
+            participants: transaction?.participants,
             reportID,
         },
     });
@@ -10874,6 +10873,7 @@ function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transact
                 comment: splitExpense.description,
                 category: splitExpense.category,
                 tag: splitExpense.tags?.[0],
+                originalTransactionID,
             },
         };
 

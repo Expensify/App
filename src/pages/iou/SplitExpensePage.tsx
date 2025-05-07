@@ -102,7 +102,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 ...item,
                 headerText,
                 originalAmount: Number(transactionDetails?.amount),
-                amount: Math.abs(Number(item.amount)),
+                amount: Number(transactionDetails?.amount) >= 0 ? Math.abs(Number(item.amount)) : Number(item.amount),
                 merchant: draftTransaction?.merchant ?? '',
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
@@ -113,7 +113,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
 
         return [newSections];
-    }, [transaction, draftTransaction, getTranslatedText, transactionDetails?.amount, onSplitExpenseAmountChange]);
+    }, [transaction, draftTransaction, transactionDetails, getTranslatedText, onSplitExpenseAmountChange]);
 
     const headerContent = useMemo(
         () => (
