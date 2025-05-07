@@ -14,6 +14,7 @@ import {Pencil} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -30,6 +31,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
@@ -118,30 +120,26 @@ function WorkspaceReportFieldsPage({
 
     const reportFieldsSections = useMemo(() => {
         if (!policy) {
-            return [{data: [], isDisabled: true}];
+            return [];
         }
+        return Object.values(selectionFieldList).map((reportField) => ({
+            value: reportField.name,
+            fieldID: reportField.fieldID,
+            keyForList: String(reportField.fieldID),
+            orderWeight: reportField.orderWeight,
+            pendingAction: reportField.pendingAction,
+            isSelected: selectedReportFields.includes(getReportFieldKey(reportField.fieldID)) && canSelectMultiple,
+            isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            text: reportField.name,
+            rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))} />,
+        }));
+    }, [canSelectMultiple, selectionFieldList, policy, selectedReportFields, translate]);
 
-        return [
-            {
-                data: Object.values(selectionFieldList)
-                    .sort((a, b) => localeCompare(a.name, b.name))
-                    .map((reportField) => ({
-                        value: reportField.name,
-                        fieldID: reportField.fieldID,
-                        keyForList: String(reportField.fieldID),
-                        orderWeight: reportField.orderWeight,
-                        pendingAction: reportField.pendingAction,
-                        isSelected: selectedReportFields.includes(getReportFieldKey(reportField.fieldID)) && canSelectMultiple,
-                        isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                        text: reportField.name,
-                        rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))} />,
-                    })),
-                isDisabled: false,
-            },
-        ];
-    }, [selectionFieldList, policy, canSelectMultiple, translate, selectedReportFields]);
+    const filterReportField = useCallback((reportField: ReportFieldForList, searchInput: string) => !!reportField.text?.toLowerCase().includes(searchInput), []);
+    const sortReportFields = useCallback((reportFields: ReportFieldForList[]) => reportFields.sort((a, b) => localeCompare(a.value, b.value)), []);
+    const [inputValue, setInputValue, filteredReportFields] = useSearchResults(reportFieldsSections, filterReportField, sortReportFields);
 
-    useAutoTurnSelectionModeOffWhenHasNoActiveOption(reportFieldsSections.at(0)?.data ?? ([] as ListItem[]));
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(filteredReportFields);
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
         const fieldKey = getReportFieldKey(item.fieldID);
@@ -154,7 +152,9 @@ function WorkspaceReportFieldsPage({
     };
 
     const toggleAllReportFields = () => {
-        const availableReportFields = Object.values(selectionFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const availableReportFields = Object.values(reportFieldsSections).filter(
+            (reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && filteredReportFields.find((item) => item.fieldID === reportField.fieldID),
+        );
         setSelectedReportFields(selectedReportFields.length > 0 ? [] : Object.values(availableReportFields).map((reportField) => getReportFieldKey(reportField.fieldID)));
     };
 
@@ -281,6 +281,15 @@ function WorkspaceReportFieldsPage({
                     danger
                 />
                 {(!shouldUseNarrowLayout || !hasVisibleReportField || isLoading) && getHeaderText()}
+                {!shouldShowEmptyState && !isLoading && shouldUseNarrowLayout && getHeaderText()}
+                {reportFieldsSections.length > CONST.SEARCH_ITEM_LIMIT && (
+                    <SearchBar
+                        label={translate('workspace.reportFields.findReportField')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={!shouldShowEmptyState && filteredReportFields.length === 0}
+                    />
+                )}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -288,7 +297,7 @@ function WorkspaceReportFieldsPage({
                         color={theme.spinner}
                     />
                 )}
-                {shouldShowEmptyState && (
+                {shouldShowEmptyState && filteredReportFields.length === 0 && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             title={translate('workspace.reportFields.emptyReportFields.title')}
@@ -307,7 +316,12 @@ function WorkspaceReportFieldsPage({
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={!hasReportAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && updateSelectedReportFields(item)}
-                        sections={reportFieldsSections}
+                        sections={[
+                            {
+                                data: filteredReportFields,
+                                isDisabled: !policy,
+                            },
+                        ]}
                         onCheckboxPress={updateSelectedReportFields}
                         onSelectRow={navigateToReportFieldsSettings}
                         onSelectAll={toggleAllReportFields}
