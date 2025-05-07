@@ -45,16 +45,32 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     return canAddTransaction(report);
 }
 
-function isSplitAction(report: Report, reportTransactions: Transaction[]) {
-    const transaction = reportTransactions.at(0);
-    const isIOUReport = isIOUReportUtils(report);
-    const isPendingStatus = isPending(transaction);
-
-    if (isIOUReport || isPendingStatus) {
+function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+    const reportTransaction = reportTransactions.at(0);
+    if (!reportTransaction) {
         return false;
     }
 
-    return isExpenseReportUtils(report);
+    if (isPending(reportTransaction)) {
+        return false;
+    }
+
+    if (!isExpenseReportUtils(report)) {
+        return false;
+    }
+
+    if (report.stateNum && report.stateNum >= CONST.REPORT.STATE_NUM.APPROVED) {
+        return false;
+    }
+
+    const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
+    if (isSubmitter || isAdmin || isManager) {
+        return true;
+    }
+
+    return false;
 }
 
 function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
@@ -455,7 +471,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
-    if (isSplitAction(report, reportTransactions)) {
+    if (isSplitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 

@@ -10881,10 +10881,8 @@ function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transact
         const parsedComment = getParsedComment(transactionParams.comment ?? '');
         transactionParams.comment = parsedComment;
 
-        const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-
-        const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
-        const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(currentChatReport?.parentReportID) : currentChatReport;
+        const currentChatReport = getReportOrDraftReport(report?.chatReportID);
+        const parentChatReport = getReportOrDraftReport(currentChatReport?.parentReportID);
 
         const existingTransactionID = splitExpense.transactionID;
 
