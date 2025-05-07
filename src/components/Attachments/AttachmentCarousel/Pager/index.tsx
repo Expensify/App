@@ -9,6 +9,7 @@ import PagerView from 'react-native-pager-view';
 import Animated, {useAnimatedProps, useSharedValue} from 'react-native-reanimated';
 import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
 import useCarouselContextEvents from '@components/Attachments/AttachmentCarousel/useCarouselContextEvents';
+import type {UseAttachmentErrors} from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import shouldUseNewPager from '@libs/shouldUseNewPager';
@@ -55,10 +56,13 @@ type AttachmentCarouselPagerProps = {
 
     /** The reportID related to the attachment */
     reportID?: string;
+
+    /** Optional property providing methods to manage error states for attachments. */
+    attachmentErrors?: UseAttachmentErrors;
 };
 
 function AttachmentCarouselPager(
-    {items, activeAttachmentID, initialPage, setShouldShowArrows, onPageSelected, onClose, reportID}: AttachmentCarouselPagerProps,
+    {items, activeAttachmentID, initialPage, setShouldShowArrows, onPageSelected, onClose, reportID, attachmentErrors}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
@@ -100,8 +104,9 @@ function AttachmentCarouselPager(
             onTap: handleTap,
             onSwipeDown: onClose,
             onScaleChanged: handleScaleChange,
+            attachmentErrors,
         }),
-        [pagerItems, activePageIndex, isPagerScrolling, isScrollEnabled, handleTap, onClose, handleScaleChange],
+        [pagerItems, activePageIndex, isPagerScrolling, isScrollEnabled, handleTap, onClose, handleScaleChange, attachmentErrors],
     );
 
     const animatedProps = useAnimatedProps(() => ({

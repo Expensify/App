@@ -3,6 +3,7 @@ import {createContext} from 'react';
 import type {GestureType} from 'react-native-gesture-handler';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
+import type {UseAttachmentErrors} from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {AttachmentSource} from '@components/Attachments/types';
 
 /** The pager items array is used within the pager to render and navigate between the images */
@@ -44,6 +45,9 @@ type AttachmentCarouselPagerContextValue = {
 
     /** Function to call after a swipe down event */
     onSwipeDown: () => void;
+
+    /** Optional property providing methods to manage error states for attachments. */
+    attachmentErrors?: UseAttachmentErrors;
 };
 
 const AttachmentCarouselPagerContext = createContext<AttachmentCarouselPagerContextValue | null>(null);

@@ -1,5 +1,6 @@
 import type {ViewToken} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import type {UseAttachmentErrors} from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import type CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
@@ -34,6 +35,9 @@ type AttachmentCarouselProps = {
     onClose: () => void;
 
     attachmentLink?: string;
+
+    /** Optional property providing methods to manage error states for attachments. */
+    attachmentErrors?: UseAttachmentErrors;
 };
 
 export type {AttachmentCarouselProps, UpdatePageProps};

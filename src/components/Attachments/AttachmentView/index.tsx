@@ -1,7 +1,8 @@
 import {Str} from 'expensify-common';
-import React, {memo, useEffect, useState} from 'react';
+import React, {memo, useContext, useEffect, useState} from 'react';
 import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
@@ -119,10 +120,13 @@ function AttachmentView({
     isUploading = false,
     reportID,
 }: AttachmentViewProps) {
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackContext();
 
+    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+    const {attachmentErrors} = attachmentCarouselPagerContext ?? {};
+    const {setAttachmentError} = attachmentErrors ?? {};
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
@@ -243,6 +247,7 @@ function AttachmentView({
 
     if (isFileImage) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
+            setAttachmentError?.(source);
             return (
                 <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
@@ -294,6 +299,8 @@ function AttachmentView({
                             if (isOffline) {
                                 return;
                             }
+                            setAttachmentError?.(imageSource);
+
                             setImageError(true);
                         }}
                     />
