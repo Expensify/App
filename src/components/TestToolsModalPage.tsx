@@ -33,10 +33,10 @@ function TestToolsModalPage() {
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
-                <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer, safeAreaPaddingBottomStyle]}>
+                <View style={[{maxHeight}, styles.h100, styles.pt4, styles.defaultModalContainer, safeAreaPaddingBottomStyle]}>
                     <ScrollView style={[styles.flex1, styles.flexGrow1, styles.ph5]}>
                         <Text
-                            style={[styles.textLabelSupporting, styles.mt9, styles.mb3]}
+                            style={[styles.textLabelSupporting, styles.mt5, styles.mb3]}
                             numberOfLines={1}
                         >
                             {translate('initialSettingsPage.troubleshoot.releaseOptions')}

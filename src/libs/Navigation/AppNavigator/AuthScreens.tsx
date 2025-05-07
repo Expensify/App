@@ -15,6 +15,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {connect} from '@libs/actions/Delegate';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
@@ -219,6 +220,7 @@ const modalScreenListenersWithCancelSearch = {
 
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -717,9 +719,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         ...rootNavigatorScreenOptions.basicModalNavigator,
                         native: {
                             contentStyle: {
-                                backgroundColor: theme.overlay,
+                                ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
                             },
-                            animation: InternalPlatformAnimations.SLIDE_FROM_BOTTOM,
+                            animation: InternalPlatformAnimations.FADE,
                         },
                     }}
                     component={TestToolsModalNavigator}

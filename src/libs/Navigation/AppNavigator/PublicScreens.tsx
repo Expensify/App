@@ -1,4 +1,5 @@
 import React from 'react';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -25,6 +26,7 @@ const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
 function PublicScreens() {
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     return (
         <RootStack.Navigator screenOptions={defaultScreenOptions}>
             {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is REPORTS_SPLIT_NAVIGATOR. */}
@@ -77,9 +79,9 @@ function PublicScreens() {
                     ...rootNavigatorScreenOptions.basicModalNavigator,
                     native: {
                         contentStyle: {
-                            backgroundColor: theme.overlay,
+                            ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
                         },
-                        animation: InternalPlatformAnimations.SLIDE_FROM_BOTTOM,
+                        animation: InternalPlatformAnimations.FADE,
                     },
                 }}
                 component={TestToolsModalNavigator}
