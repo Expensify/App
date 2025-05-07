@@ -29,6 +29,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
 import {clearBookingDraft} from '@libs/actions/ScheduleCall';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -216,11 +217,17 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const shouldShowGuideBookingButtonInEarlyDiscountBanner = shouldShowGuideBooking && shouldShowEarlyDiscountBanner && !isDismissedDiscountBanner;
 
+    const {canUseCallScheduling} = usePermissions();
+
     const guideBookingButton = (
         <Button
             success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
             text={translate('getAssistancePage.scheduleACall')}
             onPress={() => {
+                if (!canUseCallScheduling) {
+                    openExternalLink(account?.guideDetails?.calendarLink ?? '');
+                    return;
+                }
                 if (!report?.reportID) {
                     return;
                 }
