@@ -1,5 +1,5 @@
-import type { EmitterSubscription } from 'react-native';
-import { NativeEventEmitter } from 'react-native';
+import type {EmitterSubscription} from 'react-native';
+import {NativeEventEmitter} from 'react-native';
 import NativeReactNativeBackgroundTask from './NativeReactNativeBackgroundTask';
 
 type TaskManagerTaskExecutor<T = unknown> = (data: T) => void | Promise<void>;
