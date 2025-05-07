@@ -8,7 +8,6 @@ import Svg, {Path} from 'react-native-svg';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import useIsHomeRouteActive from '@navigation/helpers/useIsHomeRouteActive';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
