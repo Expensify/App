@@ -1,5 +1,9 @@
 import {isMobileChrome} from '@libs/Browser';
 
+/**
+ * Navigates back in history and resolves after `popstate` (only on mobile Chrome).
+ * Resolves immediately on other browsers.
+ */
 export default function backHistory() {
     return new Promise<void>((resolve) => {
         if (!isMobileChrome()) {
