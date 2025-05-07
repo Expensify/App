@@ -2258,7 +2258,7 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
             // If we get here without a reimburser only show the pay button if we are the admin.
             if (!policy?.achAccount?.reimburser) {
-                return isAdmin && isManager;
+                return isAdmin;
             }
 
             // If we are the reimburser and the report is approved or we are the admin then we can pay it.
