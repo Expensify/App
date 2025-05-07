@@ -21,6 +21,7 @@ type CreatePerDiemRequestParams = {
     createdReportActionIDForThread: string | undefined;
     billable?: boolean;
     reimbursable?: boolean;
+    attendees?: string;
 };
 
 export default CreatePerDiemRequestParams;

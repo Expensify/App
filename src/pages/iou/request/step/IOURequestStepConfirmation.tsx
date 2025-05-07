@@ -478,6 +478,7 @@ function IOURequestStepConfirmation({
                     customUnit: transaction.comment?.customUnit,
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
+                    attendees: transaction.comment?.attendees,
                 },
             });
         },
@@ -525,6 +526,10 @@ function IOURequestStepConfirmation({
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
                     customUnitRateID,
+                    attendees: transaction.comment?.attendees,
+                },
+                accountantParams: {
+                    accountant: transaction.accountant,
                 },
             });
         },
@@ -576,6 +581,7 @@ function IOURequestStepConfirmation({
                     validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true),
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
+                    attendees: transaction.comment?.attendees,
                 },
             });
         },
