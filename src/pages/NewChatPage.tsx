@@ -47,8 +47,8 @@ const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => v
 function useOptions() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<Array<ListItem & SelectedOptionData>>([]);
-    const [betas] = useOnyx(ONYXKEYS.BETAS, { canBeMissing: true });
-    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, { canBeMissing: true });
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const personalData = useCurrentUserPersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options: listOptions, areOptionsInitialized} = useOptionsList({

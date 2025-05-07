@@ -12,7 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import {searchInServer as searchReportInServer} from '@libs/actions/Report';
 import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getShareLogOptions, getHeaderMessage, filterAndOrderOptions} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getHeaderMessage, getShareLogOptions} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -24,7 +24,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const betas = useBetas();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true });
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList();
 
     const defaultOptions = useMemo(() => {
@@ -39,11 +39,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         }
         const shareLogOptions = getShareLogOptions(options, betas ?? []);
 
-        const header = getHeaderMessage(
-            (shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0,
-            !!shareLogOptions.userToInvite,
-            '',
-        );
+        const header = getHeaderMessage((shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0, !!shareLogOptions.userToInvite, '');
 
         return {
             ...shareLogOptions,

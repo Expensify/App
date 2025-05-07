@@ -47,9 +47,9 @@ function OnboardingWelcomeVideo() {
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
-        canBeMissing: false
+        canBeMissing: false,
     });
-    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, { canBeMissing: true });
+    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     useEffect(() => {
         if (isLoadingOnyxValue(tryNewDotMetadata, dismissedProductTrainingMetadata)) {

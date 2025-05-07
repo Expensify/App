@@ -752,11 +752,11 @@ type OptionData = {
 } & Report &
     ReportNameValuePairs;
 
-type SelectedOptionData = Omit<OptionData, "reportID"> & {
+type SelectedOptionData = Omit<OptionData, 'reportID'> & {
     reportID?: string;
     // TODO: Use this for stricter type checking?
     // selected: true;
-}
+};
 
 type OnyxDataTaskAssigneeChat = {
     optimisticData: OnyxUpdate[];
