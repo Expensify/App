@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {
@@ -19,6 +19,7 @@ import {
 import {getIOUActionForReportID, getReportActions, isPayAction} from './ReportActionsUtils';
 import {
     canAddTransaction,
+    isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -45,7 +46,11 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     return canAddTransaction(report);
 }
 
-function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs): boolean {
+    if (isArchivedReport(reportNameValuePairs)) {
+        return false;
+    }
+
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
     if (!transactionAreComplete) {
@@ -87,8 +92,14 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
+    const currentUserAccountID = getCurrentUserAccountID();
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+    if (!isCurrentUserManager) {
+        return false;
+    }
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
+    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const isProcessingReport = isProcessingReportUtils(report);
     const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
 
@@ -174,7 +185,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
-function isExportAction(report: Report, policy?: Policy): boolean {
+function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]): boolean {
     if (!policy) {
         return false;
     }
@@ -210,7 +221,7 @@ function isExportAction(report: Report, policy?: Policy): boolean {
     const isReportReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const connectedIntegration = getConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const isReportExported = isExportedUtils(getReportActions(report));
+    const isReportExported = isExportedUtils(reportActions);
     const isReportFinished = isReportApproved || isReportReimbursed || isReportClosed;
 
     return isAdmin && isReportFinished && syncEnabled && !isReportExported;
@@ -254,7 +265,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
     const isReportFinished = isReportClosedOrApproved || isReportReimbursed;
 
-    if (!isReportFinished || !syncEnabled) {
+    if (!isReportFinished) {
         return false;
     }
 
@@ -262,7 +273,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
 
     const isExporter = isPrefferedExporter(policy);
 
-    return isAdmin || isExporter;
+    return (isAdmin && syncEnabled) || (isExporter && !syncEnabled);
 }
 
 function isHoldAction(report: Report, reportTransactions: Transaction[]): boolean {
@@ -402,6 +413,8 @@ function getSecondaryReportActions(
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
+    reportActions?: ReportAction[],
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -409,7 +422,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
-    if (isSubmitAction(report, reportTransactions, policy)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
@@ -425,7 +438,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
-    if (isExportAction(report, policy)) {
+    if (isExportAction(report, policy, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING);
     }
 
