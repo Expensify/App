@@ -27,19 +27,14 @@ function EmployeeTestDriveModal() {
     const [bossEmail, setBossEmail] = useState('');
     const [formError, setFormError] = useState<string | undefined>();
 
-    const isValidBossEmail = useMemo((): boolean => {
-        const loginTrim = bossEmail.trim();
-
-        return !!loginTrim && Str.isValidEmail(loginTrim);
-    }, [bossEmail]);
-
     const onBossEmailChange = useCallback((value: string) => {
         setBossEmail(value);
         setFormError(undefined);
     }, []);
 
     const navigate = () => {
-        if (!isValidBossEmail) {
+        const loginTrim = bossEmail.trim();
+        if (!loginTrim || !Str.isValidEmail(loginTrim)) {
             setFormError(translate('common.error.email'));
             return;
         }
@@ -68,6 +63,7 @@ function EmployeeTestDriveModal() {
                     setMoneyRequestCreated(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.CREATED, true);
 
                     InteractionManager.runAfterInteractions(() => {
+                        Navigation.goBack();
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                     });
                 });
@@ -81,7 +77,7 @@ function EmployeeTestDriveModal() {
         <BaseTestDriveModal
             description={translate('testDrive.modal.employee.description')}
             onConfirm={navigate}
-            shouldCloseOnConfirm={isValidBossEmail}
+            shouldCloseOnConfirm={false}
             shouldRenderHTMLDescription
             avoidKeyboard
         >
