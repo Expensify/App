@@ -42,6 +42,7 @@ import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_T
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
+import * as HybridAppActions from '@userActions/HybridApp';
 import {buildOldDotURL, openExternalLink, openOldDotLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -103,7 +104,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`, {canBeMissing: true});
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
@@ -254,10 +254,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.ExpensifyLogoNew,
                     ...(CONFIG.IS_HYBRID_APP
                         ? {
-                              action: () => {
-                                  HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-                                  setRootStatusBarEnabled(false);
-                              },
+                              action: () => HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true}),
                           }
                         : {
                               action() {
@@ -294,11 +291,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.Exit,
                     action: () => {
                         signOut(false);
+                        HybridAppActions.resetSignInFlow();
                     },
                 },
             ],
         };
-    }, [styles.pt4, setRootStatusBarEnabled, shouldOpenSurveyReasonPage, signOut]);
+    }, [styles.pt4, shouldOpenSurveyReasonPage, signOut]);
 
     /**
      * Retuns JSX.Element with menu items

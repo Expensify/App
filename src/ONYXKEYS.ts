@@ -465,9 +465,6 @@ const ONYXKEYS = {
     /** Stores recently used currencies */
     RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
 
-    /** States whether we transitioned from OldDot to show only certain group of screens. It should be undefined on pure NewDot. */
-    IS_SINGLE_NEW_DOT_ENTRY: 'isSingleNewDotEntry',
-
     /** Company cards custom names */
     NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES: 'nvp_expensify_ccCustomNames',
 
@@ -516,6 +513,8 @@ const ONYXKEYS = {
 
     /** Billing receipt details */
     BILLING_RECEIPT_DETAILS: 'billingReceiptDetails',
+
+    HYBRID_APP: 'hybridApp',
 
     /** Collection Keys */
     COLLECTION: {
@@ -1131,7 +1130,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;
     [ONYXKEYS.LAST_ROUTE]: string;
-    [ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY]: boolean | undefined;
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
@@ -1147,6 +1145,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
+    [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
 };
 
 type OnyxDerivedValuesMapping = {

@@ -27,7 +27,6 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import CustomDevMenu from './CustomDevMenu';
-import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from './HeaderGap';
@@ -194,10 +193,9 @@ function ScreenWrapper(
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     // since Modals are drawn in separate native view hierarchy we should always add paddings
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {initialURL} = useContext(InitialURLContext);
 
-    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPaddingProp !== undefined;
@@ -223,12 +221,11 @@ function ScreenWrapper(
 
     const {isBlurred, setIsBlurred} = useInputBlurContext();
 
-    UNSTABLE_usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
+    UNSTABLE_usePreventRemove((hybridApp?.isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
         HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
-        setRootStatusBarEnabled(false);
     });
 
     const panResponder = useRef(

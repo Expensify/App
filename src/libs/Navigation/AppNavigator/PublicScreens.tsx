@@ -2,7 +2,6 @@ import React from 'react';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
-import SessionExpiredPage from '@pages/ErrorPage/SessionExpiredPage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
@@ -10,7 +9,6 @@ import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
 import SignInPage from '@pages/signin/SignInPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
-import CONFIG from '@src/CONFIG';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
@@ -27,7 +25,7 @@ function PublicScreens() {
             <RootStack.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 options={defaultScreenOptions}
-                component={CONFIG.IS_HYBRID_APP ? SessionExpiredPage : SignInPage}
+                component={SignInPage}
             />
             <RootStack.Screen
                 name={SCREENS.TRANSITION_BETWEEN_APPS}

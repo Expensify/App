@@ -7,7 +7,9 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {setNewDotSignInState, setReadyToShowAuthScreens} from '@userActions/HybridApp';
 import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
@@ -28,7 +30,11 @@ function SignUpWelcomeForm() {
                     large
                     text={translate('welcomeSignUpForm.join')}
                     isLoading={account?.isLoading}
-                    onPress={() => Session.signUpUser()}
+                    onPress={() => {
+                        setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
+                        Session.signUpUser();
+                        setReadyToShowAuthScreens(true);
+                    }}
                     pressOnEnter
                     style={[styles.mb2]}
                 />
