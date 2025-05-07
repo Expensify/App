@@ -151,7 +151,7 @@ function TripRoomPreview({
         );
     }, [currency, totalDisplaySpend, tripTransactions]);
 
-    const navigateToTrip = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID));
+    const navigateToTrip = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     const renderItem = ({item}: ListRenderItemInfo<ReservationData>) => (
         <ReservationView
             reservation={item.reservation}
