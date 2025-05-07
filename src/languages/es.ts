@@ -6819,7 +6819,7 @@ const translations = {
             helpText: 'Saltar',
             employee: {
                 description:
-                    '<br/><muted-text>Consigue <strong>3 meses gratis</strong>  de Expensify para tu equipo. Solo introduce el correo electrónico de tu jefe abajo y le enviaremos un gasto escaneado de prueba — sin entrada manual.</muted-text><br/>',
+                    '<muted-text>Consigue <strong>3 meses gratis</strong>  de Expensify para tu equipo. Solo introduce el correo electrónico de tu jefe abajo y le enviaremos un gasto escaneado de prueba — sin entrada manual.</muted-text>',
                 email: 'Introduce el correo electrónico de tu jefe',
                 error: 'Ese miembro es propietario de un espacio de trabajo, por favor introduce un nuevo miembro para probar.',
             },

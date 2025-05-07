@@ -1,14 +1,12 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import BaseTestDriveModal from './BaseTestDriveModal';
 
 function AdminTestDriveModal() {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const navigate = () => {
         InteractionManager.runAfterInteractions(() => {
@@ -20,7 +18,6 @@ function AdminTestDriveModal() {
         <BaseTestDriveModal
             description={translate('testDrive.modal.description')}
             onConfirm={navigate}
-            contentInnerContainerStyles={styles.gap3}
         />
     );
 }
