@@ -1655,6 +1655,17 @@ const CONST = {
             DRAFT: 'draft',
             BACKUP: 'backup',
         },
+        STATE_NUM: {
+            STATE_REIMBURSABLE_LEGACY: -3,
+            STATE_REIMBURSABLE_BILLABLE_LEGACY: -5,
+            STATE_INVALID_0: 0,
+            STATE_INVALID_1: 1,
+            STATE_INVALID_2: 2,
+            STATE_REIMBURSABLE: 3,
+            STATE_BILLABLE: 4,
+            STATE_REIMBURSABLE_BILLABLE: 5,
+            STATE_NOFLAG: 6,
+        },
         LIABILITY_TYPE: {
             RESTRICT: 'corporate',
             ALLOW: 'personal',

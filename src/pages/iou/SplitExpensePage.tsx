@@ -13,7 +13,7 @@ import type {SectionListDataType, SplitListItemType} from '@components/Selection
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addSplitExpense, completeSplitTransaction, updateSplitExpenseAmmount} from '@libs/actions/IOU';
+import {addSplitExpenseField, completeSplitTransaction, updateSplitExpenseAmountField} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -50,7 +50,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     }, [sumOfSplitExpenses]);
 
     const onAddSplitExpense = useCallback(() => {
-        addSplitExpense(transaction, draftTransaction);
+        addSplitExpenseField(transaction, draftTransaction);
     }, [draftTransaction, transaction]);
 
     const onSaveSplitExpense = useCallback(() => {
@@ -76,7 +76,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {
             const amountInCents = convertToBackendAmount(value);
-            updateSplitExpenseAmmount(draftTransaction, currentItemTransactionID, amountInCents);
+            updateSplitExpenseAmountField(draftTransaction, currentItemTransactionID, amountInCents);
         },
         [draftTransaction],
     );

@@ -41,6 +41,7 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -426,6 +427,7 @@ function PureReportActionItem({
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
+    const [, transactions] = useReportWithTransactionsAndViolations(getIOUReportIDFromReportActionPreview(action));
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
@@ -1310,6 +1312,12 @@ function PureReportActionItem({
     // This is a temporary solution needed for comment-linking.
     // The long term solution will leverage end-to-end encryption and only targeted users will be able to decrypt.
     if (isWhisperActionTargetedToOthers(action)) {
+        return null;
+    }
+
+    // If the transaction list for this report action is empty, hide this report action
+    // This applies when the transaction’s stateNum equals CONST.TRANSACTION.STATE_NUM.STATE_REIMBURSABLE_LEGACY for example
+    if (!transactions.length) {
         return null;
     }
 

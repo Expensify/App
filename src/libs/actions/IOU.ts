@@ -10779,9 +10779,9 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
 }
 
 /**
- * Add new split expense
+ * Add new split expense field
  */
-function addSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
+function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
     if (!transaction || !draftTransaction) {
         return;
     }
@@ -10806,7 +10806,7 @@ function addSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, draftTra
 /**
  * Update split expense ammount
  */
-function updateSplitExpenseAmmount(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number) {
+function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number) {
     if (!draftTransaction?.transactionID || !currentItemTransactionID) {
         return;
     }
@@ -10828,6 +10828,9 @@ function updateSplitExpenseAmmount(draftTransaction: OnyxEntry<OnyxTypes.Transac
     });
 }
 
+/**
+ * Complete split expense process
+ */
 function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, isReverseSplitOperation = false) {
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
@@ -11010,8 +11013,8 @@ export {
     submitPerDiemExpense,
     calculateDiffAmount,
     initSplitExpense,
-    addSplitExpense,
-    updateSplitExpenseAmmount,
+    addSplitExpenseField,
+    updateSplitExpenseAmountField,
     completeSplitTransaction,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};
