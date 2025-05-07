@@ -76,7 +76,8 @@ function init() {
                         callback: (value) => {
                             Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(i, value as Parameters<typeof compute>[0][typeof i]);
-                            recomputeDerivedValue(dependencyOnyxKey);
+                            // if the dependency is not a collection, pass the entire value as the source value
+                            recomputeDerivedValue(dependencyOnyxKey, value);
                         },
                     });
                 }
