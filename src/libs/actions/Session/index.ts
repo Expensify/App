@@ -32,6 +32,7 @@ import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
+import {removeWorkspacesTabPathFromSessionStorage} from '@libs/Navigation/helpers/getLastVisitedWorkspaceTabScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import * as MainQueue from '@libs/Network/MainQueue';
@@ -899,6 +900,7 @@ function cleanupSession() {
     });
     clearSoundAssetsCache();
     Timing.clearData();
+    removeWorkspacesTabPathFromSessionStorage();
 }
 
 function clearAccountMessages() {

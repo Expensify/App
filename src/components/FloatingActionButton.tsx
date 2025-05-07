@@ -8,7 +8,6 @@ import Svg, {Path} from 'react-native-svg';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import useIsHomeRouteActive from '@navigation/helpers/useIsHomeRouteActive';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -47,8 +46,6 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const platform = getPlatform();
-    const isNarrowScreenOnWeb = shouldUseNarrowLayout && platform === CONST.PLATFORM.WEB;
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false, canBeMissing: true});
     const isHomeRouteActive = useIsHomeRouteActive(shouldUseNarrowLayout);
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
@@ -95,10 +92,10 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
         <EducationalTooltip
             shouldRender={shouldShowProductTrainingTooltip}
             anchorAlignment={{
-                horizontal: isNarrowScreenOnWeb ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : tooltipHorizontalAnchorAlignment,
+                horizontal: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : tooltipHorizontalAnchorAlignment,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
-            shiftHorizontal={isNarrowScreenOnWeb ? 0 : tooltipShiftHorizontal}
+            shiftHorizontal={shouldUseNarrowLayout ? 0 : tooltipShiftHorizontal}
             renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shouldHideOnNavigate={false}

@@ -104,10 +104,13 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
     const {orderedReportIDs} = useSidebarOrderedReportIDs();
-    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])});
+    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]),
+        canBeMissing: true,
+    });
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
@@ -118,7 +121,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
                 return 'debug.indicatorStatus.theresAReportWithErrors';
             }
         }
-        if (selectedTab === NAVIGATION_TABS.SETTINGS) {
+        if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
             return getSettingsMessage(status);
         }
     }, [selectedTab, chatTabBrickRoad, status]);
@@ -132,7 +135,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
                 return theme.danger;
             }
         }
-        if (selectedTab === NAVIGATION_TABS.SETTINGS) {
+        if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
             if (status) {
                 return indicatorColor;
             }
@@ -156,7 +159,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
         }
     }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, reports, status, reimbursementAccount, policyIDWithErrors]);
 
-    if (!([NAVIGATION_TABS.HOME, NAVIGATION_TABS.SETTINGS] as string[]).includes(selectedTab ?? '') || !indicator) {
+    if (!([NAVIGATION_TABS.HOME, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator) {
         return null;
     }
 

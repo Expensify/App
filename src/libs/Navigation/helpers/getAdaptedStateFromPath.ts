@@ -6,7 +6,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {config} from '@libs/Navigation/linkingConfig/config';
-import {RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, SEARCH_TO_RHP} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACE_HUB, SEARCH_TO_RHP} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -103,6 +103,21 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
         );
     }
 
+    if (RHP_TO_WORKSPACE_HUB[route.name]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_WORKSPACE_HUB[route.name]);
+
+        return getInitialSplitNavigatorState(
+            {
+                name: SCREENS.WORKSPACE_HUB.ROOT,
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            },
+            {
+                name: RHP_TO_WORKSPACE_HUB[route.name],
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            },
+        );
+    }
+
     if (RHP_TO_SETTINGS[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_SETTINGS[route.name]);
 
@@ -186,7 +201,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
     }
 
     if (isWorkspaceSplitNavigator) {
-        const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.SETTINGS.ROOT}, {name: SCREENS.SETTINGS.WORKSPACES});
+        const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.WORKSPACE_HUB.ROOT}, {name: SCREENS.WORKSPACE_HUB.WORKSPACES});
         return getRoutesWithIndex([settingsSplitRoute, ...state.routes]);
     }
 
@@ -201,7 +216,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
             if (matchingRootRoute) {
                 const routes = [matchingRootRoute, ...state.routes];
                 if (matchingRootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                    const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.SETTINGS.ROOT}, {name: SCREENS.SETTINGS.WORKSPACES});
+                    const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.WORKSPACE_HUB.ROOT}, {name: SCREENS.WORKSPACE_HUB.WORKSPACES});
                     routes.unshift(settingsSplitRoute);
                 }
                 return getRoutesWithIndex(routes);
