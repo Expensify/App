@@ -5456,7 +5456,7 @@ export {
     updateReportName,
     updateRoomVisibility,
     updateWriteCapability,
-    prepareOnboardingOnyxData,
+
     deleteAppReport,
     getOptimisticChatReport,
     saveReportDraft,
