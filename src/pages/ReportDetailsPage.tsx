@@ -48,6 +48,7 @@ import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getConnectedIntegration, isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {isDeleteAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
@@ -103,7 +104,6 @@ import {
     shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {isDeleteAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canCancelPayment,
     cancelPayment as cancelPaymentAction,
@@ -334,7 +334,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransactionID);
-    const canDeleteReport = isDeleteAction(report)
+    const canDeleteReport = isDeleteAction(report);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || ((canDeleteRequest || canDeleteReport) && isCardTransactionCanBeDeleted);
     useEffect(() => {
         if (canDeleteRequest) {

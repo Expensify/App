@@ -4680,7 +4680,6 @@ function deleteAppReport(reportID: string | undefined) {
             },
         });
     }
-    console.log('optimisticData', optimisticData)
 
     const parameters: DeleteAppReportParams = {
         reportID,
