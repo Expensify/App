@@ -30,11 +30,11 @@ Once Rules are enabled, you can customize individual expense settings:
 - **Billable default**: Set expenses as billable or non-billable by default.
 - **eReceipts**: Enable eReceipts for most USD credit transactions. This is available when the Default currency set in the Overview is set to USD.
 
-### Configure prohibited expense rules
+# Configure prohibited expense rules
 
 To flag restricted expense types for manual review:
 
-1. Go to `Settings > Workspaces > Workspace Name > Rules > Expenses`.
+1. Go to **Settings** > **Workspaces** > click **Workspace Name** > **Rules** > **Expenses**.
 2. Scroll to the **Prohibited expenses** section.
 3. Toggle on the feature, then select the types of restricted items to flag:
    - Alcohol  
@@ -45,8 +45,6 @@ To flag restricted expense types for manual review:
 4. If an uploaded receipt contains any of the flagged items, the expense will be marked for manual review.
 
 **Note:** Prohibited expense violations appear in both New Expensify and Expensify Classic. However, a Workspace Admin must enable the rules in **New Expensify** for them to take effect.
-
-</div>
 
 # Configure expense report rules
 
