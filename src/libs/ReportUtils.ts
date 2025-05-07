@@ -752,6 +752,12 @@ type OptionData = {
 } & Report &
     ReportNameValuePairs;
 
+type SelectedOptionData = Omit<OptionData, "reportID"> & {
+    reportID?: string;
+    // TODO: Use this for stricter type checking?
+    // selected: true;
+}
+
 type OnyxDataTaskAssigneeChat = {
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
@@ -10976,6 +10982,7 @@ export type {
     OptimisticIOUReportAction,
     OptimisticTaskReportAction,
     OptionData,
+    SelectedOptionData,
     TransactionDetails,
     PartialReportAction,
     ParsingDetails,

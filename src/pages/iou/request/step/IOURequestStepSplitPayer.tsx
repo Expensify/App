@@ -58,7 +58,7 @@ function IOURequestStepSplitPayer({
                 title: '',
                 data: participantOptions.map((participantOption) => ({
                     ...participantOption,
-                    isSelected: !!transaction?.splitPayerAccountIDs && transaction?.splitPayerAccountIDs?.includes(participantOption.accountID ?? -1),
+                    isSelected: !!transaction?.splitPayerAccountIDs && transaction?.splitPayerAccountIDs?.includes(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID),
                 })),
             },
         ];
@@ -69,7 +69,7 @@ function IOURequestStepSplitPayer({
     };
 
     const setSplitPayer = (item: Participant | OptionData) => {
-        setSplitPayerIOU(transactionID, item.accountID ?? -1);
+        setSplitPayerIOU(transactionID, item.accountID ?? CONST.DEFAULT_NUMBER_ID);
         navigateBack();
     };
 

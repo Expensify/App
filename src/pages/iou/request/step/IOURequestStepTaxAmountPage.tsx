@@ -179,18 +179,18 @@ IOURequestStepTaxAmountPage.displayName = 'IOURequestStepTaxAmountPage';
 const IOURequestStepTaxAmountPageWithOnyx = withOnyx<IOURequestStepTaxAmountPageProps, IOURequestStepTaxAmountPageOnyxProps>({
     splitDraftTransaction: {
         key: ({route}) => {
-            const transactionID = route?.params.transactionID ?? 0;
+            const transactionID = route?.params.transactionID ?? CONST.DEFAULT_NUMBER_ID;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
         },
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.reportID}`,
     },
     policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`,
     },
     policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`,
     },
 })(IOURequestStepTaxAmountPage);
 
