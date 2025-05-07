@@ -933,6 +933,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'posted':
             return validateDate(value);
         case 'isLoading':
+        case 'isOptimisticTransaction':
         case 'billable':
         case 'reimbursable':
         case 'participantsAutoAssigned':

@@ -51,11 +51,15 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}).filter((item) => item?.isOptimisticTransaction && item?.reportID === reportID),
+        canBeMissing: true,
     });
-    const transactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
+    const transactions = useMemo(
+        () => (initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction]),
+        [initialTransaction, initialTransactionID, optimisticTransactions],
+    );
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID);
@@ -83,7 +87,7 @@ function IOURequestStepParticipants({
     }, [iouType, translate, isSplitRequest, action]);
 
     const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isMobileSafari = isMobileSafariBrowser();
@@ -153,7 +157,7 @@ function IOURequestStepParticipants({
                 Navigation.navigate(iouConfirmationPageRoute);
             }
         });
-    }, [action, backTo, selfDMReport, selfDMReportID, transactions, waitForKeyboardDismiss]);
+    }, [action, backTo, selfDMReport, selfDMReportID, transactions, initialTransactionID, waitForKeyboardDismiss]);
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
