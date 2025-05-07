@@ -124,6 +124,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
     const route = useRoute();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
@@ -699,7 +700,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
             >
-                {!(shouldUseNarrowLayout || isMediumScreenWidth) && (
+                {!shouldDisplayNarrowVersion && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
                         {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
@@ -726,27 +727,26 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     </View>
                 )}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout ||
-                (isMediumScreenWidth && (
-                    <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        {!!primaryAction && !shouldShowSelectedTransactionsButton && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
-                        {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
-                            <ButtonWithDropdownMenu
-                                success={false}
-                                onPress={() => {}}
-                                shouldAlwaysShowDropdownMenu
-                                customText={translate('common.more')}
-                                options={applicableSecondaryActions}
-                                isSplitButton={false}
-                                wrapperStyle={[!primaryAction && styles.flex1]}
-                            />
-                        )}
-                    </View>
-                ))}
+            {shouldDisplayNarrowVersion && !shouldShowSelectedTransactionsButton && (
+                <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
+                    {!!applicableSecondaryActions.length && (
+                        <ButtonWithDropdownMenu
+                            success={false}
+                            onPress={() => {}}
+                            shouldAlwaysShowDropdownMenu
+                            customText={translate('common.more')}
+                            options={applicableSecondaryActions}
+                            isSplitButton={false}
+                            wrapperStyle={[!primaryAction && styles.flex1]}
+                        />
+                    )}
+                </View>
+            )}
             {isMoreContentShown && (
                 <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>
-                    <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
-                        {shouldShowSelectedTransactionsButton && (shouldUseNarrowLayout || isMediumScreenWidth) && (
+                    {shouldShowSelectedTransactionsButton && shouldDisplayNarrowVersion && (
+                        <View style={[styles.dFlex, styles.w100, styles.pb3]}>
                             <ButtonWithDropdownMenu
                                 onPress={() => null}
                                 options={selectedTransactionsOptions}
@@ -755,8 +755,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 shouldAlwaysShowDropdownMenu
                                 wrapperStyle={styles.w100}
                             />
-                        )}
-                    </View>
+                        </View>
+                    )}
                     {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
                     {!!statusBarProps && (
                         <MoneyRequestHeaderStatusBar
