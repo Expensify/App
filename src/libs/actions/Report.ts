@@ -109,6 +109,7 @@ import {
     buildOptimisticReportPreview,
     buildOptimisticRoomDescriptionUpdatedReportAction,
     buildOptimisticSelfDMReport,
+    buildOptimisticUnreportedTransactionAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     completeShortMention,
     findLastAccessedReport,
@@ -4564,6 +4565,8 @@ function deleteAppReport(reportID: string | undefined) {
         return;
     }
     const optimisticData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     let selfDMReportID = findSelfDMReportID();
@@ -4611,7 +4614,6 @@ function deleteAppReport(reportID: string | undefined) {
                     ...reportAction.originalMessage,
                     IOUReportID: 0,
                     type: CONST.IOU.TYPE.TRACK,
-
                 },
                 childReportID: reportAction.childReportID,
                 reportActionID: newReportActionID,
@@ -4628,7 +4630,7 @@ function deleteAppReport(reportID: string | undefined) {
             if (transactionID) {
                 transactionIDToMoneyRequestReportActionIDMap[transactionID] = newReportActionID;
             }
-            
+
             // 4. Get transaction thread
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -4652,23 +4654,34 @@ function deleteAppReport(reportID: string | undefined) {
                     },
                 },
             });
+
+            // 5. Add UNREPORTEDTRANSACTION report actions
+            const unreportedActions = buildOptimisticUnreportedTransactionAction(reportAction.childReportID, '0');
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`,
+                value: {
+                    [unreportedActions.reportActionID]: unreportedActions,
+                },
+            });
         });
 
-    // 5. Delete report actions on the report
+    // 6. Delete report actions on the report
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         value: null,
     });
 
-    // 6. Delete the report
+    // 7. Delete the report
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: null,
     });
 
-    // 7. Delete chat report preview
+    // 8. Delete chat report preview
     const reportactionID = report?.parentReportActionID;
     const parentReportID = report?.parentReportID;
 
@@ -4681,8 +4694,6 @@ function deleteAppReport(reportID: string | undefined) {
             },
         });
     }
-
-    console.log("reportactions", optimisticData)
 
     const parameters: DeleteAppReportParams = {
         reportID,
