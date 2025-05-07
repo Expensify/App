@@ -1159,10 +1159,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     shouldEnableNewFocusManagement
                     onModalHide={navigateToTargetUrl}
                 />
-                <DelegateNoAccessModal
-                    isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                    onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                />
                 {!canUseTableReportView && (
                     <DelegateNoAccessModal
                         isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
