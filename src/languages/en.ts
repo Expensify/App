@@ -6276,6 +6276,18 @@ const translations = {
             tryItOut: 'Try it out',
             noThanks: 'No thanks',
         },
+        outstandingFilter: {
+            part1: 'Filter for expenses\nthat ',
+            part2: 'need approval',
+        },
+        settingsTab: {
+            part1: 'Explore your ',
+            part2: 'workspace\nand account settings',
+        },
+        workspacesSettings: {
+            part1: 'View your ',
+            part2: 'workspaces',
+        },
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',

@@ -6800,6 +6800,18 @@ const translations = {
             tryItOut: 'Prueba esto',
             noThanks: 'No, gracias',
         },
+        outstandingFilter: {
+            part1: 'Filtra los gastos\nque ',
+            part2: 'necesitan aprobación',
+        },
+        settingsTab: {
+            part1: 'Explora ',
+            part2: 'tu espacio de trabajo\ny la configuración de tu cuenta',
+        },
+        workspacesSettings: {
+            part1: 'Ver tus ',
+            part2: 'espacios de trabajo',
+        },
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
