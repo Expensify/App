@@ -126,7 +126,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={String(defaultValues[field.id as keyof typeof defaultValues]) ?? ''}
                         shouldSaveDraft={!isEditing}
-                        limitSearchesToCountry={defaultValues['accountHolderCountry'] || defaultBankAccountCountry}
+                        limitSearchesToCountry={defaultValues.accountHolderCountry || defaultBankAccountCountry}
                         renamedInputKeys={{
                             street: 'accountHolderAddress1',
                             city: 'accountHolderCity',

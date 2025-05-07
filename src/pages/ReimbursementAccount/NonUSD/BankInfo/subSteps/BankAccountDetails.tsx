@@ -103,7 +103,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                         role={CONST.ROLE.PRESENTATION}
                         shouldSaveDraft={!isEditing}
                         defaultValue={String(defaultValues[field.id as keyof typeof defaultValues]) ?? ''}
-                        limitSearchesToCountry={reimbursementAccountDraft?.['country']}
+                        limitSearchesToCountry={reimbursementAccountDraft?.country}
                         renamedInputKeys={{
                             street: 'bankAddressLine1',
                             city: 'bankCity',
@@ -113,7 +113,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                 </View>
             );
         });
-    }, [bankAccountDetailsFields, styles, isEditing, defaultValues]);
+    }, [bankAccountDetailsFields, styles, isEditing, defaultValues, reimbursementAccountDraft?.country]);
 
     return (
         <FormProvider
