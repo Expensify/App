@@ -223,8 +223,6 @@
     "@fullstory/babel-plugin-annotate-react": "^2.3.0",
     "@fullstory/babel-plugin-react-native": "^1.2.1",
     "@jest/globals": "^29.5.0",
-    "@kie/act-js": "^2.6.2",
-    "@kie/mock-github": "2.0.1",
     "@ngneat/falso": "^7.1.1",
     "@octokit/core": "4.0.4",
     "@octokit/plugin-paginate-rest": "3.1.0",
