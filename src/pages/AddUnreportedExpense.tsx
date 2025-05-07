@@ -55,7 +55,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         },
     ];
 
-    const thereIsNoUnreportedTransactions = !((sections.at(0)?.data.length ?? 0) > 0);
+    const thereIsNoUnreportedTransaction = !((sections.at(0)?.data.length ?? 0) > 0);
 
     const reportID = route.params.reportID;
     const selectedIds = new Set<string>();
@@ -74,7 +74,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 onBackButtonPress={Navigation.goBack}
             />
 
-            {thereIsNoUnreportedTransactions ? (
+            {thereIsNoUnreportedTransaction ? (
                 <EmptyStateComponent
                     cardStyles={[styles.appBG]}
                     cardContentStyles={[styles.pt5, styles.pb0]}
@@ -116,13 +116,15 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     showConfirmButton
                     confirmButtonText={translate('iou.addUnreportedExpenseConfirm')}
                     onConfirm={() => {
-                        changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
                         Navigation.goBack(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
+                        changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
                     }}
                 />
             )}
         </ScreenWrapper>
     );
 }
+
+AddUnreportedExpense.displayName = 'AddUnreportedExpense';
 
 export default AddUnreportedExpense;

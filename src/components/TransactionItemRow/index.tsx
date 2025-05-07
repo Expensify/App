@@ -12,7 +12,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMerchant, getCreated as getTransactionCreated} from '@libs/TransactionUtils';
+import {getMerchant, getCreated as getTransactionCreated, isPartialMerchant} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CategoryCell from './DataCells/CategoryCell';
@@ -72,7 +72,7 @@ function TransactionItemRow({
     }, [hovered, isSelected, styles.activeComponentBG, styles.hoveredComponentBG]);
 
     const merchantName = getMerchant(transactionItem);
-    const isMerchantEmpty = merchantName === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isMerchantEmpty = isPartialMerchant(merchantName);
 
     return (
         <View
