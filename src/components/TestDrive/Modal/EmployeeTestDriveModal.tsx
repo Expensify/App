@@ -72,8 +72,8 @@ function EmployeeTestDriveModal() {
                     });
                 });
             })
-            .catch((error: Error) => {
-                setFormError(error.message);
+            .catch(() => {
+                setFormError(translate('testDrive.modal.employee.error'));
             });
     };
 
