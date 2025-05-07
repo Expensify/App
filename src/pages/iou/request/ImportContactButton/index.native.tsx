@@ -1,9 +1,9 @@
-import React, {useCallback} from 'react';
-import {Linking, View} from 'react-native';
+import React from 'react';
+import {View} from 'react-native';
 import Text from '@components/Text';
-import useThemeStyles from '@hooks/useThemeStyles';
-import saveLastRoute from '@libs/saveLastRoute';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import goToSettings from '../goToSettings';
 
 type ImportContactButtonProps = {
     showImportContacts?: boolean;
@@ -13,13 +13,6 @@ type ImportContactButtonProps = {
 function ImportContactButton({showImportContacts, inputHelperText}: ImportContactButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    const goToSettings = useCallback(() => {
-        Linking.openSettings();
-        // In the case of ios, the App reloads when we update contact permission from settings
-        // we are saving last route so we can navigate to it after app reload
-        saveLastRoute();
-    }, []);
 
     return showImportContacts && inputHelperText ? (
         <View style={[styles.ph5, styles.pb5, styles.flexRow]}>
