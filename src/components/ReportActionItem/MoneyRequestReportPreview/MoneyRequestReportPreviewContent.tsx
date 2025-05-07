@@ -458,7 +458,7 @@ function MoneyRequestReportPreviewContent({
         return getReportPreviewAction(violations, iouReport, policy, transactions, reportNameValuePairs);
     }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, reportNameValuePairs]);
 
-    const isPendingDelete = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
@@ -548,7 +548,7 @@ function MoneyRequestReportPreviewContent({
                 style={styles.mt1}
             >
                 <View
-                    style={[styles.chatItemMessage, isPendingDelete && styles.cursorDisabled, isPendingDelete && styles.pointerEventsAuto, containerStyles]}
+                    style={[styles.chatItemMessage, isReportDeleted && [styles.cursorDisabled, styles.pointerEventsAuto], containerStyles]}
                     onLayout={onLayout}
                 >
                     <PressableWithoutFeedback
@@ -567,7 +567,7 @@ function MoneyRequestReportPreviewContent({
                             styles.justifyContentBetween,
                             StyleUtils.getBackgroundColorStyle(theme.cardBG),
                             shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
-                            isPendingDelete && styles.pointerEventsNone,
+                            isReportDeleted && styles.pointerEventsNone,
                         ]}
                         role={getButtonRole(true)}
                         isNested
