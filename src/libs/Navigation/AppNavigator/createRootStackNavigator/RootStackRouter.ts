@@ -107,7 +107,7 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
             if (isPushAction(action)) {
                 if (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                    return handlePushReportSplitAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+                    return handlePushReportSplitAction(state, action, configOptions, stackRouter);
                 }
 
                 if (action.payload.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
