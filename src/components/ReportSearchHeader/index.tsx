@@ -13,7 +13,7 @@ function ReportSearchHeader({report, policy, style, transactions}: ReportSearchH
                 report={report}
                 policy={policy}
                 transactions={transactions}
-                useCustomSearchTitleName
+                shouldUseCustomSearchTitleName
                 shouldEnableDetailPageNavigation={false}
             />
         );

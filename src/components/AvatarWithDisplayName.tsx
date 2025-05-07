@@ -59,7 +59,7 @@ type AvatarWithDisplayNameProps = {
     shouldEnableDetailPageNavigation?: boolean;
 
     /** Whether we should enable custom title logic designed for search lis */
-    useCustomSearchTitleName?: boolean;
+    shouldUseCustomSearchTitleName?: boolean;
 
     /** Transactions inside report */
     transactions?: TransactionListItemType[];
@@ -73,7 +73,7 @@ const fallbackIcon: Icon = {
 };
 
 function getCustomDisplayName(
-    useCustomSearchTitleName: boolean,
+    shouldUseCustomSearchTitleName: boolean,
     report: OnyxEntry<Report>,
     title: string,
     displayNamesWithTooltips: DisplayNameWithTooltips,
@@ -95,7 +95,7 @@ function getCustomDisplayName(
             numberOfLines: 1,
         };
 
-        if (useCustomSearchTitleName) {
+        if (shouldUseCustomSearchTitleName) {
             const styleProps = {
                 textStyles: customSearchDisplayStyle,
             };
@@ -154,7 +154,7 @@ function AvatarWithDisplayName({
     isAnonymous = false,
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldEnableDetailPageNavigation = false,
-    useCustomSearchTitleName = false,
+    shouldUseCustomSearchTitleName = false,
     transactions = [],
 }: AvatarWithDisplayNameProps) {
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: false});
@@ -250,7 +250,7 @@ function AvatarWithDisplayName({
                     </PressableWithoutFeedback>
                     <View style={[styles.flex1, styles.flexColumn]}>
                         {getCustomDisplayName(
-                            useCustomSearchTitleName,
+                            shouldUseCustomSearchTitleName,
                             report,
                             title,
                             displayNamesWithTooltips,
