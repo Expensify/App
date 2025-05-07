@@ -134,11 +134,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         accountingIcon = Expensicons.MicrosoftDynamicsSquare;
                         break;
                     }
-                    // case CONST.POLICY.CONNECTIONS.NAME.OTHER: {
-                    //     text = translate('workspace.accounting.other');
-                    //     accountingIcon = Expensicons.Connect;
-                    //     break;
-                    // }
                     default: {
                         return;
                     }
