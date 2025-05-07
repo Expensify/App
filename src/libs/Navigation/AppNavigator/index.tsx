@@ -1,7 +1,7 @@
 import React, {lazy, memo, Suspense} from 'react';
 
-const AuthScreens = lazy(() => import(/* webpackMode: "eager" */ './AuthScreens'));
-const PublicScreens = lazy(() => import(/* webpackMode: "eager" */ './PublicScreens'));
+const AuthScreens = lazy(() => import('./AuthScreens'));
+const PublicScreens = lazy(() => import('./PublicScreens'));
 
 type AppNavigatorProps = {
     /** If we have an authToken this is true */
