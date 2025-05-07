@@ -6,7 +6,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import { getWaypointIndex } from '@libs/TransactionUtils';
 import * as MapboxToken from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,7 +74,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
                         return;
                     }
 
-                    const index = TransactionUtils.getWaypointIndex(key);
+                    const index = getWaypointIndex(key);
                     let MarkerComponent: IconAsset;
                     if (index === 0) {
                         MarkerComponent = Expensicons.DotIndicatorUnfilled;

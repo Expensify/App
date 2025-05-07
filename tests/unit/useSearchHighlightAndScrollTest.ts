@@ -2,7 +2,7 @@
 import {renderHook} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
-import * as Search from '@libs/actions/Search';
+import { search } from '@libs/actions/Search';
 
 jest.mock('@libs/actions/Search');
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -185,13 +185,13 @@ describe('useSearchHighlightAndScroll', () => {
         const {rerender} = renderHook((prop: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(prop), {
             initialProps,
         });
-        expect(Search.search).not.toHaveBeenCalled();
+        expect(search).not.toHaveBeenCalled();
 
         // When the transaction ids list change though it has the same length as previous value
         rerender(changedProp);
 
         // Then Search will be triggerred.
-        expect(Search.search).toHaveBeenCalled();
+        expect(search).toHaveBeenCalled();
     });
 
     it('should trigger Search when report actions change', () => {
@@ -245,7 +245,7 @@ describe('useSearchHighlightAndScroll', () => {
             },
             offset: 0,
         };
-    
+
         const changedProps: UseSearchHighlightAndScroll = {
             ...initialProps,
             reportActions: {
@@ -263,16 +263,16 @@ describe('useSearchHighlightAndScroll', () => {
                 },
             },
         };
-    
+
         const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
             initialProps,
         });
-        expect(Search.search).not.toHaveBeenCalled();
-    
+        expect(search).not.toHaveBeenCalled();
+
         // When report actions change
         rerender(changedProps);
-    
+
         // Then Search will be triggered
-        expect(Search.search).toHaveBeenCalled();
+        expect(search).toHaveBeenCalled();
     });
 });

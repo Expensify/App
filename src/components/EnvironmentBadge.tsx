@@ -2,7 +2,7 @@ import React from 'react';
 import useEnvironment from '@hooks/useEnvironment';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Environment from '@libs/Environment/Environment';
+import { isInternalTestBuild } from '@libs/Environment/Environment';
 import CONST from '@src/CONST';
 import pkg from '../../package.json';
 import Badge from './Badge';
@@ -30,7 +30,7 @@ function EnvironmentBadge() {
         return null;
     }
 
-    const text = Environment.isInternalTestBuild() ? `v${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : ENVIRONMENT_SHORT_FORM[environment];
+    const text = isInternalTestBuild() ? `v${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : ENVIRONMENT_SHORT_FORM[environment];
 
     return (
         <Badge

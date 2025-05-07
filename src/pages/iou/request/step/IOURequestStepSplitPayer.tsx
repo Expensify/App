@@ -6,11 +6,11 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import * as IOUUtils from '@libs/IOUUtils';
+import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {getParticipantsOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
@@ -52,7 +52,7 @@ function IOURequestStepSplitPayer({
         const participantOptions =
             [currentUserOption, ...participants]
                 ?.filter((participant) => !!participant.accountID)
-                ?.map((participant) => OptionsListUtils.getParticipantsOption(participant, personalDetails)) ?? [];
+                ?.map((participant) => getParticipantsOption(participant, personalDetails)) ?? [];
         return [
             {
                 title: '',
@@ -78,7 +78,7 @@ function IOURequestStepSplitPayer({
             headerTitle={translate('moneyRequestConfirmationList.paidBy')}
             onBackButtonPress={navigateBack}
             shouldShowNotFoundPage={
-                !IOUUtils.isValidMoneyRequestType(iouType) || ReportUtils.isPolicyExpenseChat(report) || action !== CONST.IOU.ACTION.CREATE || iouType !== CONST.IOU.TYPE.SPLIT
+                !isValidMoneyRequestType(iouType) || isPolicyExpenseChat(report) || action !== CONST.IOU.ACTION.CREATE || iouType !== CONST.IOU.TYPE.SPLIT
             }
             shouldShowWrapper
             testID={IOURequestStepSplitPayer.displayName}
