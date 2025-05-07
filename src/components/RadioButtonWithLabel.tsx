@@ -2,7 +2,6 @@ import type {ComponentType} from 'react';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FormHelpMessage from './FormHelpMessage';
 import * as Pressables from './Pressable';
@@ -39,7 +38,6 @@ const PressableWithFeedback = Pressables.PressableWithFeedback;
 
 function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = false, errorText = '', isChecked, onPress, wrapperStyle}: RadioButtonWithLabelProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
 
     if (!label && !LabelComponent) {
