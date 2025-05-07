@@ -47,8 +47,8 @@ const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => v
 function useOptions() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<Array<ListItem & SelectedOptionData>>([]);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, { canBeMissing: true });
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, { canBeMissing: true });
     const personalData = useCurrentUserPersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
@@ -142,7 +142,7 @@ function NewChatPage() {
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const selectionListRef = useRef<SelectionListHandle>(null);
 
     const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =

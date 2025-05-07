@@ -50,7 +50,7 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
         },
         ref,
     ) => {
-        const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
+        const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, { canBeMissing: true });
 
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
