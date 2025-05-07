@@ -40,6 +40,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportFieldForList = ListItem & {
     fieldID: string;
@@ -77,6 +78,15 @@ function WorkspaceReportFieldsPage({
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
     }, [policy]);
+    const hasAccountingConnection = !isEmptyObject(policy?.connections);
+    const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
+
+    const onDisabledOrganizeSwitchPress = useCallback(() => {
+        if (!hasAccountingConnection) {
+            return;
+        }
+        setIsOrganizeWarningModalOpen(true);
+    }, [hasAccountingConnection]);
 
     const fetchReportFields = useCallback(() => {
         openPolicyReportFieldsPage(policyID);
@@ -254,6 +264,8 @@ function WorkspaceReportFieldsPage({
                                     }
                                     enablePolicyReportFields(policyID, isEnabled);
                                 }}
+                                disabled={hasAccountingConnection}
+                                disabledAction={onDisabledOrganizeSwitchPress}
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (
                                         <>
@@ -293,6 +305,21 @@ function WorkspaceReportFieldsPage({
                     confirmText={translate('common.disable')}
                     cancelText={translate('common.cancel')}
                     danger
+                />
+                <ConfirmModal
+                    title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
+                    onConfirm={() => {
+                        if (!policyID) {
+                            return;
+                        }
+                        setIsOrganizeWarningModalOpen(false);
+                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+                    }}
+                    onCancel={() => setIsOrganizeWarningModalOpen(false)}
+                    isVisible={isOrganizeWarningModalOpen}
+                    prompt={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText')}
+                    confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
+                    cancelText={translate('common.cancel')}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
