@@ -79,12 +79,10 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         .join(', ');
     const reportName = getReportName(report);
     const shouldShowUsePlusButtonText =
-        (moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
-            moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
-            moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
-            moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)) &&
-        !isPolicyExpenseChat &&
-        !isAdminRoom;
+        moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
+        moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
+        moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
+        moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
     const navigateToReport = () => {
         if (!report?.reportID) {
@@ -199,7 +197,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         <Text>{welcomeMessage.phrase1}</Text>
                     </Text>
                 )}
-                {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
                 {isDefault && displayNamesWithTooltips.length > 0 && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>
