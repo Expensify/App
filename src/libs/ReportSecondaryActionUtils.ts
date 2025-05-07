@@ -46,11 +46,11 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
 }
 
 function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
-    const reportTransaction = reportTransactions.at(0);
-    if (!reportTransaction) {
+    if (Number(reportTransactions?.length) !== 1) {
         return false;
     }
 
+    const reportTransaction = reportTransactions.at(0);
     if (isPending(reportTransaction)) {
         return false;
     }

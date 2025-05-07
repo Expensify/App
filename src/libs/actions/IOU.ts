@@ -210,11 +210,11 @@ import type {SearchDataTypes, SearchPolicy, SearchReport, SearchTransaction} fro
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
-import {buildOptimisticPolicyRecentlyUsedCategories} from './Policy/Category';
+import {buildOptimisticPolicyRecentlyUsedCategories, getPolicyCategoriesData} from './Policy/Category';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from './Policy/Member';
 import {buildOptimisticPolicyRecentlyUsedDestinations} from './Policy/PerDiem';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
-import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
+import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy/Tag';
 import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
@@ -10771,6 +10771,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
             currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
             merchant: transactionDetails?.merchant ?? '',
             participants: transaction?.participants,
+            attendees: transactionDetails?.attendees as Attendee[],
             reportID,
         },
     });
@@ -10836,6 +10837,8 @@ function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transact
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
 
     const policy = getPolicy(transactionReport?.policyID);
+    const policyCategories = getPolicyCategoriesData(transactionReport?.policyID);
+    const policyTags = getPolicyTagsData(transactionReport?.policyID);
     const participants = getMoneyRequestParticipantsFromReport(transactionReport);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
 
@@ -10866,6 +10869,8 @@ function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transact
             },
             policyParams: {
                 policy,
+                policyCategories,
+                policyTags,
             },
             transactionParams: {
                 amount: splitExpense.amount ?? 0,
@@ -10876,10 +10881,11 @@ function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transact
                 category: splitExpense.category,
                 tag: splitExpense.tags?.[0],
                 originalTransactionID,
+                attendees: draftTransaction?.comment?.attendees,
             },
         };
 
-        const {report, participantParams, policyParams = {}, transactionParams} = requestMoneyInformation;
+        const {report, participantParams, policyParams, transactionParams} = requestMoneyInformation;
         const parsedComment = getParsedComment(transactionParams.comment ?? '');
         transactionParams.comment = parsedComment;
 
@@ -10921,7 +10927,7 @@ function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transact
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
         value: {
-            stateNum:CONST.TRANSACTION.STATE_NUM.STATE_NOFLAG,
+            stateNum: CONST.TRANSACTION.STATE_NUM.STATE_NOFLAG,
         },
     });
 
