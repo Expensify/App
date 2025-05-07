@@ -40,7 +40,7 @@ describe('WorkspacesSettingsUtils', () => {
             await waitForBatchedUpdates();
 
             // When calling getBrickRoadForPolicy with a report and report actions
-            const result = getBrickRoadForPolicy(report as Report, reportActions as OnyxCollection<ReportActions>);
+            const result = getBrickRoadForPolicy(report as Report);
 
             // The result should be 'error' because there is at least one IOU action associated with a transaction that has a violation.
             expect(result).toBe('error');
@@ -62,7 +62,7 @@ describe('WorkspacesSettingsUtils', () => {
             await waitForBatchedUpdates();
 
             // When calling getBrickRoadForPolicy with a report and report actions
-            const result = getBrickRoadForPolicy(report as Report, reportActions as OnyxCollection<ReportActions>);
+            const result = getBrickRoadForPolicy(report as Report);
 
             // Then the result should be 'undefined' since no IOU action is linked to a transaction with a violation.
             expect(result).toBe(undefined);
