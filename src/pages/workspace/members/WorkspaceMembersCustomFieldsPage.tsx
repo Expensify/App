@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateCustomField} from '@libs/actions/Policy/Policy';
@@ -33,6 +34,7 @@ type MembersCustomFieldsPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'r
 function MembersCustomFieldsPage({policy, route, personalDetails}: MembersCustomFieldsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
     const params = route.params;
     const customFieldType = params.customFieldType;
     const accountID = Number(params.accountID);
@@ -73,7 +75,7 @@ function MembersCustomFieldsPage({policy, route, personalDetails}: MembersCustom
                     }}
                 >
                     <InputWrapper
-                        autoFocus
+                        ref={inputCallbackRef}
                         InputComponent={TextInput}
                         label={customFieldText}
                         role={CONST.ROLE.PRESENTATION}
