@@ -19,6 +19,7 @@ import {
 import {getIOUActionForReportID, getReportActions, isPayAction} from './ReportActionsUtils';
 import {
     canAddTransaction,
+    canHoldUnholdReportAction,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -408,6 +409,7 @@ function getSecondaryReportActions(
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
+    parentReportAction?: ReportAction,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -439,7 +441,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
     }
 
-    if (isHoldAction(report, reportTransactions)) {
+    if (canHoldUnholdReportAction(parentReportAction).canHoldRequest) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
