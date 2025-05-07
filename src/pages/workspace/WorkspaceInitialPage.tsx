@@ -443,6 +443,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
                 addBottomSafeAreaPadding
                 shouldForceFullScreen
+                shouldDisplaySearchRouter
             >
                 <HeaderWithBackButton
                     title={policyName}

@@ -11,6 +11,7 @@ import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type FullPageNotFoundViewProps = {
     /** TestID for test */
@@ -78,6 +79,7 @@ function FullPageNotFoundView({
     addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
+    const {isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
 
     if (shouldShow) {
@@ -87,7 +89,7 @@ function FullPageNotFoundView({
                 <HeaderWithBackButton
                     onBackButtonPress={onBackButtonPress}
                     shouldShowBackButton={shouldShowBackButton}
-                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
+                    shouldDisplaySearchRouter={shouldDisplaySearchRouter && (isMediumScreenWidth || isLargeScreenWidth)}
                 />
                 <View
                     style={[styles.flex1, styles.blockingViewContainer]}
