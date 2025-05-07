@@ -10856,7 +10856,6 @@ function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transact
     const failureData = [] as OnyxUpdate[];
     const optimisticData = [] as OnyxUpdate[];
 
-    const moneyRequestReportID = NumberUtils.rand64();
     splitExpenses.forEach((splitExpense, index) => {
         const requestMoneyInformation = {
             report: transactionReport,
@@ -10894,7 +10893,7 @@ function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transact
             parentChatReport,
             policyParams,
             transactionParams,
-            moneyRequestReportID,
+            moneyRequestReportID: NumberUtils.rand64(),
             existingTransactionID,
         });
 
