@@ -30,7 +30,7 @@ Once Rules are enabled, you can customize individual expense settings:
 - **Billable default**: Set expenses as billable or non-billable by default.
 - **eReceipts**: Enable eReceipts for most USD credit transactions. This is available when the Default currency set in the Overview is set to USD.
 
-# Configure prohibited expense rules
+# Configure Prohibited Expense Rule
 
 To flag restricted expense types for manual review:
 
