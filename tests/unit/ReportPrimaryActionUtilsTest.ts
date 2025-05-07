@@ -56,6 +56,7 @@ describe('getPrimaryAction', () => {
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = {
@@ -179,11 +180,13 @@ describe('getPrimaryAction', () => {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: -300,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = {};
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
         const TRANSACTION_ID = 'TRANSACTION_ID';
 
         const transaction = {
@@ -326,7 +329,6 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        getTransactionThreadPrimaryAction({} as Report, report, transaction, [violation], policy as Policy);
         expect(getTransactionThreadPrimaryAction({} as Report, report, transaction, [violation], policy as Policy)).toBe(CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH);
     });
 
