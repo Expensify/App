@@ -173,6 +173,7 @@ import {
     isDeletedParentAction,
     isExportIntegrationAction,
     isForwardedAction,
+    isIntegrationMessageAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
@@ -10330,11 +10331,45 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
         return false;
     }
 
+    let exportIntegrationActionsCount = 0;
+    let integrationMessageActionsCount = 0;
+
     if (Array.isArray(reportActions)) {
-        return reportActions.some((action) => isExportIntegrationAction(action));
+        for (const action of reportActions) {
+            if (isExportIntegrationAction(action)) {
+                exportIntegrationActionsCount++;
+            }
+            if (isIntegrationMessageAction(action)) {
+                integrationMessageActionsCount++;
+            }
+        }
+    } else {
+        for (const action of Object.values(reportActions)) {
+            if (isExportIntegrationAction(action)) {
+                exportIntegrationActionsCount++;
+            }
+            if (isIntegrationMessageAction(action)) {
+                integrationMessageActionsCount++;
+            }
+        }
     }
 
-    return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
+    // We need to make sure that there was at least one successful export to consider the report exported.
+    // We add one EXPORTINTEGRATION action to the report when we start exporting it (with pendingAction: 'add') and then another EXPORTINTEGRATION when the export finishes successfully.
+    // If the export fails, we add an INTEGRATIONS_MESSAGE action to the report, but the initial EXPORTINTEGRATION action is still present, so we compare the counts of these two actions to determine if the report was exported successfully.
+    return exportIntegrationActionsCount > integrationMessageActionsCount;
+}
+
+function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
+    if (!reportActions) {
+        return false;
+    }
+
+    if (Array.isArray(reportActions)) {
+        return reportActions.some((action) => isIntegrationMessageAction(action));
+    }
+
+    return Object.values(reportActions).some((action) => isIntegrationMessageAction(action));
 }
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
@@ -10498,6 +10533,49 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
     }
 
     return getReportName(report);
+}
+
+/**
+ * Generates report attributes for a report
+ * This function should be called only in reportAttributes.ts
+ * DO NOT USE THIS FUNCTION ANYWHERE ELSE
+ */
+function generateReportAttributes({
+    report,
+    reportActions,
+    transactionViolations,
+    reportNameValuePairs,
+}: {
+    report: OnyxEntry<Report>;
+    reportActions?: OnyxCollection<ReportActions>;
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+}) {
+    const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
+    const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
+    const isReportSettled = isSettled(report);
+    const isCurrentUserReportOwner = isReportOwner(report);
+    const doesReportHasViolations = hasReportViolations(report?.reportID);
+    const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+    const hasAnyViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
+    const reportErrors = getAllReportErrors(report, reportActionsList);
+    const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
+    const oneTransactionThreadReportID = getOneTransactionThreadReportID(report?.reportID, reportActionsList);
+    const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
+    const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction);
+    const isReportArchived = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived;
+
+    return {
+        doesReportHasViolations,
+        hasViolationsToDisplayInLHN,
+        hasAnyViolations,
+        reportErrors,
+        hasErrors,
+        oneTransactionThreadReportID,
+        parentReportAction,
+        requiresAttention,
+        isReportArchived,
+    };
 }
 
 function getReportPersonalDetailsParticipants(report: Report, personalDetailsParam: OnyxEntry<PersonalDetailsList>, reportMetadata: OnyxEntry<ReportMetadata>, isRoomMembersList = false) {
@@ -10833,6 +10911,7 @@ export {
     getIntegrationIcon,
     canBeExported,
     isExported,
+    hasExportError,
     getHelpPaneReportType,
     hasOnlyNonReimbursableTransactions,
     getReportLastMessage,
@@ -10882,6 +10961,7 @@ export {
     populateOptimisticReportFormula,
     getOutstandingReportsForUser,
     isReportOutstanding,
+    generateReportAttributes,
     getReportPersonalDetailsParticipants,
     isAllowedToSubmitDraftExpenseReport,
 };
