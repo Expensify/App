@@ -16,7 +16,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import AccountHolderDetails from './subSteps/AccountHolderDetails';
 import BankAccountDetails from './subSteps/BankAccountDetails';
 import Confirmation from './subSteps/Confirmation';
-import type {BankInfoSubStepProps} from './types';
+import type BankInfoSubStepProps from './types';
 
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
@@ -34,10 +34,10 @@ type BankInfoProps = {
 function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {initWithStoredValues: false});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
+    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {initWithStoredValues: false, canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
     const country = reimbursementAccount?.achData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
@@ -51,20 +51,24 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     };
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (reimbursementAccount?.errors || reimbursementAccount?.isLoading || !reimbursementAccount?.isSuccess) {
+        if (reimbursementAccount?.isLoading === true || !!reimbursementAccount?.errors) {
             return;
         }
 
-        if (reimbursementAccount?.isSuccess) {
+        if (reimbursementAccount?.isSuccess === true) {
             onSubmit();
-            clearReimbursementAccountBankCreation();
         }
-
-        return () => clearReimbursementAccountBankCreation();
-    }, [onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isCreateCorpayBankAccount, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
+    }, [onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
 
     useEffect(() => {
+        return () => clearReimbursementAccountBankCreation();
+    }, []);
+
+    useEffect(() => {
+        if (country === '') {
+            return;
+        }
+
         getCorpayBankAccountFields(country, currency);
     }, [country, currency]);
 
@@ -93,7 +97,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
         }
     };
 
-    if (corpayFields !== undefined && corpayFields?.isLoading === false && corpayFields?.isSuccess === false) {
+    if (corpayFields !== undefined && corpayFields?.isLoading === false && corpayFields?.isSuccess !== undefined && corpayFields?.isSuccess === false) {
         return <NotFoundPage />;
     }
 

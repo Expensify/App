@@ -226,7 +226,7 @@ type NewWorkspaceNameParams = {userName: string; workspaceNumber?: number};
 
 type RoomNameReservedErrorParams = {reservedName: string};
 
-type RenamedRoomActionParams = {oldName: string; newName: string; actorName?: string};
+type RenamedRoomActionParams = {oldName: string; newName: string; isExpenseReport: boolean; actorName?: string};
 
 type RoomRenamedToParams = {newName: string};
 
@@ -691,6 +691,10 @@ type ReviewParams = {
     amount: string;
 };
 
+type CurrencyInputDisabledTextParams = {
+    currency: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -936,4 +940,5 @@ export type {
     NeedCategoryForExportToIntegrationParams,
     SubscriptionSettingsSummaryParams,
     ReviewParams,
+    CurrencyInputDisabledTextParams,
 };

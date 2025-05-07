@@ -247,6 +247,7 @@ const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
 let currentUserEmail: string | undefined;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -1591,6 +1592,7 @@ function markCommentAsUnread(reportID: string | undefined, reportAction: ReportA
     // Find the latest report actions from other users
     const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
         if (
+            !ReportActionsUtils.isDeletedAction(current) &&
             current.actorAccountID !== currentUserAccountID &&
             (!latest || current.created > latest.created) &&
             // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper
@@ -3331,7 +3333,7 @@ function openReportFromDeepLink(url: string) {
                         }
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
-                            onNotCompleted: startOnboardingFlow,
+                            onNotCompleted: () => startOnboardingFlow(),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });
@@ -3553,13 +3555,10 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     navigateToMostRecentReport(report);
 }
 
-/** Invites people to a room */
-function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
+function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportMetadata = getReportMetadata(reportID);
-    if (!report) {
-        return;
-    }
+    const isGroupChat = isGroupChatReportUtils(report);
 
     const defaultNotificationPreference = getDefaultNotificationPreferenceForReport(report);
 
@@ -3579,7 +3578,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             reportParticipants[accountID] = participant;
             return reportParticipants;
         },
-        {...report.participants},
+        {...report?.participants},
     );
 
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
@@ -3651,7 +3650,14 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
         },
     ];
 
-    if (isGroupChatReportUtils(report)) {
+    return {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs};
+}
+
+/** Invites people to a room */
+function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
+    const {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs} = buildInviteToRoomOnyxData(reportID, inviteeEmailsToAccountIDs);
+
+    if (isGroupChat) {
         const parameters: InviteToGroupChatParams = {
             reportID,
             inviteeEmails,
@@ -4026,7 +4032,16 @@ function completeOnboarding({
     userReportedIntegration?: OnboardingAccounting;
     wasInvited?: boolean;
 }) {
-    const onboardingData = prepareOnboardingOnyxData(introSelected, engagementChoice, onboardingMessage, adminsChatReportID, onboardingPolicyID, userReportedIntegration, wasInvited);
+    const onboardingData = prepareOnboardingOnyxData(
+        introSelected,
+        engagementChoice,
+        onboardingMessage,
+        adminsChatReportID,
+        onboardingPolicyID,
+        userReportedIntegration,
+        wasInvited,
+        companySize,
+    );
     if (!onboardingData) {
         return;
     }
@@ -5239,6 +5254,7 @@ export {
     handleUserDeletedLinksInHtml,
     hasErrorInPrivateNotes,
     inviteToGroupChat,
+    buildInviteToRoomOnyxData,
     inviteToRoom,
     joinRoom,
     leaveGroupChat,

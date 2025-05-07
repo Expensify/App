@@ -120,6 +120,15 @@ const link = (theme: ThemeColors) =>
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
     } satisfies ViewStyle & MixedStyleDeclaration);
 
+const emailLink = (theme: ThemeColors) =>
+    ({
+        color: theme.link,
+        textDecorationColor: theme.link,
+        // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
+        fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+        fontWeight: FontUtils.fontWeight.bold,
+    } satisfies ViewStyle & MixedStyleDeclaration);
+
 const baseCodeTagStyles = (theme: ThemeColors) =>
     ({
         borderWidth: 1,
@@ -336,6 +345,8 @@ const styles = (theme: ThemeColors) =>
 
         link: link(theme),
 
+        emailLink: emailLink(theme),
+
         linkMuted: {
             color: theme.textSupporting,
             textDecorationColor: theme.textSupporting,
@@ -382,6 +393,9 @@ const styles = (theme: ThemeColors) =>
         },
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
+        },
+        lineHeightXLarge: {
+            lineHeight: variables.lineHeightXLarge,
         },
         label: {
             fontSize: variables.fontSizeLabel,
@@ -502,7 +516,7 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             ...whiteSpace.preWrap,
             color: theme.heading,
-            fontSize: variables.fontSizeh2,
+            fontSize: variables.fontSizeH2,
             lineHeight: variables.lineHeightSizeh2,
         },
 
@@ -589,13 +603,13 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number, sidebarWidth: number) => ({
+        topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
             // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
             // On natives we can use absolute positioning.
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             opacity: shouldDisplayTopLevelNavigationTabBar ? 1 : 0,
             pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
-            width: shouldUseNarrowLayout ? '100%' : sidebarWidth,
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
             paddingBottom: bottomSafeAreaOffset,
 
             // There is a missing border right on the wide layout
@@ -618,14 +632,7 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        leftNavigationTabBarPosition: {
-            height: '100%',
-            width: variables.navigationTabBarSize,
-            position: 'fixed',
-            left: 0,
-        },
-
-        leftNavigationTabBar: {
+        leftNavigationTabBarContainer: {
             height: '100%',
             width: variables.navigationTabBarSize,
             position: 'fixed',
@@ -633,6 +640,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderRightColor: theme.border,
+            backgroundColor: theme.appBG,
         },
 
         leftNavigationTabBarItem: {
@@ -1657,18 +1665,11 @@ const styles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-        },
-
-        searchSidebarWithLHB: {
-            width: variables.sideBarWithLHBWidth,
-            height: '100%',
-            justifyContent: 'space-between',
-            borderRightWidth: 1,
-            borderColor: theme.border,
+            marginLeft: variables.navigationTabBarSize,
         },
 
         searchSidebar: {
-            width: variables.sideBarWidth,
+            width: variables.sideBarWithLHBWidth,
             height: '100%',
             justifyContent: 'space-between',
             borderRightWidth: 1,
@@ -1805,7 +1806,7 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
         },
 
-        breadcrumsContainer: {
+        breadcrumbsContainer: {
             minHeight: 24,
         },
 
@@ -1887,23 +1888,11 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        initialSettingsUsernameEmoji: {
-            fontSize: variables.fontSizeUsernameEmoji,
-        },
-
         createMenuPositionSidebar: (windowHeight: number) =>
             ({
                 horizontal: 18,
                 // Menu should be displayed 12px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
-                vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 12),
-            } satisfies AnchorPosition),
-
-        createLHBMenuPositionSidebar: (windowHeight: number) =>
-            ({
-                horizontal: 18,
-                // Menu should be displayed 12px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
+                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (12px)
                 vertical: windowHeight - (variables.fabBottom + variables.componentSizeNormal + 12),
             } satisfies AnchorPosition),
 
@@ -1916,7 +1905,7 @@ const styles = (theme: ThemeColors) =>
         createMenuPositionReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
             ({
                 // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
-                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWidth : variables.sideBarWidth) + 18,
+                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWithLHBWidth : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) + 18,
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
@@ -2707,15 +2696,15 @@ const styles = (theme: ThemeColors) =>
         searchResultsHeaderBar: {
             display: 'flex',
             height: variables.contentHeaderDesktopHeight,
-            zIndex: variables.popoverzIndex,
+            zIndex: variables.popoverZIndex,
             position: 'relative',
             paddingLeft: 20,
             paddingRight: 12,
         },
 
-        headerBarDesktopHeight: (canUseLeftHandBar: boolean | undefined) => ({
-            height: canUseLeftHandBar ? variables.contentHeaderHeight : variables.contentHeaderDesktopHeight,
-        }),
+        headerBarHeight: {
+            height: variables.contentHeaderHeight,
+        },
 
         imageViewContainer: {
             width: '100%',
@@ -2998,8 +2987,7 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 88,
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
-        rootNavigatorContainerWithLHBStyles: (isSmallScreenWidth: boolean) =>
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
             ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1} satisfies ViewStyle),
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
 
@@ -3389,7 +3377,7 @@ const styles = (theme: ThemeColors) =>
 
         moneyRequestConfirmationAmount: {
             ...headlineFont,
-            fontSize: variables.fontSizeh1,
+            fontSize: variables.fontSizeH1,
         },
 
         moneyRequestMenuItem: {
@@ -4913,8 +4901,8 @@ const styles = (theme: ThemeColors) =>
             minWidth: 56,
             alignSelf: 'center',
         },
-        timePickerWidth100: {
-            width: 100,
+        timePickerWidth72: {
+            width: 72,
         },
         timePickerHeight100: {
             height: 100,
@@ -4928,6 +4916,7 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'flex-start',
             justifyContent: 'center',
+            marginBottom: 8,
         },
         selectionListRadioSeparator: {
             height: StyleSheet.hairlineWidth,
@@ -4982,6 +4971,8 @@ const styles = (theme: ThemeColors) =>
         },
         formHelperMessage: {
             height: 32,
+            marginTop: 0,
+            marginBottom: 0,
         },
         timePickerInputExtraSmall: {
             fontSize: 50,
@@ -5099,7 +5090,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         walletRedDotSectionText: {
-            color: theme.darkSupportingText,
+            color: theme.textSupporting,
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightNormal,
         },
@@ -5638,8 +5629,8 @@ const styles = (theme: ThemeColors) =>
         },
         reportPreviewArrowButton: {
             borderRadius: 50,
-            width: 28,
-            height: 28,
+            width: variables.w28,
+            height: variables.h28,
             alignItems: 'center',
             justifyContent: 'center',
             marginLeft: 4,
@@ -5649,8 +5640,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        navigationBarBG: {
-            backgroundColor: theme.navigationBarBackgroundColor,
+        translucentNavigationBarBG: {
+            backgroundColor: theme.translucentNavigationBarBackgroundColor,
         },
 
         stickToBottom: {
@@ -5658,6 +5649,40 @@ const styles = (theme: ThemeColors) =>
             bottom: 0,
             left: 0,
             right: 0,
+        },
+
+        earlyDiscountButton: {
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: 'auto',
+        },
+
+        testDriveModalContainer: {
+            // On small/medium screens, we need to remove the top padding
+            paddingTop: 0,
+            // On medium screens, we need to prevent the modal from becoming too big
+            maxWidth: 500,
+        },
+
+        backgroundWhite: {
+            backgroundColor: colors.white,
+        },
+
+        embeddedDemoIframe: {
+            height: '100%',
+            width: '100%',
+            border: 'none',
+        },
+
+        featureTrainingModalImage: {
+            width: '100%',
+            height: '100%',
+            borderTopLeftRadius: variables.componentBorderRadiusLarge,
+            borderTopRightRadius: variables.componentBorderRadiusLarge,
+        },
+
+        testDriveBannerGap: {
+            height: CONST.DESKTOP_HEADER_PADDING * 2,
         },
     } satisfies Styles);
 
@@ -5667,4 +5692,4 @@ const defaultStyles = styles(defaultTheme);
 
 export default styles;
 export {defaultStyles};
-export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions};
+export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions};

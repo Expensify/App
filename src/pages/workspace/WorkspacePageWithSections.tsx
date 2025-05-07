@@ -11,7 +11,6 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -130,16 +129,18 @@ function WorkspacePageWithSections({
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
     const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
-    const {canUseLeftHandBar} = usePermissions();
 
-    const [user] = useOnyx(ONYXKEYS.USER);
-    const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {
+        selector: (session) => session?.email,
+        canBeMissing: true,
+    });
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
     const achState = reimbursementAccount?.achData?.state;
-    const isUsingECard = user?.isUsingExpensifyCard ?? false;
+    const isUsingECard = account?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -206,7 +207,6 @@ function WorkspacePageWithSections({
                     onBackButtonPress={handleOnBackButtonPress}
                     shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     icon={icon ?? undefined}
-                    style={styles.headerBarDesktopHeight(canUseLeftHandBar)}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
