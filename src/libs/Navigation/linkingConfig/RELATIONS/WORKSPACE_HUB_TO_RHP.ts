@@ -1,8 +1,8 @@
 import type {WorkspaceHubSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 
-// This file is used to define relation between settings split navigator's central screens and RHP screens.
-const CENTRAL_PANE_TO_RHP_MAPPING: Partial<Record<keyof WorkspaceHubSplitNavigatorParamList, string[]>> = {
+// This file is used to define relation between workspace hub split navigator's central screens and RHP screens.
+const WORKSPACE_HUB_TO_RHP_MAPPING: Partial<Record<keyof WorkspaceHubSplitNavigatorParamList, string[]>> = {
     [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT]: [
         SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ADD_PAYMENT_CARD,
         SCREENS.WORKSPACE_HUB.SUBSCRIPTION.SIZE,
@@ -13,4 +13,4 @@ const CENTRAL_PANE_TO_RHP_MAPPING: Partial<Record<keyof WorkspaceHubSplitNavigat
     ],
 };
 
-export default CENTRAL_PANE_TO_RHP_MAPPING;
+export default WORKSPACE_HUB_TO_RHP_MAPPING;
