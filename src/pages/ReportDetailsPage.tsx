@@ -117,6 +117,7 @@ import {
 import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
+    deleteAppReport,
     downloadReportPDF,
     exportReportToCSV,
     exportReportToPDF,
@@ -1148,7 +1149,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     isVisible={isDeleteReportModalVisible}
                     onConfirm={() => {
                         setIsDeleteReportModalVisible(false);
-                        isTransactionDeleted.current = true;
+                        deleteAppReport(report.reportID);
                     }}
                     onCancel={() => setIsDeleteReportModalVisible(false)}
                     prompt={translate('iou.deleteReportConfirmation')}

@@ -4609,10 +4609,12 @@ function deleteAppReport(reportID: string | undefined) {
                 originalMessage: {
                     // eslint-disable-next-line deprecation/deprecation
                     ...reportAction.originalMessage,
-                    IOUReportID: selfDMReportID,
+                    IOUReportID: 0,
+                    type: CONST.IOU.TYPE.TRACK,
+
                 },
                 childReportID: reportAction.childReportID,
-                reportactionID: newReportActionID,
+                reportActionID: newReportActionID,
             };
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -4626,7 +4628,7 @@ function deleteAppReport(reportID: string | undefined) {
             if (transactionID) {
                 transactionIDToMoneyRequestReportActionIDMap[transactionID] = newReportActionID;
             }
-
+            
             // 4. Get transaction thread
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -4660,7 +4662,6 @@ function deleteAppReport(reportID: string | undefined) {
     });
 
     // 6. Delete the report
-
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -4680,6 +4681,8 @@ function deleteAppReport(reportID: string | undefined) {
             },
         });
     }
+
+    console.log("reportactions", optimisticData)
 
     const parameters: DeleteAppReportParams = {
         reportID,
