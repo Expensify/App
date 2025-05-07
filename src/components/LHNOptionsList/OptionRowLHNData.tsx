@@ -83,6 +83,7 @@ function OptionRowLHNData({
         receiptTransactions,
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
+        reportAttributes,
     ]);
 
     return (
