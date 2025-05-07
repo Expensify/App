@@ -20,6 +20,7 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -63,6 +64,7 @@ import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActio
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -191,7 +193,7 @@ function MoneyRequestReportPreviewContent({
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {canBeMissing: true});
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
             if (!type) {
@@ -227,7 +229,7 @@ function MoneyRequestReportPreviewContent({
         }
     };
 
-    const shouldShowApproveButton = useMemo(() => canApproveIOU(iouReport, policy), [iouReport, policy]) || isApprovedAnimationRunning;
+    const shouldShowApproveButton = useMemo(() => canApproveIOU(iouReport, policy, transactions), [iouReport, policy, transactions]) || isApprovedAnimationRunning;
     const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, violations);
     const shouldShowSettlementButton = !shouldShowSubmitButton && (shouldShowPayButton || shouldShowApproveButton) && !shouldShowRTERViolationMessage && !shouldShowBrokenConnectionViolation;
 
@@ -453,8 +455,8 @@ function MoneyRequestReportPreviewContent({
         if (isPaidAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
-        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived);
-    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived]);
+        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived, reportActions);
+    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions]);
 
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
@@ -504,7 +506,6 @@ function MoneyRequestReportPreviewContent({
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING]: connectedIntegration ? (
             <ExportWithDropdownMenu
-                policy={policy}
                 report={iouReport}
                 connectionName={connectedIntegration}
                 wrapperStyle={styles.flexReset}
