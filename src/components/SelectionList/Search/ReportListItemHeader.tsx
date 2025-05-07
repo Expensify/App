@@ -137,6 +137,8 @@ function ReportListItemHeader<TItem extends ListItem>({
     const {currentSearchHash} = useSearchContext();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const thereIsFromAndTo = !!reportItem.from && !!reportItem.to;
+    const showArrowComponent = reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo;
 
     const handleOnButtonPress = () => {
         handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
@@ -151,17 +153,19 @@ function ReportListItemHeader<TItem extends ListItem>({
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
             />
-            <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pr3, styles.pl3]}>
-                <UserInfoCellsWithArrow
-                    shouldDisplayArrowIcon
-                    participantFrom={reportItem.from}
-                    participantFromDisplayName={reportItem.from.displayName ?? reportItem.from.login ?? translate('common.hidden')}
-                    participantToDisplayName={reportItem.to.displayName ?? reportItem.to.login ?? translate('common.hidden')}
-                    participantTo={reportItem.to}
-                    avatarSize="mid-subscript"
-                    infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
-                    infoCellsAvatarStyle={styles.pr1}
-                />
+            <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, showArrowComponent ? styles.justifyContentBetween : styles.justifyContentEnd, styles.pr3, styles.pl3]}>
+                {showArrowComponent && (
+                    <UserInfoCellsWithArrow
+                        shouldDisplayArrowIcon
+                        participantFrom={reportItem.from}
+                        participantFromDisplayName={reportItem.from.displayName ?? reportItem.from.login ?? translate('common.hidden')}
+                        participantToDisplayName={reportItem.to.displayName ?? reportItem.to.login ?? translate('common.hidden')}
+                        participantTo={reportItem.to}
+                        avatarSize="mid-subscript"
+                        infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                        infoCellsAvatarStyle={styles.pr1}
+                    />
+                )}
                 <View>
                     <ActionCell
                         action={reportItem.action}

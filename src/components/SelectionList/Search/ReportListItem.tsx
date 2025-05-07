@@ -33,6 +33,8 @@ function ReportListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
+    const isEmptyReport = reportItem.transactions.length === 0;
+    const isDisabledOrEmpty = isEmptyReport || isDisabled;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -89,10 +91,19 @@ function ReportListItem<TItem extends ListItem>({
                     item={item}
                     onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
-                    isDisabled={isDisabled}
+                    isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
                 />
-                {reportItem.transactions.length > 0 ? (
+                {isEmptyReport ? (
+                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
+                        <Text
+                            style={[styles.textLabelSupporting]}
+                            numberOfLines={1}
+                        >
+                            {translate('search.moneyRequestReport.emptyStateTitle')}
+                        </Text>
+                    </View>
+                ) : (
                     reportItem.transactions.map((transaction) => (
                         <TransactionListItemRow
                             key={transaction.transactionID}
@@ -112,15 +123,6 @@ function ReportListItem<TItem extends ListItem>({
                             shouldShowTransactionCheckbox
                         />
                     ))
-                ) : (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
-                        <Text
-                            style={[styles.textLabelSupporting]}
-                            numberOfLines={1}
-                        >
-                            {translate('search.moneyRequestReport.emptyStateTitle')}
-                        </Text>
-                    </View>
                 )}
             </View>
         </BaseListItem>
