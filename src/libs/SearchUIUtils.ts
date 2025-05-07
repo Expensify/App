@@ -42,6 +42,7 @@ import {canSendInvoice, getPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
     getIcons,
+    getPersonalDetailsForAccountID,
     getReportName,
     getReportOrDraftReport,
     getSearchReportName,
@@ -136,7 +137,9 @@ function getTransactionItemCommonFormattedProperties(
     const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
 
     const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(from));
-    const formattedTo = formatPhoneNumber(getDisplayNameOrDefault(to));
+    // Sometimes the search data personal detail for the 'to' account might not hold neither the display name nor the login
+    // so for those cases we fallback to the display name of the personal detail data from onyx.
+    const formattedTo = formatPhoneNumber(getDisplayNameOrDefault(to, '', false) || getDisplayNameOrDefault(getPersonalDetailsForAccountID(to?.accountID)));
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
@@ -286,7 +289,9 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
  */
 function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchReport) {
     const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
-    const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
+    // For cases where the data personal detail for manager ID do not exist in search data.personalDetailsList
+    // we fallback to the display name of the personal detail data from onyx.
+    const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? getDisplayNameOrDefault(getPersonalDetailsForAccountID(reportItem.managerID));
     const formattedAmount = convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAID) {
         return translateLocal('iou.payerPaidAmount', {
