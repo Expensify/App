@@ -8048,6 +8048,7 @@ function parseReportRouteParams(route: string): ReportRouteParams {
 
     return {
         reportID,
+        // We're checking the route start with `r/`, the sub report route is the route that we can open from report screen like `r/:reportID/details`
         isSubReportPageRoute: focusedRoute?.name !== SCREENS.REPORT,
     };
 }
