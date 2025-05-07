@@ -21,7 +21,7 @@ To reimburse a report via direct deposit (USD):
 3. Confirm that the correct bank account is listed in the dropdown menu.
 4. Click **Accept Terms & Pay**. 
 
-If the reimbursement is less than $200, it will typically be deposited into the employee's bank account immediately. If the reimbursement is more than $200, the deposit will be processed within one to five business days. 
+If the reimbursement is less than $100, it will typically be deposited into the employee's bank account immediately. If the reimbursement is more than $100, the deposit will be processed within one to five business days. 
 
 ---
 
