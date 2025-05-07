@@ -6814,8 +6814,8 @@ const translations = {
             part2: 'espacios de trabajo',
         },
         scanTestDriveTooltip: {
-            part1: 'Send this receipt to\n',
-            part2: 'complete the test drive!',
+            part1: '¡Envía este recibo para\n',
+            part2: 'completar la prueba!',
         },
     },
     discardChangesConfirmation: {
