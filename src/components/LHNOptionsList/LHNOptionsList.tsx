@@ -258,8 +258,36 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 
     const extraData = useMemo(
-        () => [reportActions, data, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale, transactions, isOffline],
-        [reportActions, data, reportNameValuePairs, transactionViolations, policy, personalDetails, draftComments, optionMode, preferredLocale, transactions, isOffline],
+        () => [
+            reportActions,
+            reports,
+            reportAttributes,
+            reportNameValuePairs,
+            transactionViolations,
+            policy,
+            personalDetails,
+            data.length,
+            draftComments,
+            optionMode,
+            preferredLocale,
+            transactions,
+            isOffline,
+        ],
+        [
+            reportActions,
+            reports,
+            reportAttributes,
+            reportNameValuePairs,
+            transactionViolations,
+            policy,
+            personalDetails,
+            data.length,
+            draftComments,
+            optionMode,
+            preferredLocale,
+            transactions,
+            isOffline,
+        ],
     );
 
     const previousOptionMode = usePrevious(optionMode);
@@ -321,7 +349,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 reportsIDsFromUseReportsCount: data.length,
             });
         }
-    }, [shouldShowEmptyLHN, route, data, reportActions, policy, personalDetails, reports]);
+    }, [data, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
