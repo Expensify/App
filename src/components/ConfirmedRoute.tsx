@@ -7,7 +7,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import { getWaypointIndex } from '@libs/TransactionUtils';
-import * as MapboxToken from '@userActions/MapboxToken';
+import { init as initMapboxToken, stop as stopMapboxToken } from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MapboxAccessToken, Transaction} from '@src/types/onyx';
@@ -98,8 +98,8 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
     const waypointMarkers = getWaypointMarkers(waypoints);
 
     useEffect(() => {
-        MapboxToken.init();
-        return MapboxToken.stop;
+        initMapboxToken();
+        return stopMapboxToken;
     }, []);
 
     const shouldDisplayMap = !requireRouteToDisplayMap || !!coordinates.length;
