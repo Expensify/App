@@ -8,7 +8,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import Log from '@libs/Log';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardAddedToWallet, WalletAdditionalQuestionDetails} from '@src/types/onyx';
+import type {ProvisioningCardData, WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import pkg from '../../../package.json';
 
 type WalletQuestionAnswer = {
@@ -288,7 +288,7 @@ function createDigitalGoogleWallet({walletAccountID, deviceID, cardHolderName}: 
         deviceID,
     })
         .then((response) => {
-            const data = response as unknown as CardAddedToWallet;
+            const data = response as unknown as ProvisioningCardData;
             return {
                 network: data.network,
                 opaquePaymentCard: data.opaquePaymentCard,

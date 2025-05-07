@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
 import CONST from '@src/CONST';
 import type AddToWalletButtonProps from './types';
@@ -13,6 +14,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
     const {translate} = useLocalize();
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
+    const theme = useTheme();
 
     const checkIfCardIsInWallet = useCallback(() => {
         isCardInWallet(card)
@@ -58,7 +60,12 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
     }
 
     if (isLoading) {
-        return <ActivityIndicator />;
+        return (
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                color={theme.spinner}
+            />
+        );
     }
 
     if (isInWallet) {

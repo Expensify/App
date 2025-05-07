@@ -128,7 +128,7 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 /** Model of card just added to a wallet */
-type CardAddedToWallet = {
+type ProvisioningCardData = {
     /** Card identifier */
     cardToken: string;
 
@@ -252,4 +252,4 @@ type WorkspaceCardsList = Record<string, Card> & {
 type FilteredCardList = Record<string, string>;
 
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType, FilteredCardList, CardAddedToWallet};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType, FilteredCardList, ProvisioningCardData};

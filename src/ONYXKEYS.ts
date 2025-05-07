@@ -1147,7 +1147,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
-    [ONYXKEYS.CARD_ADDED_TO_WALLET]: OnyxTypes.CardAddedToWallet;
+    [ONYXKEYS.CARD_ADDED_TO_WALLET]: OnyxTypes.ProvisioningCardData;
 };
 
 type OnyxDerivedValuesMapping = {

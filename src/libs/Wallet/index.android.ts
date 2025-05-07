@@ -1,5 +1,5 @@
 import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusByIdentifier, getSecureWalletInfo} from '@expensify/react-native-wallet';
-import type {AndroidCardData, AndroidWalletData, CardStatus} from '@expensify/react-native-wallet';
+import type {AndroidCardData, AndroidWalletData, CardStatus, TokenizationStatus} from '@expensify/react-native-wallet';
 import {Alert} from 'react-native';
 import {openWalletPage} from '@libs/actions/PaymentMethods';
 import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
@@ -17,9 +17,9 @@ function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescripti
             createDigitalGoogleWallet({cardHolderName, ...walletData})
                 .then((cardData: AndroidCardData) => {
                     addCardToGoogleWallet(cardData)
-                        .then((status: string) => {
+                        .then((status: TokenizationStatus) => {
                             Log.info('Card added to wallet');
-                            if (status === 'SUCCESS') {
+                            if (status === 'success') {
                                 openWalletPage();
                             } else {
                                 onFinished?.();
