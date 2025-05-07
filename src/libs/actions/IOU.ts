@@ -10846,9 +10846,10 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
 /**
  * Complete split expense process
  */
-function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, isReverseSplitOperation = false) {
+function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, hash: number) {
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
+    const transaction = getTransaction(originalTransactionID);
 
     const policy = getPolicy(transactionReport?.policyID);
     const policyCategories = getPolicyCategoriesData(transactionReport?.policyID);
@@ -10945,9 +10946,35 @@ function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transact
         },
     });
 
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+        value: {
+            data: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: {
+                    ...transaction,
+                    stateNum: CONST.TRANSACTION.STATE_NUM.STATE_REIMBURSABLE_LEGACY,
+                },
+            },
+        },
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+        value: {
+            data: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: {
+                    ...transaction,
+                    stateNum: CONST.TRANSACTION.STATE_NUM.STATE_NOFLAG,
+                },
+            },
+        },
+    });
+
     const parameters: SplitTransactionParams = {
         splits: JSON.stringify(splits),
-        isReverseSplitOperation,
+        isReverseSplitOperation: false,
         transactionID: originalTransactionID,
     };
 

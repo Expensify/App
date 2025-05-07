@@ -7,6 +7,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 import SplitListItem from '@components/SelectionList/SplitListItem';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionList/types';
@@ -36,6 +37,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+    const {currentSearchHash} = useSearchContext();
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${route.params.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
@@ -70,8 +72,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        completeSplitTransaction(draftTransaction, false);
-    }, [draftTransaction, sumOfSplitExpenses, transactionDetails?.amount, transactionDetails?.currency, translate]);
+        completeSplitTransaction(draftTransaction, currentSearchHash);
+    }, [currentSearchHash, draftTransaction, sumOfSplitExpenses, transactionDetails?.amount, transactionDetails?.currency, translate]);
 
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {
