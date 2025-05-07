@@ -171,8 +171,12 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions]);
 
     const reportID = report.reportID;
-    const backRoute = useMemo(() => ROUTES.REPORT_PARTICIPANTS.getRoute(reportID, route.params.backTo), [reportID, route.params.backTo]);
     const reportName = useMemo(() => ReportUtils.getGroupChatName(undefined, true, report), [report]);
+
+    const goBack = useCallback(() => {
+        Navigation.goBack(ROUTES.REPORT_PARTICIPANTS.getRoute(reportID, route.params.backTo));
+    }, [reportID, route.params.backTo]);
+
     const inviteUsers = useCallback(() => {
         if (!validate()) {
             return;
@@ -187,8 +191,8 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             invitedEmailsToAccountIDs[login] = accountID;
         });
         Report.inviteToGroupChat(reportID, invitedEmailsToAccountIDs);
-        Navigation.navigate(backRoute);
-    }, [selectedOptions, backRoute, reportID, validate]);
+        goBack();
+    }, [selectedOptions, goBack, reportID, validate]);
 
     const headerMessage = useMemo(() => {
         const processedLogin = debouncedSearchTerm.trim().toLowerCase();
@@ -233,9 +237,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             <HeaderWithBackButton
                 title={translate('workspace.invite.members')}
                 subtitle={reportName}
-                onBackButtonPress={() => {
-                    Navigation.goBack(backRoute);
-                }}
+                onBackButtonPress={goBack}
             />
 
             <SelectionList
