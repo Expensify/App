@@ -88,7 +88,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     const maintainVisibleContentPosition = useMemo(() => {
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
             // This needs to be 1 to avoid using loading views as anchors.
-            minIndexForVisible: Math.min(1, data.length - 1),
+            minIndexForVisible: data.length === 0 ? 0 : Math.min(1, data.length - 1),
         };
 
         if (shouldEnableAutoScrollToTopThreshold && !isLoadingData && !wasLoadingData) {
