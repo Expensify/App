@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
 import TextInput from '@components/TextInput';
@@ -26,6 +26,7 @@ function EmployeeTestDriveModal() {
     const {translate} = useLocalize();
     const [bossEmail, setBossEmail] = useState('');
     const [formError, setFormError] = useState<string | undefined>();
+    const [isLoading, setIsLoading] = useState(false);
 
     const onBossEmailChange = useCallback((value: string) => {
         setBossEmail(value);
@@ -38,6 +39,8 @@ function EmployeeTestDriveModal() {
             setFormError(translate('common.error.email'));
             return;
         }
+
+        setIsLoading(true);
 
         verifyTestDriveRecipient(bossEmail)
             .then(() => {
@@ -70,6 +73,9 @@ function EmployeeTestDriveModal() {
             })
             .catch(() => {
                 setFormError(translate('testDrive.modal.employee.error'));
+            })
+            .finally(() => {
+                setIsLoading(false);
             });
     };
 
@@ -80,6 +86,7 @@ function EmployeeTestDriveModal() {
             shouldCloseOnConfirm={false}
             shouldRenderHTMLDescription
             avoidKeyboard
+            shouldShowConfirmationLoader={isLoading}
         >
             <TextInput
                 placeholder={translate('testDrive.modal.employee.email')}

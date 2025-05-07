@@ -8,9 +8,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
-type BaseTestDriveModalProps = Pick<FeatureTrainingModalProps, 'children' | 'description' | 'onConfirm' | 'shouldCloseOnConfirm' | 'shouldRenderHTMLDescription' | 'avoidKeyboard'>;
+type BaseTestDriveModalProps = Pick<
+    FeatureTrainingModalProps,
+    'children' | 'description' | 'onConfirm' | 'shouldCloseOnConfirm' | 'shouldRenderHTMLDescription' | 'avoidKeyboard' | 'shouldShowConfirmationLoader'
+>;
 
-function BaseTestDriveModal({description, onConfirm, children, shouldCloseOnConfirm, shouldRenderHTMLDescription, avoidKeyboard}: BaseTestDriveModalProps) {
+function BaseTestDriveModal({description, onConfirm, children, shouldCloseOnConfirm, shouldRenderHTMLDescription, avoidKeyboard, shouldShowConfirmationLoader}: BaseTestDriveModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -36,6 +39,7 @@ function BaseTestDriveModal({description, onConfirm, children, shouldCloseOnConf
             shouldCloseOnConfirm={shouldCloseOnConfirm}
             shouldRenderHTMLDescription={shouldRenderHTMLDescription}
             avoidKeyboard={avoidKeyboard}
+            shouldShowConfirmationLoader={shouldShowConfirmationLoader}
             shouldUseScrollView
         >
             {children}

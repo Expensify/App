@@ -112,6 +112,9 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether the modal content is scrollable */
     shouldUseScrollView?: boolean;
+
+    /** Whether the modal is displaying a confirmation loading spinner (useful when fetching data from API during confirmation) */
+    shouldShowConfirmationLoader?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -173,6 +176,7 @@ function FeatureTrainingModal({
     shouldCloseOnConfirm = true,
     avoidKeyboard = false,
     shouldUseScrollView = false,
+    shouldShowConfirmationLoader = false,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -398,6 +402,7 @@ function FeatureTrainingModal({
                         success
                         pressOnEnter
                         onPress={closeAndConfirmModal}
+                        isLoading={shouldShowConfirmationLoader}
                         text={confirmText}
                     />
                 </View>
