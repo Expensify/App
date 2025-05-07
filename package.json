@@ -231,7 +231,7 @@
     "@ngneat/falso": "^7.1.1",
     "@octokit/core": "6.1.5",
     "@octokit/plugin-paginate-rest": "3.1.0",
-    "@octokit/plugin-throttling": "4.1.0",
+    "@octokit/plugin-throttling": "10.0.0",
     "@octokit/webhooks-types": "^7.5.1",
     "@perf-profiler/profiler": "^0.10.10",
     "@perf-profiler/reporter": "^0.9.0",
