@@ -495,6 +495,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates transaction loading */
         isLoading?: boolean;
 
+        /** Whether the transaction is optimistically created during expense creation flow */
+        isOptimisticTransaction?: boolean;
+
         /** Holds individual shares of a split keyed by accountID, only used locally */
         splitShares?: SplitShares;
 

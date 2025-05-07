@@ -826,6 +826,10 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     });
 }
 
+function getOptimisticTransactions(): Transaction[] {
+    return Object.values(allTransactions ?? {}).filter((transaction) => transaction.isOptimisticTransaction);
+}
+
 export {
     saveWaypoint,
     removeWaypoint,
@@ -834,6 +838,7 @@ export {
     clearError,
     markAsCash,
     dismissDuplicateTransactionViolation,
+    getOptimisticTransactions,
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
