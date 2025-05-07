@@ -1,3 +1,6 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+
 /**
  * The attributes of a report.
  */
@@ -10,6 +13,10 @@ type ReportAttributes = {
      * Whether the report is empty (has no visible messages).
      */
     isEmpty: boolean;
+    /**
+     * The status of the brick road.
+     */
+    brickRoadStatus: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 };
 
 /**
