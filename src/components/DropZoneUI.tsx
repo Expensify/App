@@ -22,17 +22,20 @@ type DropZoneUIProps = {
 
     /** Custom styles for the drop zone text */
     dropTextStyles?: StyleProp<TextStyle>;
+
+    /** Custom styles for the inner wrapper of the drop zone */
+    dropInnerWrapperStyles?: StyleProp<ViewStyle>;
 };
 
-function DropZoneUI({onDrop, icon, dropTitle, dropStyles, dropTextStyles}: DropZoneUIProps) {
+function DropZoneUI({onDrop, icon, dropTitle, dropStyles, dropTextStyles, dropInnerWrapperStyles}: DropZoneUIProps) {
     const styles = useThemeStyles();
 
     return (
         <DragAndDropConsumer onDrop={onDrop}>
             <View style={[styles.w100, styles.h100, styles.dropWrapper, styles.p2]}>
-                <View style={[dropStyles, styles.borderRadiusComponentNormal, styles.p2, styles.flex1]}>
+                <View style={[styles.borderRadiusComponentNormal, styles.p2, styles.flex1, dropStyles]}>
                     {/* TODO: display dropInnerWrapper styles only when hovered over - will be done in Stage 4 (two zones) */}
-                    <View style={[styles.dropInnerWrapper, styles.justifyContentCenter, styles.alignItemsCenter, styles.borderRadiusComponentNormal]}>
+                    <View style={[styles.dropInnerWrapper, styles.justifyContentCenter, styles.alignItemsCenter, styles.borderRadiusComponentNormal, dropInnerWrapperStyles]}>
                         <View style={styles.mb3}>
                             <Icon
                                 src={icon}

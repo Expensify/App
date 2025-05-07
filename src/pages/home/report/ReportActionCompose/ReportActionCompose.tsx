@@ -503,6 +503,7 @@ function ReportActionCompose({
                                             dropTitle={translate('dropzone.addAttachments')}
                                             dropStyles={styles.attachmentDropOverlay}
                                             dropTextStyles={styles.attachmentDropText}
+                                            dropInnerWrapperStyles={styles.attachmentDropInnerWrapper}
                                         />
                                     ) : (
                                         <ReportDropUI

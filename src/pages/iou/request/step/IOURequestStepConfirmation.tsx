@@ -932,6 +932,7 @@ function IOURequestStepConfirmation({
                             dropStyles={styles.receiptDropOverlay}
                             dropTitle={translate('dropzone.replaceReceipt')}
                             dropTextStyles={styles.receiptDropText}
+                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
                         />
                     ) : (
                         <ReceiptDropUI

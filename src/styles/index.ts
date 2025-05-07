@@ -3972,7 +3972,6 @@ const styles = (theme: ThemeColors) =>
 
         dropInnerWrapper: {
             borderWidth: 2,
-            borderColor: theme.dropHoverBorderColor,
             flex: 1,
             borderStyle: 'dashed',
         },
@@ -3994,6 +3993,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.textAttachmentDropZone,
         },
 
+        attachmentDropInnerWrapper: {
+            borderColor: theme.attachmentDropBorderColor,
+        },
+
         receiptDropOverlay: {
             backgroundColor: theme.receiptDropUIBG,
             zIndex: 2,
@@ -4001,6 +4004,10 @@ const styles = (theme: ThemeColors) =>
 
         receiptDropText: {
             color: theme.textReceiptDropZone,
+        },
+
+        receiptDropInnerWrapper: {
+            borderColor: theme.receiptDropBorderColor,
         },
 
         isDraggingOver: {
