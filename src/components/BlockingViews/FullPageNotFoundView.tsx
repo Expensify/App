@@ -4,6 +4,7 @@ import type {StyleProp, TextStyle} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import StatsCounter from '@libs/actions/StatsCounter';
 import Navigation from '@libs/Navigation/Navigation';
@@ -11,7 +12,6 @@ import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type FullPageNotFoundViewProps = {
     /** TestID for test */
