@@ -284,7 +284,7 @@ class GithubUtils {
         tag: string,
         PRList: string[],
         verifiedPRList: string[] = [],
-        mobilePRNumbers: number[] = [],
+        mobilePRNumbers: string[] = [],
         deployBlockers: string[] = [],
         resolvedDeployBlockers: string[] = [],
         resolvedInternalQAPRs: string[] = [],
