@@ -1,5 +1,6 @@
 import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
+import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -56,18 +57,20 @@ function Template(
 
     return (
         <ThemeProvider theme={theme}>
-            <ThemeStylesProvider>
-                <TransactionItemRow
-                    transactionItem={transactionItem}
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                    shouldShowCheckbox={shouldShowCheckbox}
-                    isSelected={isSelected}
-                    shouldShowTooltip={shouldShowTooltip}
-                    shouldShowChatBubbleComponent
-                    dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    onCheckboxPress={() => {}}
-                />
-            </ThemeStylesProvider>
+            <ScreenWrapper testID="testID">
+                <ThemeStylesProvider>
+                    <TransactionItemRow
+                        transactionItem={transactionItem}
+                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                        shouldShowCheckbox={shouldShowCheckbox}
+                        isSelected={isSelected}
+                        shouldShowTooltip={shouldShowTooltip}
+                        shouldShowChatBubbleComponent
+                        dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        onCheckboxPress={() => {}}
+                    />
+                </ThemeStylesProvider>
+            </ScreenWrapper>
         </ThemeProvider>
     );
 }
