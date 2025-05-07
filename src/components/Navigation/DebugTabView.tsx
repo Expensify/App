@@ -104,7 +104,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
     const {orderedReports} = useSidebarOrderedReports();
 
