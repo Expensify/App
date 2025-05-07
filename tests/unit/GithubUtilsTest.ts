@@ -7,6 +7,7 @@ import * as core from '@actions/core';
 import type {Writable} from 'type-fest';
 import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
+import CONST from '@github/libs/CONST';
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
@@ -697,21 +698,21 @@ describe('GithubUtils', () => {
         test('should return empty array when no commits found', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
 
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
             expect(result).toEqual([]);
         });
 
         test('should return formatted commit history when commits exist', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.singleCommit);
 
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
             expect(result).toEqual(commitHistoryData.expectedFormattedCommit);
         });
 
         test('should handle API errors gracefully', async () => {
             mockCompareCommits.mockRejectedValue(new Error('API Error'));
 
-            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow('API Error');
+            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO)).rejects.toThrow('API Error');
         });
     });
 
