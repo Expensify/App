@@ -58,6 +58,8 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import goToSettings from './goToSettings';
+import ImportContactButton from './ImportContactButton/index.native';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -430,30 +432,6 @@ function MoneyRequestParticipantsSelector({
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
-    const goToSettings = useCallback(() => {
-        Linking.openSettings();
-        // In the case of ios, the App reloads when we update contact permission from settings
-        // we are saving last route so we can navigate to it after app reload
-        saveLastRoute();
-    }, []);
-
-    const importContactButton = useMemo(() => {
-        return showImportContacts && inputHelperText ? (
-            <View style={[styles.ph5, styles.pb5, styles.flexRow]}>
-                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>
-                    {`${translate('common.noResultsFound')}. `}
-                    <Text
-                        style={[styles.textLabel, styles.minHeight5, styles.link]}
-                        onPress={goToSettings}
-                    >
-                        {translate('contact.importContactsTitle')}
-                    </Text>{' '}
-                    {translate('contact.importContactsExplanation')}
-                </Text>
-            </View>
-        ) : null;
-    }, [showImportContacts, inputHelperText, translate, styles, goToSettings]);
-
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
         InteractionManager.runAfterInteractions(importAndSaveContacts);
@@ -569,7 +547,12 @@ function MoneyRequestParticipantsSelector({
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onSelectRow={onSelectRow}
                 shouldSingleExecuteRowSelect
-                headerContent={importContactButton}
+                headerContent={
+                    <ImportContactButton
+                        showImportContacts={showImportContacts}
+                        inputHelperText={inputHelperText}
+                    />
+                }
                 footerContent={footerContent}
                 listEmptyContent={EmptySelectionListContentWithPermission}
                 listFooterContent={listFooterComponent}
