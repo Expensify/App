@@ -1,7 +1,9 @@
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
+import ErrorMessageRow from '@components/ErrorMessageRow';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -32,6 +34,7 @@ type AddUnreportedExpensesParamList = {
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {translate} = useLocalize();
+    const [errorMessage, setErrorMessage] = useState<string>('');
 
     function getUnreportedTransactions(transactions: OnyxCollection<Transaction>) {
         if (!transactions) {
@@ -116,10 +119,23 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     showConfirmButton
                     confirmButtonText={translate('iou.addUnreportedExpenseConfirm')}
                     onConfirm={() => {
+                        if (selectedIds.size === 0) {
+                            setErrorMessage(translate('iou.pleaseSelectUnreportedExpense'));
+                            return;
+                        }
                         Navigation.goBack(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
                         changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
+                        setErrorMessage('');
                     }}
-                />
+                >
+                    {!!errorMessage && (
+                        <FormHelpMessage
+                            style={[styles.mb2, styles.ph4]}
+                            isError
+                            message={errorMessage}
+                        />
+                    )}
+                </SelectionList>
             )}
         </ScreenWrapper>
     );

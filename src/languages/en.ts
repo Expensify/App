@@ -1119,6 +1119,7 @@ const translations = {
         unheldExpense: 'unheld this expense',
         moveUnreportedExpense: 'Move unreported expense',
         addUnreportedExpense: 'Add unreported expense',
+        pleaseSelectUnreportedExpense: 'Please select at least one expense before submitting.',
         emptyStateUnreportedExpenseTitle: 'No unreported expenses',
         emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
         addUnreportedExpenseConfirm: 'Add to report',

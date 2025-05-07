@@ -1114,6 +1114,7 @@ const translations = {
         unholdExpense: 'Desbloquear gasto',
         moveUnreportedExpense: 'Mover gasto no reportado',
         addUnreportedExpense: 'Añadir gasto no reportado',
+        pleaseSelectUnreportedExpense: 'Por favor, selecciona al menos un gasto antes de enviar.',
         emptyStateUnreportedExpenseTitle: 'No hay gastos no reportados',
         emptyStateUnreportedExpenseSubtitle: 'Parece que no tienes gastos no reportados. Puedes crear uno a continuación.',
         addUnreportedExpenseConfirm: 'Añadir al informe',
