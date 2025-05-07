@@ -38,6 +38,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         transactionID: transactionIDFromProps,
         onPreviewPressed,
         reportPreviewAction,
+        contextAction,
     } = props;
 
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
@@ -65,7 +66,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
+        showContextMenuForReport(event, contextMenuAnchor, contextAction ? chatReportID : reportID, contextAction ?? action, checkIfContextMenuActive);
     };
 
     const offlineWithFeedbackOnClose = useCallback(() => {

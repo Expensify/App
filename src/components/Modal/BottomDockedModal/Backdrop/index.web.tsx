@@ -5,6 +5,7 @@ import type {BackdropProps} from '@components/Modal/BottomDockedModal/types';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
@@ -15,6 +16,7 @@ function Backdrop({
     onBackdropPress,
     animationInTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN,
     animationOutTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT,
+    backdropOpacity = variables.overlayOpacity,
 }: BackdropProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,6 +45,13 @@ function Backdrop({
         return FadeOut.duration(animationOutTiming);
     }, [animationOutTiming]);
 
+    const backdropStyle = useMemo(
+        () => ({
+            opacity: backdropOpacity,
+        }),
+        [backdropOpacity],
+    );
+
     if (!customBackdrop) {
         return (
             <PressableWithoutFeedback
@@ -51,7 +60,7 @@ function Backdrop({
                 onPress={onBackdropPress}
             >
                 <Animated.View
-                    style={[styles.modalBackdrop, style]}
+                    style={[styles.modalBackdrop, backdropStyle, style]}
                     entering={Entering}
                     exiting={Exiting}
                 />
@@ -64,7 +73,7 @@ function Backdrop({
             entering={Entering}
             exiting={Exiting}
         >
-            <View style={[styles.modalBackdrop, style]}>{!!customBackdrop && customBackdrop}</View>
+            <View style={[styles.modalBackdrop, backdropStyle, style]}>{!!customBackdrop && customBackdrop}</View>
         </Animated.View>
     );
 }
