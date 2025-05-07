@@ -14,7 +14,7 @@ import {
     hasIntegrationAutoSync,
     isPrefferedExporter,
 } from './PolicyUtils';
-import {getIOUActionForReportID, getReportActions, isPayAction} from './ReportActionsUtils';
+import {getIOUActionForReportID, isPayAction} from './ReportActionsUtils';
 import {
     canAddTransaction,
     isArchivedReport,
