@@ -14,7 +14,6 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
-import fileDownload from '@libs/fileDownload';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForSignerInfo';
 import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
@@ -22,6 +21,7 @@ import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/For
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import * as Link from '@userActions/Link';
 
 type UploadDocumentsProps = SubStepProps;
 
@@ -41,8 +41,8 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const currency = policy?.outputCurrency ?? '';
     const countryStepCountryValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
-    const isPDSandFSGDownloaded = reimbursementAccount?.achData?.corpay?.downloadedPDSandFSG ?? reimbursementAccountDraft?.[signerInfoKeys.DOWNLOADED_PDS_AND_FSG];
-    const [isPDSandFSGDownloadedTouched, setIsPDSandFSGDownloadedTouchedTouched] = useState<boolean>(false);
+    const isPDSandFSGDownloaded = reimbursementAccount?.achData?.corpay?.downloadedPDSandFSG ?? reimbursementAccountDraft?.[signerInfoKeys.DOWNLOADED_PDS_AND_FSG] ?? false;
+    const [isPDSandFSGDownloadedTouched, setIsPDSandFSGDownloadedTouched] = useState<boolean>(false);
 
     const copyOfIDInputID = COPY_OF_ID;
     const addressProofInputID = ADDRESS_PROOF;
@@ -84,8 +84,8 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     });
 
     const handleSubmitWithDownload = (values: FormOnyxValues<'reimbursementAccount'>) => {
+        setIsPDSandFSGDownloadedTouched(true);
         if (!isPDSandFSGDownloaded) {
-            setIsPDSandFSGDownloadedTouchedTouched(true);
             return;
         }
 
@@ -113,8 +113,8 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     };
 
     const handleDownload = () => {
-        fileDownload(`${environmentUrl}/pdfs/PDSAndFSG.pdf`, 'PDSAndFSG.pdf');
-        setIsPDSandFSGDownloadedTouchedTouched(true);
+        Link.openExternalLink(`${environmentUrl}/pdfs/PDSAndFSG.pdf`);
+        setIsPDSandFSGDownloadedTouched(true);
         setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[signerInfoKeys.DOWNLOADED_PDS_AND_FSG]: true});
     };
 
