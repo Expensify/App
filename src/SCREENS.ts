@@ -216,6 +216,7 @@ const SCREENS = {
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
         SPLIT_EXPENSE: 'Split_Expense',
+        SCHEDULE_CALL: 'ScheduleCall',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     ONBOARDING_MODAL: {
@@ -717,6 +718,10 @@ const SCREENS = {
         TRANSACTION: 'Debug_Transaction',
         TRANSACTION_VIOLATION_CREATE: 'Debug_Transaction_Violation_Create',
         TRANSACTION_VIOLATION: 'Debug_Transaction_Violation',
+    },
+    SCHEDULE_CALL: {
+        BOOK: 'ScheduleCall_Book',
+        CONFIRMATION: 'ScheduleCall_Confirmation',
     },
 } as const;
 
