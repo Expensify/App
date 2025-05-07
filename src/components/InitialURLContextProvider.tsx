@@ -36,61 +36,49 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     // We use `setupCalled` ref to guarantee that `signInAfterTransitionFromOldDot` is called once.
     const setupCalled = useRef(false);
+    const isLoading = !isLoadingOnyxValue(tryNewDotMetadata);
+
+    function handleNavigation(initialUrl: Route) {
+        setInitialURL(initialUrl);
+
+        const parsedUrl = Navigation.parseHybridAppUrl(initialUrl);
+
+        Navigation.isNavigationReady().then(() => {
+            if (parsedUrl.startsWith(`/${ROUTES.SHARE_ROOT}`)) {
+                const focusRoute = findFocusedRoute(navigationRef.getRootState());
+                if (focusRoute?.name === SCREENS.SHARE.SHARE_DETAILS || focusRoute?.name === SCREENS.SHARE.SUBMIT_DETAILS) {
+                    Navigation.goBack(ROUTES.SHARE_ROOT);
+                    return;
+                }
+            }
+            Navigation.navigate(parsedUrl);
+        });
+
+        if (splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN) {
+            return;
+        }
+        setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+    }
 
     useEffect(() => {
         if (url && hybridAppSettings) {
-            if (!isLoadingOnyxValue(tryNewDotMetadata) && !setupCalled.current) {
-                setupCalled.current = true;
-                setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot).then(() => {
-                    setInitialURL(url);
-
-                    const parsedUrl = Navigation.parseHybridAppUrl(url);
-
-                    Navigation.isNavigationReady().then(() => {
-                        if (parsedUrl.startsWith(`/${ROUTES.SHARE_ROOT}`)) {
-                            const focusRoute = findFocusedRoute(navigationRef.getRootState());
-                            if (focusRoute?.name === SCREENS.SHARE.SHARE_DETAILS || focusRoute?.name === SCREENS.SHARE.SUBMIT_DETAILS) {
-                                Navigation.goBack(ROUTES.SHARE_ROOT);
-                                return;
-                            }
-                        }
-                        Navigation.navigate(parsedUrl);
+            if (!isLoading) {
+                if (!setupCalled.current) {
+                    setupCalled.current = true;
+                    setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot).then(() => {
+                        handleNavigation(url);
                     });
-
-                    if (splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN) {
-                        return;
-                    }
-                    setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
-                });
-                return;
-            }
-            setInitialURL(url);
-
-            const parsedUrl = Navigation.parseHybridAppUrl(url);
-
-            Navigation.isNavigationReady().then(() => {
-                if (parsedUrl.startsWith(`/${ROUTES.SHARE_ROOT}`)) {
-                    const focusRoute = findFocusedRoute(navigationRef.getRootState());
-                    if (focusRoute?.name === SCREENS.SHARE.SHARE_DETAILS || focusRoute?.name === SCREENS.SHARE.SUBMIT_DETAILS) {
-                        Navigation.goBack(ROUTES.SHARE_ROOT);
-                        return;
-                    }
+                    return;
                 }
-                Navigation.navigate(parsedUrl);
-            });
-
-            if (splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN) {
-                return;
             }
-            setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
-
+            handleNavigation(url);
             return;
         }
         Linking.getInitialURL().then((initURL) => {
             setInitialURL(initURL as Route);
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [url, hybridAppSettings, timestamp, tryNewDot, tryNewDotMetadata]);
+    }, [url, hybridAppSettings, timestamp, isLoading]);
 
     const initialUrlContext = useMemo(
         () => ({
