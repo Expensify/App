@@ -284,6 +284,7 @@ class GithubUtils {
         tag: string,
         PRList: string[],
         verifiedPRList: string[] = [],
+        mobilePRNumbers: number[] = [],
         deployBlockers: string[] = [],
         resolvedDeployBlockers: string[] = [],
         resolvedInternalQAPRs: string[] = [],
@@ -321,12 +322,22 @@ class GithubUtils {
                     // eslint-disable-next-line max-len
                     let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
 
-                    // PR list
+                    // App PR list
                     if (sortedPRList.length > 0) {
                         issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                         sortedPRList.forEach((URL) => {
                             issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
                             issueBody += ` ${URL}\r\n`;
+                        });
+                        issueBody += '\r\n\r\n';
+                    }
+
+                    // Mobile-Expensify PR list
+                    if (mobilePRNumbers.length > 0) {
+                        issueBody += '**Mobile-Expensify Pull Requests:**\r\n';
+                        mobilePRNumbers.forEach((prNumber) => {
+                            const mobilePrURL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/${prNumber}`;
+                            issueBody += `- [ ] ${mobilePrURL}\r\n`;
                         });
                         issueBody += '\r\n\r\n';
                     }
