@@ -137,7 +137,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     const {currentSearchHash} = useSearchContext();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const thereIsFromAndTo = !!reportItem.from && !!reportItem.to;
+    const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showArrowComponent = reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo;
 
     const handleOnButtonPress = () => {
@@ -157,10 +157,10 @@ function ReportListItemHeader<TItem extends ListItem>({
                 {showArrowComponent && (
                     <UserInfoCellsWithArrow
                         shouldDisplayArrowIcon
-                        participantFrom={reportItem.from}
-                        participantFromDisplayName={reportItem.from.displayName ?? reportItem.from.login ?? translate('common.hidden')}
-                        participantToDisplayName={reportItem.to.displayName ?? reportItem.to.login ?? translate('common.hidden')}
-                        participantTo={reportItem.to}
+                        participantFrom={reportItem?.from}
+                        participantFromDisplayName={reportItem?.from?.displayName ?? reportItem?.from?.login ?? translate('common.hidden')}
+                        participantToDisplayName={reportItem?.to?.displayName ?? reportItem?.to?.login ?? translate('common.hidden')}
+                        participantTo={reportItem?.to}
                         avatarSize="mid-subscript"
                         infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
                         infoCellsAvatarStyle={styles.pr1}
