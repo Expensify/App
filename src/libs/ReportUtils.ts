@@ -4112,9 +4112,7 @@ function getTransactionReportName({
     const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
-    if (isTrackExpenseAction(reportAction)) {
-        return translateLocal('iou.threadTrackReportName', {formattedAmount, comment});
-    }
+
     return translateLocal('iou.threadExpenseReportName', {formattedAmount, comment});
 }
 
@@ -4771,7 +4769,7 @@ function getReportNameInternal({
         }
 
         if (isRenamedAction(parentReportAction)) {
-            return getRenamedAction(parentReportAction);
+            return getRenamedAction(parentReportAction, isExpenseReport(getReport(report.parentReportID, allReports)));
         }
 
         if (parentReportActionMessage?.isDeletedParentAction) {
@@ -5661,19 +5659,14 @@ function getFormattedAmount(reportAction: ReportAction, report?: Report | null) 
     return formattedAmount;
 }
 
-function getActorDisplayName(action: ReportAction) {
-    const actorAccountID = getReportActionActorAccountID(action, undefined, undefined, undefined);
-
-    return getDisplayNameForParticipant({accountID: actorAccountID});
-}
-
 function getReportAutomaticallySubmittedMessage(
     reportAction:
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>,
+    report?: Report,
 ) {
-    return translateLocal('iou.automaticallySubmitted', {displayName: getActorDisplayName(reportAction)});
+    return translateLocal('iou.automaticallySubmittedAmount', {formattedAmount: getFormattedAmount(reportAction, report)});
 }
 
 function getIOUSubmittedMessage(
@@ -5681,20 +5674,21 @@ function getIOUSubmittedMessage(
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>,
+    report?: Report,
 ) {
-    return translateLocal('iou.submittedWithDisplayName', {displayName: getActorDisplayName(reportAction)});
+    return translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction, report)});
 }
 
-function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
-    return translateLocal('iou.automaticallyApproved', {displayName: getActorDisplayName(reportAction)});
+function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>, report?: Report) {
+    return translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction, report)});
 }
 
-function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>) {
-    return translateLocal('iou.unapproved', {displayName: getActorDisplayName(reportAction)});
+function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>, report?: Report) {
+    return translateLocal('iou.unapprovedAmount', {amount: getFormattedAmount(reportAction, report)});
 }
 
-function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
-    return translateLocal('iou.approvedWithDisplayName', {displayName: getActorDisplayName(reportAction)});
+function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>, report?: Report) {
+    return translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction, report)});
 }
 
 /**
@@ -9879,7 +9873,7 @@ function prepareOnboardingOnyxData(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
                 value: {
-                    [taskReportAction.reportAction.reportActionID]: {pendingAction: null},
+                    [taskReportAction.reportAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
                 },
             },
             {
@@ -9915,7 +9909,7 @@ function prepareOnboardingOnyxData(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                 value: {
-                    [completedTaskReportAction.reportActionID]: {pendingAction: null},
+                    [completedTaskReportAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
                 },
             });
         }
@@ -9973,7 +9967,7 @@ function prepareOnboardingOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [textCommentAction.reportActionID]: {pendingAction: null},
+                [textCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
             },
         });
     }
@@ -10161,7 +10155,7 @@ function prepareOnboardingOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null},
+                [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
             },
         });
 
@@ -10487,7 +10481,15 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
         return getInvoiceReportName(properInvoiceReport);
     }
 
-    return action?.reportName ?? '';
+    if (action?.reportName) {
+        return action.reportName;
+    }
+
+    if (report?.reportID) {
+        return getReportName(getReport(report?.reportID, allReports));
+    }
+
+    return getReportName(report);
 }
 
 function getReportPersonalDetailsParticipants(report: Report, personalDetailsParam: OnyxEntry<PersonalDetailsList>, reportMetadata: OnyxEntry<ReportMetadata>, isRoomMembersList = false) {
