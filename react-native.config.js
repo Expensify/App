@@ -1,6 +1,6 @@
 const isHybrid = process.env.IS_HYBRID_APP === 'true' ? true : false;
 
-module.exports = {
+const config = {
     assets: ['./assets/fonts/native'],
     dependencies: {},
 };

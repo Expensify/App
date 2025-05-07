@@ -18,8 +18,8 @@ function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescripti
                 .then((cardData: AndroidCardData) => {
                     addCardToGoogleWallet(cardData)
                         .then((status: TokenizationStatus) => {
-                            Log.info('Card added to wallet');
                             if (status === 'success') {
+                                Log.info('Card added to wallet');
                                 openWalletPage();
                             } else {
                                 onFinished?.();
