@@ -89,7 +89,7 @@ const useRootNavigatorScreenOptions = () => {
                 cardStyle: {
                     height: '100%',
                 },
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePanel: true}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
             },
         },
     } satisfies RootNavigatorScreenOptions;

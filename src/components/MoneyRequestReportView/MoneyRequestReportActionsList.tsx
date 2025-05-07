@@ -1,4 +1,5 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
+import {useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -26,6 +27,8 @@ import DateUtils from '@libs/DateUtils';
 import {parseFSAttributes} from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     getFirstVisibleReportActionID,
     getMostRecentIOURequestActionID,
@@ -44,6 +47,7 @@ import shouldDisplayNewMarkerOnReportAction from '@pages/home/report/shouldDispl
 import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
@@ -92,8 +96,10 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const reportScrollManager = useReportScrollManager();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
 
     const reportID = report?.reportID;
+    const linkedReportActionID = route?.params?.reportActionID;
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
@@ -123,7 +129,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
         handleDeleteTransactions,
         isDeleteModalVisible,
         hideDeleteModal,
-    } = useSelectedTransactionsActions({report, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    } = useSelectedTransactionsActions({report, reportActions, allTransactionsLength: transactions.length, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
@@ -364,10 +370,21 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                     shouldDisplayReplyDivider={visibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
+                    linkedReportActionID={linkedReportActionID}
                 />
             );
         },
-        [visibleReportActions, reportActions, parentReportAction, report, transactionThreadReport, mostRecentIOUReportActionID, unreadMarkerReportActionID, firstVisibleReportActionID],
+        [
+            visibleReportActions,
+            reportActions,
+            parentReportAction,
+            report,
+            transactionThreadReport,
+            mostRecentIOUReportActionID,
+            unreadMarkerReportActionID,
+            firstVisibleReportActionID,
+            linkedReportActionID,
+        ],
     );
 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
