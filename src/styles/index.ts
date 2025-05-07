@@ -5157,8 +5157,9 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
             paddingHorizontal: 16,
             paddingVertical: 20,
-            flex: 0.5,
-            marginTop: 12,
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: '35%',
         },
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),

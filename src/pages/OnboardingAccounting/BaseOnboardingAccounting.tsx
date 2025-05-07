@@ -5,14 +5,13 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FixedFooter from '@components/FixedFooter';
-import FlatList from '@components/FlatList';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import OfflineIndicator from '@components/OfflineIndicator';
 import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -164,11 +163,11 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             text: translate('onboarding.accounting.none'),
             leftElement: (
                 <Icon
-                    src={Expensicons.EmptySquare}
+                    src={Expensicons.CircleSlash}
                     width={variables.iconSizeNormal}
                     height={variables.iconSizeNormal}
-                    fill={theme.success}
-                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3, styles.onboardingSmallIcon]}
+                    fill={theme.icon}
+                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3]}
                 />
             ),
             isSelected: userReportedIntegration === null,
@@ -181,36 +180,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     src={Expensicons.Connect}
                     width={variables.iconSizeNormal}
                     height={variables.iconSizeNormal}
-                    //  fill={theme.warning}
+                    fill={theme.icon}
                     additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3, styles.onboardingSmallIcon]}
                 />
             ),
             isSelected: userReportedIntegration === CONST.POLICY.CONNECTIONS.NAME.OTHER,
         };
         return [...policyAccountingOptions, othersAccountingOption, noneAccountingOption];
-    }, [StyleUtils, styles.mr3, styles.onboardingSmallIcon, theme.success, translate, userReportedIntegration]);
-
-    const renderOption = useCallback(
-        ({item}: {item: OnboardingListItem}) => (
-            <View style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}>
-                <RadioButtonWithLabel
-                    isChecked={!!item.isSelected}
-                    onPress={() => {
-                        setUserReportedIntegration(item.keyForList);
-                        setError('');
-                    }}
-                    style={[styles.flexRowReverse]}
-                    LabelComponent={() => (
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            {item.leftElement}
-                            <Text style={styles.textStrong}>{item.text}</Text>
-                        </View>
-                    )}
-                />
-            </View>
-        ),
-        [styles, StyleUtils, isSmallScreenWidth],
-    );
+    }, [StyleUtils, styles.mr3, styles.onboardingSmallIcon, theme.icon, translate, userReportedIntegration]);
 
     const supportedIntegrationsInNewDot = [
         CONST.POLICY.CONNECTIONS.NAME.QBO,
@@ -299,8 +276,27 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         session,
     ]);
 
-    const numColumns = isSmallScreenWidth ? 1 : 2;
-    const minListHeight = (accountingOptions.length - 0.5) * variables.optionRowHeight;
+    const renderOption = useCallback(
+        (item: OnboardingListItem) => (
+            <RadioButtonWithLabel
+                key={item.keyForList ?? ''}
+                isChecked={!!item.isSelected}
+                onPress={() => {
+                    setUserReportedIntegration(item.keyForList);
+                    setError('');
+                }}
+                style={[styles.flexRowReverse, styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}
+                wrapperStyle={[styles.ml0]}
+                LabelComponent={() => (
+                    <View style={[styles.alignItemsCenter, styles.flexRow]}>
+                        {item.leftElement}
+                        <Text style={styles.textStrong}>{item.text}</Text>
+                    </View>
+                )}
+            />
+        ),
+        [isSmallScreenWidth, styles],
+    );
 
     return (
         <ScreenWrapper
@@ -308,48 +304,37 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             shouldEnableKeyboardAvoidingView={false}
             testID="BaseOnboardingAccounting"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
-            shouldShowOfflineIndicator={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={80}
                 onBackButtonPress={Navigation.goBack}
             />
-            <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, {minHeight: minListHeight}]}>
+            <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.accounting.title')}</Text>
-                <FlatList
-                    data={accountingOptions}
-                    numColumns={numColumns}
-                    key={numColumns}
-                    keyExtractor={(item) => item.keyForList ?? 'none'}
-                    renderItem={renderOption}
-                    showsVerticalScrollIndicator
-                    scrollEnabled
-                    columnWrapperStyle={numColumns > 1 ? [styles.columnGap3] : undefined}
-                />
             </View>
-
-            <View style={[styles.pt3, styles.ph5, isSmallScreenWidth && styles.flex1]}>
-                <FixedFooter>
-                    {!!error && (
-                        <FormHelpMessage
-                            style={[styles.mb2]}
-                            isError
-                            message={error}
-                        />
-                    )}
-
-                    <Button
-                        success
-                        large
-                        text={translate('common.continue')}
-                        onPress={handleContinue}
-                        isLoading={isLoading}
-                        isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
+            <ScrollView contentContainerStyle={[styles.flex1, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.pt3, styles.pb8]}>
+                <View style={[styles.flexRow, styles.flexWrap, styles.gap3]}>{accountingOptions.map(renderOption)}</View>
+            </ScrollView>
+            <FixedFooter style={[styles.pt3, styles.ph5]}>
+                {!!error && (
+                    <FormHelpMessage
+                        style={[styles.mb2]}
+                        isError
+                        message={error}
                     />
-                    {isSmallScreenWidth && <OfflineIndicator />}
-                </FixedFooter>
-            </View>
+                )}
+
+                <Button
+                    success
+                    large
+                    text={translate('common.continue')}
+                    onPress={handleContinue}
+                    isLoading={isLoading}
+                    isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }
