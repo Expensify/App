@@ -2263,7 +2263,7 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
 
             // If we are the reimburser and the report is approved or we are the admin then we can pay it.
             const isReimburser = session?.email === policy?.achAccount?.reimburser;
-            return isReimburser && (isApproved || isAdmin);
+            return isReimburser && (isApproved || isManager);
         }
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
             return isAdmin && (isApproved || isManager);
