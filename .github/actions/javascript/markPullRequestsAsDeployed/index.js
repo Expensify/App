@@ -13497,9 +13497,8 @@ class GithubUtils {
         }
         catch (error) {
             if (error instanceof request_error_1.RequestError && error.status === 404) {
-                console.error(`❓❓ Failed to compare commits with the GitHub API for repo '${repo}'. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`);
+                throw new Error(`❓❓ Failed to compare commits with the GitHub API for repo '${repo}'. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`);
             }
-            // Re-throw the error after logging
             throw error;
         }
     }
