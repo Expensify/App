@@ -517,7 +517,6 @@ function MoneyReportHeaderOld({policy, report: moneyRequestReport, transactionTh
                 {!shouldShowSelectedTransactionsButton && !!shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
                     <View style={[styles.pv2]}>
                         <ExportWithDropdownMenu
-                            policy={policy}
                             report={moneyRequestReport}
                             connectionName={connectedIntegration}
                         />
@@ -595,7 +594,6 @@ function MoneyReportHeaderOld({policy, report: moneyRequestReport, transactionTh
                         )}
                         {!shouldShowSelectedTransactionsButton && !!shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
                             <ExportWithDropdownMenu
-                                policy={policy}
                                 report={moneyRequestReport}
                                 connectionName={connectedIntegration}
                             />
