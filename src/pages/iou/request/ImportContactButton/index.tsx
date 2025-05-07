@@ -1,4 +1,9 @@
-function ImportContactButton() {
+type ImportContactButtonProps = {
+    showImportContacts?: boolean;
+    inputHelperText?: string;
+};
+
+function ImportContactButton(props: ImportContactButtonProps) {
     return null;
 }
 

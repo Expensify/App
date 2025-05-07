@@ -3,7 +3,7 @@ import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {InteractionManager, Linking, View} from 'react-native';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
@@ -28,6 +28,7 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useThemeStyles from '@hooks/useThemeStyles';
 import contactImport from '@libs/ContactImport';
 import type {ContactImportResult} from '@libs/ContactImport/types';
+import useAppStateContactPermissionHandler from '@libs/ContactPermission/useAppStateContactPermissionHandler';
 import getContacts from '@libs/ContactUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
@@ -59,7 +60,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import goToSettings from './goToSettings';
-import ImportContactButton from './ImportContactButton/index.native';
+import ImportContactButton from './ImportContactButton';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -131,9 +132,12 @@ function MoneyRequestParticipantsSelector({
         initializeOptions();
     }, [initializeOptions]);
 
-    useEffect(() => {
-        importAndSaveContacts();
-    }, [importAndSaveContacts]);
+    useAppStateContactPermissionHandler({
+        importAndSaveContacts,
+        setContacts,
+        contactPermissionState,
+        setContactPermissionState,
+    });
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {

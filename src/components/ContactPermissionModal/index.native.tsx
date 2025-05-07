@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getContactPermission, requestContactPermission} from '@libs/ContactPermission';
 import type {ContactPermissionModalProps} from './types';
 
+let hasShownContactImportPromptThisSession = false;
 function ContactPermissionModal({onDeny, onGrant}: ContactPermissionModalProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -15,11 +16,15 @@ function ContactPermissionModal({onDeny, onGrant}: ContactPermissionModalProps) 
     const {translate} = useLocalize();
 
     useEffect(() => {
+        if (hasShownContactImportPromptThisSession) {
+            return;
+        }
         getContactPermission().then((status) => {
             // Permission hasn't been asked yet, show the soft permission modal
             if (status !== RESULTS.DENIED) {
                 return;
             }
+            hasShownContactImportPromptThisSession = true;
             setIsModalVisible(true);
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
