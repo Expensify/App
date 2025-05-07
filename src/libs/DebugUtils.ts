@@ -1207,8 +1207,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 originalMessage: 'object',
                 previousMessage: 'object',
             });
-        case "stateNum":
-            return validateConstantEnum(value, CONST.TRANSACTION.STATE_NUM)
+        case 'stateNum':
+            return validateConstantEnum(value, CONST.TRANSACTION.STATE_NUM);
     }
 }
 
