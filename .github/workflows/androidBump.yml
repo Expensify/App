@@ -9,9 +9,8 @@ on:
 jobs:
   android_bump:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
