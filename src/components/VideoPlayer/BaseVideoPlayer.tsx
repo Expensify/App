@@ -505,6 +505,8 @@ function BaseVideoPlayer({
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
                                             onError={() => {
+                                                // No need to set hasError while offline, since the offline indicator is already shown.
+                                                // Once the user reconnects, if the video is unsupported, the error will be triggered again.
                                                 if (isOffline) {
                                                     return;
                                                 }
