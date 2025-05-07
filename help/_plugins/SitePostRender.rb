@@ -90,22 +90,51 @@ module Jekyll
 
       help_content_string = to_ts_object(help_content_tree)
 
-      imports = [
-        "import type {ReactNode} from 'react';",
-        "import React from 'react';",
-        "import {View} from 'react-native';",
-      ]
+      components = analyze_used_components(help_content_string)
+      
+      # Generate the import block
+      import_block = generate_imports(components)
 
-      # Add conditional imports based on component usage
-      imports << "import BulletList from '@components/SidePanel/HelpComponents/HelpBulletList';" if help_content_string.include?("<BulletList")
-      imports << "import Text from '@components/Text';" if help_content_string.include?("<Text")
-      imports << "import TextLink from '@components/TextLink';" if help_content_string.include?("<TextLink")
-      imports << "import type {ThemeStyles} from '@styles/index';"
+      ts_output = generate_ts_output(import_block, help_content_string)
+            
+      File.write(output_file, ts_output)
 
-      # Join the imports
-      import_block = imports.join("\n")
+      puts "✅ Successfully generated helpContent.tsx"
+    end
 
-      ts_output = <<~TS
+    def self.analyze_used_components(content)  
+      components = {  
+        'View' => content.include?('<View'),  
+        'Text' => content.include?('<Text'),  
+        'TextLink' => content.include?('<TextLink'),  
+        'BulletList' => content.include?('<BulletList')  
+      }  
+      components.select { |_, used| used }.keys  
+    end
+
+    def self.generate_imports(components)  
+      base_imports = [  
+        "import type {ReactNode} from 'react';",  
+        "import React from 'react';",  
+      ]  
+      
+      # Always include React Native  
+      base_imports << "import {#{(['View'] & components).join(', ')}} from 'react-native';"  
+      
+      # Add component-specific imports  
+      component_imports = []  
+      component_imports << "import BulletList from '@components/SidePanel/HelpComponents/HelpBulletList';" if components.include?('BulletList')  
+      component_imports << "import Text from '@components/Text';" if components.include?('Text')  
+      component_imports << "import TextLink from '@components/TextLink';" if components.include?('TextLink')  
+      
+      # Add style imports  
+      base_imports << "import type {ThemeStyles} from '@styles/index';"  
+      
+      (base_imports + component_imports).join("\n")  
+    end
+
+    def self.generate_ts_output(import_block, help_content_string)
+      <<~TS
         /* eslint-disable react/no-unescaped-entities */
         /* eslint-disable @typescript-eslint/naming-convention */
         #{import_block}
@@ -128,12 +157,8 @@ module Jekyll
         export default helpContentMap;
         export type {ContentComponent};
       TS
-            
-      File.write(output_file, ts_output)
-
-      puts "✅ Successfully generated helpContent.tsx"
     end
-
+  
     def self.generate_help_content_tree()
       tree = {}
     
@@ -169,91 +194,134 @@ module Jekyll
     end
     
     def self.html_node_to_RN(node, indent_level = 0)
-      indent = '  ' * indent_level
-    
-      case node.name
-      when 'div'
-        children = node.children.map do |child|
-          next if child.text? && child.text.strip.empty?
-          html_node_to_RN(child, indent_level + 1)
-        end.compact.join("\n")
-    
-        "#{indent}<View>\n#{children}\n#{indent}</View>"
-    
-      when 'h1' then "#{indent}<Text style={[styles.textHeadlineH1, styles.mv4]}>#{node.text.strip}</Text>"
-      when 'h2' then "#{indent}<Text style={[styles.textHeadlineH2, styles.mv4]}>#{node.text.strip}</Text>"
-      when 'h3' then "#{indent}<Text style={[styles.textHeadlineH3, styles.mv4]}>#{node.text.strip}</Text>"
-      when 'h4' then "#{indent}<Text style={[styles.textHeadlineH4, styles.mv4]}>#{node.text.strip}</Text>"
-      when 'h5' then "#{indent}<Text style={[styles.textHeadlineH5, styles.mv4]}>#{node.text.strip}</Text>"
-      when 'h6' then "#{indent}<Text style={[styles.textHeadlineH6, styles.mv4]}>#{node.text.strip}</Text>"
-    
-      when 'p'
-        inner = node.children.map { |c| html_node_to_RN(c, indent_level + 1) }.join
-        prev = node.previous_element
-        next_el = node.next_element
-      
-        style_classes = ['styles.textNormal']
-        style_classes << 'styles.mt4' if prev&.name == 'ul'
-        style_classes << 'styles.mb4' if next_el&.name == 'p'
-        
-        "#{indent}<Text style={[#{style_classes.join(', ')}]}>#{inner.strip}</Text>"
-    
-      when 'ul'
-        items = node.xpath('./li').map do |li|
-          contains_ul = li.xpath('.//ul').any?
+      node_processors = {
+        'div' => method(:process_div),
+        'p' => method(:process_paragraph),
+        'ul' => method(:process_unordered_list),
+        'li' => method(:process_list_item),
+        'h1' => method(:process_heading),
+        'h2' => method(:process_heading),
+        'h3' => method(:process_heading),
+        'h4' => method(:process_heading),
+        'h5' => method(:process_heading),
+        'h6' => method(:process_heading),
+        'strong' => method(:process_bold),
+        'b' => method(:process_bold),
+        'em' => method(:process_italic),
+        'i' => method(:process_italic),
+        'a' => method(:process_link),
+        'text' => method(:process_text),
+      }
 
-          li_parts = li.children.map { |child| html_node_to_RN(child, 0) }
-        
-          if contains_ul
-
-            indented_li_parts = li_parts.map do |part|
-              part.lines.map { |line| "#{'  ' * (indent_level + 3)}#{line.rstrip}" }.join("\n")
-            end.join("\n")
-            
-            "#{'  ' * (indent_level + 2)}<>\n#{indented_li_parts}\n#{'  ' * (indent_level + 2)}</>"
-          else
-            "#{'  ' * (indent_level + 2)}<Text style={styles.textNormal}>#{li_parts.join}</Text>"
-          end
-        end
-
-        <<~TS.chomp
-          #{indent}<BulletList
-          #{indent}  styles={styles}
-          #{indent}  items={[
-          #{items.join(",\n")}
-          #{indent}  ]}
-          #{indent}/>
-        TS
-    
-      when 'li'
-        '' # handled in <ul>
-    
-      when 'strong', 'b'
-        "<Text style={styles.textBold}>#{node.text}</Text>"
-      when 'em', 'i'
-        "<Text style={styles.textItalic}>#{node.text}</Text>"
-      when 'a'
-        href = node['href']
-        link_text = node.children.map { |child| html_node_to_RN(child, 0) }.join
-        "<TextLink href=\"#{href}\" style={styles.link}>#{link_text.strip}</TextLink>"
-        
-      when 'text'
-        node.text
-    
+      # Use the processor if available, otherwise use default processing
+      processor = node_processors[node.name]
+      if processor
+        processor.call(node, indent_level)
       else
-        node.children.map { |child| html_node_to_RN(child, indent_level) }.join
+        process_default(node, indent_level)
       end
+    end
+
+    def self.process_div(node, indent_level)
+      children = node.children.map do |child|
+        next if child.text? && child.text.strip.empty?
+        html_node_to_RN(child, indent_level + 1)
+      end.compact.join("\n")
+  
+      "#{'  ' * indent_level}<View>\n#{children}\n#{'  ' * indent_level}</View>"
+    end
+
+    def self.process_heading(node, indent_level)
+      return "#{'  ' * indent_level}<Text style={[styles.textHeadline#{node.name.upcase}, styles.mv4]}>#{node.text.strip}</Text>"
+    end
+
+    def self.process_unordered_list(node, indent_level)
+      items = node.xpath('./li').map do |li|
+        contains_ul = li.xpath('.//ul').any?
+
+        li_parts = li.children.map { |child| html_node_to_RN(child, 0) }
+      
+        if contains_ul
+
+          indented_li_parts = li_parts.map do |part|
+            part.lines.map { |line| "#{'  ' * (indent_level + 3)}#{line.rstrip}" }.join("\n")
+          end.join("\n")
+          
+          "#{'  ' * (indent_level + 2)}<>\n#{indented_li_parts}\n#{'  ' * (indent_level + 2)}</>"
+        else
+          "#{'  ' * (indent_level + 2)}<Text style={styles.textNormal}>#{li_parts.join}</Text>"
+        end
+      end
+
+      <<~TS.chomp
+        #{'  ' * indent_level}<BulletList
+        #{'  ' * indent_level}  styles={styles}
+        #{'  ' * indent_level}  items={[
+        #{items.join(",\n")}
+        #{'  ' * indent_level}  ]}
+        #{'  ' * indent_level}/>
+      TS
+    end
+
+    def self.process_list_item(node, indent_level)
+      '' # handled in <ul>
+    end
+
+    def self.process_paragraph(node, indent_level)
+      inner = node.children.map { |c| html_node_to_RN(c, indent_level + 1) }.join
+      
+      style_classes = ['styles.textNormal']
+      style_classes << 'styles.mt4' if node.previous_element&.name == 'ul'
+      style_classes << 'styles.mb4' if node.next_element&.name == 'p'
+      
+      "#{'  ' * indent_level}<Text style={[#{style_classes.join(', ')}]}>#{inner.strip}</Text>"
+    end
+
+    def self.process_bold(node, indent_level)
+      "<Text style={styles.textBold}>#{node.text}</Text>"
+    end
+
+    def self.process_italic(node, indent_level)
+      "<Text style={styles.textItalic}>#{node.text}</Text>"
+    end
+
+    def self.process_link(node, indent_level)
+      href = node['href']
+      link_text = node.children.map { |child| html_node_to_RN(child, 0) }.join
+      "<TextLink href=\"#{href}\" style={styles.link}>#{link_text.strip}</TextLink>"
+    end
+
+    def self.process_text(node, indent_level)
+      node.text
+    end
+
+    def self.process_default(node, indent_level)
+      node.children.map { |child| html_node_to_RN(child, indent_level) }.join
     end
 
     def self.to_ts_object(obj, indent = 0)
       spacing = '  ' * indent
       lines = ["{"]
+
+      return "null" if obj.nil?
+      return obj.to_s if obj.is_a?(Numeric)
+      return obj.to_s if obj.is_a?(TrueClass) || obj.is_a?(FalseClass)
+      return obj.inspect if obj.is_a?(String)
+
+      if obj.is_a?(Array)
+        items = obj.map { |item| to_ts_object(item, indent + 1) }
+        return "[]" if items.empty?
+        
+        return "[\n" + 
+               items.map { |item| "#{spacing}  #{item}" }.join(",\n") + 
+               "\n#{spacing}]"
+      end
     
       obj.each do |key, value|
         key_str = key.is_a?(Symbol) ? key.to_s : key.inspect
         key_line_prefix = '  ' * (indent + 1) + "#{key_str}: "
     
-        if value.is_a?(Hash)
+        if value.is_a?(Hash) || value.is_a?(Array)
           nested = to_ts_object(value, indent + 1)
           lines << key_line_prefix + nested + ","
         elsif value.is_a?(String) && value.include?("\n")
