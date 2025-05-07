@@ -109,6 +109,9 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether the modal should avoid the keyboard */
     avoidKeyboard?: boolean;
+
+    /** Whether the modal content is scrollable */
+    shouldUseScrollView?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -169,6 +172,7 @@ function FeatureTrainingModal({
     shouldRenderHTMLDescription = false,
     shouldCloseOnConfirm = true,
     avoidKeyboard = false,
+    shouldUseScrollView = false,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -325,6 +329,8 @@ function FeatureTrainingModal({
      */
     useLayoutEffect(parseFSAttributes, []);
 
+    const Wrapper = shouldUseScrollView ? ScrollView : View;
+
     return (
         <Modal
             avoidKeyboard={avoidKeyboard}
@@ -347,7 +353,7 @@ function FeatureTrainingModal({
             }}
             shouldUseNewModal
         >
-            <ScrollView
+            <Wrapper
                 style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
                 fsClass={CONST.FULL_STORY.UNMASK}
                 testID={CONST.FULL_STORY.UNMASK}
@@ -395,7 +401,7 @@ function FeatureTrainingModal({
                         text={confirmText}
                     />
                 </View>
-            </ScrollView>
+            </Wrapper>
         </Modal>
     );
 }

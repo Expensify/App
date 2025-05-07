@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -21,7 +20,8 @@ function setPersonalDetails(firstName: string, lastName: string) {
 function verifyTestDriveRecipient(email: string) {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.VERIFY_TEST_DRIVE_RECIPIENT, {testDriveRecipientEmail: email}).then((response) => {
-        if (response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
+        if (!response?.accountExists) {
+            // We can invite this user since they do not have an account yet
             return;
         }
 

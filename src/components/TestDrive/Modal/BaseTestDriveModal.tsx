@@ -39,6 +39,7 @@ function BaseTestDriveModal({description, onConfirm, children, shouldCloseOnConf
             shouldCloseOnConfirm={shouldCloseOnConfirm}
             shouldRenderHTMLDescription={shouldRenderHTMLDescription}
             avoidKeyboard={avoidKeyboard}
+            shouldUseScrollView
         >
             {children}
         </FeatureTrainingModal>
