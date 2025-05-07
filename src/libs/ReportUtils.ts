@@ -9872,7 +9872,7 @@ function prepareOnboardingOnyxData(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
                 value: {
-                    [taskReportAction.reportAction.reportActionID]: {pendingAction: null},
+                    [taskReportAction.reportAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
                 },
             },
             {
@@ -9908,7 +9908,7 @@ function prepareOnboardingOnyxData(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                 value: {
-                    [completedTaskReportAction.reportActionID]: {pendingAction: null},
+                    [completedTaskReportAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
                 },
             });
         }
@@ -9966,7 +9966,7 @@ function prepareOnboardingOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [textCommentAction.reportActionID]: {pendingAction: null},
+                [textCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
             },
         });
     }
@@ -10154,7 +10154,7 @@ function prepareOnboardingOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null},
+                [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
             },
         });
 
