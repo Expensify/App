@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {
@@ -19,6 +19,7 @@ import {
 import {getIOUActionForReportID, getReportActions, isPayAction} from './ReportActionsUtils';
 import {
     canAddTransaction,
+    isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -45,7 +46,11 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     return canAddTransaction(report);
 }
 
-function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs): boolean {
+    if (isArchivedReport(reportNameValuePairs)) {
+        return false;
+    }
+
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
     if (!transactionAreComplete) {
@@ -408,6 +413,7 @@ function getSecondaryReportActions(
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
@@ -416,7 +422,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
-    if (isSubmitAction(report, reportTransactions, policy)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
