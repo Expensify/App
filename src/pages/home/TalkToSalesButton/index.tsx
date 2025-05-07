@@ -15,10 +15,10 @@ type TalkToSalesButtonProps = {
 
 function TalkToSalesButton({shouldUseNarrowLayout, reportID}: TalkToSalesButtonProps) {
     const {translate} = useLocalize();
-    const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES);
+    const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES, {canBeMissing: false});
     const styles = useThemeStyles();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: false});
 
     if (!reportID || !accountID) {
         return;
@@ -55,8 +55,11 @@ function TalkToSalesButton({shouldUseNarrowLayout, reportID}: TalkToSalesButtonP
 
                 initializeOpenAIRealtime(Number(reportID) ?? CONST.DEFAULT_NUMBER_ID, abTestCtaText());
             }}
-            style={shouldUseNarrowLayout && [styles.flex1]}
+            style={shouldUseNarrowLayout && styles.earlyDiscountButton}
             icon={talkToSalesIcon()}
+            // Ensure that a button with an icon displays an ellipsis when its content overflows https://github.com/Expensify/App/issues/58974#issuecomment-2794297554
+            iconWrapperStyles={[styles.mw100]}
+            isContentCentered
             isLoading={talkToAISales?.isLoading}
         />
     );

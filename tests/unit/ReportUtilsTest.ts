@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {beforeAll} from '@jest/globals';
+import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -11,6 +14,7 @@ import {
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildParticipantsFromAccountIDs,
+    buildReportNameFromParticipantNames,
     buildTransactionThread,
     canDeleteReportAction,
     canEditWriteCapability,
@@ -32,7 +36,9 @@ import {
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     isAllowedToApproveExpenseReport,
+    isArchivedNonExpenseReportWithID,
     isChatUsedForOnboarding,
+    prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
     shouldDisableThread,
     shouldReportBeInOptionList,
@@ -40,11 +46,14 @@ import {
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import type {OnboardingTaskLinks} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
@@ -243,6 +252,66 @@ describe('ReportUtils', () => {
         return waitForBatchedUpdates();
     });
     beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+
+    describe('prepareOnboardingOnyxData', () => {
+        it('provides test drive url to task title', () => {
+            const title = jest.fn();
+
+            prepareOnboardingOnyxData(
+                undefined,
+                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: 'test',
+                            title,
+                            description: () => '',
+                            autoCompleted: false,
+                            mediaAttributes: {},
+                        },
+                    ],
+                },
+                '1',
+            );
+
+            expect(title).toBeCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    testDriveURL: expect.any(String),
+                }),
+            );
+        });
+
+        it('provides test drive url to task description', () => {
+            const description = jest.fn();
+
+            prepareOnboardingOnyxData(
+                undefined,
+                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: 'test',
+                            title: () => '',
+                            description,
+                            autoCompleted: false,
+                            mediaAttributes: {},
+                        },
+                    ],
+                },
+                '1',
+            );
+
+            expect(description).toBeCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    testDriveURL: expect.any(String),
+                }),
+            );
+        });
+    });
 
     describe('getIconsForParticipants', () => {
         it('returns sorted avatar source by name, then accountID', () => {
@@ -2215,6 +2284,8 @@ describe('ReportUtils', () => {
                     });
                 });
             });
+
+            // This test is broken, so I am commenting it out. I have opened up https://github.com/Expensify/App/issues/60854 to get the test fixed
             describe('has approver rule', () => {
                 describe('has no transaction match with approver rule', () => {
                     it('should return list contain submitsTo of ownerAccountID and the forwardsTo of them', () => {
@@ -2270,12 +2341,12 @@ describe('ReportUtils', () => {
                             approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                         };
                         const expenseReport: Report = {
-                            ...createRandomReport(1),
+                            ...createRandomReport(100),
                             ownerAccountID: employeeAccountID,
                             type: CONST.REPORT.TYPE.EXPENSE,
                         };
                         const transaction1: Transaction = {
-                            ...createRandomTransaction(2),
+                            ...createRandomTransaction(1),
                             category: 'cat1',
                             tag: '',
                             created: testDate,
@@ -2283,7 +2354,7 @@ describe('ReportUtils', () => {
                             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         };
                         const transaction2: Transaction = {
-                            ...createRandomTransaction(3),
+                            ...createRandomTransaction(2),
                             category: '',
                             tag: 'tag1',
                             created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
@@ -2291,7 +2362,7 @@ describe('ReportUtils', () => {
                             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         };
                         const transaction3: Transaction = {
-                            ...createRandomTransaction(4),
+                            ...createRandomTransaction(3),
                             category: 'cat2',
                             tag: '',
                             created: testDate,
@@ -2299,18 +2370,19 @@ describe('ReportUtils', () => {
                             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
                         };
                         const transaction4: Transaction = {
-                            ...createRandomTransaction(5),
+                            ...createRandomTransaction(4),
                             category: '',
                             tag: 'tag2',
                             created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                             reportID: expenseReport.reportID,
                             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
                         };
-                        Onyx.merge(ONYXKEYS.COLLECTION.TRANSACTION, {
-                            [transaction1.transactionID]: transaction1,
-                            [transaction2.transactionID]: transaction2,
-                            [transaction3.transactionID]: transaction3,
-                            [transaction4.transactionID]: transaction4,
+
+                        Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, {
+                            transactions_1: transaction1,
+                            transactions_2: transaction2,
+                            transactions_3: transaction3,
+                            transactions_4: transaction4,
                         }).then(() => {
                             const result = [categoryapprover2Email, categoryapprover1Email, tagapprover2Email, tagapprover1Email, 'admin@test.com'];
                             expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
@@ -2318,6 +2390,115 @@ describe('ReportUtils', () => {
                     });
                 });
             });
+        });
+    });
+
+    describe('isArchivedNonExpenseReportWithID', () => {
+        // Given an expense report, a chat report, and an archived chat report
+        const expenseReport: Report = {
+            ...createRandomReport(1000),
+            ownerAccountID: employeeAccountID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        const chatReport: Report = {
+            ...createRandomReport(2000),
+            ownerAccountID: employeeAccountID,
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+        const archivedChatReport: Report = {
+            ...createRandomReport(3000),
+            ownerAccountID: employeeAccountID,
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+
+        beforeAll(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${archivedChatReport.reportID}`, archivedChatReport);
+
+            // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedChatReport.reportID}`, {
+                private_isArchived: new Date().toString(),
+            });
+        });
+
+        it('should return false if the report is an expense report', () => {
+            // Simulate how components use the hook useReportIsArchived() to see if the report is archived
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
+            expect(isArchivedNonExpenseReportWithID(expenseReport, isReportArchived.current)).toBe(false);
+        });
+
+        it('should return false if the report is a non-expense report and not archived', () => {
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(chatReport?.reportID));
+            expect(isArchivedNonExpenseReportWithID(chatReport, isReportArchived.current)).toBe(false);
+        });
+
+        it('should return true if the report is a non-expense report and archived', () => {
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedChatReport?.reportID));
+            expect(isArchivedNonExpenseReportWithID(archivedChatReport, isReportArchived.current)).toBe(true);
+        });
+    });
+
+    describe('buildReportNameFromParticipantNames', () => {
+        /**
+         * Generates a fake report and matching personal details for specified number of participants.
+         * Participants in the report are directly linked with their personal details.
+         */
+        const generateFakeReportAndParticipantsPersonalDetails = ({count, start = 0}: {count: number; start?: number}): {report: Report; personalDetails: PersonalDetailsList} => {
+            const data = {
+                report: {
+                    ...mockedChatReport,
+                    participants: Object.keys(fakePersonalDetails)
+                        .slice(start, count)
+                        .reduce<Record<string, Participant>>((acc, cur) => {
+                            acc[cur] = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
+                            return acc;
+                        }, {}),
+                },
+                personalDetails: Object.fromEntries(Object.entries(fakePersonalDetails).slice(start, count)),
+            };
+
+            data.personalDetails[currentUserAccountID] = {
+                accountID: currentUserAccountID,
+                displayName: 'CURRENT USER',
+                firstName: 'CURRENT',
+            };
+
+            return data;
+        };
+
+        it('excludes the current user from the report title', () => {
+            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({count: currentUserAccountID + 2}));
+            expect(result).not.toContain('CURRENT');
+        });
+
+        it('limits to a maximum of 5 participants in the title', () => {
+            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({count: 10}));
+            expect(result.split(',').length).toBeLessThanOrEqual(5);
+        });
+
+        it('returns full name if only one participant is present (excluding current user)', () => {
+            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({count: 1}));
+            const {displayName} = fakePersonalDetails[1] ?? {};
+            expect(result).toEqual(displayName);
+        });
+
+        it('returns an empty string if there are no participants or all are excluded', () => {
+            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({start: currentUserAccountID - 1, count: 1}));
+            expect(result).toEqual('');
+        });
+
+        it('handles partial or missing personal details correctly', () => {
+            const {report} = generateFakeReportAndParticipantsPersonalDetails({count: 6});
+
+            const secondUser = fakePersonalDetails[2];
+            const fourthUser = fakePersonalDetails[4];
+
+            const incompleteDetails = {2: secondUser, 4: fourthUser};
+            const result = buildReportNameFromParticipantNames({report, personalDetails: incompleteDetails});
+            const expectedNames = [secondUser?.firstName, fourthUser?.firstName].sort();
+            const resultNames = result.split(', ').sort();
+            expect(resultNames).toEqual(expect.arrayContaining(expectedNames));
         });
     });
 });
