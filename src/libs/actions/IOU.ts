@@ -56,7 +56,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import Parser from '@libs/Parser';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import Performance from '@libs/Performance';
 import Permissions from '@libs/Permissions';
@@ -157,6 +156,7 @@ import {
     isSettled,
     isTestTransactionReport,
     isTrackExpenseReport,
+    prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
@@ -193,7 +193,7 @@ import {
     removeSettledAndApprovedTransactions,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import type {IOUAction, IOUActionParams, IOUType, OnboardingMessage} from '@src/CONST';
+import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -215,6 +215,7 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildOptimisticPolicyRecentlyUsedDestinations} from './Policy/PerDiem';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
+import type {GuidedSetupData} from './Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
@@ -365,7 +366,6 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     waypoints?: WaypointCollection;
     comment?: string;
     isTestDrive?: boolean;
-    guidedSetupData?: OnboardingMessage;
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
@@ -1281,7 +1281,7 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
     });
 
     const text = Localize.translateLocal('testDrive.employeeInviteMessage', {name: getDisplayNameOrDefault(personalDetailsList?.[userAccountID])});
-    const textComment = buildOptimisticAddCommentReportAction(Parser.htmlToMarkdown(text), undefined, userAccountID);
+    const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID);
     const iouCreatedActionDate = parse(testDriveIOUParams.iouOptimisticParams.createdAction.created, CONST.DATE.FNS_DB_FORMAT_STRING, new Date());
     const commentReportActionDate = subMilliseconds(iouCreatedActionDate, 1);
     textComment.reportAction.created = format(commentReportActionDate, CONST.DATE.FNS_DB_FORMAT_STRING);
@@ -5093,7 +5093,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         waypoints,
         customUnitRateID,
         isTestDrive,
-        guidedSetupData,
     } = transactionParams;
 
     const sanitizedWaypoints = waypoints ? JSON.stringify(sanitizeRecentWaypoints(waypoints)) : undefined;
@@ -5202,6 +5201,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             break;
         }
         default: {
+            const guidedSetupData: GuidedSetupData | undefined =
+                isTestDrive && introSelected?.choice
+                    ? prepareOnboardingOnyxData(introSelected, introSelected.choice, CONST.ONBOARDING_MESSAGES[introSelected.choice])?.guidedSetupData
+                    : undefined;
+
             const parameters: RequestMoneyParams = {
                 debtorEmail: payerEmail,
                 debtorAccountID: payerAccountID,

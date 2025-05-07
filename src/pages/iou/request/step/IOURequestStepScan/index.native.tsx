@@ -31,7 +31,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setTestReceipt} from '@libs/actions/setTestReceipt';
+import setTestReceipt from '@libs/actions/setTestReceipt';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';

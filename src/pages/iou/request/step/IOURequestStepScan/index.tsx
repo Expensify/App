@@ -31,7 +31,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setTestReceipt} from '@libs/actions/setTestReceipt';
+import setTestReceipt from '@libs/actions/setTestReceipt';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';

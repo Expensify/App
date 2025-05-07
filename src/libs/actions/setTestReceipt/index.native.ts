@@ -40,5 +40,4 @@ const setTestReceipt: SetTestReceipt = (asset, assetExtension, onFileRead) => {
     }
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export {setTestReceipt};
+export default setTestReceipt;

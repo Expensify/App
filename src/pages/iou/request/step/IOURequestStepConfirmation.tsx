@@ -433,21 +433,20 @@ function IOURequestStepConfirmation({
                     waypoints: Object.keys(transaction.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
                     customUnitRateID,
                     isTestDrive: transaction?.receipt?.isTestDriveReceipt,
-                    guidedSetupData: transaction?.receipt?.isTestDriveReceipt ? CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER] : undefined,
                 },
             });
         },
         [
-            report,
             transaction,
-            transactionTaxCode,
-            transactionTaxAmount,
+            report,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             policy,
             policyTags,
             policyCategories,
             action,
+            transactionTaxCode,
+            transactionTaxAmount,
             customUnitRateID,
         ],
     );
@@ -899,9 +898,8 @@ function IOURequestStepConfirmation({
     const shouldShowThreeDotsButton =
         requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense;
 
-    const isTestDriveReceipt = !!transaction?.receipt?.isTestDriveReceipt;
-
-    const shouldShowSmartScanFields = isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
+    const shouldShowSmartScanFields =
+        !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
 
     return (
         <ScreenWrapper
@@ -992,7 +990,6 @@ function IOURequestStepConfirmation({
                         isDistanceRequest={isDistanceRequest}
                         isPerDiemRequest={isPerDiemRequest}
                         shouldShowSmartScanFields={shouldShowSmartScanFields}
-                        shouldShowAmountField={!isPerDiemRequest && !isTestDriveReceipt}
                         action={action}
                         payeePersonalDetails={payeePersonalDetails}
                         shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}

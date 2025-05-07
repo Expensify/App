@@ -6830,7 +6830,7 @@ const translations = {
             getStarted: 'Comenzar',
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
-            `<h1>${name} te invitó a probar Expensify</h1><br/>¡Hola! Acabo de conseguirnos <strong>3 meses gratis</strong> para probar Expensify, la forma más rápida de gestionar gastos.<br/><br/>Aquí tienes un <strong>recibo de prueba</strong> para mostrarte cómo funciona:`,
+            `# ${name} te invitó a probar Expensify\n\n¡Hola! Acabo de conseguirnos *3 meses gratis* para probar Expensify, la forma más rápida de gestionar gastos.\n\nAquí tienes un *recibo de prueba* para mostrarte cómo funciona:`,
     },
 };
 

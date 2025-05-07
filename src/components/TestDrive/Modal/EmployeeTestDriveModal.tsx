@@ -13,19 +13,19 @@ import {
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
 } from '@libs/actions/IOU';
-import {setTestReceipt} from '@libs/actions/setTestReceipt';
+import {verifyTestDriveRecipient} from '@libs/actions/Onboarding';
+import setTestReceipt from '@libs/actions/setTestReceipt';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import BaseTestDriveModal from './BaseTestDriveModal';
 
 function EmployeeTestDriveModal() {
     const {translate} = useLocalize();
     const [bossEmail, setBossEmail] = useState('');
-    const [formError, setFormError] = useState<TranslationPaths | undefined>();
+    const [formError, setFormError] = useState<string | undefined>();
 
     const isValidBossEmail = useMemo((): boolean => {
         const loginTrim = bossEmail.trim();
@@ -40,35 +40,41 @@ function EmployeeTestDriveModal() {
 
     const navigate = () => {
         if (!isValidBossEmail) {
-            setFormError('common.error.email');
+            setFormError(translate('common.error.email'));
             return;
         }
 
-        setTestReceipt(TestReceipt, 'jpg', (source, _, filename) => {
-            const transactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-            const reportID = generateReportID();
-            initMoneyRequest(reportID, undefined, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
+        verifyTestDriveRecipient(bossEmail)
+            .then(() => {
+                setTestReceipt(TestReceipt, 'jpg', (source, _, filename) => {
+                    const transactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+                    const reportID = generateReportID();
+                    initMoneyRequest(reportID, undefined, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
 
-            setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
+                    setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
 
-            setMoneyRequestParticipants(transactionID, [
-                {
-                    accountID: generateAccountID(bossEmail),
-                    login: bossEmail,
-                    displayName: bossEmail,
-                    selected: true,
-                },
-            ]);
+                    setMoneyRequestParticipants(transactionID, [
+                        {
+                            accountID: generateAccountID(bossEmail),
+                            login: bossEmail,
+                            displayName: bossEmail,
+                            selected: true,
+                        },
+                    ]);
 
-            setMoneyRequestAmount(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.AMOUNT, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.CURRENCY);
-            setMoneyRequestDescription(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.DESCRIPTION, true);
-            setMoneyRequestMerchant(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
-            setMoneyRequestCreated(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.CREATED, true);
+                    setMoneyRequestAmount(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.AMOUNT, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.CURRENCY);
+                    setMoneyRequestDescription(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.DESCRIPTION, true);
+                    setMoneyRequestMerchant(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
+                    setMoneyRequestCreated(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.CREATED, true);
 
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                    InteractionManager.runAfterInteractions(() => {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                    });
+                });
+            })
+            .catch((error: Error) => {
+                setFormError(error.message);
             });
-        });
     };
 
     return (
@@ -85,7 +91,7 @@ function EmployeeTestDriveModal() {
                 value={bossEmail}
                 onChangeText={onBossEmailChange}
                 autoCapitalize="none"
-                errorText={formError ? translate(formError) : undefined}
+                errorText={formError}
                 inputMode={CONST.INPUT_MODE.EMAIL}
             />
         </BaseTestDriveModal>
