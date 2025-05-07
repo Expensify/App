@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     if: "!contains(fromJSON('[\"OSBotify\", \"imgbot[bot]\", \"melvin-bot[bot]\"]'), github.actor)"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
 
       # Checks if the comment is created and follows the template OR
       # if the comment is edited and if proposal template is followed.

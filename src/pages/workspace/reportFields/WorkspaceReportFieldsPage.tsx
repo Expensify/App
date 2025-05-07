@@ -155,7 +155,7 @@ function WorkspaceReportFieldsPage({
 
     const toggleAllReportFields = () => {
         const availableReportFields = Object.values(selectionFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        setSelectedReportFields(selectedReportFields.length > 0 ? [] : Object.keys(availableReportFields));
+        setSelectedReportFields(selectedReportFields.length > 0 ? [] : Object.values(availableReportFields).map((reportField) => getReportFieldKey(reportField.fieldID)));
     };
 
     const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {

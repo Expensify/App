@@ -208,7 +208,7 @@ function WorkspaceNewRoomPage() {
                 success
                 large
                 text={translate('footer.learnMore')}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route)}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.getRoute(Navigation.getActiveRoute()))}
                 style={[styles.mh5, bottomSafeAreaPaddingStyle]}
             />
         </>

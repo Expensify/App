@@ -25,7 +25,10 @@ function ExitSurveyReasonPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [draftReason] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT, {selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[INPUT_IDS.REASON] ?? null});
+    const [draftReason] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM_DRAFT, {
+        selector: (value: OnyxEntry<ExitSurveyReasonForm>) => value?.[INPUT_IDS.REASON] ?? null,
+        canBeMissing: true,
+    });
 
     const [reason, setReason] = useState<ExitReason | null>(draftReason ?? null);
     useEffect(() => {

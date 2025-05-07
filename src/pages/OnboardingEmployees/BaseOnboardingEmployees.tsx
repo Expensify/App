@@ -70,7 +70,6 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             testID="BaseOnboardingEmployees"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
@@ -93,6 +92,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 ListItem={RadioListItem}
                 footerContent={footerContent}
                 listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
+                includeSafeAreaPaddingBottom={false}
             />
         </ScreenWrapper>
     );

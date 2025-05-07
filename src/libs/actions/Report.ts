@@ -1592,6 +1592,7 @@ function markCommentAsUnread(reportID: string | undefined, reportAction: ReportA
     // Find the latest report actions from other users
     const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
         if (
+            !ReportActionsUtils.isDeletedAction(current) &&
             current.actorAccountID !== currentUserAccountID &&
             (!latest || current.created > latest.created) &&
             // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper

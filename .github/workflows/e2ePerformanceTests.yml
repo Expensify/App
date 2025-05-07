@@ -28,7 +28,7 @@ jobs:
       DELTA_REF: ${{ steps.getDeltaRef.outputs.DELTA_REF }}
       IS_PR_MERGED: ${{ steps.getPullRequestDetails.outputs.IS_MERGED }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
         with:
           fetch-depth: 0  # Fetches the entire history
 
@@ -106,7 +106,7 @@ jobs:
     if: ${{ always() }}
     name: Run E2E tests in AWS device farm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
         with:
           # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify (we need a PAT to access the artifact API)
           token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
@@ -315,7 +315,7 @@ jobs:
     if: ${{ always() && needs.prep.outputs.IS_PR_MERGED != 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
 
       - name: Delete temporary merge branch created for delta ref
         run: git push -d origin ${{ needs.prep.outputs.DELTA_REF }}

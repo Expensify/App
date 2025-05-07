@@ -135,6 +135,9 @@ type BackdropProps = {
 
     /** Timing of animation on exit */
     animationOutTiming?: number;
+
+    /** Opacity of the backdrop */
+    backdropOpacity?: number;
 };
 
 type ContainerProps = {
