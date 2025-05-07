@@ -906,6 +906,49 @@ describe('SidebarUtils', () => {
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
                 expect(result?.alternateText).toBe(`You invited 1 member`);
             });
+            it('returns the last action message as an alternate text if the action is MOVED type', async () => {
+                const report: Report = {
+                    ...createRandomReport(4),
+                    chatType: 'policyExpenseChat',
+                    pendingAction: null,
+                    isOwnPolicyExpenseChat: true,
+                };
+                const lastAction: ReportAction = {
+                    ...createRandomReportAction(2),
+                    message: [
+                        {
+                            type: 'COMMENT',
+                            html: "moved this report to the <a href='https://new.expensify.com/r/1325702002189143' target='_blank' rel='noreferrer noopener'>Three&#039;s Workspace</a> workspace",
+                            text: "moved this report to the Three's Workspace workspace",
+                        },
+                    ],
+                    originalMessage: {
+                        whisperedTo: [],
+                    },
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+                    created: DateUtils.getDBTime(),
+                    lastModified: DateUtils.getDBTime(),
+                    shouldShow: true,
+                    pendingAction: null,
+                };
+                const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+                const result = SidebarUtils.getOptionData({
+                    report,
+                    reportAttributes: {},
+                    reportActions,
+                    reportNameValuePairs: {},
+                    hasViolations: false,
+                    personalDetails: {},
+                    policy: undefined,
+                    parentReportAction: undefined,
+                    preferredLocale: CONST.LOCALES.EN,
+                    oneTransactionThreadReport: undefined,
+                });
+
+                expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
+            });
         });
     });
 });
