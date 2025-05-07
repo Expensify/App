@@ -34,7 +34,7 @@ function WorkspaceSwitcherPage() {
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(reports, policies, reportActions), [reports, policies, reportActions]);
+    const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(reports, policies), [reports, policies]);
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(reports, reportActions), [reports, reportActions]);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
