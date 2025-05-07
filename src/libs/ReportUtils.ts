@@ -10505,6 +10505,19 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
+function findReportIDForAction(action?: ReportAction): string | undefined {
+    if (!allReportActions || !action?.reportActionID) {
+        return undefined;
+    }
+
+    return Object.keys(allReportActions)
+        .find((reportActionsKey) => {
+            const reportActions = allReportActions?.[reportActionsKey];
+            return !!reportActions && !isEmptyObject(reportActions[action.reportActionID]);
+        })
+        ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -10875,6 +10888,7 @@ export {
     isReportOutstanding,
     getReportPersonalDetailsParticipants,
     isAllowedToSubmitDraftExpenseReport,
+    findReportIDForAction,
 };
 
 export type {
