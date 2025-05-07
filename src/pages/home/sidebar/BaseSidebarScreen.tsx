@@ -8,7 +8,6 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
@@ -31,11 +30,10 @@ function BaseSidebarScreen() {
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [activeWorkspace, activeWorkspaceResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [activeWorkspace, activeWorkspaceResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`, {canBeMissing: true});
     const currentRoute = useRoute();
     const isLoading = isLoadingOnyxValue(activeWorkspaceResult);
-    const {canUseLeftHandBar} = usePermissions();
-    const shouldDisplayLHB = canUseLeftHandBar && !shouldUseNarrowLayout;
+    const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -74,20 +72,19 @@ function BaseSidebarScreen() {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
-            extraContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
-            extraContentStyles={shouldDisplayLHB && styles.leftNavigationTabBarPosition}
+            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
         >
             {({insets}) => (
                 <>
                     <TopBar
                         breadcrumbLabel={translate('common.inbox')}
-                        activeWorkspaceID={activeWorkspaceID}
                         shouldDisplaySearch={shouldUseNarrowLayout}
                         shouldDisplayHelpButton={shouldUseNarrowLayout}
                     />
                     <View style={[styles.flex1]}>
                         <SidebarLinksData insets={insets} />
                     </View>
+                    {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
                 </>
             )}
         </ScreenWrapper>

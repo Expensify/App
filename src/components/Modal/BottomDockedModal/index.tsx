@@ -42,7 +42,7 @@ function BottomDockedModal({
     const [deviceWidth, setDeviceWidth] = useState(() => Dimensions.get('window').width);
     const [deviceHeight, setDeviceHeight] = useState(() => Dimensions.get('window').height);
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
-    const handleRef = useRef<number>();
+    const handleRef = useRef<number | undefined>(undefined);
 
     const styles = useThemeStyles();
 
