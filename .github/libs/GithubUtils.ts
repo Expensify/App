@@ -10,6 +10,7 @@ import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-method
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
 import {throttling} from '@octokit/plugin-throttling';
+import {RequestError} from '@octokit/request-error';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arrayDifference from '@src/utils/arrayDifference';
 import CONST from './CONST';
@@ -602,6 +603,14 @@ class GithubUtils {
                 authorName: commit.commit.author?.name || 'Unknown',
             }));
         } catch (error) {
+            if (error instanceof RequestError && error.status === 404) {
+                const errorMessage = `❓❓ Failed to compare commits with the GitHub API for repo '${repo}'. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`;
+                // Use core.setFailed to log the error and mark the action as failed.
+                core.setFailed(errorMessage);
+                // Return an empty array to satisfy the function signature, although the action is already marked as failed.
+                return [];
+            }
+            // Re-throw other non-404 errors
             throw error;
         }
     }
