@@ -10910,6 +10910,22 @@ function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transact
         failureData.push(...(onyxData.failureData ?? []));
     });
 
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+        value: {
+            stateNum: CONST.TRANSACTION.STATE_NUM.STATE_REIMBURSABLE_LEGACY,
+        },
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+        value: {
+            stateNum:CONST.TRANSACTION.STATE_NUM.STATE_NOFLAG,
+        },
+    });
+
     const parameters: SplitTransactionParams = {
         splits: JSON.stringify(splits),
         isReverseSplitOperation,
