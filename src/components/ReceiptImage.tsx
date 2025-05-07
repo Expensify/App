@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type {Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
@@ -92,7 +93,10 @@ type ReceiptImageProps = (
     isPerDiemRequest?: boolean;
 
     /** The transaction data in search */
-    transactionItem?: TransactionListItemType;
+    transactionItem?: TransactionListItemType | Transaction;
+
+    /** Whether the receipt empty state should extend to the full height of the container. */
+    shouldUseFullHeight?: boolean;
 };
 
 function ReceiptImage({
@@ -115,6 +119,7 @@ function ReceiptImage({
     onPress,
     transactionItem,
     isPerDiemRequest,
+    shouldUseFullHeight,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -124,6 +129,7 @@ function ReceiptImage({
                 isThumbnail
                 onPress={onPress}
                 disabled={!onPress}
+                shouldUseFullHeight={shouldUseFullHeight}
             />
         );
     }

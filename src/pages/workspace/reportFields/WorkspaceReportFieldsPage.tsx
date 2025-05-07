@@ -1,6 +1,6 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -24,6 +24,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useEnvironment from '@hooks/useEnvironment';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -31,14 +32,15 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isConnectionInProgress} from '@libs/actions/connections';
+import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getCurrentConnectionName, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -47,7 +49,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyReportField} from '@src/types/onyx/Policy';
+import type {PolicyReportField} from '@src/types/onyx';
+import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type ReportFieldForList = ListItem & {
@@ -69,27 +72,39 @@ function WorkspaceReportFieldsPage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
     const policy = usePolicy(policyID);
     const {selectionMode} = useMobileSelectionMode();
-    const filteredPolicyFieldList = useMemo(() => {
-        if (!policy?.fieldList) {
-            return {};
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
-    }, [policy]);
-    const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
     const [deleteReportFieldsConfirmModalVisible, setDeleteReportFieldsConfirmModalVisible] = useState(false);
     const hasReportAccountingConnections = hasAccountingConnections(policy);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
-    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
+    const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
 
     const canSelectMultiple = !hasReportAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
+
+    const selectionFieldList = useMemo(() => {
+        if (!policy?.fieldList) {
+            return {};
+        }
+        return Object.values(policy.fieldList).reduce<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>((acc, reportField) => {
+            if (reportField.fieldID === CONST.POLICY.FIELDS.FIELD_LIST_TITLE) {
+                return acc;
+            }
+            const reportFieldKey = getReportFieldKey(reportField.fieldID);
+            acc[reportFieldKey] = reportField;
+            return acc;
+        }, {});
+    }, [policy]);
+
+    const filterReportFields = useCallback((reportField: OnyxValueWithOfflineFeedback<PolicyReportField> | undefined) => {
+        return !!reportField && reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    }, []);
+
+    const [selectedReportFields, setSelectedReportFields] = useFilteredSelection(selectionFieldList, filterReportFields);
 
     const fetchReportFields = useCallback(() => {
         openPolicyReportFieldsPage(policyID);
@@ -97,16 +112,9 @@ function WorkspaceReportFieldsPage({
 
     const {isOffline} = useNetwork({onReconnect: fetchReportFields});
 
-    const hasVisibleReportField = Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+    const hasVisibleReportField = Object.values(selectionFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     useFocusEffect(fetchReportFields);
-
-    useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-        setSelectedReportFields([]);
-    }, [isFocused]);
 
     const reportFieldsSections = useMemo(() => {
         if (!policy) {
@@ -115,7 +123,7 @@ function WorkspaceReportFieldsPage({
 
         return [
             {
-                data: Object.values(filteredPolicyFieldList)
+                data: Object.values(selectionFieldList)
                     .sort((a, b) => localeCompare(a.name, b.name))
                     .map((reportField) => ({
                         value: reportField.name,
@@ -123,7 +131,7 @@ function WorkspaceReportFieldsPage({
                         keyForList: String(reportField.fieldID),
                         orderWeight: reportField.orderWeight,
                         pendingAction: reportField.pendingAction,
-                        isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined && canSelectMultiple,
+                        isSelected: selectedReportFields.includes(getReportFieldKey(reportField.fieldID)) && canSelectMultiple,
                         isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         text: reportField.name,
                         rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))} />,
@@ -131,22 +139,23 @@ function WorkspaceReportFieldsPage({
                 isDisabled: false,
             },
         ];
-    }, [filteredPolicyFieldList, policy, selectedReportFields, canSelectMultiple, translate]);
+    }, [selectionFieldList, policy, canSelectMultiple, translate, selectedReportFields]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(reportFieldsSections.at(0)?.data ?? ([] as ListItem[]));
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
         const fieldKey = getReportFieldKey(item.fieldID);
-        const updatedReportFields = selectedReportFields.find((selectedReportField) => selectedReportField.name === item.value)
-            ? selectedReportFields.filter((selectedReportField) => selectedReportField.name !== item.value)
-            : [...selectedReportFields, filteredPolicyFieldList[fieldKey]];
-        setSelectedReportFields(updatedReportFields);
+        setSelectedReportFields((prevSelectedReportFields) => {
+            if (prevSelectedReportFields.includes(fieldKey)) {
+                return prevSelectedReportFields.filter((selectedField) => selectedField !== fieldKey);
+            }
+            return [...prevSelectedReportFields, fieldKey];
+        });
     };
 
     const toggleAllReportFields = () => {
-        const availableReportFields = Object.values(filteredPolicyFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const isAllSelected = availableReportFields.length === selectedReportFields.length;
-        setSelectedReportFields(isAllSelected ? [] : availableReportFields);
+        const availableReportFields = Object.values(selectionFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        setSelectedReportFields(selectedReportFields.length > 0 ? [] : Object.values(availableReportFields).map((reportField) => getReportFieldKey(reportField.fieldID)));
     };
 
     const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
@@ -154,15 +163,14 @@ function WorkspaceReportFieldsPage({
     };
 
     const handleDeleteReportFields = () => {
-        const reportFieldKeys = selectedReportFields.map((selectedReportField) => getReportFieldKey(selectedReportField.fieldID));
         setSelectedReportFields([]);
-        deleteReportFields(policyID, reportFieldKeys);
+        deleteReportFields(policyID, selectedReportFields);
         setDeleteReportFieldsConfirmModalVisible(false);
     };
 
     const isLoading = !isOffline && policy === undefined;
     const shouldShowEmptyState =
-        !Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline) && !isLoading;
+        !Object.values(selectionFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline) && !isLoading;
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
@@ -214,7 +222,7 @@ function WorkspaceReportFieldsPage({
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            {!hasSyncError && isConnectedToAccounting ? (
+            {!hasSyncError && isConnectionVerified ? (
                 <Text>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.reportFields.importedFromAccountingSoftware')} `}</Text>
                     <TextLink
@@ -239,7 +247,7 @@ function WorkspaceReportFieldsPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceReportFieldsPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -256,7 +264,7 @@ function WorkspaceReportFieldsPage({
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack();
+                        goBackFromWorkspaceCentralScreen(policyID);
                     }}
                 >
                     {!shouldUseNarrowLayout && !hasReportAccountingConnections && getHeaderButtons()}
@@ -309,6 +317,7 @@ function WorkspaceReportFieldsPage({
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
+                        addBottomSafeAreaPadding
                     />
                 )}
             </ScreenWrapper>

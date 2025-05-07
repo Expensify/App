@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment} from '@src/types/onyx/Transaction';
 import {getLinkedTransactionID} from './ReportActionsUtils';
-import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
+import {getReasonAndReportActionThatRequiresAttention, getReportNameValuePairs, isArchivedReport, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
 import {getTransactionID as TransactionUtilsGetTransactionID} from './TransactionUtils';
 
@@ -480,6 +480,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'isWaitingOnBankAccount':
         case 'isCancelledIOU':
             return validateBoolean(value);
+        case 'exportFailedTime':
         case 'lastReadSequenceNumber':
         case 'managerID':
         case 'lastActorAccountID':
@@ -628,6 +629,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 welcomeMessage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                exportFailedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
@@ -1050,6 +1052,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1086,6 +1089,11 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
                 splits: 'array',
                 dismissedViolations: 'object',
+            });
+        case 'accountant':
+            return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
+                accountID: 'number',
+                login: 'string',
             });
         case 'modifiedAttendees':
             return validateArray<ArrayElement<Comment, 'attendees'>>(value, {
@@ -1354,7 +1362,12 @@ type RBRReasonAndReportAction = {
  * Gets the report action that is causing the RBR to show up in LHN
  */
 function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean): RBRReasonAndReportAction | null {
-    const {reason, reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations) ?? {};
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
+    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+
+    const {reason, reportAction} =
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isArchivedReport(reportNameValuePairs)) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

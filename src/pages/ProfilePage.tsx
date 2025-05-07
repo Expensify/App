@@ -6,7 +6,6 @@ import {useOnyx} from 'react-native-onyx';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import CommunicationsLink from '@components/CommunicationsLink';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -19,7 +18,6 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -67,14 +65,13 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
     };
 
 function ProfilePage({route}: ProfilePageProps) {
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, chatReportSelector)});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
-    const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (account) => account?.guideCalendarLink,
-    });
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, chatReportSelector), canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isDebugModeEnabled = !!account?.isDebugModeEnabled;
+    const guideCalendarLink = account?.guideCalendarLink ?? '';
 
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isCurrentUser = session?.accountID === accountID;
@@ -86,7 +83,7 @@ function ProfilePage({route}: ProfilePageProps) {
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
     }, [accountID, isCurrentUser, reports, session]);
-    const [report] = useOnyx(reportKey);
+    const [report] = useOnyx(reportKey, {canBeMissing: true});
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -113,7 +110,7 @@ function ProfilePage({route}: ProfilePageProps) {
         return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
     }, [personalDetails, accountID, loginParams, isValidAccountID]);
 
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser));
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser, translate('common.you').toLowerCase()));
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
@@ -132,7 +129,6 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const isSMSLogin = Str.isSMSLogin(login);
     const phoneNumber = getPhoneNumber(details);
-    const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
     const hasAvatar = !!details?.avatar;
     const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
@@ -198,7 +194,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         source={details?.avatar}
                                         avatarID={accountID}
                                         type={CONST.ICON_TYPE_AVATAR}
-                                        size={CONST.AVATAR_SIZE.XLARGE}
+                                        size={CONST.AVATAR_SIZE.X_LARGE}
                                         fallbackIcon={fallbackIcon}
                                     />
                                 </OfflineWithFeedback>
@@ -216,47 +212,36 @@ function ProfilePage({route}: ProfilePageProps) {
                                 containerStyle={[styles.ph0, styles.mb8]}
                             />
                             {hasStatus && (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate('statusPage.status')}
-                                    </Text>
-                                    <Text>{statusContent}</Text>
+                                <View style={[styles.detailsPageSectionContainer, styles.w100]}>
+                                    <MenuItemWithTopDescription
+                                        style={[styles.ph0]}
+                                        title={statusContent}
+                                        description={translate('statusPage.status')}
+                                        interactive={false}
+                                    />
                                 </View>
                             )}
 
                             {/* Don't display email if current user is anonymous */}
                             {!(isCurrentUser && isAnonymousUserSession()) && login ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                    </Text>
-                                    <CommunicationsLink value={phoneOrEmail ?? ''}>
-                                        <UserDetailsTooltip accountID={details?.accountID ?? CONST.DEFAULT_NUMBER_ID}>
-                                            <Text
-                                                numberOfLines={1}
-                                                style={styles.w100}
-                                            >
-                                                {isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
-                                            </Text>
-                                        </UserDetailsTooltip>
-                                    </CommunicationsLink>
+                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
+                                    <MenuItemWithTopDescription
+                                        style={[styles.ph0]}
+                                        title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
+                                        copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
+                                        description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                        interactive={false}
+                                    />
                                 </View>
                             ) : null}
                             {pronouns ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate('profilePage.preferredPronouns')}
-                                    </Text>
-                                    <Text numberOfLines={1}>{pronouns}</Text>
+                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
+                                    <MenuItemWithTopDescription
+                                        style={[styles.ph0]}
+                                        title={pronouns}
+                                        description={translate('profilePage.preferredPronouns')}
+                                        interactive={false}
+                                    />
                                 </View>
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}

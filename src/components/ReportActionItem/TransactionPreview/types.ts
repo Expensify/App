@@ -4,9 +4,10 @@ import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActio
 import type {PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+// string type union is here for percentage values
 type TransactionPreviewStyleType = {
-    width: number;
-    maxWidth?: number;
+    width: number | string;
+    maxWidth?: number | string;
 };
 
 type TransactionPreviewProps = {
@@ -19,8 +20,8 @@ type TransactionPreviewProps = {
     /** The ID of the current report */
     reportID: string | undefined;
 
-    /** Callback for the preview pressed */
-    onPreviewPressed: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    /** Callback called when the preview is pressed  */
+    onPreviewPressed?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** All the data of the action, used for showing context menu */
     action: OnyxEntry<ReportAction>;
@@ -34,8 +35,8 @@ type TransactionPreviewProps = {
     /** Optional custom styles to be applied to container component. */
     containerStyles?: StyleProp<ViewStyle>;
 
-    /** Optional custom styles to be applied to wrapper component. */
-    wrapperStyles: TransactionPreviewStyleType;
+    /** Width to use for skeleton loader of transaction preview */
+    transactionPreviewWidth: TransactionPreviewStyleType['width'];
 
     /** True if this IOU has a type of split */
     isBillSplit: boolean;
@@ -59,20 +60,23 @@ type TransactionPreviewProps = {
 
     /** In the case where we have access to the transactionID in the parent */
     transactionID?: string;
+
+    /** The action to be displayed in the preview */
+    reportPreviewAction?: ReportAction;
+
+    /** Whether to show payer/receiver data in the preview */
+    shouldShowIOUData?: boolean;
+
+    /** In case we want to override context menu action */
+    contextAction?: OnyxEntry<ReportAction>;
 };
 
 type TransactionPreviewContentProps = {
-    /** Function to display the context menu in response to an event. */
-    showContextMenu: (event: GestureResponderEvent) => void;
-
     /** Handles the UI response and data clean-up when the transaction goes offline. */
     offlineWithFeedbackOnClose: () => void;
 
     /** Navigates the user to a separate view or component for reviewing or editing transaction fields. */
     navigateToReviewFields: () => void;
-
-    /** General callback for handling presses on the preview component, can also handle keyboard events. */
-    onPreviewPressed: (event?: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
     /** Whether the transaction is whisper. */
     isWhisper?: boolean;
@@ -83,8 +87,8 @@ type TransactionPreviewContentProps = {
     /** Optional custom styles to be applied to container component. */
     containerStyles?: StyleProp<ViewStyle>;
 
-    /** Optional custom styles to be applied to wrapper component. */
-    wrapperStyles: TransactionPreviewStyleType;
+    /** Width to use for skeleton loader of transaction preview */
+    transactionPreviewWidth: TransactionPreviewStyleType['width'];
 
     /** Records any errors related to wallet terms. */
     walletTermsErrors: Errors | undefined;
@@ -121,6 +125,12 @@ type TransactionPreviewContentProps = {
 
     /** Determine whether to hide the component's children if deletion is pending */
     shouldHideOnDelete?: boolean;
+
+    /** The action to be displayed in the preview */
+    reportPreviewAction?: ReportAction;
+
+    /** Whether to show payer/receiver data in the preview */
+    shouldShowIOUData?: boolean;
 };
 
-export type {TransactionPreviewProps, TransactionPreviewContentProps, TransactionPreviewStyleType};
+export type {TransactionPreviewContentProps, TransactionPreviewProps, TransactionPreviewStyleType};

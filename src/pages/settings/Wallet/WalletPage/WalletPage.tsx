@@ -55,16 +55,17 @@ type WalletPageProps = {
 };
 
 function WalletPage({shouldListenForResize = false}: WalletPageProps) {
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {initialValue: {}});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {initialValue: {}});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {initialValue: {}});
-    const [isLoadingPaymentMethods] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {initialValue: true});
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}});
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {initialValue: {}, canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {initialValue: {}, canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {initialValue: {}, canBeMissing: true});
+    const [isLoadingPaymentMethods] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {initialValue: true, canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}, canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isUserValidated = userAccount?.validated ?? false;
+    const isActingAsDelegate = !!userAccount?.delegatedAccess?.delegate || false;
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const theme = useTheme();
@@ -388,6 +389,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
+            onBackButtonPress={() => Navigation.goBack(undefined, {shouldPopToTop: true})}
         />
     );
 
@@ -500,6 +502,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                     titleStyle={styles.textHeadlineH2}
                                                     interactive={false}
                                                     wrapperStyle={styles.sectionMenuItemTopDescription}
+                                                    copyValue={convertToDisplayString(userWallet?.currentBalance ?? 0)}
                                                 />
                                             </OfflineWithFeedback>
                                         )}
@@ -649,6 +652,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         setShouldShowDefaultDeleteMenu(false);
                                     }}
                                     wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                                    numberOfLinesTitle={0}
                                 />
                             )}
                             <MenuItem
