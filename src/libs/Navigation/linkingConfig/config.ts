@@ -924,9 +924,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_REASON.route,
                         },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.BOOK_CALL]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_BOOK_CALL.route,
-                        },
                         [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
                         },
