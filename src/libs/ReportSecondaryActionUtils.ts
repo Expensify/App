@@ -87,8 +87,14 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
+    const currentUserAccountID = getCurrentUserAccountID();
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+    if (!isCurrentUserManager) {
+        return false;
+    }
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
+    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const isProcessingReport = isProcessingReportUtils(report);
     const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
 
@@ -174,7 +180,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
-function isExportAction(report: Report, policy?: Policy): boolean {
+function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]): boolean {
     if (!policy) {
         return false;
     }
@@ -210,7 +216,7 @@ function isExportAction(report: Report, policy?: Policy): boolean {
     const isReportReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const connectedIntegration = getConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const isReportExported = isExportedUtils(getReportActions(report));
+    const isReportExported = isExportedUtils(reportActions);
     const isReportFinished = isReportApproved || isReportReimbursed || isReportClosed;
 
     return isAdmin && isReportFinished && syncEnabled && !isReportExported;
@@ -254,7 +260,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
     const isReportFinished = isReportClosedOrApproved || isReportReimbursed;
 
-    if (!isReportFinished || !syncEnabled) {
+    if (!isReportFinished) {
         return false;
     }
 
@@ -262,7 +268,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
 
     const isExporter = isPrefferedExporter(policy);
 
-    return isAdmin || isExporter;
+    return (isAdmin && syncEnabled) || (isExporter && !syncEnabled);
 }
 
 function isHoldAction(report: Report, reportTransactions: Transaction[]): boolean {
@@ -402,6 +408,7 @@ function getSecondaryReportActions(
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
+    reportActions?: ReportAction[],
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -425,7 +432,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
-    if (isExportAction(report, policy)) {
+    if (isExportAction(report, policy, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING);
     }
 

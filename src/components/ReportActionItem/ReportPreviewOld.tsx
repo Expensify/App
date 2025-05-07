@@ -23,6 +23,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,7 +64,6 @@ import {
     hasWarningTypeViolations,
     isAllowedToApproveExpenseReport,
     isAllowedToSubmitDraftExpenseReport,
-    isArchivedReportWithID,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPayAtEndExpenseReport,
@@ -200,7 +200,7 @@ function ReportPreviewOld({
     const canIOUBePaidAndApproved = useMemo(() => getCanIOUBePaid(false, false), [getCanIOUBePaid]);
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
-    const shouldShowApproveButton = useMemo(() => canApproveIOU(iouReport, policy), [iouReport, policy]) || isApprovedAnimationRunning;
+    const shouldShowApproveButton = useMemo(() => canApproveIOU(iouReport, policy, transactions), [iouReport, policy, transactions]) || isApprovedAnimationRunning;
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(iouReport);
 
@@ -257,7 +257,7 @@ function ReportPreviewOld({
         formattedMerchant = null;
     }
 
-    const isArchived = isArchivedReportWithID(iouReport?.reportID);
+    const isArchived = useReportIsArchived(iouReport?.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
     const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, violations);
@@ -651,7 +651,6 @@ function ReportPreviewOld({
                                 )}
                                 {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && (
                                     <ExportWithDropdownMenu
-                                        policy={policy}
                                         report={iouReport}
                                         connectionName={connectedIntegration}
                                         wrapperStyle={styles.flexReset}
