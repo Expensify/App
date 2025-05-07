@@ -103,6 +103,7 @@ import {
     shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {isDeleteAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canCancelPayment,
     cancelPayment as cancelPaymentAction,
@@ -333,7 +334,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransactionID);
-    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted);
+    const canDeleteReport = isDeleteAction(report)
+    const shouldShowDeleteButton = shouldShowTaskDeleteButton || ((canDeleteRequest || canDeleteReport) && isCardTransactionCanBeDeleted);
     useEffect(() => {
         if (canDeleteRequest) {
             return;

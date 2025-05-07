@@ -4597,6 +4597,7 @@ function deleteAppReport(reportID: string | undefined) {
     });
 
     const transactionIDToMoneyRequestReportActionIDMap: Record<string, string> = {};
+
     Object.values(reportActionsForReport ?? {})
         .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
         .reverse()
@@ -4610,6 +4611,7 @@ function deleteAppReport(reportID: string | undefined) {
                     ...reportAction.originalMessage,
                     IOUReportID: selfDMReportID,
                 },
+                childReportID: reportAction.childReportID,
                 reportactionID: newReportActionID,
             };
             optimisticData.push({
@@ -4632,6 +4634,7 @@ function deleteAppReport(reportID: string | undefined) {
                 value: {
                     parentReportActionID: newReportActionID,
                     parentReportID: selfDMReportID,
+                    chatReportID: selfDMReportID,
                     policyID: '_FAKE_',
                 },
             });
@@ -4677,6 +4680,7 @@ function deleteAppReport(reportID: string | undefined) {
             },
         });
     }
+    console.log('optimisticData', optimisticData)
 
     const parameters: DeleteAppReportParams = {
         reportID,
