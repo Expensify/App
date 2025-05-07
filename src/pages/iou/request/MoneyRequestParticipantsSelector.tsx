@@ -18,7 +18,6 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
@@ -48,7 +47,6 @@ import {
 import {isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
-import saveLastRoute from '@libs/saveLastRoute';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getInvoicePrimaryWorkspace} from '@userActions/Policy/Policy';
 import {searchInServer} from '@userActions/Report';
