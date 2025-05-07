@@ -23,7 +23,7 @@ Once enabled, this rule uses AI to review receipt line items during SmartScan. I
 
 To turn on the Prohibited expenses rule:
 
-1. Go to `Settings > Workspaces > Workspace Name > Rules > Expenses`.
+1. Go to **Settings** > **Workspaces** > click _Workspace Name_ > **Rules** > **Expenses**.
 2. Scroll to the section titled **Prohibited expenses**.
 3. Toggle on the rule.
 4. Select the prohibited categories you want to monitor:
