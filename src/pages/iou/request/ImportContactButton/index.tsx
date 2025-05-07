@@ -3,9 +3,9 @@ type ImportContactButtonProps = {
     inputHelperText?: string;
 };
 
-function ImportContactButton({showImportContacts: _showImportContacts, inputHelperText: _inputHelperText}: ImportContactButtonProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function ImportContactButton(props: ImportContactButtonProps) {
     // This is the web version which doesn't render anything
-    // The props are destructured to fix lint errors, but not used as this returns null
     return null;
 }
 
