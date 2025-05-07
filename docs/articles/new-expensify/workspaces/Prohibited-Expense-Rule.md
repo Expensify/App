@@ -49,7 +49,7 @@ If a SmartScan detects a prohibited item:
 
 # FAQ
 
-## Who can enable the Prohibited expenses rule?
+## Who can enable the Prohibited Expenses Rule?
 
 Only Workspace Admins can enable or adjust this rule in New Expensify.
 
