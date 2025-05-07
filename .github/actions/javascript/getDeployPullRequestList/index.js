@@ -11883,7 +11883,7 @@ function getValidMergedPRs(commits) {
 async function getPullRequestsDeployedBetween(fromTag, toTag, repo) {
     const commitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag, repo);
     const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
-    core.startGroup('Locate PRs from Git commits');
+    core.startGroup(`Locate PRs from Git commits for ${repo}`);
     core.info(`Found ${commitList.length} commits.`);
     core.info(`Found ${pullRequestNumbers.length} PRs: ${JSON.stringify(pullRequestNumbers)}`);
     core.endGroup();
@@ -12123,7 +12123,7 @@ class GithubUtils {
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
      */
-    static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false) {
+    static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], mobilePRNumbers = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
             const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, EmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
@@ -12146,12 +12146,21 @@ class GithubUtils {
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
                 let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
-                // PR list
+                // App PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                     sortedPRList.forEach((URL) => {
                         issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
+                    });
+                    issueBody += '\r\n\r\n';
+                }
+                // Mobile-Expensify PR list
+                if (mobilePRNumbers.length > 0) {
+                    issueBody += '**Mobile-Expensify Pull Requests:**\r\n';
+                    mobilePRNumbers.forEach((prNumber) => {
+                        const mobilePrURL = `https://github.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.MOBILE_EXPENSIFY_REPO}/pull/${prNumber}`;
+                        issueBody += `- [ ] ${mobilePrURL}\r\n`;
                     });
                     issueBody += '\r\n\r\n';
                 }
