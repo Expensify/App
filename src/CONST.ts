@@ -1995,6 +1995,7 @@ const CONST = {
         HEIGHT: 416,
     },
     DESKTOP_HEADER_PADDING: 12,
+    SEARCH_ITEM_LIMIT: 15,
     CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
@@ -7004,6 +7005,9 @@ const CONST = {
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
+        OUTSANDING_FILTER: 'outstandingFilter',
+        SETTINGS_TAB: 'settingsTab',
+        WORKSPACES_SETTINGS: 'workspacesSettings',
         GBR_RBR_CHAT: 'chatGBRRBR',
         ACCOUNT_SWITCHER: 'accountSwitcher',
         EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
