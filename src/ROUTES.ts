@@ -68,6 +68,9 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_PAID: 'search/filters/paid',
     SEARCH_ADVANCED_FILTERS_EXPORTED: 'search/filters/exported',
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
+    SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
+    SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
+    SEARCH_ADVANCED_FILTERS_CREATED_BY: 'search/filters/createdBy',
     SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
     SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
     SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
@@ -342,10 +345,6 @@ const ROUTES = {
     SETTINGS_EXIT_SURVEY_REASON: {
         route: 'settings/exit-survey/reason',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/reason', backTo),
-    },
-    SETTINGS_EXIT_SURVERY_BOOK_CALL: {
-        route: 'settings/exit-survey/book-call',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/book-call', backTo),
     },
     SETTINGS_EXIT_SURVEY_RESPONSE: {
         route: 'settings/exit-survey/response',
