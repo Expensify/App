@@ -32,6 +32,7 @@ function BaseTestDriveModal({description, onConfirm, children, shouldCloseOnConf
             onConfirm={onConfirm}
             shouldRenderSVG={false}
             modalInnerContainerStyle={styles.testDriveModalContainer(shouldUseNarrowLayout)}
+            contentInnerContainerStyles={styles.gap2}
             shouldCloseOnConfirm={shouldCloseOnConfirm}
             shouldRenderHTMLDescription={shouldRenderHTMLDescription}
             avoidKeyboard={avoidKeyboard}
