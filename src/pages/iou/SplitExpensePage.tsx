@@ -39,10 +39,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${route.params.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
-
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + Math.abs(Number(item.amount)), 0), [draftTransaction]);
+    const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     useEffect(() => {
         setErrorMessage(null);
@@ -106,6 +107,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 merchant: draftTransaction?.merchant ?? '',
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                currencySymbol,
                 onSplitExpenseAmountChange,
             }),
         );
@@ -113,7 +115,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
 
         return [newSections];
-    }, [transaction, draftTransaction, transactionDetails, getTranslatedText, onSplitExpenseAmountChange]);
+    }, [transaction, draftTransaction, getTranslatedText, transactionDetails?.amount, currencySymbol, onSplitExpenseAmountChange]);
 
     const headerContent = useMemo(
         () => (

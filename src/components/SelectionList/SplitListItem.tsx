@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import {Folder, Tag} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -11,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
-import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
 
@@ -29,9 +27,6 @@ function SplitListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
 
     const splitItem = item as unknown as SplitListItemType;
-
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
-    const currencySymbol = currencyList?.[splitItem.currency ?? '']?.symbol ?? splitItem.currency;
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
 
@@ -80,7 +75,7 @@ function SplitListItem<TItem extends ListItem>({
                                 autoGrow={false}
                                 amount={splitItem.amount}
                                 currency={splitItem.currency}
-                                prefixCharacter={currencySymbol}
+                                prefixCharacter={splitItem.currencySymbol}
                                 disableKeyboard={false}
                                 isCurrencyPressable={false}
                                 hideFocusedState={false}

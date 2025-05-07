@@ -399,6 +399,9 @@ type SplitListItemType = ListItem &
         /** Original amount before split */
         originalAmount: number;
 
+        /** Currency symbol */
+        currencySymbol: string;
+
         /** Function for updating amount */
         onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
     };
