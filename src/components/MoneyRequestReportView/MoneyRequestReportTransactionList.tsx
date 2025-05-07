@@ -84,7 +84,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
+    const displayNarrowVersion = shouldUseNarrowLayout;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
 
