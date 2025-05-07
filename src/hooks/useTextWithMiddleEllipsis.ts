@@ -1,3 +1,4 @@
+import debounce from 'lodash/debounce';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -96,20 +97,41 @@ function useTextWithMiddleEllipsis(props: TruncateProps): string {
         setElementStyle(style);
 
         const rect = (element as unknown as Element).getBoundingClientRect();
-        const targetW = rect.width;
-
         setTargetWidth(rect.width);
 
         if (style && text) {
             const measureWidth = measureText(text, style);
-            setShouldTruncate(measureWidth > targetW);
+            setShouldTruncate(measureWidth > rect.width);
         }
     }, [text, ref, measureText]);
 
-    // Calculate target width on mount and when dependencies change
+    // Calculate target width on mount and when text changes
     useEffect(() => {
         calcTargetWidth();
     }, [calcTargetWidth]);
+
+    // Handle resize with requestAnimationFrame for better layout timing
+    const resetAndMeasure = useCallback(() => {
+        setDisplayText(text);
+
+        requestAnimationFrame(() => {
+            calcTargetWidth();
+        });
+    }, [text, calcTargetWidth]);
+
+    // Set up resize listener with debounce
+    useEffect(() => {
+        const handleResize = debounce(() => {
+            resetAndMeasure();
+        }, 250);
+
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', resetAndMeasure);
+            handleResize.cancel();
+        };
+    }, [resetAndMeasure]);
 
     /**
      * Performs the middle truncation algorithm when text needs truncation
