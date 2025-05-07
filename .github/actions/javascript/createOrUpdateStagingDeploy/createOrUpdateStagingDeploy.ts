@@ -87,7 +87,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
 
         // TODO: Process mobileMergedPRs - potentially filter them if Mobile-Expensify PRs were also listed in previous checklists in a structured way.
         // For now, we assume no filtering is needed for mobile PRs based on the previous checklist's PRList which is App specific.
-        const newMobilePRNumbers = [11,12,13]; 
+        const newMobilePRNumbers = ['11','12','13']; 
 
         // Next, we generate the checklist body
         let checklistBody = '';
