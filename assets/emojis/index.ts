@@ -35,7 +35,7 @@ const localeEmojis: LocaleEmojis = {
 const importEmojiLocale = (locale: Locale) => {
     const normalizedLocale = locale.toLowerCase().split('-').at(0) as Locale;
     if (!localeEmojis[normalizedLocale]) {
-        const emojiImportPromise = normalizedLocale === 'en' ? import( './en') : import( './es');
+        const emojiImportPromise = normalizedLocale === 'en' ? import('./en') : import('./es');
         return emojiImportPromise.then((esEmojiModule) => {
             // it is needed because in jest test the modules are imported in double nested default object
             localeEmojis[normalizedLocale] = esEmojiModule.default.default ? (esEmojiModule.default.default as unknown as EmojisList) : esEmojiModule.default;

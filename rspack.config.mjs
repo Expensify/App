@@ -34,9 +34,9 @@ export default (env) => ({
     module: {
         parser: {
             javascript: {
-              dynamicImportMode: 'eager',
+                dynamicImportMode: 'eager',
             },
-          },
+        },
         rules: [
             ...Repack.getJsTransformRules({swc: {lazyImports: true}}),
             ...Repack.getAssetTransformRules(),
