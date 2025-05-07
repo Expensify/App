@@ -136,7 +136,7 @@ function MoneyReportHeaderOld({policy, report: moneyRequestReport, transactionTh
         }
         return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+    const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (_transactions) => reportTransactionsSelector(_transactions, moneyRequestReport?.reportID),
         initialValue: [],
         canBeMissing: true,
@@ -197,7 +197,18 @@ function MoneyReportHeaderOld({policy, report: moneyRequestReport, transactionTh
 
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
-    const selectedTransactionsOptions = useSelectedTransactionsActions({report: moneyRequestReport, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    const {
+        options: selectedTransactionsOptions,
+        handleDeleteTransactions,
+        isDeleteModalVisible,
+        hideDeleteModal,
+    } = useSelectedTransactionsActions({
+        report: moneyRequestReport,
+        reportActions,
+        allTransactionsLength: transactions.length,
+        session,
+        onExportFailed: () => setIsDownloadErrorModalVisible(true),
+    });
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
@@ -654,6 +665,19 @@ function MoneyReportHeaderOld({policy, report: moneyRequestReport, transactionTh
                 danger
                 shouldEnableNewFocusManagement
             />
+
+            <ConfirmModal
+                title={translate('iou.deleteExpense', {count: selectedTransactionsID.length})}
+                isVisible={isDeleteModalVisible}
+                onConfirm={handleDeleteTransactions}
+                onCancel={hideDeleteModal}
+                prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsID.length})}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+                shouldEnableNewFocusManagement
+            />
+
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}

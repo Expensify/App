@@ -352,10 +352,6 @@ const ROUTES = {
         route: 'settings/exit-survey/reason',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/reason', backTo),
     },
-    SETTINGS_EXIT_SURVERY_BOOK_CALL: {
-        route: 'settings/exit-survey/book-call',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/book-call', backTo),
-    },
     SETTINGS_EXIT_SURVEY_RESPONSE: {
         route: 'settings/exit-survey/response',
         getRoute: (reason?: ExitReason, backTo?: string) => getUrlWithBackToParam(`settings/exit-survey/response${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`, backTo),

@@ -192,7 +192,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     return !isEmpty(transactions) ? (
         <>
             {!displayNarrowVersion && (
-                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, styles.pv3, StyleUtils.getPaddingBottom(6), styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, StyleUtils.getPaddingBottom(6), styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <View style={[styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
@@ -222,8 +222,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                     />
                 </View>
             )}
-
-            <View style={[listHorizontalPadding, styles.gap2, styles.pb4, displayNarrowVersion && !selectionMode?.isEnabled && styles.pt4]}>
+            <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
                 {sortedTransactions.map((transaction) => {
                     return (
                         <PressableWithFeedback
@@ -264,8 +263,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             <TransactionItemRow
                                 transactionItem={transaction}
                                 isSelected={isTransactionSelected(transaction.transactionID)}
-                                shouldShowTooltip
                                 dateColumnSize={dateColumnSize}
+                                shouldShowTooltip
                                 shouldUseNarrowLayout={displayNarrowVersion}
                                 shouldShowChatBubbleComponent
                                 onCheckboxPress={toggleTransaction}
