@@ -216,7 +216,7 @@ import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID
 import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
 import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
-import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
+import {getOptimisticTransactions, getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftTransaction} from './TransactionEdit';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
@@ -855,6 +855,7 @@ function initMoneyRequest(
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
             reportID,
             isFromGlobalCreate,
+            isOptimisticTransaction: true,
             created,
             currency,
             transactionID: newTransactionID,
@@ -907,6 +908,7 @@ function initMoneyRequest(
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
+        isOptimisticTransaction: true,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         splitPayerAccountIDs: currentUserPersonalDetails ? [currentUserPersonalDetails.accountID] : undefined,
     });
@@ -925,8 +927,13 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
 }
 
 function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
+    const optimisticTransactions = getOptimisticTransactions();
+    const optimisticTransactionsSet = optimisticTransactions.reduce((acc, item) => {
+        acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] = null;
+        return acc;
+    }, {} as Record<string, null>);
     Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
+    Onyx.multiSet(optimisticTransactionsSet);
 }
 
 function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation = false, backToReport?: string) {
@@ -984,7 +991,10 @@ function setMoneyRequestPendingFields(transactionID: string, pendingFields: Onyx
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
 
-function setMoneyRequestCategory(transactionID: string, category: string, policyID?: string) {
+function setMoneyRequestCategory(transactionID: string | undefined, category: string, policyID?: string) {
+    if (!transactionID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
     if (!policyID) {
         setMoneyRequestTaxRate(transactionID, '');
@@ -999,7 +1009,7 @@ function setMoneyRequestCategory(transactionID: string, category: string, policy
     }
 }
 
-function setMoneyRequestTag(transactionID: string, tag: string) {
+function setMoneyRequestTag(transactionID: string | undefined, tag: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag});
 }
 
@@ -1007,7 +1017,7 @@ function setMoneyRequestBillable(transactionID: string, billable: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {billable});
 }
 
-function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isTestTransaction = false) {
+function setMoneyRequestParticipants(transactionID: string | undefined, participants: Participant[] = [], isTestTransaction = false) {
     // We should change the reportID and isFromGlobalCreate of the test transaction since this flow can start inside an existing report
     return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         participants,
@@ -1031,7 +1041,7 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
 /**
  * Set custom unit rateID for the transaction draft
  */
-function setCustomUnitRateID(transactionID: string, customUnitRateID: string | undefined) {
+function setCustomUnitRateID(transactionID: string | undefined, customUnitRateID: string | undefined) {
     const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         comment: {
@@ -10040,7 +10050,7 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Repor
  * @param transactionID of the transaction to set the participants of
  * @param report attached to the transaction
  */
-function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>) {
+function setMoneyRequestParticipantsFromReport(transactionID: string | undefined, report: OnyxEntry<OnyxTypes.Report>) {
     const participants = getMoneyRequestParticipantsFromReport(report);
     return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
 }
