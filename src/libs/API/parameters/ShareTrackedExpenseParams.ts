@@ -29,7 +29,9 @@ type ShareTrackedExpenseParams = {
     engagementChoice?: string;
     guidedSetupData?: string;
     description?: string;
+    accountantEmail: string;
     policyName?: string;
+    attendees?: string;
 };
 
 export default ShareTrackedExpenseParams;
