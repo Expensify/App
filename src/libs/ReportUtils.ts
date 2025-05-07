@@ -2261,7 +2261,7 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
                 return isAdmin;
             }
 
-            // If we are the reimburser and the report is approved or we are the admin then we can pay it.
+            // If we are the reimburser and the report is approved or we are the manager then we can pay it.
             const isReimburser = session?.email === policy?.achAccount?.reimburser;
             return isReimburser && (isApproved || isManager);
         }
