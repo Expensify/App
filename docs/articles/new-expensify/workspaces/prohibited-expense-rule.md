@@ -1,5 +1,5 @@
 ---
-title: prohibited-expense-rule.md
+title: Prohibited Expenses Rule
 description: Learn how to enable and use the Prohibited expenses rule to automatically flag receipts with restricted items such as alcohol, gambling, or tobacco.
 keywords: [prohibited expenses, receipt violation, SmartScan, alcohol, gambling, expense rules, workspace settings, line item compliance]
 ---
