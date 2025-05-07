@@ -216,7 +216,7 @@ function ReportActionItemSingle({
                       text: displayName,
                   },
               ]
-            : [action?.person?.at(0)].filter(Boolean) ?? [];
+            : [action?.person?.[0]].filter(Boolean) ?? [];
 
         if (displayAllActors && secondaryAvatar?.name) {
             return [
@@ -322,7 +322,7 @@ function ReportActionItemSingle({
                             numberOfLines={1}
                             style={[styles.chatItemMessageHeaderSender, styles.pre, styles.optionItemAvatarNameWrapper]}
                         >
-                            {` & `}
+                            {' & '}
                         </Text>
                         <ReportActionItemFragment
                             style={[styles.flexShrink1]}
@@ -339,11 +339,10 @@ function ReportActionItemSingle({
             }
             return (
                 <View>
-                    {personArray.map((fragment, index) => (
+                    {personArray.map((fragment) => (
                         <ReportActionItemFragment
                             style={[styles.flex1]}
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`person-${action?.reportActionID}-${index}`}
+                            key={`person-${action?.reportActionID}-${fragment?.text ?? ''}`}
                             accountID={actorAccountID ?? CONST.DEFAULT_NUMBER_ID}
                             fragment={{...fragment, type: fragment?.type ?? '', text: fragment?.text ?? ''}}
                             delegateAccountID={action?.delegateAccountID}
