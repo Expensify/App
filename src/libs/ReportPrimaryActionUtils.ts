@@ -247,7 +247,6 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-
     const userControlsReport = isReportSubmitter || isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
@@ -261,6 +260,10 @@ function getReportPrimaryAction(
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     if (isAddExpenseAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
+    }
+
+    if (isMarkAsCashAction(report, reportTransactions, violations, policy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 
     if (isReviewDuplicatesAction(report, reportTransactions, policy)) {
@@ -285,10 +288,6 @@ function getReportPrimaryAction(
 
     if (isExportAction(report, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
-    }
-
-    if (isMarkAsCashAction(report, reportTransactions, violations, policy)) {
-        return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 
     return '';
