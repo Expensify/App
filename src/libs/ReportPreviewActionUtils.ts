@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
@@ -23,7 +23,6 @@ import {
     hasNoticeTypeViolations,
     hasViolations,
     hasWarningTypeViolations,
-    isArchivedReport,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
@@ -86,10 +85,8 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
     return isExpense && isApprover && isProcessing && isApprovalEnabled && !hasAnyViolations && reportTransactions.length > 0 && isCurrentUserManager;
 }
 
-function canPay(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs) {
-    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
-
-    if (isChatReportArchived) {
+function canPay(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, isReportArchived = false) {
+    if (isReportArchived) {
         return false;
     }
 
@@ -201,7 +198,7 @@ function getReportPreviewAction(
     report?: Report,
     policy?: Policy,
     transactions?: Transaction[],
-    reportNameValuePairs?: ReportNameValuePairs,
+    isReportArchived = false,
     reportActions?: OnyxEntry<ReportActions> | ReportAction[],
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
@@ -213,7 +210,7 @@ function getReportPreviewAction(
     if (canApprove(report, violations, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, violations, policy, reportNameValuePairs)) {
+    if (canPay(report, violations, policy, isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
     if (canExport(report, violations, policy, reportActions)) {

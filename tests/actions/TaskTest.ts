@@ -20,6 +20,7 @@ import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction'
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+// This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
 jest.mock('@components/ConfirmedRoute.tsx');
 
 OnyxUpdateManager();
