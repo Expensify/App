@@ -236,7 +236,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             userReportedIntegration,
         });
 
-        if (!CONST.NEW_DOT_SUPPORTED_COMPANY_SIZES.includes(onboardingCompanySize) && getPlatform() !== CONST.PLATFORM.DESKTOP) {
+        if (onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP) {
             if (CONFIG.IS_HYBRID_APP) {
                 return;
             }
@@ -300,8 +300,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
             testID="BaseOnboardingAccounting"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldEnableMaxHeight
@@ -320,7 +318,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             <FixedFooter style={[styles.pt3, styles.ph5]}>
                 {!!error && (
                     <FormHelpMessage
-                        style={[styles.mb2]}
+                        style={[styles.ph1, styles.mb2]}
                         isError
                         message={error}
                     />
@@ -333,6 +331,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     onPress={handleContinue}
                     isLoading={isLoading}
                     isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
+                    pressOnEnter
                 />
             </FixedFooter>
         </ScreenWrapper>
