@@ -25,7 +25,6 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -80,10 +79,6 @@ function BaseTextInput(
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    // For iOS, we don't need to measure the text input because it already has auto grow behavior
-    // See TextInputMeasurement.ios.tsx for more details
-    const isExternalAutoGrowMeasurement = getPlatform() !== CONST.PLATFORM.IOS && autoGrow;
-
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
@@ -253,7 +248,7 @@ function BaseTextInput(
         styles.textInputContainer,
         textInputContainerStyles,
         !!contentWidth && StyleUtils.getWidthStyle(textInputWidth),
-        isExternalAutoGrowMeasurement && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace),
+        autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
@@ -355,8 +350,8 @@ function BaseTextInput(
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
-                                    !autoGrow && styles.flex1,
-                                    !autoGrow && styles.w100,
+                                    styles.flex1,
+                                    styles.w100,
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
                                     inputPaddingLeft,
