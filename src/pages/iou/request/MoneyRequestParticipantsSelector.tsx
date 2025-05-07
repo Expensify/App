@@ -526,7 +526,7 @@ function MoneyRequestParticipantsSelector({
                 style={styles.mb3}
             />
         );
-    }, [goToSettings, showImportContacts, styles.mb3, translate]);
+    }, [showImportContacts, styles.mb3, translate]);
 
     const EmptySelectionListContentWithPermission = useMemo(() => {
         return <EmptySelectionListContent contentType={iouType} />;

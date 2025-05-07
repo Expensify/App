@@ -4,7 +4,7 @@ import {AppState} from 'react-native';
 import type {AppStateStatus} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
-import {getContactPermission} from '@libs/ContactPermission';
+import {getContactPermission} from './index';
 
 type UseAppStateContactPermissionHandlerProps = {
     importAndSaveContacts: () => void;

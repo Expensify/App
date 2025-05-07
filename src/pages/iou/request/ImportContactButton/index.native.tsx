@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import goToSettings from '../goToSettings';
+import goToSettings from '@pages/iou/request/goToSettings';
 
 type ImportContactButtonProps = {
     showImportContacts?: boolean;
