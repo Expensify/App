@@ -117,7 +117,6 @@
     "@rnmapbox/maps": "10.1.33",
     "@shopify/flash-list": "1.7.1",
     "@types/pako": "^2.0.3",
-    "@types/webrtc": "^0.0.46",
     "@ua/react-native-airship": "~21.4.1",
     "awesome-phonenumber": "^5.4.0",
     "babel-polyfill": "^6.26.0",
