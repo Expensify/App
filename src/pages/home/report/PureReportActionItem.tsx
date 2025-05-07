@@ -1317,7 +1317,7 @@ function PureReportActionItem({
 
     // If the transaction list for this report action is empty, hide this report action
     // This applies when the transaction’s stateNum equals CONST.TRANSACTION.STATE_NUM.STATE_REIMBURSABLE_LEGACY for example
-    if (!transactions.length) {
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && !transactions.length && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         return null;
     }
 
