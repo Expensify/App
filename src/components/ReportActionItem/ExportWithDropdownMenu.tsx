@@ -16,13 +16,11 @@ import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 type ExportWithDropdownMenuProps = {
-    policy: OnyxEntry<Policy>;
-
     report: OnyxEntry<Report>;
 
     connectionName: ConnectionName;
@@ -33,7 +31,6 @@ type ExportWithDropdownMenuProps = {
 };
 
 function ExportWithDropdownMenu({
-    policy,
     report,
     connectionName,
     dropdownAnchorAlignment = {

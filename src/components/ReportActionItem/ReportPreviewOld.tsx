@@ -651,7 +651,6 @@ function ReportPreviewOld({
                                 )}
                                 {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && (
                                     <ExportWithDropdownMenu
-                                        policy={policy}
                                         report={iouReport}
                                         connectionName={connectedIntegration}
                                         wrapperStyle={styles.flexReset}
