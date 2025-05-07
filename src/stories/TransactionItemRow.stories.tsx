@@ -14,6 +14,7 @@ type TransactionItemRowProps = {
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
+    shouldShowCheckbox: boolean;
 };
 
 const story: Meta<typeof TransactionItemRow> = {
@@ -38,13 +39,19 @@ const story: Meta<typeof TransactionItemRow> = {
         shouldShowTooltip: {
             control: 'boolean',
         },
+        shouldShowCheckbox: {
+            control: 'boolean',
+        },
     },
     parameters: {
         useLightTheme: true,
     },
 };
 
-function Template({transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip}: TransactionItemRowProps, {parameters}: {parameters: {useLightTheme?: boolean}}) {
+function Template(
+    {transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip, shouldShowCheckbox}: TransactionItemRowProps,
+    {parameters}: {parameters: {useLightTheme?: boolean}},
+) {
     const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
 
     return (
@@ -53,6 +60,7 @@ function Template({transactionItem, shouldUseNarrowLayout, isSelected, shouldSho
                 <TransactionItemRow
                     transactionItem={transactionItem}
                     shouldUseNarrowLayout={shouldUseNarrowLayout}
+                    shouldShowCheckbox={shouldShowCheckbox}
                     isSelected={isSelected}
                     shouldShowTooltip={shouldShowTooltip}
                     shouldShowChatBubbleComponent
