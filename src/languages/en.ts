@@ -367,6 +367,7 @@ const translations = {
         send: 'Send',
         na: 'N/A',
         noResultsFound: 'No results found',
+        noResultsFoundMatching: ({searchString}: {searchString: string}) => `No results found matching "${searchString}"`,
         recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
@@ -3013,6 +3014,7 @@ const translations = {
                 other: 'Delete rates',
             }),
             deletePerDiemRate: 'Delete per diem rate',
+            findPerDiemRate: 'Find per diem rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
                 other: 'Are you sure you want to delete these rates?',
@@ -3805,6 +3807,7 @@ const translations = {
                 },
             },
             assignCard: 'Assign card',
+            findCard: 'Find card',
             cardNumber: 'Card number',
             commercialFeed: 'Commercial feed',
             feedName: ({feedName}: CompanyCardFeedNameParams) => `${feedName} cards`,
@@ -3839,6 +3842,7 @@ const translations = {
             disclaimer:
                 'The Expensify Visa® Commercial Card is issued by The Bancorp Bank, N.A., Member FDIC, pursuant to a license from Visa U.S.A. Inc. and may not be used at all merchants that accept Visa cards. Apple® and the Apple logo® are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc. Google Play and the Google Play logo are trademarks of Google LLC.',
             issueCard: 'Issue card',
+            findCard: 'Find card',
             newCard: 'New card',
             name: 'Name',
             lastFour: 'Last 4',
@@ -3929,6 +3933,7 @@ const translations = {
             addCategory: 'Add category',
             editCategory: 'Edit category',
             editCategories: 'Edit categories',
+            findCategory: 'Find category',
             categoryRequiredError: 'Category name is required',
             existingCategoryError: 'A category with this name already exists',
             invalidCategoryName: 'Invalid category name',
@@ -4103,6 +4108,7 @@ const translations = {
             addField: 'Add field',
             delete: 'Delete field',
             deleteFields: 'Delete fields',
+            findReportField: 'Find report field',
             deleteConfirmation: 'Are you sure you want to delete this report field?',
             deleteFieldsConfirmation: 'Are you sure you want to delete these report fields?',
             emptyReportFields: {
@@ -4159,6 +4165,7 @@ const translations = {
             addTag: 'Add tag',
             editTag: 'Edit tag',
             editTags: 'Edit tags',
+            findTag: 'Find tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
             emptyTags: {
                 title: "You haven't created any tags",
@@ -4191,6 +4198,7 @@ const translations = {
             value: 'Value',
             taxReclaimableOn: 'Tax reclaimable on',
             taxRate: 'Tax rate',
+            findTaxRate: 'Find tax rate',
             error: {
                 taxRateAlreadyExists: 'This tax name is already in use',
                 taxCodeAlreadyExists: 'This tax code is already in use',
@@ -4257,6 +4265,7 @@ const translations = {
                 one: 'Remove member',
                 other: 'Remove members',
             }),
+            findMember: 'Find member',
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -4611,6 +4620,7 @@ const translations = {
             centrallyManage: 'Centrally manage rates, track in miles or kilometers, and set a default category.',
             rate: 'Rate',
             addRate: 'Add rate',
+            findRate: 'Find rate',
             trackTax: 'Track tax',
             deleteRates: () => ({
                 one: 'Delete rate',
@@ -5005,7 +5015,7 @@ const translations = {
         description: 'Choose from the support options below:',
         chatWithConcierge: 'Chat with Concierge',
         scheduleSetupCall: 'Schedule a setup call',
-        scheduleADemo: 'Schedule demo',
+        scheduleACall: 'Schedule call',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
     },
@@ -6279,6 +6289,21 @@ const translations = {
         getHelp: 'Get help',
         talkToConcierge: 'Talk to Concierge',
         hangUp: 'Hang up',
+    },
+    scheduledCall: {
+        book: {
+            title: 'Schedule call',
+            description: 'Find a time that works for you.',
+            slots: 'Available times for ',
+        },
+        confirmation: {
+            title: 'Confirm call',
+            description: "Make sure the details below look good to you. Once you confirm the call, we'll send an invite with more info.",
+            setupSpecialist: 'Your setup specialist',
+            meetingLength: 'Meeting length',
+            dateTime: 'Date & time',
+            minutes: '30 minutes',
+        },
     },
     testDrive: {
         quickAction: {
