@@ -437,7 +437,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
     useLayoutEffect(parseFSAttributes, []);
 
     return (
-        <View style={[styles.flex1, styles.pv4]}>
+        <View style={[styles.flex1]}>
             {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
                 <>
                     <ButtonWithDropdownMenu
@@ -448,7 +448,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                         shouldAlwaysShowDropdownMenu
                         wrapperStyle={[styles.w100, styles.ph5]}
                     />
-                    <View style={[styles.searchListHeaderContainerStyle, styles.pt6, styles.ph8, styles.pb3]}>
+                    <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8]}>
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={selectedTransactionsID.length === transactions.length}
@@ -491,7 +491,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                     />
                 </>
             )}
-            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, styles.pb4]}>
+            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, styles.pv4]}>
                 <FloatingMessageCounter
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
