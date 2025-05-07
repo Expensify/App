@@ -598,9 +598,10 @@ const dismissModal = (ref = navigationRef) => {
 const dismissModalWithReport = (navigateToReportPayload: NavigateToReportWithPolicyCheckPayload, ref = navigationRef) => {
     isNavigationReady().then(() => {
         const topmostReportID = getTopmostReportId();
-        const areReportsIDsDefined = !!topmostReportID && !!navigateToReportPayload.reportID;
+        const navigateToReportID = navigateToReportPayload.reportID ?? navigateToReportPayload.report?.reportID;
+        const areReportsIDsDefined = !!topmostReportID && !!navigateToReportID;
         const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
-        if (topmostReportID === navigateToReportPayload.reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
+        if (topmostReportID === navigateToReportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             dismissModal();
             return;
         }

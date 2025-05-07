@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {beforeAll} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -13,6 +14,7 @@ import {
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildParticipantsFromAccountIDs,
+    buildReportNameFromParticipantNames,
     buildTransactionThread,
     canDeleteReportAction,
     canEditWriteCapability,
@@ -49,7 +51,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
@@ -601,35 +605,13 @@ describe('ReportUtils', () => {
                 };
                 const submittedParentReportAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    adminAccountID: 1,
                     originalMessage: {
                         amount: 169,
                         currency: 'USD',
                     },
                 } as ReportAction;
 
-                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('Ragnar Lothbrok submitted');
-            });
-
-            test('Manually Approved Report Action', () => {
-                const threadOfApprovedReportAction = {
-                    ...LHNTestUtils.getFakeReport(),
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                    parentReportID: '101',
-                    policyID: policy.id,
-                };
-                const approvedParentReportAction = {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                    actorAccountID: 1,
-                    originalMessage: {
-                        amount: 169,
-                        currency: 'USD',
-                    },
-                } as ReportAction;
-
-                expect(getReportName(threadOfApprovedReportAction, policy, approvedParentReportAction)).toBe('Ragnar Lothbrok approved');
+                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted $1.69');
             });
 
             test('Invited/Removed Room Member Action', () => {
@@ -2454,6 +2436,69 @@ describe('ReportUtils', () => {
         it('should return true if the report is a non-expense report and archived', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedChatReport?.reportID));
             expect(isArchivedNonExpenseReportWithID(archivedChatReport, isReportArchived.current)).toBe(true);
+        });
+    });
+
+    describe('buildReportNameFromParticipantNames', () => {
+        /**
+         * Generates a fake report and matching personal details for specified number of participants.
+         * Participants in the report are directly linked with their personal details.
+         */
+        const generateFakeReportAndParticipantsPersonalDetails = ({count, start = 0}: {count: number; start?: number}): {report: Report; personalDetails: PersonalDetailsList} => {
+            const data = {
+                report: {
+                    ...mockedChatReport,
+                    participants: Object.keys(fakePersonalDetails)
+                        .slice(start, count)
+                        .reduce<Record<string, Participant>>((acc, cur) => {
+                            acc[cur] = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
+                            return acc;
+                        }, {}),
+                },
+                personalDetails: Object.fromEntries(Object.entries(fakePersonalDetails).slice(start, count)),
+            };
+
+            data.personalDetails[currentUserAccountID] = {
+                accountID: currentUserAccountID,
+                displayName: 'CURRENT USER',
+                firstName: 'CURRENT',
+            };
+
+            return data;
+        };
+
+        it('excludes the current user from the report title', () => {
+            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({count: currentUserAccountID + 2}));
+            expect(result).not.toContain('CURRENT');
+        });
+
+        it('limits to a maximum of 5 participants in the title', () => {
+            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({count: 10}));
+            expect(result.split(',').length).toBeLessThanOrEqual(5);
+        });
+
+        it('returns full name if only one participant is present (excluding current user)', () => {
+            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({count: 1}));
+            const {displayName} = fakePersonalDetails[1] ?? {};
+            expect(result).toEqual(displayName);
+        });
+
+        it('returns an empty string if there are no participants or all are excluded', () => {
+            const result = buildReportNameFromParticipantNames(generateFakeReportAndParticipantsPersonalDetails({start: currentUserAccountID - 1, count: 1}));
+            expect(result).toEqual('');
+        });
+
+        it('handles partial or missing personal details correctly', () => {
+            const {report} = generateFakeReportAndParticipantsPersonalDetails({count: 6});
+
+            const secondUser = fakePersonalDetails[2];
+            const fourthUser = fakePersonalDetails[4];
+
+            const incompleteDetails = {2: secondUser, 4: fourthUser};
+            const result = buildReportNameFromParticipantNames({report, personalDetails: incompleteDetails});
+            const expectedNames = [secondUser?.firstName, fourthUser?.firstName].sort();
+            const resultNames = result.split(', ').sort();
+            expect(resultNames).toEqual(expect.arrayContaining(expectedNames));
         });
     });
 });

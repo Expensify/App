@@ -38,7 +38,6 @@ import {
     isPolicyExpenseChat,
     isSystemChat,
     isThread,
-    requiresAttentionFromCurrentUser,
 } from '@libs/ReportUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
@@ -81,18 +80,19 @@ function OptionRowLHN({
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
     const {tooltipToRender, shouldShowTooltip, shouldTooltipBeLeftAligned} = useMemo(() => {
-        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
-        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        let tooltip: ProductTrainingTooltipName = shouldShowGetStartedTooltip
-            ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR
-            : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
+        let tooltip: ProductTrainingTooltipName;
         if (shouldShowRBRorGBRTooltip) {
             tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GBR_RBR_CHAT;
+        } else if (shouldShowWorkspaceChatTooltip) {
+            tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
+        } else {
+            // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+            // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
+            tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR;
         }
         const shouldShowTooltips = shouldShowRBRorGBRTooltip || shouldShowWorkspaceChatTooltip || shouldShowGetStartedTooltip;
         const shouldTooltipBeVisible = shouldUseNarrowLayout ? isScreenFocused && isReportsSplitNavigatorLast : isReportsSplitNavigatorLast && !isFullscreenVisible;
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return {
             tooltipToRender: tooltip,
             shouldShowTooltip: shouldShowTooltips && shouldTooltipBeVisible,
@@ -140,7 +140,7 @@ function OptionRowLHN({
     }
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
+    const shouldShowGreenDotIndicator = optionItem.shouldShowGreenDot === true;
     const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
