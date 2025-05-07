@@ -4617,12 +4617,14 @@ function deleteAppReport(reportID: string | undefined) {
                 },
                 childReportID: reportAction.childReportID,
                 reportActionID: newReportActionID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
             };
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                 value: {
                     [newReportActionID]: updatedReportAction,
+                    
                 },
             });
 
@@ -4656,13 +4658,13 @@ function deleteAppReport(reportID: string | undefined) {
             });
 
             // 5. Add UNREPORTEDTRANSACTION report actions
-            const unreportedActions = buildOptimisticUnreportedTransactionAction(reportAction.childReportID, '0');
+            const unreportedAction = buildOptimisticUnreportedTransactionAction(reportAction.childReportID, reportID);
 
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`,
                 value: {
-                    [unreportedActions.reportActionID]: unreportedActions,
+                    [unreportedAction.reportActionID]: unreportedAction,
                 },
             });
         });
@@ -4698,6 +4700,7 @@ function deleteAppReport(reportID: string | undefined) {
     const parameters: DeleteAppReportParams = {
         reportID,
         transactionIDToMoneyRequestReportActionIDMap: JSON.stringify(transactionIDToMoneyRequestReportActionIDMap),
+        selfDMReportID,
     };
 
     API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters, {optimisticData});
