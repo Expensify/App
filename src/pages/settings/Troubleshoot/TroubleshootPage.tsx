@@ -108,7 +108,7 @@ function TroubleshootPage() {
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS, {shouldPopToTop: true})}
+                onBackButtonPress={() => Navigation.popToSidebar()} // tylko shouldpoptotop
                 icon={Illustrations.Lightbulb}
                 shouldUseHeadlineHeader
             />

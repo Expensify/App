@@ -36,6 +36,7 @@ import switchPolicyID from './helpers/switchPolicyID';
 import {linkingConfig} from './linkingConfig';
 import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
+import { SPLIT_TO_SIDEBAR } from './linkingConfig/RELATIONS';
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES: Route[] = [
@@ -73,13 +74,22 @@ const navigationIsReadyPromise = new Promise<void>((resolve) => {
 
 let pendingRoute: Route | null = null;
 
-let shouldPopAllStateOnUP = false;
+let shouldPopToSidebar = false;
 
 /**
  * Inform the navigation that next time user presses UP we should pop all the state back to LHN.
+ * TODO change content of comment
  */
-function setShouldPopAllStateOnUP(shouldPopAllStateFlag: boolean) {
-    shouldPopAllStateOnUP = shouldPopAllStateFlag;
+function setShouldPopToSidebar(shouldPopAllStateFlag: boolean) {
+    shouldPopToSidebar = shouldPopAllStateFlag;
+}
+
+/**
+ * Returns shouldPopToSidebar variable used to determine whether should we pop all state back to LHN
+ * @returns shouldPopToSidebar
+ */
+function getShouldPopToSidebar() {
+    return shouldPopToSidebar;
 }
 
 type CanNavigateParams = {
@@ -268,7 +278,7 @@ type GoBackOptions = {
 
     /**
      * Specifies whether goBack should pop to top when invoked.
-     * Additionaly, to execute popToTop, set the value of the global variable ShouldPopAllStateOnUP to true using the setShouldPopAllStateOnUP function.
+     * Additionaly, to execute popToTop, set the value of the global variable shouldPopToSidebar to true using the setShouldPopToSidebar function.
      */
     shouldPopToTop?: boolean;
 };
@@ -344,13 +354,12 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
         return;
     }
 
-    if (options?.shouldPopToTop) {
-        if (shouldPopAllStateOnUP) {
-            shouldPopAllStateOnUP = false;
-            navigationRef.current?.dispatch(StackActions.popToTop());
-            return;
-        }
-    }
+    // if (options?.shouldPopToTop) {
+    //     if (shouldPopToSidebar) {
+    //         popToSidebar();
+    //         return;
+    //     }
+    // }
 
     if (backToRoute) {
         goUp(backToRoute, options);
@@ -363,6 +372,35 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
     }
 
     navigationRef.current?.goBack();
+}
+
+function popToSidebar() {
+    setShouldPopToSidebar(false);
+
+    const rootState = navigationRef.current?.getRootState();
+    const topRoute = rootState?.routes.at(0);
+    const lastRoute = rootState?.routes.at(-1);
+
+    console.log("Pop to sidebar const: \n", rootState, topRoute, lastRoute);
+
+    if (!(lastRoute?.name in SPLIT_TO_SIDEBAR)){        
+        console.log("popToSIdebar not work");
+        Log.hmmm('[popToSidebar] must be invoked only from SplitNavigator')
+        return;
+    }
+
+    console.log("Split to sidebar: ", topRoute?.name, lastRoute?.name, SPLIT_TO_SIDEBAR[topRoute?.name]);
+    
+    if (topRoute?.name !== SPLIT_TO_SIDEBAR[lastRoute.name]){
+        // replace so we have sidebar
+        // navigationRef.current?.dispatch(StackActions.replace)
+        // goBack(SPLIT_TO_SIDEBAR[lastRoute.name] as Route);
+        console.log("replacing");
+        goBack(ROUTES.SETTINGS);
+        return;
+    }
+    console.log("popping all state");
+    navigationRef.current?.dispatch(StackActions.popToTop());
 }
 
 /**
@@ -616,15 +654,15 @@ const dismissModalWithReport = (navigateToReportPayload: NavigateToReportWithPol
 };
 
 /**
- * Returns to the first screen in the stack, dismissing all the others, only if the global variable shouldPopAllStateOnUP is set to true.
+ * Returns to the first screen in the stack, dismissing all the others, only if the global variable shouldPopToSidebar is set to true.
  */
 function popToTop() {
-    if (!shouldPopAllStateOnUP) {
+    if (!shouldPopToSidebar) {
         goBack();
         return;
     }
 
-    shouldPopAllStateOnUP = false;
+    shouldPopToSidebar = false;
     navigationRef.current?.dispatch(StackActions.popToTop());
 }
 
@@ -671,8 +709,9 @@ function isOnboardingFlow() {
 }
 
 export default {
-    setShouldPopAllStateOnUP,
-    getShouldPopAllStateOnUp,
+    setShouldPopToSidebar,
+    getShouldPopToSidebar,
+    popToSidebar,
     navigate,
     setParams,
     dismissModal,

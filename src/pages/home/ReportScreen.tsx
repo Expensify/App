@@ -324,17 +324,31 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         wasReportAccessibleRef.current = true;
     }, [report]);
 
-    const backTo = route?.params?.backTo as string;
+    const backTo = route?.params?.backTo as string; // here too
     const onBackButtonPress = useCallback(() => {
+        console.log('something happening here');
+        console.log('shouldPopToSidebar', Navigation.getShouldPopToSidebar());
+
         if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
+            // TODO not good
             Navigation.dismissModal();
             return;
         }
         if (backTo) {
-            Navigation.goBack(backTo as Route, {shouldPopToTop: true});
+            // Navigation.goBack(backTo as Route, {shouldPopToTop: true});
+            if (Navigation.getShouldPopToSidebar()) {
+                Navigation.popToSidebar();
+                return;
+            }
+            Navigation.goBack(backTo as Route);
             return;
         }
-        Navigation.goBack(undefined, {shouldPopToTop: true});
+        // Navigation.goBack(undefined, {shouldPopToTop: true});
+        if (Navigation.getShouldPopToSidebar()) {
+            Navigation.popToSidebar();
+            return;
+        }
+        Navigation.goBack();
     }, [isInNarrowPaneModal, backTo]);
 
     let headerView = (
@@ -600,9 +614,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
-                Navigation.setShouldPopAllStateOnUP(true);
                 Navigation.isNavigationReady().then(() => {
-                    Navigation.goBack(undefined, {shouldPopToTop: true});
+                    Navigation.popToSidebar(); // shouldpoptotop
                 });
             }
             if (prevReport?.parentReportID) {

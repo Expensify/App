@@ -152,7 +152,13 @@ function ProfilePage() {
         >
             <HeaderWithBackButton
                 title={translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(route.params?.backTo, {shouldPopToTop: true})}
+                onBackButtonPress={() => {
+                    if (Navigation.getShouldPopToSidebar()) {
+                        Navigation.popToSidebar();
+                        return;
+                    }
+                    Navigation.goBack(route.params?.backTo);
+                }} // sprawdzenie zmiennej i handlowanie shouldpoptotop
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 icon={Illustrations.Profile}

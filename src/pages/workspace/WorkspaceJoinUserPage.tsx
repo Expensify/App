@@ -32,7 +32,13 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
         }
         if (!isEmptyObject(policy) && !policy?.isJoinRequestPending && !isPendingDeletePolicy(policy)) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.goBack(undefined, {shouldPopToTop: true});
+                if (Navigation.getShouldPopToSidebar()) {
+                    Navigation.popToSidebar();
+                    return;
+                }
+                Navigation.goBack();
+                // Navigation.goBack(undefined, {shouldPopToTop: true});
+                // Navigation.popToSidebar(); // shouldpoptotop
                 Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
             });
             return;
