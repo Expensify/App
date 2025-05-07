@@ -201,18 +201,33 @@ jobs:
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
+      - name: Install bundletool
+        run: |
+          readonly BUNDLETOOL_VERSION="1.18.1"
+          readonly BUNDLETOOL_URL="https://github.com/google/bundletool/releases/download/${BUNDLETOOL_VERSION}/bundletool-all-${BUNDLETOOL_VERSION}.jar"
+
+          # Download jar from GitHub Release
+          curl -L -o bundletool.jar "$BUNDLETOOL_URL"
+
+          # Validate checksum
+          readonly EXPECTED_SHA="675786493983787ffa11550bdb7c0715679a44e1643f3ff980a529e9c822595c"
+          SHA="$(sha256sum bundletool.jar | cut -d ' ' -f1)"
+          if [[ "$SHA" != "$EXPECTED_SHA" ]]; then
+            echo "SHA mismatch: expected $EXPECTED_SHA but got $ACTUAL_SHA"
+            exit 1
+          fi
+
       - name: Generate APK from AAB
         run: |
-          json=$(curl -s https://api.github.com/repos/google/bundletool/releases/latest)
-          downloadUrl=$(echo "$json" | jq -r ".assets | .[].browser_download_url")
-          curl "$downloadUrl" -4 -sL -o 'bundletool.jar'
+          # Generate apks using bundletool
           java -jar bundletool.jar build-apks --bundle=${{ env.aabPath }} --output=Expensify.apks \
             --mode=universal \
             --ks=upload-key.keystore \
             --ks-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} \
             --ks-key-alias=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} \
             --key-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
-          
+
+          # Unzip just the universal apk
           unzip -p Expensify.apks universal.apk > Expensify.apk
 
       - name: Upload Android APK build artifact
@@ -254,7 +269,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Android HybridApp production deploy failed. No need to do anything, Jules will <https://stackoverflowteams.com/c/expensify/questions/5738|manually submit> ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store>. 💥`,
+                text: `💥 Android HybridApp production <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy run> failed. Please <https://stackoverflowteams.com/c/expensify/questions/5738|manually submit> ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store>. 💥 But first check the workflow, it's likely that the release was successful and <https://github.com/Expensify/Expensify/issues/488492|this error> is occuring)`,
               }]
             }
         env:
@@ -623,7 +638,7 @@ jobs:
           gh release create ${{ needs.prep.outputs.TAG }} ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
             --repo ${{ github.repository }} \
             --title ${{ needs.prep.outputs.TAG }} \
-            --notes-start-tag ${{ steps.get_last_prod_version.outputs.LAST_PROD_VERSION }} \
+            ${{ github.ref == 'refs/heads/production' && format('--notes-start-tag {0}', steps.get_last_prod_version.outputs.LAST_PROD_VERSION) || '' }} \
             --generate-notes \
             --verify-tag \
             --target ${{ github.ref }}
@@ -698,106 +713,18 @@ jobs:
   # To address this, we'll:
   #   1. Bump the version on main again
   #   2. CP that version bump to staging
-  createNewVersion:
+  cherryPickExtraVersionBump:
     needs: [prep, checkDeploymentSuccess]
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-    uses: ./.github/workflows/createNewVersion.yml
+    uses: ./.github/workflows/cherryPick.yml
     secrets: inherit
     with:
-      SEMVER_LEVEL: BUILD
-
-  cherryPickVersionBump:
-    needs: [createNewVersion, checkDeploymentSuccess, prep]
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-    runs-on: ubuntu-latest
-    steps:
-      # v4.2.2
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: staging
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          submodules: true
-
-      # This command is necessary to fetch any branch other than main in the submodule.
-      # See https://github.com/actions/checkout/issues/1815#issuecomment-2777836442 for further context.
-      - name: Enable branch-switching in submodules
-        run: |
-          git submodule foreach '\
-            git config --add remote.origin.fetch "+refs/heads/staging:refs/remotes/origin/staging" && \
-            git config --add remote.origin.fetch "+refs/heads/production:refs/remotes/origin/production"'
-
-      - name: Set up git for OSBotify
-        id: setupGitForOSBotify
-        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
-        with:
-          OP_VAULT: ${{ vars.OP_VAULT }}
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
-          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
-
-      - name: Get previous app version
-        id: getPreviousVersion
-        uses: ./.github/actions/javascript/getPreviousVersion
-        with:
-          SEMVER_LEVEL: 'PATCH'
-
-      - name: Fetch history of relevant refs
-        run: |
-          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
-          cd Mobile-Expensify
-          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
-
-      - name: Get E/App version bump commit
-        id: getVersionBumpCommit
-        run: |
-          git switch main
-          VERSION_BUMP_COMMIT="$(git log -1 --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
-          if [ -z "$VERSION_BUMP_COMMIT" ]; then
-            echo "::error::❌ Could not find E/App version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
-            git log --oneline
-          else
-            echo "::notice::👀 Found E/App version bump commit $VERSION_BUMP_COMMIT"
-          fi
-          echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
-
-      - name: Get Mobile-Expensify version bump commit
-        id: getMobileExpensifyVersionBumpCommit
-        working-directory: Mobile-Expensify
-        run: |
-          git switch main
-          VERSION_BUMP_COMMIT="$(git log -1 --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
-          if [ -z "$VERSION_BUMP_COMMIT" ]; then
-            echo "::error::❌ Could not find Mobile-Expensify version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
-            git log --oneline
-          else
-            echo "::notice::👀 Found Mobile-Expensify version bump commit $VERSION_BUMP_COMMIT"
-          fi
-          echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
-
-      - name: Cherry-pick the Mobile-Expensify version bump to Mobile-Expensify staging
-        working-directory: Mobile-Expensify
-        run: |
-          git switch staging
-          git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getMobileExpensifyVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
-          git commit --amend -m "$(git log -1 --pretty=%B)" -m "(cherry-picked to staging by ${{ github.actor }})"
-          git push origin staging
-
-      - name: Cherry-pick the E/App version-bump to target branch
-        run: |
-          git switch staging
-          git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
-          git commit --amend -m "$(git log -1 --pretty=%B)" -m "(cherry-picked to staging by ${{ github.actor }})"
-
-      - name: Update the Mobile-Expensify submodule on E/App staging
-        run: |
-          git add Mobile-Expensify
-          git commit -m "Update Mobile-Expensify submodule version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
-          git push origin staging
+      # Note: by omitting PULL_REQUEST_URL, we are just doing a version bump and CP'ing it to staging
+      TARGET: staging
 
   updateChecklistWithVersionBump:
     name: Update deploy checklist with the new version bump
-    needs: [prep, checkDeploymentSuccess, cherryPickVersionBump]
+    needs: [prep, checkDeploymentSuccess, cherryPickExtraVersionBump]
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     uses: ./.github/workflows/createDeployChecklist.yml
     secrets: inherit
