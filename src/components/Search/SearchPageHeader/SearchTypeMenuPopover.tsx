@@ -4,13 +4,12 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import PopoverMenu from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
@@ -21,13 +20,7 @@ import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {
-    buildSearchQueryJSON,
-    buildUserReadableQueryString,
-    buildUserReadableQueryStringWithPolicyID,
-    isCannedSearchQuery,
-    isCannedSearchQueryWithPolicyIDCheck,
-} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -54,18 +47,17 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {hash, policyID, groupBy} = queryJSON;
+    const {hash, groupBy} = queryJSON;
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const personalDetails = usePersonalDetails();
-    const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const taxRates = getAllTaxRates();
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
-    const {canUseLeftHandBar} = usePermissions();
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const cardFeedNamesWithType = useMemo(() => {
         return getCardFeedNamesWithType({workspaceCardFeeds, translate});
@@ -86,33 +78,22 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
         }, 100);
     }, []);
 
-    const getBuildUserReadableQueryString = useCallback(() => {
-        if (canUseLeftHandBar) {
-            return buildUserReadableQueryStringWithPolicyID(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
-        }
-        return buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
-    }, [allCards, allPolicies, canUseLeftHandBar, cardFeedNamesWithType, personalDetails, queryJSON, reports, taxRates]);
-
     const typeMenuItems = useMemo(() => createTypeMenuItems(allPolicies, session?.email), [allPolicies, session?.email]);
-    const isCannedQuery = canUseLeftHandBar ? isCannedSearchQueryWithPolicyIDCheck(queryJSON) : isCannedSearchQuery(queryJSON);
-    const title = searchName ?? (isCannedQuery ? undefined : getBuildUserReadableQueryString());
+    const isCannedQuery = isCannedSearchQuery(queryJSON);
+    const title = searchName ?? (isCannedQuery ? undefined : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies));
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === queryJSON.type) : -1;
 
     const getOverflowMenu = useCallback(
         (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal, true, closeMenu),
         [closeMenu, showDeleteModal],
     );
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, index: number) => {
             let savedSearchTitle = item.name;
             if (savedSearchTitle === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                if (canUseLeftHandBar) {
-                    savedSearchTitle = buildUserReadableQueryStringWithPolicyID(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
-                } else {
-                    savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
-                }
+                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
             }
             const isItemFocused = Number(key) === hash;
             const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, savedSearchTitle, isItemFocused);
@@ -143,7 +124,7 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
                 shouldIconUseAutoWidthStyle: false,
             };
         },
-        [hash, getOverflowMenu, styles.textSupporting, canUseLeftHandBar, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies],
+        [hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies],
     );
 
     const savedSearchItems = useMemo(() => {
@@ -170,7 +151,7 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
                 text: translate(item.translationPath),
                 onSelected: singleExecution(() => {
                     clearAllFilters();
-                    Navigation.navigate(item.getRoute(policyID));
+                    Navigation.navigate(item.getRoute());
                 }),
                 isSelected,
                 icon: item.icon,
@@ -199,7 +180,7 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
         }
 
         return items;
-    }, [typeMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme.iconSuccessFill, theme.icon, theme.border, policyID, closeMenu, shouldGroupByReports]);
+    }, [typeMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme.iconSuccessFill, theme.icon, theme.border, closeMenu, shouldGroupByReports]);
 
     const allMenuItems = useMemo(() => {
         const items = [];

@@ -16,7 +16,7 @@ import type EmojiTrie from './EmojiTrie';
 import type {SupportedLanguage} from './EmojiTrie';
 import memoize from './memoize';
 
-type HeaderIndice = {code: string; index: number; icon: IconAsset};
+type HeaderIndices = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
 type EmojiPickerList = EmojiPickerListItem[];
@@ -147,13 +147,6 @@ const getEmojiUnicode = memoize(
 );
 
 /**
- * Function to remove Skin Tone and utf16 surrogates from Emoji
- */
-function trimEmojiUnicode(emojiCode: string): string {
-    return emojiCode.replace(/(fe0f|1f3fb|1f3fc|1f3fd|1f3fe|1f3ff)$/, '').trim();
-}
-
-/**
  * Validates first character is emoji in text string
  */
 function isFirstLetterEmoji(message: string): boolean {
@@ -201,8 +194,8 @@ function containsOnlyEmojis(message: string): boolean {
 /**
  * Get the header emojis with their code, icon and index
  */
-function getHeaderEmojis(emojis: EmojiPickerList): HeaderIndice[] {
-    const headerIndices: HeaderIndice[] = [];
+function getHeaderEmojis(emojis: EmojiPickerList): HeaderIndices[] {
+    const headerIndices: HeaderIndices[] = [];
     emojis.forEach((emoji, index) => {
         if (!('header' in emoji)) {
             return;
@@ -674,7 +667,7 @@ function getProcessedText(processedTextArray: TextWithEmoji[], style: StyleProp<
     );
 }
 
-export type {HeaderIndice, EmojiPickerList, EmojiSpacer, EmojiPickerListItem};
+export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 
 export {
     findEmojiByName,
@@ -687,7 +680,6 @@ export {
     containsOnlyEmojis,
     replaceEmojis,
     suggestEmojis,
-    trimEmojiUnicode,
     getEmojiCodeWithSkinColor,
     getPreferredSkinToneIndex,
     getPreferredEmojiCode,

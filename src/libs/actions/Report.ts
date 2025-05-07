@@ -103,12 +103,14 @@ import {
     buildOptimisticEmptyReport,
     buildOptimisticExportIntegrationAction,
     buildOptimisticGroupChatReport,
+    buildOptimisticIOUReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
     buildOptimisticRoomDescriptionUpdatedReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     completeShortMention,
     findLastAccessedReport,
+    findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
     getAllPolicyReports,
@@ -245,6 +247,7 @@ const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
 let currentUserEmail: string | undefined;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -413,6 +416,20 @@ Onyx.connect({
         }
 
         allPolicies[key] = val;
+    },
+});
+
+let allTransactions: OnyxCollection<Transaction> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allTransactions = {};
+            return;
+        }
+
+        allTransactions = value;
     },
 });
 
@@ -936,6 +953,7 @@ function openReport(
     participantAccountIDList: number[] = [],
     avatar?: File | CustomRNImageManipulatorResult,
     temporaryShouldUseTableReportView = false,
+    transactionID?: string,
 ) {
     if (!reportID) {
         return;
@@ -1003,7 +1021,51 @@ function openReport(
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
+        transactionID,
     };
+
+    // This is a legacy transactions that doesn't have either a transaction thread or a money request preview
+    if (transactionID && !parentReportActionID) {
+        const transaction = allTransactions?.[transactionID];
+
+        if (transaction) {
+            const selfDMReportID = findSelfDMReportID();
+
+            if (selfDMReportID) {
+                const generatedReportActionID = rand64();
+                const optimisticParentAction = buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: Math.abs(transaction.amount),
+                    currency: transaction.currency,
+                    comment: transaction.comment?.comment ?? '',
+                    participants: [{accountID: currentUserAccountID, login: currentUserEmail ?? ''}],
+                    transactionID,
+                    isOwnPolicyExpenseChat: true,
+                });
+
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        parentReportID: selfDMReportID,
+                        parentReportActionID: generatedReportActionID,
+                    },
+                });
+
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}${generatedReportActionID}`,
+                    value: {
+                        ...optimisticParentAction,
+                        reportActionID: generatedReportActionID,
+                        childReportID: reportID,
+                    },
+                });
+
+                parameters.moneyRequestPreviewReportActionID = generatedReportActionID;
+            }
+        }
+    }
 
     // temporary flag will be removed once ReportScreen supports MoneyRequestReportView - https://github.com/Expensify/App/issues/57509
     if (temporaryShouldUseTableReportView) {
@@ -1530,6 +1592,7 @@ function markCommentAsUnread(reportID: string | undefined, reportAction: ReportA
     // Find the latest report actions from other users
     const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
         if (
+            !ReportActionsUtils.isDeletedAction(current) &&
             current.actorAccountID !== currentUserAccountID &&
             (!latest || current.created > latest.created) &&
             // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper
@@ -3270,7 +3333,7 @@ function openReportFromDeepLink(url: string) {
                         }
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
-                            onNotCompleted: startOnboardingFlow,
+                            onNotCompleted: () => startOnboardingFlow(),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });
@@ -3492,13 +3555,10 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     navigateToMostRecentReport(report);
 }
 
-/** Invites people to a room */
-function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
+function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportMetadata = getReportMetadata(reportID);
-    if (!report) {
-        return;
-    }
+    const isGroupChat = isGroupChatReportUtils(report);
 
     const defaultNotificationPreference = getDefaultNotificationPreferenceForReport(report);
 
@@ -3518,7 +3578,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             reportParticipants[accountID] = participant;
             return reportParticipants;
         },
-        {...report.participants},
+        {...report?.participants},
     );
 
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
@@ -3590,7 +3650,14 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
         },
     ];
 
-    if (isGroupChatReportUtils(report)) {
+    return {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs};
+}
+
+/** Invites people to a room */
+function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
+    const {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs} = buildInviteToRoomOnyxData(reportID, inviteeEmailsToAccountIDs);
+
+    if (isGroupChat) {
         const parameters: InviteToGroupChatParams = {
             reportID,
             inviteeEmails,
@@ -3965,7 +4032,16 @@ function completeOnboarding({
     userReportedIntegration?: OnboardingAccounting;
     wasInvited?: boolean;
 }) {
-    const onboardingData = prepareOnboardingOnyxData(introSelected, engagementChoice, onboardingMessage, adminsChatReportID, onboardingPolicyID, userReportedIntegration, wasInvited);
+    const onboardingData = prepareOnboardingOnyxData(
+        introSelected,
+        engagementChoice,
+        onboardingMessage,
+        adminsChatReportID,
+        onboardingPolicyID,
+        userReportedIntegration,
+        wasInvited,
+        companySize,
+    );
     if (!onboardingData) {
         return;
     }
@@ -5178,6 +5254,7 @@ export {
     handleUserDeletedLinksInHtml,
     hasErrorInPrivateNotes,
     inviteToGroupChat,
+    buildInviteToRoomOnyxData,
     inviteToRoom,
     joinRoom,
     leaveGroupChat,

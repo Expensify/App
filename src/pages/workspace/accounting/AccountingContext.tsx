@@ -155,4 +155,3 @@ function useAccountingContext() {
 
 export default AccountingContext;
 export {AccountingContextProvider, useAccountingContext};
-export type {ActiveIntegrationState};

@@ -8,11 +8,13 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useCheckIfRouteHasRemainedUnchanged from '@hooks/useCheckIfRouteHasRemainedUnchanged';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
@@ -47,6 +49,8 @@ type VideoPlayerPreviewProps = {
     isDeleted?: boolean;
 };
 
+const isOnAttachmentRoute = () => Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}`;
+
 function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress, isDeleted}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -61,8 +65,10 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
     const {isOnSearch} = useSearchContext();
     const navigation = useNavigation();
+
+    const didUserNavigateOutOfReportScreen = useCheckIfRouteHasRemainedUnchanged();
     // We want to play the video only when the user is on the page where it was rendered
-    const firstRenderRoute = useFirstRenderRoute([`/${ROUTES.ATTACHMENTS.route}`]);
+    const firstRenderRoute = useFirstRenderRoute(didUserNavigateOutOfReportScreen);
 
     // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
@@ -78,7 +84,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     };
 
     useEffect(() => {
-        return navigation.addListener('blur', () => !firstRenderRoute.isFocused && setIsThumbnail(true));
+        return navigation.addListener('blur', () => !isOnAttachmentRoute() && setIsThumbnail(true));
     }, [navigation, firstRenderRoute]);
 
     useEffect(() => {

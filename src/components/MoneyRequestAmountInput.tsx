@@ -15,8 +15,6 @@ import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 import type {TextInputWithCurrencySymbolProps} from './TextInputWithCurrencySymbol/types';
 
-type CurrentMoney = {amount: string; currency: string};
-
 type MoneyRequestAmountInputRef = {
     setNewAmount: (amountValue: string) => void;
     changeSelection: (newSelection: Selection) => void;
@@ -87,7 +85,7 @@ type MoneyRequestAmountInputProps = {
     shouldKeepUserInput?: boolean;
 
     /**
-     * Autogrow input container length based on the entered text.
+     * Auto grow input container length based on the entered text.
      */
     autoGrow?: boolean;
 
@@ -278,7 +276,7 @@ function MoneyRequestAmountInput(
         }
 
         if (isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
-            // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessiblity keyboard is being
+            // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac accessibility keyboard is being
             // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
             forwardDeletePressedRef.current = true;
             return;
@@ -377,4 +375,4 @@ function MoneyRequestAmountInput(
 MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
 
 export default React.forwardRef(MoneyRequestAmountInput);
-export type {CurrentMoney, MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};
+export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};

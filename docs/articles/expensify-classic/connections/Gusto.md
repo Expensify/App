@@ -1,22 +1,19 @@
 ---
-title: Gusto-Integration.md
+title: Gusto
 description: Learn how to connect and sync employees between Gusto and Expensify automatically.
-keywords: [Gusto, Expensify, integration, HR sync, employee management]
+keywords: [Gusto, Expensify Classic, integration, HR sync, employee management]
 ---
 
-# Gusto Integration with Expensify
-
-## Overview
+<div id="expensify-classic" markdown="1">
 
 Expensify's direct integration with Gusto helps automate employee management by:
-
 - **Creating Expensify accounts** for new full-time employees upon hiring.
 - **Updating approval workflows** in Expensify when changes occur in Gusto.
 - **Deprovisioning employees** from Expensify upon their termination in Gusto.
 
 ---
 
-## Prerequisites
+# Prerequisites for Connecting with Gusto
 
 Before connecting Expensify with Gusto, ensure the following:
 
@@ -27,19 +24,19 @@ Before connecting Expensify with Gusto, ensure the following:
 
 ---
 
-## Connecting Expensify to Gusto
+# Connect Expensify to Gusto
 
 To set up the integration:
 
-1. Navigate to **Settings > Workspaces > _[Workspace Name]_ > Connections**.
+1. Navigate to **Settings > Workspaces > [Workspace Name] > Accounting**.
 2. Scroll to **HR Integrations**, select **Connect with Gusto**, and click **Connect with Gusto**.
 3. Log in to Gusto with your admin credentials and authorize Expensify.
 
 ---
 
-## Configuring the Integration
+# Configuring the Integration
 
-Once connected, configure the approval workflow:
+Once connected, configure the approval workflow under **Settings > Workspaces > [Workspace Name] > Workflows**:
 
 1. Choose an **Approval Workflow** mode:
    - **Basic Approval** – All reports go to a single final approver (default: Billing Owner).
@@ -60,14 +57,15 @@ No, Gusto syncs all employees to a **single** Expensify workspace. You must choo
 
 Yes, update it by:
 
-1. Going to **Settings > Workspaces > _[Workspace Name]_ > Members** and updating the Approval Mode.
-2. Navigating to **Settings > Workspaces > _[Workspace Name]_ > Connections**, selecting **Configure** under Gusto, and saving the desired Approval Mode.
+1. Going to **Settings > Workspaces > [Workspace Name] > Workflows** and updating the Approval Mode.
+2. Navigating to **Settings > Workspaces > [Workspace Name] > Accounting**, selecting **Configure** under Gusto, and saving the desired Approval Mode.
 
 ## Why do some employees have duplicate Expensify accounts?
 
-Duplicate accounts occur if employee emails in Expensify differ from those in Gusto. The integration imports employees based on their **Gusto email**.
+Duplicate accounts occur if an employee's email in Expensify differs from that in Gusto. The integration imports employees based on their Gusto email.
 
-### How to fix this:
-Employees should merge their accounts in Expensify:
-1. Go to **Settings > Account > Account Details**.
+**To fix this, employees should merge their accounts in Expensify:**
+1. Go to **Settings > Account > Profile**.
 2. Scroll to **Merge Accounts** and follow the steps.
+
+</div>

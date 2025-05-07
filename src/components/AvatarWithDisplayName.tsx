@@ -30,7 +30,6 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getButtonRole} from './Button/utils';
-import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
 import {FallbackAvatar} from './Icon/Expensicons';
 import MultipleAvatars from './MultipleAvatars';
@@ -64,17 +63,19 @@ const fallbackIcon: Icon = {
 };
 
 function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONST.AVATAR_SIZE.DEFAULT, shouldEnableDetailPageNavigation = false}: AvatarWithDisplayNameProps) {
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST) ?? CONST.EMPTY_OBJECT;
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false}) ?? CONST.EMPTY_OBJECT;
 
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
+        `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : undefined}`,
+        {canBeMissing: true},
     );
-    const title = getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
+    const title = getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy, reportAttributes);
     const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
@@ -155,16 +156,14 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
                         </View>
                     </PressableWithoutFeedback>
                     <View style={[styles.flex1, styles.flexColumn]}>
-                        <CaretWrapper>
-                            <DisplayNames
-                                fullTitle={title}
-                                displayNamesWithTooltips={displayNamesWithTooltips}
-                                tooltipEnabled
-                                numberOfLines={1}
-                                textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                                shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
-                            />
-                        </CaretWrapper>
+                        <DisplayNames
+                            fullTitle={title}
+                            displayNamesWithTooltips={displayNamesWithTooltips}
+                            tooltipEnabled
+                            numberOfLines={1}
+                            textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
+                            shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
+                        />
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
