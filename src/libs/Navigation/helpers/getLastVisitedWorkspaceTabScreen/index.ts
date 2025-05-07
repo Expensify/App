@@ -4,6 +4,10 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
+function removeWorkspacesTabPathFromSessionStorage() {
+    sessionStorage.removeItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_WORKSPACES_TAB_PATH);
+}
+
 function saveWorkspacesTabPathToSessionStorage(url: string) {
     sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_WORKSPACES_TAB_PATH, url);
 }
@@ -34,4 +38,10 @@ function getLastVisitedWorkspaceTabScreen() {
     return workspacesTabScreenName;
 }
 
-export {getLastVisitedWorkspaceTabScreen, getLastVisitedWorkspacesTabPath, saveWorkspacesTabPathToSessionStorage, getWorkspacesTabStateFromSessionStorage};
+export {
+    removeWorkspacesTabPathFromSessionStorage,
+    getLastVisitedWorkspaceTabScreen,
+    getLastVisitedWorkspacesTabPath,
+    saveWorkspacesTabPathToSessionStorage,
+    getWorkspacesTabStateFromSessionStorage,
+};
