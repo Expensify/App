@@ -174,4 +174,34 @@ describe('getReportPreviewAction', () => {
 
         expect(getReportPreviewAction(VIOLATIONS, report, policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
     });
+
+    it('canReview should return true for reports with RTER violations regardless of workspace workflow configuration', async () => {
+        (ReportUtils.hasViolations as jest.Mock).mockReturnValue(true);
+        const report = {
+            ...createRandomReport(REPORT_ID),
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.areWorkflowsEnabled = true;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const REPORT_VIOLATION = {
+            FIELD_REQUIRED: 'fieldRequired',
+        } as unknown as ReportViolations;
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${REPORT_ID}`, REPORT_VIOLATION);
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, [
+            {
+                name: CONST.VIOLATIONS.RTER,
+                data: {
+                    pendingPattern: true,
+                    rterType: CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD,
+                },
+            } as TransactionViolation,
+        ]);
+
+        expect(getReportPreviewAction(VIOLATIONS, report, policy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
+    });
 });
