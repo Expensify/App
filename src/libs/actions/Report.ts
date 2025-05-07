@@ -4575,9 +4575,12 @@ function deleteAppReport(reportID: string | undefined) {
     }
     // 1. Get all report transactions
     const reportActionsForReport = allReportActions?.[reportID];
-    const transactionIDs = Object.values(reportActionsForReport ?? {})
-        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
-        .map((reportAction) => ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
+    const transactionIDs = [];
+    for (const reportAction of Object.values(reportActionsForReport ?? {})) {
+        if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+            transactionIDs.push(ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
+        }
+    }
 
     // 2. Set transaction's reportID to 0
     [...new Set(transactionIDs)].forEach((transactionID) => {
@@ -4585,6 +4588,11 @@ function deleteAppReport(reportID: string | undefined) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {reportID: 0},
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: null,
         });
     });
 
