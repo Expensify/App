@@ -80,6 +80,21 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
     return cardDescriptor ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
+/**
+ * @param transactionCardName
+ * @param cardID
+ * @param cards
+ * @returns company card name
+ */
+function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards?: CardList) {
+    if (!cardID || isExpensifyCard(cardID) || !cards?.[cardID]) {
+        return transactionCardName;
+    }
+    const card = cards[cardID];
+
+    return card.cardName;
+}
+
 function isCard(item: Card | Record<string, string>): item is Card {
     return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
 }
@@ -240,17 +255,19 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
 }
 
-function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
+function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, personalDetails: OnyxEntry<PersonalDetailsList>, policyMembersAccountIDs: number[]): Card[] {
     const {cardList, ...cards} = cardsList ?? {};
-    return Object.values(cards).sort((cardA: Card, cardB: Card) => {
-        const userA = cardA.accountID ? personalDetails?.[cardA.accountID] ?? {} : {};
-        const userB = cardB.accountID ? personalDetails?.[cardB.accountID] ?? {} : {};
+    return Object.values(cards)
+        .filter((card: Card) => card.accountID && policyMembersAccountIDs.includes(card.accountID))
+        .sort((cardA: Card, cardB: Card) => {
+            const userA = cardA.accountID ? personalDetails?.[cardA.accountID] ?? {} : {};
+            const userB = cardB.accountID ? personalDetails?.[cardB.accountID] ?? {} : {};
 
-        const aName = getDisplayNameOrDefault(userA);
-        const bName = getDisplayNameOrDefault(userB);
+            const aName = getDisplayNameOrDefault(userA);
+            const bName = getDisplayNameOrDefault(userB);
 
-        return localeCompare(aName, bName);
-    });
+            return localeCompare(aName, bName);
+        });
 }
 
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, illustrations: IllustrationsType): IconAsset {
@@ -619,4 +636,5 @@ export {
     isExpensifyCardFullySetUp,
     filterInactiveCards,
     getFundIdFromSettingsKey,
+    getCompanyCardDescription,
 };

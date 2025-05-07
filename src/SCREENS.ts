@@ -132,7 +132,6 @@ const SCREENS = {
         },
 
         EXIT_SURVEY: {
-            BOOK_CALL: 'Settings_ExitSurvey_Book_Call',
             REASON: 'Settings_ExitSurvey_Reason',
             RESPONSE: 'Settings_ExitSurvey_Response',
             CONFIRM: 'Settings_ExitSurvey_Confirm',
@@ -257,6 +256,7 @@ const SCREENS = {
         RECEIPT: 'Money_Request_Receipt',
         STATE_SELECTOR: 'Money_Request_State_Selector',
         STEP_ATTENDEES: 'Money_Request_Attendee',
+        STEP_ACCOUNTANT: 'Money_Request_Accountant',
         STEP_DESTINATION: 'Money_Request_Destination',
         STEP_TIME: 'Money_Request_Time',
         STEP_SUBRATE: 'Money_Request_SubRate',
@@ -524,6 +524,7 @@ const SCREENS = {
         MEMBERS_IMPORTED: 'Members_Imported',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
+        INVITE_MESSAGE_ROLE: 'Workspace_Invite_Message_Role',
         CATEGORIES: 'Workspace_Categories',
         TAGS: 'Workspace_Tags',
         TAGS_SETTINGS: 'Tags_Settings',

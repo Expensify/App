@@ -33,6 +33,7 @@ type DropdownOption<TValueType> = {
     numberOfLinesTitle?: number;
     titleStyle?: ViewStyle;
     shouldCloseModalOnSelect?: boolean;
+    shouldPreserveSelectionAfterHideModal?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
