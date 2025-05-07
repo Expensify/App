@@ -272,6 +272,7 @@ function BaseTextInput(
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
         isAutoGrowHeightMarkdown && styles.pb2,
         inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabledContainer,
+        !hasLabel && styles.pt0,
     ]);
     const isMultiline = multiline || autoGrowHeight;
 
