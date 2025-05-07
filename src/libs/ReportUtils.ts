@@ -111,10 +111,12 @@ import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
 import {
     arePaymentsEnabled,
     canSendInvoiceFromWorkspace,
+    getActivePolicies,
     getForwardsToAccount,
     getManagerAccountEmail,
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getPolicyNameByID,
+    getPolicyRole,
     getRuleApprovers,
     getSubmitToAccountID,
     isExpensifyTeam,
@@ -203,6 +205,7 @@ import {
     getAttendees,
     getBillable,
     getCardID,
+    getCardName,
     getCategory,
     getCurrency,
     getDescription,
@@ -650,6 +653,7 @@ type TransactionDetails = {
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
     description?: string;
     cardID: number;
+    cardName?: string;
     originalAmount: number;
     originalCurrency: string;
     postedDate: string;
@@ -689,6 +693,7 @@ type OptionData = {
     alternateText?: string;
     allReportErrors?: Errors;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null;
+    shouldShowGreenDot?: boolean;
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
@@ -3358,7 +3363,11 @@ function getReasonAndReportActionThatRequiresAttention(
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
-    if (optionOrReport.hasOutstandingChildRequest && !hasOnlyPendingTransactions) {
+    const policy = getPolicy(optionOrReport.policyID);
+    if (
+        (optionOrReport.hasOutstandingChildRequest === true || iouReportActionToApproveOrPay?.reportActionID) &&
+        (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO || !hasOnlyPendingTransactions)
+    ) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
             reportAction: iouReportActionToApproveOrPay,
@@ -3706,6 +3715,7 @@ function getTransactionDetails(transaction: OnyxInputOrEntry<Transaction>, creat
         tag: getTag(transaction),
         mccGroup: getMCCGroup(transaction),
         cardID: getCardID(transaction),
+        cardName: getCardName(transaction),
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
         postedDate: getFormattedPostedDate(transaction),
@@ -4100,9 +4110,7 @@ function getTransactionReportName({
     const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report)) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
-    if (isTrackExpenseAction(reportAction)) {
-        return translateLocal('iou.threadTrackReportName', {formattedAmount, comment});
-    }
+
     return translateLocal('iou.threadExpenseReportName', {formattedAmount, comment});
 }
 
@@ -4567,21 +4575,34 @@ function getInvoicesChatName({
 }
 
 /**
- * Get the title for a report using only participant names. This may be used for 1:1 DMs and other non-categorized chats.
+ * Generates a report title using the names of participants, excluding the current user.
+ * This function is useful in contexts such as 1:1 direct messages (DMs) or other group chats.
+ * It limits to a maximum of 5 participants for the title and uses short names unless there is only one participant.
  */
-function buildReportNameFromParticipantNames({report, personalDetails}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) {
-    const participantsWithoutCurrentUser: number[] = [];
-    Object.keys(report?.participants ?? {}).forEach((accountID) => {
-        const accID = Number(accountID);
-        if (accID !== currentUserAccountID && participantsWithoutCurrentUser.length < 5) {
-            participantsWithoutCurrentUser.push(accID);
-        }
-    });
-    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    return participantsWithoutCurrentUser
-        .map((accountID) => getDisplayNameForParticipant({accountID, shouldUseShortForm: isMultipleParticipantReport, personalDetailsData: personalDetails}))
-        .join(', ');
-}
+const buildReportNameFromParticipantNames = ({report, personalDetails: personalDetailsData}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) =>
+    Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((id) => id !== currentUserAccountID)
+        .slice(0, 5)
+        .map((accountID) => ({
+            accountID,
+            name: getDisplayNameForParticipant({
+                accountID,
+                shouldUseShortForm: true,
+                personalDetailsData,
+            }),
+        }))
+        .filter((participant) => participant.name)
+        .reduce((formattedNames, {name, accountID}, _, array) => {
+            // If there is only one participant (if it is 0 or less the function will return empty string), return their full name
+            if (array.length < 2) {
+                return getDisplayNameForParticipant({
+                    accountID,
+                    personalDetailsData,
+                });
+            }
+            return formattedNames ? `${formattedNames}, ${name}` : name;
+        }, '');
 
 function generateReportName(report: OnyxEntry<Report>): string {
     if (!report) {
@@ -4746,7 +4767,7 @@ function getReportNameInternal({
         }
 
         if (isRenamedAction(parentReportAction)) {
-            return getRenamedAction(parentReportAction);
+            return getRenamedAction(parentReportAction, isExpenseReport(getReport(report.parentReportID, allReports)));
         }
 
         if (parentReportActionMessage?.isDeletedParentAction) {
@@ -5636,19 +5657,14 @@ function getFormattedAmount(reportAction: ReportAction, report?: Report | null) 
     return formattedAmount;
 }
 
-function getActorDisplayName(action: ReportAction) {
-    const actorAccountID = getReportActionActorAccountID(action, undefined, undefined, undefined);
-
-    return getDisplayNameForParticipant({accountID: actorAccountID});
-}
-
 function getReportAutomaticallySubmittedMessage(
     reportAction:
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>,
+    report?: Report,
 ) {
-    return translateLocal('iou.automaticallySubmitted', {displayName: getActorDisplayName(reportAction)});
+    return translateLocal('iou.automaticallySubmittedAmount', {formattedAmount: getFormattedAmount(reportAction, report)});
 }
 
 function getIOUSubmittedMessage(
@@ -5656,20 +5672,21 @@ function getIOUSubmittedMessage(
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>
         | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>,
+    report?: Report,
 ) {
-    return translateLocal('iou.submittedWithDisplayName', {displayName: getActorDisplayName(reportAction)});
+    return translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction, report)});
 }
 
-function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
-    return translateLocal('iou.automaticallyApproved', {displayName: getActorDisplayName(reportAction)});
+function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>, report?: Report) {
+    return translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction, report)});
 }
 
-function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>) {
-    return translateLocal('iou.unapproved', {displayName: getActorDisplayName(reportAction)});
+function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>, report?: Report) {
+    return translateLocal('iou.unapprovedAmount', {amount: getFormattedAmount(reportAction, report)});
 }
 
-function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
-    return translateLocal('iou.approvedWithDisplayName', {displayName: getActorDisplayName(reportAction)});
+function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>, report?: Report) {
+    return translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction, report)});
 }
 
 /**
@@ -9647,11 +9664,13 @@ function prepareOnboardingOnyxData(
         });
     }
     const actorAccountID = shouldPostTasksInAdminsRoom ? assignedGuideAccountID : CONST.ACCOUNT_ID.CONCIERGE;
-
+    const firstAdminPolicy = getActivePolicies(allPolicies, currentUserEmail).find(
+        (policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL && getPolicyRole(policy, currentUserEmail) === CONST.POLICY.ROLE.ADMIN,
+    );
     const onboardingTaskParams: OnboardingTaskLinks = {
         integrationName,
         onboardingCompanySize: companySize ?? onboardingCompanySize,
-        workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID)}`,
+        workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID ?? firstAdminPolicy?.id)}`,
         workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID)}`,
         workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID)}`,
         workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID)}`,
@@ -9853,7 +9872,7 @@ function prepareOnboardingOnyxData(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
                 value: {
-                    [taskReportAction.reportAction.reportActionID]: {pendingAction: null},
+                    [taskReportAction.reportAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
                 },
             },
             {
@@ -9889,7 +9908,7 @@ function prepareOnboardingOnyxData(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                 value: {
-                    [completedTaskReportAction.reportActionID]: {pendingAction: null},
+                    [completedTaskReportAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
                 },
             });
         }
@@ -9947,7 +9966,7 @@ function prepareOnboardingOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [textCommentAction.reportActionID]: {pendingAction: null},
+                [textCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
             },
         });
     }
@@ -10135,7 +10154,7 @@ function prepareOnboardingOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null},
+                [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
             },
         });
 
@@ -10461,7 +10480,15 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
         return getInvoiceReportName(properInvoiceReport);
     }
 
-    return action?.reportName ?? '';
+    if (action?.reportName) {
+        return action.reportName;
+    }
+
+    if (report?.reportID) {
+        return getReportName(getReport(report?.reportID, allReports));
+    }
+
+    return getReportName(report);
 }
 
 function getReportPersonalDetailsParticipants(report: Report, personalDetailsParam: OnyxEntry<PersonalDetailsList>, reportMetadata: OnyxEntry<ReportMetadata>, isRoomMembersList = false) {

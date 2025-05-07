@@ -54,9 +54,9 @@ If your business operates out of the U.K., you can enable global reimbursements 
 This is a signed document authorizing a client’s bank to pull payments via direct debit.
 
 1. Expensify will send you a **Direct Debit Authorization** form to sign.
-3. Send the signed authorization form to your bank.
-4. Return the signed authorization form to Expensify.
-5. Once the account is set up for direct debits (typically takes 10 to 12 business days to complete), communicate to Expensify support that is complete.
+2. Send the signed authorization form to your bank.
+3. Return the signed authorization form to Expensify.
+4. Once the account is set up for direct debits (typically takes 10 to 12 business days to complete), communicate to Expensify support that is complete.
 
 ---
 
