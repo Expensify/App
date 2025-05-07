@@ -67,7 +67,6 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
-    DisplayNameParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -188,6 +187,7 @@ import type {
     ToValidateLoginParams,
     TransferParams,
     TrialStartedTitleParams,
+    UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
     UnreportedTransactionParams,
     UnshareParams,
@@ -1029,8 +1029,8 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
         submitAmount: ({amount}: RequestAmountParams) => `Submit ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `submitted ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
-        submittedWithDisplayName: ({displayName}: DisplayNameParams) => `${displayName} submitted`,
-        automaticallySubmitted: ({displayName}: DisplayNameParams) => `${displayName} submitted via <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">delayed submission</a>`,
+        automaticallySubmittedAmount: ({formattedAmount}: RequestedAmountMessageParams) =>
+            `automatically submitted ${formattedAmount} via <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">delayed submission</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -1045,10 +1045,10 @@ const translations = {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} approved ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `paid ${amount}. Add a bank account to receive your payment.`,
+        automaticallyApprovedAmount: ({amount}: ApprovedAmountParams) =>
+            `automatically approved ${amount} via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
-        automaticallyApproved: ({displayName}: DisplayNameParams) => `${displayName} approved via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
-        approvedWithDisplayName: ({displayName}: DisplayNameParams) => `${displayName} approved`,
-        unapproved: ({displayName}: DisplayNameParams) => `${displayName} unapproved`,
+        unapprovedAmount: ({amount}: UnapprovedParams) => `unapproved ${amount}`,
         automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
             `automatically approved ${amount} via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount}`,
@@ -1074,7 +1074,6 @@ const translations = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `changed the ${translatedChangedField} to ${newMerchant} (previously ${oldMerchant}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
-        threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Invoice Report #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `moved expense from personal space to ${workspaceName ?? `chat with ${reportName}`}`,

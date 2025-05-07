@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {exportReportToCSV, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
@@ -44,6 +45,7 @@ import {
 import {
     allHavePendingRTERViolation,
     hasDuplicateTransactions,
+    isDuplicate,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
@@ -207,7 +209,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         handleDeleteTransactions,
         isDeleteModalVisible: hookDeleteModalVisible,
         hideDeleteModal,
-    } = useSelectedTransactionsActions({report: moneyRequestReport, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
+    } = useSelectedTransactionsActions({
+        report: moneyRequestReport,
+        reportActions,
+        allTransactionsLength: transactions.length,
+        session,
+        onExportFailed: () => setIsDownloadErrorModalVisible(true),
+    });
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
@@ -217,8 +225,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const shouldShowApproveButton = useMemo(
-        () => (canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
-        [moneyRequestReport, policy, hasOnlyPendingTransactions, isApprovedAnimationRunning],
+        () => (canApproveIOU(moneyRequestReport, policy, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
+        [moneyRequestReport, policy, transactions, hasOnlyPendingTransactions, isApprovedAnimationRunning],
     );
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
@@ -345,6 +353,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
     };
 
+    const getFirstDuplicateThreadID = (reportTransactions: OnyxTypes.Transaction[], allReportActions: OnyxTypes.ReportAction[]) => {
+        const duplicateTransaction = reportTransactions.find((reportTransaction) => isDuplicate(reportTransaction.transactionID));
+        if (!duplicateTransaction) {
+            return null;
+        }
+
+        return getThreadReportIDsForTransactions(allReportActions, [duplicateTransaction]).at(0);
+    };
+
     const statusBarProps = getStatusBarProps();
     const shouldAddGapToContents = shouldUseNarrowLayout && shouldShowSelectedTransactionsButton && (!!statusBarProps || shouldShowNextStep);
 
@@ -364,8 +381,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!moneyRequestReport) {
             return '';
         }
-        return getReportPrimaryAction(moneyRequestReport, transactions, violations, policy, reportNameValuePairs);
-    }, [isPaidAnimationRunning, moneyRequestReport, reportNameValuePairs, policy, transactions, violations]);
+        return getReportPrimaryAction(moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions);
+    }, [isPaidAnimationRunning, moneyRequestReport, reportNameValuePairs, policy, transactions, violations, reportActions]);
 
     const confirmExport = useCallback(() => {
         setExportModalStatus(null);
@@ -467,10 +484,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 success
                 text={translate('iou.reviewDuplicates')}
                 onPress={() => {
-                    if (!transactionThreadReportID) {
+                    const threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
+                    if (!threadID) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
+                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
                 }}
             />
         ),
@@ -492,8 +510,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy);
-    }, [moneyRequestReport, policy, transactions, violations]);
+        return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy, reportActions);
+    }, [moneyRequestReport, policy, transactions, violations, reportActions]);
 
     const secondaryActionsImplemenation: Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
