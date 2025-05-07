@@ -37,8 +37,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${route.params.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${route.params.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
 

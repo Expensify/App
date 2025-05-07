@@ -905,144 +905,6 @@ function initMoneyRequest(
     });
 }
 
-/**
- * Initialize split expense info
- */
-function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportID: string) {
-    if (!transaction) {
-        return;
-    }
-    const {amount = 0, modifiedAmount, modifiedMerchant, modifiedCurrency, merchant, currency = CONST.CURRENCY.USD} = transaction;
-
-    const currentAmount = Number(modifiedAmount) || amount;
-    const currentMerchant = String(modifiedMerchant) || merchant;
-    const currentCurrency = String(modifiedCurrency) || currency;
-
-    const draftTransaction = buildOptimisticTransaction({
-        originalTransactionID: transaction.transactionID,
-        transactionParams: {
-            splitExpenses: [
-                {
-                    transactionID: NumberUtils.rand64(),
-                    amount: currentAmount / 2,
-                    description: transaction?.comment?.comment,
-                    category: transaction?.category,
-                    tags: transaction?.tag ? [transaction?.tag] : [],
-                    created: DateUtils.getDBTime(),
-                },
-                {
-                    transactionID: NumberUtils.rand64(),
-                    amount: currentAmount / 2,
-                    description: transaction?.comment?.comment,
-                    category: transaction?.category,
-                    tags: transaction?.tag ? [transaction?.tag] : [],
-                    created: DateUtils.getDBTime(),
-                },
-            ],
-            amount: currentAmount,
-            currency: currentCurrency,
-            merchant: currentMerchant,
-            reportID,
-        },
-    });
-
-    Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction?.transactionID}`, draftTransaction);
-}
-
-/**
- * Add new split expense
- */
-function addSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
-    if (!transaction || !draftTransaction) {
-        return;
-    }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`, {
-        comment: {
-            splitExpenses: [
-                ...(draftTransaction.comment?.splitExpenses ?? []),
-                {
-                    transactionID: NumberUtils.rand64(),
-                    amount: 0,
-                    description: transaction?.comment?.comment,
-                    category: transaction?.category,
-                    tags: transaction?.tag ? [transaction?.tag] : [],
-                    created: DateUtils.getDBTime(),
-                },
-            ],
-        },
-    });
-}
-
-/**
- * Update split expense ammount
- */
-function updateSplitExpenseAmmount(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number) {
-    if (!draftTransaction?.transactionID || !currentItemTransactionID) {
-        return;
-    }
-
-    const updatedSplitExpenses = draftTransaction.comment?.splitExpenses?.map((splitExpense) => {
-        if (splitExpense.transactionID === currentItemTransactionID) {
-            return {
-                ...splitExpense,
-                amount,
-            };
-        }
-        return splitExpense;
-    });
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${draftTransaction?.comment?.originalTransactionID}`, {
-        comment: {
-            splitExpenses: updatedSplitExpenses,
-        },
-    });
-}
-
-function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, isReverseSplitOperation = false) {
-    const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-
-    // const optimisticTransactions = draftTransaction?.comment?.splitExpenses?.map((splitExpense) => {
-    //     return buildOptimisticTransaction({
-    //         originalTransactionID,
-    //         existingTransactionID: splitExpense.transactionID,
-    //         transactionParams: {
-    //             amount: splitExpense.amount ?? 0,
-    //             currency: draftTransaction?.currency,
-    //             created: splitExpense.created,
-    //             merchant: draftTransaction?.merchant,
-    //             comment: splitExpense.description,
-    //             reportID: draftTransaction?.reportID,
-    //             category: splitExpense.category,
-    //             tag: splitExpense.tags?.[0],
-    //         }
-    //     })
-    // });
-
-    const splits =
-        draftTransaction?.comment?.splitExpenses?.map((splitExpense) => ({
-            amount: splitExpense.amount ?? 0,
-            category: splitExpense.category,
-            tag: splitExpense.tags?.[0],
-            created: splitExpense.created ?? '',
-            merchant: draftTransaction?.merchant,
-            transactionID: splitExpense.transactionID,
-            comment: {
-                comment: splitExpense.description,
-            },
-        })) ?? ([] as SplitTransactionSplitsParam);
-
-    const parameters: SplitTransactionParams = {
-        splits: JSON.stringify(splits),
-        isReverseSplitOperation,
-        transactionID: originalTransactionID,
-    };
-
-    // API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
-    // InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
-    // dismissModalAndOpenReportInInboxTab(draftTransaction?.reportID);
-}
-
 function createDraftTransaction(transaction: OnyxTypes.Transaction) {
     if (!transaction) {
         return;
@@ -10870,6 +10732,192 @@ function getSearchOnyxUpdate({participant, transaction}: GetSearchOnyxUpdatePara
             };
         }
     }
+}
+
+/**
+ * Initialize split expense info
+ */
+function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportID: string) {
+    if (!transaction) {
+        return;
+    }
+    const {amount = 0, modifiedAmount, modifiedMerchant, modifiedCurrency, merchant, currency = CONST.CURRENCY.USD, participants} = transaction;
+
+    const currentAmount = Number(modifiedAmount) || amount;
+    const currentMerchant = String(modifiedMerchant) || merchant;
+    const currentCurrency = String(modifiedCurrency) || currency;
+
+    const draftTransaction = buildOptimisticTransaction({
+        originalTransactionID: transaction.transactionID,
+        transactionParams: {
+            splitExpenses: [
+                {
+                    transactionID: NumberUtils.rand64(),
+                    amount: currentAmount / 2,
+                    description: transaction?.comment?.comment,
+                    category: transaction?.category,
+                    tags: transaction?.tag ? [transaction?.tag] : [],
+                    created: DateUtils.getDBTime(),
+                },
+                {
+                    transactionID: NumberUtils.rand64(),
+                    amount: currentAmount / 2,
+                    description: transaction?.comment?.comment,
+                    category: transaction?.category,
+                    tags: transaction?.tag ? [transaction?.tag] : [],
+                    created: DateUtils.getDBTime(),
+                },
+            ],
+            amount: currentAmount,
+            currency: currentCurrency,
+            merchant: currentMerchant,
+            participants,
+            reportID,
+        },
+    });
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction?.transactionID}`, draftTransaction);
+}
+
+/**
+ * Add new split expense
+ */
+function addSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
+    if (!transaction || !draftTransaction) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`, {
+        comment: {
+            splitExpenses: [
+                ...(draftTransaction.comment?.splitExpenses ?? []),
+                {
+                    transactionID: NumberUtils.rand64(),
+                    amount: 0,
+                    description: transaction?.comment?.comment,
+                    category: transaction?.category,
+                    tags: transaction?.tag ? [transaction?.tag] : [],
+                    created: DateUtils.getDBTime(),
+                },
+            ],
+        },
+    });
+}
+
+/**
+ * Update split expense ammount
+ */
+function updateSplitExpenseAmmount(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number) {
+    if (!draftTransaction?.transactionID || !currentItemTransactionID) {
+        return;
+    }
+
+    const updatedSplitExpenses = draftTransaction.comment?.splitExpenses?.map((splitExpense) => {
+        if (splitExpense.transactionID === currentItemTransactionID) {
+            return {
+                ...splitExpense,
+                amount,
+            };
+        }
+        return splitExpense;
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${draftTransaction?.comment?.originalTransactionID}`, {
+        comment: {
+            splitExpenses: updatedSplitExpenses,
+        },
+    });
+}
+
+function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, isReverseSplitOperation = false) {
+    const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
+
+    const policy = getPolicy(transactionReport?.policyID);
+    const participants = getMoneyRequestParticipantsFromReport(transactionReport);
+    const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+
+    const splits: SplitTransactionSplitsParam =
+        splitExpenses.map((split) => ({
+            amount: split.amount ?? 0,
+            category: split.category,
+            tag: split.tags?.[0],
+            created: split.created ?? '',
+            merchant: draftTransaction?.merchant,
+            transactionID: split.transactionID,
+            comments: {
+                comment: split.description,
+            },
+        })) ?? [];
+
+    const successData = [] as OnyxUpdate[];
+    const failureData = [] as OnyxUpdate[];
+    const optimisticData = [] as OnyxUpdate[];
+
+    const moneyRequestReportID = NumberUtils.rand64();
+    splitExpenses.forEach((splitExpense, index) => {
+        const requestMoneyInformation = {
+            report: transactionReport,
+            participantParams: {
+                participant: participants.at(0) ?? ({} as Participant),
+                payeeEmail: currentUserPersonalDetails?.login ?? '',
+                payeeAccountID: currentUserPersonalDetails?.accountID ?? 1,
+            },
+            policyParams: {
+                policy,
+            },
+            transactionParams: {
+                amount: splitExpense.amount ?? 0,
+                currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
+                created: splitExpense.created ?? DateUtils.getDBTime(),
+                merchant: draftTransaction?.merchant ?? '',
+                comment: splitExpense.description,
+                category: splitExpense.category,
+                tag: splitExpense.tags?.[0],
+            },
+        };
+
+        const {report, participantParams, policyParams = {}, transactionParams} = requestMoneyInformation;
+        const parsedComment = getParsedComment(transactionParams.comment ?? '');
+        transactionParams.comment = parsedComment;
+
+        const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+
+        const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+        const parentChatReport = isMoneyRequestReport ? getReportOrDraftReport(currentChatReport?.parentReportID) : currentChatReport;
+
+        const existingTransactionID = splitExpense.transactionID;
+
+        const {transactionThreadReportID, createdReportActionIDForThread, onyxData, createdChatReportActionID} = getMoneyRequestInformation({
+            participantParams,
+            parentChatReport,
+            policyParams,
+            transactionParams,
+            moneyRequestReportID,
+            existingTransactionID,
+        });
+
+        const split = splits.at(index);
+        if (split) {
+            split.transactionThreadReportID = transactionThreadReportID;
+            split.createdReportActionIDForThread = createdReportActionIDForThread;
+            split.splitReportActionID = createdChatReportActionID;
+        }
+
+        optimisticData.push(...(onyxData.optimisticData ?? []));
+        successData.push(...(onyxData.successData ?? []));
+        failureData.push(...(onyxData.failureData ?? []));
+    });
+
+    const parameters: SplitTransactionParams = {
+        splits: JSON.stringify(splits),
+        isReverseSplitOperation,
+        transactionID: originalTransactionID,
+    };
+
+    API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+    InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
+    dismissModalAndOpenReportInInboxTab(transactionReport?.parentReportID);
 }
 
 export {
