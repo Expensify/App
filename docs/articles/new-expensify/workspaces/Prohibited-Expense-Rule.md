@@ -57,6 +57,8 @@ Only Workspace Admins can enable or adjust this rule in New Expensify.
 
 Yes. Even though configuration is handled in New Expensify, violations appear in both **Expensify Classic** and **New Expensify** when viewing expenses.
 
+If the Domain Group setting, **Strictly enforce expense workspace rules** is enabled, it will block the submission of the expense with the prohibited item violation. 
+
 ## Will SmartScan still work if the rule is off?
 
 Yes. SmartScan will still extract the merchant, date, and amount. However, it will not flag line items for violations unless the rule is enabled.
