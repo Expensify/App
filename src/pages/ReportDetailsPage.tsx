@@ -375,9 +375,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             setIsUnapproveModalVisible(true);
             return;
         }
-        Navigation.dismissModal();
+        Navigation.goBack(backTo);
         unapproveExpenseReport(moneyRequestReport);
-    }, [isMoneyRequestExported, moneyRequestReport, isDelegateAccessRestricted]);
+    }, [isDelegateAccessRestricted, isMoneyRequestExported, backTo, moneyRequestReport]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
@@ -1144,7 +1144,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     confirmText={translate('iou.unapproveReport')}
                     onConfirm={() => {
                         setIsUnapproveModalVisible(false);
-                        Navigation.dismissModal();
+                        Navigation.goBack(backTo);
                         unapproveExpenseReport(moneyRequestReport);
                     }}
                     cancelText={translate('common.cancel')}
