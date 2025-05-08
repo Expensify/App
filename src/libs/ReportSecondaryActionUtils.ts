@@ -1,12 +1,11 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation, Session} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
-    getAllPolicies,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getSubmitToAccountID,
@@ -313,10 +312,8 @@ function isHoldActionForTransation(report: Report, reportTransaction: Transactio
     return isProcessingReport;
 }
 
-function isChangeWorkspaceAction(report: Report): boolean {
-    const policies = getAllPolicies();
-    const session = getSession();
-    return policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session)).length > 0;
+function isChangeWorkspaceAction(session: Session, report: Report, policies: OnyxCollection<Policy>): boolean {
+    return Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session)).length > 0;
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[]): boolean {
@@ -354,6 +351,8 @@ function getSecondaryReportActions(
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
+    policies?: OnyxCollection<Policy>,
+    session?: Session,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -391,7 +390,7 @@ function getSecondaryReportActions(
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD);
 
-    if (isChangeWorkspaceAction(report)) {
+    if (isChangeWorkspaceAction(session, report, policies)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
