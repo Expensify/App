@@ -1,5 +1,5 @@
 ---
-title: Create a new chat
+title: Create a new chat.
 description: Start a new private, group, or room chat 
 redirect_from: articles/other/Everything-About-Chat/
 ---
