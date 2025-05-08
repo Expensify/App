@@ -68,4 +68,8 @@ No, the CSV download uses a fixed template and can't be customized.
 
 Yes! Use **Select multiple** or **Select all** to choose multiple items at once.  On mobile, just long-press an item to display these options.
 
+## Why do I see a 404 error when clicking on the receipt image URL in the CSV export?
+
+You must be logged into your Expensify account on the browser where the link is being opened. Receipt URLs are only accessible when logged into your Expensify account.
+
 </div>
