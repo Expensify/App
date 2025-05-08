@@ -2711,11 +2711,6 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
-            value: {[reportActionID]: {pendingAction: null}},
-        },
     ];
 
     return {optimisticReportName: optimisticReportData.reportName, optimisticData, successData, failureData};
