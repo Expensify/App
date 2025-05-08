@@ -1,4 +1,3 @@
-import {truncate} from 'fs';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
