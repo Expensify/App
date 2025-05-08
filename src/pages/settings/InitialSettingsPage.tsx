@@ -16,6 +16,7 @@ import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
@@ -26,6 +27,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -78,6 +80,9 @@ type MenuData = {
     iconRight?: IconAsset;
     badgeText?: string;
     badgeStyle?: ViewStyle;
+    shouldRenderTooltip?: boolean;
+    renderTooltipContent?: () => React.JSX.Element;
+    onEducationTooltipPress?: () => void;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
@@ -104,6 +109,20 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`, {canBeMissing: true});
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+
+    const isScreenFocused = useIsAccountSettingsRouteActive(shouldUseNarrowLayout);
+    const isWorkspacesTabSelected = focusedRouteName === SCREENS.SETTINGS.WORKSPACES;
+
+    const {
+        renderProductTrainingTooltip: renderWorkspaceSettingsTooltip,
+        shouldShowProductTrainingTooltip: shouldShowWorkspaceSettingsTooltip,
+        hideProductTrainingTooltip: hideWorkspaceSettingsTooltip,
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACES_SETTINGS, isScreenFocused && !isWorkspacesTabSelected);
+
+    // Controls the visibility of the educational tooltip based on user scrolling.
+    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
+    const triggerScrollEvent = useScrollEventEmitter();
+
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
@@ -116,8 +135,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const freeTrialText = getFreeTrialText(policies);
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
-
-    const isScreenFocused = useIsAccountSettingsRouteActive(shouldUseNarrowLayout);
 
     useEffect(() => {
         openInitialSettingsPage();
@@ -183,6 +200,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         return defaultMenu;
     }, [loginList, privatePersonalDetails, styles.accountSettingsSectionContainer, walletBrickRoadIndicator]);
 
+    const navigateToWorkspacesSettings = useCallback(() => {
+        hideWorkspaceSettingsTooltip();
+        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
+    }, [hideWorkspaceSettingsTooltip]);
+
     /**
      * Retuns a list of menu items data for workspace section
      * @returns object with translationKey, style and items for the workspace section
@@ -194,7 +216,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: Expensicons.Buildings,
                 screenName: SCREENS.SETTINGS.WORKSPACES,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, allConnectionSyncProgresses) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                action: () => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route),
+                action: navigateToWorkspacesSettings,
+                shouldRenderTooltip: shouldShowWorkspaceSettingsTooltip,
+                renderTooltipContent: renderWorkspaceSettingsTooltip,
+                onEducationTooltipPress: navigateToWorkspacesSettings,
             },
             {
                 translationKey: 'allSettingsScreen.domains',
@@ -225,7 +250,18 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [allConnectionSyncProgresses, freeTrialText, policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan]);
+    }, [
+        allConnectionSyncProgresses,
+        freeTrialText,
+        policies,
+        privateSubscription?.errors,
+        styles.badgeSuccess,
+        styles.workspaceSettingsSectionContainer,
+        subscriptionPlan,
+        navigateToWorkspacesSettings,
+        renderWorkspaceSettingsTooltip,
+        shouldShowWorkspaceSettingsTooltip,
+    ]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -372,13 +408,35 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
                                 shouldIconUseAutoWidthStyle
+                                shouldRenderTooltip={item.shouldRenderTooltip}
+                                renderTooltipContent={item.renderTooltipContent}
+                                onEducationTooltipPress={item.onEducationTooltipPress}
+                                tooltipAnchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                }}
+                                tooltipShiftHorizontal={variables.workspacesSettingsTooltipShiftHorizontal}
+                                tooltipShiftVertical={variables.workspacesSettingsTooltipShiftVertical}
+                                tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
+                                shouldHideOnScroll
                             />
                         );
                     })}
                 </View>
             );
         },
-        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, userWallet?.currentBalance, focusedRouteName, isExecuting, singleExecution],
+        [
+            styles.pb4,
+            styles.mh3,
+            styles.sectionTitle,
+            styles.sectionMenuItem,
+            translate,
+            userWallet?.currentBalance,
+            focusedRouteName,
+            isExecuting,
+            singleExecution,
+            styles.productTrainingTooltipWrapper,
+        ],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
@@ -430,8 +488,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 return;
             }
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+            triggerScrollEvent();
         },
-        [route, saveScrollOffset],
+        [route, saveScrollOffset, triggerScrollEvent],
     );
 
     useLayoutEffect(() => {

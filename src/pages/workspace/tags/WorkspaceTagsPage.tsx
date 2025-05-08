@@ -15,6 +15,7 @@ import LottieAnimations from '@components/LottieAnimations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
@@ -30,6 +31,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
@@ -187,8 +189,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 };
             });
         }
-        const sortedTags = lodashSortBy(Object.values(policyTagLists.at(0)?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
-        return sortedTags.map((tag) => ({
+        return Object.values(policyTagLists?.at(0)?.tags ?? {}).map((tag) => ({
             value: tag.name,
             text: getCleanedTagName(tag.name),
             keyForList: tag.name,
@@ -208,13 +209,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }));
     }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
-    const tagListKeyedByName = useMemo(
+    const filterTag = useCallback((tag: TagListItem, searchInput: string) => !!tag.text?.toLowerCase().includes(searchInput) || !!tag.value?.toLowerCase().includes(searchInput), []);
+    const sortTags = useCallback((tags: TagListItem[]) => lodashSortBy(tags, 'value', localeCompare) as TagListItem[], []);
+    const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
+
+    const filteredTagListKeyedByName = useMemo(
         () =>
-            tagList.reduce<Record<string, TagListItem>>((acc, tag) => {
+            filteredTagList.reduce<Record<string, TagListItem>>((acc, tag) => {
                 acc[tag.value] = tag;
                 return acc;
             }, {}),
-        [tagList],
+        [filteredTagList],
     );
 
     const toggleTag = (tag: TagListItem) => {
@@ -225,7 +230,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const toggleAllTags = () => {
-        const availableTags = tagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const availableTags = filteredTagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         setSelectedTags(Object.keys(selectedTags).length > 0 ? {} : Object.fromEntries(availableTags.map((item) => [item.value, true])));
     };
 
@@ -312,7 +317,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         let disabledTagCount = 0;
         const tagsToEnable: Record<string, {name: string; enabled: boolean}> = {};
         for (const tagName of selectedTagsArray) {
-            if (tagListKeyedByName[tagName]?.enabled) {
+            if (filteredTagListKeyedByName[tagName]?.enabled) {
                 enabledTagCount++;
                 tagsToDisable[tagName] = {
                     name: tagName,
@@ -480,6 +485,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     danger
                 />
                 {(!shouldUseNarrowLayout || !hasVisibleTags || isLoading) && getHeaderText()}
+                {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
+                    <SearchBar
+                        label={translate('workspace.tags.findTag')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={hasVisibleTags && !isLoading && !filteredTagList.length}
+                    />
+                )}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -506,7 +519,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={!isMultiLevelTags}
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                        sections={[{data: tagList, isDisabled: false}]}
+                        sections={[{data: filteredTagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
                         shouldSingleExecuteRowSelect={!canSelectMultiple}

@@ -13,6 +13,14 @@ import TestNavigationContainer from '../utils/TestNavigationContainer';
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
+// Mock Fullstory library dependency
+jest.mock('@libs/Fullstory', () => ({
+    default: {
+        consentAndIdentify: jest.fn(),
+    },
+    parseFSAttributes: jest.fn(),
+}));
+
 jest.mock('@pages/home/sidebar/NavigationTabBarAvatar');
 jest.mock('@src/components/Navigation/TopLevelNavigationTabBar');
 jest.mock('@components/ConfirmedRoute.tsx');

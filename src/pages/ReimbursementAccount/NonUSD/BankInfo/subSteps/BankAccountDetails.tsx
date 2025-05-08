@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import AddressSearch from '@components/AddressSearch';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
@@ -16,6 +17,14 @@ import getInputForValueSet from '@pages/ReimbursementAccount/NonUSD/utils/getInp
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
+import type {CorpayFormField} from '@src/types/onyx';
+
+function getInputComponent(field: CorpayFormField) {
+    if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
+        return AddressSearch;
+    }
+    return TextInput;
+}
 
 function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
@@ -87,18 +96,24 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                     key={field.id}
                 >
                     <InputWrapper
-                        InputComponent={TextInput}
+                        InputComponent={getInputComponent(field)}
                         inputID={field.id}
                         label={field.label}
                         aria-label={field.label}
                         role={CONST.ROLE.PRESENTATION}
                         shouldSaveDraft={!isEditing}
                         defaultValue={String(defaultValues[field.id as keyof typeof defaultValues]) ?? ''}
+                        limitSearchesToCountry={reimbursementAccountDraft?.country}
+                        renamedInputKeys={{
+                            street: 'bankAddressLine1',
+                            city: 'bankCity',
+                            country: '',
+                        }}
                     />
                 </View>
             );
         });
-    }, [bankAccountDetailsFields, styles, isEditing, defaultValues]);
+    }, [bankAccountDetailsFields, styles, isEditing, defaultValues, reimbursementAccountDraft?.country]);
 
     return (
         <FormProvider

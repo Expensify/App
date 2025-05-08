@@ -566,6 +566,12 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 endDate: 'string',
                 tripID: 'string',
             });
+        case 'calendlySchedule':
+            return validateObject<ObjectElement<ReportNameValuePairs, 'calendlySchedule'>>(value, {
+                isLoading: 'boolean',
+                data: 'object',
+                errors: 'object',
+            });
         case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
@@ -630,6 +636,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 exportFailedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                calendlySchedule: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }

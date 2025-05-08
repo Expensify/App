@@ -2483,6 +2483,14 @@ const ROUTES = {
         route: 'debug/transaction/:transactionID/violations/:index/json',
         getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}/json` as const,
     },
+    SCHEDULE_CALL_BOOK: {
+        route: 'r/:reportID/schedule-call/book',
+        getRoute: (reportID: string) => `r/${reportID}/schedule-call/book` as const,
+    },
+    SCHEDULE_CALL_CONFIRMATON: {
+        route: 'r/:reportID/schedule-call/confimation',
+        getRoute: (reportID: string) => `r/${reportID}/schedule-call/confimation` as const,
+    },
 } as const;
 
 /**
