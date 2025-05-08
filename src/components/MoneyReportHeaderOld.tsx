@@ -231,7 +231,7 @@ function MoneyReportHeaderOld({policy, report: moneyRequestReport, transactionTh
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const filteredTransactions = transactions?.filter((t) => t) ?? [];
-    const shouldShowSubmitButton = canSubmitReport(moneyRequestReport, policy, filteredTransactions, violations);
+    const shouldShowSubmitButton = canSubmitReport(moneyRequestReport, policy, filteredTransactions, violations, isArchivedReport);
 
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && !!connectedIntegration && isAdmin && canBeExported(moneyRequestReport);
 
