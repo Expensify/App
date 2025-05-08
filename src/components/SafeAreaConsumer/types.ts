@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import type {ViewStyle} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 
@@ -11,7 +12,7 @@ type SafeAreaChildrenProps = {
 };
 
 type SafeAreaConsumerProps = {
-    children: React.FC<SafeAreaChildrenProps>;
+    children: (props: SafeAreaChildrenProps) => ReactNode;
 };
 
 export default SafeAreaConsumerProps;
