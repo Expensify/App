@@ -1099,9 +1099,7 @@ function reportTransactionsSelector(transactions: OnyxCollection<Transaction>, r
         return [];
     }
 
-    return Object.values(transactions).filter(
-        (transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID,
-    );
+    return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
 }
 
 function getReportTransactions(reportID: string | undefined, allReportsTransactions: Record<string, Transaction[]> = reportsTransactions): Transaction[] {

@@ -635,7 +635,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 if (Number(transactions?.length) !== 1) {
                     return false;
                 }
-            
+
                 const currentTransaction = transactions.at(0);
                 initSplitExpense(currentTransaction, moneyRequestReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
                 Navigation.navigate(
