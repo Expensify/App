@@ -18,6 +18,7 @@ import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType} from '@components/Search/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
+import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
@@ -425,7 +426,8 @@ type ValidListItem =
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
     | typeof TravelDomainListItem
-    | typeof UnreportedExpenseListItem;
+    | typeof UnreportedExpenseListItem
+    | typeof SpendCategorySelectorListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -779,7 +781,6 @@ export type {
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
     ListItem,
-    ListItemProps,
     ListItemFocusEventHandler,
     RadioListItemProps,
     ReportListItemProps,

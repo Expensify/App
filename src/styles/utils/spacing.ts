@@ -12,7 +12,7 @@ export default {
     },
 
     m1: {
-        margin: 6,
+        margin: 4,
     },
 
     m2: {

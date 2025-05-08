@@ -2711,6 +2711,14 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        reportSearchHeaderBar: {
+            overflow: 'hidden',
+            justifyContent: 'center',
+            display: 'flex',
+            width: '100%',
+            height: 52,
+        },
+
         searchResultsHeaderBar: {
             display: 'flex',
             height: variables.contentHeaderDesktopHeight,
@@ -5440,6 +5448,17 @@ const styles = (theme: ThemeColors) =>
         emptyStateMoneyRequestReport: {
             maxHeight: 85,
             minHeight: 85,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+        },
+
+        emptyStateMoneyRequestPreviewReport: {
+            borderWidth: 1,
+            borderColor: theme.border,
+            height: 168,
+            width: '100%',
+            boxSizing: 'border-box',
+            ...borders.br4,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
         },
