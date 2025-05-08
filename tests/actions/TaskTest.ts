@@ -236,7 +236,7 @@ describe('actions/Task', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`]: taskReport,
             [`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`]: parentReport,
         };
-        beforeAll(async () => {
+        beforeEach(async () => {
             await Onyx.clear();
             await Onyx.multiSet({
                 ...reportCollectionDataSet,
