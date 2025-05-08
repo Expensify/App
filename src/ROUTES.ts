@@ -348,10 +348,6 @@ const ROUTES = {
         route: 'settings/exit-survey/reason',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/reason', backTo),
     },
-    SETTINGS_EXIT_SURVERY_BOOK_CALL: {
-        route: 'settings/exit-survey/book-call',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/book-call', backTo),
-    },
     SETTINGS_EXIT_SURVEY_RESPONSE: {
         route: 'settings/exit-survey/response',
         getRoute: (reason?: ExitReason, backTo?: string) => getUrlWithBackToParam(`settings/exit-survey/response${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`, backTo),
@@ -2488,6 +2484,14 @@ const ROUTES = {
     DEBUG_TRANSACTION_VIOLATION_TAB_JSON: {
         route: 'debug/transaction/:transactionID/violations/:index/json',
         getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}/json` as const,
+    },
+    SCHEDULE_CALL_BOOK: {
+        route: 'r/:reportID/schedule-call/book',
+        getRoute: (reportID: string) => `r/${reportID}/schedule-call/book` as const,
+    },
+    SCHEDULE_CALL_CONFIRMATON: {
+        route: 'r/:reportID/schedule-call/confimation',
+        getRoute: (reportID: string) => `r/${reportID}/schedule-call/confimation` as const,
     },
 } as const;
 
