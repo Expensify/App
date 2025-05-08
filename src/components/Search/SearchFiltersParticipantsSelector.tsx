@@ -11,7 +11,7 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import { canUseTouchScreen } from '@libs/DeviceCapabilities';
 import { getValidOptions, filterAndOrderOptions , formatSectionsFromSearchTerm} from '@libs/OptionsListUtils';
 import type {Option, Section} from '@libs/OptionsListUtils';
-import type {SelectedOptionData} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import {  getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import { searchInServer as searchReportInServer } from '@userActions/Report';
@@ -27,8 +27,8 @@ const defaultListOptions = {
     headerMessage: '',
 };
 
-function getSelectedOptionData(option: Option): SelectedOptionData {
-    return {...option, selected: true};
+function getSelectedOptionData(option: Option): OptionData {
+    return {...option, selected: true, reportID: option.reportID ?? '-1'};
 }
 
 type SearchFiltersParticipantsSelectorProps = {
@@ -45,7 +45,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     });
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const [selectedOptions, setSelectedOptions] = useState<SelectedOptionData[]>([]);
+    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
@@ -143,7 +143,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
                 return getSelectedOptionData(participant);
             })
-            .filter((option): option is NonNullable<SelectedOptionData> => {
+            .filter((option): option is NonNullable<OptionData> => {
                 return !!option;
             });
 

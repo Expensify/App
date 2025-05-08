@@ -137,7 +137,7 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
-import type {OptionData, SelectedOptionData} from './ReportUtils';
+import type {OptionData} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
 import {generateAccountID} from './UserUtils';
@@ -2050,7 +2050,7 @@ function shouldOptionShowTooltip(option: OptionData): boolean {
  */
 function formatSectionsFromSearchTerm(
     searchTerm: string,
-    selectedOptions: SelectedOptionData[],
+    selectedOptions: OptionData[],
     filteredRecentReports: OptionData[],
     filteredPersonalDetails: OptionData[],
     personalDetails: OnyxEntry<PersonalDetailsList> = {},

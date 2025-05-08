@@ -34,7 +34,7 @@ import {
     getUserToInviteOption,
     getValidOptions,
 } from '@libs/OptionsListUtils';
-import type {OptionData, SelectedOptionData} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,7 +46,7 @@ const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => v
 
 function useOptions() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<Array<ListItem & SelectedOptionData>>([]);
+    const [selectedOptions, setSelectedOptions] = useState<Array<ListItem & OptionData>>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
     const personalData = useCurrentUserPersonalDetails();
@@ -100,7 +100,7 @@ function useOptions() {
         if (!newGroupDraft?.participants) {
             return;
         }
-        const newSelectedOptions: SelectedOptionData[] = [];
+        const newSelectedOptions: OptionData[] = [];
         newGroupDraft.participants.forEach((participant) => {
             if (participant.accountID === personalData.accountID) {
                 return;
@@ -203,7 +203,7 @@ function NewChatPage() {
             if (isOptionInList) {
                 newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
             } else {
-                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true}];
+                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`}];
                 selectionListRef?.current?.scrollToIndex(0, true);
             }
 
@@ -296,7 +296,7 @@ function NewChatPage() {
         if (!personalData || !personalData.login || !personalData.accountID) {
             return;
         }
-        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: SelectedOptionData) => ({
+        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({
             login: option?.login,
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
         }));
