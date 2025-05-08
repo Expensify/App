@@ -1103,7 +1103,6 @@ const CONST = {
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
-    REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -7067,11 +7066,6 @@ const CONST = {
         ONBOARDING_TASK_NAME: getTestDriveTaskName(),
         EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
         EMBEDDED_DEMO_IFRAME_TITLE: 'Test Drive',
-    },
-
-    ONBOARDING_HELP: {
-        TALK_TO_SALES: 'talkToSales',
-        REGISTER_FOR_WEBINAR: 'registerForWebinar',
     },
 } as const;
 
