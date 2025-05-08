@@ -586,6 +586,13 @@ function getAllTransactions() {
     return Object.keys(allTransactions ?? {}).length;
 }
 
+/**
+ * Returns a client generated 16 character hexadecimal value for the transactionID
+ */
+function generateTransactionID(): string {
+    return NumberUtils.generateHexadecimalValue(16);
+}
+
 function setTransactionReport(transactionID: string, reportID: string, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reportID});
 }
@@ -867,6 +874,7 @@ export {
     markAsCash,
     dismissDuplicateTransactionViolation,
     getOptimisticTransactions,
+    generateTransactionID,
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,

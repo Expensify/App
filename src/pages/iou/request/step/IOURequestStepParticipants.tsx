@@ -59,7 +59,7 @@ function IOURequestStepParticipants({
     });
     const transactions = useMemo(() => {
         const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
-        return allTransactions.filter((transaction) => !!transaction) as Transaction[];
+        return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant

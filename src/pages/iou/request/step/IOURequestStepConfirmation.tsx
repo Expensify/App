@@ -93,7 +93,7 @@ function IOURequestStepConfirmation({
     });
     const transactions = useMemo(() => {
         const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
-        return allTransactions.filter((transaction) => !!transaction) as Transaction[];
+        return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
     // We will use setCurrentTransactionID later to switch between transactions
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
