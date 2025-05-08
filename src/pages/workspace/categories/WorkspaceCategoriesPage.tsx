@@ -152,8 +152,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceRequiresCategory]);
 
     const filterCategory = useCallback((categoryOption: PolicyOption, searchInput: string) => {
-        const categoryText = StringUtils.normalize(categoryOption.text?.toLowerCase());
-        const alternateText = StringUtils.normalize(categoryOption.alternateText?.toLowerCase());
+        const categoryText = StringUtils.normalize(categoryOption.text?.toLowerCase() ?? '');
+        const alternateText = StringUtils.normalize(categoryOption.alternateText?.toLowerCase() ?? '');
         const normalizedSearchInput = StringUtils.normalize(searchInput);
         return categoryText.includes(normalizedSearchInput) || alternateText.includes(normalizedSearchInput);
     }, []);
