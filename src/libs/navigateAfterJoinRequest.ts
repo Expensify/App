@@ -5,8 +5,7 @@ const navigateAfterJoinRequest = () => {
     // Navigation.goBack(undefined, {shouldPopToTop: true});
     if (Navigation.getShouldPopToSidebar()) {
         Navigation.popToSidebar();
-    }
-    else {
+    } else {
         Navigation.goBack();
     }
     Navigation.setNavigationActionToMicrotaskQueue(() => {

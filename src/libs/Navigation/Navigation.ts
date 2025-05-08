@@ -380,10 +380,16 @@ function popToSidebar() {
     const rootState = navigationRef.current?.getRootState();
     const currentRoute = rootState?.routes.at(-1);
 
+    if (!currentRoute) {
+        Log.hmmm("There's no current root in navigator");
+        return;
+    }
+
     if (!isSplitNavigatorName(currentRoute?.name)) {
         Log.hmmm('[popToSidebar] must be invoked only from SplitNavigator');
         return;
     }
+
     const topRoute = currentRoute.state?.routes.at(0);
     const lastRoute = currentRoute.state?.routes.at(-1);
 
