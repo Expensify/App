@@ -781,6 +781,7 @@ export type {
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
     ListItem,
+    ListItemProps,
     ListItemFocusEventHandler,
     RadioListItemProps,
     ReportListItemProps,
