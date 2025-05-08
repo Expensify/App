@@ -11,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
-import {setSplitPayer as setSplitPayerIOU} from '@userActions/IOU';
+import { setSplitPayer as setSplitPayerIOU } from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -50,7 +50,9 @@ function IOURequestStepSplitPayer({
     const sections = useMemo(() => {
         const participants = transaction?.participants ?? [];
         const participantOptions =
-            [currentUserOption, ...participants]?.filter((participant) => !!participant.accountID)?.map((participant) => getParticipantsOption(participant, personalDetails)) ?? [];
+            [currentUserOption, ...participants]
+                ?.filter((participant) => !!participant.accountID)
+                ?.map((participant) => getParticipantsOption(participant, personalDetails)) ?? [];
         return [
             {
                 title: '',
@@ -75,7 +77,9 @@ function IOURequestStepSplitPayer({
         <StepScreenWrapper
             headerTitle={translate('moneyRequestConfirmationList.paidBy')}
             onBackButtonPress={navigateBack}
-            shouldShowNotFoundPage={!isValidMoneyRequestType(iouType) || isPolicyExpenseChat(report) || action !== CONST.IOU.ACTION.CREATE || iouType !== CONST.IOU.TYPE.SPLIT}
+            shouldShowNotFoundPage={
+                !isValidMoneyRequestType(iouType) || isPolicyExpenseChat(report) || action !== CONST.IOU.ACTION.CREATE || iouType !== CONST.IOU.TYPE.SPLIT
+            }
             shouldShowWrapper
             testID={IOURequestStepSplitPayer.displayName}
         >

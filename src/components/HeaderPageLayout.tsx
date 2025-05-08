@@ -8,7 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isSafari} from '@libs/Browser';
+import { isSafari } from '@libs/Browser';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';

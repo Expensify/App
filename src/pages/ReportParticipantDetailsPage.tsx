@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {removeFromGroupChat} from '@libs/actions/Report';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isGroupChatAdmin} from '@libs/ReportUtils';
+import {isGroupChatAdmin, } from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -36,7 +36,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, { canBeMissing: false });
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);

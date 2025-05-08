@@ -119,7 +119,7 @@ function AttachmentView({
     isUploading = false,
     reportID,
 }: AttachmentViewProps) {
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, { canBeMissing: false });
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackContext();
 

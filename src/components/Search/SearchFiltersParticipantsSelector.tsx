@@ -8,13 +8,13 @@ import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {filterAndOrderOptions, formatSectionsFromSearchTerm, getValidOptions} from '@libs/OptionsListUtils';
+import { canUseTouchScreen } from '@libs/DeviceCapabilities';
+import { getValidOptions, filterAndOrderOptions , formatSectionsFromSearchTerm} from '@libs/OptionsListUtils';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import type {SelectedOptionData} from '@libs/ReportUtils';
-import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import {  getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import {searchInServer as searchReportInServer} from '@userActions/Report';
+import { searchInServer as searchReportInServer } from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -80,7 +80,14 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return {sections: [], headerMessage: undefined};
         }
 
-        const formattedResults = formatSectionsFromSearchTerm(cleanSearchTerm, selectedOptions, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
+        const formattedResults = formatSectionsFromSearchTerm(
+            cleanSearchTerm,
+            selectedOptions,
+            chatOptions.recentReports,
+            chatOptions.personalDetails,
+            personalDetails,
+            true,
+        );
 
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 
