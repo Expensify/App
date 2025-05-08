@@ -1,4 +1,4 @@
-import {format, parse, subMilliseconds} from 'date-fns';
+import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
@@ -1281,9 +1281,7 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
 
     const text = Localize.translateLocal('testDrive.employeeInviteMessage', {name: getDisplayNameOrDefault(personalDetailsList?.[userAccountID])});
     const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID);
-    const iouCreatedActionDate = parse(testDriveIOUParams.iouOptimisticParams.createdAction.created, CONST.DATE.FNS_DB_FORMAT_STRING, new Date());
-    const commentReportActionDate = subMilliseconds(iouCreatedActionDate, 1);
-    textComment.reportAction.created = format(commentReportActionDate, CONST.DATE.FNS_DB_FORMAT_STRING);
+    textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
 
     optimisticData.push(
         {
@@ -1297,7 +1295,6 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${testDriveIOUParams.iouOptimisticParams.report.reportID}`,
             value: {
-                ...testDriveIOUParams.iouOptimisticParams.report,
                 ...{lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
                 hasOutstandingChildRequest: false,
                 lastActorAccountID: currentUserPersonalDetails?.accountID,
@@ -1309,11 +1306,6 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
             value: {
                 [testDriveIOUParams.iouOptimisticParams.action.reportActionID]: optimisticIOUReportAction,
             },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${testDriveIOUParams.transaction.transactionID}`,
-            value: testDriveIOUParams.transaction,
         },
     );
 
@@ -5200,10 +5192,14 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             break;
         }
         default: {
-            const guidedSetupData: GuidedSetupData | undefined =
-                isTestDrive && introSelected?.choice
-                    ? prepareOnboardingOnyxData(introSelected, introSelected.choice, CONST.ONBOARDING_MESSAGES[introSelected.choice])?.guidedSetupData
-                    : undefined;
+            // This is only required when inviting admins to test drive the app
+            const guidedSetupData: GuidedSetupData | undefined = isTestDrive
+                ? prepareOnboardingOnyxData(
+                      {choice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER},
+                      CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER,
+                      CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
+                  )?.guidedSetupData
+                : undefined;
 
             const parameters: RequestMoneyParams = {
                 debtorEmail: payerEmail,

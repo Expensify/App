@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useState} from 'react';
 import {InteractionManager} from 'react-native';
@@ -63,7 +64,7 @@ function EmployeeTestDriveModal() {
                     setMoneyRequestAmount(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.AMOUNT, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.CURRENCY);
                     setMoneyRequestDescription(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.DESCRIPTION, true);
                     setMoneyRequestMerchant(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
-                    setMoneyRequestCreated(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.CREATED, true);
+                    setMoneyRequestCreated(transactionID, format(new Date(), CONST.DATE.FNS_FORMAT_STRING), true);
 
                     InteractionManager.runAfterInteractions(() => {
                         Navigation.goBack();

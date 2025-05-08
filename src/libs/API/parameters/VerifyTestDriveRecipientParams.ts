@@ -1,5 +1,5 @@
 type VerifyTestDriveRecipientParams = {
-    testDriveRecipientEmail: string;
+    email: string;
 };
 
 export default VerifyTestDriveRecipientParams;

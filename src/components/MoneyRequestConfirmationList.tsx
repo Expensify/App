@@ -246,9 +246,13 @@ function MoneyRequestConfirmationList({
         return transaction?.receipt?.isTestDriveReceipt ?? false;
     }, [transaction?.receipt?.isTestDriveReceipt]);
 
+    const isManagerMcTestReceipt = useMemo(() => {
+        return Permissions.canUseManagerMcTest(betas) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login));
+    }, [betas, selectedParticipantsProp]);
+
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         isTestDriveReceipt ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
-        isTestDriveReceipt ? true : Permissions.canUseManagerMcTest(betas) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login)),
+        isTestDriveReceipt || isManagerMcTestReceipt,
     );
 
     const policy = policyReal ?? policyDraft;

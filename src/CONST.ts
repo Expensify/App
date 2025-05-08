@@ -7064,7 +7064,6 @@ const CONST = {
             CURRENCY: 'USD',
             DESCRIPTION: 'My test drive receipt!',
             MERCHANT: "Tommy's Tires",
-            CREATED: '2025-04-02',
         },
     },
 

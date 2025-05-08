@@ -6345,7 +6345,7 @@ const translations = {
             getStarted: 'Get started',
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
-            `# ${name} invited you to test drive Expensify\n\nHey! I just got us *3 months free* to test drive Expensify, the fastest way to do expenses.\n\nHere’s a *test receipt* to show you how it works:`,
+            `# ${name} invited you to test drive Expensify\nHey! I just got us *3 months free* to test drive Expensify, the fastest way to do expenses.\n\nHere’s a *test receipt* to show you how it works:`,
     },
 };
 
