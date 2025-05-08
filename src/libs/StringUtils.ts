@@ -11,6 +11,10 @@ function sanitizeString(str: string): string {
     return deburr(str).toLowerCase().replaceAll(CONST.REGEX.NON_ALPHABETIC_AND_NON_LATIN_CHARS, '');
 }
 
+function normalizeWhitespaces(str: string): string {
+    return str.replace(CONST.REGEX.WHITESPACE, ' ').trim();
+}
+
 /**
  *  Check if the string would be empty if all invisible characters were removed.
  */
@@ -132,4 +136,5 @@ export default {
     removeDoubleQuotes,
     removePreCodeBlock,
     sortStringArrayByLength,
+    normalizeWhitespaces,
 };
