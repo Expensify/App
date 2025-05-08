@@ -924,9 +924,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_REASON.route,
                         },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.BOOK_CALL]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route,
-                        },
                         [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
                         },
@@ -1330,6 +1327,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.MONEY_REQUEST.STEP_SPLIT_PAYER]: ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.route,
                         [SCREENS.MONEY_REQUEST.STEP_ATTENDEES]: ROUTES.MONEY_REQUEST_ATTENDEE.route,
+                        [SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT]: ROUTES.MONEY_REQUEST_ACCOUNTANT.route,
                         [SCREENS.MONEY_REQUEST.STEP_UPGRADE]: ROUTES.MONEY_REQUEST_UPGRADE.route,
                         [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: ROUTES.MONEY_REQUEST_STEP_DESTINATION.route,
                         [SCREENS.MONEY_REQUEST.STEP_TIME]: ROUTES.MONEY_REQUEST_STEP_TIME.route,
@@ -1481,6 +1479,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_FROM_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TO_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_TITLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TITLE,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_ASSIGNEE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_ASSIGNEE,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_CREATED_BY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CREATED_BY,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_BILLABLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_BILLABLE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_REIMBURSABLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_REIMBURSABLE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_WORKSPACE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_WORKSPACE,
@@ -1586,6 +1587,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                     exact: true,
                                 },
                             },
+                        },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: {
+                    screens: {
+                        [SCREENS.SCHEDULE_CALL.BOOK]: {
+                            path: ROUTES.SCHEDULE_CALL_BOOK.route,
+                        },
+                        [SCREENS.SCHEDULE_CALL.CONFIRMATION]: {
+                            path: ROUTES.SCHEDULE_CALL_CONFIRMATON.route,
                         },
                     },
                 },
