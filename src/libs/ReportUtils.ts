@@ -61,7 +61,7 @@ import type Onboarding from '@src/types/onyx/Onboarding';
 import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
-import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {AllConnectionName, ConnectionName} from '@src/types/onyx/Policy';
 import type {InvoiceReceiverType, NotificationPreference, Participants, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/ReportAction';
 import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
@@ -70,6 +70,7 @@ import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/o
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
+import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
@@ -102,6 +103,7 @@ import {
     getAccountIDsByLogins,
     getDisplayNameOrDefault,
     getEffectiveDisplayName,
+    getLoginByAccountID,
     getLoginsByAccountIDs,
     getPersonalDetailByEmail,
     getPersonalDetailsByIDs,
@@ -173,6 +175,7 @@ import {
     isDeletedParentAction,
     isExportIntegrationAction,
     isForwardedAction,
+    isIntegrationMessageAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
@@ -10057,11 +10060,18 @@ function prepareOnboardingOnyxData(
     }
 
     if (userReportedIntegration) {
+        const requiresControlPlan: AllConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.NETSUITE, CONST.POLICY.CONNECTIONS.NAME.QBD, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT];
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
             value: {
                 areConnectionsEnabled: true,
+                ...(requiresControlPlan.includes(userReportedIntegration)
+                    ? {
+                          type: CONST.POLICY.TYPE.CORPORATE,
+                      }
+                    : {}),
                 pendingFields: {
                     areConnectionsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -10349,11 +10359,116 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
         return false;
     }
 
+    let exportIntegrationActionsCount = 0;
+    let integrationMessageActionsCount = 0;
+
     if (Array.isArray(reportActions)) {
-        return reportActions.some((action) => isExportIntegrationAction(action));
+        for (const action of reportActions) {
+            if (isExportIntegrationAction(action)) {
+                exportIntegrationActionsCount++;
+            }
+            if (isIntegrationMessageAction(action)) {
+                integrationMessageActionsCount++;
+            }
+        }
+    } else {
+        for (const action of Object.values(reportActions)) {
+            if (isExportIntegrationAction(action)) {
+                exportIntegrationActionsCount++;
+            }
+            if (isIntegrationMessageAction(action)) {
+                integrationMessageActionsCount++;
+            }
+        }
     }
 
-    return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
+    // We need to make sure that there was at least one successful export to consider the report exported.
+    // We add one EXPORTINTEGRATION action to the report when we start exporting it (with pendingAction: 'add') and then another EXPORTINTEGRATION when the export finishes successfully.
+    // If the export fails, we add an INTEGRATIONS_MESSAGE action to the report, but the initial EXPORTINTEGRATION action is still present, so we compare the counts of these two actions to determine if the report was exported successfully.
+    return exportIntegrationActionsCount > integrationMessageActionsCount;
+}
+
+function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
+    if (!reportActions) {
+        return false;
+    }
+
+    if (Array.isArray(reportActions)) {
+        return reportActions.some((action) => isIntegrationMessageAction(action));
+    }
+
+    return Object.values(reportActions).some((action) => isIntegrationMessageAction(action));
+}
+
+function verifyState(report: OnyxEntry<Report>, validStates: Array<ValueOf<typeof CONST.REPORT.STATE_NUM>>): boolean {
+    if (report?.stateNum === undefined || report?.stateNum === null) {
+        return false;
+    }
+    return validStates.includes(report?.stateNum);
+}
+
+function verifyStatus(report: OnyxEntry<Report>, validStatuses: Array<ValueOf<typeof CONST.REPORT.STATUS_NUM>>): boolean {
+    if (report?.statusNum === undefined || report?.statusNum === null) {
+        return false;
+    }
+    return validStatuses.includes(report?.statusNum);
+}
+
+/**
+ * Determines whether the report can be moved to the workspace.
+ */
+function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, session: OnyxEntry<Session>): boolean {
+    if (!session?.accountID) {
+        return false;
+    }
+
+    const isIOU = isIOUReport(report);
+    const submitterLogin = report?.ownerAccountID && getLoginByAccountID(report?.ownerAccountID);
+    const isSubmitterMember = !!submitterLogin && !!newPolicy?.employeeList?.[submitterLogin];
+    const managerLogin = report?.managerID && getLoginByAccountID(report?.managerID);
+    const isManagerMember = !!managerLogin && !!newPolicy?.employeeList?.[managerLogin];
+    const isCurrentUserAdmin = isPolicyAdminPolicyUtils(newPolicy, session?.email);
+    const isPaidGroupPolicyType = isPaidGroupPolicyPolicyUtils(newPolicy);
+    const isReportOpenOrSubmitted = verifyState(report, [CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATE_NUM.SUBMITTED]);
+
+    // For IOUs, the sender and receiver can only change the workspace if:
+    // 1. The sender AND receiver are both members of the new policy OR
+    // 2. The sender OR receiver is an admin of the new policy. In this case, changing the policy also invites the non-member to the policy
+    if (isIOU && isReportOpenOrSubmitted && isPaidGroupPolicyType && ((isSubmitterMember && isManagerMember) || isCurrentUserAdmin)) {
+        return true;
+    }
+
+    // From this point on, reports must be of type Expense, the policy must be a paid type.
+    // The submitter and manager must also be policy members OR the current user is an admin so they can invite the non-members to the policy.
+    const isExpenseReportType = isExpenseReport(report);
+    if (!isExpenseReportType || !isPaidGroupPolicyType || !((isSubmitterMember && isManagerMember) || isCurrentUserAdmin)) {
+        return false;
+    }
+
+    const isCurrentUserReportSubmitter = session.accountID === report?.ownerAccountID;
+    if (isCurrentUserReportSubmitter && isReportOpenOrSubmitted) {
+        return true;
+    }
+
+    const isCurrentUserReportApprover = isApproverMember(newPolicy, session.accountID);
+    if (isCurrentUserReportApprover && verifyState(report, [CONST.REPORT.STATE_NUM.SUBMITTED])) {
+        return true;
+    }
+
+    const isCurrentUserReportPayer = isPayer(session, report, false, newPolicy);
+    if (isCurrentUserReportPayer && verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED])) {
+        return true;
+    }
+
+    if (
+        isCurrentUserAdmin &&
+        verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED]) &&
+        verifyStatus(report, [CONST.REPORT.STATUS_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED, CONST.REPORT.STATUS_NUM.CLOSED])
+    ) {
+        return true;
+    }
+
+    return false;
 }
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
@@ -10895,6 +11010,7 @@ export {
     getIntegrationIcon,
     canBeExported,
     isExported,
+    hasExportError,
     getHelpPaneReportType,
     hasOnlyNonReimbursableTransactions,
     getReportLastMessage,
@@ -10947,6 +11063,7 @@ export {
     generateReportAttributes,
     getReportPersonalDetailsParticipants,
     isAllowedToSubmitDraftExpenseReport,
+    isWorkspaceEligibleForReportChange,
 };
 
 export type {

@@ -98,11 +98,11 @@ function MoneyRequestAction({
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
         if (!action?.childReportID && transactionID && action.reportActionID) {
             const optimisticReportID = generateReportID();
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID, undefined, requestReportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID, Navigation.getActiveRoute(), requestReportID));
             return;
         }
 
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     };
 
     let shouldShowPendingConversionMessage = false;
