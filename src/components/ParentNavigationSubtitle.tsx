@@ -30,7 +30,7 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
     const styles = useThemeStyles();
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, { canBeMissing: true });
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
 
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)

@@ -107,7 +107,7 @@ function ConnectionLayout({
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, { canBeMissing: false });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
     const renderSelectionContent = useMemo(

@@ -28,7 +28,7 @@ import utils from './utils';
 
 const MapView = forwardRef<MapViewHandle, MapViewProps>(
     ({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true, distanceInMeters, unit}, ref) => {
-        const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, { canBeMissing: true });
+        const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
         const navigation = useNavigation();
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();

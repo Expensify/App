@@ -84,7 +84,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`, { canBeMissing: true });
+    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`);
 
     const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
