@@ -14,7 +14,7 @@ import type {Option, Section} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {  getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import { searchInServer as searchReportInServer } from '@userActions/Report';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -152,7 +152,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     }, [initialAccountIDs, personalDetails]);
 
     useEffect(() => {
-        searchReportInServer(debouncedSearchTerm.trim());
+        Report.searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
     const handleParticipantSelection = useCallback(

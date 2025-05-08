@@ -11,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
-import { setSplitPayer as setSplitPayerIOU } from '@userActions/IOU';
+import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -69,7 +69,7 @@ function IOURequestStepSplitPayer({
     };
 
     const setSplitPayer = (item: Participant | OptionData) => {
-        setSplitPayerIOU(transactionID, item.accountID ?? -1);
+        IOU.setSplitPayer(transactionID, item.accountID ?? -1);
         navigateBack();
     };
 
