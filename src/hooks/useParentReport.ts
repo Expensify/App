@@ -1,5 +1,4 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import useOnyx from './useOnyx';

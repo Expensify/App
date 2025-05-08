@@ -708,6 +708,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         unapproveExpenseReportOrShowModal,
         isRootGroupChat,
         leaveChat,
+        beginPDFExport,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
