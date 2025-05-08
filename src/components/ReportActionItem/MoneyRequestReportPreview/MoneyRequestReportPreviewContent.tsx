@@ -539,22 +539,23 @@ function MoneyRequestReportPreviewContent({
 
     useEffect(() => {
         const node = carouselRef.current?.getScrollableNode?.() as HTMLElement;
-        if (node?.addEventListener) {
-            const horizontalWheel = (ev: WheelEvent) => {
-                const deltaX = ev.deltaX || 0;
-                const deltaY = ev.deltaY || 0;
-                if (Math.abs(deltaX) >= Math.abs(deltaY)) {
-                    node.scrollLeft += deltaX;
-                    ev.preventDefault();
-                    ev.stopPropagation();
-                }
-            };
-            node.addEventListener('wheel', horizontalWheel, {capture: true});
-
-            return () => {
-                node.removeEventListener('wheel', horizontalWheel, {capture: true});
-            };
+        if (!(node instanceof HTMLElement) || !node?.addEventListener) {
+            return;
         }
+        const horizontalWheel = (ev: WheelEvent) => {
+            const deltaX = ev.deltaX || 0;
+            const deltaY = ev.deltaY || 0;
+            if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+                node.scrollLeft += deltaX;
+                ev.preventDefault();
+                ev.stopPropagation();
+            }
+        };
+        node.addEventListener('wheel', horizontalWheel, {capture: true});
+
+        return () => {
+            node.removeEventListener('wheel', horizontalWheel, {capture: true});
+        };
     }, []);
 
     return (
