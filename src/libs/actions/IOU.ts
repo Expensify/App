@@ -929,7 +929,7 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
 function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
     const optimisticTransactions = getOptimisticTransactions();
     const optimisticTransactionsSet = optimisticTransactions.reduce((acc, item) => {
-        acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] = null;
+        acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
         return acc;
     }, {} as Record<string, null>);
     Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);

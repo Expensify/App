@@ -55,6 +55,15 @@ Onyx.connect({
     },
 });
 
+let allTransactionDrafts: OnyxCollection<Transaction> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allTransactionDrafts = value ?? {};
+    },
+});
+
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -846,7 +855,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
 }
 
 function getOptimisticTransactions(): Transaction[] {
-    return Object.values(allTransactions ?? {}).filter((transaction) => transaction.isOptimisticTransaction);
+    return Object.values(allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 }
 
 export {
