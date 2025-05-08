@@ -7,16 +7,15 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReportsForUser} from '@libs/ReportUtils';
-import colors from '@styles/theme/colors';
+import {findSelfDMReportID, getOutstandingReportsForUser} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
@@ -52,6 +51,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {translate} = useLocalize();
     const {backTo, action} = route.params;
     const {options} = useOptionsList();
+    const selfDMReportID = findSelfDMReportID();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, reportSelector), canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -102,6 +102,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             return;
         }
         changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(selfDMReportID));
     };
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
