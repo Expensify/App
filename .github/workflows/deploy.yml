@@ -81,9 +81,31 @@ jobs:
     needs: prep
     secrets: inherit
 
+  # If we try to run an iOS/Android production deploy while the same version is deploying to staging, then it will fail.
+  # It will fail because on iOS and Android the staging deploy builds the app an uploads it, while the production deploy just submits it for review.
+  waitForStagingDeploy:
+    name: Wait for iOS/Android staging deploy to finish
+    if: ${{ github.ref == 'refs/heads/production' }}
+    needs: prep
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      # If there's a release created for the same version, then the staging deploy has finished
+      - name: Check for matching release
+        run: gh release view ${{ needs.prep.outputs.TAG }}
+
+      # If the previous step failed, that means a release isn't created. So we'll look for the deploy and wait for it to finish
+      - name: Wait for staging deploy to finish
+        if: failure()
+        run: |
+          CURRENT_STAGING_DEPLOY="$(gh run list --workflow deploy.yml --branch staging --status in_progress  --json databaseId --jq '.[0].databaseId')"
+          gh run watch "$CURRENT_STAGING_DEPLOY"
+
   android:
     name: Build and deploy Android HybridApp
-    needs: prep
+    needs: [prep, waitForStagingDeploy]
+    if: ${{ always() }}
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout App and Mobile-Expensify repo
@@ -330,7 +352,8 @@ jobs:
 
   ios:
     name: Build and deploy iOS HybridApp
-    needs: prep
+    needs: [ prep, waitForStagingDeploy ]
+    if: ${{ always() }}
     runs-on: macos-15-xlarge
     env:
       DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
