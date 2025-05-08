@@ -15,7 +15,6 @@ type ACHData = {
     state: State;
     validateCodeExpectedDate: string;
     needsToUpgrade: boolean;
-    ACHRequestReportActionID: string;
 };
 
 class BankAccount {
