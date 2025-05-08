@@ -185,7 +185,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     );
 
     return (
-        <View style={[styles.pt4, styles.mh65vh, styles.getUserSelectionListPopoverHeight(dataLength)]}>
+        <View style={[styles.mh65vh, styles.getUserSelectionListPopoverHeight(dataLength || 1)]}>
             <SelectionList
                 canSelectMultiple
                 shouldClearInputOnSelect={false}
@@ -193,6 +193,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 sections={sections}
                 ListItem={UserSelectionListItem}
                 showScrollIndicator={false}
+                containerStyle={[styles.pt4]}
                 textInputLabel={translate('selectionList.searchForSomeone')}
                 textInputValue={searchTerm}
                 footerContent={<FooterContent />}

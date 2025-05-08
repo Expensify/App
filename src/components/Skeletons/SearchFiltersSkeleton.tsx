@@ -25,6 +25,8 @@ function SearchFiltersSkeleton({shouldAnimate = true}: SearchFiltersSkeletonProp
             >
                 {skeletonCount.map((_, index) => (
                     <Rect
+                        // eslint-disable-next-line react/no-array-index-key
+                        key={index}
                         x={index * 90}
                         y={0}
                         rx={14}
@@ -44,6 +46,8 @@ function SearchFiltersSkeleton({shouldAnimate = true}: SearchFiltersSkeletonProp
                 >
                     {skeletonCount.map((_, index) => (
                         <Rect
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={index}
                             x={10 + index * 90}
                             y={10}
                             rx={4}
