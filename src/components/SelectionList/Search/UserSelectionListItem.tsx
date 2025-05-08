@@ -84,7 +84,6 @@ function UserSelectionListItem<TItem extends ListItem>({
                             name={item.icons.at(0)?.name}
                             avatarID={item.icons.at(0)?.id}
                             type={item.icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
-                            fill={theme.success}
                             fallbackIcon={item.icons.at(0)?.fallbackIcon}
                         />
                     </View>
@@ -100,7 +99,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                         <TextWithTooltip
                             text={`@${userHandle}`}
                             shouldShowTooltip={showTooltip}
-                            style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                            style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
                         />
                     )}
                 </View>

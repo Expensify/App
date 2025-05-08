@@ -5684,6 +5684,18 @@ const styles = (theme: ThemeColors) =>
             ...sizing.mh65vh,
         }),
 
+        getUserSelectionListPopoverHeight: (itemCount: number) => {
+            const SEARCHBAR_HEIGHT = 50;
+            const SEARCHBAR_MARGIN = 14;
+            const BUTTON_HEIGHT = 40;
+            const PADDING = 32;
+
+            return {
+                height: itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_MARGIN + BUTTON_HEIGHT + PADDING,
+                ...sizing.mh65vh,
+            };
+        },
+
         earlyDiscountButton: {
             flexGrow: 1,
             flexShrink: 1,

@@ -161,6 +161,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [debouncedSearchTerm]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
+    const dataLength = sections.flatMap((section) => section.data).length;
 
     const FooterContent = useCallback(
         () => (
@@ -184,21 +185,22 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     );
 
     return (
-        <SelectionList
-            canSelectMultiple
-            shouldClearInputOnSelect={false}
-            headerMessage={headerMessage}
-            sections={sections}
-            containerStyle={[styles.pt4, styles.mh65vh]}
-            ListItem={UserSelectionListItem}
-            showScrollIndicator={false}
-            textInputLabel={translate('selectionList.searchForSomeone')}
-            textInputValue={searchTerm}
-            footerContent={<FooterContent />}
-            onSelectRow={selectUser}
-            onChangeText={setSearchTerm}
-            isLoadingNewOptions={isLoadingNewOptions}
-        />
+        <View style={[styles.pt4, styles.mh65vh, styles.getUserSelectionListPopoverHeight(dataLength)]}>
+            <SelectionList
+                canSelectMultiple
+                shouldClearInputOnSelect={false}
+                headerMessage={headerMessage}
+                sections={sections}
+                ListItem={UserSelectionListItem}
+                showScrollIndicator={false}
+                textInputLabel={translate('selectionList.searchForSomeone')}
+                textInputValue={searchTerm}
+                footerContent={<FooterContent />}
+                onSelectRow={selectUser}
+                onChangeText={setSearchTerm}
+                isLoadingNewOptions={isLoadingNewOptions}
+            />
+        </View>
     );
 }
 
