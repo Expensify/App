@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Errors} from './OnyxCommon';
 
 /**
  * The attributes of a report.
@@ -13,6 +14,10 @@ type ReportAttributes = {
      * The status of the brick road.
      */
     brickRoadStatus: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+    /**
+     * The errors of the report.
+     */
+    reportErrors: Errors;
 };
 
 /**

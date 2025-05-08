@@ -88,7 +88,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-            const {hasAnyViolations, requiresAttention, isReportArchived} = generateReportAttributes({
+            const {hasAnyViolations, requiresAttention, isReportArchived, reportErrors} = generateReportAttributes({
                 report,
                 reportActions,
                 transactionViolations,
@@ -108,6 +108,7 @@ export default createOnyxDerivedValueConfig({
             acc[report.reportID] = {
                 reportName: generateReportName(report),
                 brickRoadStatus,
+                reportErrors,
             };
 
             return acc;
