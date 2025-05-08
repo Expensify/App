@@ -6,7 +6,7 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
 
 /**
  * Hook to get the default fundID for a given policyID. This is used to get the settings and cards for each of the feeds.
- * It will always return lastSelectedExpensifyCardFeed if it exists or fallback to the workspaceAccountID or domainFundID.
+ * It will always return lastSelectedExpensifyCardFeed if it exists or fallback to the domainFundID or workspaceAccountID.
  */
 function useDefaultFundID(policyID: string | undefined) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
@@ -27,11 +27,15 @@ function useDefaultFundID(policyID: string | undefined) {
         return lastSelectedExpensifyCardFeed;
     }
 
+    if (domainFundID) {
+        return domainFundID;
+    }
+
     if (workspaceAccountID) {
         return workspaceAccountID;
     }
 
-    return domainFundID ?? CONST.DEFAULT_NUMBER_ID;
+    return CONST.DEFAULT_NUMBER_ID;
 }
 
 export default useDefaultFundID;
