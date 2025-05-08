@@ -31,7 +31,7 @@ function TransactionItemRow({
     dateColumnSize,
     shouldShowChatBubbleComponent = false,
     onCheckboxPress,
-    shouldShowCheckBox = false,
+    shouldShowCheckbox = false,
 }: {
     transactionItem: TransactionWithOptionalHighlight;
     shouldUseNarrowLayout: boolean;
@@ -40,7 +40,7 @@ function TransactionItemRow({
     dateColumnSize: TableColumnSize;
     shouldShowChatBubbleComponent?: boolean;
     onCheckboxPress: (transactionID: string) => void;
-    shouldShowCheckBox: boolean;
+    shouldShowCheckbox: boolean;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -82,7 +82,7 @@ function TransactionItemRow({
                 <Animated.View style={[animatedHighlightStyle]}>
                     <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3, bgActiveStyles]}>
                         <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
-                            {(!!selectionMode?.isEnabled || shouldShowCheckBox) && (
+                            {shouldShowCheckbox && (
                                 <View style={[styles.mr3, styles.justifyContentCenter]}>
                                     <Checkbox
                                         onPress={() => {

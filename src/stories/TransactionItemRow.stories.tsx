@@ -15,7 +15,7 @@ type TransactionItemRowProps = {
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
-    shouldShowCheckBox: boolean;
+    shouldShowCheckbox: boolean;
 };
 
 const story: Meta<typeof TransactionItemRow> = {
@@ -26,7 +26,7 @@ const story: Meta<typeof TransactionItemRow> = {
         shouldUseNarrowLayout: false,
         isSelected: false,
         shouldShowTooltip: true,
-        shouldShowCheckBox: true,
+        shouldShowCheckbox: true,
     },
     argTypes: {
         transactionItem: {
@@ -41,7 +41,7 @@ const story: Meta<typeof TransactionItemRow> = {
         shouldShowTooltip: {
             control: 'boolean',
         },
-        shouldShowCheckBox: {
+        shouldShowCheckbox: {
             control: 'boolean',
         },
     },
@@ -51,7 +51,7 @@ const story: Meta<typeof TransactionItemRow> = {
 };
 
 function Template(
-    {transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip, shouldShowCheckBox}: TransactionItemRowProps,
+    {transactionItem, shouldUseNarrowLayout, isSelected, shouldShowTooltip, shouldShowCheckbox}: TransactionItemRowProps,
     {parameters}: {parameters: {useLightTheme?: boolean}},
 ) {
     const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
@@ -64,13 +64,14 @@ function Template(
                         transactionItem={transactionItem}
                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                         isSelected={isSelected}
-                    shouldShowTooltip={shouldShowTooltip}
-                    shouldShowChatBubbleComponent
-                    dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    onCheckboxPress={() => {}}
-                    shouldShowCheckBox={shouldShowCheckBox}
-                />
-            </ThemeStylesProvider></ScreenWrapper>
+                        shouldShowTooltip={shouldShowTooltip}
+                        shouldShowChatBubbleComponent
+                        dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        onCheckboxPress={() => {}}
+                        shouldShowCheckbox={shouldShowCheckbox}
+                    />
+                </ThemeStylesProvider>
+            </ScreenWrapper>
         </ThemeProvider>
     );
 }
