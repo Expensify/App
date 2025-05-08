@@ -5172,6 +5172,14 @@ function clearBillingReceiptDetailsErrors() {
     Onyx.merge(ONYXKEYS.BILLING_RECEIPT_DETAILS, {errors: null});
 }
 
+function setIsForcedToChangeCurrency(value: boolean) {
+    Onyx.set(ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY, value);
+}
+
+function setIsComingFromGlobalReimbursementsFlow(value: boolean) {
+    Onyx.set(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, value);
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -5278,4 +5286,6 @@ export {
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
     updateLastAccessedWorkspaceSwitcher,
+    setIsForcedToChangeCurrency,
+    setIsComingFromGlobalReimbursementsFlow,
 };

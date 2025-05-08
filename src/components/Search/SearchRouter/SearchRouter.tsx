@@ -362,6 +362,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                         onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
                         ref={listRef}
+                        textInputRef={textInputRef}
                     />
                 </>
             )}
