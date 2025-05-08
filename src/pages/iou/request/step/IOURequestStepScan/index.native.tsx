@@ -1,5 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/core';
 import {Str} from 'expensify-common';
+import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, Image, InteractionManager, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -32,7 +33,7 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
@@ -595,6 +596,57 @@ function IOURequestStepScan({
         });
     };
 
+    /**
+     * Converts HEIC images to JPEG format before sending to setReceiptAndNavigate
+     */
+    const convertReceipt = useCallback(
+        async (originalFile: FileObject, isPdfValidated?: boolean): Promise<void> => {
+            if (!originalFile?.type?.startsWith('image')) {
+                setReceiptAndNavigate(originalFile, isPdfValidated);
+                return;
+            }
+
+            const fileUri = originalFile.uri;
+            if (!fileUri) {
+                Log.warn('File URI is undefined');
+                return;
+            }
+
+            setIsLoaderVisible(true);
+            try {
+                const isHEIC = await verifyFileFormat({fileUri, formatSignatures: CONST.HEIC_SIGNATURES});
+
+                if (isHEIC) {
+                    try {
+                        const manipResult = await manipulateAsync(fileUri, [], {compress: 0.8, format: SaveFormat.JPEG});
+
+                        const convertedFile = {
+                            uri: manipResult.uri,
+                            name: originalFile.name?.replace(/\.heic$/i, '.jpg'),
+                            type: 'image/jpeg',
+                            size: originalFile.size,
+                            width: manipResult.width,
+                            height: manipResult.height,
+                        };
+
+                        setReceiptAndNavigate(convertedFile, isPdfValidated);
+                    } catch (err) {
+                        Log.warn('Error converting HEIC to JPEG:', err instanceof Error ? {message: err.message} : {err});
+                        setReceiptAndNavigate(originalFile, isPdfValidated);
+                    }
+                } else {
+                    setReceiptAndNavigate(originalFile, isPdfValidated);
+                }
+            } catch (err) {
+                Log.warn('Error processing the file:', err instanceof Error ? {message: err.message} : {err});
+                setReceiptAndNavigate(originalFile, isPdfValidated);
+            } finally {
+                setIsLoaderVisible(false);
+            }
+        },
+        [setReceiptAndNavigate, setIsLoaderVisible],
+    );
+
     const capturePhoto = useCallback(() => {
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
             askForPermissions();
@@ -720,7 +772,7 @@ function IOURequestStepScan({
                         onLoadSuccess={() => {
                             setPdfFile(null);
                             if (pdfFile) {
-                                setReceiptAndNavigate(pdfFile, true);
+                                convertReceipt(pdfFile, true);
                             }
                         }}
                         onPassword={() => {
@@ -804,7 +856,7 @@ function IOURequestStepScan({
                                 style={[styles.alignItemsStart]}
                                 onPress={() => {
                                     openPicker({
-                                        onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
+                                        onPicked: (data) => convertReceipt(data.at(0) ?? {}),
                                         onCanceled: () => setIsLoaderVisible(false),
                                         // makes sure the loader is not visible anymore e.g. when there is an error while uploading a file
                                         onClosed: () => {
