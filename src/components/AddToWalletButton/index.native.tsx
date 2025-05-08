@@ -4,6 +4,8 @@ import {ActivityIndicator, View} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
 import CONST from '@src/CONST';
 import type AddToWalletButtonProps from './types';
@@ -15,6 +17,8 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
     const theme = useTheme();
+    const platform = getPlatform() === CONST.PLATFORM.IOS ? 'Apple' : 'Google';
+    const styles = useThemeStyles();
 
     const checkIfCardIsInWallet = useCallback(() => {
         isCardInWallet(card)
@@ -71,7 +75,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
     if (isInWallet) {
         return (
             <View style={buttonStyle}>
-                <Text>{translate('cardPage.cardAlreadyInWallet')}</Text>;
+                <Text style={[styles.textLabelSupporting, styles.mt6]}>{translate('cardPage.cardAddedToWallet', {platform})}</Text>;
             </View>
         );
     }
