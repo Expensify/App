@@ -87,6 +87,7 @@ function AmountTextInput(
             autoCorrect={false}
             spellCheck={false}
             disableKeyboardShortcuts
+            shouldUseFullInputHeight
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />

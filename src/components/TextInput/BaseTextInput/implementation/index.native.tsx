@@ -47,6 +47,7 @@ function BaseTextInput(
         touchableInputWrapperStyle,
         containerStyles,
         inputStyle,
+        shouldUseFullInputHeight = false,
         forceActiveLabel = false,
         disableKeyboard = false,
         autoGrow = false,
@@ -278,7 +279,7 @@ function BaseTextInput(
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
     // Height fix is needed only for Text single line inputs
-    const shouldApplyHeight = !isMultiline && !isMarkdownEnabled;
+    const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
 
     return (
         <>
