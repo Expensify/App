@@ -358,6 +358,7 @@ const translations = {
         send: 'Enviar',
         na: 'N/A',
         noResultsFound: 'No se han encontrado resultados',
+        noResultsFoundMatching: ({searchString}: {searchString: string}) => `No se encontraron resultados que coincidan con "${searchString}"`,
         recentDestinations: 'Destinos recientes',
         timePrefix: 'Son las',
         conjunctionFor: 'para',
@@ -3042,6 +3043,7 @@ const translations = {
                 other: 'Eliminar tasas',
             }),
             deletePerDiemRate: 'Eliminar tasa per diem',
+            findPerDiemRate: 'Encontrar tasa per diem',
             areYouSureDelete: () => ({
                 one: '¿Estás seguro de que quieres eliminar esta tasa?',
                 other: '¿Estás seguro de que quieres eliminar estas tasas?',
@@ -3850,6 +3852,7 @@ const translations = {
                 },
             },
             assignCard: 'Asignar tarjeta',
+            findCard: 'Encontrar tarjeta',
             cardNumber: 'Número de la tarjeta',
             commercialFeed: 'Fuente comercial',
             feedName: ({feedName}: CompanyCardFeedNameParams) => `Tarjetas ${feedName}`,
@@ -3884,6 +3887,7 @@ const translations = {
             disclaimer:
                 'La tarjeta comercial Expensify Visa® es emitida por The Bancorp Bank, N.A., miembro de la FDIC, en virtud de una licencia de Visa U.S.A. Inc. y no puede utilizarse en todos los comercios que aceptan tarjetas Visa. Apple® y el logotipo de Apple® son marcas comerciales de Apple Inc. registradas en EE.UU. y otros países. App Store es una marca de servicio de Apple Inc. Google Play y el logotipo de Google Play son marcas comerciales de Google LLC.',
             issueCard: 'Emitir tarjeta',
+            findCard: 'Encontrar tarjeta',
             newCard: 'Nueva tarjeta',
             name: 'Nombre',
             lastFour: '4 últimos',
@@ -3977,6 +3981,7 @@ const translations = {
             addCategory: 'Añadir categoría',
             editCategory: 'Editar categoría',
             editCategories: 'Editar categorías',
+            findCategory: 'Encontrar categoría',
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio',
             existingCategoryError: 'Ya existe una categoría con este nombre',
             invalidCategoryName: 'Lo nombre de la categoría es invalido',
@@ -4154,6 +4159,7 @@ const translations = {
             addField: 'Añadir campo',
             delete: 'Eliminar campo',
             deleteFields: 'Eliminar campos',
+            findReportField: 'Encontrar campo del informe',
             deleteConfirmation: '¿Está seguro de que desea eliminar este campo del informe?',
             deleteFieldsConfirmation: '¿Está seguro de que desea eliminar estos campos del informe?',
             emptyReportFields: {
@@ -4210,6 +4216,7 @@ const translations = {
             addTag: 'Añadir etiqueta',
             editTag: 'Editar etiqueta',
             editTags: 'Editar etiquetas',
+            findTag: 'Encontrar etiquetas',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
@@ -4241,6 +4248,7 @@ const translations = {
             customTaxName: 'Nombre del impuesto',
             value: 'Valor',
             taxRate: 'Tasa de impuesto',
+            findTaxRate: 'Encontrar tasa de impuesto',
             taxReclaimableOn: 'Impuesto recuperable en',
             error: {
                 taxRateAlreadyExists: 'Ya existe un impuesto con este nombre',
@@ -4308,6 +4316,7 @@ const translations = {
                 one: 'Eliminar miembro',
                 other: 'Eliminar miembros',
             }),
+            findMember: 'Encontrar miembro',
             removeWorkspaceMemberButtonTitle: 'Eliminar del espacio de trabajo',
             removeGroupMemberButtonTitle: 'Eliminar del grupo',
             removeRoomMemberButtonTitle: 'Eliminar del chat',
@@ -4663,6 +4672,7 @@ const translations = {
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
             rate: 'Tasa',
             addRate: 'Agregar tasa',
+            findRate: 'Encontrar tasa',
             trackTax: 'Impuesto de seguimiento',
             deleteRates: () => ({
                 one: 'Eliminar tasa',
@@ -5061,9 +5071,11 @@ const translations = {
         description: 'Elige una de las siguientes opciones:',
         chatWithConcierge: 'Chatear con Concierge',
         scheduleSetupCall: 'Concertar una llamada',
-        scheduleADemo: 'Programa una demostración',
+        scheduleACall: 'Programar llamada',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
+        registerForWebinar: 'Registrarse para el seminario web',
+        onboardingHelp: 'Ayuda de incorporación',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
@@ -6795,6 +6807,18 @@ const translations = {
             tryItOut: 'Prueba esto',
             noThanks: 'No, gracias',
         },
+        outstandingFilter: {
+            part1: 'Filtra los gastos\nque ',
+            part2: 'necesitan aprobación',
+        },
+        settingsTab: {
+            part1: 'Explora ',
+            part2: 'tu espacio de trabajo\ny la configuración de tu cuenta',
+        },
+        workspacesSettings: {
+            part1: 'Ver tus ',
+            part2: 'espacios de trabajo',
+        },
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
@@ -6806,6 +6830,21 @@ const translations = {
         getHelp: 'Obtener ayuda',
         talkToConcierge: 'Habla con Concierge',
         hangUp: 'Colgar',
+    },
+    scheduledCall: {
+        book: {
+            title: 'Programar llamada',
+            description: 'Encuentra un horario que funcione para ti.',
+            slots: 'Horarios disponibles para el ',
+        },
+        confirmation: {
+            title: 'Confirmar llamada',
+            description: 'Asegúrate de que los detalles a continuación sean correctos. Una vez que confirmes la llamada, enviaremos una invitación con más información.',
+            setupSpecialist: 'Tu especialista asignado',
+            meetingLength: 'Duración de la reunión',
+            dateTime: 'Fecha y hora',
+            minutes: '30 minutos',
+        },
     },
     testDrive: {
         quickAction: {
