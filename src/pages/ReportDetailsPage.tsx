@@ -439,7 +439,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 (!isUserCreatedPolicyRoom && participants.length) ||
                 (isUserCreatedPolicyRoom && (isPolicyEmployee || (isChatThread && !isPublicRoomUtil(report))))) &&
             !isConciergeChatReport(report) &&
-            !isSystemChat
+            !isSystemChat &&
+            activeChatMembers.length > 0
         ) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
