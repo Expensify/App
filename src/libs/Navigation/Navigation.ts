@@ -393,10 +393,10 @@ function popToSidebar() {
     const topRoute = currentRoute.state?.routes.at(0);
     const lastRoute = currentRoute.state?.routes.at(-1);
 
-    if (topRoute?.name !== SPLIT_TO_SIDEBAR[currentRoute?.name]) {
+    const currentRouteName = currentRoute?.name as keyof typeof SPLIT_TO_SIDEBAR;
+    if (topRoute?.name !== SPLIT_TO_SIDEBAR[currentRouteName]) {
         const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
 
-        const currentRouteName = currentRoute?.name as keyof typeof SPLIT_TO_SIDEBAR;
         const sidebarName = SPLIT_TO_SIDEBAR[currentRouteName];
 
         navigationRef.dispatch({payload: {name: sidebarName, params}, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE});
