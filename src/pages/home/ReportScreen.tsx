@@ -324,18 +324,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         wasReportAccessibleRef.current = true;
     }, [report]);
 
-    const backTo = route?.params?.backTo as string; // here too
+    const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(() => {
-        console.log('something happening here');
-        console.log('shouldPopToSidebar', Navigation.getShouldPopToSidebar());
-
         if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
-            // TODO not good
             Navigation.dismissModal();
             return;
         }
         if (backTo) {
-            // Navigation.goBack(backTo as Route, {shouldPopToTop: true});
             if (Navigation.getShouldPopToSidebar()) {
                 Navigation.popToSidebar();
                 return;
@@ -345,6 +340,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
         // Navigation.goBack(undefined, {shouldPopToTop: true});
         if (Navigation.getShouldPopToSidebar()) {
+            // need further investigation whether we can just pop to sidebar
             Navigation.popToSidebar();
             return;
         }

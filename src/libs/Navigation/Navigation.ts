@@ -24,7 +24,7 @@ import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getPolicyIDFromState from './helpers/getPolicyIDFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
-import {isFullScreenName, isOnboardingFlowName} from './helpers/isNavigatorName';
+import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
@@ -34,9 +34,9 @@ import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
 import switchPolicyID from './helpers/switchPolicyID';
 import {linkingConfig} from './linkingConfig';
+import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
-import { SPLIT_TO_SIDEBAR } from './linkingConfig/RELATIONS';
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES: Route[] = [
@@ -378,28 +378,25 @@ function popToSidebar() {
     setShouldPopToSidebar(false);
 
     const rootState = navigationRef.current?.getRootState();
-    const topRoute = rootState?.routes.at(0);
-    const lastRoute = rootState?.routes.at(-1);
+    const currentRoute = rootState?.routes.at(-1);
 
-    console.log("Pop to sidebar const: \n", rootState, topRoute, lastRoute);
+    if (!isSplitNavigatorName(currentRoute?.name)) {
+        Log.hmmm('[popToSidebar] must be invoked only from SplitNavigator');
+        return;
+    }
+    const topRoute = currentRoute.state?.routes.at(0);
+    const lastRoute = currentRoute.state?.routes.at(-1);
 
-    if (!(lastRoute?.name in SPLIT_TO_SIDEBAR)){        
-        console.log("popToSIdebar not work");
-        Log.hmmm('[popToSidebar] must be invoked only from SplitNavigator')
+    if (topRoute?.name !== SPLIT_TO_SIDEBAR[currentRoute?.name]) {
+        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
+
+        const currentRouteName = currentRoute?.name as keyof typeof SPLIT_TO_SIDEBAR;
+        const sidebarName = SPLIT_TO_SIDEBAR[currentRouteName];
+
+        navigationRef.dispatch({payload: {name: sidebarName, params}, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE});
         return;
     }
 
-    console.log("Split to sidebar: ", topRoute?.name, lastRoute?.name, SPLIT_TO_SIDEBAR[topRoute?.name]);
-    
-    if (topRoute?.name !== SPLIT_TO_SIDEBAR[lastRoute.name]){
-        // replace so we have sidebar
-        // navigationRef.current?.dispatch(StackActions.replace)
-        // goBack(SPLIT_TO_SIDEBAR[lastRoute.name] as Route);
-        console.log("replacing");
-        goBack(ROUTES.SETTINGS);
-        return;
-    }
-    console.log("popping all state");
     navigationRef.current?.dispatch(StackActions.popToTop());
 }
 

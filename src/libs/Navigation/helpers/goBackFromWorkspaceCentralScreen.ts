@@ -18,7 +18,7 @@ function goBackFromWorkspaceCentralScreen(policyID: string | undefined) {
     }
 
     if (lastRoute.state?.routes && lastRoute.state.routes.length > 1) {
-        Navigation.goBack(undefined, {shouldPopToTop: true});
+        Navigation.popToSidebar();
         return;
     }
 
