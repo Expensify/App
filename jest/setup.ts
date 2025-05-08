@@ -164,3 +164,6 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
         return Promise.resolve(formData);
     }),
 }));
+
+// This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
+jest.mock('@components/ConfirmedRoute.tsx');

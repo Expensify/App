@@ -56,7 +56,6 @@ jest.mock('@src/libs/actions/EmojiPickerAction', () => {
         isActive: () => true,
     };
 });
-jest.mock('@components/ConfirmedRoute.tsx');
 
 beforeAll(() =>
     Onyx.init({
