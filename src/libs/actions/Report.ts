@@ -466,6 +466,13 @@ function getReportChannelName(reportID: string): string {
     return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
 
+function openUnreportedExpense(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    Navigation.navigate(ROUTES.ADD_UNREPORTED_EXPENSE.getRoute(reportID));
+}
+
 /**
  * There are 2 possibilities that we can receive via pusher for a user's typing/leaving status:
  * 1. The "new" way from New Expensify is passed as {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
@@ -5316,4 +5323,5 @@ export {
     dismissChangePolicyModal,
     changeReportPolicy,
     removeFailedReport,
+    openUnreportedExpense,
 };

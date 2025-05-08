@@ -215,6 +215,7 @@ const SCREENS = {
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
+        ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
         SCHEDULE_CALL: 'ScheduleCall',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
@@ -708,6 +709,7 @@ const SCREENS = {
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
     MISSING_PERSONAL_DETAILS_ROOT: 'MissingPersonalDetails_Root',
+    ADD_UNREPORTED_EXPENSES_ROOT: 'AddUnreportedExpenses_Root',
     DEBUG: {
         REPORT: 'Debug_Report',
         REPORT_ACTION: 'Debug_Report_Action',

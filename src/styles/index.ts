@@ -860,6 +860,10 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.hoverComponentBG,
         },
 
+        hoveredComponentBG2: {
+            backgroundColor: 'black',
+        },
+
         activeComponentBG: {
             backgroundColor: theme.activeComponentBG,
         },
@@ -5718,6 +5722,10 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
+        },
+
+        unreportedExpenseCreateExpenseButton: {
+            ...flex.alignSelfStart,
         },
 
         testDriveBannerGap: {
