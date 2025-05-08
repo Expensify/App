@@ -51,7 +51,7 @@ function DeviceAwareGestureDetector({canUseTouchScreen, gesture, children}: Devi
     return canUseTouchScreen ? <GestureDetector gesture={gesture}>{children}</GestureDetector> : children;
 }
 
-function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink, attachmentErrors}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink, onAttachmentError}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -226,9 +226,9 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
             onTap: handleTap,
             onScaleChanged: handleScaleChange,
             onSwipeDown: onClose,
-            attachmentErrors,
+            onAttachmentError,
         }),
-        [source, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange, onClose, attachmentErrors],
+        [onAttachmentError, source, isPagerScrolling, isScrollEnabled, handleTap, handleScaleChange, onClose],
     );
 
     /** Defines how a single attachment should be rendered */

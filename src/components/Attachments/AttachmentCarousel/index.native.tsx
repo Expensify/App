@@ -18,7 +18,7 @@ import AttachmentCarouselPager from './Pager';
 import type {AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownloadButtonVisibility, onClose, type, accountID, attachmentErrors}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownloadButtonVisibility, onClose, type, accountID, onAttachmentError}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
@@ -144,7 +144,7 @@ function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownlo
                     <AttachmentCarouselPager
                         items={attachments}
                         initialPage={page}
-                        attachmentErrors={attachmentErrors}
+                        onAttachmentError={onAttachmentError}
                         activeAttachmentID={activeAttachmentID}
                         setShouldShowArrows={setShouldShowArrows}
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}

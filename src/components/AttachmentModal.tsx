@@ -214,7 +214,7 @@ function AttachmentModal({
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
-    const attachmentErrors = useAttachmentErrors();
+    const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -492,7 +492,7 @@ function AttachmentModal({
     const headerTitleNew = headerTitle ?? translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
     const shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     let shouldShowDownloadButton = false;
-    if ((!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) && !attachmentErrors.isErrorInAttachment(sourceState)) {
+    if ((!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) && !isErrorInAttachment(sourceState)) {
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
     }
     const context = useMemo(
@@ -505,9 +505,9 @@ function AttachmentModal({
             onTap: () => {},
             onScaleChanged: () => {},
             onSwipeDown: closeModal,
-            attachmentErrors,
+            onAttachmentError: setAttachmentError,
         }),
-        [closeModal, attachmentErrors, nope, sourceForAttachmentView],
+        [closeModal, setAttachmentError, nope, sourceForAttachmentView],
     );
 
     const submitRef = useRef<View | HTMLElement>(null);
@@ -527,7 +527,7 @@ function AttachmentModal({
                         onModalHide();
                     }
                     setShouldLoadAttachment(false);
-                    attachmentErrors.clearAttachmentErrors();
+                    clearAttachmentErrors();
                     if (isPDFLoadError.current) {
                         setIsAttachmentInvalid(true);
                         setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
@@ -601,11 +601,11 @@ function AttachmentModal({
                                     attachmentID={attachmentID}
                                     report={report}
                                     onNavigate={onNavigate}
-                                    attachmentErrors={attachmentErrors}
                                     onClose={closeModal}
                                     source={source}
                                     setDownloadButtonVisibility={setDownloadButtonVisibility}
                                     attachmentLink={currentAttachmentLink}
+                                    onAttachmentError={setAttachmentError}
                                 />
                             ) : (
                                 !!sourceForAttachmentView &&

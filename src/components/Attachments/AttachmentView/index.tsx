@@ -125,8 +125,7 @@ function AttachmentView({
     const {updateCurrentURLAndReportID} = usePlaybackContext();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {attachmentErrors} = attachmentCarouselPagerContext ?? {};
-    const {setAttachmentError} = attachmentErrors ?? {};
+    const {onAttachmentError} = attachmentCarouselPagerContext ?? {};
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
@@ -247,7 +246,7 @@ function AttachmentView({
 
     if (isFileImage) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
-            setAttachmentError?.(source);
+            onAttachmentError?.(source);
             return (
                 <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
@@ -299,7 +298,7 @@ function AttachmentView({
                             if (isOffline) {
                                 return;
                             }
-                            setAttachmentError?.(imageSource);
+                            onAttachmentError?.(source);
 
                             setImageError(true);
                         }}
