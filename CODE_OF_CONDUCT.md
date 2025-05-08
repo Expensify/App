@@ -1,4 +1,4 @@
-# Expensify Code of Conduct
+# Expensify Code of Conduct.
 
 ## Overview of Expensify
 At Expensify, our unique approach to solving a real-world problem allows people to
