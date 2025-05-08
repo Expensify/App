@@ -851,7 +851,6 @@ function initMoneyRequest(
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
             reportID,
             isFromGlobalCreate,
-            isOptimisticTransaction: true,
             created,
             currency,
             transactionID: newTransactionID,
@@ -904,7 +903,6 @@ function initMoneyRequest(
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
-        isOptimisticTransaction: true,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         splitPayerAccountIDs: currentUserPersonalDetails ? [currentUserPersonalDetails.accountID] : undefined,
     });

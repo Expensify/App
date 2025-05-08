@@ -320,7 +320,6 @@ function IOURequestStepScan({
             reportID,
             transactionID: newTransactionID,
             isFromGlobalCreate,
-            isOptimisticTransaction: true,
             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
             splitPayerAccountIDs,
         } as Transaction;

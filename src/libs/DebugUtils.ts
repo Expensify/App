@@ -933,7 +933,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'posted':
             return validateDate(value);
         case 'isLoading':
-        case 'isOptimisticTransaction':
         case 'billable':
         case 'reimbursable':
         case 'participantsAutoAssigned':
@@ -999,7 +998,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     hold: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isLoading: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    isOptimisticTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     customUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     source: CONST.RED_BRICK_ROAD_PENDING_ACTION,
