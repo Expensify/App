@@ -370,5 +370,6 @@ export {
     createTransactionPreviewConditionals,
     getOriginalTransactionIfBillIsSplit,
     getViolationTranslatePath,
+    getUniqueActionErrors,
 };
 export type {TranslationPathOrText};
