@@ -327,7 +327,6 @@ function WorkspaceReportFieldsPage({
                         onSelectAll={toggleAllReportFields}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
-                        listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
