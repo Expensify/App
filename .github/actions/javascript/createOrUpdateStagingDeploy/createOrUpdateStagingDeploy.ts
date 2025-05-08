@@ -1,5 +1,4 @@
 import * as core from '@actions/core';
-import {RequestError} from '@octokit/request-error';
 import {format} from 'date-fns/format';
 import fs from 'fs';
 import CONST from '@github/libs/CONST';
@@ -63,23 +62,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
 
         // Find the list of PRs merged between the current checklist and the previous checklist for App
         const appMergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
-
-        // Find the list of PRs merged between the current checklist and the previous checklist for Mobile-Expensify
-        let mobileMergedPRs: number[] = [];
-        try {
-            mobileMergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, 'Mobile-Expensify-Test-Fork');
-        } catch (error: unknown) {
-            if (error instanceof RequestError && error.status === 404) {
-                core.error(
-                    `❓❓ Failed to compare commits for Mobile-Expensify repo ('Mobile-Expensify-Test-Fork'). The base tag ('${previousChecklistData.tag}') or head tag ('${newStagingTag}') likely doesn't exist on the remote repository. Check Mobile-Expensify tags. 💡💡`,
-                );
-                core.setFailed('Failed to get Mobile-Expensify PRs due to missing tags (404). See error log above.');
-                return;
-            } else {
-                console.error('Caught non-404 error while getting Mobile-Expensify PRs:', error);
-                throw error;
-            }
-        }
+        const mobileMergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
 
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));

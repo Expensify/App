@@ -4732,79 +4732,6 @@ exports.throttling = throttling;
 
 /***/ }),
 
-/***/ 537:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var deprecation = __nccwpck_require__(8932);
-var once = _interopDefault(__nccwpck_require__(1223));
-
-const logOnceCode = once(deprecation => console.warn(deprecation));
-const logOnceHeaders = once(deprecation => console.warn(deprecation));
-/**
- * Error with extra properties to help with debugging
- */
-class RequestError extends Error {
-  constructor(message, statusCode, options) {
-    super(message);
-    // Maintains proper stack trace (only available on V8)
-    /* istanbul ignore next */
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-    this.name = "HttpError";
-    this.status = statusCode;
-    let headers;
-    if ("headers" in options && typeof options.headers !== "undefined") {
-      headers = options.headers;
-    }
-    if ("response" in options) {
-      this.response = options.response;
-      headers = options.response.headers;
-    }
-    // redact request credentials without mutating original request options
-    const requestCopy = Object.assign({}, options.request);
-    if (options.request.headers.authorization) {
-      requestCopy.headers = Object.assign({}, options.request.headers, {
-        authorization: options.request.headers.authorization.replace(/ .*$/, " [REDACTED]")
-      });
-    }
-    requestCopy.url = requestCopy.url
-    // client_id & client_secret can be passed as URL query parameters to increase rate limit
-    // see https://developer.github.com/v3/#increasing-the-unauthenticated-rate-limit-for-oauth-applications
-    .replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]")
-    // OAuth tokens can be passed as URL query parameters, although it is not recommended
-    // see https://developer.github.com/v3/#oauth2-token-sent-in-a-header
-    .replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
-    this.request = requestCopy;
-    // deprecations
-    Object.defineProperty(this, "code", {
-      get() {
-        logOnceCode(new deprecation.Deprecation("[@octokit/request-error] `error.code` is deprecated, use `error.status`."));
-        return statusCode;
-      }
-    });
-    Object.defineProperty(this, "headers", {
-      get() {
-        logOnceHeaders(new deprecation.Deprecation("[@octokit/request-error] `error.headers` is deprecated, use `error.response.headers`."));
-        return headers || {};
-      }
-    });
-  }
-}
-
-exports.RequestError = RequestError;
-//# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
 /***/ 3682:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -11527,7 +11454,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
-const request_error_1 = __nccwpck_require__(537);
 const format_1 = __nccwpck_require__(2464);
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
@@ -11577,22 +11503,7 @@ async function run() {
         const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
         // Find the list of PRs merged between the current checklist and the previous checklist for App
         const appMergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST_1.default.APP_REPO);
-        // Find the list of PRs merged between the current checklist and the previous checklist for Mobile-Expensify
-        let mobileMergedPRs = [];
-        try {
-            mobileMergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, 'Mobile-Expensify-Test-Fork');
-        }
-        catch (error) {
-            if (error instanceof request_error_1.RequestError && error.status === 404) {
-                core.error(`❓❓ Failed to compare commits for Mobile-Expensify repo ('Mobile-Expensify-Test-Fork'). The base tag ('${previousChecklistData.tag}') or head tag ('${newStagingTag}') likely doesn't exist on the remote repository. Check Mobile-Expensify tags. 💡💡`);
-                core.setFailed('Failed to get Mobile-Expensify PRs due to missing tags (404). See error log above.');
-                return;
-            }
-            else {
-                console.error('Caught non-404 error while getting Mobile-Expensify PRs:', error);
-                throw error;
-            }
-        }
+        const mobileMergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST_1.default.APP_REPO);
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
         core.info('Deployed PRs include cherry-picked PRs released with previous checklist, these must be excluded');
@@ -12394,7 +12305,7 @@ class GithubUtils {
             }));
         }
         catch (error) {
-            console.error(`❓❓ Failed to compare commits with the GitHub API for repo '${repo}'. The base tag ('${fromTag}') or head tag ('${toTag}'). Make sure the tags exist on the remote repository. 💡💡`);
+            console.error(`❓❓ Failed to compare commits with the GitHub for repo '${repo}'. The base tag ('${fromTag}') or head tag ('${toTag}'). Make sure the tags exist on the remote repository. 💡💡`);
             throw error;
         }
     }
