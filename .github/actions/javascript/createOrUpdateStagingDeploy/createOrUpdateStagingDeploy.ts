@@ -62,31 +62,22 @@ async function run(): Promise<IssuesCreateResponse | void> {
 
         // Find the list of PRs merged between the current checklist and the previous checklist for App
         const appMergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
-        const mobileMergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, 'Mobile-Expensify-Test-Fork');
+        core.info(`Found ${appMergedPRs.length} App PRs deployed since previous checklist: ${JSON.stringify(appMergedPRs)}`);
 
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
-        core.info('Deployed PRs include cherry-picked PRs released with previous checklist, these must be excluded');
-        core.startGroup('Filtering out cherry-picked PRs for App');
-        core.info(`Found ${appMergedPRs.length} App PRs deployed since previous checklist: ${JSON.stringify(appMergedPRs)}`);
         core.info(`Found ${previousPRNumbers.size} PRs from the previous checklist (used for App PR filtering): ${JSON.stringify(Array.from(previousPRNumbers))}`);
 
-        // Create the final list of deployed PRs for the current checklist
-        const newAppPRNumbers = appMergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
+        const newAppPRNumbers = GitUtils.filterPreviouslyReleasedPRs(appMergedPRs, previousPRNumbers);
 
-        // Log the PRs that were filtered out for App
-        const removedAppPRs = appMergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
-        if (removedAppPRs.length > 0) {
-            core.info(`ℹ️🧹 Filtered out the following App cherry-picked PRs that were released with the previous checklist: ${JSON.stringify(removedAppPRs)}`);
-        } else {
-            core.info('ℹ️🧐 No App PRs from previous checklist were filtered out');
-        }
-        core.endGroup();
-        console.info(`Created final list of App PRs for current checklist: ${JSON.stringify(newAppPRNumbers)}`);
-
+        const mobileMergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, 'Mobile-Expensify-Test-Fork');
+        
         // TODO: Process mobileMergedPRs - potentially filter them if Mobile-Expensify PRs were also listed in previous checklists in a structured way.
         // For now, we assume no filtering is needed for mobile PRs based on the previous checklist's PRList which is App specific.
         const newMobilePRNumbers = mobileMergedPRs;
+
+        // Convert Mobile PR numbers to URLs for checklist generation
+        const mobilePrURLs = newMobilePRNumbers.map(prNum => `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/${prNum}`);
 
         // Next, we generate the checklist body
         let checklistBody = '';
@@ -95,8 +86,8 @@ async function run(): Promise<IssuesCreateResponse | void> {
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
                 newAppPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
-                [],
-                newMobilePRNumbers,
+                [], // verifiedPRList - always empty for new checklist
+                mobilePrURLs,
             );
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
@@ -147,7 +138,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 newVersion,
                 PRList.map((pr) => pr.url),
                 PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
-                newMobilePRNumbers,
+                mobilePrURLs,
                 deployBlockers.map((blocker) => blocker.url),
                 deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url),
                 currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url) ?? [],

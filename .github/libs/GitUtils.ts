@@ -116,13 +116,24 @@ async function getPullRequestsDeployedBetween(fromTag: string, toTag: string, re
  * Filter out cherry-picked PRs that appear in the commit history but have already been deployed in the previous checklist
  */
 function filterPreviouslyReleasedPRs(deployedPRs: number[], previousPRNumbers: Set<number>) {
+    core.info('Deployed PRs may include cherry-picked PRs released with previous checklist, these must be excluded');
+    core.startGroup('Filtering out cherry-picked PRs for App');
     const newPRNumbers = deployedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
     const removedPRs = deployedPRs.filter((prNum) => previousPRNumbers.has(prNum));
+    
+
+    // core.info(`Found ${previousPRNumbers.size} PRs from the previous checklis: ${JSON.stringify(Array.from(previousPRNumbers))}`);
+
+
     if (removedPRs.length > 0) {
         core.info(`ℹ️🧹 Filtered out the following cherry-picked PRs that were released with the previous checklist: ${JSON.stringify(removedPRs)}`);
     } else {
         core.info('ℹ️🧐 No cherry-picked PRs from previous checklist were filtered out');
     }
+
+    // console.info(`Created final list of App PRs for current checklist: ${JSON.stringify(newAppPRNumbers)}`);
+    // core.endGroup();
+
     return newPRNumbers;
 }
 
