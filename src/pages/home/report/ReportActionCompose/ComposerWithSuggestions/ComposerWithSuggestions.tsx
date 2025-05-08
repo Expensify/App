@@ -126,7 +126,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     raiseIsScrollLikelyLayoutTriggered: () => void;
 
     /** The ref to the suggestions */
-    suggestionsRef: React.RefObject<SuggestionsRef>;
+    suggestionsRef: React.RefObject<SuggestionsRef | null>;
 
     /** The ref to the next modal will open */
     isNextModalWillOpenRef: MutableRefObject<boolean | null>;

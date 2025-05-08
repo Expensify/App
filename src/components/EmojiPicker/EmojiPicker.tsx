@@ -223,7 +223,9 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
                     <EmojiPickerMenu
                         onEmojiSelected={selectEmoji}
                         activeEmoji={activeEmoji.current}
-                        ref={(el) => (emojiSearchInput.current = el)}
+                        ref={(el) => {
+                            emojiSearchInput.current = el;
+                        }}
                     />
                 </View>
             </FocusTrapForModal>

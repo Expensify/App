@@ -14,7 +14,7 @@ type USDVerifiedBankAccountFlowProps = {
     USDBankAccountStep: string;
     policyID: string | undefined;
     onBackButtonPress: () => void;
-    requestorStepRef: React.RefObject<View>;
+    requestorStepRef: React.RefObject<View | null>;
     onfidoToken: string;
     setUSDBankAccountStep: (step: string | null) => void;
     setShouldShowConnectedVerifiedBankAccount: (shouldShowConnectedVerifiedBankAccount: boolean) => void;

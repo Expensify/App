@@ -41,7 +41,6 @@ type FormData = {
 
 function setupApp() {
     beforeAll(() => {
-        Linking.setInitialURL('https://new.expensify.com/');
         appSetup();
 
         // Connect to Pusher

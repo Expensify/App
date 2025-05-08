@@ -9,17 +9,17 @@ type PopoverContextProps = {
 type PopoverContextValue = {
     onOpen?: (popoverParams: AnchorRef) => void;
     popover?: AnchorRef | null;
-    popoverAnchor?: AnchorRef['anchorRef']['current'];
-    close: (anchorRef?: RefObject<View | HTMLDivElement | Text>) => void;
+    popoverAnchor?: AnchorRef['anchorRef']['current'] | null;
+    close: (anchorRef?: RefObject<View | HTMLDivElement | Text | null>) => void;
     isOpen: boolean;
-    setActivePopoverExtraAnchorRef: (ref?: RefObject<View | HTMLDivElement | Text>) => void;
+    setActivePopoverExtraAnchorRef: (ref?: RefObject<View | HTMLDivElement | Text | null>) => void;
 };
 
 type AnchorRef = {
-    ref: RefObject<View | HTMLDivElement | Text>;
+    ref: RefObject<View | HTMLDivElement | Text | null>;
     close: (anchorRef?: RefObject<View | HTMLDivElement | Text>) => void;
-    anchorRef: RefObject<View | HTMLDivElement | Text>;
-    extraAnchorRefs?: Array<RefObject<View | HTMLDivElement | Text>>;
+    anchorRef: RefObject<View | HTMLDivElement | Text | null>;
+    extraAnchorRefs?: Array<RefObject<View | HTMLDivElement | Text | null>>;
 };
 
 export type {PopoverContextProps, PopoverContextValue, AnchorRef};
