@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import {ChatBubbleCounter} from '@components/Icon/Expensicons';
@@ -18,7 +19,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
     lastReadTime < lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
 
-function ChatBubbleCell({transaction}: {transaction: Transaction}) {
+function ChatBubbleCell({transaction, containerStyles}: {transaction: Transaction; containerStyles?: ViewStyle[]}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -38,18 +39,18 @@ function ChatBubbleCell({transaction}: {transaction: Transaction}) {
 
     const StyleUtils = useStyleUtils();
 
-    const elementSize = shouldUseNarrowLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
+    const iconSize = shouldUseNarrowLayout ? variables.iconSizeSmall : variables.iconSizeNormal;
     const fontSize = shouldUseNarrowLayout ? variables.fontSizeXXSmall : variables.fontSizeExtraSmall;
 
     return (
         threadMessages.count > 0 && (
-            <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, StyleUtils.getWidthAndHeightStyle(elementSize)]}>
+            <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, StyleUtils.getWidthAndHeightStyle(iconSize), containerStyles]}>
                 <Icon
                     src={ChatBubbleCounter}
                     additionalStyles={[styles.pAbsolute]}
                     fill={threadMessages.isUnread ? theme.iconMenu : theme.icon}
-                    width={elementSize}
-                    height={elementSize}
+                    width={iconSize}
+                    height={iconSize}
                 />
                 <Text
                     style={[
