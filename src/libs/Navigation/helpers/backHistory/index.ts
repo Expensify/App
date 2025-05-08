@@ -1,8 +1,8 @@
 import {isMobileChrome} from '@libs/Browser';
 
 /**
- * Navigates back in history and resolves after `popstate` (only on mobile Chrome).
- * Resolves immediately on other browsers.
+ * This function is used to trigger a browser back navigation and resolves a promise once the navigation is complete (only on mobile Chrome).
+ * More details - https://github.com/Expensify/App/issues/58946.
  */
 export default function backHistory() {
     return new Promise<void>((resolve) => {
