@@ -275,7 +275,6 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
     return (isAdmin && syncEnabled) || (isExporter && !syncEnabled);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isHoldAction(report: Report, reportTransactions: Transaction[]): boolean {
     const isOneExpenseReport = reportTransactions.length === 1;
     const transaction = reportTransactions.at(0);
@@ -388,7 +387,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
     }
 
-    if (canHoldUnholdReportAction(parentReportAction).canHoldRequest) {
+    if (canHoldUnholdReportAction(parentReportAction).canHoldRequest || isHoldAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
