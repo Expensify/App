@@ -1,6 +1,6 @@
 import type {TextInput} from 'react-native';
-import ComposerFocusManager from '@libs/ComposerFocusManager';
-import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
+import ComposerFocusManager from './ComposerFocusManager';
+import isWindowReadyToFocus from './isWindowReadyToFocus';
 
 function focusAfterModalClose(textInput: TextInput | null) {
     if (!textInput) {
