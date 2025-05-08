@@ -527,6 +527,8 @@ function IOURequestStepScan({
                 if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
                     return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
                 }
+
+                return null;
             });
 
             Promise.all(filesPromises).then(() => {
