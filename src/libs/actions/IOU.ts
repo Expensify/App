@@ -58,6 +58,7 @@ import {rand64} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import Performance from '@libs/Performance';
+import Permissions from '@libs/Permissions';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
@@ -124,7 +125,6 @@ import {
     getOutstandingChildRequest,
     getParsedComment,
     getPersonalDetailsForAccountID,
-    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportTransactions,
@@ -785,6 +785,12 @@ let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
+});
+
+let betas: OnyxEntry<OnyxTypes.Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (betas = value),
 });
 
 /**
@@ -5155,7 +5161,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         Navigation.removeScreenByKey(trackReport.key);
     }
 
-    if (activeReportID) {
+    if (activeReportID && (!isMoneyRequestReport || !Permissions.canUseTableReportView(betas))) {
         notifyNewAction(activeReportID, payeeAccountID);
     }
 }
@@ -7033,7 +7039,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
     dismissModalAndOpenReportInInboxTab(activeReportID);
-    notifyNewAction(activeReportID, userAccountID);
+
+    if (!isMoneyRequestReport || !Permissions.canUseTableReportView(betas)) {
+        notifyNewAction(activeReportID, userAccountID);
+    }
 }
 
 type UpdateMoneyRequestAmountAndCurrencyParams = {
@@ -8771,7 +8780,11 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
     notifyNewAction(params.chatReportID, managerID);
 }
 
-function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport, policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy) {
+function canApproveIOU(
+    iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
+    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
+    iouTransactions?: OnyxTypes.Transaction[],
+) {
     // Only expense reports can be approved
     if (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
         return false;
@@ -8789,7 +8802,7 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> |
     const iouSettled = isSettled(iouReport);
     const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
-    const reportTransactions = getReportTransactions(iouReport?.reportID);
+    const reportTransactions = iouTransactions ?? getReportTransactions(iouReport?.reportID);
     const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every(isPendingCardOrScanningTransaction);
     if (hasOnlyPendingCardOrScanningTransactions) {
         return false;
@@ -8888,15 +8901,10 @@ function canSubmitReport(
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
     transactions: OnyxTypes.Transaction[] | SearchTransaction[],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
+    isReportArchived = false,
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
-
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
-    const isArchived = isArchivedReport(reportNameValuePairs);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const transactionIDList = transactions.map((transaction) => transaction.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
@@ -8908,7 +8916,7 @@ function canSubmitReport(
     return (
         transactions.length > 0 &&
         isOpenExpenseReport &&
-        !isArchived &&
+        !isReportArchived &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
