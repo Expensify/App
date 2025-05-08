@@ -10672,6 +10672,17 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
+function getReportAttributes(reportID: string | undefined) {
+    if (!reportID || !reportAttributes?.[reportID]) {
+        return {
+            reportName: '',
+            brickRoadStatus: undefined,
+            reportErrors: {},
+        };
+    }
+    return reportAttributes[reportID];
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11045,6 +11056,7 @@ export {
     getReportPersonalDetailsParticipants,
     isAllowedToSubmitDraftExpenseReport,
     isWorkspaceEligibleForReportChange,
+    getReportAttributes,
 };
 
 export type {
