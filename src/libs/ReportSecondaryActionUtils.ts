@@ -11,6 +11,7 @@ import {
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
+    isPaidGroupPolicy,
     isPrefferedExporter,
 } from './PolicyUtils';
 import {getIOUActionForReportID, isPayAction} from './ReportActionsUtils';
@@ -311,14 +312,14 @@ function isHoldActionForTransation(report: Report, reportTransaction: Transactio
     return isProcessingReport;
 }
 
-function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, session?: Session): boolean {
-    const availablePolicies = Object.values(policies ?? {}).filter(Boolean);
+function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>): boolean {
+    const availablePolicies = Object.values(policies ?? {}).filter(policy => isPaidGroupPolicy(policy));
     let hasAvailablePolicies = availablePolicies.length > 1;
     if (!hasAvailablePolicies && availablePolicies.length === 1) {
         hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;
     }
     const reportPolicy = policies?.[`{ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy, session);
+    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy);
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[]): boolean {
@@ -395,7 +396,7 @@ function getSecondaryReportActions(
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD);
 
-    if (isChangeWorkspaceAction(report, policies, session)) {
+    if (isChangeWorkspaceAction(report, policies)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 

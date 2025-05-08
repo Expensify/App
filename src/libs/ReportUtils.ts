@@ -8917,11 +8917,11 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
     );
 }
 
-function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<Policy>, session?: OnyxEntry<Session>): boolean {
-    const isUserPolicyAdmin = isPolicyAdminPolicyUtils(reportPolicy);
-    const isUserReportManager = isReportManager(report);
-    const isUserReportSubmitter = isReportOwner(report);
-    const isUserAuditor = isAuditor(report);
+function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<Policy>): boolean {
+    const isAdmin = isPolicyAdminPolicyUtils(reportPolicy);
+    const isManager = isReportManager(report);
+    const isSubmitter = isReportOwner(report);
+    const isReportAuditor = isAuditor(report);
     const isIOUType = isIOUReport(report);
     const isInvoiceType = isInvoiceReport(report);
     const isExpenseType = isExpenseReport(report);
@@ -8929,28 +8929,23 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
     const isSubmitted = isProcessingReport(report);
 
     if (isIOUType) {
-        return (isOpen || isSubmitted) && isUserReportSubmitter;
+        return isOpen || isSubmitted;
     }
 
     if (isInvoiceType) {
-        if (isUserAuditor) {
-            return false;
-        }
-
-        return isOpen;
+        return isOpen && !isReportAuditor;
     }
 
     if (isExpenseType) {
         if (isOpen) {
-            return isUserReportSubmitter || isUserPolicyAdmin;
+            return isSubmitter || isAdmin;
         }
 
         if (isSubmitted) {
-            return (isUserReportSubmitter && isAwaitingFirstLevelApproval()) || isUserReportManager || isUserPolicyAdmin;
+            return (isSubmitter && isAwaitingFirstLevelApproval(report)) || isManager || isAdmin;
         }
 
-        // If it's neither open or submitter and I am a manager or an admin
-        return isUserReportManager || isUserPolicyAdmin;
+        return isManager || isAdmin;
     }
 
     return false;
