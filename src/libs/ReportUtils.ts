@@ -10427,7 +10427,7 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
     }
 
     const isCurrentUserReportSubmitter = session.accountID === report?.ownerAccountID;
-    if (isCurrentUserReportSubmitter && isReportOpenOrSubmitted) {
+    if (isCurrentUserReportSubmitter) {
         return true;
     }
 
