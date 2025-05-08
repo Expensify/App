@@ -53,6 +53,7 @@ import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableRe
 import variables from '@styles/variables';
 import {
     getMoneyRequestParticipantsFromReport,
+    navigateToParticipantPage,
     replaceReceipt,
     requestMoney,
     setMoneyRequestParticipants,
@@ -241,19 +242,6 @@ function IOURequestStepScan({
     const navigateBack = () => {
         Navigation.goBack();
     };
-
-    const navigateToParticipantPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-        }
-    }, [iouType, reportID, transactionID]);
 
     const navigateToConfirmationPage = useCallback(
         (isTestTransaction = false, reportIDParam: string | undefined = undefined) => {
@@ -470,31 +458,10 @@ function IOURequestStepScan({
                     );
                 });
             } else {
-                navigateToParticipantPage();
+                navigateToParticipantPage(iouType, transactionID, reportID);
             }
         },
-        [
-            backTo,
-            transaction?.currency,
-            transaction?.created,
-            transaction?.comment?.attendees,
-            iouType,
-            report,
-            transactionID,
-            shouldSkipConfirmation,
-            navigateToConfirmationPage,
-            activePolicy,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails.login,
-            navigateToParticipantPage,
-            personalDetails,
-            createTransaction,
-            reportID,
-            transactionTaxCode,
-            transactionTaxAmount,
-            policy,
-            reportNameValuePairs,
-        ],
+        [backTo, transaction?.currency, transaction?.created, transaction?.comment?.attendees, iouType, report, reportID, transactionID, shouldSkipConfirmation, navigateToConfirmationPage, activePolicy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, personalDetails, createTransaction, transactionTaxCode, transactionTaxAmount, policy, reportNameValuePairs],
     );
 
     const updateScanAndNavigate = useCallback(

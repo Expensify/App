@@ -40,9 +40,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasVBBA} from '@libs/PolicyUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
+import {startMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -340,6 +342,15 @@ function SearchPage({route}: SearchPageProps) {
         });
     };
 
+    const initScanRequest = (e: DragEvent) => {
+        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN);
+        const file = e?.dataTransfer?.files[0];
+        if (file) {
+            file.uri = URL.createObjectURL(file);
+            console.log(file.uri);
+        }
+    };
+
     const createExportAll = useCallback(() => {
         if (selectedTransactionsKeys.length === 0 || !status || !hash) {
             return [];
@@ -476,7 +487,7 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
                             offlineIndicatorStyle={styles.mtAuto}
                         >
-                            <DragAndDropProvider>
+                            <DragAndDropProvider isDisabled={queryJSON.type !== CONST.REPORT.TYPE.EXPENSE}>
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
@@ -492,7 +503,7 @@ function SearchPage({route}: SearchPageProps) {
                                     lastNonEmptySearchResults={lastNonEmptySearchResults}
                                 />
                                 <DropZoneUI
-                                    onDrop={() => console.log('dropped')}
+                                    onDrop={initScanRequest}
                                     icon={Expensicons.SmartScan}
                                     dropTitle={translate('dropzone.scanReceipts')}
                                     dropStyles={styles.receiptDropOverlay}
