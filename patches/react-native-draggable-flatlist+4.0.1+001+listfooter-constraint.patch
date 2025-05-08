@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-draggable-flatlist/src/components/DraggableFlatList.tsx b/node_modules/react-native-draggable-flatlist/src/components/DraggableFlatList.tsx
-index 2f59c7a..8ad017d 100644
+index 2f59c7a..a324da2 100644
 --- a/node_modules/react-native-draggable-flatlist/src/components/DraggableFlatList.tsx
 +++ b/node_modules/react-native-draggable-flatlist/src/components/DraggableFlatList.tsx
 @@ -51,7 +51,7 @@ const AnimatedFlatList = (Animated.createAnimatedComponent(
@@ -15,7 +15,7 @@ index 2f59c7a..8ad017d 100644
      activeCellSize,
      activeIndexAnim,
      containerSize,
-+    footerHeight,
++    footerSize,
      scrollOffset,
      scrollViewSize,
      spacerIndexAnim,
@@ -23,34 +23,35 @@ index 2f59c7a..8ad017d 100644
      props.onContainerLayout?.({ layout, containerRef });
    };
  
-+  // make height of footer available for use in drag contraints
++  // make size of footer available for use in drag contraints
 +  const onFooterLayout = ({
 +    nativeEvent: { layout },
 +  }: LayoutChangeEvent) => {
-+    footerHeight.value = layout.height
++    footerSize.value = props.horizontal ? layout.width : layout.height
 +  };
 +
 +
    const onListContentSizeChange = (w: number, h: number) => {
      scrollViewSize.value = props.horizontal ? w : h;
      props.onContentSizeChange?.(w, h);
-@@ -357,6 +366,15 @@ function DraggableFlatListInner<T>(props: DraggableFlatListProps<T>) {
+@@ -357,6 +366,16 @@ function DraggableFlatListInner<T>(props: DraggableFlatListProps<T>) {
      props.onViewableItemsChanged?.(info);
    });
  
 +  // Wrap the provided ListFooterComponent to add an onLayout
-+  const wrappedListFooterComponent = 
-+  <Animated.View 
-+    style={props.ListFooterComponentStyle}
-+    onLayout={onFooterLayout}
-+    >
-+      {ListFooterComponent}
-+  </Animated.View>
++  const wrappedListFooterComponent = ListFooterComponent ?
++    <Animated.View 
++      style={props.ListFooterComponentStyle}
++      onLayout={onFooterLayout}
++      >
++        {ListFooterComponent}
++    </Animated.View>
++  : undefined
 +
    return (
      <DraggableFlatListProvider
        activeKey={activeKey}
-@@ -388,6 +406,7 @@ function DraggableFlatListInner<T>(props: DraggableFlatListProps<T>) {
+@@ -388,6 +407,7 @@ function DraggableFlatListInner<T>(props: DraggableFlatListProps<T>) {
              scrollEventThrottle={16}
              simultaneousHandlers={props.simultaneousHandlers}
              removeClippedSubviews={false}
@@ -59,14 +60,14 @@ index 2f59c7a..8ad017d 100644
            {!!props.onScrollOffsetChange && (
              <ScrollOffsetListener
 diff --git a/node_modules/react-native-draggable-flatlist/src/context/animatedValueContext.tsx b/node_modules/react-native-draggable-flatlist/src/context/animatedValueContext.tsx
-index 6ff1ed5..82e2ff1 100644
+index 6ff1ed5..611adda 100644
 --- a/node_modules/react-native-draggable-flatlist/src/context/animatedValueContext.tsx
 +++ b/node_modules/react-native-draggable-flatlist/src/context/animatedValueContext.tsx
 @@ -60,6 +60,7 @@ function useSetupAnimatedValues<T>() {
    const activeCellSize = useSharedValue(0); // Height or width of acctive cell
    const activeCellOffset = useSharedValue(0); // Distance between active cell and edge of container
  
-+  const footerHeight = useSharedValue(0); // Height of list footer
++  const footerSize = useSharedValue(0);
    const scrollOffset = useSharedValue(0);
    const scrollInit = useSharedValue(0);
  
@@ -75,7 +76,7 @@ index 6ff1ed5..82e2ff1 100644
      const maxTranslateNegative = -activeCellOffset.value;
      const maxTranslatePositive =
 -      scrollViewSize.value - (activeCellOffset.value + activeCellSize.value);
-+      scrollViewSize.value - (activeCellOffset.value + activeCellSize.value + footerHeight.value);
++      scrollViewSize.value - (activeCellOffset.value + activeCellSize.value + footerSize.value);
  
      // Only constrain the touch position while the finger is on the screen. This allows the active cell
      // to snap above/below the fold once let go, if the drag ends at the top/bottom of the screen.
@@ -83,7 +84,7 @@ index 6ff1ed5..82e2ff1 100644
        placeholderOffset,
        resetTouchedCell,
        scrollOffset,
-+      footerHeight,
++      footerSize,
        scrollViewSize,
        spacerIndexAnim,
        touchPositionDiff,
@@ -91,7 +92,7 @@ index 6ff1ed5..82e2ff1 100644
        placeholderOffset,
        resetTouchedCell,
        scrollOffset,
-+      footerHeight,
++      footerSize,
        scrollViewSize,
        spacerIndexAnim,
        touchPositionDiff,
