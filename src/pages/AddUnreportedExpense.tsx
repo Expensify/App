@@ -119,7 +119,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     confirmButtonText={translate('iou.addUnreportedExpenseConfirm')}
                     onConfirm={() => {
                         if (selectedIds.size === 0) {
-                            setErrorMessage(translate('iou.pleaseSelectUnreportedExpense'));
+                            setErrorMessage(translate('iou.selectUnreportedExpense'));
                             return;
                         }
                         Navigation.goBack(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
