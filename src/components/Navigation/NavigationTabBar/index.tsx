@@ -53,7 +53,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const {activeWorkspaceID} = useActiveWorkspace();
     const {orderedReportIDs} = useSidebarOrderedReportIDs();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
     const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]),
         canBeMissing: true,
