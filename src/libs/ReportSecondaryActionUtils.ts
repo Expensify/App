@@ -1,17 +1,17 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation, Session} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
-    getAllPolicies,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
+    isPaidGroupPolicy,
     isPrefferedExporter,
 } from './PolicyUtils';
 import {getIOUActionForReportID, isPayAction} from './ReportActionsUtils';
@@ -29,9 +29,8 @@ import {
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
     isSettled,
-    isWorkspaceEligibleForReportChange,
+    canEditReportPolicy,
 } from './ReportUtils';
-import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
@@ -142,7 +141,7 @@ function isUnapproveAction(report: Report, policy?: Policy): boolean {
     return isExpenseReport && isReportApprover && isReportApproved;
 }
 
-function isCancelPaymentAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+function isCancelPaymentAction(report: Report, reportTransactions: Transaction[], policy?: Policy, session?: Session): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (!isExpenseReport) {
@@ -150,7 +149,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isPayerUtils(getSession(), report, false, policy);
+    const isPayer = isPayerUtils(session, report, false, policy);
 
     if (!isAdmin || !isPayer) {
         return false;
@@ -183,7 +182,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
-function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]): boolean {
+function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[], session?: Session): boolean {
     if (!policy) {
         return false;
     }
@@ -207,7 +206,7 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     }
 
     const isReportApproved = isReportApprovedUtils({report});
-    const isReportPayer = isPayerUtils(getSession(), report, false, policy);
+    const isReportPayer = isPayerUtils(session, report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportClosed = isClosedReportUtils(report);
 
@@ -225,7 +224,7 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     return isAdmin && isReportFinished && syncEnabled && !isReportExported;
 }
 
-function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
+function isMarkAsExportedAction(report: Report, policy?: Policy, session?: Session): boolean {
     if (!policy) {
         return false;
     }
@@ -248,7 +247,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
-    const isReportPayer = isPayerUtils(getSession(), report, false, policy);
+    const isReportPayer = isPayerUtils(session, report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -313,10 +312,14 @@ function isHoldActionForTransation(report: Report, reportTransaction: Transactio
     return isProcessingReport;
 }
 
-function isChangeWorkspaceAction(report: Report): boolean {
-    const policies = getAllPolicies();
-    const session = getSession();
-    return policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session)).length > 0;
+function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>): boolean {
+    const availablePolicies = Object.values(policies ?? {}).filter(policy => isPaidGroupPolicy(policy));
+    let hasAvailablePolicies = availablePolicies.length > 1;
+    if (!hasAvailablePolicies && availablePolicies.length === 1) {
+        hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;
+    }
+    const reportPolicy = policies?.[`{ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy);
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[]): boolean {
@@ -354,6 +357,8 @@ function getSecondaryReportActions(
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
+    policies?: OnyxCollection<Policy>,
+    session?: Session,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -373,15 +378,15 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
-    if (isCancelPaymentAction(report, reportTransactions, policy)) {
+    if (isCancelPaymentAction(report, reportTransactions, policy,)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
-    if (isExportAction(report, policy, reportActions)) {
+    if (isExportAction(report, policy, reportActions, session)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING);
     }
 
-    if (isMarkAsExportedAction(report, policy)) {
+    if (isMarkAsExportedAction(report, policy, session)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
     }
 
@@ -391,7 +396,7 @@ function getSecondaryReportActions(
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD);
 
-    if (isChangeWorkspaceAction(report)) {
+    if (isChangeWorkspaceAction(report, policies)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 

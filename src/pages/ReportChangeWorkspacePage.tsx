@@ -16,8 +16,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getPolicy, isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
-import {isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {getPolicy, isPaidGroupPolicy, isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
+import {isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -62,7 +62,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
         shouldShowPendingDeletePolicy: false,
         selectedPolicyID: report.policyID,
         searchTerm: debouncedSearchTerm,
-        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session),
+        additionalFilter: (newPolicy) => isPaidGroupPolicy(newPolicy),
     });
 
     if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report) || (!report.total && !report.unheldTotal)) {
