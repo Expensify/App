@@ -201,18 +201,33 @@ jobs:
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
+      - name: Install bundletool
+        run: |
+          readonly BUNDLETOOL_VERSION="1.18.1"
+          readonly BUNDLETOOL_URL="https://github.com/google/bundletool/releases/download/${BUNDLETOOL_VERSION}/bundletool-all-${BUNDLETOOL_VERSION}.jar"
+
+          # Download jar from GitHub Release
+          curl -L -o bundletool.jar "$BUNDLETOOL_URL"
+
+          # Validate checksum
+          readonly EXPECTED_SHA="675786493983787ffa11550bdb7c0715679a44e1643f3ff980a529e9c822595c"
+          SHA="$(sha256sum bundletool.jar | cut -d ' ' -f1)"
+          if [[ "$SHA" != "$EXPECTED_SHA" ]]; then
+            echo "SHA mismatch: expected $EXPECTED_SHA but got $ACTUAL_SHA"
+            exit 1
+          fi
+
       - name: Generate APK from AAB
         run: |
-          json=$(curl -s https://api.github.com/repos/google/bundletool/releases/latest)
-          downloadUrl=$(echo "$json" | jq -r ".assets | .[].browser_download_url")
-          curl "$downloadUrl" -4 -sL -o 'bundletool.jar'
+          # Generate apks using bundletool
           java -jar bundletool.jar build-apks --bundle=${{ env.aabPath }} --output=Expensify.apks \
             --mode=universal \
             --ks=upload-key.keystore \
             --ks-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} \
             --ks-key-alias=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} \
             --key-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
-          
+
+          # Unzip just the universal apk
           unzip -p Expensify.apks universal.apk > Expensify.apk
 
       - name: Upload Android APK build artifact
@@ -254,7 +269,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Android HybridApp production deploy failed. No need to do anything, Jules will <https://stackoverflowteams.com/c/expensify/questions/5738|manually submit> ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store>. 💥`,
+                text: `💥 Android HybridApp production <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy run> failed. Please <https://stackoverflowteams.com/c/expensify/questions/5738|manually submit> ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store>. 💥 But first check the workflow, it's likely that the release was successful and <https://github.com/Expensify/Expensify/issues/488492|this error> is occuring)`,
               }]
             }
         env:
@@ -623,7 +638,7 @@ jobs:
           gh release create ${{ needs.prep.outputs.TAG }} ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
             --repo ${{ github.repository }} \
             --title ${{ needs.prep.outputs.TAG }} \
-            --notes-start-tag ${{ steps.get_last_prod_version.outputs.LAST_PROD_VERSION }} \
+            ${{ github.ref == 'refs/heads/production' && format('--notes-start-tag {0}', steps.get_last_prod_version.outputs.LAST_PROD_VERSION) || '' }} \
             --generate-notes \
             --verify-tag \
             --target ${{ github.ref }}
