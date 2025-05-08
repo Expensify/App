@@ -8,7 +8,6 @@ import DateCell from '@components/SelectionList/Search/DateCell';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useHover from '@hooks/useHover';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,6 +26,7 @@ import TransactionItemRowRBR from './TransactionItemRowRBR';
 function TransactionItemRow({
     transactionItem,
     shouldUseNarrowLayout,
+    shouldShowCheckbox,
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
@@ -35,6 +35,7 @@ function TransactionItemRow({
 }: {
     transactionItem: TransactionWithOptionalHighlight;
     shouldUseNarrowLayout: boolean;
+    shouldShowCheckbox: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
@@ -57,7 +58,6 @@ function TransactionItemRow({
         backgroundColor: theme.highlightBG,
     });
 
-    const {selectionMode} = useMobileSelectionMode();
     const {hovered, bind: bindHover} = useHover();
     const bgActiveStyles = useMemo(() => {
         if (isSelected) {
@@ -79,7 +79,7 @@ function TransactionItemRow({
                 <Animated.View style={[animatedHighlightStyle]}>
                     <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3, bgActiveStyles]}>
                         <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
-                            {!!selectionMode?.isEnabled && (
+                            {shouldShowCheckbox && (
                                 <View style={[styles.mr2, styles.justifyContentCenter]}>
                                     <Checkbox
                                         onPress={() => {
