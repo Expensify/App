@@ -12,6 +12,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type HelpProps from './types';
@@ -40,6 +41,8 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
 
     // Web back button: push history state and close Side Panel on popstate
     useEffect(() => {
+        const uniqueModalId = ComposerFocusManager.getId();
+        ComposerFocusManager.resetReadyToFocus(uniqueModalId);
         window.history.pushState({isSidePanelOpen: true}, '', null);
         const handlePopState = () => {
             if (isExtraLargeScreenWidth) {
@@ -50,7 +53,10 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
         };
 
         window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+            ComposerFocusManager.setReadyToFocus(uniqueModalId);
+        };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
