@@ -5967,15 +5967,16 @@ describe('actions/IOU', () => {
 
     describe('updateSplitExpenseAmountField', () => {
         it('should update amount expense field to draft transaction', async () => {
-            const transactionID = '123';
+            const originalTransactionID = '123';
             const currentTransactionID = '789';
             const draftTransaction: Transaction = {
-                transactionID,
+                transactionID: '234',
                 amount: 100,
                 currency: 'USD',
                 merchant: 'Test Merchant',
                 comment: {
                     comment: 'Test comment',
+                    originalTransactionID,
                     splitExpenses: [
                         {
                             transactionID: currentTransactionID,
@@ -5998,11 +5999,11 @@ describe('actions/IOU', () => {
             updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 20);
             await waitForBatchedUpdates();
 
-            const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+            const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
             expect(updatedDraftTransaction).toBeTruthy();
 
             const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
-            expect(splitExpenses?.[1].amount).toBe(20);
+            expect(splitExpenses?.[0].amount).toBe(20);
         });
     });
 });
