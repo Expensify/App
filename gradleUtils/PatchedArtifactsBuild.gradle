@@ -1,6 +1,6 @@
 def config = project.gradle.settings.extensions.findByName('patchedArtifactsConfig')
 
-if(config.version != null && config.packageName != null) {
+if(config.version != null && config.packageName != null && config.githubUsername != null && config.githubToken != null) {
     rootProject.allprojects { subproject ->
         subproject.repositories {
             maven {

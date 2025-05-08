@@ -23,7 +23,8 @@ def getGithubToken() {
 }
 
 def getReactNativeVersion() {
-    def packageJson = file("${rootDir}/../../package.json")
+    def packageJsonPath = hasProperty('newDotRoot') ? "${getProperty('newDotRoot')}/package.json" : "../package.json"
+    def packageJson = file(packageJsonPath)
     return new JsonSlurper().parse(packageJson).dependencies.'react-native'
 }
 
