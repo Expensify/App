@@ -62,7 +62,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
 
         // Find the list of PRs merged between the current checklist and the previous checklist for App
         const appMergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
-        const mobileMergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
+        const mobileMergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, 'Mobile-Expensify-Test-Fork');
 
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
@@ -86,7 +86,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
 
         // TODO: Process mobileMergedPRs - potentially filter them if Mobile-Expensify PRs were also listed in previous checklists in a structured way.
         // For now, we assume no filtering is needed for mobile PRs based on the previous checklist's PRList which is App specific.
-        const newMobilePRNumbers = ['11', '12', '13'];
+        const newMobilePRNumbers = mobileMergedPRs;
 
         // Next, we generate the checklist body
         let checklistBody = '';
