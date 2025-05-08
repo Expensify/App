@@ -112,8 +112,23 @@ async function getPullRequestsDeployedBetween(fromTag: string, toTag: string, re
     return pullRequestNumbers;
 }
 
+/**
+ * Filter out cherry-picked PRs that appear in the commit history but have already been deployed in the previous checklist
+ */
+function filterPreviouslyReleasedPRs(deployedPRs: number[], previousPRNumbers: Set<number>) {
+    const newPRNumbers = deployedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
+    const removedPRs = deployedPRs.filter((prNum) => previousPRNumbers.has(prNum));
+    if (removedPRs.length > 0) {
+        core.info(`ℹ️🧹 Filtered out the following cherry-picked PRs that were released with the previous checklist: ${JSON.stringify(removedPRs)}`);
+    } else {
+        core.info('ℹ️🧐 No cherry-picked PRs from previous checklist were filtered out');
+    }
+    return newPRNumbers;
+}
+
 export default {
     getPreviousExistingTag,
     getValidMergedPRs,
     getPullRequestsDeployedBetween,
+    filterPreviouslyReleasedPRs,
 };
