@@ -5518,7 +5518,6 @@ describe('actions/IOU', () => {
             reportID: fakeReport.reportID,
             transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
             isFromGlobalCreate: true,
-            isOptimisticTransaction: true,
             merchant: '(none)',
             splitPayerAccountIDs: [3],
         };
