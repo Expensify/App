@@ -72,6 +72,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            setIsPDSandFSGDownloadedTouched(true);
             return getFieldRequiredErrors(values, STEP_FIELDS);
         },
         [STEP_FIELDS],
@@ -84,7 +85,6 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     });
 
     const handleSubmitWithDownload = (values: FormOnyxValues<'reimbursementAccount'>) => {
-        setIsPDSandFSGDownloadedTouched(true);
         if (!isPDSandFSGDownloaded) {
             return;
         }
