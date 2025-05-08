@@ -10423,7 +10423,7 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
     // The submitter and manager must also be policy members OR the current user is an admin so they can invite the non-members to the policy.
     // Additionally, if the report is not open or submitted, the current user must be an admin.
     const isExpenseReportType = isExpenseReport(report);
-    if (!isExpenseReportType || !isPaidGroupPolicyType || !((isSubmitterMember && isManagerMember) || isCurrentUserAdmin || (!isReportOpenOrSubmitted && !isCurrentUserAdmin))) {
+    if (!isExpenseReportType || !isPaidGroupPolicyType || !((isSubmitterMember && isManagerMember) || isCurrentUserAdmin) || (!isReportOpenOrSubmitted && !isCurrentUserAdmin)) {
         return false;
     }
 

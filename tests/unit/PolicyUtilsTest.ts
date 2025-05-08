@@ -751,6 +751,31 @@ describe('PolicyUtils', () => {
             expect(result).toBe(true);
         });
 
+        it('returns false if current user is not a policy admin and the report is approved', () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+            const session = {email: currentUserLogin, accountID: currentUserAccountID};
+
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.USER,
+                approver: approverEmail,
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report, session);
+            expect(result).toBe(false);
+        });
+
         it('returns true if current user is the approver and submitter is a member', () => {
             const currentUserLogin = approverEmail;
             const currentUserAccountID = approverAccountID;
