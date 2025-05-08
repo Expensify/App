@@ -28,6 +28,7 @@ import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
+import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import ReportPreviewOld from '@components/ReportActionItem/ReportPreviewOld';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
@@ -426,6 +427,7 @@ function PureReportActionItem({
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
+    const [, transactions] = useReportWithTransactionsAndViolations(getIOUReportIDFromReportActionPreview(action));
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
@@ -1310,6 +1312,11 @@ function PureReportActionItem({
     // This is a temporary solution needed for comment-linking.
     // The long term solution will leverage end-to-end encryption and only targeted users will be able to decrypt.
     if (isWhisperActionTargetedToOthers(action)) {
+        return null;
+    }
+
+    // If the transaction list for this report action is empty, hide this report action
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && !transactions.length && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         return null;
     }
 

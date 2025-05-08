@@ -632,9 +632,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             icon: Expensicons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
-                initSplitExpense(transaction, moneyRequestReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+                if (Number(transactions?.length) !== 1) {
+                    return false;
+                }
+            
+                const currentTransaction = transactions.at(0);
+                initSplitExpense(currentTransaction, moneyRequestReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
                 Navigation.navigate(
-                    ROUTES.SPLIT_EXPENSE.getRoute(moneyRequestReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), transaction?.transactionID, Navigation.getReportRHPActiveRoute()),
+                    ROUTES.SPLIT_EXPENSE.getRoute(moneyRequestReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), currentTransaction?.transactionID, Navigation.getReportRHPActiveRoute()),
                 );
             },
         },
