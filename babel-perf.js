@@ -1,224 +1,136 @@
+const pathLib = require('path');
+const projectRoot = process.cwd();
+console.log('⚡ Instrumentation plugin is running!');
+
 module.exports = function ({types: t}) {
     return {
         visitor: {
             Program(path, state) {
-                // Get the filename from Babel's state
                 const filename = state.file.opts.filename;
-
-                // Do not process files in node_modules
-                if (filename.includes('node_modules/')) {
+                // Skip node_modules
+                if (!filename || filename.includes('node_modules')) {
                     return;
                 }
 
-                // Add global initialization for metrics storage
-                const metricsInit = t.expressionStatement(
+                const init = t.expressionStatement(
                     t.assignmentExpression(
                         '=',
-                        t.memberExpression(t.identifier('window'), t.identifier('__functionCallMetrics__')),
-                        t.logicalExpression('||', t.memberExpression(t.identifier('window'), t.identifier('__functionCallMetrics__')), t.newExpression(t.identifier('Map'), [])),
+                        t.memberExpression(t.identifier('globalThis'), t.identifier('__functionCallMetrics__')),
+                        t.logicalExpression('||', t.memberExpression(t.identifier('globalThis'), t.identifier('__functionCallMetrics__')), t.newExpression(t.identifier('Map'), [])),
                     ),
                 );
 
-                // Insert metrics initialization at the top of the program
-                path.node.body.unshift(metricsInit);
+                path.node.body.unshift(init);
             },
-            Function(path) {
-                const functionName = getFunctionName(path);
-                if (!functionName) {
-                    // Skip anonymous or unnamed functions
+
+            Function(path, state) {
+                const filename = pathLib.relative(projectRoot, state.file.opts.filename);
+                const {node} = path;
+
+                if (!filename || filename.includes('node_modules')) {
                     return;
                 }
 
-                // Prevent double instrumentation
-                if (path.node._instrumented) {
+                if (node._instrumented) {
                     return;
                 }
-                path.node._instrumented = true;
+                node._instrumented = true;
 
-                console.log(`[DEBUG] Instrumenting function: ${functionName}`);
+                const loc = node.loc?.start || 0;
+                const functionName = getFunctionName(path) || 'anonymous';
+                const uniqueId = `${filename}:${loc.line}: - ${functionName}`;
+                console.log(`[DEBUG] Instrumenting function: ${functionName}`, filename);
 
-                // Generate hoisted variables
-                const timerId = path.scope.generateUidIdentifier('startTime');
-                const returnValueVariable = path.scope.generateUidIdentifier('_returnValue');
-                const elapsedTimeVariable = path.scope.generateUidIdentifier('_elapsedTime');
+                const startTimeId = path.scope.generateUidIdentifier('start');
+                const elapsedTimeId = path.scope.generateUidIdentifier('elapsed');
 
-                // Add metrics initialization
+                // Add metrics init (if not yet present for this function)
                 const initMetrics = t.expressionStatement(
-                    t.callExpression(t.memberExpression(t.memberExpression(t.identifier('window'), t.identifier('__functionCallMetrics__')), t.identifier('set')), [
-                        t.stringLiteral(functionName),
+                    t.callExpression(t.memberExpression(t.memberExpression(t.identifier('globalThis'), t.identifier('__functionCallMetrics__')), t.identifier('set')), [
+                        t.stringLiteral(uniqueId),
                         t.logicalExpression(
                             '||',
-                            t.callExpression(t.memberExpression(t.memberExpression(t.identifier('window'), t.identifier('__functionCallMetrics__')), t.identifier('get')), [
-                                t.stringLiteral(functionName),
+                            t.callExpression(t.memberExpression(t.memberExpression(t.identifier('globalThis'), t.identifier('__functionCallMetrics__')), t.identifier('get')), [
+                                t.stringLiteral(uniqueId),
                             ]),
                             t.objectExpression([t.objectProperty(t.identifier('count'), t.numericLiteral(0)), t.objectProperty(t.identifier('time'), t.numericLiteral(0))]),
                         ),
                     ]),
                 );
 
-                // Start timer declaration
                 const startTimer = t.variableDeclaration('const', [
-                    t.variableDeclarator(timerId, t.callExpression(t.memberExpression(t.identifier('performance'), t.identifier('now')), [])),
+                    t.variableDeclarator(startTimeId, t.callExpression(t.memberExpression(t.identifier('performance'), t.identifier('now')), [])),
                 ]);
 
-                // Hoist `_returnValue` and `_elapsedTime` to the top of the function
-                const hoistedVariables = t.variableDeclaration('let', [t.variableDeclarator(returnValueVariable), t.variableDeclarator(elapsedTimeVariable)]);
+                const endTimer = t.variableDeclaration('const', [
+                    t.variableDeclarator(elapsedTimeId, t.binaryExpression('-', t.callExpression(t.memberExpression(t.identifier('performance'), t.identifier('now')), []), startTimeId)),
+                ]);
 
+                const updateMetrics = t.expressionStatement(
+                    t.callExpression(t.memberExpression(t.memberExpression(t.identifier('globalThis'), t.identifier('__functionCallMetrics__')), t.identifier('set')), [
+                        t.stringLiteral(uniqueId),
+                        t.objectExpression([
+                            t.objectProperty(
+                                t.identifier('count'),
+                                t.binaryExpression(
+                                    '+',
+                                    t.memberExpression(
+                                        t.callExpression(t.memberExpression(t.memberExpression(t.identifier('globalThis'), t.identifier('__functionCallMetrics__')), t.identifier('get')), [
+                                            t.stringLiteral(uniqueId),
+                                        ]),
+                                        t.identifier('count'),
+                                    ),
+                                    t.numericLiteral(1),
+                                ),
+                            ),
+                            t.objectProperty(
+                                t.identifier('time'),
+                                t.binaryExpression(
+                                    '+',
+                                    t.memberExpression(
+                                        t.callExpression(t.memberExpression(t.memberExpression(t.identifier('globalThis'), t.identifier('__functionCallMetrics__')), t.identifier('get')), [
+                                            t.stringLiteral(uniqueId),
+                                        ]),
+                                        t.identifier('time'),
+                                    ),
+                                    elapsedTimeId,
+                                ),
+                            ),
+                        ]),
+                    ]),
+                );
+
+                // Prepare try/finally wrapper
                 const body = path.get('body');
 
-                if (body.isBlockStatement()) {
-                    // Add metrics initialization, start timer, and hoisted variables
-                    body.node.body.unshift(initMetrics, startTimer, hoistedVariables);
-
-                    // Add implicit return instrumentation for functions without explicit `return`
-                    if (!hasReturnStatement(body)) {
-                        const implicitReturnInstrumentation = createImplicitReturnInstrumentation(t, functionName, timerId, returnValueVariable, elapsedTimeVariable);
-                        body.node.body.push(...implicitReturnInstrumentation);
-                    }
-                } else {
-                    // For non-block functions (like arrow functions), wrap in a block
-                    body.replaceWith(t.blockStatement([initMetrics, startTimer, hoistedVariables, t.returnStatement(body.node)]));
+                // Ensure block statement
+                if (!body.isBlockStatement()) {
+                    body.replaceWith(t.blockStatement([t.returnStatement(body.node)]));
                 }
 
-                // Transform explicit return statements
-                const returnStatements = [];
-                path.traverse({
-                    ReturnStatement(returnPath) {
-                        returnStatements.push(returnPath);
-                    },
-                });
+                const originalBody = body.node.body;
 
-                for (const returnPath of returnStatements) {
-                    if (returnPath.node._instrumented) {
-                        continue;
-                    }
-                    returnPath.node._instrumented = true;
+                const tryBlock = t.blockStatement(originalBody);
+                const finallyBlock = t.blockStatement([endTimer, updateMetrics]);
 
-                    // Use hoisted `_returnValue` and `_elapsedTime` for explicit return
-                    const instrumentedNodes = createExplicitReturnInstrumentation(t, functionName, timerId, returnValueVariable, elapsedTimeVariable, returnPath.node.argument);
-                    returnPath.replaceWithMultiple(instrumentedNodes);
-                }
+                body.node.body = [initMetrics, startTimer, t.tryStatement(tryBlock, null, finallyBlock)];
             },
         },
     };
 
-    /**
-     * Create instrumentation for implicit returns
-     */
-    function createImplicitReturnInstrumentation(t, functionName, timerId, returnValueVariable, elapsedTimeVariable) {
-        const elapsedTime = t.expressionStatement(
-            t.assignmentExpression('=', elapsedTimeVariable, t.binaryExpression('-', t.callExpression(t.memberExpression(t.identifier('performance'), t.identifier('now')), []), timerId)),
-        );
-
-        const updateMetrics = t.expressionStatement(
-            t.callExpression(t.memberExpression(t.memberExpression(t.identifier('window'), t.identifier('__functionCallMetrics__')), t.identifier('set')), [
-                t.stringLiteral(functionName),
-                t.objectExpression([
-                    t.objectProperty(
-                        t.identifier('count'),
-                        t.binaryExpression(
-                            '+',
-                            t.memberExpression(
-                                t.callExpression(t.memberExpression(t.memberExpression(t.identifier('window'), t.identifier('__functionCallMetrics__')), t.identifier('get')), [
-                                    t.stringLiteral(functionName),
-                                ]),
-                                t.identifier('count'),
-                            ),
-                            t.numericLiteral(1),
-                        ),
-                    ),
-                    t.objectProperty(
-                        t.identifier('time'),
-                        t.binaryExpression(
-                            '+',
-                            t.memberExpression(
-                                t.callExpression(t.memberExpression(t.memberExpression(t.identifier('window'), t.identifier('__functionCallMetrics__')), t.identifier('get')), [
-                                    t.stringLiteral(functionName),
-                                ]),
-                                t.identifier('time'),
-                            ),
-                            elapsedTimeVariable,
-                        ),
-                    ),
-                ]),
-            ]),
-        );
-
-        return [elapsedTime, updateMetrics, t.returnStatement(returnValueVariable)];
-    }
-
-    /**
-     * Create instrumentation for explicit return statements
-     */
-    function createExplicitReturnInstrumentation(t, functionName, timerId, returnValueVariable, elapsedTimeVariable, argument) {
-        const assignReturnValue = t.expressionStatement(t.assignmentExpression('=', returnValueVariable, argument || t.identifier('undefined')));
-
-        const elapsedTime = t.expressionStatement(
-            t.assignmentExpression('=', elapsedTimeVariable, t.binaryExpression('-', t.callExpression(t.memberExpression(t.identifier('performance'), t.identifier('now')), []), timerId)),
-        );
-
-        const updateMetrics = t.expressionStatement(
-            t.callExpression(t.memberExpression(t.memberExpression(t.identifier('window'), t.identifier('__functionCallMetrics__')), t.identifier('set')), [
-                t.stringLiteral(functionName),
-                t.objectExpression([
-                    t.objectProperty(
-                        t.identifier('count'),
-                        t.binaryExpression(
-                            '+',
-                            t.memberExpression(
-                                t.callExpression(t.memberExpression(t.memberExpression(t.identifier('window'), t.identifier('__functionCallMetrics__')), t.identifier('get')), [
-                                    t.stringLiteral(functionName),
-                                ]),
-                                t.identifier('count'),
-                            ),
-                            t.numericLiteral(1),
-                        ),
-                    ),
-                    t.objectProperty(
-                        t.identifier('time'),
-                        t.binaryExpression(
-                            '+',
-                            t.memberExpression(
-                                t.callExpression(t.memberExpression(t.memberExpression(t.identifier('window'), t.identifier('__functionCallMetrics__')), t.identifier('get')), [
-                                    t.stringLiteral(functionName),
-                                ]),
-                                t.identifier('time'),
-                            ),
-                            elapsedTimeVariable,
-                        ),
-                    ),
-                ]),
-            ]),
-        );
-
-        return [assignReturnValue, elapsedTime, updateMetrics, t.returnStatement(returnValueVariable)];
-    }
-
-    /**
-     * Check if a function contains any explicit return statements
-     */
-    function hasReturnStatement(body) {
-        let hasReturn = false;
-        body.traverse({
-            ReturnStatement() {
-                hasReturn = true;
-            },
-        });
-        return hasReturn;
-    }
-
-    /**
-     * Get the name of a function
-     */
     function getFunctionName(path) {
-        if (path.node.id) {
+        if (path.node.id && path.node.id.name) {
             return path.node.id.name;
         }
-        if (path.parent.type === 'VariableDeclarator') {
-            return path.parent.id.name;
+        const parent = path.parent;
+        if (parent.type === 'VariableDeclarator') {
+            return parent.id.name;
         }
-        if (path.parent.type === 'ObjectProperty') {
-            return path.parent.key.name;
+        if (parent.type === 'ObjectProperty' && parent.key.type === 'Identifier') {
+            return parent.key.name;
+        }
+        if (parent.type === 'ClassMethod' && parent.key.type === 'Identifier') {
+            return parent.key.name;
         }
         return null;
     }
