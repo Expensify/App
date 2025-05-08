@@ -1,15 +1,20 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
+import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOutstandingReportsForUser} from '@libs/ReportUtils';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -21,7 +26,7 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-type ReportListItem = ListItem & {
+type ReportListItemType = ListItem & {
     /** reportID of the report */
     value: string;
 };
@@ -46,6 +51,7 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {translate} = useLocalize();
     const {backTo, action} = route.params;
+    const {options} = useOptionsList();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, reportSelector), canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -55,7 +61,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         (report) => report?.reportID === transaction?.reportID || (transaction?.participants && report?.reportID === transaction?.participants?.at(0)?.reportID),
     );
     const expenseReports = getOutstandingReportsForUser(transactionReport?.policyID, transactionReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {});
-    const reportOptions: ReportListItem[] = useMemo(() => {
+    const reportOptions: ReportListItemType[] = useMemo(() => {
         if (!allReports) {
             return [];
         }
@@ -65,19 +71,20 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
-            .map((report) => ({
-                text: report.reportName,
-                value: report.reportID,
-                keyForList: report.reportID,
-                isSelected: isTransactionReportCorrect ? report.reportID === transaction?.reportID : expenseReports.at(0)?.reportID === report.reportID,
-            }));
-    }, [allReports, debouncedSearchValue, expenseReports, transaction?.reportID]);
-
+            .map((report) => {
+                const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
+                return {
+                    ...matchingOption,
+                    value: report.reportID,
+                    isSelected: isTransactionReportCorrect ? report.reportID === transaction?.reportID : expenseReports.at(0)?.reportID === report.reportID,
+                };
+            });
+    }, [allReports, expenseReports, transaction?.reportID, debouncedSearchValue, options.reports]);
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
-    const selectReport = (item: ReportListItem) => {
+    const selectReport = (item: ReportListItemType) => {
         if (!transaction) {
             return;
         }
@@ -88,6 +95,13 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             }
         }
         Navigation.goBack(backTo);
+    };
+
+    const removeFromReport = () => {
+        if (!transaction) {
+            return;
+        }
+        changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
     };
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
@@ -110,7 +124,17 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 shouldSingleExecuteRowSelect
                 headerMessage={headerMessage}
                 initiallyFocusedOptionKey={transaction?.reportID}
-                ListItem={UserListItem}
+                ListItem={InviteMemberListItem}
+                listFooterContent={
+                    isEditing ? (
+                        <MenuItem
+                            onPress={removeFromReport}
+                            title={translate('iou.removeFromReport')}
+                            description={translate('iou.moveToPersonalSpace')}
+                            icon={Expensicons.Close}
+                        />
+                    ) : undefined
+                }
             />
         </StepScreenWrapper>
     );
