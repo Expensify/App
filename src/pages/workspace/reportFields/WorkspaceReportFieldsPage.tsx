@@ -1,6 +1,5 @@
-import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -116,7 +115,9 @@ function WorkspaceReportFieldsPage({
 
     const hasVisibleReportField = Object.values(selectionFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
-    useFocusEffect(fetchReportFields);
+    useEffect(() => {
+        fetchReportFields();
+    }, [fetchReportFields]);
 
     const reportFieldsSections = useMemo(() => {
         if (!policy) {
