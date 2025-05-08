@@ -64,7 +64,7 @@ import {
     trackExpense,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
-import {generatePolicyID} from '@userActions/Policy/Policy';
+import {generateTransactionID} from '@userActions/Transaction';
 import {createDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -308,12 +308,12 @@ function IOURequestStepScan({
     );
 
     const buildOptimisticTransaction = useCallback((): Transaction => {
-        const newTransactionID = generatePolicyID(); // TODO: replace generatePolicyID
+        const newTransactionID = generateTransactionID();
         const {comment, currency, category, iouRequestType, isFromGlobalCreate, splitPayerAccountIDs} = initialTransaction ?? {};
         const newTransaction = {
             amount: 0,
             comment,
-            created: format(new Date(), 'yyyy-MM-dd'), // TODO: change
+            created: format(new Date(), 'yyyy-MM-dd'),
             currency,
             category,
             iouRequestType,
