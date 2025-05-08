@@ -445,6 +445,7 @@ const WRITE_COMMANDS = {
     SET_COMPANY_CARD_FEED_NAME: 'SetFeedName',
     DELETE_COMPANY_CARD_FEED: 'RemoveFeed',
     SET_COMPANY_CARD_TRANSACTION_LIABILITY: 'SetFeedTransactionLiability',
+    OPEN_POLICY_ADD_CARD_FEED_PAGE: 'OpenPolicyAddCardFeedPage',
     ASSIGN_COMPANY_CARD: 'AssignCard',
     UNASSIGN_COMPANY_CARD: 'UnassignCard',
     UPDATE_COMPANY_CARD: 'SyncCard',
@@ -474,6 +475,7 @@ const WRITE_COMMANDS = {
     PAY_AND_DOWNGRADE: 'PayAndDowngrade',
     COMPLETE_CONCIERGE_CALL: 'CompleteConciergeCall',
     FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING: 'FinishCorpayBankAccountOnboarding',
+    GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -543,6 +545,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME]: Parameters.UpdateCompanyCardNameParams;
     [WRITE_COMMANDS.SET_CARD_EXPORT_ACCOUNT]: Parameters.SetCompanyCardExportAccountParams;
     [WRITE_COMMANDS.SET_COMPANY_CARD_TRANSACTION_LIABILITY]: Parameters.SetCompanyCardTransactionLiability;
+    [WRITE_COMMANDS.OPEN_POLICY_ADD_CARD_FEED_PAGE]: Parameters.OpenPolicyAddCardFeedPageParams;
     [WRITE_COMMANDS.VERIFY_IDENTITY]: Parameters.VerifyIdentityParams;
     [WRITE_COMMANDS.ACCEPT_WALLET_TERMS]: Parameters.AcceptWalletTermsParams;
     [WRITE_COMMANDS.ANSWER_QUESTIONS_FOR_WALLET]: Parameters.AnswerQuestionsForWalletParams;
@@ -968,6 +971,8 @@ type WriteCommandParameters = {
 
     // Change transaction report
     [WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT]: Parameters.ChangeTransactionsReportParams;
+
+    [WRITE_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE]: Parameters.GetGuideCallAvailabilityScheduleParams;
 };
 
 const READ_COMMANDS = {

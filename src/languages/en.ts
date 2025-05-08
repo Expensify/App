@@ -67,7 +67,6 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
-    DisplayNameParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -140,6 +139,7 @@ import type {
     RemoveMemberPromptParams,
     RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
+    RenamedWorkspaceNameActionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -185,6 +185,7 @@ import type {
     ToValidateLoginParams,
     TransferParams,
     TrialStartedTitleParams,
+    UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
     UnreportedTransactionParams,
     UnshareParams,
@@ -366,6 +367,7 @@ const translations = {
         send: 'Send',
         na: 'N/A',
         noResultsFound: 'No results found',
+        noResultsFoundMatching: ({searchString}: {searchString: string}) => `No results found matching "${searchString}"`,
         recentDestinations: 'Recent destinations',
         timePrefix: "It's",
         conjunctionFor: 'for',
@@ -430,8 +432,8 @@ const translations = {
         conciergeHelp: 'Please reach out to Concierge for help.',
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection.',
-        attachementWillBeAvailableOnceBackOnline: 'Attachment will become available once back online.',
-        errorOccuredWhileTryingToPlayVideo: 'An error occurred while trying to play this video.',
+        attachmentWillBeAvailableOnceBackOnline: 'Attachment will become available once back online.',
+        errorOccurredWhileTryingToPlayVideo: 'An error occurred while trying to play this video.',
         areYouSure: 'Are you sure?',
         verify: 'Verify',
         yesContinue: 'Yes, continue',
@@ -928,6 +930,7 @@ const translations = {
         share: 'Share',
         participants: 'Participants',
         createExpense: 'Create expense',
+        addExpense: 'Add expense',
         chooseRecipient: 'Choose recipient',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Create ${amount} expense`,
         confirmDetails: 'Confirm details',
@@ -1020,8 +1023,8 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
         submitAmount: ({amount}: RequestAmountParams) => `Submit ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `submitted ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
-        submittedWithDisplayName: ({displayName}: DisplayNameParams) => `${displayName} submitted`,
-        automaticallySubmitted: ({displayName}: DisplayNameParams) => `${displayName} submitted via <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">delayed submission</a>`,
+        automaticallySubmittedAmount: ({formattedAmount}: RequestedAmountMessageParams) =>
+            `automatically submitted ${formattedAmount} via <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">delayed submission</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -1036,10 +1039,10 @@ const translations = {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} approved ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `paid ${amount}. Add a bank account to receive your payment.`,
+        automaticallyApprovedAmount: ({amount}: ApprovedAmountParams) =>
+            `automatically approved ${amount} via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
-        automaticallyApproved: ({displayName}: DisplayNameParams) => `${displayName} approved via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
-        approvedWithDisplayName: ({displayName}: DisplayNameParams) => `${displayName} approved`,
-        unapproved: ({displayName}: DisplayNameParams) => `${displayName} unapproved`,
+        unapprovedAmount: ({amount}: UnapprovedParams) => `unapproved ${amount}`,
         automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
             `automatically approved ${amount} via <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">workspace rules</a>`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `approved ${amount}`,
@@ -1065,7 +1068,6 @@ const translations = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `changed the ${translatedChangedField} to ${newMerchant} (previously ${oldMerchant}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
-        threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Invoice Report #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `moved expense from personal space to ${workspaceName ?? `chat with ${reportName}`}`,
@@ -1168,6 +1170,7 @@ const translations = {
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
         attendees: 'Attendees',
+        whoIsYourAccountant: 'Who is your accountant?',
         paymentComplete: 'Payment complete',
         time: 'Time',
         startDate: 'Start date',
@@ -1370,7 +1373,7 @@ const translations = {
             useStagingServer: 'Use Staging Server',
             forceOffline: 'Force offline',
             simulatePoorConnection: 'Simulate poor internet connection',
-            simulatFailingNetworkRequests: 'Simulate failing network requests',
+            simulateFailingNetworkRequests: 'Simulate failing network requests',
             authenticationStatus: 'Authentication status',
             deviceCredentials: 'Device credentials',
             invalidate: 'Invalidate',
@@ -2174,7 +2177,7 @@ const translations = {
         goBackHome: 'Go back to home page',
     },
     errorPage: {
-        title: ({isBreakline}: {isBreakline: boolean}) => `Oops... ${isBreakline ? '\n' : ''}Something went wrong`,
+        title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Something went wrong`,
         subtitle: 'Your request could not be completed. Please try again later.',
     },
     setPasswordPage: {
@@ -2880,6 +2883,10 @@ const translations = {
             title: 'Expensify Travel has been disabled',
             message: `Your admin has turned off Expensify Travel. Please follow your company's booking policy for travel arrangements.`,
         },
+        verifyCompany: {
+            title: 'Get started with travel today!',
+            message: `Please contact your Account manager or salesteam@expensify.com to get a demo of travel and have it enabled for your company.`,
+        },
     },
     workspace: {
         common: {
@@ -3005,6 +3012,7 @@ const translations = {
                 other: 'Delete rates',
             }),
             deletePerDiemRate: 'Delete per diem rate',
+            findPerDiemRate: 'Find per diem rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
                 other: 'Are you sure you want to delete these rates?',
@@ -3797,6 +3805,7 @@ const translations = {
                 },
             },
             assignCard: 'Assign card',
+            findCard: 'Find card',
             cardNumber: 'Card number',
             commercialFeed: 'Commercial feed',
             feedName: ({feedName}: CompanyCardFeedNameParams) => `${feedName} cards`,
@@ -3831,6 +3840,7 @@ const translations = {
             disclaimer:
                 'The Expensify Visa® Commercial Card is issued by The Bancorp Bank, N.A., Member FDIC, pursuant to a license from Visa U.S.A. Inc. and may not be used at all merchants that accept Visa cards. Apple® and the Apple logo® are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc. Google Play and the Google Play logo are trademarks of Google LLC.',
             issueCard: 'Issue card',
+            findCard: 'Find card',
             newCard: 'New card',
             name: 'Name',
             lastFour: 'Last 4',
@@ -3921,6 +3931,7 @@ const translations = {
             addCategory: 'Add category',
             editCategory: 'Edit category',
             editCategories: 'Edit categories',
+            findCategory: 'Find category',
             categoryRequiredError: 'Category name is required',
             existingCategoryError: 'A category with this name already exists',
             invalidCategoryName: 'Invalid category name',
@@ -4095,6 +4106,7 @@ const translations = {
             addField: 'Add field',
             delete: 'Delete field',
             deleteFields: 'Delete fields',
+            findReportField: 'Find report field',
             deleteConfirmation: 'Are you sure you want to delete this report field?',
             deleteFieldsConfirmation: 'Are you sure you want to delete these report fields?',
             emptyReportFields: {
@@ -4151,6 +4163,7 @@ const translations = {
             addTag: 'Add tag',
             editTag: 'Edit tag',
             editTags: 'Edit tags',
+            findTag: 'Find tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
             emptyTags: {
                 title: "You haven't created any tags",
@@ -4183,6 +4196,7 @@ const translations = {
             value: 'Value',
             taxReclaimableOn: 'Tax reclaimable on',
             taxRate: 'Tax rate',
+            findTaxRate: 'Find tax rate',
             error: {
                 taxRateAlreadyExists: 'This tax name is already in use',
                 taxCodeAlreadyExists: 'This tax code is already in use',
@@ -4249,6 +4263,7 @@ const translations = {
                 one: 'Remove member',
                 other: 'Remove members',
             }),
+            findMember: 'Find member',
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -4603,6 +4618,7 @@ const translations = {
             centrallyManage: 'Centrally manage rates, track in miles or kilometers, and set a default category.',
             rate: 'Rate',
             addRate: 'Add rate',
+            findRate: 'Find rate',
             trackTax: 'Track tax',
             deleteRates: () => ({
                 one: 'Delete rate',
@@ -4853,7 +4869,7 @@ const translations = {
             description1: 'Your final bill for this subscription will be',
             description2: ({date}: DateParams) => `See your breakdown below for ${date}:`,
             subscription:
-                'This will end your subscription with Expensify, delete your remaining workspace and all members will lose access moving forward. If you want to remove just yourself, have another admin take over billing, and at that point, you can remove yourself from this workspace.',
+                'Heads up! This action will end your Expensify subscription, delete this workspace, and remove all workspace members. If you want to keep this workspace and only remove yourself, have another admin take over billing first.',
             genericFailureMessage: 'An error occurred while paying your bill. Please try again.',
         },
         restrictedAction: {
@@ -4997,9 +5013,11 @@ const translations = {
         description: 'Choose from the support options below:',
         chatWithConcierge: 'Chat with Concierge',
         scheduleSetupCall: 'Schedule a setup call',
-        scheduleADemo: 'Schedule demo',
+        scheduleACall: 'Schedule call',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
+        registerForWebinar: 'Register for webinar',
+        onboardingHelp: 'Onboarding help',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
@@ -5032,7 +5050,10 @@ const translations = {
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers, and hyphens',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
-        renamedRoomAction: ({oldName, newName, actorName}: RenamedRoomActionParams) => `${actorName ? `${actorName} ` : ''}renamed this room to "${newName}" (previously "${oldName}")`,
+        renamedRoomAction: ({oldName, newName, actorName, isExpenseReport}: RenamedRoomActionParams) => {
+            const actor = actorName ? `${actorName} ` : '';
+            return isExpenseReport ? `${actor}renamed to "${newName}" (previously "${oldName}")` : `${actor}renamed this room to "${newName}" (previously "${oldName}")`;
+        },
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Room renamed to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
@@ -5089,7 +5110,7 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
-        renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
+        renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription
                 ? `set the description of this workspace to "${newDescription}"`
@@ -5189,12 +5210,12 @@ const translations = {
             },
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",
-                subtitle: 'Create an expense or take a tour of Expensify to learn more.',
+                subtitle: 'Create an expense or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to create an expense.',
             },
             emptyInvoiceResults: {
                 title: "You haven't created any \ninvoices yet",
-                subtitle: 'Send an invoice or take a tour of Expensify to learn more.',
+                subtitle: 'Send an invoice or take a test drive of Expensify to learn more.',
                 subtitleWithOnlyCreateButton: 'Use the green button below to send an invoice.',
             },
             emptyTripResults: {
@@ -5419,6 +5440,7 @@ const translations = {
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} left the workspace`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                leftTheChat: 'left the chat',
             },
         },
     },
@@ -5467,7 +5489,7 @@ const translations = {
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat member display names',
         scrollToNewestMessages: 'Scroll to newest messages',
-        prestyledText: 'Prestyled text',
+        preStyledText: 'Prestyled text',
         viewAttachment: 'View attachment',
     },
     parentReportAction: {
@@ -5680,7 +5702,7 @@ const translations = {
             return message;
         },
         prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
-            const preMessage = 'Prohibited Expense: ';
+            const preMessage = 'Prohibited expense:';
             switch (prohibitedExpenseType) {
                 case 'alcohol':
                     return `${preMessage} Alcohol`;
@@ -5689,9 +5711,9 @@ const translations = {
                 case 'tobacco':
                     return `${preMessage} Tobacco`;
                 case 'adultEntertainment':
-                    return `${preMessage} Adult Entertainment`;
+                    return `${preMessage} Adult entertainment`;
                 case 'hotelIncidentals':
-                    return `${preMessage} Hotel Incidentals`;
+                    return `${preMessage} Hotel incidentals`;
                 default:
                     return `${preMessage}${prohibitedExpenseType}`;
             }
@@ -5922,7 +5944,7 @@ const translations = {
             perMemberMonth: 'per member/month',
             collect: {
                 title: 'Collect',
-                description: 'The SMB plan that gives you expense, travel, and chat.',
+                description: 'The small business plan that gives you expense, travel, and chat.',
                 priceAnnual: ({lower, upper}: YourPlanPriceParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 benefit1: 'Receipt scanning',
@@ -6189,11 +6211,7 @@ const translations = {
         },
     },
     emptySearchView: {
-        takeATour: 'Take a tour',
-    },
-    tour: {
-        takeATwoMinuteTour: 'Take a 2-minute tour',
-        exploreExpensify: 'Explore everything Expensify has to offer',
+        takeATestDrive: 'Take a test drive',
     },
     migratedUserWelcomeModal: {
         title: 'Travel and expense, at the speed of chat',
@@ -6206,9 +6224,9 @@ const translations = {
         },
     },
     productTrainingTooltip: {
-        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
+        conciergeLHNGbr: {
             part1: 'Get started',
             part2: ' here!',
         },
@@ -6223,14 +6241,25 @@ const translations = {
             part4: 'chat about expenses.',
         },
         workspaceChatTooltip: {
-            part1: 'Submit expenses',
-            part2: ' and chat with',
-            part3: '\napprovers here!',
+            part1: 'Chat with ',
+            part2: 'approvers',
         },
         globalCreateTooltip: {
             part1: 'Create expenses',
             part2: ', start chatting,',
-            part3: '\nand more!',
+            part3: '\nand more.',
+            part4: ' Try it out!',
+        },
+        GBRRBRChat: {
+            part1: 'You’ll see 🟢 on ',
+            part2: 'actions to take',
+            part3: ',\nand 🔴 on ',
+            part4: 'errors to review.',
+        },
+        accountSwitcher: {
+            part1: 'Access your ',
+            part2: 'Copilot accounts',
+            part3: ' here',
         },
         expenseReportsFilter: {
             part1: 'Welcome! Find all of your',
@@ -6249,6 +6278,18 @@ const translations = {
             tryItOut: 'Try it out',
             noThanks: 'No thanks',
         },
+        outstandingFilter: {
+            part1: 'Filter for expenses\nthat ',
+            part2: 'need approval',
+        },
+        settingsTab: {
+            part1: 'Explore your ',
+            part2: 'workspace\nand account settings',
+        },
+        workspacesSettings: {
+            part1: 'View your ',
+            part2: 'workspaces',
+        },
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
@@ -6261,7 +6302,26 @@ const translations = {
         talkToConcierge: 'Talk to Concierge',
         hangUp: 'Hang up',
     },
+    scheduledCall: {
+        book: {
+            title: 'Schedule call',
+            description: 'Find a time that works for you.',
+            slots: 'Available times for ',
+        },
+        confirmation: {
+            title: 'Confirm call',
+            description: "Make sure the details below look good to you. Once you confirm the call, we'll send an invite with more info.",
+            setupSpecialist: 'Your setup specialist',
+            meetingLength: 'Meeting length',
+            dateTime: 'Date & time',
+            minutes: '30 minutes',
+        },
+    },
     testDrive: {
+        quickAction: {
+            takeATwoMinuteTestDrive: 'Take a 2-minute test drive',
+            exploreExpensify: 'Explore everything Expensify has to offer',
+        },
         modal: {
             title: 'Take us for a test drive',
             description: 'Take a quick product tour to get up to speed fast. No pit stops required!',

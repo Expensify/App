@@ -21,7 +21,7 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
     anchorDimensions?: AnchorDimensions;
 
     /** Whether we should change the vertical position if the popover's position is overflow */
-    shoudSwitchPositionIfOverflow?: boolean;
+    shouldSwitchPositionIfOverflow?: boolean;
 
     /** Whether handle navigation back when modal show. */
     shouldHandleNavigationBack?: boolean;
@@ -61,7 +61,7 @@ function PopoverWithMeasuredContent({
         height: 0,
         width: 0,
     },
-    shoudSwitchPositionIfOverflow = false,
+    shouldSwitchPositionIfOverflow = false,
     shouldHandleNavigationBack = false,
     shouldEnableNewFocusManagement,
     shouldMeasureAnchorPositionFromTop = false,
@@ -136,7 +136,7 @@ function PopoverWithMeasuredContent({
         popoverHeight,
         windowHeight,
         anchorDimensions.height,
-        shoudSwitchPositionIfOverflow,
+        shouldSwitchPositionIfOverflow,
     );
     const shiftedAnchorPosition: PopoverAnchorPosition = {
         left: adjustedAnchorPosition.left + horizontalShift,
