@@ -512,7 +512,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             return [];
         }
         return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, session);
-    }, [moneyRequestReport, policy, transactions, violations, reportNameValuePairs, reportActions, policies]);
+    }, [moneyRequestReport, policy, transactions, violations, reportNameValuePairs, reportActions, policies, session]);
 
     const secondaryActionsImplemenation: Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
