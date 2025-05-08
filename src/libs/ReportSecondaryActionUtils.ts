@@ -28,7 +28,7 @@ import {
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
     isSettled,
-    isWorkspaceEligibleForReportChange,
+    canEditReportPolicy,
 } from './ReportUtils';
 import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
@@ -312,7 +312,13 @@ function isHoldActionForTransation(report: Report, reportTransaction: Transactio
 }
 
 function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, session?: Session): boolean {
-    return Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session)).length > 0;
+    const availablePolicies = Object.values(policies ?? {}).filter(Boolean);
+    let hasAvailablePolicies = availablePolicies.length > 1;
+    if (!hasAvailablePolicies && availablePolicies.length === 1) {
+        hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;
+    }
+    const reportPolicy = policies?.[`{ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy, session);
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[]): boolean {

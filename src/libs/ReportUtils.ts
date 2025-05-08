@@ -8917,6 +8917,45 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
     );
 }
 
+function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<Policy>, session?: OnyxEntry<Session>): boolean {
+    const isUserPolicyAdmin = isPolicyAdminPolicyUtils(reportPolicy);
+    const isUserReportManager = isReportManager(report);
+    const isUserReportSubmitter = isReportOwner(report);
+    const isUserAuditor = isAuditor(report);
+    const isIOUType = isIOUReport(report);
+    const isInvoiceType = isInvoiceReport(report);
+    const isExpenseType = isExpenseReport(report);
+    const isOpen = isOpenReport(report);
+    const isSubmitted = isProcessingReport(report);
+
+    if (isIOUType) {
+        return (isOpen || isSubmitted) && isUserReportSubmitter;
+    }
+
+    if (isInvoiceType) {
+        if (isUserAuditor) {
+            return false;
+        }
+
+        return isOpen;
+    }
+
+    if (isExpenseType) {
+        if (isOpen) {
+            return isUserReportSubmitter || isUserPolicyAdmin;
+        }
+
+        if (isSubmitted) {
+            return (isUserReportSubmitter && isAwaitingFirstLevelApproval()) || isUserReportManager || isUserPolicyAdmin;
+        }
+
+        // If it's neither open or submitter and I am a manager or an admin
+        return isUserReportManager || isUserPolicyAdmin;
+    }
+
+    return false;
+}
+
 function canEditPolicyDescription(policy: OnyxEntry<Policy>): boolean {
     return isPolicyAdminPolicyUtils(policy);
 }
@@ -10729,6 +10768,7 @@ export {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canEditPolicyDescription,
+    canEditReportPolicy,
     canEditReportAction,
     canEditReportDescription,
     canEditRoomVisibility,
