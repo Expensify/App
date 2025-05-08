@@ -9,10 +9,10 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import {searchInServer as searchReportInServer} from '@libs/actions/Report';
-import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
+import * as ReportActions from '@libs/actions/Report';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getShareLogOptions, getHeaderMessage, filterAndOrderOptions} from '@libs/OptionsListUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -37,9 +37,9 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 headerMessage: '',
             };
         }
-        const shareLogOptions = getShareLogOptions(options, betas ?? []);
+        const shareLogOptions = OptionsListUtils.getShareLogOptions(options, betas ?? []);
 
-        const header = getHeaderMessage(
+        const header = OptionsListUtils.getHeaderMessage(
             (shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0,
             !!shareLogOptions.userToInvite,
             '',
@@ -56,12 +56,12 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             return defaultOptions;
         }
 
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue, {
+        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue, {
             preferChatRoomsOverThreads: true,
             sortByReportTypeInSearch: true,
         });
 
-        const headerMessage = getHeaderMessage(
+        const headerMessage = OptionsListUtils.getHeaderMessage(
             (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
             !!filteredOptions.userToInvite,
             debouncedSearchValue.trim(),
@@ -99,13 +99,13 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         if (!option.reportID) {
             return;
         }
-        const filename = appendTimeToFileName('logs.txt');
+        const filename = FileUtils.appendTimeToFileName('logs.txt');
 
         onAttachLogToReport(option.reportID, filename);
     };
 
     useEffect(() => {
-        searchReportInServer(debouncedSearchValue);
+        ReportActions.searchInServer(debouncedSearchValue);
     }, [debouncedSearchValue]);
 
     return (

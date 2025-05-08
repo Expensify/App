@@ -8,11 +8,11 @@ import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import { canUseTouchScreen } from '@libs/DeviceCapabilities';
-import { getValidOptions, filterAndOrderOptions , formatSectionsFromSearchTerm} from '@libs/OptionsListUtils';
-import type {Option, Section} from '@libs/OptionsListUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import type {Option} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {  getDisplayNameForParticipant} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -54,7 +54,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return defaultListOptions;
         }
 
-        return getValidOptions(
+        return OptionsListUtils.getValidOptions(
             {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
@@ -67,7 +67,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        return OptionsListUtils.filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -75,12 +75,12 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     }, [defaultOptions, cleanSearchTerm, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [];
+        const newSections: OptionsListUtils.Section[] = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }
 
-        const formattedResults = formatSectionsFromSearchTerm(
+        const formattedResults = OptionsListUtils.formatSectionsFromSearchTerm(
             cleanSearchTerm,
             selectedOptions,
             chatOptions.recentReports,
@@ -92,7 +92,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 
         if (chatOptions.currentUserOption) {
-            const formattedName = getDisplayNameForParticipant({
+            const formattedName = ReportUtils.getDisplayNameForParticipant({
                 accountID: chatOptions.currentUserOption.accountID,
                 shouldAddCurrentUserPostfix: true,
                 personalDetailsData: personalDetails,
@@ -207,7 +207,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             textInputValue={searchTerm}
             footerContent={footerContent}
             showScrollIndicator
-            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onChangeText={(value) => {
                 setSearchTerm(value);
             }}
