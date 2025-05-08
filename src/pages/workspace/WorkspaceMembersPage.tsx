@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
@@ -106,7 +106,13 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const {isOffline} = useNetwork();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const prevIsOffline = usePrevious(isOffline);
-    const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
+    const accountIDs = useMemo(() => {
+        const accountIDSet = new Set<number>();
+        for (const accountID of Object.values(policyMemberEmailsToAccountIDs ?? {})) {
+            accountIDSet.add(Number(accountID));
+        }
+        return accountIDSet;
+    }, [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<TextInput>(null);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
@@ -125,7 +131,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 return false;
             }
             const isPendingDelete = employeeListDetails?.[employeeAccountID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            return accountIDs.includes(employeeAccountID) && !isPendingDelete;
+            return accountIDs.has(employeeAccountID) && !isPendingDelete;
         },
         [accountIDs, employeeListDetails],
     );
@@ -223,7 +229,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     }, [preferredLocale, validateSelection]);
 
     useEffect(() => {
-        if (removeMembersConfirmModalVisible && !lodashIsEqual(accountIDs, prevAccountIDs)) {
+        if (removeMembersConfirmModalVisible && !deepEqual(accountIDs, prevAccountIDs)) {
             setRemoveMembersConfirmModalVisible(false);
         }
         setSelectedEmployees((prevSelectedEmployees) => {
@@ -505,7 +511,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         if (!isFocused) {
             return;
         }
-        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || accountIDs === prevAccountIDs) {
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || deepEqual(accountIDs, prevAccountIDs)) {
             return;
         }
         const invitedEmails = Object.values(invitedEmailsToAccountIDsDraft).map(String);
@@ -664,7 +670,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             return [];
         }
 
-        const menuItems = [
+        return [
             {
                 icon: Table,
                 text: translate('spreadsheet.importSpreadsheet'),
@@ -693,8 +699,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 },
             },
         ];
-
-        return menuItems;
     }, [policyID, translate, isOffline, isPolicyAdmin]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
