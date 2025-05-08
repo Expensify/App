@@ -1,8 +1,7 @@
-import React, {useCallback, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {clamp, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -74,37 +73,31 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
 
     useHandleBackButton(handleBackButtonPress);
 
-    const scrollOffset = useRef(0);
+    const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.get(),
     }));
 
-    const handleScroll = useCallback(
-        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            triggerScrollEvent();
-
-            const {contentOffset, layoutMeasurement, contentSize} = event.nativeEvent;
-            const currentOffset = contentOffset.y;
-
-            if (windowHeight >= contentSize.height || currentOffset < 0) {
-                scrollOffset.current = Math.max(0, currentOffset);
+    const scrollHandler = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            runOnJS(triggerScrollEvent)();
+            const {contentOffset, layoutMeasurement, contentSize} = event;
+            if (windowHeight > contentSize.height) {
                 return;
             }
+            const currentOffset = contentOffset.y;
+            const isScrollingDown = currentOffset > scrollOffset.get();
+            const distanceScrolled = currentOffset - scrollOffset.get();
 
-            const previousScrollOffset = scrollOffset.current;
-            const isScrollingDown = currentOffset > previousScrollOffset;
-            const distanceScrolled = currentOffset - previousScrollOffset;
-
-            if (isScrollingDown && currentOffset > TOO_CLOSE_TO_TOP_DISTANCE) {
+            if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
                 topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
-            } else if (!isScrollingDown && distanceScrolled < 0 && currentOffset + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
+            } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
                 topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
             }
-            scrollOffset.current = currentOffset;
+            scrollOffset.set(currentOffset);
         },
-        [topBarOffset, triggerScrollEvent, windowHeight],
-    );
+    });
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
@@ -222,7 +215,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
                             lastNonEmptySearchResults={lastNonEmptySearchResults}
                             key={queryJSON.hash}
                             queryJSON={queryJSON}
-                            onSearchListScroll={handleScroll}
+                            onSearchListScroll={scrollHandler}
                             contentContainerStyle={!selectionMode?.isEnabled ? styles.searchListContentContainerStyles : undefined}
                         />
                     </View>

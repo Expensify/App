@@ -6,6 +6,7 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -81,6 +82,7 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 };
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
+const AnimatedFlashList = Animated.createAnimatedComponent<FlashListProps<SearchListItem>>(FlashList);
 
 function SearchList(
     {
@@ -435,7 +437,7 @@ function SearchList(
                     )}
                 </View>
             )}
-            <FlashList
+            <AnimatedFlashList
                 ref={listRef}
                 data={data}
                 renderItem={renderItem}
