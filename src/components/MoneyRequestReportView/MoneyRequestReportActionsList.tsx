@@ -152,6 +152,8 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
     const previousLastIndex = useRef(lastActionIndex);
 
     const scrollingVerticalBottomOffset = useRef(0);
+    const scrollingVerticalTopOffset = useRef(0);
+    const wrapperViewRef = useRef<View>(null);
     const readActionSkipped = useRef(false);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
@@ -315,11 +317,11 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
     }, [lastAction?.created, unreadMarkerReportActionID, unreadMarkerTime]);
 
     const scrollToBottomForCurrentUserAction = useCallback(
-        (isFromCurrentUser: boolean) => {
+        (isFromCurrentUser: boolean, reportAction?: OnyxTypes.ReportAction) => {
             InteractionManager.runAfterInteractions(() => {
                 setIsFloatingMessageCounterVisible(false);
                 // If a new comment is added from the current user, scroll to the bottom, otherwise leave the user position unchanged
-                if (!isFromCurrentUser) {
+                if (!isFromCurrentUser || reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
                     return;
                 }
 
@@ -428,8 +430,22 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
          * Diff == (height of all items in the list) - (height of the layout with the list) - (how far user scrolled)
          */
         scrollingVerticalBottomOffset.current = fullContentHeight - layoutMeasurement.height - contentOffset.y;
+        scrollingVerticalTopOffset.current = contentOffset.y;
         handleUnreadFloatingButton();
     };
+
+    const scrollToNewTransaction = useCallback(
+        (pageY: number) => {
+            wrapperViewRef.current?.measureInWindow((x, y, w, height) => {
+                // if the new transaction is already visible, we don't need to scroll to it
+                if (pageY > 0 && pageY < height) {
+                    return;
+                }
+                reportScrollManager.scrollToOffset(scrollingVerticalTopOffset.current + pageY - 300);
+            });
+        },
+        [reportScrollManager],
+    );
 
     const reportHasComments = visibleReportActions.length > 0;
 
@@ -437,7 +453,10 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
     useLayoutEffect(parseFSAttributes, []);
 
     return (
-        <View style={[styles.flex1, styles.pv4]}>
+        <View
+            style={[styles.flex1, styles.pv4]}
+            ref={wrapperViewRef}
+        >
             {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
                 <>
                     <ButtonWithDropdownMenu
@@ -528,6 +547,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                                     transactions={transactions}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}
+                                    scrollToNewTransaction={scrollToNewTransaction}
                                 />
                             </>
                         }
