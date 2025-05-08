@@ -211,6 +211,7 @@ function getOrderedReportIDs(
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string[] {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
@@ -253,7 +254,7 @@ function getOrderedReportIDs(
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
             (!isInFocusMode && isArchivedReport(reportNameValuePairs)) ||
-            reportAttributesDerivedValue?.[report.reportID]?.requiresAttention;
+            reportAttributes?.[report.reportID]?.requiresAttention;
         if (isHidden && !shouldOverrideHidden) {
             return;
         }
@@ -302,7 +303,7 @@ function getOrderedReportIDs(
 
         const isPinned = report?.isPinned ?? false;
         const rNVPs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        if (isPinned || reportAttributesDerivedValue?.[report?.reportID]?.requiresAttention) {
+        if (isPinned || reportAttributes?.[report?.reportID]?.requiresAttention) {
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
             errorReports.push(miniReport);
