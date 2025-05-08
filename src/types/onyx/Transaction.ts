@@ -498,9 +498,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates transaction loading */
         isLoading?: boolean;
 
-        /** The state that the transaction is currently in */
-        stateNum?: ValueOf<typeof CONST.TRANSACTION.STATE_NUM>;
-
         /** Holds individual shares of a split keyed by accountID, only used locally */
         splitShares?: SplitShares;
 

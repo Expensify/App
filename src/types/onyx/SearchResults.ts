@@ -400,9 +400,6 @@ type SearchTransaction = {
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;
 
-    /** The state that the transaction is currently in */
-    stateNum?: ValueOf<typeof CONST.TRANSACTION.STATE_NUM>;
-
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
 };

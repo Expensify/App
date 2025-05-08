@@ -10841,9 +10841,11 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
  * Complete split expense process
  */
 function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, hash: number) {
-    const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
-    const transaction = getTransaction(originalTransactionID);
+
+    const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const originalTransaction = getTransaction(originalTransactionID);
+    const originalTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${originalTransactionID}`] ?? [];
 
     const policy = getPolicy(transactionReport?.policyID);
     const policyCategories = getPolicyCategoriesData(transactionReport?.policyID);
@@ -10928,16 +10930,14 @@ function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transact
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
         value: {
-            stateNum: CONST.TRANSACTION.STATE_NUM.STATE_REIMBURSABLE_LEGACY,
+            reportID: CONST.REPORT.SPLIT_REPORTID,
         },
     });
 
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
-        value: {
-            stateNum: CONST.TRANSACTION.STATE_NUM.STATE_NOFLAG,
-        },
+        value: originalTransaction,
     });
 
     optimisticData.push({
@@ -10946,8 +10946,8 @@ function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transact
         value: {
             data: {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: {
-                    ...transaction,
-                    stateNum: CONST.TRANSACTION.STATE_NUM.STATE_REIMBURSABLE_LEGACY,
+                    ...originalTransactionViolations,
+                    reportID: CONST.REPORT.SPLIT_REPORTID,
                 },
             },
         },
@@ -10958,10 +10958,7 @@ function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transact
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
         value: {
             data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: {
-                    ...transaction,
-                    stateNum: CONST.TRANSACTION.STATE_NUM.STATE_NOFLAG,
-                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransactionViolations,
             },
         },
     });

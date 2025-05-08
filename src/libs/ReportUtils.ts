@@ -1100,7 +1100,7 @@ function reportTransactionsSelector(transactions: OnyxCollection<Transaction>, r
     }
 
     return Object.values(transactions).filter(
-        (transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID && transaction.stateNum !== CONST.TRANSACTION.STATE_NUM.STATE_REIMBURSABLE_LEGACY,
+        (transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID,
     );
 }
 
