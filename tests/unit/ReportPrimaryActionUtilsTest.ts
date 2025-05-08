@@ -148,14 +148,10 @@ describe('getPrimaryAction', () => {
             },
         };
         const reportActions = [
-            {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
-                reportActionID: '1',
-                created: '2025-01-01',
-                originalMessage: {markedManually: true},
-            },
-         ] as unknown as ReportAction[];
+            {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, reportActionID: '1', created: '2025-01-01', originalMessage: {markedManually: true}},
+        ] as unknown as ReportAction[];
 
-        expect(getReportPrimaryAction(report, [], {}, policy as Policy, {}, reportActions)).toBe("");
+        expect(getReportPrimaryAction(report, [], {}, policy as Policy, {}, reportActions)).toBe('');
     });
 
     it('should return REMOVE HOLD for reports with transactions on hold', async () => {
