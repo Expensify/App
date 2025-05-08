@@ -100,7 +100,6 @@ function WorkspaceReportFieldsPage({
         if (!policy) {
             return [];
         }
-
         return Object.values(filteredPolicyFieldList)
             .sort((a, b) => localeCompare(a.name, b.name))
             .map((reportField) => ({
