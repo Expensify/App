@@ -1,4 +1,5 @@
-import React, {useMemo, useRef} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ViewStyle} from 'react-native';
@@ -7,13 +8,16 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchGroupBy, SearchQueryJSON, TaskSearchStatus, TripSearchStatus} from '@components/Search/types';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -252,6 +256,27 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: false});
     const {isOffline} = useNetwork();
 
+    const [isScreenFocused, setIsScreenFocused] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            setIsScreenFocused(true);
+            return () => {
+                setIsScreenFocused(false);
+            };
+        }, []),
+    );
+    const isOutstandingStatusActive = Array.isArray(queryJSON.status)
+        ? queryJSON.status.includes(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING)
+        : queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.OUTSANDING_FILTER,
+        isScreenFocused && !isOutstandingStatusActive,
+    );
+    // Controls the visibility of the educational tooltip based on user scrolling.
+    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
+    const triggerScrollEvent = useScrollEventEmitter();
+
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
 
@@ -302,9 +327,16 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
                     ref={scrollRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}
+                    onScroll={() => {
+                        triggerScrollEvent();
+                    }}
                 >
                     {options.map((item, index) => {
+                        const isOutstanding = item.status === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
                         const onPress = singleExecution(() => {
+                            if (isOutstanding) {
+                                hideProductTrainingTooltip();
+                            }
                             onStatusChange?.();
                             const query = buildSearchQueryString({...queryJSON, status: item.status});
                             Navigation.setParams({q: query});
@@ -314,27 +346,41 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
                         const isLastItem = index === options.length - 1;
 
                         return (
-                            <Button
+                            <EducationalTooltip
                                 key={item.status}
-                                onLayout={(e) => {
-                                    if (!isActive || isScrolledRef.current || !('left' in e.nativeEvent.layout)) {
-                                        return;
-                                    }
-                                    isScrolledRef.current = true;
-                                    scrollRef.current?.scrollTo({x: (e.nativeEvent.layout.left as number) - styles.pl5.paddingLeft});
+                                shouldRender={isOutstanding && shouldShowProductTrainingTooltip}
+                                anchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                                 }}
-                                text={translate(item.text)}
-                                onPress={onPress}
-                                icon={item.icon}
-                                iconFill={isActive ? theme.success : undefined}
-                                iconHoverFill={theme.success}
-                                innerStyles={!isActive && styles.bgTransparent}
-                                hoverStyles={StyleUtils.getBackgroundColorStyle(!isActive ? theme.highlightBG : theme.border)}
-                                textStyles={!isActive && StyleUtils.getTextColorStyle(theme.textSupporting)}
-                                textHoverStyles={StyleUtils.getTextColorStyle(theme.text)}
-                                // We add padding to the first and last items so that they align with the header and table but can overflow outside the screen when scrolled.
-                                style={[isFirstItem && styles.pl5, isLastItem && styles.pr5]}
-                            />
+                                shiftHorizontal={0}
+                                renderTooltipContent={renderProductTrainingTooltip}
+                                wrapperStyle={styles.productTrainingTooltipWrapper}
+                                shouldHideOnScroll
+                                shouldHideOnNavigate={false}
+                                onTooltipPress={onPress}
+                            >
+                                <Button
+                                    onLayout={(e) => {
+                                        if (!isActive || isScrolledRef.current || !('left' in e.nativeEvent.layout)) {
+                                            return;
+                                        }
+                                        isScrolledRef.current = true;
+                                        scrollRef.current?.scrollTo({x: (e.nativeEvent.layout.left as number) - styles.pl5.paddingLeft});
+                                    }}
+                                    text={translate(item.text)}
+                                    onPress={onPress}
+                                    icon={item.icon}
+                                    iconFill={isActive ? theme.success : undefined}
+                                    iconHoverFill={theme.success}
+                                    innerStyles={!isActive && styles.bgTransparent}
+                                    hoverStyles={StyleUtils.getBackgroundColorStyle(!isActive ? theme.highlightBG : theme.border)}
+                                    textStyles={!isActive && StyleUtils.getTextColorStyle(theme.textSupporting)}
+                                    textHoverStyles={StyleUtils.getTextColorStyle(theme.text)}
+                                    // We add padding to the first and last items so that they align with the header and table but can overflow outside the screen when scrolled.
+                                    style={[isFirstItem && styles.pl5, isLastItem && styles.pr5]}
+                                />
+                            </EducationalTooltip>
                         );
                     })}
                 </ScrollView>
