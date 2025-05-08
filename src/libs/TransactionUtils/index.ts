@@ -1269,7 +1269,7 @@ function getTransaction(transactionID: string | number | undefined): OnyxEntry<T
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
 
-function getTransactionOrDraftTransaction(transactionID: string | number | undefined): OnyxEntry<Transaction> {
+function getTransactionOrDraftTransaction(transactionID: string): OnyxEntry<Transaction> {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
 }
 

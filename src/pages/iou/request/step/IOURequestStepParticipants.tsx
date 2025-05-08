@@ -31,6 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
+import type Transaction from '@src/types/onyx/Transaction';
 import KeyboardUtils from '@src/utils/keyboard';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -56,10 +57,10 @@ function IOURequestStepParticipants({
         selector: (items) => Object.values(items ?? {}),
         canBeMissing: true,
     });
-    const transactions = useMemo(
-        () => (initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction]),
-        [initialTransaction, initialTransactionID, optimisticTransactions],
-    );
+    const transactions = useMemo(() => {
+        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
+        return allTransactions.filter((transaction) => !!transaction) as Transaction[];
+    }, [initialTransaction, initialTransactionID, optimisticTransactions]);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID);
@@ -119,7 +120,7 @@ function IOURequestStepParticipants({
             return;
         }
 
-        transactions.forEach((transaction) => resetDraftTransactionsCustomUnit(transaction?.transactionID));
+        transactions.forEach((transaction) => resetDraftTransactionsCustomUnit(transaction.transactionID));
     }, [isFocused, isMovingTransactionFromTrackExpense, transactions]);
 
     const waitForKeyboardDismiss = useCallback(
@@ -144,8 +145,8 @@ function IOURequestStepParticipants({
 
         const rateID = DistanceRequestUtils.getCustomUnitRateID(selfDMReportID);
         transactions.forEach((transaction) => {
-            setCustomUnitRateID(transaction?.transactionID, rateID);
-            setMoneyRequestParticipantsFromReport(transaction?.transactionID, selfDMReport);
+            setCustomUnitRateID(transaction.transactionID, rateID);
+            setMoneyRequestParticipantsFromReport(transaction.transactionID, selfDMReport);
         });
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReportID);
         waitForKeyboardDismiss(() => {
@@ -174,7 +175,7 @@ function IOURequestStepParticipants({
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
             transactions.forEach((transaction) => {
-                setMoneyRequestParticipants(transaction?.transactionID, val);
+                setMoneyRequestParticipants(transaction.transactionID, val);
             });
 
             if (!isMovingTransactionFromTrackExpense) {
@@ -182,7 +183,7 @@ function IOURequestStepParticipants({
                 // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
                 const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
                 transactions.forEach((transaction) => {
-                    setCustomUnitRateID(transaction?.transactionID, rateID);
+                    setCustomUnitRateID(transaction.transactionID, rateID);
                 });
             }
 
@@ -210,13 +211,13 @@ function IOURequestStepParticipants({
         }
 
         transactions.forEach((transaction) => {
-            setMoneyRequestTag(transaction?.transactionID, '');
-            setMoneyRequestCategory(transaction?.transactionID, '');
+            setMoneyRequestTag(transaction.transactionID, '');
+            setMoneyRequestCategory(transaction.transactionID, '');
         });
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             const {expenseChatReportID, policyID, policyName} = createDraftWorkspace();
             transactions.forEach((transaction) => {
-                setMoneyRequestParticipants(transaction?.transactionID, [
+                setMoneyRequestParticipants(transaction.transactionID, [
                     {
                         selected: true,
                         accountID: 0,
@@ -269,7 +270,7 @@ function IOURequestStepParticipants({
         const isShareAction = action === CONST.IOU.ACTION.SHARE;
         if (isFocused && (isCategorizing || isShareAction)) {
             transactions.forEach((transaction) => {
-                setMoneyRequestParticipants(transaction?.transactionID, []);
+                setMoneyRequestParticipants(transaction.transactionID, []);
             });
             numberOfParticipants.current = 0;
         }
