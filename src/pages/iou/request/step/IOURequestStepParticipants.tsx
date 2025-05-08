@@ -53,7 +53,7 @@ function IOURequestStepParticipants({
     const isFocused = useIsFocused();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) => Object.values(items ?? {}).filter((item) => item?.isOptimisticTransaction && item?.reportID === reportID),
+        selector: (items) => Object.values(items ?? {}),
         canBeMissing: true,
     });
     const transactions = useMemo(

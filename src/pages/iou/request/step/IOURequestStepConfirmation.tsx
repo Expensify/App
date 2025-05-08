@@ -88,7 +88,8 @@ function IOURequestStepConfirmation({
     const personalDetails = usePersonalDetails();
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) => Object.values(items ?? {}).filter((item) => item?.isOptimisticTransaction && item?.reportID === reportID),
+        selector: (items) => Object.values(items ?? {}),
+        canBeMissing: true,
     });
     const transactions = useMemo(() => {
         const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
