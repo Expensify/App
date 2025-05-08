@@ -32,7 +32,7 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
     const [selectedDomain, setSelectedDomain] = useState<string | undefined>();
 
