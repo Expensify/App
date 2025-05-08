@@ -2,7 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {canModifyTask, canActionTask, completeTestDriveTask, getFinishOnboardingTaskOnyxData} from '@libs/actions/Task';
+import {canActionTask, canModifyTask, completeTestDriveTask, getFinishOnboardingTaskOnyxData} from '@libs/actions/Task';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -167,11 +167,15 @@ describe('actions/Task', () => {
                 });
 
                 it('returns false if the logged in user is not the author or the one assigned to the task', () => {
-                    expect(canActionTask(taskReport, employeeAccountID)).toBe(false);
+                    const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
+                    const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
+                    expect(canActionTask(taskReport, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
                 });
 
                 it('returns true if the logged in user is the one assigned to the task', () => {
-                    expect(canActionTask(taskReport, taskAssigneeAccountID)).toBe(true);
+                    const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
+                    const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
+                    expect(canActionTask(taskReport, taskAssigneeAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
                 });
             });
         });
@@ -232,7 +236,7 @@ describe('actions/Task', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`]: taskReport,
             [`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`]: parentReport,
         };
-        beforeEach(async () => {
+        beforeAll(async () => {
             await Onyx.clear();
             await Onyx.multiSet({
                 ...reportCollectionDataSet,
@@ -240,6 +244,7 @@ describe('actions/Task', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: 'user1@gmail.com', accountID: 2});
             await Onyx.set(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM, setupCategories: taskReport.reportID});
             await waitForBatchedUpdates();
+            console.log('timddd');
         });
         it('Return not empty object', () => {
             expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories')).length).toBeGreaterThan(0);
