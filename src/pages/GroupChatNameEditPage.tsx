@@ -101,7 +101,6 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
                     inputID={INPUT_IDS.NEW_CHAT_NAME}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
-                    shouldShowClearButton
                 />
             </FormProvider>
         </ScreenWrapper>
