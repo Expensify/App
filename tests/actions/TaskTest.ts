@@ -26,6 +26,14 @@ jest.mock('@components/ConfirmedRoute.tsx');
 
 OnyxUpdateManager();
 describe('actions/Task', () => {
+    beforeAll(async () => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+        initOnyxDerivedValues();
+        await waitForBatchedUpdates();
+    });
+
     describe('canModify and canAction task', () => {
         const managerAccountID = 1;
         const employeeAccountID = 2;
@@ -244,7 +252,6 @@ describe('actions/Task', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: 'user1@gmail.com', accountID: 2});
             await Onyx.set(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM, setupCategories: taskReport.reportID});
             await waitForBatchedUpdates();
-            console.log('timddd');
         });
         it('Return not empty object', () => {
             expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories')).length).toBeGreaterThan(0);
