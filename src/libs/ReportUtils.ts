@@ -10398,7 +10398,7 @@ function verifyStatus(report: OnyxEntry<Report>, validStatuses: Array<ValueOf<ty
 /**
  * Determines whether the report can be moved to the workspace.
  */
-function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, session: OnyxEntry<Session>): boolean {
+function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, session: OnyxEntry<Session>, currentPolicy?: OnyxEntry<Policy>): boolean {
     if (!session?.accountID) {
         return false;
     }
@@ -10409,6 +10409,7 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
     const managerLogin = report?.managerID && getLoginByAccountID(report?.managerID);
     const isManagerMember = !!managerLogin && !!newPolicy?.employeeList?.[managerLogin];
     const isCurrentUserAdmin = isPolicyAdminPolicyUtils(newPolicy, session?.email);
+    const isAdminOfCurrentPolicy = isPolicyAdminPolicyUtils(currentPolicy, session?.email);
     const isPaidGroupPolicyType = isPaidGroupPolicyPolicyUtils(newPolicy);
     const isReportOpenOrSubmitted = verifyState(report, [CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATE_NUM.SUBMITTED]);
 
@@ -10423,7 +10424,7 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
     // The submitter and manager must also be policy members OR the current user is an admin so they can invite the non-members to the policy.
     // Additionally, if the report is not open or submitted, the current user must be an admin.
     const isExpenseReportType = isExpenseReport(report);
-    if (!isExpenseReportType || !isPaidGroupPolicyType || !((isSubmitterMember && isManagerMember) || isCurrentUserAdmin) || (!isReportOpenOrSubmitted && !isCurrentUserAdmin)) {
+    if (!isExpenseReportType || !isPaidGroupPolicyType || !((isSubmitterMember && isManagerMember) || isCurrentUserAdmin) || (!isReportOpenOrSubmitted && !isAdminOfCurrentPolicy)) {
         return false;
     }
 
