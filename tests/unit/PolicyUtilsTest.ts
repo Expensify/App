@@ -856,6 +856,15 @@ describe('PolicyUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const currentPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
                 },
             };
             const report = {
@@ -864,9 +873,10 @@ describe('PolicyUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 managerID: approverAccountID,
+                policyID: currentPolicy.id,
             };
 
-            expect(isWorkspaceEligibleForReportChange(newPolicy, report, session)).toBe(true);
+            expect(isWorkspaceEligibleForReportChange(newPolicy, report, session, currentPolicy)).toBe(true);
         });
     });
 

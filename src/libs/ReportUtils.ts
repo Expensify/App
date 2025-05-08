@@ -10423,8 +10423,9 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
     // From this point on, reports must be of type Expense, the policy must be a paid type.
     // The submitter and manager must also be policy members OR the current user is an admin so they can invite the non-members to the policy.
     // Additionally, if the report is not open or submitted, the current user must be an admin.
+    // We're temporarily disabling moving reports to a workspace if the submitter is not a member of the new policy because this flow requires additional API changes.
     const isExpenseReportType = isExpenseReport(report);
-    if (!isExpenseReportType || !isPaidGroupPolicyType || !((isSubmitterMember && isManagerMember) || isCurrentUserAdmin) || (!isReportOpenOrSubmitted && !isAdminOfCurrentPolicy)) {
+    if (!isExpenseReportType || !isPaidGroupPolicyType || !isSubmitterMember || (!isReportOpenOrSubmitted && !isAdminOfCurrentPolicy)) {
         return false;
     }
 
