@@ -29,7 +29,6 @@ jest.mock('@libs/Fullstory', () => ({
     parseFSAttributes: jest.fn(),
 }));
 
-
 const INITIAL_STATE = {
     index: 0,
     routes: [
