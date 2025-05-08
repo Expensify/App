@@ -1623,6 +1623,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         reportID: (reportID: string | undefined) => reportID ?? '',
                     },
                 },
+                [SCREENS.ATTACHMENTS]: ROUTES.REPORT_ADD_ATTACHMENT.route,
             },
         },
 

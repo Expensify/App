@@ -10,10 +10,10 @@ import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route as Routes} from '@src/ROUTES';
-import type {FileObject} from './AttachmentModal';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import DragAndDropConsumer from './DragAndDrop/Consumer';
@@ -36,7 +36,7 @@ type ImportSpreadsheetProps = {
 function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isReadingFile, setIsReadingFIle] = useState(false);
+    const [isReadingFile, setIsReadingFile] = useState(false);
     const [fileTopPosition, setFileTopPosition] = useState(0);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
@@ -87,7 +87,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
 
         fetch(fileURI)
             .then((data) => {
-                setIsReadingFIle(true);
+                setIsReadingFile(true);
                 return data.arrayBuffer();
             })
             .then((arrayBuffer) => {
@@ -105,7 +105,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
                     });
             })
             .finally(() => {
-                setIsReadingFIle(false);
+                setIsReadingFile(false);
                 if (fileURI && !file.uri) {
                     URL.revokeObjectURL(fileURI);
                 }
