@@ -6,6 +6,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import {getReportActionMessageText} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
@@ -20,12 +21,18 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 jest.mock('@components/ConfirmedRoute.tsx');
 
 describe('SidebarUtils', () => {
-    beforeAll(() =>
+    beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        }),
-    );
+        });
+        initOnyxDerivedValues();
+    });
+
+    afterAll(async () => {
+        Onyx.clear();
+        await waitForBatchedUpdates();
+    });
 
     describe('getReasonAndReportActionThatHasRedBrickRoad', () => {
         it('returns correct reason when report has transaction thread violations', async () => {
@@ -235,26 +242,24 @@ describe('SidebarUtils', () => {
 
             const optionDataPinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_PINNED,
-                reportAttributes: {},
+                reportAttributes: undefined,
                 reportNameValuePairs: {},
                 reportActions: {},
                 personalDetails: {},
                 preferredLocale: CONST.LOCALES.DEFAULT,
                 policy: undefined,
                 parentReportAction: undefined,
-                hasViolations: false,
                 oneTransactionThreadReport: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
-                reportAttributes: {},
+                reportAttributes: undefined,
                 reportNameValuePairs: {},
                 reportActions: {},
                 personalDetails: {},
                 preferredLocale: CONST.LOCALES.DEFAULT,
                 policy: undefined,
                 parentReportAction: undefined,
-                hasViolations: false,
                 oneTransactionThreadReport: undefined,
             });
 
@@ -613,9 +618,8 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.getOptionData({
                 report,
                 reportActions,
-                reportAttributes: {},
+                reportAttributes: undefined,
                 reportNameValuePairs: {},
-                hasViolations: false,
                 personalDetails: {},
                 policy: undefined,
                 parentReportAction: undefined,
@@ -673,9 +677,8 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.getOptionData({
                 report,
                 reportActions,
-                reportAttributes: {},
+                reportAttributes: undefined,
                 reportNameValuePairs: {},
-                hasViolations: false,
                 personalDetails: {},
                 policy: undefined,
                 parentReportAction: undefined,
@@ -715,14 +718,13 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
-                    reportAttributes: {},
+                    reportAttributes: undefined,
                     reportNameValuePairs,
                     reportActions: {},
                     personalDetails: {},
                     preferredLocale,
                     policy,
                     parentReportAction: undefined,
-                    hasViolations: false,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                 });
@@ -752,14 +754,13 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
-                    reportAttributes: {},
+                    reportAttributes: undefined,
                     reportNameValuePairs,
                     reportActions: {},
                     personalDetails: LHNTestUtils.fakePersonalDetails,
                     preferredLocale,
                     policy,
                     parentReportAction: undefined,
-                    hasViolations: false,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                 });
@@ -786,14 +787,13 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
-                    reportAttributes: {},
+                    reportAttributes: undefined,
                     reportNameValuePairs,
                     reportActions: {},
                     personalDetails: {},
                     preferredLocale,
                     policy,
                     parentReportAction: undefined,
-                    hasViolations: false,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                 });
@@ -824,14 +824,13 @@ describe('SidebarUtils', () => {
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
-                    reportAttributes: {},
+                    reportAttributes: undefined,
                     reportNameValuePairs,
                     reportActions: {},
                     personalDetails: {},
                     preferredLocale,
                     policy,
                     parentReportAction: undefined,
-                    hasViolations: false,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                 });
@@ -892,10 +891,9 @@ describe('SidebarUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
                 const result = SidebarUtils.getOptionData({
                     report,
-                    reportAttributes: {},
+                    reportAttributes: undefined,
                     reportActions,
                     reportNameValuePairs: {},
-                    hasViolations: false,
                     personalDetails: {},
                     policy: undefined,
                     parentReportAction: undefined,
@@ -936,10 +934,9 @@ describe('SidebarUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
                 const result = SidebarUtils.getOptionData({
                     report,
-                    reportAttributes: {},
+                    reportAttributes: undefined,
                     reportActions,
                     reportNameValuePairs: {},
-                    hasViolations: false,
                     personalDetails: {},
                     policy: undefined,
                     parentReportAction: undefined,

@@ -758,12 +758,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         shouldShow={shouldShowNotFoundPage}
                         subtitleKey={shouldShowNotFoundLinkedAction ? '' : 'notFound.noAccess'}
                         subtitleStyle={[styles.textSupporting]}
-                        shouldDisplaySearchRouter
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
                         shouldShowLink={shouldShowNotFoundLinkedAction}
                         linkKey="notFound.noAccess"
                         onLinkPress={navigateToEndOfReport}
+                        shouldDisplaySearchRouter
                     >
                         <OfflineWithFeedback
                             pendingAction={reportPendingAction}
