@@ -1270,7 +1270,7 @@ function getTransaction(transactionID: string | number | undefined): OnyxEntry<T
 }
 
 function getTransactionOrDraftTransaction(transactionID: string | number | undefined): OnyxEntry<Transaction> {
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
 }
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;

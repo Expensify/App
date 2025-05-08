@@ -406,7 +406,7 @@ function IOURequestStepScan({
 
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
 
-            files.forEach((receiptFile) => {
+            const filesPromises = files.map((receiptFile) => {
                 // If a reportID exists in the report object, it's because either:
                 // - The user started this flow from using the + button in the composer inside a report.
                 // - The user started this flow from using the global create menu by selecting the Track expense option.
@@ -520,31 +520,34 @@ function IOURequestStepScan({
                         createTransaction(receipt, participant, transaction);
                         return;
                     }
-                    setMoneyRequestParticipantsFromReport(receiptFile.transactionID, report);
+                    return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, report);
                 }
 
                 // If there was no reportID, then that means the user started this flow from the global + menu
                 // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
                 if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
-                    setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
+                    return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
                 }
             });
 
-            if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
-                navigateToConfirmationPage();
-            }
-            if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
-                Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                        CONST.IOU.ACTION.CREATE,
-                        iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
-                        initialTransactionID,
-                        activePolicyExpenseChat?.reportID,
-                    ),
-                );
-            } else {
-                navigateToParticipantPage();
-            }
+            Promise.all(filesPromises).then(() => {
+                if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+                    navigateToConfirmationPage();
+                    return;
+                }
+                if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CREATE,
+                            iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+                            initialTransactionID,
+                            activePolicyExpenseChat?.reportID,
+                        ),
+                    );
+                } else {
+                    navigateToParticipantPage();
+                }
+            });
         },
         [
             backTo,
