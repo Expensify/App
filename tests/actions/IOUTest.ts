@@ -5866,7 +5866,6 @@ describe('actions/IOU', () => {
                 tag: 'lunch',
                 created: DateUtils.getDBTime(),
                 reportID: '456',
-                stateNum: CONST.TRANSACTION.STATE_NUM.STATE_REIMBURSABLE,
             };
 
             const reportID = '456';
@@ -5923,7 +5922,6 @@ describe('actions/IOU', () => {
                 tag: 'lunch',
                 created: DateUtils.getDBTime(),
                 reportID: '456',
-                stateNum: CONST.TRANSACTION.STATE_NUM.STATE_REIMBURSABLE,
             };
 
             const draftTransaction: Transaction = {
@@ -5950,7 +5948,6 @@ describe('actions/IOU', () => {
                 tag: 'lunch',
                 created: DateUtils.getDBTime(),
                 reportID: '456',
-                stateNum: CONST.TRANSACTION.STATE_NUM.STATE_REIMBURSABLE,
             };
 
             addSplitExpenseField(transaction, draftTransaction);
@@ -5996,7 +5993,6 @@ describe('actions/IOU', () => {
                 tag: 'lunch',
                 created: DateUtils.getDBTime(),
                 reportID: '456',
-                stateNum: CONST.TRANSACTION.STATE_NUM.STATE_REIMBURSABLE,
             };
 
             updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 20);

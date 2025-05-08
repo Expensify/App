@@ -1061,7 +1061,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    stateNum: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1214,8 +1213,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 originalMessage: 'object',
                 previousMessage: 'object',
             });
-        case 'stateNum':
-            return validateConstantEnum(value, CONST.TRANSACTION.STATE_NUM);
     }
 }
 
