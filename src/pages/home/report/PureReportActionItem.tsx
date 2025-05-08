@@ -829,7 +829,7 @@ function PureReportActionItem({
                                         return;
                                     }
 
-                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID));
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
                                 }}
                                 isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
                             />
