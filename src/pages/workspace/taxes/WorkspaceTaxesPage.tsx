@@ -184,9 +184,10 @@ function WorkspaceTaxesPage({
     }, [policy, textForDefault, selectedTaxesIDs, canSelectMultiple, translate, updateWorkspaceTaxEnabled]);
 
     const filterTax = useCallback((tax: ListItem, searchInput: string) => {
-        const taxName = tax.text?.toLowerCase() ?? '';
-        const taxAlternateText = tax.alternateText?.toLowerCase() ?? '';
-        return taxName.includes(searchInput) || taxAlternateText.includes(searchInput);
+        const taxName = StringUtils.normalize(tax.text?.toLowerCase() ?? '');
+        const taxAlternateText = StringUtils.normalize(tax.alternateText?.toLowerCase() ?? '');
+        const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase() ?? '');
+        return taxName.includes(normalizedSearchInput) || taxAlternateText.includes(normalizedSearchInput);
     }, []);
     const sortTaxes = useCallback((taxes: ListItem[]) => {
         return taxes.sort((a, b) => {
