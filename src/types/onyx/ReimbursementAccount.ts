@@ -193,7 +193,7 @@ type ACHDataReimbursementAccount = Omit<ACHData, 'subStep' | 'currentStep'> & {
     /** Optional subStep we would like the user to start back on */
     subStep?: ReimbursementAccountSubStep;
 
-    //** Report action id which linked Finish Chat on BBA setup */
+    /** Report action id which linked Finish Chat on BBA setup */
     ACHRequestReportActionID: string;
 };
 
