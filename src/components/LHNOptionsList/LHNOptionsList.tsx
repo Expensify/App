@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {getIOUReportIDOfLastAction, getLastMessageTextForReport, hasReportErrors} from '@libs/OptionsListUtils';
+import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, requiresAttentionFromCurrentUser} from '@libs/ReportUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
@@ -29,6 +29,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import OptionRowLHNData from './OptionRowLHNData';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
@@ -70,11 +71,11 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         }
         return data.find((reportID) => {
             const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            const itemReportErrors = reportAttributes?.[reportID]?.reportErrors;
             if (!itemFullReport) {
                 return false;
             }
-            if (hasReportErrors(itemFullReport, itemReportActions)) {
+            if (!isEmptyObject(itemReportErrors)) {
                 return true;
             }
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
@@ -82,7 +83,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const hasGBR = requiresAttentionFromCurrentUser(itemFullReport, itemParentReportAction);
             return hasGBR;
         });
-    }, [isGBRorRBRTooltipDismissed, data, reportActions, reports]);
+    }, [isGBRorRBRTooltipDismissed, data, reportActions, reports, reportAttributes]);
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
