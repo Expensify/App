@@ -5679,6 +5679,11 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 20,
         }),
 
+        getSelectionListPopoverHeight: (itemCount: number) => ({
+            height: itemCount * variables.listItemHeightNormal,
+            ...sizing.mh65vh,
+        }),
+
         earlyDiscountButton: {
             flexGrow: 1,
             flexShrink: 1,

@@ -49,7 +49,7 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, hideSearchRouterL
         return (
             <Button
                 innerStyles={[styles.searchAutocompleteInputResults, styles.borderNone, styles.bgTransparent]}
-                icon={Expensicons.Close}
+                icon={Expensicons.Clear}
                 onPress={clearFilters}
             />
         );

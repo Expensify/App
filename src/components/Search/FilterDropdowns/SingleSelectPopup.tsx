@@ -70,13 +70,15 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
             {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
-            <SelectionList
-                initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                shouldSingleExecuteRowSelect
-                sections={[{data: listData}]}
-                ListItem={SingleSelectListItem}
-                onSelectRow={updateSelectedItem}
-            />
+            <View style={[styles.getSelectionListPopoverHeight(items.length)]}>
+                <SelectionList
+                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    shouldSingleExecuteRowSelect
+                    sections={[{data: listData}]}
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={updateSelectedItem}
+                />
+            </View>
             <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
                 <Button
                     medium

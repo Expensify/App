@@ -76,12 +76,15 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
             {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
-            <SelectionList
-                shouldSingleExecuteRowSelect
-                sections={[{data: listData}]}
-                ListItem={MultiSelectListItem}
-                onSelectRow={updateSelectedItems}
-            />
+            <View style={[styles.getSelectionListPopoverHeight(items.length)]}>
+                <SelectionList
+                    shouldSingleExecuteRowSelect
+                    sections={[{data: listData}]}
+                    ListItem={MultiSelectListItem}
+                    onSelectRow={updateSelectedItems}
+                />
+            </View>
+
             <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
                 <Button
                     medium
