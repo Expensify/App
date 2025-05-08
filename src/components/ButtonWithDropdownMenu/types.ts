@@ -18,6 +18,8 @@ type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTI
 
 type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
+type OnboardingHelpType = DeepValueOf<typeof CONST.ONBOARDING_HELP>;
+
 type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
@@ -33,6 +35,7 @@ type DropdownOption<TValueType> = {
     numberOfLinesTitle?: number;
     titleStyle?: ViewStyle;
     shouldCloseModalOnSelect?: boolean;
+    shouldPreserveSelectionAfterHideModal?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -133,4 +136,5 @@ export type {
     ButtonWithDropdownMenuProps,
     WorkspaceTaxRatesBulkActionType,
     ReportExportType,
+    OnboardingHelpType,
 };

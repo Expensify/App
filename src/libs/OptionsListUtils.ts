@@ -2,6 +2,7 @@
 
 /* eslint-disable no-continue */
 import {Str} from 'expensify-common';
+import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -42,7 +43,7 @@ import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import Performance from './Performance';
 import Permissions from './Permissions';
-import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {canSendInvoiceFromWorkspace, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
 import {
@@ -50,9 +51,11 @@ import {
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
     getLeaveRoomMessage,
+    getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReportActionHtml,
     getReportActionMessageText,
     getSortedReportActions,
     getUpdateRoomDescriptionMessage,
@@ -61,6 +64,7 @@ import {
     isClosedAction,
     isCreatedTaskReportAction,
     isDeletedParentAction,
+    isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isOldDotReportAction,
@@ -206,6 +210,7 @@ type GetValidReportsConfig = {
     loginsToExclude?: Record<string, boolean>;
     shouldSeparateWorkspaceChat?: boolean;
     shouldSeparateSelfDMChat?: boolean;
+    excludeNonAdminWorkspaces?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type GetValidReportsReturnTypeCombined = {
@@ -218,7 +223,7 @@ type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
-    recentAttendees?: Attendee[];
+    recentAttendees?: Option[];
     excludeHiddenThreads?: boolean;
     excludeHiddenChatRoom?: boolean;
     canShowManagerMcTest?: boolean;
@@ -634,7 +639,7 @@ function getAlternateText(option: OptionData, {showChatPreviewLine = false, forc
  * Searches for a match when provided with a value
  */
 function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isReportChatRoom = false): boolean {
-    const searchWords = new Set(searchValue.replace(/,/g, ' ').split(' '));
+    const searchWords = new Set(searchValue.replace(/,/g, ' ').split(/\s+/));
     const valueToSearch = searchText?.replace(new RegExp(/&nbsp;/g), '');
     let matching = true;
     searchWords.forEach((word) => {
@@ -680,6 +685,10 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
         return;
     }
     return getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastAction))?.reportID;
+}
+
+function hasHiddenDisplayNames(accountIDs: number[]) {
+    return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
 /**
@@ -760,8 +769,12 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = getTaskCreatedMessage(lastReportAction);
-    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) {
-        const wasSubmittedViaHarvesting = getOriginalMessage(lastReportAction)?.harvesting ?? false;
+    } else if (
+        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
+        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
+        isMarkAsClosedAction(lastReportAction)
+    ) {
+        const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? getOriginalMessage(lastReportAction)?.harvesting ?? false : false;
         if (wasSubmittedViaHarvesting) {
             lastMessageTextFromReport = getReportAutomaticallySubmittedMessage(lastReportAction);
         } else {
@@ -789,7 +802,11 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getUpgradeWorkspaceMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         lastMessageTextFromReport = getDowngradeWorkspaceMessage();
-    } else if (isActionableAddPaymentCard(lastReportAction) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
+    } else if (
+        isActionableAddPaymentCard(lastReportAction) ||
+        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) ||
+        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED)
+    ) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
@@ -807,6 +824,13 @@ function getLastMessageTextForReport(
     if (reportID && !isArchivedReport(reportNameValuePairs) && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
     }
+
+    // When the last report action has unkown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
+    // so we reconstruct the last message text of the report from the last report action.
+    if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction))) {
+        lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));
+    }
+
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
@@ -1123,35 +1147,53 @@ function isReportSelected(reportOption: OptionData, selectedOptions: Array<Parti
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
+function processReport(
+    report: OnyxEntry<Report>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+): {
+    reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
+    reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
+} {
+    if (!report) {
+        return {reportOption: null};
+    }
+
+    const isOneOnOneChat = reportUtilsIsOneOnOneChat(report);
+    const accountIDs = getParticipantsAccountIDsForDisplay(report);
+    const isChatRoom = reportUtilsIsChatRoom(report);
+
+    if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
+        return {reportOption: null};
+    }
+
+    // Determine if this report should be mapped to a personal detail
+    const reportMapEntry = accountIDs.length <= 1 && isOneOnOneChat ? ([accountIDs.at(0), report] as [number, Report]) : undefined;
+
+    return {
+        reportMapEntry,
+        reportOption: {
+            item: report,
+            ...createOption(accountIDs, personalDetails, report, {}),
+        },
+    };
+}
+
 function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>) {
     const reportMapForAccountIDs: Record<number, Report> = {};
     const allReportOptions: Array<SearchOption<Report>> = [];
 
     if (reports) {
         Object.values(reports).forEach((report) => {
-            if (!report) {
-                return;
+            const {reportMapEntry, reportOption} = processReport(report, personalDetails);
+
+            if (reportMapEntry) {
+                const [accountID, reportValue] = reportMapEntry;
+                reportMapForAccountIDs[accountID] = reportValue;
             }
 
-            const isOneOnOneChat = reportUtilsIsOneOnOneChat(report);
-            const accountIDs = getParticipantsAccountIDsForDisplay(report);
-
-            const isChatRoom = reportUtilsIsChatRoom(report);
-            if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
-                return;
+            if (reportOption) {
+                allReportOptions.push(reportOption);
             }
-
-            // Save the report in the map if this is a single participant so we can associate the reportID with the
-            // personal detail option later. Individuals should not be associated with single participant
-            // policyExpenseChats or chatRooms since those are not people.
-            if (accountIDs.length <= 1 && isOneOnOneChat) {
-                reportMapForAccountIDs[accountIDs[0]] = report;
-            }
-
-            allReportOptions.push({
-                item: report,
-                ...createOption(accountIDs, personalDetails, report, {}),
-            });
         });
     }
 
@@ -1405,6 +1447,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         loginsToExclude = {},
         shouldSeparateSelfDMChat,
         shouldSeparateWorkspaceChat,
+        excludeNonAdminWorkspaces,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
@@ -1443,6 +1486,10 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         const isSelfDM = option.isSelfDM;
         const isChatRoom = option.isChatRoom;
         const accountIDs = getParticipantsAccountIDsForDisplay(report);
+
+        if (excludeNonAdminWorkspaces && !isPolicyAdmin(option.policyID, policies)) {
+            continue;
+        }
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             continue;
@@ -1834,11 +1881,24 @@ function getAttendeeOptions(
     includeInvoiceRooms = false,
     action: IOUAction | undefined = undefined,
 ) {
+    const personalDetailList = keyBy(
+        personalDetails.map(({item}) => item),
+        'accountID',
+    );
+    const filteredRecentAttendees = recentAttendees
+        .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
+        .map((attendee) => ({
+            ...attendee,
+            login: attendee.email ?? attendee.displayName,
+            ...getPersonalDetailByEmail(attendee.email),
+        }))
+        .map((attendee) => getParticipantsOption(attendee, personalDetailList as never));
+
     return getValidOptions(
         {reports, personalDetails},
         {
             betas,
-            selectedOptions: attendees,
+            selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats,
             includeRecentReports: false,
@@ -1847,7 +1907,7 @@ function getAttendeeOptions(
             includeSelfDM: false,
             includeInvoiceRooms,
             action,
-            recentAttendees,
+            recentAttendees: filteredRecentAttendees,
         },
     );
 }
@@ -2383,6 +2443,7 @@ export {
     getIsUserSubmittedExpenseOrScannedReceipt,
     getManagerMcTestParticipant,
     shouldShowLastActorDisplayName,
+    processReport,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions};
