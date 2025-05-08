@@ -28,6 +28,7 @@ function UnlockAccountPage() {
                     heading={translate('unlockAccountPage.yourAccountIsLocked')}
                     description={translate('unlockAccountPage.chatToConciergeToUnlock')}
                     shouldShowButton
+                    descriptionStyle={styles.colorMuted}
                     buttonText={translate('unlockAccountPage.chatWithConcierge')}
                     onButtonPress={() => Navigation.navigate(ROUTES.CONCIERGE)}
                     containerStyle={styles.h100}
