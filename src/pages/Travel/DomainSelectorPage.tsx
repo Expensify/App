@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -12,10 +13,12 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
+import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type DomainItem = ListItem & {
@@ -23,7 +26,9 @@ type DomainItem = ListItem & {
     isRecommended: boolean;
 };
 
-function DomainSelectorPage() {
+type DomainSelectorPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DOMAIN_SELECTOR>;
+
+function DomainSelectorPage({route}: DomainSelectorPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -62,7 +67,10 @@ function DomainSelectorPage() {
             shouldEnableMaxHeight
             testID={DomainSelectorPage.displayName}
         >
-            <HeaderWithBackButton title={translate('travel.domainSelector.title')} />
+            <HeaderWithBackButton
+                title={translate('travel.domainSelector.title')}
+                onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+            />
             <Text style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>{translate('travel.domainSelector.subtitle')}</Text>
             <SelectionList
                 onSelectRow={(option) => setSelectedDomain(option.value)}

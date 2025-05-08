@@ -1893,7 +1893,10 @@ const ROUTES = {
         route: 'travel/domain-permission/:domain/info',
         getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission/${domain}/info`, backTo),
     },
-    TRAVEL_PUBLIC_DOMAIN_ERROR: 'travel/public-domain-error',
+    TRAVEL_PUBLIC_DOMAIN_ERROR: {
+        route: 'travel/public-domain-error',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error`, backTo),
+    },
     TRAVEL_WORKSPACE_ADDRESS: {
         route: 'travel/:domain/workspace-address',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address`, backTo),
