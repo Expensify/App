@@ -84,7 +84,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
 
@@ -178,12 +177,12 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const listHorizontalPadding = styles.ph5;
     return !isEmpty(transactions) ? (
         <>
-            {!displayNarrowVersion && (
-                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, StyleUtils.getPaddingBottom(6), styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <View style={[styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
+            {!shouldUseNarrowLayout && (
+                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, StyleUtils.getPaddingBottom(6), styles.alignItemsCenter]}>
+                    <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
-                                if (selectedTransactionsID.length === transactions.length) {
+                                if (selectedTransactionsID.length !== 0) {
                                     setSelectedTransactionsID([]);
                                 } else {
                                     setSelectedTransactionsID(transactions.map((t) => t.transactionID));
@@ -193,20 +192,23 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
                             isChecked={selectedTransactionsID.length === transactions.length}
                         />
+                        {isMediumScreenWidth && <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>}
                     </View>
-                    <MoneyRequestReportTableHeader
-                        shouldShowSorting
-                        sortBy={sortBy}
-                        sortOrder={sortOrder}
-                        dateColumnSize={dateColumnSize}
-                        onSortPress={(selectedSortBy, selectedSortOrder) => {
-                            if (!isSortableColumnName(selectedSortBy)) {
-                                return;
-                            }
+                    {!isMediumScreenWidth && (
+                        <MoneyRequestReportTableHeader
+                            shouldShowSorting
+                            sortBy={sortBy}
+                            sortOrder={sortOrder}
+                            dateColumnSize={dateColumnSize}
+                            onSortPress={(selectedSortBy, selectedSortOrder) => {
+                                if (!isSortableColumnName(selectedSortBy)) {
+                                    return;
+                                }
 
-                            setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
-                        }}
-                    />
+                                setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
+                            }}
+                        />
+                    )}
                 </View>
             )}
             <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
@@ -236,7 +238,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             style={[pressableStyle]}
                             onMouseLeave={handleMouseLeave}
                             onLongPress={() => {
-                                if (!displayNarrowVersion) {
+                                if (!shouldUseNarrowLayout) {
                                     return;
                                 }
                                 if (selectionMode?.isEnabled) {
@@ -252,7 +254,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 isSelected={isTransactionSelected(transaction.transactionID)}
                                 dateColumnSize={dateColumnSize}
                                 shouldShowTooltip
-                                shouldUseNarrowLayout={displayNarrowVersion}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
+                                shouldShowCheckbox={!!selectionMode?.isEnabled || isMediumScreenWidth}
                                 shouldShowChatBubbleComponent
                                 onCheckboxPress={toggleTransaction}
                             />
