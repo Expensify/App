@@ -1,0 +1,49 @@
+Problem:
+
+Our release checklist logic currently retrieves PRs just from Expensify/App. But our releases can include PRs from the Expensify/Mobile-Expensify submodule. These PRs are not included in the checklist and can be missed by QA.
+
+Solution:
+
+Make getCommitHistoryBetweenTags reusable for multiple repositories. Then in createOrUpdateStagingDeploy, call the function again for Mobile-Expensify. Add the list of PRs to the checklist under its own section.
+
+Detailed Steps:
+
+1.  **Refactor `getCommitHistoryBetweenTags` function:**
+    *   Identify the file containing `getCommitHistoryBetweenTags`.
+    *   Modify the function signature to accept a `repo` (string) parameter.
+    *   Update the internal GitHub API calls within the function to use the provided `repo` (and the default owner 'Expensify') instead of hardcoded values for the repository.
+    *   Ensure existing calls to this function are updated with the default repository details (e.g., `repo: 'App'`).
+
+2.  **Determine the commit range for `Mobile-Expensify`:**
+    *   In the `createOrUpdateStagingDeploy` workflow (or its helper scripts):
+        *   Identify the previous and current `Mobile-Expensify` tags/versions being deployed. This might involve:
+            *   Finding the tag associated with that SHA in `Mobile-Expensify`.
+            *   Finding the previous tag deployed for `Mobile-Expensify`. This might require looking at the previous successful StagingDeploy workflow run or a similar mechanism.
+
+3.  **Update `createOrUpdateStagingDeploy` (or relevant script):**
+    *   Locate the `createOrUpdateStagingDeploy` workflow file or the script it calls for checklist generation.
+    *   After fetching PRs for `Expensify/App`:
+        *   Call the refactored `getCommitHistoryBetweenTags` with `repo: 'Mobile-Expensify'`, and the determined `fromTag` and `toTag` for `Mobile-Expensify`.
+        *   Process the list of PRs from `Mobile-Expensify` similar to how `Expensify/App` PRs are processed (extracting PR numbers, titles, authors, etc.).
+
+4.  **Update Checklist Generation:**
+    *   Modify the logic that constructs the checklist body.
+    *   Add a new distinct section to the checklist specifically for "Mobile-Expensify Pull Requests".
+    *   Populate this section with the PRs fetched for `Mobile-Expensify`.
+
+5.  **Testing:**
+    *   **Unit Tests:**
+        *   Update unit tests for `getCommitHistoryBetweenTags` to verify its functionality with different repository inputs.
+        *   Write or update unit tests for the checklist generation logic to ensure it correctly includes sections and PRs from both repositories. Mock API calls as needed.
+    *   **Integration/Workflow Tests:**
+        *   If possible, manually trigger the workflow with a scenario where `Mobile-Expensify` has changes between tags to ensure the checklist is correctly generated.
+
+6.  **Error Handling & Edge Cases:**
+    *   Consider what happens if `Mobile-Expensify` tags cannot be determined.
+    *   Do not error out of the action, we still want to create it with the App PRs.
+    *   Ensure graceful handling if no PRs are found for `Mobile-Expensify` in the given range.
+
+7.  **Documentation (Optional but Recommended):**
+    *   Briefly document the change in any relevant internal wikis or READMEs, especially for the QA team or anyone involved in the release process.
+
+---

@@ -4776,79 +4776,6 @@ exports.throttling = throttling;
 
 /***/ }),
 
-/***/ 537:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var deprecation = __nccwpck_require__(8932);
-var once = _interopDefault(__nccwpck_require__(1223));
-
-const logOnceCode = once(deprecation => console.warn(deprecation));
-const logOnceHeaders = once(deprecation => console.warn(deprecation));
-/**
- * Error with extra properties to help with debugging
- */
-class RequestError extends Error {
-  constructor(message, statusCode, options) {
-    super(message);
-    // Maintains proper stack trace (only available on V8)
-    /* istanbul ignore next */
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-    this.name = "HttpError";
-    this.status = statusCode;
-    let headers;
-    if ("headers" in options && typeof options.headers !== "undefined") {
-      headers = options.headers;
-    }
-    if ("response" in options) {
-      this.response = options.response;
-      headers = options.response.headers;
-    }
-    // redact request credentials without mutating original request options
-    const requestCopy = Object.assign({}, options.request);
-    if (options.request.headers.authorization) {
-      requestCopy.headers = Object.assign({}, options.request.headers, {
-        authorization: options.request.headers.authorization.replace(/ .*$/, " [REDACTED]")
-      });
-    }
-    requestCopy.url = requestCopy.url
-    // client_id & client_secret can be passed as URL query parameters to increase rate limit
-    // see https://developer.github.com/v3/#increasing-the-unauthenticated-rate-limit-for-oauth-applications
-    .replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]")
-    // OAuth tokens can be passed as URL query parameters, although it is not recommended
-    // see https://developer.github.com/v3/#oauth2-token-sent-in-a-header
-    .replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
-    this.request = requestCopy;
-    // deprecations
-    Object.defineProperty(this, "code", {
-      get() {
-        logOnceCode(new deprecation.Deprecation("[@octokit/request-error] `error.code` is deprecated, use `error.status`."));
-        return statusCode;
-      }
-    });
-    Object.defineProperty(this, "headers", {
-      get() {
-        logOnceHeaders(new deprecation.Deprecation("[@octokit/request-error] `error.headers` is deprecated, use `error.response.headers`."));
-        return headers || {};
-      }
-    });
-  }
-}
-
-exports.RequestError = RequestError;
-//# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
 /***/ 3682:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -13043,7 +12970,6 @@ const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
-const request_error_1 = __nccwpck_require__(537);
 const EmptyObject_1 = __nccwpck_require__(8227);
 const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
@@ -13231,7 +13157,7 @@ class GithubUtils {
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
      */
-    static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false) {
+    static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], mobilePRNumbers = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
             const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, EmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
@@ -13254,12 +13180,21 @@ class GithubUtils {
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
                 let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
-                // PR list
+                // App PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                     sortedPRList.forEach((URL) => {
                         issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
+                    });
+                    issueBody += '\r\n\r\n';
+                }
+                // Mobile-Expensify PR list
+                if (mobilePRNumbers.length > 0) {
+                    issueBody += '**Mobile-Expensify Pull Requests:**\r\n';
+                    mobilePRNumbers.forEach((prNumber) => {
+                        const mobilePrURL = `https://github.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.MOBILE_EXPENSIFY_REPO}/pull/${prNumber}`;
+                        issueBody += `- [ ] ${mobilePrURL}\r\n`;
                     });
                     issueBody += '\r\n\r\n';
                 }
@@ -13469,12 +13404,12 @@ class GithubUtils {
     /**
      * Get commits between two tags via the GitHub API
      */
-    static async getCommitHistoryBetweenTags(fromTag, toTag) {
-        console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    static async getCommitHistoryBetweenTags(fromTag, toTag, repo) {
+        console.log('Getting pull requests merged between the following tags:', fromTag, toTag, 'for repo:', repo);
         try {
             const { data: comparison } = await this.octokit.repos.compareCommits({
                 owner: CONST_1.default.GITHUB_OWNER,
-                repo: CONST_1.default.APP_REPO,
+                repo,
                 base: fromTag,
                 head: toTag,
             });
@@ -13487,10 +13422,7 @@ class GithubUtils {
             }));
         }
         catch (error) {
-            if (error instanceof request_error_1.RequestError && error.status === 404) {
-                console.error(`❓❓ Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`);
-            }
-            // Re-throw the error after logging
+            console.error(`❓❓ Failed to compare commits with the GitHub for repo '${repo}'. The base tag ('${fromTag}') or head tag ('${toTag}'). Make sure the tags exist on the remote repository. 💡💡`);
             throw error;
         }
     }

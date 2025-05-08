@@ -102,18 +102,44 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
  */
-async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
-    const commitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag);
+async function getPullRequestsDeployedBetween(fromTag: string, toTag: string, repo: string) {
+    const commitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag, repo);
     const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
-    core.startGroup('Locate PRs from Git commits');
+    core.startGroup(`Locate PRs from Git commits for ${repo}`);
     core.info(`Found ${commitList.length} commits.`);
     core.info(`Found ${pullRequestNumbers.length} PRs: ${JSON.stringify(pullRequestNumbers)}`);
     core.endGroup();
     return pullRequestNumbers;
 }
 
+/**
+ * Filter out cherry-picked PRs that appear in the commit history but have already been deployed in the previous checklist
+ */
+function filterPreviouslyReleasedPRs(deployedPRs: number[], previousPRNumbers: Set<number>) {
+    core.info('Deployed PRs may include cherry-picked PRs released with previous checklist, these must be excluded');
+    core.startGroup('Filtering out cherry-picked PRs for App');
+    const newPRNumbers = deployedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
+    const removedPRs = deployedPRs.filter((prNum) => previousPRNumbers.has(prNum));
+    
+
+    // core.info(`Found ${previousPRNumbers.size} PRs from the previous checklis: ${JSON.stringify(Array.from(previousPRNumbers))}`);
+
+
+    if (removedPRs.length > 0) {
+        core.info(`ℹ️🧹 Filtered out the following cherry-picked PRs that were released with the previous checklist: ${JSON.stringify(removedPRs)}`);
+    } else {
+        core.info('ℹ️🧐 No cherry-picked PRs from previous checklist were filtered out');
+    }
+
+    // console.info(`Created final list of App PRs for current checklist: ${JSON.stringify(newAppPRNumbers)}`);
+    // core.endGroup();
+
+    return newPRNumbers;
+}
+
 export default {
     getPreviousExistingTag,
     getValidMergedPRs,
     getPullRequestsDeployedBetween,
+    filterPreviouslyReleasedPRs,
 };

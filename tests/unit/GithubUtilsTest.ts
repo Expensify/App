@@ -5,6 +5,7 @@
  */
 import * as core from '@actions/core';
 import type {Writable} from 'type-fest';
+import CONST from '@github/libs/CONST';
 import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
@@ -502,7 +503,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test no resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, mobilePRList, baseDeployBlockerList).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -524,7 +525,7 @@ describe('GithubUtils', () => {
         });
 
         test('Test some resolved deploy blockers', () => {
-            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList.at(0) ?? '']).then((issue) => {
+            githubUtils.generateStagingDeployCashBodyAndAssignees(tag, basePRList, basePRList, mobilePRList, baseDeployBlockerList, [baseDeployBlockerList.at(0) ?? '']).then((issue) => {
                 if (typeof issue !== 'object') {
                     return;
                 }
@@ -697,21 +698,21 @@ describe('GithubUtils', () => {
         test('should return empty array when no commits found', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
 
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
             expect(result).toEqual([]);
         });
 
         test('should return formatted commit history when commits exist', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.singleCommit);
 
-            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO);
             expect(result).toEqual(commitHistoryData.expectedFormattedCommit);
         });
 
         test('should handle API errors gracefully', async () => {
             mockCompareCommits.mockRejectedValue(new Error('API Error'));
 
-            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow('API Error');
+            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1', CONST.APP_REPO)).rejects.toThrow('API Error');
         });
     });
 

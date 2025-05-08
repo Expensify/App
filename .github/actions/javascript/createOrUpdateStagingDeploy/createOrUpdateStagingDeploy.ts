@@ -60,28 +60,24 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const previousChecklistData = GithubUtils.getStagingDeployCashData(previousChecklist);
         const currentChecklistData: StagingDeployCashData | undefined = shouldCreateNewDeployChecklist ? undefined : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
-        // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag);
+        // Find the list of PRs merged between the current checklist and the previous checklist for App
+        const appMergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
+        core.info(`Found ${appMergedPRs.length} App PRs deployed since previous checklist: ${JSON.stringify(appMergedPRs)}`);
 
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
-        core.info('Deployed PRs include cherry-picked PRs released with previous checklist, these must be excluded');
-        core.startGroup('Filtering out cherry-picked PRs');
-        core.info(`Found ${mergedPRs.length} PRs deployed since previous checklist: ${JSON.stringify(mergedPRs)}`);
-        core.info(`Found ${previousPRNumbers.size} PRs from the previous checklist: ${JSON.stringify(Array.from(previousPRNumbers))}`);
+        core.info(`Found ${previousPRNumbers.size} PRs from the previous checklist (used for App PR filtering): ${JSON.stringify(Array.from(previousPRNumbers))}`);
 
-        // Create the final list of PRs for the current checklist
-        const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
+        const newAppPRNumbers = GitUtils.filterPreviouslyReleasedPRs(appMergedPRs, previousPRNumbers);
 
-        // Log the PRs that were filtered out
-        const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
-        if (removedPRs.length > 0) {
-            core.info(`ℹ️🧹 Filtered out the following cherry-picked PRs that were released with the previous checklist: ${JSON.stringify(removedPRs)}`);
-        } else {
-            core.info('ℹ️🧐 No PRs from previous checklist were filtered out');
-        }
-        core.endGroup();
-        console.info(`Created final list of PRs for current checklist: ${JSON.stringify(newPRNumbers)}`);
+        const mobileMergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, 'Mobile-Expensify-Test-Fork');
+        
+        // TODO: Process mobileMergedPRs - potentially filter them if Mobile-Expensify PRs were also listed in previous checklists in a structured way.
+        // For now, we assume no filtering is needed for mobile PRs based on the previous checklist's PRList which is App specific.
+        const newMobilePRNumbers = mobileMergedPRs;
+
+        // Convert Mobile PR numbers to URLs for checklist generation
+        const mobilePrURLs = newMobilePRNumbers.map(prNum => `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/${prNum}`);
 
         // Next, we generate the checklist body
         let checklistBody = '';
@@ -89,7 +85,9 @@ async function run(): Promise<IssuesCreateResponse | void> {
         if (shouldCreateNewDeployChecklist) {
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
-                newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
+                newAppPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
+                [], // verifiedPRList - always empty for new checklist
+                mobilePrURLs,
             );
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
@@ -97,7 +95,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             }
         } else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
-            const PRList = newPRNumbers.map((prNum) => {
+            const PRList = newAppPRNumbers.map((prNum) => {
                 const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum) ?? -1;
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
@@ -140,9 +138,10 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 newVersion,
                 PRList.map((pr) => pr.url),
                 PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
+                mobilePrURLs,
                 deployBlockers.map((blocker) => blocker.url),
                 deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url),
-                currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url),
+                currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url) ?? [],
                 didVersionChange ? false : currentChecklistData.isTimingDashboardChecked,
                 didVersionChange ? false : currentChecklistData.isFirebaseChecked,
                 didVersionChange ? false : currentChecklistData.isGHStatusChecked,

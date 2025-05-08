@@ -284,6 +284,7 @@ class GithubUtils {
         tag: string,
         PRList: string[],
         verifiedPRList: string[] = [],
+        mobilePRNumbers: string[] = [],
         deployBlockers: string[] = [],
         resolvedDeployBlockers: string[] = [],
         resolvedInternalQAPRs: string[] = [],
@@ -321,12 +322,22 @@ class GithubUtils {
                     // eslint-disable-next-line max-len
                     let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
 
-                    // PR list
+                    // App PR list
                     if (sortedPRList.length > 0) {
                         issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                         sortedPRList.forEach((URL) => {
                             issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
                             issueBody += ` ${URL}\r\n`;
+                        });
+                        issueBody += '\r\n\r\n';
+                    }
+
+                    // Mobile-Expensify PR list
+                    if (mobilePRNumbers.length > 0) {
+                        issueBody += '**Mobile-Expensify Pull Requests:**\r\n';
+                        mobilePRNumbers.forEach((prNumber) => {
+                            const mobilePrURL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/pull/${prNumber}`;
+                            issueBody += `- [ ] ${mobilePrURL}\r\n`;
                         });
                         issueBody += '\r\n\r\n';
                     }
@@ -573,13 +584,13 @@ class GithubUtils {
     /**
      * Get commits between two tags via the GitHub API
      */
-    static async getCommitHistoryBetweenTags(fromTag: string, toTag: string): Promise<CommitType[]> {
-        console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    static async getCommitHistoryBetweenTags(fromTag: string, toTag: string, repo: string): Promise<CommitType[]> {
+        console.log('Getting pull requests merged between the following tags:', fromTag, toTag, 'for repo:', repo);
 
         try {
             const {data: comparison} = await this.octokit.repos.compareCommits({
                 owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
+                repo,
                 base: fromTag,
                 head: toTag,
             });
@@ -592,12 +603,9 @@ class GithubUtils {
                 authorName: commit.commit.author?.name || 'Unknown',
             }));
         } catch (error) {
-            if (error instanceof RequestError && error.status === 404) {
-                console.error(
-                    `❓❓ Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`,
-                );
-            }
-            // Re-throw the error after logging
+            console.error(
+                `❓❓ Failed to compare commits with the GitHub for repo '${repo}'. The base tag ('${fromTag}') or head tag ('${toTag}'). Make sure the tags exist on the remote repository. 💡💡`,
+            );
             throw error;
         }
     }

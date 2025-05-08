@@ -4732,79 +4732,6 @@ exports.throttling = throttling;
 
 /***/ }),
 
-/***/ 537:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var deprecation = __nccwpck_require__(8932);
-var once = _interopDefault(__nccwpck_require__(1223));
-
-const logOnceCode = once(deprecation => console.warn(deprecation));
-const logOnceHeaders = once(deprecation => console.warn(deprecation));
-/**
- * Error with extra properties to help with debugging
- */
-class RequestError extends Error {
-  constructor(message, statusCode, options) {
-    super(message);
-    // Maintains proper stack trace (only available on V8)
-    /* istanbul ignore next */
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-    this.name = "HttpError";
-    this.status = statusCode;
-    let headers;
-    if ("headers" in options && typeof options.headers !== "undefined") {
-      headers = options.headers;
-    }
-    if ("response" in options) {
-      this.response = options.response;
-      headers = options.response.headers;
-    }
-    // redact request credentials without mutating original request options
-    const requestCopy = Object.assign({}, options.request);
-    if (options.request.headers.authorization) {
-      requestCopy.headers = Object.assign({}, options.request.headers, {
-        authorization: options.request.headers.authorization.replace(/ .*$/, " [REDACTED]")
-      });
-    }
-    requestCopy.url = requestCopy.url
-    // client_id & client_secret can be passed as URL query parameters to increase rate limit
-    // see https://developer.github.com/v3/#increasing-the-unauthenticated-rate-limit-for-oauth-applications
-    .replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]")
-    // OAuth tokens can be passed as URL query parameters, although it is not recommended
-    // see https://developer.github.com/v3/#oauth2-token-sent-in-a-header
-    .replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
-    this.request = requestCopy;
-    // deprecations
-    Object.defineProperty(this, "code", {
-      get() {
-        logOnceCode(new deprecation.Deprecation("[@octokit/request-error] `error.code` is deprecated, use `error.status`."));
-        return statusCode;
-      }
-    });
-    Object.defineProperty(this, "headers", {
-      get() {
-        logOnceHeaders(new deprecation.Deprecation("[@octokit/request-error] `error.headers` is deprecated, use `error.response.headers`."));
-        return headers || {};
-      }
-    });
-  }
-}
-
-exports.RequestError = RequestError;
-//# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
 /***/ 3682:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -11574,31 +11501,35 @@ async function run() {
         // Parse the data from the previous and current checklists into the format used to generate the checklist
         const previousChecklistData = GithubUtils_1.default.getStagingDeployCashData(previousChecklist);
         const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
-        // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag);
+        // Find the list of PRs merged between the current checklist and the previous checklist for App
+        const appMergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST_1.default.APP_REPO);
+        const mobileMergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, 'Mobile-Expensify-Test-Fork');
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
         core.info('Deployed PRs include cherry-picked PRs released with previous checklist, these must be excluded');
-        core.startGroup('Filtering out cherry-picked PRs');
-        core.info(`Found ${mergedPRs.length} PRs deployed since previous checklist: ${JSON.stringify(mergedPRs)}`);
-        core.info(`Found ${previousPRNumbers.size} PRs from the previous checklist: ${JSON.stringify(Array.from(previousPRNumbers))}`);
-        // Create the final list of PRs for the current checklist
-        const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
-        // Log the PRs that were filtered out
-        const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
-        if (removedPRs.length > 0) {
-            core.info(`ℹ️🧹 Filtered out the following cherry-picked PRs that were released with the previous checklist: ${JSON.stringify(removedPRs)}`);
+        core.startGroup('Filtering out cherry-picked PRs for App');
+        core.info(`Found ${appMergedPRs.length} App PRs deployed since previous checklist: ${JSON.stringify(appMergedPRs)}`);
+        core.info(`Found ${previousPRNumbers.size} PRs from the previous checklist (used for App PR filtering): ${JSON.stringify(Array.from(previousPRNumbers))}`);
+        // Create the final list of deployed PRs for the current checklist
+        const newAppPRNumbers = appMergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
+        // Log the PRs that were filtered out for App
+        const removedAppPRs = appMergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
+        if (removedAppPRs.length > 0) {
+            core.info(`ℹ️🧹 Filtered out the following App cherry-picked PRs that were released with the previous checklist: ${JSON.stringify(removedAppPRs)}`);
         }
         else {
-            core.info('ℹ️🧐 No PRs from previous checklist were filtered out');
+            core.info('ℹ️🧐 No App PRs from previous checklist were filtered out');
         }
         core.endGroup();
-        console.info(`Created final list of PRs for current checklist: ${JSON.stringify(newPRNumbers)}`);
+        console.info(`Created final list of App PRs for current checklist: ${JSON.stringify(newAppPRNumbers)}`);
+        // TODO: Process mobileMergedPRs - potentially filter them if Mobile-Expensify PRs were also listed in previous checklists in a structured way.
+        // For now, we assume no filtering is needed for mobile PRs based on the previous checklist's PRList which is App specific.
+        const newMobilePRNumbers = mobileMergedPRs;
         // Next, we generate the checklist body
         let checklistBody = '';
         let checklistAssignees = [];
         if (shouldCreateNewDeployChecklist) {
-            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersion, newPRNumbers.map((value) => GithubUtils_1.default.getPullRequestURLFromNumber(value)));
+            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersion, newAppPRNumbers.map((value) => GithubUtils_1.default.getPullRequestURLFromNumber(value)), [], newMobilePRNumbers);
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
                 checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean);
@@ -11606,7 +11537,7 @@ async function run() {
         }
         else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
-            const PRList = newPRNumbers.map((prNum) => {
+            const PRList = newAppPRNumbers.map((prNum) => {
                 const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum) ?? -1;
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
@@ -11641,7 +11572,7 @@ async function run() {
                 });
             });
             const didVersionChange = newVersion !== currentChecklistData?.version;
-            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersion, PRList.map((pr) => pr.url), PRList.filter((pr) => pr.isVerified).map((pr) => pr.url), deployBlockers.map((blocker) => blocker.url), deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url), currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url), didVersionChange ? false : currentChecklistData.isTimingDashboardChecked, didVersionChange ? false : currentChecklistData.isFirebaseChecked, didVersionChange ? false : currentChecklistData.isGHStatusChecked);
+            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersion, PRList.map((pr) => pr.url), PRList.filter((pr) => pr.isVerified).map((pr) => pr.url), newMobilePRNumbers, deployBlockers.map((blocker) => blocker.url), deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url), currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url) ?? [], didVersionChange ? false : currentChecklistData.isTimingDashboardChecked, didVersionChange ? false : currentChecklistData.isFirebaseChecked, didVersionChange ? false : currentChecklistData.isGHStatusChecked);
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
                 checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean);
@@ -11867,10 +11798,10 @@ function getValidMergedPRs(commits) {
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
  */
-async function getPullRequestsDeployedBetween(fromTag, toTag) {
-    const commitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag);
+async function getPullRequestsDeployedBetween(fromTag, toTag, repo) {
+    const commitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag, repo);
     const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
-    core.startGroup('Locate PRs from Git commits');
+    core.startGroup(`Locate PRs from Git commits for ${repo}`);
     core.info(`Found ${commitList.length} commits.`);
     core.info(`Found ${pullRequestNumbers.length} PRs: ${JSON.stringify(pullRequestNumbers)}`);
     core.endGroup();
@@ -11922,7 +11853,6 @@ const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
-const request_error_1 = __nccwpck_require__(537);
 const EmptyObject_1 = __nccwpck_require__(8227);
 const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
@@ -12110,7 +12040,7 @@ class GithubUtils {
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
      */
-    static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false) {
+    static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], mobilePRNumbers = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
             const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, EmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
@@ -12133,12 +12063,21 @@ class GithubUtils {
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
                 let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
-                // PR list
+                // App PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                     sortedPRList.forEach((URL) => {
                         issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
+                    });
+                    issueBody += '\r\n\r\n';
+                }
+                // Mobile-Expensify PR list
+                if (mobilePRNumbers.length > 0) {
+                    issueBody += '**Mobile-Expensify Pull Requests:**\r\n';
+                    mobilePRNumbers.forEach((prNumber) => {
+                        const mobilePrURL = `https://github.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.MOBILE_EXPENSIFY_REPO}/pull/${prNumber}`;
+                        issueBody += `- [ ] ${mobilePrURL}\r\n`;
                     });
                     issueBody += '\r\n\r\n';
                 }
@@ -12348,12 +12287,12 @@ class GithubUtils {
     /**
      * Get commits between two tags via the GitHub API
      */
-    static async getCommitHistoryBetweenTags(fromTag, toTag) {
-        console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    static async getCommitHistoryBetweenTags(fromTag, toTag, repo) {
+        console.log('Getting pull requests merged between the following tags:', fromTag, toTag, 'for repo:', repo);
         try {
             const { data: comparison } = await this.octokit.repos.compareCommits({
                 owner: CONST_1.default.GITHUB_OWNER,
-                repo: CONST_1.default.APP_REPO,
+                repo,
                 base: fromTag,
                 head: toTag,
             });
@@ -12366,10 +12305,7 @@ class GithubUtils {
             }));
         }
         catch (error) {
-            if (error instanceof request_error_1.RequestError && error.status === 404) {
-                console.error(`❓❓ Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`);
-            }
-            // Re-throw the error after logging
+            console.error(`❓❓ Failed to compare commits with the GitHub for repo '${repo}'. The base tag ('${fromTag}') or head tag ('${toTag}'). Make sure the tags exist on the remote repository. 💡💡`);
             throw error;
         }
     }
