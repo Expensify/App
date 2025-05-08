@@ -323,7 +323,7 @@ describe('TagsOptionsListUtils', () => {
         const createTagObjects = (names: string[]) => names.map((name) => ({name, enabled: true}));
 
         const unorderedTagNames = ['10bc', 'b', '0a', '1', '中国', 'b10', '!', '2', '0', '@', 'a1', 'a', '3', 'b1', '日本', '$', '20', '20a', '#', 'a20', 'c', '10'];
-        const expectedOrderNames = ['!', '#', '$', '0', '0a', '1', '10', '10bc', '2', '20', '20a', '3', '@', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c', '中国', '日本'];
+        const expectedOrderNames = ['!', '@', '#', '$', '0', '0a', '1', '10', '10bc', '2', '20', '20a', '3', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c', '中国', '日本'];
         const unorderedTags = createTagObjects(unorderedTagNames);
         const expectedOrder = createTagObjects(expectedOrderNames);
         expect(TagsOptionsListUtils.sortTags(unorderedTags)).toStrictEqual(expectedOrder);
