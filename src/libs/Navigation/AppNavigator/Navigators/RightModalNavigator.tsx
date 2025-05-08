@@ -223,6 +223,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         name={SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE}
                         component={ModalStackNavigators.AddUnreportedExpenseModalStackNavigator}
                     />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SCHEDULE_CALL}
+                        component={ModalStackNavigators.ScheduleCallModalStackNavigator}
+                    />
                 </Stack.Navigator>
             </View>
         </NoDropZone>

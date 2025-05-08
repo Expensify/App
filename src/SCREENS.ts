@@ -132,7 +132,6 @@ const SCREENS = {
         },
 
         EXIT_SURVEY: {
-            BOOK_CALL: 'Settings_ExitSurvey_Book_Call',
             REASON: 'Settings_ExitSurvey_Reason',
             RESPONSE: 'Settings_ExitSurvey_Response',
             CONFIRM: 'Settings_ExitSurvey_Confirm',
@@ -217,6 +216,7 @@ const SCREENS = {
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
         ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
+        SCHEDULE_CALL: 'ScheduleCall',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     ONBOARDING_MODAL: {
@@ -719,6 +719,10 @@ const SCREENS = {
         TRANSACTION: 'Debug_Transaction',
         TRANSACTION_VIOLATION_CREATE: 'Debug_Transaction_Violation_Create',
         TRANSACTION_VIOLATION: 'Debug_Transaction_Violation',
+    },
+    SCHEDULE_CALL: {
+        BOOK: 'ScheduleCall_Book',
+        CONFIRMATION: 'ScheduleCall_Confirmation',
     },
 } as const;
 

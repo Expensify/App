@@ -8,7 +8,6 @@ import DateCell from '@components/SelectionList/Search/DateCell';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useHover from '@hooks/useHover';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,7 +58,6 @@ function TransactionItemRow({
         backgroundColor: theme.highlightBG,
     });
 
-    const {selectionMode} = useMobileSelectionMode();
     const {hovered, bind: bindHover} = useHover();
     const bgActiveStyles = useMemo(() => {
         if (isSelected) {

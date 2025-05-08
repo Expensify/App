@@ -924,9 +924,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_REASON.route,
                         },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.BOOK_CALL]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route,
-                        },
                         [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
                         },
@@ -1595,6 +1592,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                     exact: true,
                                 },
                             },
+                        },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: {
+                    screens: {
+                        [SCREENS.SCHEDULE_CALL.BOOK]: {
+                            path: ROUTES.SCHEDULE_CALL_BOOK.route,
+                        },
+                        [SCREENS.SCHEDULE_CALL.CONFIRMATION]: {
+                            path: ROUTES.SCHEDULE_CALL_CONFIRMATON.route,
                         },
                     },
                 },
