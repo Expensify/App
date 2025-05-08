@@ -10432,63 +10432,6 @@ function verifyStatus(report: OnyxEntry<Report>, validStatuses: Array<ValueOf<ty
     return validStatuses.includes(report?.statusNum);
 }
 
-/**
- * Determines whether the report can be moved to the workspace.
- */
-function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, session: OnyxEntry<Session>): boolean {
-    if (!session?.accountID) {
-        return false;
-    }
-
-    const isIOU = isIOUReport(report);
-    const submitterLogin = report?.ownerAccountID && getLoginByAccountID(report?.ownerAccountID);
-    const isSubmitterMember = !!submitterLogin && !!newPolicy?.employeeList?.[submitterLogin];
-    const managerLogin = report?.managerID && getLoginByAccountID(report?.managerID);
-    const isManagerMember = !!managerLogin && !!newPolicy?.employeeList?.[managerLogin];
-    const isCurrentUserAdmin = isPolicyAdminPolicyUtils(newPolicy, session?.email);
-    const isPaidGroupPolicyType = isPaidGroupPolicyPolicyUtils(newPolicy);
-    const isReportOpenOrSubmitted = verifyState(report, [CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATE_NUM.SUBMITTED]);
-
-    // For IOUs, the sender and receiver can only change the workspace if:
-    // 1. The sender AND receiver are both members of the new policy OR
-    // 2. The sender OR receiver is an admin of the new policy. In this case, changing the policy also invites the non-member to the policy
-    if (isIOU && isReportOpenOrSubmitted && isPaidGroupPolicyType && ((isSubmitterMember && isManagerMember) || isCurrentUserAdmin)) {
-        return true;
-    }
-
-    // From this point on, reports must be of type Expense, the policy must be a paid type.
-    // The submitter and manager must also be policy members OR the current user is an admin so they can invite the non-members to the policy.
-    const isExpenseReportType = isExpenseReport(report);
-    if (!isExpenseReportType || !isPaidGroupPolicyType || !((isSubmitterMember && isManagerMember) || isCurrentUserAdmin)) {
-        return false;
-    }
-
-    const isCurrentUserReportSubmitter = session.accountID === report?.ownerAccountID;
-    if (isCurrentUserReportSubmitter && isReportOpenOrSubmitted) {
-        return true;
-    }
-
-    const isCurrentUserReportApprover = isApproverMember(newPolicy, session.accountID);
-    if (isCurrentUserReportApprover && verifyState(report, [CONST.REPORT.STATE_NUM.SUBMITTED])) {
-        return true;
-    }
-
-    const isCurrentUserReportPayer = isPayer(session, report, false, newPolicy);
-    if (isCurrentUserReportPayer && verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED])) {
-        return true;
-    }
-
-    if (
-        isCurrentUserAdmin &&
-        verifyState(report, [CONST.REPORT.STATE_NUM.APPROVED]) &&
-        verifyStatus(report, [CONST.REPORT.STATUS_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED, CONST.REPORT.STATUS_NUM.CLOSED])
-    ) {
-        return true;
-    }
-
-    return false;
-}
-
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
     const approvalChain: string[] = [];
     const fullApprovalChain: string[] = [];
@@ -11082,7 +11025,6 @@ export {
     generateReportAttributes,
     getReportPersonalDetailsParticipants,
     isAllowedToSubmitDraftExpenseReport,
-    isWorkspaceEligibleForReportChange,
 };
 
 export type {
