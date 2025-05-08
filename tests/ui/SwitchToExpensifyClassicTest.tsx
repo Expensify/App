@@ -1,5 +1,5 @@
 import * as NativeNavigation from '@react-navigation/native';
-import {fireEvent, render, screen, userEvent} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {act} from 'react-test-renderer';
 import {translateLocal} from '@libs/Localize';
@@ -24,24 +24,23 @@ TestHelper.setupGlobalFetchMock();
 
 function navigateToSetting() {
     const hintText = translateLocal('sidebarScreen.buttonMySettings');
-    const mySettingButton = screen.queryAllByAccessibilityHint(hintText).at(0);
+    const mySettingButton = screen.queryByAccessibilityHint(hintText);
     if (mySettingButton) {
         fireEvent(mySettingButton, 'press');
     }
     return waitForBatchedUpdatesWithAct();
 }
 
-async function navigateToExpensifyClassicFlow() {
+function navigateToExpensifyClassicFlow() {
     const hintText = translateLocal('exitSurvey.goToExpensifyClassic');
     const switchToExpensifyClassicBtn = screen.queryByAccessibilityHint(hintText);
     if (switchToExpensifyClassicBtn) {
-        const user = userEvent.setup();
-        await user.press(switchToExpensifyClassicBtn);
+        fireEvent(switchToExpensifyClassicBtn, 'press');
     }
     return waitForBatchedUpdatesWithAct();
 }
 
-async function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
+function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
     render(<App />);
     return waitForBatchedUpdatesWithAct()
         .then(async () => {
@@ -63,7 +62,7 @@ async function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void
         })
         .then(async () => {
             await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
-            await navigateToExpensifyClassicFlow();
+            return navigateToExpensifyClassicFlow();
         });
 }
 
@@ -76,8 +75,9 @@ describe('Switch to Expensify Classic flow', () => {
         PusherHelper.teardown();
     });
 
-    test('Should navigate to exit survey reason page', async () => {
-        await signInAppAndEnterTestFlow(true);
-        expect(screen.getAllByText(translateLocal('exitSurvey.reasonPage.subtitle')).at(0)).toBeOnTheScreen();
+    test('Should navigate to exit survey reason page', () => {
+        signInAppAndEnterTestFlow(true).then(() => {
+            expect(screen.getAllByText(translateLocal('exitSurvey.reasonPage.subtitle')).at(0)).toBeOnTheScreen();
+        });
     });
 });
