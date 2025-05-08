@@ -4,6 +4,8 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import DropZoneUI from '@components/DropZoneUI';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
@@ -474,20 +476,30 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
                             offlineIndicatorStyle={styles.mtAuto}
                         >
-                            <SearchPageHeader
-                                queryJSON={queryJSON}
-                                headerButtonsOptions={headerButtonsOptions}
-                            />
-                            <SearchStatusBar
-                                queryJSON={queryJSON}
-                                headerButtonsOptions={headerButtonsOptions}
-                            />
-                            <Search
-                                key={queryJSON.hash}
-                                queryJSON={queryJSON}
-                                currentSearchResults={currentSearchResults}
-                                lastNonEmptySearchResults={lastNonEmptySearchResults}
-                            />
+                            <DragAndDropProvider>
+                                <SearchPageHeader
+                                    queryJSON={queryJSON}
+                                    headerButtonsOptions={headerButtonsOptions}
+                                />
+                                <SearchStatusBar
+                                    queryJSON={queryJSON}
+                                    headerButtonsOptions={headerButtonsOptions}
+                                />
+                                <Search
+                                    key={queryJSON.hash}
+                                    queryJSON={queryJSON}
+                                    currentSearchResults={currentSearchResults}
+                                    lastNonEmptySearchResults={lastNonEmptySearchResults}
+                                />
+                                <DropZoneUI
+                                    onDrop={() => console.log('dropped')}
+                                    icon={Expensicons.SmartScan}
+                                    dropTitle={translate('dropzone.scanReceipts')}
+                                    dropStyles={styles.receiptDropOverlay}
+                                    dropTextStyles={styles.receiptDropText}
+                                    dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
+                                />
+                            </DragAndDropProvider>
                         </ScreenWrapper>
                     </View>
                 )}
