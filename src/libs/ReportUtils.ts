@@ -4637,7 +4637,8 @@ function getReportName(
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
     const attributes = reportAttributesParam ?? reportAttributes;
     const derivedNameExists = report && !!attributes?.[report.reportID]?.reportName;
-    if (canUseDerivedValue && derivedNameExists) {
+    // This doesn't apply to chat reports because last message (report name) can be changed and/or edited
+    if (canUseDerivedValue && derivedNameExists && !isChatReport(report)) {
         return attributes[report.reportID].reportName;
     }
     return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
