@@ -125,7 +125,6 @@ import {
     getOutstandingChildRequest,
     getParsedComment,
     getPersonalDetailsForAccountID,
-    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportTransactions,
@@ -8781,7 +8780,11 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
     notifyNewAction(params.chatReportID, managerID);
 }
 
-function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport, policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy) {
+function canApproveIOU(
+    iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
+    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
+    iouTransactions?: OnyxTypes.Transaction[],
+) {
     // Only expense reports can be approved
     if (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
         return false;
@@ -8799,7 +8802,7 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> |
     const iouSettled = isSettled(iouReport);
     const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
-    const reportTransactions = getReportTransactions(iouReport?.reportID);
+    const reportTransactions = iouTransactions ?? getReportTransactions(iouReport?.reportID);
     const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every(isPendingCardOrScanningTransaction);
     if (hasOnlyPendingCardOrScanningTransactions) {
         return false;
@@ -8898,15 +8901,10 @@ function canSubmitReport(
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
     transactions: OnyxTypes.Transaction[] | SearchTransaction[],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
+    isReportArchived = false,
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
-
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
-    const isArchived = isArchivedReport(reportNameValuePairs);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const transactionIDList = transactions.map((transaction) => transaction.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
@@ -8918,7 +8916,7 @@ function canSubmitReport(
     return (
         transactions.length > 0 &&
         isOpenExpenseReport &&
-        !isArchived &&
+        !isReportArchived &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
