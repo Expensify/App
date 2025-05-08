@@ -127,10 +127,12 @@ const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<OnyxTypes.Tr
 
 function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, hasFieldErrors: boolean, violationMessage: string, isTransactionOnHold: boolean): TranslationPathOrText {
     const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
-    const isTooLong = violationsCount > 1 || (violationsCount > 0 && isTransactionOnHold) || violationMessage.length > CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW;
+
+    const hasViolationsAndHold = violationsCount > 0 && isTransactionOnHold;
+    const isTooLong = violationsCount > 1 || violationMessage.length > CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW;
     const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-    return isTooLong || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
+    return isTooLong || hasViolationsAndHold || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
 }
 
 function getTransactionPreviewTextAndTranslationPaths({
