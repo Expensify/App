@@ -5277,7 +5277,7 @@ const translations = {
             reimbursable: 'Reimbursable',
         },
         moneyRequestReport: {
-            emptyStateTitle: 'This report has no expenses',
+            emptyStateTitle: 'This report has no expenses.',
             emptyStateSubtitle: 'You can add expenses to this report \n using the button above.',
         },
         noCategory: 'No category',
