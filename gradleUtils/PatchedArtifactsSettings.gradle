@@ -1,0 +1,83 @@
+import groovy.json.JsonSlurper
+
+class PatchedArtifactsConfig {
+    String version = null
+    String packageName = null
+    String githubUsername = null
+    String githubToken = null
+}
+
+def patchedArtifactsConfig = settings.getExtensions().create('patchedArtifactsConfig', PatchedArtifactsConfig)
+
+def runCommand(command) {
+    def process = command.execute()
+    return [output: process.in.text.trim(), exitCode: process.exitValue()]
+}
+
+def getGithubUsername() {
+    return new JsonSlurper().parseText(runCommand(["gh", "api", "user"]).output).login
+}
+
+def getGithubToken() {
+    return runCommand(["gh", "auth", "token"]).output
+}
+
+def getReactNativeVersion() {
+    def packageJson = file("${rootDir}/../../package.json")
+    return new JsonSlurper().parse(packageJson).dependencies.'react-native'
+}
+
+def getArtifactsCandidates(packageName) {
+    def reactNativeVersion = getReactNativeVersion()
+    def patchedVersions = runCommand(["gh", "api", "/orgs/Expensify/packages/maven/com.expensify.${packageName}.react-android/versions", "--jq", ".[].name"]).output
+    return patchedVersions.split("\n").findAll { it.startsWith(reactNativeVersion) }
+}
+
+def getPomFile(version, packageName) {
+    return new XmlSlurper().parse(
+        new URL("https://maven.pkg.github.com/Expensify/App/com/expensify/${packageName}/react-android/${version}/react-android-${version}.pom").openConnection().with {
+            setRequestProperty("Authorization", "Bearer ${getGithubToken()}")
+            getInputStream()
+        }
+    )
+}
+
+def hasDiff(commitHash) {
+    // TBD
+    return false
+}
+
+def findMatchingArtifactsVersion(packageName) {
+    def candidates = getArtifactsCandidates(packageName)
+    for (candidate in candidates) {
+        def commitHash = getPomFile(candidate, packageName).properties.commitHash.text()
+        return candidate
+        if (!hasDiff(commitHash)) {
+            return candidate
+        }
+    }
+
+    return null
+}
+
+settings.extensions.configure(PatchedArtifactsConfig) { config ->
+    config.packageName = getProperty('patchedArtifactsConfig.packageName')
+    config.version = findMatchingArtifactsVersion(config.packageName)
+    config.githubUsername = getGithubUsername()
+    config.githubToken = getGithubToken()
+
+    if(config.version == null || config.packageName == null || config.githubUsername == null || config.githubToken == null) { 
+        logger.lifecycle("\u001B[34m[PatchedArtifacts] No matching artifacts version found for ${config.packageName}. Buillding react-native from source.\u001B[0m")
+        includeBuild("$newDotNodeModules/react-native") {
+            dependencySubstitution {
+                substitute(module("com.facebook.react:react-android")).using(project(":packages:react-native:ReactAndroid"))
+                substitute(module("com.facebook.react:react-native")).using(project(":packages:react-native:ReactAndroid"))
+                substitute(module("com.facebook.react:hermes-android")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
+                substitute(module("com.facebook.react:hermes-engine")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
+            }
+        }
+    }
+    else {
+        logger.lifecycle("\u001B[34m[PatchedArtifacts] Using patched react-native artifacts: ${config.packageName}:${config.version}\u001B[0m")
+    }
+}

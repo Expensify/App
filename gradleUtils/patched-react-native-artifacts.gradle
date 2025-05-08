@@ -1,7 +1,7 @@
 import groovy.json.JsonSlurper
 
 class PatchedReactNativeArtifactsExtension {
-    String packageName = 'react-hybrid'
+    String packageName = 'react-standalone'
 }
 
 def extension = project.extensions.create('patchedReactNativeArtifacts', PatchedReactNativeArtifactsExtension)
@@ -47,7 +47,7 @@ def getPomFile(version) {
 }
 
 def hasDiff(commitHash) {
-    // return runCommand(['git',, 'diff', '--exit-code', commitHash, '--', 'patches/react-native+*.patch', 'patches/@react-native+*.patch']).exitCode
+    // TBD
     return 0
 }
 
@@ -80,9 +80,10 @@ rootProject.allprojects { subproject ->
 afterEvaluate {
     def version = findMatchingArtifactsVersion()
     def group = "com.expensify.${project.patchedReactNativeArtifacts.packageName}"
+    def wartosc1 = mojaDynamicznaWlasciwosc
+    println "[Build Script - ${project.name}] Odczytano (bezpośrednio): '${wartosc1}'"
 
     if (version) {
-        println "Found patched ${group}:${version}"
         project.rootProject.allprojects { eachProject ->
             eachProject.configurations.all { configuration ->
                 configuration.resolutionStrategy {

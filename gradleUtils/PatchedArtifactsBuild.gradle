@@ -1,0 +1,34 @@
+def config = project.gradle.settings.extensions.findByName('patchedArtifactsConfig')
+
+if(config.version != null && config.packageName != null) {
+    rootProject.allprojects { subproject ->
+        subproject.repositories {
+            maven {
+                url "https://maven.pkg.github.com/Expensify/App"
+                
+                credentials {
+                    username = config.githubUsername
+                    password = config.githubToken
+                }
+            }
+        }
+    }
+
+    def group = "com.expensify.${config.packageName}"
+
+    afterEvaluate {
+        project.rootProject.allprojects { eachProject ->
+            eachProject.configurations.all { configuration ->
+                configuration.resolutionStrategy {
+                    dependencySubstitution {
+                        substitute(module('com.facebook.react:react-native'))
+                            .using(module("${group}:react-android:${config.version}"))
+                        substitute(module('com.facebook.react:react-android'))
+                            .using(module("${group}:react-android:${config.version}"))
+                    }
+                    force "${group}:react-android:${config.version}"
+                }
+            }
+        }
+    }
+}
