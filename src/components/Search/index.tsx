@@ -202,6 +202,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         search({queryJSON, offset});
     }, [isOffline, offset, queryJSON]);
 
+    const isOpeningReportRef = useRef(false);
+
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
@@ -210,6 +212,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         offset,
         reportActions,
         previousReportActions,
+        isOpeningReport: isOpeningReportRef.current,
     });
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
@@ -305,6 +308,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             }
             clearSelectedTransactions();
             turnOffMobileSelectionMode();
+
+            isOpeningReportRef.current = false;
         },
         [isFocused, clearSelectedTransactions],
     );
@@ -374,6 +379,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 return;
             }
 
+            isOpeningReportRef.current = true;
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
 
@@ -383,6 +389,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     : item.reportID;
 
             if (!reportID) {
+                isOpeningReportRef.current = false;
                 return;
             }
 
@@ -391,6 +398,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
             if (canUseTableReportView && shouldHandleTransactionAsReport) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                isOpeningReportRef.current = false;
                 return;
             }
 
@@ -406,16 +414,21 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         transactionID: item.transactionID,
                     }),
                 );
+                isOpeningReportRef.current = false;
                 return;
             }
 
             if (isReportActionListItemType(item)) {
                 const reportActionID = item.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
+
+                isOpeningReportRef.current = false;
                 return;
             }
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+
+            isOpeningReportRef.current = false;
         },
         [canUseTableReportView, hash, selectionMode?.isEnabled, toggleTransaction],
     );
