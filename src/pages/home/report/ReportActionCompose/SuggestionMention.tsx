@@ -192,8 +192,14 @@ function SuggestionMention(
 
     function getOriginalMentionText(inputValue: string, atSignIndex: number) {
         const rest = inputValue.slice(atSignIndex);
-        const mentionMatch = rest.match(/^[@\w.\-+]+/); // capture till space or special characters not in emails
-        return mentionMatch?.[0] ?? '';
+        const breakerMatch = rest.match(CONST.REGEX.MENTION_BREAKER);
+        const breakerIndex = breakerMatch ? rest.search(CONST.REGEX.MENTION_BREAKER) : -1;
+
+        if (breakerIndex === -1) {
+            return rest; // No breaker found, whole rest is the mention
+        }
+
+        return rest.slice(0, breakerIndex);
     }
 
     /**
