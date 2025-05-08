@@ -603,6 +603,9 @@ class GithubUtils {
                 authorName: commit.commit.author?.name || 'Unknown',
             }));
         } catch (error) {
+            console.error(
+                `❓❓ Failed to compare commits with the GitHub API for repo '${repo}'. The base tag ('${fromTag}') or head tag ('${toTag}'). Make sure the tags exist on the remote repository. 💡💡`,
+            );
             throw error;
         }
     }
