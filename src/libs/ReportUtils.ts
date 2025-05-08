@@ -10402,7 +10402,7 @@ function verifyStatus(report: OnyxEntry<Report>, validStatuses: Array<ValueOf<ty
 /**
  * Determines whether the report can be moved to the workspace.
  */
-function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, session: OnyxEntry<Session>): boolean {
+function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, session: OnyxEntry<Session>, currentPolicy?: OnyxEntry<Policy>): boolean {
     if (!session?.accountID) {
         return false;
     }
@@ -10413,6 +10413,7 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
     const managerLogin = report?.managerID && getLoginByAccountID(report?.managerID);
     const isManagerMember = !!managerLogin && !!newPolicy?.employeeList?.[managerLogin];
     const isCurrentUserAdmin = isPolicyAdminPolicyUtils(newPolicy, session?.email);
+    const isAdminOfCurrentPolicy = isPolicyAdminPolicyUtils(currentPolicy, session?.email);
     const isPaidGroupPolicyType = isPaidGroupPolicyPolicyUtils(newPolicy);
     const isReportOpenOrSubmitted = verifyState(report, [CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATE_NUM.SUBMITTED]);
 
@@ -10425,13 +10426,15 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
 
     // From this point on, reports must be of type Expense, the policy must be a paid type.
     // The submitter and manager must also be policy members OR the current user is an admin so they can invite the non-members to the policy.
+    // Additionally, if the report is not open or submitted, the current user must be an admin.
+    // We're temporarily disabling moving reports to a workspace if the submitter is not a member of the new policy because this flow requires additional API changes.
     const isExpenseReportType = isExpenseReport(report);
-    if (!isExpenseReportType || !isPaidGroupPolicyType || !((isSubmitterMember && isManagerMember) || isCurrentUserAdmin)) {
+    if (!isExpenseReportType || !isPaidGroupPolicyType || !isSubmitterMember || (!isReportOpenOrSubmitted && !isAdminOfCurrentPolicy)) {
         return false;
     }
 
     const isCurrentUserReportSubmitter = session.accountID === report?.ownerAccountID;
-    if (isCurrentUserReportSubmitter && isReportOpenOrSubmitted) {
+    if (isCurrentUserReportSubmitter) {
         return true;
     }
 
