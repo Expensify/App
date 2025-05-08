@@ -456,7 +456,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && isLargeScreenWidth;
+    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || selectionMode?.isEnabled === true);
 
     const sortedSelectedData = sortedData.map((item) => {
         const baseKey = isChat
@@ -547,7 +547,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 onCheckboxPress={toggleTransaction}
                 onAllCheckboxPress={toggleAllTransactions}
                 canSelectMultiple={canSelectMultiple}
-                shouldPreventLongPressRow={isChat}
+                shouldPreventLongPressRow={isChat || isTask}
                 SearchTableHeader={
                     !shouldShowTableHeader ? undefined : (
                         <SearchTableHeader
