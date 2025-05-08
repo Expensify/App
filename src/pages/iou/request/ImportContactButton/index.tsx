@@ -1,3 +1,4 @@
+// eslint-disable-next-line react/no-unused-prop-types
 type ImportContactButtonProps = {
     showImportContacts?: boolean;
     inputHelperText?: string;
