@@ -1,9 +1,10 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
+import { truncate } from 'fs';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.ALL);
+    return true;
 }
 
 function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {

@@ -192,6 +192,9 @@ type ACHDataReimbursementAccount = Omit<ACHData, 'subStep' | 'currentStep'> & {
 
     /** Optional subStep we would like the user to start back on */
     subStep?: ReimbursementAccountSubStep;
+
+    //** Report action id of concierge message thread which linked on BBA setup.
+    ACHRequestReportActionID: string;
 };
 
 /** Model of reimbursement account data */
