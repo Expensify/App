@@ -582,48 +582,46 @@ function IOURequestStepScan({
     /**
      * Converts HEIC images to JPEG format before sending to setReceiptAndNavigate
      */
-    const convertReceipt = async (originalFile: FileObject, isPdfValidated?: boolean) => {
+    const convertReceipt = (originalFile: FileObject, isPdfValidated?: boolean) => {
         if (originalFile?.type?.startsWith('image')) {
             if (!originalFile.uri) {
                 console.error('File URI is undefined');
                 return;
             }
 
-            try {
-                const response = await fetch(originalFile.uri);
-                const blob = await response.blob();
+            fetch(originalFile.uri)
+                .then((response) => response.blob())
+                .then((blob) => {
+                    const fileFromBlob = new File([blob], originalFile.name ?? 'temp-file', {
+                        type: blob.type,
+                    });
 
-                const fileFromBlob = new File([blob], originalFile.name || 'temp-file', {
-                    type: blob.type,
+                    return isHeic(fileFromBlob).then((isHEIC) => {
+                        if (isHEIC) {
+                            setIsLoadingReceipt(true);
+                            return heicTo({
+                                blob,
+                                type: 'image/jpeg',
+                            })
+                                .then((convertedBlob) => {
+                                    const fileName = originalFile.name ? originalFile.name.replace(/\.heic$/i, '.jpg') : 'converted-image.jpg';
+                                    const jpegFile = new File([convertedBlob], fileName, {type: 'image/jpeg'});
+                                    setReceiptAndNavigate(jpegFile, isPdfValidated);
+                                })
+                                .catch((err) => {
+                                    console.error('Error converting HEIC to JPEG:', err);
+                                })
+                                .finally(() => {
+                                    setIsLoadingReceipt(false);
+                                });
+                        }
+                        setReceiptAndNavigate(originalFile, isPdfValidated);
+                        return null;
+                    });
+                })
+                .catch((err) => {
+                    console.error('Error processing the file:', err);
                 });
-
-                const isHEIC = await isHeic(fileFromBlob);
-
-                if (isHEIC) {
-                    setIsLoadingReceipt(true);
-
-                    try {
-                        const convertedBlob = await heicTo({
-                            blob,
-                            type: 'image/jpeg',
-                        });
-
-                        const fileName = originalFile.name ? originalFile.name.replace(/\.heic$/i, '.jpg') : 'converted-image.jpg';
-
-                        const jpegFile = new File([convertedBlob], fileName, {type: 'image/jpeg'});
-
-                        setReceiptAndNavigate(jpegFile, isPdfValidated);
-                    } catch (err) {
-                        console.error('Error converting HEIC to JPEG:', err);
-                    } finally {
-                        setIsLoadingReceipt(false);
-                    }
-                } else {
-                    setReceiptAndNavigate(originalFile, isPdfValidated);
-                }
-            } catch (err) {
-                console.error('Error processing the file:', err);
-            }
         } else {
             setReceiptAndNavigate(originalFile, isPdfValidated);
         }
@@ -846,7 +844,10 @@ function IOURequestStepScan({
                             role={CONST.ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: (data) => convertReceipt(data.at(0) ?? {}),
+                                    onPicked: (data) => {
+                                        const file = data.at(0) ?? {};
+                                        convertReceipt(file);
+                                    },
                                 });
                             }}
                         >
@@ -923,7 +924,10 @@ function IOURequestStepScan({
                         style={[styles.p9]}
                         onPress={() => {
                             openPicker({
-                                onPicked: (data) => convertReceipt(data.at(0) ?? {}),
+                                onPicked: (data) => {
+                                    const file = data.at(0) ?? {};
+                                    convertReceipt(file);
+                                },
                             });
                         }}
                     />

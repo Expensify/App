@@ -1,6 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/core';
 import {Str} from 'expensify-common';
-import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, Image, InteractionManager, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -213,31 +213,34 @@ function IOURequestStepScan({
         }, [isLoaderVisible, setIsLoaderVisible]),
     );
 
-    const validateReceipt = (file: FileObject) => {
-        const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-        if (
-            !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-            )
-        ) {
-            Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-            return false;
-        }
+    const validateReceipt = useCallback(
+        (file: FileObject) => {
+            const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+            if (
+                !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+                    fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
+                )
+            ) {
+                Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+                return false;
+            }
 
-        if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-            Alert.alert(
-                translate('attachmentPicker.attachmentTooLarge'),
-                translate('attachmentPicker.sizeExceededWithLimit', {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)}),
-            );
-            return false;
-        }
+            if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+                Alert.alert(
+                    translate('attachmentPicker.attachmentTooLarge'),
+                    translate('attachmentPicker.sizeExceededWithLimit', {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)}),
+                );
+                return false;
+            }
 
-        if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-            Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
-            return false;
-        }
-        return true;
-    };
+            if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
+                return false;
+            }
+            return true;
+        },
+        [translate],
+    );
 
     const navigateBack = () => {
         Navigation.goBack();
@@ -558,49 +561,52 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        if (!validateReceipt(originalFile)) {
-            return;
-        }
-
-        // If we have a pdf file and if it is not validated then set the pdf file for validation and return
-        if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
-            setPdfFile(originalFile);
-            return;
-        }
-
-        resizeImageIfNeeded(originalFile).then((file) => {
-            // Store the receipt on the transaction object in Onyx
-            // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
-            // So, let us also save the file type in receipt for later use during blob fetch
-            setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
-
-            if (isEditing) {
-                updateScanAndNavigate(file, file?.uri ?? '');
+    const setReceiptAndNavigate = useCallback(
+        (originalFile: FileObject, isPdfValidated?: boolean) => {
+            if (!validateReceipt(originalFile)) {
                 return;
             }
-            if (shouldSkipConfirmation) {
-                setFileResize(file);
-                setFileSource(file?.uri ?? '');
-                const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
 
-                if (gpsRequired) {
-                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
-                    if (beginLocationPermissionFlow) {
-                        setStartLocationPermissionFlow(true);
-                        return;
+            // If we have a pdf file and if it is not validated then set the pdf file for validation and return
+            if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
+                setPdfFile(originalFile);
+                return;
+            }
+
+            resizeImageIfNeeded(originalFile).then((file) => {
+                // Store the receipt on the transaction object in Onyx
+                // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+                // So, let us also save the file type in receipt for later use during blob fetch
+                setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
+
+                if (isEditing) {
+                    updateScanAndNavigate(file, file?.uri ?? '');
+                    return;
+                }
+                if (shouldSkipConfirmation) {
+                    setFileResize(file);
+                    setFileSource(file?.uri ?? '');
+                    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
+
+                    if (gpsRequired) {
+                        const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                        if (beginLocationPermissionFlow) {
+                            setStartLocationPermissionFlow(true);
+                            return;
+                        }
                     }
                 }
-            }
-            navigateToConfirmationStep(file, file?.uri ?? '', false);
-        });
-    };
+                navigateToConfirmationStep(file, file?.uri ?? '', false);
+            });
+        },
+        [transactionID, isEditing, shouldSkipConfirmation, transaction?.amount, iouType, updateScanAndNavigate, navigateToConfirmationStep, validateReceipt],
+    );
 
     /**
      * Converts HEIC images to JPEG format before sending to setReceiptAndNavigate
      */
     const convertReceipt = useCallback(
-        async (originalFile: FileObject, isPdfValidated?: boolean): Promise<void> => {
+        (originalFile: FileObject, isPdfValidated?: boolean): void => {
             if (!originalFile?.type?.startsWith('image')) {
                 setReceiptAndNavigate(originalFile, isPdfValidated);
                 return;
@@ -613,36 +619,39 @@ function IOURequestStepScan({
             }
 
             setIsLoaderVisible(true);
-            try {
-                const isHEIC = await verifyFileFormat({fileUri, formatSignatures: CONST.HEIC_SIGNATURES});
 
-                if (isHEIC) {
-                    try {
-                        const manipResult = await manipulateAsync(fileUri, [], {compress: 0.8, format: SaveFormat.JPEG});
-
-                        const convertedFile = {
-                            uri: manipResult.uri,
-                            name: originalFile.name?.replace(/\.heic$/i, '.jpg'),
-                            type: 'image/jpeg',
-                            size: originalFile.size,
-                            width: manipResult.width,
-                            height: manipResult.height,
-                        };
-
-                        setReceiptAndNavigate(convertedFile, isPdfValidated);
-                    } catch (err) {
-                        Log.warn('Error converting HEIC to JPEG:', err instanceof Error ? {message: err.message} : {err});
-                        setReceiptAndNavigate(originalFile, isPdfValidated);
+            verifyFileFormat({fileUri, formatSignatures: CONST.HEIC_SIGNATURES})
+                .then((isHEIC) => {
+                    if (isHEIC) {
+                        return ImageManipulator.manipulate(fileUri)
+                            .renderAsync()
+                            .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
+                            .then((manipulationResult) => {
+                                const convertedFile = {
+                                    uri: manipulationResult.uri,
+                                    name: originalFile.name?.replace(/\.heic$/i, '.jpg'),
+                                    type: 'image/jpeg',
+                                    size: originalFile.size,
+                                    width: manipulationResult.width,
+                                    height: manipulationResult.height,
+                                };
+                                setReceiptAndNavigate(convertedFile, isPdfValidated);
+                            })
+                            .catch((err) => {
+                                Log.warn('Error converting HEIC to JPEG:', err instanceof Error ? {message: err.message} : {err});
+                                setReceiptAndNavigate(originalFile, isPdfValidated);
+                            });
                     }
-                } else {
                     setReceiptAndNavigate(originalFile, isPdfValidated);
-                }
-            } catch (err) {
-                Log.warn('Error processing the file:', err instanceof Error ? {message: err.message} : {err});
-                setReceiptAndNavigate(originalFile, isPdfValidated);
-            } finally {
-                setIsLoaderVisible(false);
-            }
+                    return null;
+                })
+                .catch((err) => {
+                    Log.warn('Error processing the file:', err instanceof Error ? {message: err.message} : {err});
+                    setReceiptAndNavigate(originalFile, isPdfValidated);
+                })
+                .finally(() => {
+                    setIsLoaderVisible(false);
+                });
         },
         [setReceiptAndNavigate, setIsLoaderVisible],
     );
@@ -856,7 +865,10 @@ function IOURequestStepScan({
                                 style={[styles.alignItemsStart]}
                                 onPress={() => {
                                     openPicker({
-                                        onPicked: (data) => convertReceipt(data.at(0) ?? {}),
+                                        onPicked: (data) => {
+                                            const file = data.at(0) ?? {};
+                                            convertReceipt(file);
+                                        },
                                         onCanceled: () => setIsLoaderVisible(false),
                                         // makes sure the loader is not visible anymore e.g. when there is an error while uploading a file
                                         onClosed: () => {
