@@ -11585,10 +11585,11 @@ async function run() {
         catch (error) {
             if (error instanceof request_error_1.RequestError && error.status === 404) {
                 core.error(`❓❓ Failed to compare commits for Mobile-Expensify repo ('Mobile-Expensify-Test-Fork'). The base tag ('${previousChecklistData.tag}') or head tag ('${newStagingTag}') likely doesn't exist on the remote repository. Check Mobile-Expensify tags. 💡💡`);
-                core.setFailed('Failed to get Mobile-Expensify PRs due to missing tags. See error log above for details.');
+                core.setFailed('Failed to get Mobile-Expensify PRs due to missing tags (404). See error log above.');
                 return;
             }
             else {
+                console.error('Caught non-404 error while getting Mobile-Expensify PRs:', error);
                 throw error;
             }
         }
@@ -11941,7 +11942,6 @@ const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
-const request_error_1 = __nccwpck_require__(537);
 const EmptyObject_1 = __nccwpck_require__(8227);
 const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
@@ -12394,14 +12394,6 @@ class GithubUtils {
             }));
         }
         catch (error) {
-            if (error instanceof request_error_1.RequestError && error.status === 404) {
-                const errorMessage = `❓❓ Failed to compare commits with the GitHub API for repo '${repo}'. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`;
-                // Use core.setFailed to log the error and mark the action as failed.
-                core.setFailed(errorMessage);
-                // Return an empty array to satisfy the function signature, although the action is already marked as failed.
-                return [];
-            }
-            // Re-throw other non-404 errors
             throw error;
         }
     }

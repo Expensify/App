@@ -73,9 +73,10 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 core.error(
                     `❓❓ Failed to compare commits for Mobile-Expensify repo ('Mobile-Expensify-Test-Fork'). The base tag ('${previousChecklistData.tag}') or head tag ('${newStagingTag}') likely doesn't exist on the remote repository. Check Mobile-Expensify tags. 💡💡`,
                 );
-                core.setFailed('Failed to get Mobile-Expensify PRs due to missing tags. See error log above for details.');
+                core.setFailed('Failed to get Mobile-Expensify PRs due to missing tags (404). See error log above.');
                 return;
             } else {
+                console.error('Caught non-404 error while getting Mobile-Expensify PRs:', error);
                 throw error;
             }
         }
