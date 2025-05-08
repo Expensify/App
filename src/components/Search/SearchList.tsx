@@ -15,8 +15,9 @@ import {PressableWithFeedback} from '@components/Pressable';
 import getPlatformHeight, {ITEM_HEIGHTS} from '@components/Search/getPlatformHeight';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
+import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ExtendedTargetedEvent, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ExtendedTargetedEvent, ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -34,8 +35,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType;
-type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem;
+type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
+type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem | typeof TaskListItem;
 
 type SearchListHandle = {
     scrollAndHighlightItem?: (items: string[]) => void;
@@ -81,8 +82,8 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
 };
 
-const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 const AnimatedFlashList = Animated.createAnimatedComponent<FlashListProps<SearchListItem>>(FlashList);
+const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
 function SearchList(
     {
@@ -411,19 +412,27 @@ function SearchList(
         ],
     );
 
+    const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
+    const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
+
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
-            {canSelectMultiple && (
+            {tableHeaderVisible && (
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
-                    <Checkbox
-                        accessibilityLabel={translate('workspace.people.selectAll')}
-                        isChecked={selectedItemsLength === flattenedTransactions.length}
-                        isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
-                        onPress={() => {
-                            onAllCheckboxPress();
-                        }}
-                    />
-                    {SearchTableHeader ?? (
+                    {canSelectMultiple && (
+                        <Checkbox
+                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            isChecked={selectedItemsLength === flattenedTransactions.length}
+                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
+                            onPress={() => {
+                                onAllCheckboxPress();
+                            }}
+                        />
+                    )}
+
+                    {SearchTableHeader}
+
+                    {selectAllButtonVisible && (
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={onAllCheckboxPress}
@@ -460,6 +469,7 @@ function SearchList(
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={() => setIsModalVisible(false)}
                 shouldPreventScrollOnFocus
+                shouldUseNewModal
             >
                 <MenuItem
                     title={translate('common.select')}
