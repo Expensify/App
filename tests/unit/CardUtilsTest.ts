@@ -10,6 +10,7 @@ import {
     getBankCardDetailsImage,
     getBankName,
     getCardFeedIcon,
+    getCardsByCardholderName,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getFeedType,
@@ -22,8 +23,9 @@ import {
     isExpensifyCardFullySetUp,
     lastFourNumbersFromCardName,
     maskCardNumber,
+    sortCardsByCardholderName,
 } from '@src/libs/CardUtils';
-import type {CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 const shortDate = '0924';
@@ -855,6 +857,145 @@ describe('CardUtils', () => {
         it('should return an empty object if undefined card list is passed', () => {
             const cards = filterInactiveCards(undefined);
             expect(cards).toEqual({});
+        });
+    });
+
+    describe('sortCardsByCardholderName', () => {
+        const mockPersonalDetails: PersonalDetailsList = {
+            1: {
+                accountID: 1,
+                login: 'john@example.com',
+                displayName: 'John Doe',
+                firstName: 'John',
+                lastName: 'Doe',
+            },
+            2: {
+                accountID: 2,
+                login: 'jane@example.com',
+                displayName: 'Jane Smith',
+                firstName: 'Jane',
+                lastName: 'Smith',
+            },
+            3: {
+                accountID: 3,
+                login: 'unknown@example.com',
+                // No displayName or firstName/lastName
+            },
+        };
+
+        const mockCards: WorkspaceCardsList = {
+            '1': {
+                cardID: 1,
+                accountID: 1,
+                cardName: 'Card 1',
+                bank: 'expensify',
+                domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+            },
+            '2': {
+                cardID: 2,
+                accountID: 2,
+                bank: 'expensify',
+                cardName: 'Card 2',
+                domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+            },
+            '3': {
+                cardID: 3,
+                accountID: 3,
+                bank: 'expensify',
+                cardName: 'Card 3',
+                domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+            },
+        };
+
+        it('should sort cards by cardholder name in ascending order', () => {
+            const policyMembersAccountIDs = [1, 2, 3];
+            const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails);
+
+            expect(sortedCards).toHaveLength(3);
+            expect(sortedCards.at(0)?.cardID).toBe(2);
+            expect(sortedCards.at(1)?.cardID).toBe(1);
+            expect(sortedCards.at(2)?.cardID).toBe(3);
+        });
+
+        it('should filter out cards that are not associated with policy members', () => {
+            const policyMembersAccountIDs = [1, 2]; // Exclude accountID 3
+            const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails);
+
+            expect(sortedCards).toHaveLength(2);
+            expect(sortedCards.at(0)?.cardID).toBe(2);
+            expect(sortedCards.at(1)?.cardID).toBe(1);
+        });
+
+        it('should handle undefined cardsList', () => {
+            const policyMembersAccountIDs = [1, 2, 3];
+            const cards = getCardsByCardholderName(undefined, policyMembersAccountIDs);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails);
+
+            expect(sortedCards).toHaveLength(0);
+        });
+
+        it('should handle undefined personalDetails', () => {
+            const policyMembersAccountIDs = [1, 2, 3];
+            const cards = getCardsByCardholderName(mockCards, policyMembersAccountIDs);
+            const sortedCards = sortCardsByCardholderName(cards, undefined);
+
+            expect(sortedCards).toHaveLength(3);
+            // All cards should be sorted with default names
+            expect(sortedCards.at(0)?.cardID).toBe(1);
+            expect(sortedCards.at(1)?.cardID).toBe(2);
+            expect(sortedCards.at(2)?.cardID).toBe(3);
+        });
+
+        it('should handle cards with missing accountID', () => {
+            const cardsWithMissingAccountID: WorkspaceCardsList = {
+                '1': {
+                    cardID: 1,
+                    accountID: 1,
+                    cardName: 'Card 1',
+                    bank: 'expensify',
+                    domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 2,
+                },
+                '2': {
+                    cardID: 2,
+                    cardName: 'Card 2',
+                    bank: 'expensify',
+                    domainName: 'expensify-policya7f617b9fe23d2f1.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 2,
+                },
+            };
+
+            const policyMembersAccountIDs = [1, 2];
+            const cards = getCardsByCardholderName(cardsWithMissingAccountID, policyMembersAccountIDs);
+            const sortedCards = sortCardsByCardholderName(cards, mockPersonalDetails);
+
+            expect(sortedCards).toHaveLength(1);
+            expect(sortedCards.at(0)?.cardID).toBe(1);
         });
     });
 });

@@ -171,12 +171,12 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (loginData?.validatedDate || prevPendingDeletedLogin) {
+        if (!loginData || loginData?.validatedDate || prevPendingDeletedLogin) {
             return;
         }
         resetContactMethodValidateCodeSentState(contactMethod);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
-    }, [contactMethod, loginData?.validatedDate]);
+    }, [contactMethod, loginData]);
 
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
