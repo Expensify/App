@@ -18,7 +18,7 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForSignerInfo';
 import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
 import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
-import * as Link from '@userActions/Link';
+import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -113,7 +113,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     };
 
     const handleDownload = () => {
-        Link.openExternalLink(`${environmentUrl}/pdfs/PDSAndFSG.pdf`);
+        openExternalLink(`${environmentUrl}/pdfs/PDSAndFSG.pdf`);
         setIsPDSandFSGDownloadedTouched(true);
         setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[signerInfoKeys.DOWNLOADED_PDS_AND_FSG]: true});
     };
