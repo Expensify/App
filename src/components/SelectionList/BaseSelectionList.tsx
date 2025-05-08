@@ -182,7 +182,7 @@ function BaseSelectionList<TItem extends ListItem>(
      * Iterates through the sections and items inside each section, and builds 4 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
      * - `disabledOptionsIndexes`: Contains the indexes of all the unselectable and disabled items in the list
-     * - `disabledArrowKeyOptionsIndexes`: Contains the indexes of item that is not navigatable by the arrow key. The list is separated from disabledOptionsIndexes because unselectable item is still navigatable by the arrow key.
+     * - `disabledArrowKeyOptionsIndexes`: Contains the indexes of item that is not navigable by the arrow key. The list is separated from disabledOptionsIndexes because unselectable item is still navigable by the arrow key.
      * - `itemLayouts`: Contains the layout information for each item, header and footer in the list,
      * so we can calculate the position of any given item when scrolling programmatically
      */
@@ -285,7 +285,7 @@ function BaseSelectionList<TItem extends ListItem>(
         ) : null;
         return [processedSections, showMoreButton];
         // we don't need to add styles here as they change
-        // we don't need to add flattendedSections here as they will change along with sections
+        // we don't need to add flattenedSections here as they will change along with sections
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [sections, currentPage]);
 
@@ -743,7 +743,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 ? -1
                 : 0;
 
-        // reseting the currrent page to 1 when the user types something
+        // Reset the current page to 1 when the user types something
         setCurrentPage(1);
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
@@ -804,7 +804,7 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     /**
-     * Handles isTextInputFocusedRef value when using external TextInput, so external TextInput is not defocused when typing in it.
+     * Handles isTextInputFocusedRef value when using external TextInput, so external TextInput does not lose focus when typing in it.
      *
      * @param isTextInputFocused - Is external TextInput focused.
      */

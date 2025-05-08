@@ -3,6 +3,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCurrency as getTransactionCurrency, hasReceipt, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
@@ -10,18 +11,17 @@ function TotalCell({shouldShowTooltip, transactionItem}: TransactionDataCellProp
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currency = getTransactionCurrency(transactionItem);
-
-    let amount = convertToDisplayString(Math.abs(transactionItem.amount), currency);
-
+    const amount = getTransactionDetails(transactionItem)?.amount;
+    let amountToDisplay = convertToDisplayString(amount, currency);
     if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem)) {
-        amount = translate('iou.receiptStatusTitle');
+        amountToDisplay = translate('iou.receiptStatusTitle');
     }
 
     return (
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
-            text={amount}
-            style={[styles.optionDisplayName, styles.justifyContentCenter]}
+            text={amountToDisplay}
+            style={[styles.optionDisplayName, styles.justifyContentCenter, styles.flexShrink0]}
         />
     );
 }
