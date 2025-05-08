@@ -6827,7 +6827,7 @@ function buildOptimisticRetractedReportAction(created = DateUtils.getDBTime()): 
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: translateLocal('iou.retracted'),
-                html: `<muted-text>${translateLocal('iou.retracted')}</muted-text>`,
+                html: `<muted-text>retracted</muted-text>`,
             },
         ],
         person: [
