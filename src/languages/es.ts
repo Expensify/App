@@ -1111,6 +1111,9 @@ const translations = {
         explainHold: 'Explica la razón para retener esta solicitud.',
         undoClose: 'Deshacer cierre',
         reopened: 'Reabrir',
+        reopenReport: 'Reabrir informe',
+        reopenExportedReportConfirmation: ({connectionName}: ExportIntegrationSelectedParams) =>
+            `¡Atención! Este informe ya ha sido exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Cambiarlo puede provocar discrepancias en los datos. ¿Estás seguro de que deseas reabrir este informe?`,
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para retener.',
         expenseWasPutOnHold: 'Este gasto está retenido',
