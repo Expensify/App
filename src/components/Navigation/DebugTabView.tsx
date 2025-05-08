@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import type {IndicatorStatus} from '@hooks/useIndicatorStatus';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
-import {useSidebarOrderedReportIDs} from '@hooks/useSidebarOrderedReportIDs';
+import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -104,10 +104,9 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
-    const {orderedReportIDs} = useSidebarOrderedReportIDs();
-    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])});
+    const {orderedReports} = useSidebarOrderedReports();
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
@@ -141,7 +140,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
 
     const navigateTo = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.HOME && !!chatTabBrickRoad) {
-            const report = getChatTabBrickRoadReport(activeWorkspaceID, reports);
+            const report = getChatTabBrickRoadReport(activeWorkspaceID, orderedReports);
 
             if (report) {
                 Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID));
@@ -154,7 +153,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, reports, status, reimbursementAccount, policyIDWithErrors]);
+    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, orderedReports, status, reimbursementAccount, policyIDWithErrors]);
 
     if (!([NAVIGATION_TABS.HOME, NAVIGATION_TABS.SETTINGS] as string[]).includes(selectedTab ?? '') || !indicator) {
         return null;
