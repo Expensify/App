@@ -7,11 +7,12 @@ import type {
     MeasureInWindowOnSuccessCallback,
     NativeSyntheticEvent,
     TextInput,
+    TextInputContentSizeChangeEventData,
     TextInputFocusEventData,
     TextInputKeyPressEventData,
     TextInputScrollEventData,
 } from 'react-native';
-import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
+import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -25,23 +26,23 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {useSidePanelDisplayStatus} from '@hooks/useSidePanel';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
+import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
-import * as ComposerUtils from '@libs/ComposerUtils';
+import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import {getDraftComment} from '@libs/DraftCommentUtils';
-import * as EmojiUtils from '@libs/EmojiUtils';
+import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getPreferredSkinToneIndex, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
-import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
@@ -49,10 +50,11 @@ import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollP
 import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
-import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
-import * as InputFocus from '@userActions/InputFocus';
-import * as Modal from '@userActions/Modal';
-import * as Report from '@userActions/Report';
+import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
+import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
+import {inputFocusChange} from '@userActions/InputFocus';
+import {areAllModalsHidden} from '@userActions/Modal';
+import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -86,6 +88,9 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
 
     /** Whether the composer is full size */
     isComposerFullSize: boolean;
+
+    /** Function to set whether the full composer is available */
+    setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
 
     /** Whether the menu is visible */
     isMenuVisible: boolean;
@@ -126,27 +131,20 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** The ref to the next modal will open */
     isNextModalWillOpenRef: MutableRefObject<boolean | null>;
 
-    /** Wheater chat is empty */
-    isEmptyChat?: boolean;
-
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Whether to include chronos */
     includeChronos?: boolean;
 
-    /** The parent report action ID */
-    parentReportActionID?: string;
-
-    /** The parent report ID */
-    // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
-    parentReportID: string | undefined;
-
     /** Whether report is from group policy */
     isGroupPolicyReport: boolean;
 
     /** policy ID of the report */
-    policyID: string;
+    policyID?: string;
+
+    /** Whether the main composer was hidden */
+    didHideComposerInput?: boolean;
 };
 
 type SwitchToCurrentReportProps = {
@@ -157,7 +155,7 @@ type SwitchToCurrentReportProps = {
 type ComposerRef = {
     blur: () => void;
     focus: (shouldDelay?: boolean) => void;
-    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
+    replaceSelectionWithText: OnEmojiSelected;
     getCurrentText: () => string;
     isFocused: () => boolean;
     /**
@@ -176,7 +174,7 @@ const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
  */
 const debouncedBroadcastUserIsTyping = lodashDebounce(
     (reportID: string) => {
-        Report.broadcastUserIsTyping(reportID);
+        broadcastUserIsTyping(reportID);
     },
     1000,
     {
@@ -188,7 +186,7 @@ const debouncedBroadcastUserIsTyping = lodashDebounce(
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
-// prevent auto focus on existing chat for mobile device
+// prevent auto focus for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 /**
@@ -201,11 +199,8 @@ function ComposerWithSuggestions(
     {
         // Props: Report
         reportID,
-        parentReportID,
         includeChronos,
-        isEmptyChat,
         lastReportAction,
-        parentReportActionID,
         isGroupPolicyReport,
         policyID,
 
@@ -216,6 +211,7 @@ function ComposerWithSuggestions(
 
         // Composer
         isComposerFullSize,
+        setIsFullComposerAvailable,
         isMenuVisible,
         inputPlaceholder,
         displayFileInModal,
@@ -236,6 +232,7 @@ function ComposerWithSuggestions(
 
         // For testing
         children,
+        didHideComposerInput,
     }: ComposerWithSuggestionsProps,
     ref: ForwardedRef<ComposerRef>,
 ) {
@@ -244,6 +241,7 @@ function ComposerWithSuggestions(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
+    const {isSidePanelHiddenOrLargeScreen} = useSidePanelDisplayStatus();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
@@ -253,18 +251,16 @@ function ComposerWithSuggestions(
     const draftComment = getDraftComment(reportID) ?? '';
     const [value, setValue] = useState(() => {
         if (draftComment) {
-            emojisPresentBefore.current = EmojiUtils.extractEmojis(draftComment);
+            emojisPresentBefore.current = extractEmojis(draftComment);
         }
         return draftComment;
     });
+
     const commentRef = useRef(value);
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: EmojiUtils.getPreferredSkinToneIndex});
-    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID || '-1'}`, {canEvict: false, initWithStoredValues: false});
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: getPreferredSkinToneIndex, canBeMissing: true});
+    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
 
     const lastTextRef = useRef(value);
     useEffect(() => {
@@ -274,13 +270,7 @@ function ComposerWithSuggestions(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const parentReportAction = useMemo(() => parentReportActions?.[parentReportActionID ?? '-1'], [parentReportActionID, parentReportActions]);
-    const shouldAutoFocus =
-        !modal?.isVisible &&
-        Modal.areAllModalsHidden() &&
-        isFocused &&
-        (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction) && !ReportUtils.isTaskReport(report))) &&
-        shouldShowComposeInput;
+    const shouldAutoFocus = shouldFocusInputOnScreenFocus && !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -321,7 +311,7 @@ function ComposerWithSuggestions(
     const debouncedSaveReportComment = useMemo(
         () =>
             lodashDebounce((selectedReportID: string, newComment: string | null) => {
-                Report.saveReportDraftComment(selectedReportID, newComment);
+                saveReportDraftComment(selectedReportID, newComment);
                 isCommentPendingSaved.current = false;
             }, 1000),
         [],
@@ -333,7 +323,7 @@ function ComposerWithSuggestions(
                 callback();
                 return;
             }
-            Report.saveReportDraftComment(preexistingReportID, commentRef.current, callback);
+            saveReportDraftComment(preexistingReportID, commentRef.current, callback);
         });
 
         return () => {
@@ -364,7 +354,7 @@ function ComposerWithSuggestions(
 
             if (currentIndex < newText.length) {
                 startIndex = currentIndex;
-                const commonSuffixLength = ComposerUtils.findCommonSuffixLength(prevText, newText, selection?.end ?? 0);
+                const commonSuffixLength = findCommonSuffixLength(prevText, newText, selection?.end ?? 0);
                 // if text is getting pasted over find length of common suffix and subtract it from new text length
                 if (commonSuffixLength > 0 || (selection?.end ?? 0) - selection.start > 0) {
                     endIndex = newText.length - commonSuffixLength;
@@ -388,11 +378,11 @@ function ComposerWithSuggestions(
         (commentValue: string, shouldDebounceSaveComment?: boolean) => {
             raiseIsScrollLikelyLayoutTriggered();
             const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
-            const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
-            const commentWithSpaceInserted = isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue;
-            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
+            const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && containsOnlyEmojis(diff);
+            const commentWithSpaceInserted = isEmojiInserted ? insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue;
+            const {text: newComment, emojis, cursorPosition} = replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
             if (emojis.length) {
-                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
+                const newEmojis = getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (newEmojis.length) {
                     // Ensure emoji suggestions are hidden after inserting emoji even when the selection is not changed
                     if (suggestionsRef.current) {
@@ -431,7 +421,7 @@ function ComposerWithSuggestions(
                 isCommentPendingSaved.current = true;
                 debouncedSaveReportComment(reportID, newCommentConverted);
             } else {
-                Report.saveReportDraftComment(reportID, newCommentConverted);
+                saveReportDraftComment(reportID, newCommentConverted);
             }
             if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID);
@@ -447,15 +437,15 @@ function ComposerWithSuggestions(
         (text: string) => {
             // selection replacement should be debounced to avoid conflicts with text typing
             // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, text), true);
+            updateComment(insertText(commentRef.current, selection, text), true);
         },
         [selection, updateComment],
     );
 
-    const triggerHotkeyActions = useCallback(
+    const handleKeyPress = useCallback(
         (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
             const webEvent = event as unknown as KeyboardEvent;
-            if (!webEvent || ComposerUtils.canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
+            if (!webEvent || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
             }
 
@@ -475,11 +465,41 @@ function ComposerWithSuggestions(
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? lastReportAction?.message?.at(-1) ?? null : lastReportAction?.message ?? null;
-                    Report.saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
+                    saveReportActionDraft(reportID, lastReportAction, Parser.htmlToMarkdown(message?.html ?? ''));
+                }
+            }
+            // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
+            // so we need to handle backspace key action differently with grapheme segmentation.
+            if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey) {
+                if (selection.start === 0) {
+                    return;
+                }
+                if (selection.start !== selection.end) {
+                    return;
+                }
+
+                // Grapheme segmentation is same for English and Spanish.
+                const splitter = new Intl.Segmenter(CONST.LOCALES.EN, {granularity: 'grapheme'});
+
+                // Wales flag has 14 UTF-16 code units. This is the emoji with the largest number of UTF-16 code units we use.
+                const start = Math.max(0, selection.start - 14);
+                const graphemes = Array.from(splitter.segment(lastTextRef.current.substring(start, selection.start)));
+                const lastGrapheme = graphemes.at(graphemes.length - 1);
+                const lastGraphemeLength = lastGrapheme?.segment.length ?? 0;
+                if (lastGraphemeLength > 1) {
+                    event.preventDefault();
+                    const newText = lastTextRef.current.slice(0, selection.start - lastGraphemeLength) + lastTextRef.current.slice(selection.start);
+                    setSelection((prevSelection) => ({
+                        start: selection.start - lastGraphemeLength,
+                        end: selection.start - lastGraphemeLength,
+                        positionX: prevSelection.positionX,
+                        positionY: prevSelection.positionY,
+                    }));
+                    updateComment(newText, true);
                 }
             }
         },
-        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, handleSendMessage, lastReportAction, reportID],
+        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, handleSendMessage, lastReportAction, reportID, updateComment, selection.end],
     );
 
     const onChangeText = useCallback(
@@ -503,12 +523,12 @@ function ComposerWithSuggestions(
 
     const onSelectionChange = useCallback(
         (e: CustomSelectionChangeEvent) => {
+            setSelection(e.nativeEvent.selection);
+
             if (!textInputRef.current?.isFocused()) {
                 return;
             }
             suggestionsRef.current?.onSelectionChange?.(e);
-
-            setSelection(e.nativeEvent.selection);
         },
         [suggestionsRef],
     );
@@ -528,7 +548,7 @@ function ComposerWithSuggestions(
         if (!suggestionsRef.current) {
             return false;
         }
-        InputFocus.inputFocusChange(false);
+        inputFocusChange(false);
         return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
 
@@ -547,14 +567,14 @@ function ComposerWithSuggestions(
     const setUpComposeFocusManager = useCallback(
         (shouldTakeOverFocus = false) => {
             ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
-                if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused) {
+                if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused || !isSidePanelHiddenOrLargeScreen) {
                     return;
                 }
 
                 focus(true);
             }, shouldTakeOverFocus);
         },
-        [focus, isFocused],
+        [focus, isFocused, isSidePanelHiddenOrLargeScreen],
     );
 
     /**
@@ -563,7 +583,7 @@ function ComposerWithSuggestions(
      */
     const checkComposerVisibility = useCallback(() => {
         // Checking whether the screen is focused or not, helps avoid `modal.isVisible` false when popups are closed, even if the modal is opened.
-        const isComposerCoveredUp = !isFocused || EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || !!modal?.isVisible || modal?.willAlertModalBecomeVisible;
+        const isComposerCoveredUp = !isFocused || isEmojiPickerVisible() || isMenuVisible || !!modal?.isVisible || modal?.willAlertModalBecomeVisible;
         return !isComposerCoveredUp;
     }, [isMenuVisible, modal, isFocused]);
 
@@ -574,18 +594,23 @@ function ComposerWithSuggestions(
                 return;
             }
 
-            if (!ReportUtils.shouldAutoFocusOnKeyPress(e)) {
+            // Do not focus the composer if the Side Panel is visible
+            if (!isSidePanelHiddenOrLargeScreen) {
+                return;
+            }
+
+            if (!shouldAutoFocusOnKeyPress(e)) {
                 return;
             }
 
             // if we're typing on another input/text area, do not focus
-            if (['INPUT', 'TEXTAREA'].includes((e.target as Element | null)?.nodeName ?? '')) {
+            if (([CONST.ELEMENT_NAME.INPUT, CONST.ELEMENT_NAME.TEXTAREA] as string[]).includes((e.target as Element | null)?.nodeName ?? '')) {
                 return;
             }
 
             focus();
         },
-        [checkComposerVisibility, focus],
+        [checkComposerVisibility, focus, isSidePanelHiddenOrLargeScreen],
     );
 
     const blur = useCallback(() => {
@@ -606,31 +631,32 @@ function ComposerWithSuggestions(
     }, []);
 
     useEffect(() => {
-        const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress));
+        const unsubscribeNavigationBlur = navigation.addListener('blur', () => removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
-            KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
+            addKeyDownPressListener(focusComposerOnKeyPress);
             // The report isn't unmounted and can be focused again after going back from another report so we should update the composerRef again
             ReportActionComposeFocusManager.composerRef.current = textInputRef.current;
             setUpComposeFocusManager();
         });
-        KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
+        addKeyDownPressListener(focusComposerOnKeyPress);
 
         setUpComposeFocusManager();
 
         return () => {
             ReportActionComposeFocusManager.clear();
 
-            KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress);
+            removeKeyDownPressListener(focusComposerOnKeyPress);
             unsubscribeNavigationBlur();
             unsubscribeNavigationFocus();
         };
-    }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager]);
+    }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager, isSidePanelHiddenOrLargeScreen]);
 
     const prevIsModalVisible = usePrevious(modal?.isVisible);
     const prevIsFocused = usePrevious(isFocused);
 
     useEffect(() => {
-        if (modal?.isVisible && !prevIsModalVisible) {
+        const isModalVisible = modal?.isVisible;
+        if (isModalVisible && !prevIsModalVisible) {
             // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
             isNextModalWillOpenRef.current = false;
         }
@@ -638,21 +664,27 @@ function ComposerWithSuggestions(
         // We want to blur the input immediately when a screen is out of focus.
         if (!isFocused) {
             textInputRef.current?.blur();
+            return;
+        }
+
+        // Do not focus the composer if the Side Panel is visible
+        if (!isSidePanelHiddenOrLargeScreen) {
+            return;
         }
 
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!((willBlurTextInputOnTapOutside || shouldAutoFocus) && !isNextModalWillOpenRef.current && !modal?.isVisible && isFocused && (!!prevIsModalVisible || !prevIsFocused))) {
+        if (!((willBlurTextInputOnTapOutside || shouldAutoFocus) && !isNextModalWillOpenRef.current && !isModalVisible && (!!prevIsModalVisible || !prevIsFocused))) {
             return;
         }
 
         if (editFocused) {
-            InputFocus.inputFocusChange(false);
+            inputFocusChange(false);
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
@@ -701,20 +733,19 @@ function ComposerWithSuggestions(
 
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
+        tag.set(findNodeHandle(textInputRef.current) ?? -1);
+    }, [tag]);
 
-        tag.value = findNodeHandle(textInputRef.current) ?? -1;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
     useFocusedInputHandler(
         {
             onSelectionChange: (event) => {
                 'worklet';
 
-                if (event.target === tag.value) {
-                    cursorPositionValue.value = {
+                if (event.target === tag.get()) {
+                    cursorPositionValue.set({
                         x: event.selection.end.x,
                         y: event.selection.end.y,
-                    };
+                    });
                 }
             },
         },
@@ -723,7 +754,7 @@ function ComposerWithSuggestions(
     const measureParentContainerAndReportCursor = useCallback(
         (callback: MeasureParentContainerAndCursorCallback) => {
             const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
-            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.value, positionOnWeb: selection});
+            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
             measureParentContainer((x, y, width, height) => {
                 callback({
                     x,
@@ -738,9 +769,28 @@ function ComposerWithSuggestions(
         [measureParentContainer, cursorPositionValue, selection],
     );
 
+    const isTouchEndedRef = useRef(false);
+    const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
+
+    const updateIsFullComposerAvailable = useCallback(
+        (e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+            const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
+            const inputHeight = e.nativeEvent.contentSize.height;
+            const totalHeight = inputHeight + paddingTopAndBottom;
+            const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
+            setIsFullComposerAvailable?.(isFullComposerAvailable);
+        },
+        [setIsFullComposerAvailable, containerComposeStyles],
+    );
+
     return (
         <>
-            <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
+            <View
+                style={[containerComposeStyles, styles.textInputComposeBorder]}
+                onTouchEndCapture={() => {
+                    isTouchEndedRef.current = true;
+                }}
+            >
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
                     autoFocus={!!shouldAutoFocus}
@@ -749,7 +799,7 @@ function ComposerWithSuggestions(
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
                     onChangeText={onChangeText}
-                    onKeyPress={triggerHotkeyActions}
+                    onKeyPress={handleKeyPress}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
@@ -769,12 +819,13 @@ function ComposerWithSuggestions(
                     selection={selection}
                     onSelectionChange={onSelectionChange}
                     isComposerFullSize={isComposerFullSize}
+                    onContentSizeChange={updateIsFullComposerAvailable}
                     value={value}
                     testID="composer"
                     shouldCalculateCaretPosition
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
-                    shouldContainScroll={Browser.isMobileSafari()}
+                    shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
                 />
             </View>
@@ -793,7 +844,7 @@ function ComposerWithSuggestions(
                 resetKeyboardInput={resetKeyboardInput}
             />
 
-            {ReportUtils.isValidReportIDFromPath(reportID) && (
+            {isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater
                     reportID={reportID}
                     value={value}

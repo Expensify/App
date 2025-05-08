@@ -7,21 +7,27 @@ import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
+import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
-import type {AddNewCompanyCardFeed, CompanyCardFeed} from './CardFeeds';
+import type {AddNewCompanyCardFeed, CompanyCardFeed, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
+import type {CorpayFields, CorpayFormField} from './CorpayFields';
+import type CorpayOnboardingFields from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type ReportAttributesDerivedValue from './DerivedValues';
+import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
+import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -29,9 +35,9 @@ import type Fund from './Fund';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
-import type IOU from './IOU';
+import type JoinablePolicies from './JoinablePolicies';
 import type LastExportMethod from './LastExportMethod';
-import type LastPaymentMethod from './LastPaymentMethod';
+import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
@@ -59,10 +65,9 @@ import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
-import type PreferredTheme from './PreferredTheme';
-import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivateSubscription from './PrivateSubscription';
+import type PurchaseList from './PurchaseList';
 import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -91,25 +96,28 @@ import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
+import type ShareTempFile from './ShareTempFile';
+import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
+import type TalkToAISales from './TalkToAISales';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
+import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
-import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
+import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
-import type WorkspaceTooltip from './WorkspaceTooltip';
 
 export type {
     TryNewDot,
@@ -124,6 +132,7 @@ export type {
     CardList,
     CardOnWaitlist,
     Credentials,
+    CorpayOnboardingFields,
     Currency,
     CurrencyList,
     CustomStatusDraft,
@@ -131,11 +140,12 @@ export type {
     Download,
     WorkspaceCardsList,
     ExpensifyCardSettings,
+    ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
     Fund,
+    FundID,
     FundList,
     IntroSelected,
-    IOU,
     IssueNewCard,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
@@ -167,8 +177,6 @@ export type {
     PolicyTag,
     PolicyTags,
     PolicyTagLists,
-    PreferredTheme,
-    PriorityMode,
     PrivatePersonalDetails,
     QuickAction,
     RecentWaypoint,
@@ -201,7 +209,6 @@ export type {
     TransactionViolation,
     TransactionViolations,
     TravelSettings,
-    User,
     UserLocation,
     UserMetadata,
     UserWallet,
@@ -212,6 +219,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    PurchaseList,
     ReportUserIsTyping,
     PolicyReportField,
     RecentlyUsedReportFields,
@@ -233,7 +241,6 @@ export type {
     CancellationDetails,
     ApprovalWorkflowOnyx,
     MobileSelectionMode,
-    WorkspaceTooltip,
     CardFeeds,
     SaveSearch,
     RecentSearchItem,
@@ -241,4 +248,16 @@ export type {
     Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
+    ShareTempFile,
+    CorpayFields,
+    CorpayFormField,
+    JoinablePolicies,
+    DismissedProductTraining,
+    TravelProvisioning,
+    SidePanel,
+    LastPaymentMethodType,
+    ReportAttributesDerivedValue,
+    TalkToAISales,
+    ValidateUserAndGetAccessiblePolicies,
+    BillingReceiptDetails,
 };

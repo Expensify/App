@@ -13,8 +13,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {sortAlphabetically} from '@libs/OptionsListUtils';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
@@ -66,7 +66,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             return translate('workspace.common.everyone');
         }
 
-        return OptionsListUtils.sortAlphabetically(approvalWorkflow.members, 'displayName')
+        return sortAlphabetically(approvalWorkflow.members, 'displayName')
             .map((m) => m.displayName)
             .join(', ');
     }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
@@ -97,33 +97,31 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     const editMembers = useCallback(() => {
         const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo), CONST.NAVIGATION.ACTION_TYPE.PUSH);
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
     }, [approvalWorkflow.action, policyID]);
 
     const editApprover = useCallback(
         (approverIndex: number) => {
             const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, backTo), CONST.NAVIGATION.ACTION_TYPE.PUSH);
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, backTo));
         },
         [approvalWorkflow.action, policyID],
     );
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
-        if (!PolicyUtils.isControlPolicy(policy) && approverCount > 0) {
+        if (!isControlPolicy(policy) && approverCount > 0) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
             return;
         }
-        Navigation.navigate(
-            ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)),
-            CONST.NAVIGATION.ACTION_TYPE.PUSH,
-        );
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)));
     }, [approverCount, policy, policyID]);
 
     return (
         <ScrollView
             style={[styles.flex1]}
             ref={ref}
+            addBottomSafeAreaPadding
         >
             <View style={[styles.mh5]}>
                 {approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
@@ -152,10 +150,12 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             : undefined;
 
                     return (
-                        <OfflineWithFeedback pendingAction={getApprovalPendingAction(approverIndex)}>
+                        <OfflineWithFeedback
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`approver-${approver?.email}-${approverIndex}`}
+                            pendingAction={getApprovalPendingAction(approverIndex)}
+                        >
                             <MenuItemWithTopDescription
-                                // eslint-disable-next-line react/no-array-index-key
-                                key={`approver-${approver?.email}-${approverIndex}`}
                                 title={approver?.displayName}
                                 titleStyle={styles.textNormalThemeText}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}

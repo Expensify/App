@@ -8,9 +8,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {LocationPermissionModalProps} from './types';
 
-function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: LocationPermissionModalProps) {
+function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -21,6 +22,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         }
 
         getLocationPermission().then((status) => {
+            onInitialGetLocationCompleted?.();
             if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                 return onGrant();
             }
@@ -32,6 +34,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     }, [startPermissionFlow]);
 
     const handledBlockedPermission = (cb: () => void) => () => {
+        setIsLoading(true);
         if (hasError && Linking.openSettings) {
             Linking.openSettings();
             setShowModal(false);
@@ -43,18 +46,22 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     };
 
     const grantLocationPermission = handledBlockedPermission(() => {
-        requestLocationPermission().then((status) => {
-            if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
-                onGrant();
-            } else if (status === RESULTS.BLOCKED) {
-                setHasError(true);
-                return;
-            } else {
-                onDeny();
-            }
-            setShowModal(false);
-            setHasError(false);
-        });
+        requestLocationPermission()
+            .then((status) => {
+                if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
+                    onGrant();
+                } else if (status === RESULTS.BLOCKED) {
+                    setHasError(true);
+                    return;
+                } else {
+                    onDeny();
+                }
+                setShowModal(false);
+                setHasError(false);
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     });
 
     const skipLocationPermission = () => {
@@ -87,6 +94,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             iconHeight={120}
             shouldCenterIcon
             shouldReverseStackedButtons
+            isConfirmLoading={isLoading}
         />
     );
 }

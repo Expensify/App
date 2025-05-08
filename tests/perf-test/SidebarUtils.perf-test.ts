@@ -59,7 +59,7 @@ describe('SidebarUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
 
         Onyx.multiSet({
@@ -76,18 +76,22 @@ describe('SidebarUtils', () => {
         const preferredLocale = 'en';
         const policy = createRandomPolicy(1);
         const parentReportAction = createRandomReportAction(1);
+        const reportNameValuePairs = {};
 
         await waitForBatchedUpdates();
 
         await measureFunction(() =>
             SidebarUtils.getOptionData({
                 report,
+                reportAttributes: {},
+                reportNameValuePairs,
                 reportActions,
                 personalDetails,
                 preferredLocale,
                 policy,
                 parentReportAction,
                 hasViolations: false,
+                oneTransactionThreadReport: undefined,
             }),
         );
     });

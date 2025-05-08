@@ -34,7 +34,7 @@ function Slider({sliderValue, gestureCallbacks}: SliderProps) {
         'worklet';
 
         return {
-            transform: [{translateX: sliderValue.value}],
+            transform: [{translateX: sliderValue.get()}],
         };
     });
 

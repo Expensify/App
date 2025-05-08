@@ -65,6 +65,10 @@ export default {
         justifyContent: 'space-around',
     },
 
+    justifyContentEvenly: {
+        justifyContent: 'space-evenly',
+    },
+
     alignSelfStretch: {
         alignSelf: 'stretch',
     },
@@ -135,6 +139,10 @@ export default {
 
     flexBasisAuto: {
         flexBasis: 'auto',
+    },
+
+    flexBasis100: {
+        flexBasis: '100%',
     },
 
     flexBasis0: {

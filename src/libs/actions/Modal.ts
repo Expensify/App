@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type ModalType from '@src/types/utils/ModalType';
 
 const closeModals: Array<(isNavigating?: boolean) => void> = [];
 
@@ -69,8 +70,8 @@ function onModalDidClose() {
 /**
  * Allows other parts of the app to know when a modal has been opened or closed
  */
-function setModalVisibility(isVisible: boolean) {
-    Onyx.merge(ONYXKEYS.MODAL, {isVisible});
+function setModalVisibility(isVisible: boolean, type: ModalType | null = null) {
+    Onyx.merge(ONYXKEYS.MODAL, {isVisible, type});
 }
 
 /**
@@ -86,6 +87,9 @@ function setDisableDismissOnEscape(disableDismissOnEscape: boolean) {
  * isPopover indicates that the next open modal is popover or bottom docked
  */
 function willAlertModalBecomeVisible(isVisible: boolean, isPopover = false) {
+    // We cancel the pending and active tooltips here instead of in setModalVisibility because
+    // we want to do it when a modal is going to show. If we do it when the modal is fully shown,
+    // the tooltip in that modal won't show.
     Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible, isPopover});
 }
 

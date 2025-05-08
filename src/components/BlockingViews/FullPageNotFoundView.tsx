@@ -1,9 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import StatsCounter from '@libs/actions/StatsCounter';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
@@ -11,6 +13,9 @@ import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 
 type FullPageNotFoundViewProps = {
+    /** TestID for test */
+    testID?: string;
+
     /** Child elements */
     children?: React.ReactNode;
 
@@ -40,10 +45,23 @@ type FullPageNotFoundViewProps = {
 
     /** Whether we should force the full page view */
     shouldForceFullScreen?: boolean;
+
+    /** The style of the subtitle message */
+    subtitleStyle?: StyleProp<TextStyle>;
+
+    /** Whether we should display the button that opens new SearchRouter */
+    shouldDisplaySearchRouter?: boolean;
+
+    /** Whether to add bottom safe area padding to the view. */
+    addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 function FullPageNotFoundView({
+    testID,
     children = null,
     shouldShow = false,
     titleKey = 'notFound.notHere',
@@ -52,20 +70,29 @@ function FullPageNotFoundView({
     onBackButtonPress = () => Navigation.goBack(),
     shouldShowLink = true,
     shouldShowBackButton = true,
-    onLinkPress = () => Navigation.dismissModal(),
+    onLinkPress = () => Navigation.goBackToHome(),
     shouldForceFullScreen = false,
+    subtitleStyle,
+    shouldDisplaySearchRouter,
+    addBottomSafeAreaPadding = true,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     if (shouldShow) {
+        StatsCounter('FullPageNotFoundView');
         return (
             <ForceFullScreenView shouldForceFullScreen={shouldForceFullScreen}>
                 <HeaderWithBackButton
                     onBackButtonPress={onBackButtonPress}
                     shouldShowBackButton={shouldShowBackButton}
+                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                 />
-                <View style={[styles.flex1, styles.blockingViewContainer]}>
+                <View
+                    style={[styles.flex1, styles.blockingViewContainer]}
+                    testID={testID}
+                >
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}
                         iconWidth={variables.modalTopIconWidth}
@@ -75,6 +102,10 @@ function FullPageNotFoundView({
                         linkKey={linkKey}
                         shouldShowLink={shouldShowLink}
                         onLinkPress={onLinkPress}
+                        subtitleStyle={subtitleStyle}
+                        addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                        addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
+                        testID={FullPageNotFoundView.displayName}
                     />
                 </View>
             </ForceFullScreenView>

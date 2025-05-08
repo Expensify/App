@@ -1,9 +1,10 @@
-import Onyx from 'react-native-onyx';
 import type * as AppImport from '@libs/actions/App';
-import type * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
-import ONYXKEYS from '@src/ONYXKEYS';
+import * as OnyxUpdates from '@userActions/OnyxUpdates';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import createProxyForObject from '@src/utils/createProxyForObject';
+
+jest.mock('@libs/actions/OnyxUpdates');
+jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 
 const AppImplementation = jest.requireActual<typeof AppImport>('@libs/actions/App');
 const {
@@ -39,13 +40,30 @@ const mockValues: AppMockValues = {
 };
 const mockValuesProxy = createProxyForObject(mockValues);
 
-const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
-const getMissingOnyxUpdates = jest.fn((_fromID: number, toID: number) => {
-    if (mockValuesProxy.missingOnyxUpdatesToBeApplied === undefined) {
-        return Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, toID);
+const getMissingOnyxUpdates = jest.fn((updateIDFrom: number, updateIDTo: number) => {
+    const updates = mockValuesProxy.missingOnyxUpdatesToBeApplied ?? [];
+    if (updates.length === 0) {
+        for (let i = updateIDFrom + 1; i <= updateIDTo; i++) {
+            updates.push({
+                lastUpdateID: i,
+                previousUpdateID: i - 1,
+            } as OnyxUpdatesFromServer);
+        }
     }
 
-    return ApplyUpdatesImplementation.applyUpdates(mockValuesProxy.missingOnyxUpdatesToBeApplied);
+    let chain = Promise.resolve();
+    updates.forEach((update) => {
+        chain = chain.then(() => {
+            if (!OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(update.previousUpdateID)})) {
+                return OnyxUpdates.apply(update).then(() => undefined);
+            }
+
+            OnyxUpdates.saveUpdateInformation(update);
+            return Promise.resolve();
+        });
+    });
+
+    return chain;
 });
 
 export {

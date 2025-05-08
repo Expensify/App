@@ -8,7 +8,7 @@ let connection: Connection;
 /**
  * Makes a backup copy of a transaction object that can be restored when the user cancels editing a transaction.
  */
-function createBackupTransaction(transaction: OnyxEntry<Transaction>) {
+function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: boolean) {
     if (!transaction) {
         return;
     }
@@ -20,19 +20,38 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>) {
     const newTransaction = {
         ...transaction,
     };
-
-    // Use set so that it will always fully overwrite any backup transaction that could have existed before
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`, newTransaction);
+    const conn = Onyx.connect({
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`,
+        callback: (transactionBackup) => {
+            Onyx.disconnect(conn);
+            if (transactionBackup) {
+                // If the transactionBackup exists it means we haven't properly restored original value on unmount
+                // such as on page refresh, so we will just restore the transaction from the transactionBackup here.
+                Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transactionBackup);
+                return;
+            }
+            // Use set so that it will always fully overwrite any backup transaction that could have existed before
+            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`, newTransaction);
+        },
+    });
 }
 
 /**
  * Removes a transaction from Onyx that was only used temporary in the edit flow
  */
-function removeBackupTransaction(transactionID: string) {
+function removeBackupTransaction(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, null);
 }
 
-function restoreOriginalTransactionFromBackup(transactionID: string, isDraft: boolean) {
+function restoreOriginalTransactionFromBackup(transactionID: string | undefined, isDraft: boolean) {
+    if (!transactionID) {
+        return;
+    }
+
     connection = Onyx.connect({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
         callback: (backupTransaction) => {
@@ -58,7 +77,11 @@ function createDraftTransaction(transaction: OnyxEntry<Transaction>) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
-function removeDraftTransaction(transactionID: string) {
+function removeDraftTransaction(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 

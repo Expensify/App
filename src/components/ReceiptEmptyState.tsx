@@ -1,5 +1,7 @@
 import React from 'react';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
@@ -13,29 +15,62 @@ type ReceiptEmptyStateProps = {
     /** Callback to be called on onPress */
     onPress?: () => void;
 
+    /** Whether the receipt action is disabled */
     disabled?: boolean;
+
+    /** Whether the receipt is a thumbnail */
+    isThumbnail?: boolean;
+
+    /** Whether the receipt is in the money request view */
+    isInMoneyRequestView?: boolean;
+
+    /** Whether the receipt empty state should extend to the full height of the container. */
+    shouldUseFullHeight?: boolean;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = false}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const theme = useTheme();
+
+    const Wrapper = onPress ? PressableWithoutFeedback : View;
 
     return (
-        <PressableWithoutFeedback
+        <Wrapper
             accessibilityRole="imagebutton"
             accessibilityLabel={translate('receipt.upload')}
             onPress={onPress}
             disabled={disabled}
             disabledStyle={styles.cursorDefault}
-            style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.moneyRequestViewImage, styles.moneyRequestAttachReceipt, hasError && styles.borderColorDanger]}
+            style={[
+                styles.alignItemsCenter,
+                styles.justifyContentCenter,
+                styles.moneyRequestViewImage,
+                isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
+                isThumbnail && !isInMoneyRequestView && styles.w100,
+                isInMoneyRequestView && styles.expenseViewImage,
+                hasError && styles.borderColorDanger,
+                shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
+            ]}
         >
-            <Icon
-                src={Expensicons.EmptyStateAttachReceipt}
-                width={variables.eReceiptEmptyIconWidth}
-                height={variables.eReceiptIconHeight}
-            />
-        </PressableWithoutFeedback>
+            <View>
+                <Icon
+                    fill={theme.border}
+                    src={Expensicons.Receipt}
+                    width={variables.eReceiptEmptyIconWidth}
+                    height={variables.eReceiptEmptyIconWidth}
+                />
+                {!isThumbnail && (
+                    <Icon
+                        src={Expensicons.ReceiptPlaceholderPlus}
+                        width={variables.avatarSizeSmall}
+                        height={variables.avatarSizeSmall}
+                        additionalStyles={styles.moneyRequestAttachReceiptThumbnailIcon}
+                    />
+                )}
+            </View>
+        </Wrapper>
     );
 }
 

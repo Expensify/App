@@ -1,33 +1,23 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import useEReceipt from '@hooks/useEReceipt';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TripReservationUtils from '@libs/TripReservationUtils';
+import {isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
 import Icon from './Icon';
-import * as eReceiptBGs from './Icon/EReceiptBGs';
 import * as Expensicons from './Icon/Expensicons';
-import * as MCCIcons from './Icon/MCCIcons';
-import Image from './Image';
+import ImageSVG from './ImageSVG';
 import Text from './Text';
-
-type EReceiptThumbnailOnyxProps = {
-    transaction: OnyxEntry<Transaction>;
-};
 
 type IconSize = 'x-small' | 'small' | 'medium' | 'large';
 
-type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
-    /** TransactionID of the transaction this EReceipt corresponds to. It's used by withOnyx HOC */
-    // eslint-disable-next-line react/no-unused-prop-types
-    transactionID: string;
+type EReceiptThumbnailProps = {
+    /** TransactionID of the transaction this EReceipt corresponds to. */
+    transactionID: string | undefined;
 
     /** Border radius to be applied on the parent view. */
     borderRadius?: number;
@@ -45,29 +35,13 @@ type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     iconSize?: IconSize;
 };
 
-const backgroundImages = {
-    [CONST.ERECEIPT_COLORS.YELLOW]: eReceiptBGs.EReceiptBG_Yellow,
-    [CONST.ERECEIPT_COLORS.ICE]: eReceiptBGs.EReceiptBG_Ice,
-    [CONST.ERECEIPT_COLORS.BLUE]: eReceiptBGs.EReceiptBG_Blue,
-    [CONST.ERECEIPT_COLORS.GREEN]: eReceiptBGs.EReceiptBG_Green,
-    [CONST.ERECEIPT_COLORS.TANGERINE]: eReceiptBGs.EReceiptBG_Tangerine,
-    [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
-};
-
-function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
+function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transaction);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
-    const backgroundImage = useMemo(() => backgroundImages[colorCode], [colorCode]);
-
-    const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
-    const primaryColor = colorStyles?.backgroundColor;
-    const secondaryColor = colorStyles?.color;
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
-    const transactionMCCGroup = transactionDetails?.mccGroup;
-    const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
-    const tripIcon = TripReservationUtils.getTripEReceiptIcon(transaction);
+    const {primaryColor, secondaryColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transaction, fileExtension, isReceiptThumbnail);
+    const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
 
     let receiptIconWidth: number = variables.eReceiptIconWidth;
     let receiptIconHeight: number = variables.eReceiptIconHeight;
@@ -108,11 +82,9 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
                 borderRadius ? {borderRadius} : {},
             ]}
         >
-            <Image
-                source={backgroundImage}
-                style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}
-                resizeMode="cover"
-            />
+            <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
+                <ImageSVG src={backgroundImage} />
+            </View>
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(receiptIconWidth, receiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
@@ -135,7 +107,15 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
                             {fileExtension.toUpperCase()}
                         </Text>
                     )}
-                    {MCCIcon && !isReceiptThumbnail ? (
+                    {isPerDiemRequest ? (
+                        <Icon
+                            src={Expensicons.CalendarSolid}
+                            height={receiptMCCSize}
+                            width={receiptMCCSize}
+                            fill={primaryColor}
+                        />
+                    ) : null}
+                    {!isPerDiemRequest && MCCIcon && !isReceiptThumbnail ? (
                         <Icon
                             src={MCCIcon}
                             height={receiptMCCSize}
@@ -143,7 +123,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
                             fill={primaryColor}
                         />
                     ) : null}
-                    {!MCCIcon && tripIcon ? (
+                    {!isPerDiemRequest && !MCCIcon && tripIcon ? (
                         <Icon
                             src={tripIcon}
                             height={receiptMCCSize}
@@ -158,9 +138,6 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
 }
 
 EReceiptThumbnail.displayName = 'EReceiptThumbnail';
-export default withOnyx<EReceiptThumbnailProps, EReceiptThumbnailOnyxProps>({
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    },
-})(EReceiptThumbnail);
-export type {IconSize, EReceiptThumbnailProps, EReceiptThumbnailOnyxProps};
+export default EReceiptThumbnail;
+
+export type {IconSize, EReceiptThumbnailProps};

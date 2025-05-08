@@ -1,6 +1,6 @@
 import type {ImageContentFit} from 'expo-image';
-import type {ReactElement, ReactNode} from 'react';
-import React, {forwardRef, useContext, useMemo} from 'react';
+import type {ReactElement, ReactNode, Ref} from 'react';
+import React, {forwardRef, useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -10,12 +10,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
+import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserUtils';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
@@ -60,6 +62,10 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = {
+    /* View ref  */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    ref?: Ref<View>;
+
     /** Function to fire when component is pressed */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
@@ -224,6 +230,9 @@ type MenuItemBaseProps = {
     /** Whether the secondary right avatar should show as a subscript */
     shouldShowSubscriptRightAvatar?: boolean;
 
+    /** Whether the secondary avatar should show as a subscript */
+    shouldShowSubscriptAvatar?: boolean;
+
     /** Affects avatar size  */
     viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -284,6 +293,12 @@ type MenuItemBaseProps = {
     /** Text to display under the main item */
     furtherDetails?: string;
 
+    /** The maximum number of lines for further details text */
+    furtherDetailsNumberOfLines?: number;
+
+    /** The further details additional style */
+    furtherDetailsStyle?: StyleProp<TextStyle>;
+
     /** Render custom content under the main item */
     furtherDetailsComponent?: ReactElement;
 
@@ -332,19 +347,40 @@ type MenuItemBaseProps = {
     /** Render custom content inside the tooltip. */
     renderTooltipContent?: () => ReactNode;
 
+    /** Callback to fire when the education tooltip is pressed */
+    onEducationTooltipPress?: () => void;
+
     shouldShowLoadingSpinnerIcon?: boolean;
 
     /** Should selected item be marked with checkmark */
     shouldShowSelectedItemCheck?: boolean;
 
-    /** Handles what to do when hiding the tooltip */
-    onHideTooltip?: () => void;
-
     /** Should use auto width for the icon container. */
     shouldIconUseAutoWidthStyle?: boolean;
+
+    /** Should break word for room title */
+    shouldBreakWord?: boolean;
+
+    /** Pressable component Test ID. Used to locate the component in tests. */
+    pressableTestID?: string;
+
+    /** Whether to teleport the portal to the modal layer */
+    shouldTeleportPortalToModalLayer?: boolean;
+
+    /** The value to copy on secondary interaction */
+    copyValue?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
+
+const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolean, hoveredBackgroundColor: string, pressedBackgroundColor: string) => {
+    if (isPressed) {
+        return pressedBackgroundColor;
+    }
+    if (isHovered) {
+        return hoveredBackgroundColor;
+    }
+};
 function MenuItem(
     {
         interactive = true,
@@ -377,6 +413,8 @@ function MenuItem(
         iconRight = Expensicons.ArrowRight,
         furtherDetailsIcon,
         furtherDetails,
+        furtherDetailsNumberOfLines = 2,
+        furtherDetailsStyle,
         furtherDetailsComponent,
         description,
         helperText,
@@ -407,6 +445,7 @@ function MenuItem(
         floatRightAvatars = [],
         floatRightAvatarSize,
         shouldShowSubscriptRightAvatar = false,
+        shouldShowSubscriptAvatar: shouldShowSubscriptAvatarProp = false,
         avatarSize = CONST.AVATAR_SIZE.DEFAULT,
         isSmallAvatarSubscriptMenu = false,
         brickRoadIndicator,
@@ -440,10 +479,14 @@ function MenuItem(
         tooltipShiftHorizontal = 0,
         tooltipShiftVertical = 0,
         renderTooltipContent,
+        onEducationTooltipPress,
         additionalIconStyles,
         shouldShowSelectedItemCheck = false,
-        onHideTooltip,
         shouldIconUseAutoWidthStyle = false,
+        shouldBreakWord = false,
+        pressableTestID,
+        shouldTeleportPortalToModalLayer,
+        copyValue,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -453,11 +496,12 @@ function MenuItem(
     const combinedStyle = [styles.popoverMenuItem, style];
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
+    const popoverAnchor = useRef<View>(null);
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
-    const firstIcon = floatRightAvatars.at(0);
+    const firstRightIcon = floatRightAvatars.at(0);
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,
@@ -469,9 +513,14 @@ function MenuItem(
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : {},
+            shouldBreakWord ? styles.breakWord : {},
+            styles.mw100,
         ],
         titleStyle ?? {},
     );
+    const shouldShowAvatar = !!icon && Array.isArray(icon);
+    const firstIcon = Array.isArray(icon) && !!icon.length ? icon.at(0) : undefined;
+    const shouldShowSubscriptAvatar = shouldShowSubscriptAvatarProp && !!firstIcon;
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
         icon && !Array.isArray(icon) ? styles.ml3 : {},
@@ -561,6 +610,19 @@ function MenuItem(
         }
     };
 
+    const secondaryInteraction = (event: GestureResponderEvent | MouseEvent) => {
+        if (!copyValue) {
+            return;
+        }
+        showContextMenu({
+            type: CONST.CONTEXT_MENU_TYPES.TEXT,
+            event,
+            selection: copyValue,
+            contextMenuAnchor: popoverAnchor.current,
+        });
+        onSecondaryInteraction?.(event);
+    };
+
     return (
         <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
@@ -575,20 +637,21 @@ function MenuItem(
                 wrapperStyle={tooltipWrapperStyle}
                 shiftHorizontal={tooltipShiftHorizontal}
                 shiftVertical={tooltipShiftVertical}
-                shouldAutoDismiss
-                onHideTooltip={onHideTooltip}
+                shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
+                onTooltipPress={onEducationTooltipPress}
             >
                 <View>
                     <Hoverable>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
-                                onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
-                                onSecondaryInteraction={onSecondaryInteraction}
+                                onSecondaryInteraction={copyValue ? secondaryInteraction : onSecondaryInteraction}
                                 wrapperStyle={outerWrapperStyle}
-                                activeOpacity={variables.pressDimValue}
+                                activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={0}
+                                testID={pressableTestID}
                                 style={({pressed}) =>
                                     [
                                         containerStyle,
@@ -603,7 +666,7 @@ function MenuItem(
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
-                                ref={ref}
+                                ref={mergeRefs(ref, popoverAnchor)}
                                 role={CONST.ROLE.MENUITEM}
                                 accessibilityLabel={title ? title.toString() : ''}
                                 accessible
@@ -621,7 +684,7 @@ function MenuItem(
                                                     </View>
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
-                                                    {!!icon && Array.isArray(icon) && (
+                                                    {shouldShowAvatar && !shouldShowSubscriptAvatar && (
                                                         <MultipleAvatars
                                                             isHovered={isHovered}
                                                             isPressed={pressed}
@@ -632,6 +695,14 @@ function MenuItem(
                                                                 pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
                                                                 isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
                                                             ]}
+                                                        />
+                                                    )}
+                                                    {shouldShowAvatar && shouldShowSubscriptAvatar && (
+                                                        <SubscriptAvatar
+                                                            backgroundColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
+                                                            mainAvatar={firstIcon as IconType}
+                                                            secondaryAvatar={(icon as IconType[]).at(1)}
+                                                            size={avatarSize}
                                                         />
                                                     )}
                                                     {!icon && shouldPutLeftPaddingWhenNoIcon && (
@@ -777,8 +848,11 @@ function MenuItem(
                                                                     />
                                                                 )}
                                                                 <Text
-                                                                    style={furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting}
-                                                                    numberOfLines={2}
+                                                                    style={[
+                                                                        furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting,
+                                                                        furtherDetailsStyle,
+                                                                    ]}
+                                                                    numberOfLines={furtherDetailsNumberOfLines}
                                                                 >
                                                                     {furtherDetails}
                                                                 </Text>
@@ -802,12 +876,12 @@ function MenuItem(
                                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                                     </View>
                                                 )}
-                                                {floatRightAvatars?.length > 0 && !!firstIcon && (
+                                                {floatRightAvatars?.length > 0 && !!firstRightIcon && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : styles.mrn2]}>
                                                         {shouldShowSubscriptRightAvatar ? (
                                                             <SubscriptAvatar
                                                                 backgroundColor={isHovered ? theme.activeComponentBG : theme.componentBG}
-                                                                mainAvatar={firstIcon}
+                                                                mainAvatar={firstRightIcon}
                                                                 secondaryAvatar={floatRightAvatars.at(1)}
                                                                 size={floatRightAvatarSize ?? fallbackAvatarSize}
                                                             />
@@ -897,5 +971,5 @@ function MenuItem(
 
 MenuItem.displayName = 'MenuItem';
 
-export type {AvatarProps, IconProps, MenuItemBaseProps, MenuItemProps, NoIcon};
+export type {MenuItemBaseProps, MenuItemProps};
 export default forwardRef(MenuItem);

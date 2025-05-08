@@ -2,6 +2,7 @@ import type {FlashList} from '@shopify/flash-list';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import emojis from '@assets/emojis';
 import {useFrequentlyUsedEmojis} from '@components/OnyxProvider';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -23,12 +24,15 @@ const useEmojiPickerMenu = () => {
     const [preferredSkinTone] = usePreferredEmojiSkinTone();
     const {windowHeight} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
+    const {keyboardHeight} = useKeyboardState();
+
     /**
-     * At EmojiPicker has set innerContainerStyle with maxHeight: '95%' by styles.popoverInnerContainer
-     * to avoid the list style to be cut off due to the list height being larger than the container height
-     * so we need to calculate listStyle based on the height of the window and innerContainerStyle at the EmojiPicker
+     * The EmojiPicker sets the `innerContainerStyle` with `maxHeight: '95%'` in `styles.popoverInnerContainer`
+     * to prevent the list from being cut off when the list height exceeds the container's height.
+     * To calculate the available list height, we subtract the keyboard height from the `windowHeight`
+     * to ensure the list is properly adjusted when the keyboard is visible.
      */
-    const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight * 0.95);
+    const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight * 0.95 - keyboardHeight);
 
     useEffect(() => {
         setFilteredEmojis(allEmojis);

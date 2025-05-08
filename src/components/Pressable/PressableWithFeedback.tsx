@@ -13,14 +13,14 @@ type PressableWithFeedbackProps = PressableProps & {
     wrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /**
-     * Determines what opacity value should be applied to the underlaying view when Pressable is pressed.
+     * Determines what opacity value should be applied to the underlying view when Pressable is pressed.
      * To disable dimming, pass 1 as pressDimmingValue
      * @default variables.pressDimValue
      */
     pressDimmingValue?: number;
 
     /**
-     * Determines what opacity value should be applied to the underlaying view when pressable is hovered.
+     * Determines what opacity value should be applied to the underlying view when pressable is hovered.
      * To disable dimming, pass 1 as hoverDimmingValue
      * @default variables.hoverDimValue
      */
@@ -37,6 +37,12 @@ type PressableWithFeedbackProps = PressableProps & {
 
     /** The color of the underlay that will show through when the Pressable is active. */
     underlayColor?: Color;
+
+    /**
+     * Whether the button should have a background layer in the color of theme.appBG.
+     * This is needed for buttons that allow content to display under them.
+     */
+    shouldBlendOpacity?: boolean;
 };
 
 function PressableWithFeedback(
@@ -47,6 +53,7 @@ function PressableWithFeedback(
         pressDimmingValue = variables.pressDimValue,
         hoverDimmingValue = variables.hoverDimValue,
         dimAnimationDuration,
+        shouldBlendOpacity,
         ...rest
     }: PressableWithFeedbackProps,
     ref: PressableRef,
@@ -56,7 +63,7 @@ function PressableWithFeedback(
 
     return (
         <OpacityView
-            shouldDim={!!(!rest.disabled && (isPressed || isHovered))}
+            shouldDim={!shouldBlendOpacity && !!(!rest.disabled && (isPressed || isHovered))}
             dimmingValue={isPressed ? pressDimmingValue : hoverDimmingValue}
             dimAnimationDuration={dimAnimationDuration}
             style={wrapperStyle}

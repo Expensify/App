@@ -14,7 +14,6 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import CONST from '@src/CONST';
@@ -36,6 +35,15 @@ Onyx.connect({
 
         listValues = value[INPUT_IDS.LIST_VALUES] ?? [];
         disabledListValues = value[INPUT_IDS.DISABLED_LIST_VALUES] ?? [];
+    },
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
     },
 });
 
@@ -160,9 +168,10 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
     const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
     const fieldID = WorkspaceReportFieldUtils.generateFieldID(name);
     const fieldKey = ReportUtils.getReportFieldKey(fieldID);
-    const newReportField: Omit<OnyxValueWithOfflineFeedback<PolicyReportField>, 'value'> = {
+    const optimisticReportFieldDataForPolicy: Omit<OnyxValueWithOfflineFeedback<PolicyReportField>, 'value'> = {
         name,
         type,
+        target: 'expense',
         defaultValue: initialValue,
         values: listValues,
         disabledOptions: disabledListValues,
@@ -174,14 +183,7 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
         isTax: false,
     };
 
-    const optimisticReportFieldDataForPolicy: OnyxValueWithOfflineFeedback<PolicyReportField> = {
-        ...newReportField,
-        value: type === CONST.REPORT_FIELD_TYPES.LIST ? CONST.REPORT_FIELD_TYPES.LIST : null,
-    };
-
-    const policyExpenseReports = Object.values(ReportConnection.getAllReports() ?? {}).filter(
-        (report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE,
-    ) as Report[];
+    const policyExpenseReports = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE) as Report[];
 
     const optimisticData = [
         {
@@ -199,7 +201,7 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
                 fieldList: {
-                    [fieldKey]: {...newReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                 },
             },
         })),
@@ -248,7 +250,7 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
 
     const parameters: CreateWorkspaceReportFieldParams = {
         policyID,
-        reportFields: JSON.stringify([newReportField]),
+        reportFields: JSON.stringify([optimisticReportFieldDataForPolicy]),
     };
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD, parameters, onyxData);

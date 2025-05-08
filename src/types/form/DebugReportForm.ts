@@ -33,7 +33,6 @@ const INPUT_IDS = {
     POLICY_ID: 'policyID',
     POLICY_NAME: 'policyName',
     PRIVATE_NOTES: 'privateNotes',
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     PRIVATE_IS_ARCHIVED: 'private_isArchived',
     REPORT_ID: 'reportID',
     REPORT_NAME: 'reportName',
@@ -44,6 +43,7 @@ const INPUT_IDS = {
     UNHELD_TOTAL: 'unheldTotal',
     WELCOME_MESSAGE: 'welcomeMessage',
     WRITE_CAPABILITY: 'writeCapability',
+    VISIBILITY: 'visibility',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -91,6 +91,7 @@ type DebugReportForm = Form<
         [INPUT_IDS.UNHELD_TOTAL]: string;
         [INPUT_IDS.WELCOME_MESSAGE]: string;
         [INPUT_IDS.WRITE_CAPABILITY]: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
+        [INPUT_IDS.VISIBILITY]: ValueOf<typeof CONST.REPORT.VISIBILITY>;
     }
 >;
 

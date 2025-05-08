@@ -44,7 +44,6 @@
         }
         body {
            overflow: hidden;
-           overscroll-behavior: none;
            touch-action: none;
         }
         [data-drag-area='true'] {
@@ -128,12 +127,12 @@
             display: flex;
         }
     </style>
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content, viewport-fit=cover">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
     <% if (htmlWebpackPlugin.options.useThirdPartyScripts) { %>
         <!-- Third party scripts -->
-        <script async="" src="thirdPartyScripts.js"></script>
+        <script type="text/javascript" async="" src="/thirdPartyScripts.js" nonce="nonce-random-value"></script>
         <!-- End Third party scripts -->
     <% } %>
     <link rel="manifest" href="/manifest.json" />

@@ -2,9 +2,10 @@ import {fireEvent, screen} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
+import type {ConnectOptions, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
-import * as Localize from '@libs/Localize';
-import * as Pusher from '@libs/Pusher/pusher';
+import {translateLocal} from '@libs/Localize';
+import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -24,6 +25,9 @@ type MockFetch = jest.MockedFn<typeof fetch> & {
     resume: () => Promise<void>;
     mockAPICommand: <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse) => void;
 };
+
+type ConnectionCallback<TKey extends OnyxKey> = NonNullable<ConnectOptions<TKey>['callback']>;
+type ConnectionCallbackParams<TKey extends OnyxKey> = Parameters<ConnectionCallback<TKey>>;
 
 type QueueItem = {
     resolve: (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
@@ -63,6 +67,19 @@ function buildPersonalDetails(login: string, accountID: number, firstName = 'Tes
         timezone: CONST.DEFAULT_TIME_ZONE,
         phoneNumber: '',
     };
+}
+
+function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
+    return new Promise<void>((resolve) => {
+        const connectionID = Onyx.connect({
+            ...options,
+            callback: (...params: ConnectionCallbackParams<TKey>) => {
+                Onyx.disconnect(connectionID);
+                (options.callback as (...args: ConnectionCallbackParams<TKey>) => void)?.(...params);
+                resolve();
+            },
+        });
+    });
 }
 
 /**
@@ -131,7 +148,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                         },
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.USER,
+                            key: ONYXKEYS.ACCOUNT,
                             value: {
                                 isUsingExpensifyCard: false,
                             },
@@ -311,9 +328,13 @@ function assertFormDataMatchesObject(obj: Report, formData?: FormData) {
     }
 }
 
+function getNavigateToChatHintRegex(): RegExp {
+    const hintTextPrefix = translateLocal('accessibilityHints.navigatesToChat');
+    return new RegExp(hintTextPrefix, 'i');
+}
+
 async function navigateToSidebarOption(index: number): Promise<void> {
-    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-    const optionRow = screen.queryAllByAccessibilityHint(hintText).at(index);
+    const optionRow = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex()).at(index);
     if (!optionRow) {
         return;
     }
@@ -335,4 +356,6 @@ export {
     expectAPICommandToHaveBeenCalledWith,
     setupGlobalFetchMock,
     navigateToSidebarOption,
+    getOnyxData,
+    getNavigateToChatHintRegex,
 };

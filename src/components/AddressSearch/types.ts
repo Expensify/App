@@ -1,7 +1,7 @@
 import type {RefObject} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
-import type Locale from '@src/types/onyx/Locale';
+import type {Country} from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 type CurrentLocationButtonProps = {
@@ -64,8 +64,8 @@ type AddressSearchProps = {
     /** Customize the TextInput container */
     containerStyles?: StyleProp<ViewStyle>;
 
-    /** Should address search be limited to results in the USA */
-    isLimitedToUSA?: boolean;
+    /** Should address search results be limited to specific country */
+    limitSearchesToCountry?: Country | '';
 
     /** Shows a current location button in suggestion list */
     canUseCurrentLocation?: boolean;
@@ -84,9 +84,6 @@ type AddressSearchProps = {
 
     /** Location bias for querying search results. */
     locationBias?: string;
-
-    /** The user's preferred locale e.g. 'en', 'es-ES' */
-    preferredLocale?: Locale;
 
     /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;

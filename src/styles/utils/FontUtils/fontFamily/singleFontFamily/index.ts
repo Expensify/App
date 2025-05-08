@@ -20,6 +20,16 @@ const fontFamily: FontFamilyStyles = {
         fontStyle: 'normal',
         fontWeight: fontWeight.bold,
     },
+    MONOSPACE_ITALIC: {
+        fontFamily: 'Expensify Mono',
+        fontStyle: 'italic',
+        fontWeight: fontWeight.normal,
+    },
+    MONOSPACE_BOLD_ITALIC: {
+        fontFamily: 'Expensify Mono',
+        fontStyle: 'italic',
+        fontWeight: fontWeight.bold,
+    },
 
     EXP_NEUE: {
         fontFamily: 'Expensify Neue',

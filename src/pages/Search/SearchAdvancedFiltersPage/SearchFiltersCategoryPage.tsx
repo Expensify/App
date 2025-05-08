@@ -5,7 +5,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
-import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SearchActions from '@userActions/Search';
@@ -41,14 +40,12 @@ function SearchFiltersCategoryPage() {
     }, [allPolicyCategories, singlePolicyCategories, translate]);
 
     const onSaveSelection = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({category: values}), []);
-    const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
     return (
         <ScreenWrapper
             testID={SearchFiltersCategoryPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -57,7 +54,7 @@ function SearchFiltersCategoryPage() {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
                 }}
             />
-            <View style={[styles.flex1, safePaddingBottomStyle]}>
+            <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
                     items={categoryItems}
                     initiallySelectedItems={selectedCategoriesItems}

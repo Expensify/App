@@ -1,8 +1,6 @@
-import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import DateUtils from '@libs/DateUtils';
-import * as NextStepUtils from '@libs/NextStepUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {buildNextStep} from '@libs/NextStepUtils';
+import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
@@ -40,7 +38,7 @@ describe('libs/NextStepUtils', () => {
             icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
             message: [],
         };
-        const report = ReportUtils.buildOptimisticExpenseReport('fake-chat-report-id-1', policyID, 1, -500, CONST.CURRENCY.USD) as Report;
+        const report = buildOptimisticExpenseReport('fake-chat-report-id-1', policyID, 1, -500, CONST.CURRENCY.USD) as Report;
 
         beforeAll(() => {
             const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id);
@@ -77,7 +75,67 @@ describe('libs/NextStepUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy).then(waitForBatchedUpdates);
         });
 
+        describe('it generates and optimistic nextStep once a report has been created', () => {
+            test('Correct next steps message', () => {
+                const emptyReport = buildOptimisticEmptyReport(
+                    'fake-empty-report-id-2',
+                    currentUserAccountID,
+                    {reportID: 'fake-parent-report-id-3'},
+                    'fake-parent-report-action-id-4',
+                    policy,
+                    '2025-03-31 13:23:11',
+                );
+
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: `${currentUserEmail}`,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'add',
+                    },
+                    {
+                        text: ' %expenses.',
+                    },
+                ];
+
+                const result = buildNextStep(emptyReport, CONST.REPORT.STATUS_NUM.OPEN);
+
+                expect(result).toMatchObject(optimisticNextStep);
+            });
+        });
+
         describe('it generates an optimistic nextStep once a report has been opened', () => {
+            test('Fix violations', () => {
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: `${currentUserEmail}`,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'fix the issue(s)',
+                    },
+                ];
+
+                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, true);
+
+                expect(result).toMatchObject(optimisticNextStep);
+            });
+
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
@@ -101,7 +159,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                 expect(result).toMatchObject(optimisticNextStep);
             });
@@ -142,7 +200,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -177,7 +235,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -212,7 +270,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -248,7 +306,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -273,7 +331,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ` on the ${format(lastDayOfMonth(new Date()), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
+                            text: ` on the last day of the month`,
                         },
                     ];
 
@@ -284,15 +342,12 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
-
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
                         expect(result).toMatchObject(optimisticNextStep);
                     });
                 });
 
                 test('monthly on the last business day', () => {
-                    const lastBusinessDayOfMonth = DateUtils.getLastBusinessDayOfMonth(new Date());
-
                     // Waiting for userSubmitter's expense(s) to automatically submit on lastBusinessDayOfMonth of each month
                     optimisticNextStep.message = [
                         {
@@ -311,7 +366,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ` on the ${format(setDate(new Date(), lastBusinessDayOfMonth), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
+                            text: ` on the last business day of the month`,
                         },
                     ];
 
@@ -322,7 +377,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -357,14 +412,14 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
                 });
 
                 test('manual', () => {
-                    // Waiting for userSubmitter to add expense(s).
+                    // Waiting for userSubmitter to submit expense(s).
                     optimisticNextStep.message = [
                         {
                             text: 'Waiting for ',
@@ -377,7 +432,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' to ',
                         },
                         {
-                            text: 'add',
+                            text: 'submit',
                         },
                         {
                             text: ' %expenses.',
@@ -390,7 +445,7 @@ describe('libs/NextStepUtils', () => {
                             enabled: false,
                         },
                     }).then(() => {
-                        const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                        const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -421,7 +476,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                 expect(result).toMatchObject(optimisticNextStep);
             });
@@ -453,7 +508,7 @@ describe('libs/NextStepUtils', () => {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                     expect(result).toMatchObject(optimisticNextStep);
 
@@ -495,7 +550,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -532,7 +587,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -549,8 +604,71 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.CLOSED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.CLOSED);
 
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
+            });
+
+            test('approval mode enabled', () => {
+                report.managerID = strangeAccountID;
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: ownerEmail,
+                        type: 'strong',
+                        clickToCopyText: ownerEmail,
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'approve',
+                    },
+                    {
+                        text: ' %expenses.',
+                    },
+                ];
+
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                }).then(() => {
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
+            });
+
+            test('advanced approval mode enabled', () => {
+                report.managerID = strangeAccountID;
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: strangeEmail,
+                        type: 'strong',
+                        clickToCopyText: strangeEmail,
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'approve',
+                    },
+                    {
+                        text: ' %expenses.',
+                    },
+                ];
+
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                }).then(() => {
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
                     expect(result).toMatchObject(optimisticNextStep);
                 });
             });
@@ -566,7 +684,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                 expect(result).toMatchObject(optimisticNextStep);
             });
@@ -597,7 +715,7 @@ describe('libs/NextStepUtils', () => {
                 report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
                 report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
 
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                 expect(result).toMatchObject(optimisticNextStep);
 
@@ -633,7 +751,7 @@ describe('libs/NextStepUtils', () => {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -648,7 +766,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED);
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });

@@ -5,14 +5,33 @@ description: Get started with Expensify by joining your company's workspace
 
 <div id="new-expensify" markdown="1">
 
-Welcome to Expensify! If you received an invitation to join your company’s Expensify workspace, follow the 5 steps below to get started.
+Welcome to Expensify! If you received an invitation to join your company’s Expensify workspace, follow the steps below to get started.
 
-# 1. Download the mobile app
+# 1. Access Expensify on your preferred device or browser
 
-Upload your expenses and check your reports right from your phone by downloading the Expensify mobile app. You can search for “Expensify” in the app store, or tap one of the links below.
+Get started by downloading Expensify mobile or desktop apps and ensure you’re using a supported web browser. Here’s how:
 
-[iOS](https://apps.apple.com/us/app/expensify-expense-tracker/id471713959) 
-| [Android](https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&gl=US)
+## Download the Expensify Apps:
+
+- **Mobile Devices:** Download the Expensify app for [Android](https://play.google.com/store/apps/details?id=com.expensify.chat) or [iOS](https://apps.apple.com/us/app/expensify-cash/id1530278510).
+- **Desktop Devices:** Download the Expensify app for [macOS](https://new.expensify.com/NewExpensify.dmg).
+
+## Use Expensify on the web: 
+
+Expensify is also accessible via the web and supports the following browsers: 
+
+- [Google Chrome](https://www.google.com/chrome/)
+- [Mozilla Firefox](https://www.mozilla.com/firefox)
+- [Microsoft Edge](https://www.microsoft.com/edge)
+- [Apple Safari](https://www.apple.com/safari) (Apple devices only)
+- [Opera](https://www.opera.com/)
+- [Microsoft Internet Explorer](https://www.microsoft.com/ie) (Version 11 only)
+
+{% include info.html %}
+Note: Microsoft no longer provides support or security updates for Internet Explorer versions below 11. To avoid accessibility and security issues, we recommend updating your IE version or switching to a different browser.
+{% include end-info.html %}
+
+By using a compatible device or browser, you’ll ensure the best experience with Expensify.
 
 # 2. Add your name, photo, and preferences
 
@@ -57,9 +76,9 @@ Upload your expenses and check your reports right from your phone by downloading
 # 3. Meet Concierge
 
 Concierge is your personal assistant that walks you through setting up your account and also provides:
-- Reminders to do things like submit your expenses
-- Alerts when more information is needed on an expense report
-- Updates on new and improved account features
+- Reminders to do things like submit your expenses.
+- Alerts when more information is needed on an expense report.
+- Updates on new and improved account features.
 
 You can get support any time by locating your chat with Concierge in your chat inbox. You can ask questions and receive direct support in this thread.
 
@@ -73,7 +92,7 @@ You can create an expense by SmartScanning a receipt to automatically capture th
 
 {% include option.html value="desktop" %}
 <ol type="a">
-   <li>Click the + icon in the bottom left menu and select <b>Submit Expense</b>.</li>
+   <li>Click the + icon in the bottom left menu and select <b>Create Expense</b>.</li>
    <li>Click <b>Scan</b>.</li>
    <li>Drag and drop the receipt into Expensify, or click <b>Choose File</b> to select it from your saved files. <i>Note: The SmartScan process will auto-populate the merchant, date, and amount.</i></li>
    <li>Use the search field to find the desired workspace or an individual’s name, email, or phone number.</li>
@@ -85,7 +104,7 @@ You can create an expense by SmartScanning a receipt to automatically capture th
 
 {% include option.html value="mobile" %}
 <ol type="a">
-   <li>Tap the + icon at the bottom of the screen and select <b>Submit Expense</b>.</li>
+   <li>Tap the + icon at the bottom of the screen and select <b>Create Expense</b>.</li>
    <li>Tap <b>Scan</b>.</li>
    <li>Tap the green button to take a photo of a receipt, or tap the Image icon to the left of it to upload a receipt from your phone. <i>Note: The SmartScan process will auto-populate the merchant, date, and amount</i>.</li>
    <li>Use the search field to find the desired workspace or an individual’s name, email, or phone number.</li>

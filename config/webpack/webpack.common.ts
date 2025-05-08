@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import path from 'path';
+import TerserPlugin from 'terser-webpack-plugin';
 import type {Class} from 'type-fest';
 import type {Configuration, WebpackPluginInstance} from 'webpack';
 import {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} from 'webpack';
@@ -38,7 +39,11 @@ const includeModules = [
     'react-native-qrcode-svg',
     'react-native-view-shot',
     '@react-native/assets',
+    'expo',
     'expo-av',
+    'expo-image-manipulator',
+    'expo-modules-core',
+    'react-native-webrtc-web-shim',
 ].join('|');
 
 const environmentToLogoSuffixMap: Record<string, string> = {
@@ -117,7 +122,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {from: 'assets/sounds', to: 'sounds'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
-                {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
                 {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
                 {from: '.well-known/assetlinks.json', to: '.well-known/assetlinks.json'},
 
@@ -175,7 +179,13 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
             // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
             {
-                test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs'),
+                // eslint-disable-next-line prefer-regex-literals
+                test: new RegExp('node_modules/pdfjs-dist/build/pdf.worker.min.mjs'),
+                type: 'asset/source',
+            },
+            {
+                // eslint-disable-next-line prefer-regex-literals
+                test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs'),
                 type: 'asset/source',
             },
 
@@ -283,6 +293,24 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
     },
 
     optimization: {
+        minimizer: [
+            // default settings according to https://webpack.js.org/configuration/optimization/#optimizationminimizer
+            // with addition of preserving the class name for ImageManipulator (expo module)
+            new TerserPlugin({
+                terserOptions: {
+                    compress: {
+                        passes: 2,
+                    },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    keep_classnames: /ImageManipulator|ImageModule/,
+                    mangle: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        keep_fnames: true,
+                    },
+                },
+            }),
+            '...',
+        ],
         runtimeChunk: 'single',
         splitChunks: {
             cacheGroups: {

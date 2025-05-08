@@ -3,41 +3,57 @@ import Log from './Log';
 import type {RequestError} from './Network/SequentialQueue';
 import {generateRandomInt} from './NumberUtils';
 
-let requestWaitTime = 0;
-let requestRetryCount = 0;
+class RequestThrottle {
+    private requestWaitTime = 0;
 
-function clear() {
-    requestWaitTime = 0;
-    requestRetryCount = 0;
-    Log.info(`[RequestThrottle] in clear()`);
-}
+    private requestRetryCount = 0;
 
-function getRequestWaitTime() {
-    if (requestWaitTime) {
-        requestWaitTime = Math.min(requestWaitTime * 2, CONST.NETWORK.MAX_RETRY_WAIT_TIME_MS);
-    } else {
-        requestWaitTime = generateRandomInt(CONST.NETWORK.MIN_RETRY_WAIT_TIME_MS, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
+    private timeoutID?: NodeJS.Timeout;
+
+    private name: string;
+
+    constructor(name: string) {
+        this.name = name;
     }
-    return requestWaitTime;
-}
 
-function getLastRequestWaitTime() {
-    return requestWaitTime;
-}
-
-function sleep(error: RequestError, command: string): Promise<void> {
-    requestRetryCount++;
-    return new Promise((resolve, reject) => {
-        if (requestRetryCount <= CONST.NETWORK.MAX_REQUEST_RETRIES) {
-            const currentRequestWaitTime = getRequestWaitTime();
-            Log.info(
-                `[RequestThrottle] Retrying request after error: '${error.name}', '${error.message}', '${error.status}'. Command: ${command}. Retry count:  ${requestRetryCount}. Wait time: ${currentRequestWaitTime}`,
-            );
-            setTimeout(resolve, currentRequestWaitTime);
-            return;
+    clear() {
+        this.requestWaitTime = 0;
+        this.requestRetryCount = 0;
+        if (this.timeoutID) {
+            Log.info(`[RequestThrottle - ${this.name}] clearing timeoutID: ${String(this.timeoutID)}`);
+            clearTimeout(this.timeoutID);
+            this.timeoutID = undefined;
         }
-        reject();
-    });
+        Log.info(`[RequestThrottle - ${this.name}] cleared`);
+    }
+
+    getRequestWaitTime() {
+        if (this.requestWaitTime) {
+            this.requestWaitTime = Math.min(this.requestWaitTime * 2, CONST.NETWORK.MAX_RETRY_WAIT_TIME_MS);
+        } else {
+            this.requestWaitTime = generateRandomInt(CONST.NETWORK.MIN_RETRY_WAIT_TIME_MS, CONST.NETWORK.MAX_RANDOM_RETRY_WAIT_TIME_MS);
+        }
+        return this.requestWaitTime;
+    }
+
+    getLastRequestWaitTime() {
+        return this.requestWaitTime;
+    }
+
+    sleep(error: RequestError, command: string): Promise<void> {
+        this.requestRetryCount++;
+        return new Promise((resolve, reject) => {
+            if (this.requestRetryCount <= CONST.NETWORK.MAX_REQUEST_RETRIES) {
+                const currentRequestWaitTime = this.getRequestWaitTime();
+                Log.info(
+                    `[RequestThrottle - ${this.name}] Retrying request after error: '${error.name}', '${error.message}', '${error.status}'. Command: ${command}. Retry count:  ${this.requestRetryCount}. Wait time: ${currentRequestWaitTime}`,
+                );
+                this.timeoutID = setTimeout(resolve, currentRequestWaitTime);
+            } else {
+                reject();
+            }
+        });
+    }
 }
 
-export {clear, getRequestWaitTime, sleep, getLastRequestWaitTime};
+export default RequestThrottle;

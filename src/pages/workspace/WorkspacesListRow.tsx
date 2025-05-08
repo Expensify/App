@@ -1,4 +1,5 @@
-import React, {useMemo, useRef, useState} from 'react';
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -10,6 +11,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
@@ -17,7 +19,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
@@ -64,6 +67,15 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** ID of the policy */
     policyID?: string;
+
+    /** is policy defualt */
+    isDefault?: boolean;
+
+    /** Whether the bill is loading */
+    isLoadingBill?: boolean;
+
+    /** Function to reset loading spinner icon index */
+    resetLoadingSpinnerIconIndex?: () => void;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -107,25 +119,43 @@ function WorkspacesListRow({
     shouldDisableThreeDotsMenu,
     isJoinRequestPending,
     policyID,
+    isDefault,
+    isLoadingBill,
+    resetLoadingSpinnerIconIndex,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID).at(0);
+    const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
+    const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
 
-    const userFriendlyWorkspaceType = useMemo(() => {
-        switch (workspaceType) {
-            case CONST.POLICY.TYPE.CORPORATE:
-                return translate('workspace.type.control');
-            case CONST.POLICY.TYPE.TEAM:
-                return translate('workspace.type.collect');
-            default:
-                return translate('workspace.type.free');
+    useEffect(() => {
+        if (isLoadingBill) {
+            return;
         }
-    }, [workspaceType, translate]);
+        resetLoadingSpinnerIconIndex?.();
+
+        if (!threeDotsMenuRef.current?.isPopupMenuVisible) {
+            return;
+        }
+        threeDotsMenuRef?.current?.hidePopoverMenu();
+    }, [isLoadingBill, resetLoadingSpinnerIconIndex]);
+
+    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
+        if (shouldUseNarrowLayout) {
+            return Promise.resolve({horizontal: 0, vertical: 0});
+        }
+        return new Promise<AnchorPosition>((resolve) => {
+            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                resolve({
+                    horizontal: x + width,
+                    vertical: y + height,
+                });
+            });
+        });
+    }, [shouldUseNarrowLayout]);
 
     if (layoutWidth === CONST.LAYOUT_WIDTH.NONE) {
         // To prevent layout from jumping or rendering for a split second, when
@@ -150,6 +180,21 @@ function WorkspacesListRow({
                     />
                 </View>
             )}
+            {!!isDefault && (
+                <Tooltip
+                    maxWidth={variables.w184}
+                    text={translate('workspace.common.defaultNote')}
+                    numberOfLines={4}
+                >
+                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                        <Badge
+                            text={translate('common.default')}
+                            textStyles={styles.textStrong}
+                            badgeStyles={[styles.alignSelfCenter, styles.badgeBordered, styles.badgeSuccess]}
+                        />
+                    </View>
+                </Tooltip>
+            )}
             {!isJoinRequestPending && (
                 <View style={[styles.flexRow, styles.ml2, styles.gap1]}>
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
@@ -157,22 +202,13 @@ function WorkspacesListRow({
                     </View>
                     <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
-                            onIconPress={() => {
-                                if (shouldUseNarrowLayout) {
-                                    return;
-                                }
-                                threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                                    setThreeDotsMenuPosition({
-                                        horizontal: x + width,
-                                        vertical: y + height,
-                                    });
-                                });
-                            }}
+                            getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
                             menuItems={menuItems}
-                            anchorPosition={threeDotsMenuPosition}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                             shouldOverlay
                             disabled={shouldDisableThreeDotsMenu}
+                            isNested
+                            threeDotsMenuRef={threeDotsMenuRef}
                         />
                     </View>
                 </View>
@@ -216,13 +252,13 @@ function WorkspacesListRow({
                             <View style={styles.flex1}>
                                 <WorkspacesListRowDisplayName
                                     isDeleted={isDeleted}
-                                    ownerName={PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
+                                    ownerName={getDisplayNameOrDefault(ownerDetails)}
                                 />
                                 <Text
                                     numberOfLines={1}
                                     style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}
                                 >
-                                    {ownerDetails.login}
+                                    {Str.removeSMSDomain(ownerDetails?.login ?? '')}
                                 </Text>
                             </View>
                         </>
@@ -236,12 +272,14 @@ function WorkspacesListRow({
                         additionalStyles={styles.workspaceTypeWrapper}
                     />
                     <View>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
-                        >
-                            {userFriendlyWorkspaceType}
-                        </Text>
+                        {!!workspaceType && (
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                            >
+                                {getUserFriendlyWorkspaceType(workspaceType)}
+                            </Text>
+                        )}
                         <Text
                             numberOfLines={1}
                             style={[styles.textMicro, styles.textSupporting, isDeleted ? styles.offlineFeedback.deleted : {}]}

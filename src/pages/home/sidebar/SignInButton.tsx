@@ -4,7 +4,7 @@ import Button from '@components/Button';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Session from '@userActions/Session';
+import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 
 function SignInButton() {
@@ -15,13 +15,13 @@ function SignInButton() {
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             role={CONST.ROLE.BUTTON}
-            onPress={() => Session.signOutAndRedirectToSignIn()}
+            onPress={() => signOutAndRedirectToSignIn()}
         >
-            <View style={styles.signInButtonAvatar}>
+            <View style={(styles.signInButtonAvatar, styles.ph2)}>
                 <Button
                     success
                     text={translate('common.signIn')}
-                    onPress={() => Session.signOutAndRedirectToSignIn()}
+                    onPress={() => signOutAndRedirectToSignIn()}
                 />
             </View>
         </PressableWithoutFeedback>

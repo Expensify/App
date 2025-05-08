@@ -3,10 +3,10 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 
-export default function createRandomPolicy(index: number, type?: ValueOf<typeof CONST.POLICY.TYPE>): Policy {
+export default function createRandomPolicy(index: number, type?: ValueOf<typeof CONST.POLICY.TYPE>, name?: string): Policy {
     return {
         id: index.toString(),
-        name: randWord(),
+        name: name ?? randWord(),
         type: type ?? rand(Object.values(CONST.POLICY.TYPE)),
         autoReporting: randBoolean(),
         isPolicyExpenseChatEnabled: randBoolean(),
@@ -35,3 +35,20 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
         approvalMode: rand(Object.values(CONST.POLICY.APPROVAL_MODE)),
     };
 }
+
+function createCategoryTaxExpenseRules(category: string, taxCode: string) {
+    return [
+        {
+            applyWhen: [{condition: 'matches', field: 'category', value: category}],
+            id: '1',
+            tax: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                field_id_TAX: {
+                    externalID: taxCode,
+                },
+            },
+        },
+    ];
+}
+
+export {createCategoryTaxExpenseRules};

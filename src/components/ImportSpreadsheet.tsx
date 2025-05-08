@@ -7,8 +7,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -25,15 +25,15 @@ import ImageSVG from './ImageSVG';
 import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
-type ImportSpreedsheetProps = {
+type ImportSpreadsheetProps = {
     // The route to navigate to when the back button is pressed.
-    backTo: Routes;
+    backTo?: Routes;
 
     // The route to navigate to after the file import is completed.
     goTo: Routes;
 };
 
-function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
+function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isReadingFile, setIsReadingFIle] = useState(false);
@@ -60,7 +60,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
     };
 
     const validateFile = (file: FileObject) => {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+        const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
         if (!CONST.ALLOWED_SPREADSHEET_EXTENSIONS.includes(fileExtension.toLowerCase() as TupleToUnion<typeof CONST.ALLOWED_SPREADSHEET_EXTENSIONS>)) {
             setUploadFileError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
             return false;
@@ -93,8 +93,10 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
             .then((arrayBuffer) => {
                 const workbook = XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'});
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false});
-                setSpreadsheetData(data as string[][])
+                const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
+                const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
+
+                setSpreadsheetData(formattedSpreadsheetData)
                     .then(() => {
                         Navigation.navigate(goTo);
                     })
@@ -160,8 +162,8 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            testID={ImportSpreedsheet.displayName}
-            shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+            testID={ImportSpreadsheet.displayName}
+            shouldEnableMaxHeight={canUseTouchScreen()}
             headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
         >
             {({safeAreaPaddingBottomStyle}) => (
@@ -205,6 +207,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                                 prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                                 confirmText={translate('common.close')}
                                 shouldShowCancelButton={false}
+                                shouldHandleNavigationBack
                             />
                         </View>
                     </View>
@@ -214,6 +217,6 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
     );
 }
 
-ImportSpreedsheet.displayName = 'ImportSpreedsheet';
+ImportSpreadsheet.displayName = 'ImportSpreadsheet';
 
-export default ImportSpreedsheet;
+export default ImportSpreadsheet;

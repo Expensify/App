@@ -4,9 +4,15 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Section, {CARD_LAYOUT} from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as App from '@userActions/App';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
-function WorkspaceCardCreateAWorkspace() {
+type WorkspaceCardCreateAWorkspaceProps = {
+    /** Route to navigate to when returning from the Workspace Confirmation Page */
+    backTo: string;
+};
+
+function WorkspaceCardCreateAWorkspace({backTo}: WorkspaceCardCreateAWorkspaceProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -21,7 +27,7 @@ function WorkspaceCardCreateAWorkspace() {
         >
             <Button
                 onPress={() => {
-                    App.createWorkspaceWithPolicyDraftAndNavigateToIt();
+                    Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(backTo));
                 }}
                 text={translate('workspace.emptyWorkspace.createAWorkspaceCTA')}
                 style={styles.mt5}
@@ -30,7 +36,6 @@ function WorkspaceCardCreateAWorkspace() {
         </Section>
     );
 }
-
 WorkspaceCardCreateAWorkspace.displayName = 'WorkspaceCardNoVBAView';
 
 export default WorkspaceCardCreateAWorkspace;

@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -13,6 +12,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyTaxCode, validateTaxCode} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -21,12 +21,12 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxCodeForm';
 
-type WorkspaceTaxCodePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CODE>;
+type WorkspaceTaxCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CODE>;
 
 function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const currentTaxCode = route.params.taxID;
 
     const policy = usePolicy(policyID);
@@ -68,7 +68,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceTaxCodePage.displayName}
             >
@@ -84,6 +84,8 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                     onSubmit={setTaxCode}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -93,7 +95,6 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                             label={translate('workspace.taxes.taxCode')}
                             accessibilityLabel={translate('workspace.taxes.taxCode')}
                             defaultValue={currentTaxCode}
-                            maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                             ref={inputCallbackRef}
                         />
                     </View>

@@ -2,6 +2,8 @@ import type * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
 import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
 
+jest.mock('@components/ConfirmedRoute.tsx');
+
 describe('TagsOptionsListUtils', () => {
     it('getTagListSections()', () => {
         const search = 'ing';
@@ -39,7 +41,7 @@ describe('TagsOptionsListUtils', () => {
                 pendingAction: 'delete',
             },
         };
-        const smallResultList: OptionsListUtils.CategorySection[] = [
+        const smallResultList: OptionsListUtils.Section[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -75,7 +77,7 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const smallSearchResultList: OptionsListUtils.CategorySection[] = [
+        const smallSearchResultList: OptionsListUtils.Section[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -92,7 +94,7 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const smallWrongSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
+        const smallWrongSearchResultList: OptionsListUtils.Section[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -157,7 +159,7 @@ describe('TagsOptionsListUtils', () => {
                 accountID: undefined,
             },
         };
-        const largeResultList: OptionsListUtils.CategorySection[] = [
+        const largeResultList: OptionsListUtils.Section[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -259,7 +261,7 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const largeSearchResultList: OptionsListUtils.CategorySection[] = [
+        const largeSearchResultList: OptionsListUtils.Section[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -285,7 +287,7 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const largeWrongSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
+        const largeWrongSearchResultList: OptionsListUtils.Section[] = [
             {
                 title: '',
                 shouldShow: true,

@@ -1,12 +1,23 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
+import {canSubmitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
+import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import createRandomPolicy from '../utils/collections/policies';
+import createRandomReport from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import currencyList from './currencyList.json';
+
+const testDate = DateUtils.getDBTime();
+const currentUserAccountID = 5;
 
 function initCurrencyList() {
     Onyx.init({
@@ -28,8 +39,20 @@ describe('IOUUtils', () => {
 
         test('Submitting an expense offline in a different currency will show the pending conversion message', () => {
             const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
-            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
-            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'AED', iouReport.reportID);
+            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'AED',
+                    reportID: iouReport.reportID,
+                },
+            });
             const MergeQueries: TransactionCollectionDataSet = {};
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = usdPendingTransaction;
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = aedPendingTransaction;
@@ -42,8 +65,20 @@ describe('IOUUtils', () => {
 
         test('Submitting an expense online in a different currency will not show the pending conversion message', () => {
             const iouReport = ReportUtils.buildOptimisticIOUReport(2, 3, 100, '1', 'USD');
-            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
-            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'AED', iouReport.reportID);
+            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'AED',
+                    reportID: iouReport.reportID,
+                },
+            });
 
             const MergeQueries: TransactionCollectionDataSet = {};
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = {
@@ -147,17 +182,173 @@ describe('isValidMoneyRequestType', () => {
     });
 });
 
+describe('hasRTERWithoutViolation', () => {
+    test('Return true if there is at least one rter without violation in transactionViolations with given transactionIDs.', async () => {
+        const transactionIDWithViolation = 1;
+        const transactionIDWithoutViolation = 2;
+        const currentReportId = '';
+        const transactionWithViolation: Transaction = {
+            ...createRandomTransaction(transactionIDWithViolation),
+            category: '',
+            tag: '',
+            created: testDate,
+            reportID: currentReportId,
+        };
+        const transactionWithoutViolation: Transaction = {
+            ...createRandomTransaction(transactionIDWithoutViolation),
+            category: '',
+            tag: '',
+            created: testDate,
+            reportID: currentReportId,
+        };
+        const transactionViolations = `transactionViolations_${transactionIDWithViolation}`;
+        const violations: OnyxCollection<TransactionViolations> = {
+            [transactionViolations]: [
+                {
+                    type: 'warning',
+                    name: 'rter',
+                    data: {
+                        tooltip: "Personal Cards: Fix your card from Account Settings. Corporate Cards: ask your Expensify admin to fix your company's card connection.",
+                        rterType: 'brokenCardConnection',
+                    },
+                    showInReview: true,
+                },
+            ],
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
+        expect(hasAnyTransactionWithoutRTERViolation([String(transactionIDWithoutViolation), String(transactionIDWithViolation)], violations)).toBe(true);
+    });
+
+    test('Return false if there is no rter without violation in all transactionViolations with given transactionIDs.', async () => {
+        const transactionIDWithViolation = 1;
+        const currentReportId = '';
+        const transactionWithViolation: Transaction = {
+            ...createRandomTransaction(transactionIDWithViolation),
+            category: '',
+            tag: '',
+            created: testDate,
+            reportID: currentReportId,
+        };
+        const transactionViolations = `transactionViolations_${transactionIDWithViolation}`;
+        const violations: OnyxCollection<TransactionViolations> = {
+            [transactionViolations]: [
+                {
+                    type: 'warning',
+                    name: 'rter',
+                    data: {
+                        tooltip: "Personal Cards: Fix your card from Account Settings. Corporate Cards: ask your Expensify admin to fix your company's card connection.",
+                        rterType: 'brokenCardConnection',
+                    },
+                    showInReview: true,
+                },
+            ],
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
+        expect(hasAnyTransactionWithoutRTERViolation([String(transactionIDWithViolation)], violations)).toBe(false);
+    });
+});
+
+describe('canSubmitReport', () => {
+    test('Return true if report can be submitted', async () => {
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+        const fakePolicy: Policy = {
+            ...createRandomPolicy(6),
+            ownerAccountID: currentUserAccountID,
+            areRulesEnabled: true,
+            preventSelfApproval: false,
+        };
+        const expenseReport: Report = {
+            ...createRandomReport(6),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: currentUserAccountID,
+            ownerAccountID: currentUserAccountID,
+            policyID: fakePolicy.id,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const transactionIDWithViolation = 1;
+        const transactionIDWithoutViolation = 2;
+        const transactionWithViolation: Transaction = {
+            ...createRandomTransaction(transactionIDWithViolation),
+            category: '',
+            tag: '',
+            created: testDate,
+            reportID: expenseReport?.reportID,
+        };
+        const transactionWithoutViolation: Transaction = {
+            ...createRandomTransaction(transactionIDWithoutViolation),
+            category: '',
+            tag: '',
+            created: testDate,
+            reportID: expenseReport?.reportID,
+        };
+        const transactionViolations = `transactionViolations_${transactionIDWithViolation}`;
+        const violations: OnyxCollection<TransactionViolations> = {
+            [transactionViolations]: [
+                {
+                    type: 'warning',
+                    name: 'rter',
+                    data: {
+                        tooltip: "Personal Cards: Fix your card from Account Settings. Corporate Cards: ask your Expensify admin to fix your company's card connection.",
+                        rterType: 'brokenCardConnection',
+                    },
+                    showInReview: true,
+                },
+            ],
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
+        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations)).toBe(true);
+    });
+
+    test('Return false if report can not be submitted', async () => {
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+        const fakePolicy: Policy = {
+            ...createRandomPolicy(6),
+            ownerAccountID: currentUserAccountID,
+            areRulesEnabled: true,
+            preventSelfApproval: false,
+        };
+        const expenseReport: Report = {
+            ...createRandomReport(6),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: currentUserAccountID,
+            ownerAccountID: currentUserAccountID,
+            policyID: fakePolicy.id,
+        };
+
+        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined)).toBe(false);
+    });
+});
+
 describe('Check valid amount for IOU/Expense request', () => {
     test('IOU amount should be positive', () => {
         const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
-        const iouTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
+        const iouTransaction = TransactionUtils.buildOptimisticTransaction({
+            transactionParams: {
+                amount: 100,
+                currency: 'USD',
+                reportID: iouReport.reportID,
+            },
+        });
         const iouAmount = TransactionUtils.getAmount(iouTransaction, false, false);
         expect(iouAmount).toBeGreaterThan(0);
     });
 
     test('Expense amount should be negative', () => {
         const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
-        const expenseTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', expenseReport.reportID);
+        const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
+            transactionParams: {
+                amount: 100,
+                currency: 'USD',
+                reportID: expenseReport.reportID,
+            },
+        });
         const expenseAmount = TransactionUtils.getAmount(expenseTransaction, true, false);
         expect(expenseAmount).toBeLessThan(0);
     });

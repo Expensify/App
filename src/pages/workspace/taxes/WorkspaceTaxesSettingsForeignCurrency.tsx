@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,6 +6,7 @@ import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -19,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type WorkspaceTaxesSettingsForeignCurrencyProps = WithPolicyAndFullscreenLoadingProps &
-    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT>;
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT>;
 function WorkspaceTaxesSettingsForeignCurrency({
     route: {
         params: {policyID},
@@ -49,26 +49,22 @@ function WorkspaceTaxesSettingsForeignCurrency({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceTaxesSettingsForeignCurrency.displayName}
                 style={styles.defaultModalContainer}
             >
-                {({insets}) => (
-                    <>
-                        <HeaderWithBackButton title={translate('workspace.taxes.foreignDefault')} />
+                <HeaderWithBackButton title={translate('workspace.taxes.foreignDefault')} />
 
-                        <View style={[styles.mb4, styles.flex1]}>
-                            <TaxPicker
-                                selectedTaxRate={selectedTaxRate}
-                                policyID={policyID}
-                                insets={insets}
-                                onSubmit={submit}
-                                onDismiss={dismiss}
-                            />
-                        </View>
-                    </>
-                )}
+                <View style={[styles.mb4, styles.flex1]}>
+                    <TaxPicker
+                        selectedTaxRate={selectedTaxRate}
+                        policyID={policyID}
+                        onSubmit={submit}
+                        onDismiss={dismiss}
+                        addBottomSafeAreaPadding
+                    />
+                </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

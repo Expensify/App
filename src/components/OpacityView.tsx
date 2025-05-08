@@ -44,16 +44,11 @@ function OpacityView({
 }: OpacityViewProps) {
     const opacity = useSharedValue(1);
     const opacityStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
+        opacity: opacity.get(),
     }));
 
     React.useEffect(() => {
-        if (shouldDim) {
-            // eslint-disable-next-line react-compiler/react-compiler
-            opacity.value = withTiming(dimmingValue, {duration: dimAnimationDuration});
-        } else {
-            opacity.value = withTiming(1, {duration: dimAnimationDuration});
-        }
+        opacity.set(withTiming(shouldDim ? dimmingValue : 1, {duration: dimAnimationDuration}));
     }, [shouldDim, dimmingValue, opacity, dimAnimationDuration]);
 
     return (

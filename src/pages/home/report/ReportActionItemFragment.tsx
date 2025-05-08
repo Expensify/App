@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -19,6 +19,9 @@ import ReportActionItemMessageHeaderSender from './ReportActionItemMessageHeader
 type ReportActionItemFragmentProps = {
     /** Users accountID */
     accountID: number;
+
+    /** The report action's id */
+    reportActionID?: string;
 
     /** The message fragment needing to be displayed */
     fragment: Message | undefined;
@@ -76,6 +79,7 @@ const MUTED_ACTIONS = [
 ] as ReportActionName[];
 
 function ReportActionItemFragment({
+    reportActionID,
     pendingAction,
     actionName,
     fragment,
@@ -106,16 +110,17 @@ function ReportActionItemFragment({
             // immediately display "[Deleted message]" while the delete action is pending.
 
             if ((!isOffline && isThreadParentMessage && isPendingDelete) || fragment?.isDeletedParentAction) {
-                return <RenderHTML html={`<comment>${translate('parentReportAction.deletedMessage')}</comment>`} />;
+                return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedMessage')}</deleted-action>`} />;
             }
 
             if (isThreadParentMessage && moderationDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
-                return <RenderHTML html={`<comment>${translate('parentReportAction.hiddenMessage')}</comment>`} />;
+                return <RenderHTML html={`<deleted-action ${CONST.HIDDEN_MESSAGE_ATTRIBUTE}="true">${translate('parentReportAction.hiddenMessage')}</deleted-action>`} />;
             }
 
-            if (ReportUtils.isReportMessageAttachment(fragment)) {
+            if (isReportMessageAttachment(fragment)) {
                 return (
                     <AttachmentCommentFragment
+                        reportActionID={reportActionID}
                         source={source}
                         html={fragment?.html ?? ''}
                         addExtraMargin={!displayAsGroup}
@@ -126,6 +131,7 @@ function ReportActionItemFragment({
 
             return (
                 <TextCommentFragment
+                    reportActionID={reportActionID}
                     source={source}
                     fragment={fragment}
                     styleAsDeleted={!!(isOffline && isPendingDelete)}

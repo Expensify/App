@@ -1,11 +1,14 @@
 import {createContext} from 'react';
 
 type ActiveWorkspaceContextType = {
-    activeWorkspaceID?: string;
-    setActiveWorkspaceID: (activeWorkspaceID?: string) => void;
+    activeWorkspaceID: string | undefined;
+    setActiveWorkspaceID: (workspaceID: string | undefined) => void;
 };
 
-const ActiveWorkspaceContext = createContext<ActiveWorkspaceContextType>({activeWorkspaceID: undefined, setActiveWorkspaceID: () => undefined});
+const ActiveWorkspaceContext = createContext<ActiveWorkspaceContextType>({
+    activeWorkspaceID: undefined,
+    setActiveWorkspaceID: () => {},
+});
 
 export default ActiveWorkspaceContext;
-export {type ActiveWorkspaceContextType};
+export type {ActiveWorkspaceContextType};

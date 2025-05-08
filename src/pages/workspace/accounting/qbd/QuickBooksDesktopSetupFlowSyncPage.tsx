@@ -1,15 +1,15 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type QuickBooksDesktopSetupFlowSyncPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL>;
+type QuickBooksDesktopSetupFlowSyncPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL>;
 
 function QuickBooksDesktopSetupFlowSyncPage({route}: QuickBooksDesktopSetupFlowSyncPageProps) {
     const policyID: string = route.params.policyID;
@@ -23,7 +23,7 @@ function QuickBooksDesktopSetupFlowSyncPage({route}: QuickBooksDesktopSetupFlowS
 
         const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
         if (!isSyncInProgress) {
-            syncConnection(policyID, CONST.POLICY.CONNECTIONS.NAME.QBD, true);
+            syncConnection(policy, CONST.POLICY.CONNECTIONS.NAME.QBD, true);
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));

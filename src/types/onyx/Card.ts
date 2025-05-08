@@ -55,6 +55,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Last updated time */
     lastScrape?: string;
 
+    /** Last update result */
+    lastScrapeResult?: number;
+
     /** Card related error messages */
     errors?: OnyxCommon.Errors;
 
@@ -66,6 +69,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Cardholder account ID */
     accountID?: number;
+
+    /** Card's primary account identifier token */
+    token?: string;
 
     /** Additional card data */
     nameValuePairs?: OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -95,6 +101,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Is a virtual card */
         isVirtual?: boolean;
+
+        /** Is a travel card */
+        isTravelCard?: boolean;
 
         /** Previous card state */
         previousState?: number;
@@ -180,5 +189,8 @@ type WorkspaceCardsList = Record<string, Card> & {
     cardList?: Record<string, string>;
 };
 
+/** Card list with only available card */
+type FilteredCardList = Record<string, string>;
+
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, IssueNewCardData, WorkspaceCardsList, CardLimitType, FilteredCardList};

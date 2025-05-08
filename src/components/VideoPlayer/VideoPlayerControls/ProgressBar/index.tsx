@@ -23,20 +23,19 @@ function getProgress(currentPosition: number, maxPosition: number): number {
 
 function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
     const styles = useThemeStyles();
-    const {pauseVideo, playVideo, checkVideoPlaying} = usePlaybackContext();
+    const {pauseVideo, playVideo, checkIfVideoIsPlaying} = usePlaybackContext();
     const [sliderWidth, setSliderWidth] = useState(1);
     const [isSliderPressed, setIsSliderPressed] = useState(false);
     const progressWidth = useSharedValue(0);
     const wasVideoPlayingOnCheck = useSharedValue(false);
 
-    const onCheckVideoPlaying = (isPlaying: boolean) => {
-        // eslint-disable-next-line react-compiler/react-compiler
-        wasVideoPlayingOnCheck.value = isPlaying;
+    const onCheckIfVideoIsPlaying = (isPlaying: boolean) => {
+        wasVideoPlayingOnCheck.set(isPlaying);
     };
 
     const progressBarInteraction = (event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload> | GestureStateChangeEvent<PanGestureHandlerEventPayload>) => {
         const progress = getProgress(event.x, sliderWidth);
-        progressWidth.value = progress;
+        progressWidth.set(progress);
         runOnJS(seekPosition)((progress * duration) / 100);
     };
 
@@ -48,7 +47,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         .runOnJS(true)
         .onBegin((event) => {
             setIsSliderPressed(true);
-            checkVideoPlaying(onCheckVideoPlaying);
+            checkIfVideoIsPlaying(onCheckIfVideoIsPlaying);
             pauseVideo();
             progressBarInteraction(event);
         })
@@ -57,7 +56,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         })
         .onFinalize(() => {
             setIsSliderPressed(false);
-            if (!wasVideoPlayingOnCheck.value) {
+            if (!wasVideoPlayingOnCheck.get()) {
                 return;
             }
             playVideo();
@@ -67,10 +66,10 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         if (isSliderPressed) {
             return;
         }
-        progressWidth.value = getProgress(position, duration);
+        progressWidth.set(getProgress(position, duration));
     }, [duration, isSliderPressed, position, progressWidth]);
 
-    const progressBarStyle: ViewStyle = useAnimatedStyle(() => ({width: `${progressWidth.value}%`}));
+    const progressBarStyle: ViewStyle = useAnimatedStyle(() => ({width: `${progressWidth.get()}%`}));
 
     return (
         <GestureDetector gesture={pan}>

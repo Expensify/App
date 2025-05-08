@@ -53,6 +53,12 @@ type AddressFormProps = {
 
     /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
+
+    /** Indicates if country can be changed by user */
+    shouldAllowCountryChange?: boolean;
+
+    /** Indicates if zip code format should be validated */
+    shouldValidateZipCodeFormat?: boolean;
 };
 
 const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce((acc, key) => {
@@ -79,6 +85,8 @@ function AddressFormFields({
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
     onCountryChange,
+    shouldAllowCountryChange = true,
+    shouldValidateZipCodeFormat = true,
 }: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -108,7 +116,7 @@ function AddressFormFields({
                     errorText={errors?.street ? translate('bankAccount.error.addressStreet') : ''}
                     renamedInputKeys={inputKeys}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                    isLimitedToUSA={!shouldDisplayCountrySelector}
+                    limitSearchesToCountry={shouldAllowCountryChange ? undefined : defaultValues?.country}
                     onCountryChange={handleCountryChange}
                 />
             </View>
@@ -148,11 +156,10 @@ function AddressFormFields({
                 label={translate('common.zip')}
                 accessibilityLabel={translate('common.zip')}
                 role={CONST.ROLE.PRESENTATION}
-                inputMode={CONST.INPUT_MODE.NUMERIC}
+                inputMode={shouldValidateZipCodeFormat ? CONST.INPUT_MODE.NUMERIC : undefined}
                 value={values?.zipCode}
                 defaultValue={defaultValues?.zipCode}
                 errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}
-                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
                 containerStyles={styles.mt3}
             />
@@ -167,8 +174,10 @@ function AddressFormFields({
                         modalHeaderTitle={translate('countryStep.selectCountry')}
                         searchInputTitle={translate('countryStep.findCountry')}
                         value={values?.country}
+                        defaultValue={defaultValues?.country}
                         onValueChange={handleCountryChange}
                         stateInputIDToReset={inputKeys.state ?? 'stateInput'}
+                        shouldAllowChange={shouldAllowCountryChange}
                     />
                 </View>
             )}

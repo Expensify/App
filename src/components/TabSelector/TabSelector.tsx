@@ -19,39 +19,41 @@ type TabSelectorProps = MaterialTopTabBarProps & {
 
     /** Callback to register focus trap container element */
     onFocusTrapContainerElementChanged?: (element: HTMLElement | null) => void;
+
+    /** Whether to show the label when the tab is inactive */
+    shouldShowLabelWhenInactive?: boolean;
 };
 
-type IconAndTitle = {
+type IconTitleAndTestID = {
     icon: IconAsset;
     title: string;
+    testID?: string;
 };
 
-function getIconAndTitle(route: string, translate: LocaleContextProps['translate']): IconAndTitle {
+function getIconTitleAndTestID(route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
     switch (route) {
-        case CONST.DEBUG.DETAILS:
-            return {icon: Expensicons.Info, title: translate('debug.details')};
-        case CONST.DEBUG.JSON:
-            return {icon: Expensicons.Eye, title: translate('debug.JSON')};
-        case CONST.DEBUG.REPORT_ACTIONS:
-            return {icon: Expensicons.Document, title: translate('debug.reportActions')};
-        case CONST.DEBUG.REPORT_ACTION_PREVIEW:
-            return {icon: Expensicons.Document, title: translate('debug.reportActionPreview')};
         case CONST.TAB_REQUEST.MANUAL:
-            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual')};
+            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
         case CONST.TAB_REQUEST.SCAN:
-            return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan')};
+            return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan'), testID: 'scan'};
         case CONST.TAB.NEW_CHAT:
-            return {icon: Expensicons.User, title: translate('tabSelector.chat')};
+            return {icon: Expensicons.User, title: translate('tabSelector.chat'), testID: 'chat'};
         case CONST.TAB.NEW_ROOM:
-            return {icon: Expensicons.Hashtag, title: translate('tabSelector.room')};
+            return {icon: Expensicons.Hashtag, title: translate('tabSelector.room'), testID: 'room'};
         case CONST.TAB_REQUEST.DISTANCE:
-            return {icon: Expensicons.Car, title: translate('common.distance')};
+            return {icon: Expensicons.Car, title: translate('common.distance'), testID: 'distance'};
+        case CONST.TAB.SHARE.SHARE:
+            return {icon: Expensicons.UploadAlt, title: translate('common.share'), testID: 'share'};
+        case CONST.TAB.SHARE.SUBMIT:
+            return {icon: Expensicons.Receipt, title: translate('common.submit'), testID: 'submit'};
+        case CONST.TAB_REQUEST.PER_DIEM:
+            return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
 }
 
-function TabSelector({state, navigation, onTabPress = () => {}, position, onFocusTrapContainerElementChanged}: TabSelectorProps) {
+function TabSelector({state, navigation, onTabPress = () => {}, position, onFocusTrapContainerElementChanged, shouldShowLabelWhenInactive = true}: TabSelectorProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -73,8 +75,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                     const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const inactiveOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
-                    const {icon, title} = getIconAndTitle(route.name, translate);
-
+                    const {icon, title, testID} = getIconTitleAndTestID(route.name, translate);
                     const onPress = () => {
                         if (isActive) {
                             return;
@@ -106,6 +107,8 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                             inactiveOpacity={inactiveOpacity}
                             backgroundColor={backgroundColor}
                             isActive={isActive}
+                            testID={testID}
+                            shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                         />
                     );
                 })}

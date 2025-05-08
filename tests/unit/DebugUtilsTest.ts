@@ -1,15 +1,17 @@
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '../../src/types/onyx/ReportActionName';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 
 const MOCK_REPORT: Report = {
     ...createRandomReport(0),
@@ -19,6 +21,8 @@ const MOCK_REPORT_ACTION: ReportAction = {
     ...createRandomReportAction(0),
     originalMessage: undefined,
 };
+
+const MOCK_TRANSACTION: Transaction = createRandomTransaction(0);
 
 const MOCK_DRAFT_REPORT_ACTION = DebugUtils.onyxDataToString(MOCK_REPORT_ACTION);
 
@@ -43,7 +47,7 @@ const TEST_OBJECT_TYPE = {
     d: 'object',
     e: 'boolean',
     f: 'boolean',
-} satisfies ObjectType;
+} satisfies ObjectType<Record<string, unknown>>;
 
 describe('DebugUtils', () => {
     describe('onyxDataToString', () => {
@@ -251,6 +255,12 @@ describe('DebugUtils', () => {
             }).not.toThrow();
         });
 
+        it('does not throw SyntaxError when value is an empty string', () => {
+            expect(() => {
+                DebugUtils.validateConstantEnum('', MOCK_CONST_ENUM);
+            }).not.toThrow();
+        });
+
         it('does not throw SyntaxError when value is a valid string representation of a constant enum', () => {
             expect(() => {
                 DebugUtils.validateConstantEnum('foo', MOCK_CONST_ENUM);
@@ -321,7 +331,7 @@ describe('DebugUtils', () => {
 
         it('throws SyntaxError when value is not a valid string representation of a constant enum array', () => {
             expect(() => {
-                DebugUtils.validateArray('["a"]', MOCK_CONST_ENUM);
+                DebugUtils.validateArray<'constantEnum'>('["a"]', MOCK_CONST_ENUM);
             }).toThrow();
         });
 
@@ -376,6 +386,14 @@ describe('DebugUtils', () => {
             it('does not throw SyntaxError', () => {
                 expect(() => {
                     DebugUtils.validateObject('undefined', {});
+                }).not.toThrow();
+            });
+        });
+
+        describe('value is null', () => {
+            it('does not throw SyntaxError', () => {
+                expect(() => {
+                    DebugUtils.validateObject('null', {});
                 }).not.toThrow();
             });
         });
@@ -575,6 +593,49 @@ describe('DebugUtils', () => {
         });
     });
 
+    describe('validateTransactionDraftProperty', () => {
+        describe.each(Object.keys(MOCK_TRANSACTION) as Array<keyof Transaction>)('%s', (key) => {
+            it(`${DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key) ? "throws SyntaxError when 'undefined'" : 'does not throw SyntaxError when "undefined"'}`, () => {
+                if (DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key)) {
+                    expect(() => {
+                        DebugUtils.validateTransactionDraftProperty(key, 'undefined');
+                    }).toThrow();
+                } else {
+                    expect(() => {
+                        DebugUtils.validateTransactionDraftProperty(key, 'undefined');
+                    }).not.toThrow();
+                }
+            });
+
+            it('throws SyntaxError when invalid', () => {
+                const value = MOCK_TRANSACTION[key];
+                let invalidValue: unknown;
+
+                switch (typeof value) {
+                    case 'number':
+                        invalidValue = 'a';
+                        break;
+                    case 'boolean':
+                    case 'object':
+                        invalidValue = 2;
+                        break;
+                    default:
+                        invalidValue = [];
+                }
+
+                expect(() => {
+                    DebugUtils.validateTransactionDraftProperty(key, DebugUtils.onyxDataToString(invalidValue));
+                }).toThrow();
+            });
+
+            it('does not throw SyntaxError when valid', () => {
+                expect(() => {
+                    DebugUtils.validateTransactionDraftProperty(key, DebugUtils.onyxDataToString(MOCK_TRANSACTION[key]));
+                }).not.toThrow();
+            });
+        });
+    });
+
     describe('validateReportActionJSON', () => {
         it('does not throw SyntaxError when valid', () => {
             expect(() => {
@@ -724,11 +785,13 @@ describe('DebugUtils', () => {
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
         it('returns correct reason when report is archived', async () => {
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
+            };
             await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseReport.reportID}`, reportNameValuePairs);
             const reason = DebugUtils.getReasonForShowingRowInLHN({
                 ...baseReport,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                private_isArchived: 'true',
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
@@ -1000,14 +1063,16 @@ describe('DebugUtils', () => {
             };
             await Onyx.multiSet({
                 ...MOCK_REPORTS,
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}2` as const]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    private_isArchived: false,
-                },
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
                 [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                     type: CONST.POLICY.TYPE.CORPORATE,
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
+                    amount: -100,
+                    currency: CONST.CURRENCY.USD,
+                    reportID: '2',
+                    merchant: 'test merchant',
                 },
                 [ONYXKEYS.SESSION]: {
                     accountID: 12345,
@@ -1512,6 +1577,7 @@ describe('DebugUtils', () => {
                         {
                             type: CONST.VIOLATION_TYPES.VIOLATION,
                             name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                            showInReview: true,
                         },
                     ],
                 });

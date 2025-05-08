@@ -1,3 +1,3 @@
-type ClearReportNotifications = (reportID: string) => void;
+type ClearReportNotifications = (reportID: string | undefined) => void;
 
 export default ClearReportNotifications;

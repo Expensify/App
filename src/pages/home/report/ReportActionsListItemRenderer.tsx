@@ -1,7 +1,7 @@
 import React, {memo, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
+import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
@@ -41,7 +41,7 @@ type ReportActionsListItemRendererProps = {
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
 
-    /** Linked report action ID */
+    /** Report action ID that was referenced in the deeplink to report  */
     linkedReportActionID?: string;
 
     /** Whether we should display "Replies" divider */
@@ -71,12 +71,8 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     parentReportActionForTransactionThread,
 }: ReportActionsListItemRendererProps) {
-    const shouldDisplayParentAction =
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
-        ReportUtils.isChatThread(report) &&
-        (!ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isSentMoneyReportAction(parentReportAction));
+    const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
-    const originalMessage = useMemo(() => ReportActionsUtils.getOriginalMessage(reportAction), [reportAction]);
     /**
      * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by
      * passing in only the required props.
@@ -145,20 +141,27 @@ function ReportActionsListItemRenderer({
         ],
     );
 
-    return shouldDisplayParentAction ? (
-        <ReportActionItemParentAction
-            shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
-            shouldDisplayReplyDivider={shouldDisplayReplyDivider}
-            parentReportAction={parentReportAction}
-            reportID={report.reportID}
-            report={report}
-            reportActions={reportActions}
-            transactionThreadReport={transactionThreadReport}
-            index={index}
-            isFirstVisibleReportAction={isFirstVisibleReportAction}
-            shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-        />
-    ) : (
+    const shouldDisplayParentAction =
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && (!isTransactionThread(parentReportAction) || isSentMoneyReportAction(parentReportAction));
+
+    if (shouldDisplayParentAction && isChatThread(report)) {
+        return (
+            <ReportActionItemParentAction
+                shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
+                shouldDisplayReplyDivider={shouldDisplayReplyDivider}
+                parentReportAction={parentReportAction}
+                reportID={report.reportID}
+                report={report}
+                reportActions={reportActions}
+                transactionThreadReport={transactionThreadReport}
+                index={index}
+                isFirstVisibleReportAction={isFirstVisibleReportAction}
+                shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+            />
+        );
+    }
+
+    return (
         <ReportActionItem
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}
@@ -171,7 +174,7 @@ function ReportActionsListItemRenderer({
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
-                (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isInvoiceRoom(report)) &&
+                (isPolicyExpenseChat(report) || isInvoiceRoom(report)) &&
                 [
                     CONST.REPORT.ACTIONS.TYPE.IOU,
                     CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,

@@ -27,7 +27,7 @@ type PlatformStackNavigationEventMap = CommonStackNavigationEventMap;
 type PlatformSpecificEventMap = StackNavigationOptions | NativeStackNavigationOptions;
 
 // Router options used in the PlatformStackNavigation
-type PlatformStackRouterOptions = StackRouterOptions;
+type PlatformStackRouterOptions = StackRouterOptions & {parentRoute?: RouteProp<ParamListBase>};
 
 // Factory function type for creating a router specific to the PlatformStackNavigation
 type PlatformStackRouterFactory<ParamList extends ParamListBase, RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = RouterFactory<
@@ -68,7 +68,11 @@ type PlatformStackNavigatorProps<
     RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
 > = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, RouteName> &
     RouterOptions &
-    StackNavigationConfig;
+    StackNavigationConfig & {
+        persistentScreens?: Array<Extract<keyof ParamList, string>>;
+        defaultCentralScreen?: Extract<keyof ParamList, string>;
+        sidebarScreen?: Extract<keyof ParamList, string>;
+    };
 
 // The "screenOptions" and "defaultScreenOptions" can either be an object of navigation options or
 // a factory function that returns the navigation options based on route and navigation props.

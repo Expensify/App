@@ -3,9 +3,6 @@ import type CONST from '@src/CONST';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Two factor authentication steps */
-type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
-
 /** The role of the delegate */
 type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
 
@@ -60,6 +57,18 @@ type DelegatedAccess = {
     errorFields?: DelegateErrors;
 };
 
+/** Model of SMS delivery failure status */
+type SMSDeliveryFailureStatus = {
+    /** Whether the account is having trouble receiving SMS */
+    hasSMSDeliveryFailure: boolean;
+
+    /** The message associated with the SMS delivery failure */
+    message: string;
+
+    /** Whether a sign is loading */
+    isLoading?: boolean;
+};
+
 /** Model of user account */
 type Account = {
     /** Whether SAML is enabled for the current account */
@@ -92,6 +101,15 @@ type Account = {
     /** The primaryLogin associated with the account */
     primaryLogin?: string;
 
+    /** The Report ID of the admins room */
+    adminsRoomReportID?: string;
+
+    /** The Account ID of the account manager */
+    accountManagerAccountID?: string;
+
+    /** The Report ID of the account manager */
+    accountManagerReportID?: string;
+
     /** The message to be displayed when code requested */
     message?: string;
 
@@ -116,14 +134,14 @@ type Account = {
     /** Authentication failure errors */
     errors?: OnyxCommon.Errors | null;
 
+    /** Errors related to specific account fields */
+    errorFields?: OnyxCommon.ErrorFields;
+
     /** Authentication success message */
     success?: string;
 
     /** Whether the two factor authentication codes were copied */
     codesAreCopied?: boolean;
-
-    /** Current two factor authentication step */
-    twoFactorAuthStep?: TwoFactorAuthStep;
 
     /** Referral banners that the user dismissed */
     dismissedReferralBanners?: DismissedReferralBanners;
@@ -145,7 +163,78 @@ type Account = {
 
     /** The users you can access as delegate and the users who can access your account as a delegate */
     delegatedAccess?: DelegatedAccess;
+
+    /** Indicates SMS delivery failure status and associated information */
+    smsDeliveryFailureStatus?: SMSDeliveryFailureStatus;
+
+    /** The guide details of the account */
+    guideDetails?: {
+        /** The email of the guide details */
+        email: string;
+        /** The calendar link of the guide details */
+        calendarLink: string;
+    };
+
+    /** Model of the getValidateCodeForAccountMerge API call */
+    getValidateCodeForAccountMerge?: {
+        /** Whether the validation code was sent */
+        isLoading?: boolean;
+
+        /** Whether the user validation code was sent */
+        validateCodeSent?: boolean;
+
+        /** Whether the user validation code was re-sent */
+        validateCodeResent?: boolean;
+
+        /** Errors while requesting the validation code */
+        errors: OnyxCommon.Errors;
+    };
+
+    /** Model of the mergeWithValidateCode API call */
+    mergeWithValidateCode?: {
+        /** Whether the API call is loading */
+        isLoading?: boolean;
+
+        /** Whether the account was merged successfully */
+        isAccountMerged?: boolean;
+
+        /** Errors while merging the account */
+        errors: OnyxCommon.Errors;
+    };
+
+    /// All of the fields/attributes after this comment are currently being migrated from the User model into this Account model
+    /// Please do not use any of it until the list of action tasks in the table at https://github.com/Expensify/App/issues/59277#issuecomment-2818283478 is fully completed
+
+    /** Whether or not the user is subscribed to news updates */
+    isSubscribedToNewsletter?: boolean;
+
+    /** Whether we should use the staging version of the secure API server */
+    shouldUseStagingServer?: boolean;
+
+    /** Whether or not the user is on a public domain email account or not */
+    isFromPublicDomain?: boolean;
+
+    /** Whether or not the user uses expensify card */
+    isUsingExpensifyCard?: boolean;
+
+    /** Whether Expensify Card approval flow is ongoing - checking loginList for private domains */
+    isCheckingDomain?: boolean;
+
+    /** Whether or not the user has lounge access */
+    hasLoungeAccess?: boolean;
+
+    /** error associated with adding a secondary login */
+    error?: string;
+
+    /** Whether the user is an Expensify Guide */
+    isGuide?: boolean;
+
+    /** Whether the debug mode is currently enabled */
+    isDebugModeEnabled?: boolean;
+
+    /** If user has accesible policies on a private domain */
+    hasAccessibleDomainPolicies?: boolean;
 };
 
 export default Account;
-export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess, Delegate};
+export type {DelegateRole, DelegatedAccess, Delegate};

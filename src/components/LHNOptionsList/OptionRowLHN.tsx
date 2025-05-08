@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -9,35 +9,57 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {useSession} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
-import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {
+    isAdminRoom,
+    isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
+    isConciergeChatReport,
+    isGroupChat,
+    isOneOnOneChat,
+    isPolicyExpenseChat,
+    isSystemChat,
+    isThread,
+} from '@libs/ReportUtils';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
-function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
+function OptionRowLHN({
+    reportID,
+    isFocused = false,
+    onSelectRow = () => {},
+    optionItem,
+    viewMode = 'default',
+    style,
+    onLayout = () => {},
+    hasDraftComment,
+    shouldShowRBRorGBRTooltip,
+}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -45,13 +67,40 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
-    const [isFirstTimeNewExpensifyUser] = useOnyx(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
-    const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasCompletedGuidedSetupFlowSelector,
-    });
-    const [shouldHideGBRTooltip] = useOnyx(ONYXKEYS.NVP_SHOULD_HIDE_GBR_TOOLTIP, {initialValue: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
+    const session = useSession();
+    const shouldShowWorkspaceChatTooltip = isPolicyExpenseChat(report) && !isThread(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
+    const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
+    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, introSelected?.choice);
+    const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
+
+    const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+
+    const {tooltipToRender, shouldShowTooltip, shouldTooltipBeLeftAligned} = useMemo(() => {
+        let tooltip: ProductTrainingTooltipName;
+        if (shouldShowRBRorGBRTooltip) {
+            tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GBR_RBR_CHAT;
+        } else if (shouldShowWorkspaceChatTooltip) {
+            tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
+        } else {
+            // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+            // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
+            tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR;
+        }
+        const shouldShowTooltips = shouldShowRBRorGBRTooltip || shouldShowWorkspaceChatTooltip || shouldShowGetStartedTooltip;
+        const shouldTooltipBeVisible = shouldUseNarrowLayout ? isScreenFocused && isReportsSplitNavigatorLast : isReportsSplitNavigatorLast && !isFullscreenVisible;
+
+        return {
+            tooltipToRender: tooltip,
+            shouldShowTooltip: shouldShowTooltips && shouldTooltipBeVisible,
+            shouldTooltipBeLeftAligned: shouldShowWorkspaceChatTooltip && !shouldShowRBRorGBRTooltip && !shouldShowGetStartedTooltip,
+        };
+    }, [shouldShowRBRorGBRTooltip, shouldShowGetStartedTooltip, shouldShowWorkspaceChatTooltip, isScreenFocused, shouldUseNarrowLayout, isReportsSplitNavigatorLast, isFullscreenVisible]);
+
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
 
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -65,30 +114,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         }, []),
     );
 
-    const renderGBRTooltip = useCallback(
-        () => (
-            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap1]}>
-                <Icon
-                    src={Expensicons.Lightbulb}
-                    fill={theme.tooltipHighlightText}
-                    medium
-                />
-                <Text style={styles.quickActionTooltipSubtitle}>{translate('sidebarScreen.tooltip')}</Text>
-            </View>
-        ),
-        [
-            styles.alignItemsCenter,
-            styles.flexRow,
-            styles.justifyContentCenter,
-            styles.flexWrap,
-            styles.textAlignCenter,
-            styles.gap1,
-            styles.quickActionTooltipSubtitle,
-            theme.tooltipHighlightText,
-            translate,
-        ],
-    );
-
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
         isInFocusMode
@@ -98,7 +123,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     if (!optionItem && !isFocused) {
         // rendering null as a render item causes the FlashList to render all
-        // its children and consume signficant memory on the first render. We can avoid this by
+        // its children and consume significant memory on the first render. We can avoid this by
         // rendering a placeholder view instead. This behaviour is only observed when we
         // first sign in to the App.
         // We can fix this by checking if the optionItem is null and the component is not focused.
@@ -115,9 +140,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     }
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
+    const shouldShowGreenDotIndicator = optionItem.shouldShowGreenDot === true;
     const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textUnreadStyle = OptionsListUtils.shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
     const alternateTextStyle = isInFocusMode
         ? [textStyle, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
@@ -137,22 +162,24 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             return;
         }
         setIsContextMenuActive(true);
-        ReportActionContextMenu.showContextMenu(
-            CONST.CONTEXT_MENU_TYPES.REPORT,
+        showContextMenu({
+            type: CONST.CONTEXT_MENU_TYPES.REPORT,
             event,
-            '',
-            popoverAnchor.current,
-            reportID,
-            '-1',
-            reportID,
-            undefined,
-            () => {},
-            () => setIsContextMenuActive(false),
-            false,
-            false,
-            optionItem.isPinned,
-            !!optionItem.isUnread,
-        );
+            selection: '',
+            contextMenuAnchor: popoverAnchor.current,
+            report: {
+                reportID,
+                originalReportID: reportID,
+                isPinnedChat: optionItem.isPinned,
+                isUnreadChat: !!optionItem.isUnread,
+            },
+            reportAction: {
+                reportActionID: '-1',
+            },
+            callbacks: {
+                onHide: () => setIsContextMenuActive(false),
+            },
+        });
     };
 
     const emojiCode = optionItem.status?.emojiCode ?? '';
@@ -160,10 +187,21 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
-    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
+    const isStatusVisible = !!emojiCode && isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const firstIcon = optionItem.icons?.at(0);
+
+    const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        Performance.markStart(CONST.TIMING.OPEN_REPORT);
+        Timing.start(CONST.TIMING.OPEN_REPORT);
+
+        event?.preventDefault();
+        // Enable Composer to focus on clicking the same chat after opening the context menu.
+        ReportActionComposeFocusManager.focus();
+        hideProductTrainingTooltip();
+        onSelectRow(optionItem, popoverAnchor);
+    };
 
     return (
         <OfflineWithFeedback
@@ -173,34 +211,25 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             needsOffscreenAlphaCompositing
         >
             <EducationalTooltip
-                shouldRender={
-                    isFirstTimeNewExpensifyUser && !shouldHideGBRTooltip && isOnboardingCompleted && isScreenFocused && shouldUseNarrowLayout && ReportUtils.isConciergeChatReport(report)
-                }
-                renderTooltipContent={renderGBRTooltip}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                shouldRender={shouldShowProductTrainingTooltip}
+                renderTooltipContent={renderProductTrainingTooltip}
                 anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    horizontal: shouldTooltipBeLeftAligned ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
-                shouldUseOverlay
-                shiftHorizontal={variables.gbrTooltipShiftHorizontal}
-                shiftVertical={variables.composerTooltipShiftVertical}
-                wrapperStyle={styles.quickActionTooltipWrapper}
-                onHideTooltip={User.dismissGBRTooltip}
+                shiftHorizontal={shouldTooltipBeLeftAligned ? variables.workspaceLHNTooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
+                shiftVertical={shouldTooltipBeLeftAligned ? 0 : variables.gbrTooltipShiftVertical}
+                wrapperStyle={styles.productTrainingTooltipWrapper}
+                onTooltipPress={onOptionPress}
+                shouldHideOnScroll
             >
                 <View>
                     <Hoverable>
                         {(hovered) => (
                             <PressableWithSecondaryInteraction
                                 ref={popoverAnchor}
-                                onPress={(event) => {
-                                    Performance.markStart(CONST.TIMING.OPEN_REPORT);
-                                    Timing.start(CONST.TIMING.OPEN_REPORT);
-
-                                    event?.preventDefault();
-                                    // Enable Composer to focus on clicking the same chat after opening the context menu.
-                                    ReportActionComposeFocusManager.focus();
-                                    onSelectRow(optionItem, popoverAnchor);
-                                }}
+                                onPress={onOptionPress}
                                 onMouseDown={(event) => {
                                     // Allow composer blur on right click
                                     if (!event) {
@@ -209,7 +238,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     // Prevent composer blur on left click
                                     event.preventDefault();
                                 }}
-                                testID={optionItem.reportID}
+                                // reportID may be a number contrary to the type definition
+                                testID={typeof optionItem.reportID === 'number' ? String(optionItem.reportID) : optionItem.reportID}
                                 onSecondaryInteraction={(event) => {
                                     showPopover(event);
                                     // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
@@ -231,7 +261,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     (hovered || isContextMenuActive) && !isFocused ? styles.sidebarLinkHover : null,
                                 ]}
                                 role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
+                                accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${
+                                    optionItem.alternateText
+                                }`}
                                 onLayout={onLayout}
                                 needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                             >
@@ -256,7 +288,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                         isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                         hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                                     ]}
-                                                    shouldShowTooltip={OptionsListUtils.shouldOptionShowTooltip(optionItem)}
+                                                    shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
                                                 />
                                             ))}
                                         <View style={contentContainerStyles}>
@@ -275,11 +307,11 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                         !!optionItem.isThread ||
                                                         !!optionItem.isMoneyRequestReport ||
                                                         !!optionItem.isInvoiceReport ||
-                                                        ReportUtils.isGroupChat(report) ||
-                                                        ReportUtils.isSystemChat(report)
+                                                        isGroupChat(report) ||
+                                                        isSystemChat(report)
                                                     }
                                                 />
-                                                {ReportUtils.isChatUsedForOnboarding(report) && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
+                                                {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
                                                 {isStatusVisible && (
                                                     <Tooltip
                                                         text={statusContent}
@@ -307,6 +339,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                         {hasBrickError && (
                                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                                 <Icon
+                                                    testID="RBR Icon"
                                                     src={Expensicons.DotIndicator}
                                                     fill={theme.danger}
                                                 />
@@ -321,6 +354,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     {shouldShowGreenDotIndicator && (
                                         <View style={styles.ml2}>
                                             <Icon
+                                                testID="GBR Icon"
                                                 src={Expensicons.DotIndicator}
                                                 fill={theme.success}
                                             />

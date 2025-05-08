@@ -1,6 +1,6 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import ImportSpreedsheet from '@components/ImportSpreadsheet';
+import ImportSpreadsheet from '@components/ImportSpreadsheet';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -11,7 +11,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ImportMembersPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORT>;
+type ImportMembersPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORT>;
 
 function ImportMembersPage({policy}: ImportMembersPageProps) {
     const policyID = policy?.id ?? '';
@@ -22,7 +22,7 @@ function ImportMembersPage({policy}: ImportMembersPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
         >
-            <ImportSpreedsheet
+            <ImportSpreadsheet
                 backTo={ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)}
                 goTo={ROUTES.WORKSPACE_MEMBERS_IMPORTED.getRoute(policyID)}
             />

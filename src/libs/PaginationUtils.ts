@@ -173,7 +173,8 @@ function getContinuousChain<TResource>(
     id?: string,
 ): {data: TResource[]; hasNextPage: boolean; hasPreviousPage: boolean} {
     if (pages.length === 0) {
-        return {data: id ? [] : sortedItems, hasNextPage: false, hasPreviousPage: false};
+        const dataItem = sortedItems.find((item) => getID(item) === id);
+        return {data: id && !dataItem ? [] : sortedItems, hasNextPage: false, hasPreviousPage: false};
     }
 
     const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getID);

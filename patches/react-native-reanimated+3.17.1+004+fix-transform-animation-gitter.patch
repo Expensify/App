@@ -1,0 +1,20 @@
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
+index 10aaa36..f494afb 100644
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
+@@ -760,6 +760,15 @@ void ReanimatedModuleProxy::performOperations() {
+     jsPropsUpdater.call(rt, viewTag, nonAnimatableProps);
+   }
+ 
++  if (propsRegistry_->shouldReanimatedSkipCommit()) {
++    // It may happen that `performOperations` is called on the UI thread
++    // while React Native tries to commit a new tree on the JS thread.
++    // In this case, we should skip the commit here and let React Native do
++    // it. The commit will include the current values from PropsRegistry which
++    // will be applied in ReanimatedCommitHook.
++    return;
++  }
++
+   bool hasLayoutUpdates = false;
+ 
+   for (const auto &[shadowNode, props] : copiedOperationsQueue) {

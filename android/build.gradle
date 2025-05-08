@@ -2,16 +2,16 @@
 
 buildscript {
     ext {
-        buildToolsVersion = "34.0.0"
-        minSdkVersion = 23
-        compileSdkVersion = 34
+        buildToolsVersion = "35.0.0"
+        minSdkVersion = 24
+        compileSdkVersion = 35
         targetSdkVersion = 34
-        ndkVersion = "26.1.10909125"
+        ndkVersion = "27.1.12297006"
 
         androidXCore = "1.0.2"
         multiDexEnabled = true
         googlePlayServicesVersion = "17.0.0"
-        kotlinVersion = "1.9.24"
+        kotlinVersion = "2.0.21"
 
         // This property configures the type of Mapbox SDK used by the @rnmapbox/maps library.
         // "mapbox" indicates the usage of the Mapbox SDK.
@@ -42,8 +42,6 @@ allprojects {
     configurations.all {
         resolutionStrategy {
             force 'org.xerial:sqlite-jdbc:3.34.0'
-            //Fix Investigate App Crash MainActivity.onCreate #35655
-            force "com.facebook.soloader:soloader:0.10.4+"
 
             eachDependency { dependency ->
                 if (dependency.requested.group == 'org.bouncycastle') {
@@ -80,3 +78,11 @@ allprojects {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+task buildReactNativeArtifacts {
+    dependsOn(gradle.includedBuild('react-native').task(':packages:react-native:ReactAndroid:build'))
+}
+
+task publishReactNativeArtifacts {
+    dependsOn(gradle.includedBuild('react-native').task(':packages:react-native:ReactAndroid:publishReleasePublicationToMavenRepository'))
+}

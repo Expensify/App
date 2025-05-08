@@ -1,3 +1,6 @@
+// this file is for testing which methods should not be exported so it is not possible to use named imports - that's why we need to disable the no-restricted-syntax rule
+
+/* eslint-disable no-restricted-syntax */
 import * as IOU from '@libs/actions/IOU';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -9,9 +12,9 @@ import * as Task from '@userActions/Task';
 // and prevents side-effects that you may not be aware of. It also allows each file to access Onyx data in the most performant way. More context can be found in
 // https://github.com/Expensify/App/issues/27262
 describe('ReportUtils', () => {
-    it('does not export getParentReport', () => {
+    it('does not export getReport', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.getParentReport).toBeUndefined();
+        expect(ReportUtils.getReport).toBeUndefined();
     });
 
     it('does not export isOneTransactionReport', () => {

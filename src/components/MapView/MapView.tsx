@@ -3,12 +3,14 @@ import type {MapState} from '@rnmapbox/maps';
 import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as UserLocation from '@libs/actions/UserLocation';
+import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
@@ -21,10 +23,11 @@ import Direction from './Direction';
 import type {MapViewHandle, MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
+import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
 import utils from './utils';
 
 const MapView = forwardRef<MapViewHandle, MapViewProps>(
-    ({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
+    ({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true, distanceInMeters, unit}, ref) => {
         const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
         const navigation = useNavigation();
         const {isOffline} = useNetwork();
@@ -39,6 +42,25 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
         const shouldInitializeCurrentPosition = useRef(true);
         const [isAccessTokenSet, setIsAccessTokenSet] = useState(false);
 
+        const [distanceUnit, setDistanceUnit] = useState(unit);
+        useEffect(() => {
+            if (!unit || distanceUnit) {
+                return;
+            }
+            setDistanceUnit(unit);
+        }, [unit, distanceUnit]);
+
+        const toggleDistanceUnit = useCallback(() => {
+            setDistanceUnit((currentUnit) =>
+                currentUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+        }, []);
+
+        const distanceLabelText = useMemo(
+            () => DistanceRequestUtils.getDistanceForDisplayLabel(distanceInMeters ?? 0, distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS),
+            [distanceInMeters, distanceUnit],
+        );
+
         // Determines if map can be panned to user's detected
         // location without bothering the user. It will return
         // false if user has already started dragging the map or
@@ -50,7 +72,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                 if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
                     return;
                 }
-                UserLocation.clearUserLocation();
+                clearUserLocation();
             },
             [initialLocation],
         );
@@ -74,7 +96,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
 
                 getCurrentPosition((params) => {
                     const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                    UserLocation.setUserLocation(currentCoords);
+                    setUserLocation(currentCoords);
                 }, setCurrentPositionToInitialState);
             }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
         );
@@ -205,6 +227,19 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
         const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
         const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
 
+        const distanceSymbolCoordinate = useMemo(() => {
+            if (!directionCoordinates?.length || !waypoints?.length) {
+                return;
+            }
+            const {northEast, southWest} = utils.getBounds(
+                waypoints.map((waypoint) => waypoint.coordinate),
+                directionCoordinates,
+            );
+            const boundsCenter = utils.getBoundsCenter({northEast, southWest});
+
+            return utils.findClosestCoordinateOnLineFromCenter(boundsCenter, directionCoordinates);
+        }, [waypoints, directionCoordinates]);
+
         return !isOffline && isAccessTokenSet && !!defaultSettings ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
                 <Mapbox.MapView
@@ -258,7 +293,6 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                             />
                         </Mapbox.ShapeSource>
                     )}
-
                     {waypoints?.map(({coordinate, markerComponent, id}) => {
                         const MarkerComponent = markerComponent;
                         if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) && interactive) {
@@ -276,6 +310,25 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                     })}
 
                     {!!directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                    {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
+                        <MarkerView
+                            coordinate={distanceSymbolCoordinate}
+                            id="distance-label"
+                            key="distance-label"
+                        >
+                            <View style={{zIndex: 1}}>
+                                <ToggleDistanceUnitButton
+                                    accessibilityRole={CONST.ROLE.BUTTON}
+                                    accessibilityLabel="distance-label"
+                                    onPress={toggleDistanceUnit}
+                                >
+                                    <View style={[styles.distanceLabelWrapper]}>
+                                        <Text style={styles.distanceLabelText}> {distanceLabelText}</Text>
+                                    </View>
+                                </ToggleDistanceUnitButton>
+                            </View>
+                        </MarkerView>
+                    )}
                 </Mapbox.MapView>
                 {interactive && (
                     <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>

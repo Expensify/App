@@ -59,6 +59,10 @@ export default {
         marginHorizontal: -8,
     },
 
+    mhn4: {
+        marginHorizontal: -16,
+    },
+
     mhn5: {
         marginHorizontal: -20,
     },
@@ -355,6 +359,10 @@ export default {
         marginBottom: 40,
     },
 
+    mb11: {
+        marginBottom: 44,
+    },
+
     mb12: {
         marginBottom: 48,
     },
@@ -383,6 +391,12 @@ export default {
         padding: 0,
         paddingHorizontal: 0,
         paddingVertical: 0,
+        // Set all individual padding properties to 0 to ensure they override any granular padding styles
+        // that may not be affected by the shorthand padding properties above
+        paddingLeft: 0,
+        paddingRight: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
     },
 
     p1: {
@@ -505,6 +519,10 @@ export default {
         paddingHorizontal: 40,
     },
 
+    ph11: {
+        paddingHorizontal: 44,
+    },
+
     ph15: {
         paddingHorizontal: 60,
     },
@@ -617,6 +635,10 @@ export default {
         paddingTop: 20,
     },
 
+    pt6: {
+        paddingTop: 24,
+    },
+
     pt8: {
         paddingTop: 32,
     },
@@ -639,6 +661,10 @@ export default {
 
     pb2: {
         paddingBottom: 8,
+    },
+
+    pb2half: {
+        paddingBottom: 10,
     },
 
     pb3: {
@@ -717,11 +743,19 @@ export default {
         rowGap: 16,
     },
 
+    columnGap3: {
+        columnGap: 12,
+    },
+
     minHeight5: {
         minHeight: 20,
     },
 
     minHeight65: {
         minHeight: 260,
+    },
+
+    maxHeight5: {
+        maxHeight: 20,
     },
 } satisfies Record<string, ViewStyle>;

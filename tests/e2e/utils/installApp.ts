@@ -7,10 +7,12 @@ import * as Logger from './logger';
  * Installs the app on the currently connected device for the given platform.
  * It removes the app first if it already exists, so it's a clean installation.
  */
-export default function (packageName: string, path: string, platform = 'android'): PromiseWithAbort {
+export default function (packageName: string, path: string, platform = 'android', flag = ''): PromiseWithAbort {
     if (platform !== 'android') {
         throw new Error(`installApp() missing implementation for platform: ${platform}`);
     }
+
+    const installCommand = flag ? `adb install ${flag}` : 'adb install';
 
     // Uninstall first, then install
     return (
@@ -23,7 +25,7 @@ export default function (packageName: string, path: string, platform = 'android'
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             .finally(() =>
                 // install the app
-                execAsync(`adb install ${path}`).then(() =>
+                execAsync(`${installCommand} ${path}`).then(() =>
                     // and grant push notifications permissions right away (the popup may block e2e tests sometimes)
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     execAsync(`adb shell pm grant ${packageName.split('/').at(0)} android.permission.POST_NOTIFICATIONS`).catch((_: ExecException) =>

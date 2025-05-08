@@ -20,6 +20,13 @@ type TryNewDot = {
          */
         completedHybridAppOnboarding: boolean;
     };
+    /**
+     * This key is added when user is migrated from OldDot to NewDot with nudge migration as part of a cohort.
+     */
+    nudgeMigration: {
+        /** Indicates timestamp of an action. */
+        timestamp: Date;
+    };
 };
 
 export default TryNewDot;

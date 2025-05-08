@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import BulletList from '@components/BulletList';
@@ -15,18 +14,19 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import {setPolicyDefaultReportTitle} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesCustomNameModalForm';
 
-type RulesCustomNamePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM_NAME>;
+type RulesCustomNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM_NAME>;
 
 function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
-    const policyID = route?.params?.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
     const {translate} = useLocalize();
@@ -46,6 +46,11 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM> = {};
         if (!customName) {
             errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.fieldRequired');
+        } else if (customName.length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+            errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.characterLimitExceedCounter', {
+                length: customName.length,
+                limit: CONST.WORKSPACE_NAME_CHARACTER_LIMIT,
+            });
         }
         return errors;
     };
@@ -58,7 +63,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
             shouldBeBlocked={!policy?.shouldShowCustomReportTitleOption}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesCustomNamePage.displayName}
             >
@@ -83,11 +88,13 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM}
                     validate={validateCustomName}
                     onSubmit={({customName}) => {
-                        PolicyActions.setPolicyDefaultReportTitle(policyID, customName);
+                        setPolicyDefaultReportTitle(policyID, customName);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={TextInput}
@@ -95,7 +102,6 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                         defaultValue={customNameDefaultValue}
                         label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
                         aria-label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
-                        maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                         ref={inputCallbackRef}
                     />
                     <BulletList

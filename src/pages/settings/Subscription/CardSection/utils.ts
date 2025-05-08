@@ -2,10 +2,13 @@ import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import * as SubscriptionUtils from '@libs/SubscriptionUtils';
+import {getAmountOwed, getOverdueGracePeriodDate, getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import type {AccountData} from '@src/types/onyx/Fund';
+import type {Purchase} from '@src/types/onyx/PurchaseList';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type BillingStatusResult = {
@@ -19,21 +22,34 @@ type BillingStatusResult = {
     rightIcon?: IconAsset;
 };
 
-function getBillingStatus(translate: LocaleContextProps['translate'], accountData?: AccountData): BillingStatusResult | undefined {
+type GetBillingStatusProps = {
+    translate: LocaleContextProps['translate'];
+    accountData?: AccountData;
+    purchase?: Purchase;
+};
+
+function getBillingStatus({translate, accountData, purchase}: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
-    const amountOwed = SubscriptionUtils.getAmountOwed();
+    const amountOwed = getAmountOwed();
 
-    const subscriptionStatus = SubscriptionUtils.getSubscriptionStatus();
+    const subscriptionStatus = getSubscriptionStatus();
 
-    const endDate = SubscriptionUtils.getOverdueGracePeriodDate();
+    const endDate = getOverdueGracePeriodDate();
 
     const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
 
     const isCurrentCardExpired = DateUtils.isCardExpired(accountData?.cardMonth ?? 0, accountData?.cardYear ?? 0);
 
+    const purchaseAmount = purchase?.message.billableAmount;
+    const purchaseCurrency = purchase?.currency;
+    const purchaseDate = purchase?.created;
+    const isBillingFailed = purchase?.message.billingType === CONST.BILLING.TYPE_FAILED_2018;
+    const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT) : undefined;
+    const purchaseAmountWithCurrency = convertAmountToDisplayString(purchaseAmount, purchaseCurrency);
+
     switch (subscriptionStatus?.status) {
-        case SubscriptionUtils.PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED:
+        case PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED:
             return {
                 title: translate('subscription.billingBanner.policyOwnerAmountOwed.title'),
                 subtitle: translate('subscription.billingBanner.policyOwnerAmountOwed.subtitle', {date: endDateFormatted ?? ''}),
@@ -41,14 +57,23 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
                 isRetryAvailable: true,
             };
 
-        case SubscriptionUtils.PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE:
+        case PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE:
             return {
                 title: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.title'),
-                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle'),
+                subtitle: translate(
+                    'subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle',
+                    isBillingFailed
+                        ? {
+                              date: purchaseDateFormatted,
+                              purchaseAmountOwed: purchaseAmountWithCurrency,
+                          }
+                        : {},
+                ),
                 isError: true,
+                isRetryAvailable: !isEmptyObject(accountData) ? true : undefined,
             };
 
-        case SubscriptionUtils.PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING:
+        case PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING:
             return {
                 title: translate('subscription.billingBanner.policyOwnerUnderInvoicing.title'),
                 subtitle: translate('subscription.billingBanner.policyOwnerUnderInvoicing.subtitle', {date: endDateFormatted ?? ''}),
@@ -56,7 +81,7 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
                 isAddButtonDark: true,
             };
 
-        case SubscriptionUtils.PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE:
+        case PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE:
             return {
                 title: translate('subscription.billingBanner.policyOwnerUnderInvoicingOverdue.title'),
                 subtitle: translate('subscription.billingBanner.policyOwnerUnderInvoicingOverdue.subtitle'),
@@ -64,7 +89,7 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
                 isAddButtonDark: true,
             };
 
-        case SubscriptionUtils.PAYMENT_STATUS.BILLING_DISPUTE_PENDING:
+        case PAYMENT_STATUS.BILLING_DISPUTE_PENDING:
             return {
                 title: translate('subscription.billingBanner.billingDisputePending.title'),
                 subtitle: translate('subscription.billingBanner.billingDisputePending.subtitle', {amountOwed, cardEnding}),
@@ -72,7 +97,7 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
                 isRetryAvailable: false,
             };
 
-        case SubscriptionUtils.PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED:
+        case PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED:
             return {
                 title: translate('subscription.billingBanner.cardAuthenticationRequired.title'),
                 subtitle: translate('subscription.billingBanner.cardAuthenticationRequired.subtitle', {cardEnding}),
@@ -80,7 +105,7 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
                 isAuthenticationRequired: true,
             };
 
-        case SubscriptionUtils.PAYMENT_STATUS.INSUFFICIENT_FUNDS:
+        case PAYMENT_STATUS.INSUFFICIENT_FUNDS:
             return {
                 title: translate('subscription.billingBanner.insufficientFunds.title'),
                 subtitle: translate('subscription.billingBanner.insufficientFunds.subtitle', {amountOwed}),
@@ -88,7 +113,7 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
                 isRetryAvailable: true,
             };
 
-        case SubscriptionUtils.PAYMENT_STATUS.CARD_EXPIRED:
+        case PAYMENT_STATUS.CARD_EXPIRED:
             return {
                 title: translate('subscription.billingBanner.cardExpired.title'),
                 subtitle: translate('subscription.billingBanner.cardExpired.subtitle', {amountOwed}),
@@ -96,7 +121,7 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
                 isRetryAvailable: !isCurrentCardExpired,
             };
 
-        case SubscriptionUtils.PAYMENT_STATUS.CARD_EXPIRE_SOON:
+        case PAYMENT_STATUS.CARD_EXPIRE_SOON:
             return {
                 title: translate('subscription.billingBanner.cardExpireSoon.title'),
                 subtitle: translate('subscription.billingBanner.cardExpireSoon.subtitle'),
@@ -104,7 +129,7 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
                 icon: Illustrations.CreditCardEyes,
             };
 
-        case SubscriptionUtils.PAYMENT_STATUS.RETRY_BILLING_SUCCESS:
+        case PAYMENT_STATUS.RETRY_BILLING_SUCCESS:
             return {
                 title: translate('subscription.billingBanner.retryBillingSuccess.title'),
                 subtitle: translate('subscription.billingBanner.retryBillingSuccess.subtitle'),
@@ -112,7 +137,7 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
                 rightIcon: Expensicons.Close,
             };
 
-        case SubscriptionUtils.PAYMENT_STATUS.RETRY_BILLING_ERROR:
+        case PAYMENT_STATUS.RETRY_BILLING_ERROR:
             return {
                 title: translate('subscription.billingBanner.retryBillingError.title'),
                 subtitle: translate('subscription.billingBanner.retryBillingError.subtitle'),

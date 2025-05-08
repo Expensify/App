@@ -19,11 +19,12 @@
             "@libs/*": ["./src/libs/*"],
             "@navigation/*": ["./src/libs/Navigation/*"],
             "@pages/*": ["./src/pages/*"],
+            "@scripts/*": ["./scripts/*", "./.github/scripts/*"],
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
             "@userActions/*": ["./src/libs/actions/*"]
         }
     },
-    "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*", "scripts"],
+    "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*", "scripts", "modules"],
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"]
 }

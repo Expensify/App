@@ -1,10 +1,10 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,16 +13,19 @@ import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import * as CardUtils from '@libs/CardUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
-import * as Card from '@userActions/Card';
+import {configureExpensifyCardsForPolicy} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,29 +33,29 @@ import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WorkspaceExpensifyCardBankAccountsProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT>;
+type WorkspaceExpensifyCardBankAccountsProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT>;
 
 function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankAccountsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: false});
 
-    const policyID = route?.params?.policyID ?? '-1';
+    const policyID = route?.params?.policyID;
 
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
 
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
+    const [cardBankAccountMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA}${workspaceAccountID}`, {canBeMissing: true});
+    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`, {canBeMissing: true});
 
     const getVerificationState = () => {
         if (cardOnWaitlist) {
             return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.ON_WAITLIST;
         }
-        if (cardSettings?.isSuccess) {
+        if (cardBankAccountMetadata?.isSuccess) {
             return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED;
         }
 
-        if (cardSettings?.isLoading) {
+        if (cardBankAccountMetadata?.isLoading) {
             return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.LOADING;
         }
 
@@ -60,11 +63,11 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     };
 
     const handleAddBankAccount = () => {
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
     };
 
     const handleSelectBankAccount = (value?: number) => {
-        Card.configureExpensifyCardsForPolicy(policyID, value);
+        configureExpensifyCardsForPolicy(policyID, value);
     };
 
     const renderBankOptions = () => {
@@ -72,7 +75,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             return null;
         }
 
-        const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountsList);
+        const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList);
 
         return eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
@@ -100,6 +103,8 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const verificationState = getVerificationState();
     const isInVerificationState = !!verificationState;
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+
     const renderVerificationStateView = () => {
         switch (verificationState) {
             case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.LOADING:
@@ -112,6 +117,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                         animationWebStyle={styles.loadingVBAAnimationWeb}
                         subtitleStyle={styles.textLabelSupporting}
                         containerStyle={styles.pb20}
+                        addBottomSafeAreaPadding
                     />
                 );
             case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.ON_WAITLIST:
@@ -129,7 +135,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                             success
                             large
                             text={translate('workspace.expensifyCard.goToConcierge')}
-                            style={[styles.m5]}
+                            style={[styles.m5, bottomSafeAreaPaddingStyle]}
                             pressOnEnter
                             onPress={() => Navigation.navigate(ROUTES.CONCIERGE)}
                         />
@@ -150,7 +156,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                             success
                             large
                             text={translate('workspace.expensifyCard.gotIt')}
-                            style={[styles.m5]}
+                            style={[styles.m5, bottomSafeAreaPaddingStyle]}
                             pressOnEnter
                             onPress={() => {
                                 Navigation.dismissModal();
@@ -184,29 +190,31 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         >
             <ScreenWrapper
                 testID={WorkspaceExpensifyCardBankAccounts.displayName}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
                 shouldShowOfflineIndicator={false}
             >
-                <HeaderWithBackButton
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    title={getHeaderButtonText()}
-                />
-                {isInVerificationState && renderVerificationStateView()}
-                {!isInVerificationState && (
-                    <FullPageOfflineBlockingView>
-                        <View style={styles.flex1}>
-                            <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
-                            {renderBankOptions()}
-                            <MenuItem
-                                icon={Expensicons.Plus}
-                                title={translate('workspace.expensifyCard.addNewBankAccount')}
-                                onPress={handleAddBankAccount}
-                            />
-                        </View>
-                    </FullPageOfflineBlockingView>
-                )}
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                    <HeaderWithBackButton
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.goBack()}
+                        title={getHeaderButtonText()}
+                    />
+                    {isInVerificationState && renderVerificationStateView()}
+                    {!isInVerificationState && (
+                        <FullPageOfflineBlockingView addBottomSafeAreaPadding>
+                            <View style={styles.flex1}>
+                                <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
+                                {renderBankOptions()}
+                                <MenuItem
+                                    icon={Expensicons.Plus}
+                                    title={translate('workspace.expensifyCard.addNewBankAccount')}
+                                    onPress={handleAddBankAccount}
+                                />
+                            </View>
+                        </FullPageOfflineBlockingView>
+                    )}
+                </DelegateNoAccessWrapper>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

@@ -5,24 +5,19 @@ import BaseTooltip from './BaseTooltip';
 import type {TooltipExtendedProps} from './types';
 
 function PopoverAnchorTooltip({shouldRender = true, children, ...props}: TooltipExtendedProps) {
-    const {isOpen, popover} = useContext(PopoverContext);
+    const {isOpen, popoverAnchor} = useContext(PopoverContext);
     const tooltipRef = useRef<BoundsObserver>(null);
 
     const isPopoverRelatedToTooltipOpen = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/dot-notation, react-compiler/react-compiler
         const tooltipNode = (tooltipRef.current?.['_childNode'] as Node | undefined) ?? null;
 
-        if (
-            isOpen &&
-            popover?.anchorRef?.current &&
-            tooltipNode &&
-            ((popover.anchorRef.current instanceof Node && tooltipNode.contains(popover.anchorRef.current)) || tooltipNode === popover.anchorRef.current)
-        ) {
+        if (isOpen && popoverAnchor && tooltipNode && ((popoverAnchor instanceof Node && tooltipNode.contains(popoverAnchor)) || tooltipNode === popoverAnchor)) {
             return true;
         }
 
         return false;
-    }, [isOpen, popover]);
+    }, [isOpen, popoverAnchor]);
 
     if (!shouldRender || isPopoverRelatedToTooltipOpen) {
         return children;

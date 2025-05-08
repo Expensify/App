@@ -22,6 +22,13 @@ $
 PROPOSAL:
 
 
+<!--- 
+If you want to trigger adhoc build of hybrid app from specific Mobile-Expensify PR please link it like this:
+
+MOBILE-EXPENSIFY: https://github.com/Expensify/Mobile-Expensify/pull/<PR-number>
+
+--->
+
 ### Tests
 <!---
 Add a numbered list of manual tests you performed that validates your changes work on all platforms, and that there are no regressions present.
@@ -80,6 +87,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] MacOS: Chrome / Safari
     - [ ] MacOS: Desktop
 - [ ] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
+- [ ] I verified there are no new alerts related to the `canBeMissing` param for `useOnyx`
 - [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`)
     - [ ] I verified that comments were added to code that is not self explanatory
@@ -94,7 +102,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] I followed the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md)
 - [ ] I tested other components that can be impacted by my changes (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
 - [ ] I verified all code is DRY (the PR doesn't include any logic written more than once, with the exception of tests)
-- [ ] I verified any variables that can be defined as constants (ie. in CONST.js or at the top of the file that uses the constant) are defined as such
+- [ ] I verified any variables that can be defined as constants (ie. in CONST.ts or at the top of the file that uses the constant) are defined as such
 - [ ] I verified that if a function's arguments changed that all usages have also been updated correctly
 - [ ] If any new file was added I verified that:
     - [ ] The file has a description of what it does and/or why is needed at the top of the file if the code is not self explanatory
@@ -109,6 +117,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] I verified that all the inputs inside a form are aligned with each other.
     - [ ] I added `Design` label and/or tagged `@Expensify/design` so the design team can review the changes.
 - [ ] If a new page is added, I verified it's using the `ScrollView` component to make it scrollable when more elements are added to the page.
+- [ ] I added [unit tests](https://github.com/Expensify/App/blob/main/tests/README.md) for any new feature or bug fix in this PR to help automatically prevent regressions in this user flow.
 - [ ] If the `main` branch was merged into this PR after a review, I tested again and verified the outcome was still expected according to the `Test` steps.
 
 ### Screenshots/Videos

@@ -43,7 +43,7 @@ const lightTheme = {
     // Additional keys
     overlay: colors.productLight400,
     inverse: colors.productLight900,
-    shadow: colors.black,
+    shadow: '0px 4px 12px 0px rgba(2,18,4,0.06)',
     componentBG: colors.productLight100,
     messageHighlightBG: colors.yellow100,
     hoverComponentBG: colors.productLight300,
@@ -80,8 +80,8 @@ const lightTheme = {
     mentionBG: colors.blue100,
     ourMentionText: colors.green600,
     ourMentionBG: colors.green100,
-    tooltipHighlightBG: colors.green100,
-    tooltipHighlightText: colors.green500,
+    tooltipHighlightBG: colors.green700,
+    tooltipHighlightText: colors.green400,
     tooltipSupportingText: colors.productDark800,
     tooltipPrimaryText: colors.productDark900,
     trialBannerBackgroundColor: colors.green100,
@@ -95,6 +95,7 @@ const lightTheme = {
     transparentWhite: `${colors.white}51`,
     emptyFolderBG: colors.yellow600,
     travelBG: colors.blue600,
+    trialTimer: colors.green600,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
     // Note that it needs to be a screen name, not a route url.
@@ -152,6 +153,8 @@ const lightTheme = {
     },
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+    navigationBarButtonsStyle: CONST.NAVIGATION_BAR_BUTTONS_STYLE.DARK,
+    translucentNavigationBarBackgroundColor: `${colors.productLight100}CD`, // CD is 80% opacity (80% of 0xFF)
     colorScheme: CONST.COLOR_SCHEME.LIGHT,
 } satisfies ThemeColors;
 

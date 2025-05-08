@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -16,11 +15,12 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import StatusBar from '@libs/StatusBar';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import * as ExitSurvey from '@userActions/ExitSurvey';
+import {saveResponse} from '@userActions/ExitSurvey';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,10 +29,10 @@ import INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
-type ExitSurveyResponsePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
+type ExitSurveyResponsePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
 
 function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps) {
-    const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: (value) => value?.[INPUT_IDS.RESPONSE]});
+    const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: (value) => value?.[INPUT_IDS.RESPONSE], canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -60,7 +60,7 @@ function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps
     }, [backTo, isOffline, navigation]);
 
     const submitForm = useCallback(() => {
-        ExitSurvey.saveResponse(draftResponse);
+        saveResponse(draftResponse);
         Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.getRoute(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route));
     }, [draftResponse]);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitForm);
@@ -88,7 +88,7 @@ function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps
         >
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM}
@@ -99,11 +99,17 @@ function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps
                     const errors: Errors = {};
                     if (!draftResponse?.trim()) {
                         errors[INPUT_IDS.RESPONSE] = translate('common.error.fieldRequired');
+                    } else if (draftResponse.length > CONST.MAX_COMMENT_LENGTH) {
+                        errors[INPUT_IDS.RESPONSE] = translate('common.error.characterLimitExceedCounter', {
+                            length: draftResponse.length,
+                            limit: CONST.MAX_COMMENT_LENGTH,
+                        });
                     }
                     return errors;
                 }}
                 shouldValidateOnBlur
                 shouldValidateOnChange
+                shouldHideFixErrorsAlert
             >
                 {isOffline && <ExitSurveyOffline />}
                 {!isOffline && (
@@ -117,7 +123,6 @@ function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            maxLength={CONST.MAX_COMMENT_LENGTH}
                             ref={inputCallbackRef}
                             containerStyles={[baseResponseInputContainerStyle]}
                             shouldSaveDraft

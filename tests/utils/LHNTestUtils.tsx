@@ -6,15 +6,15 @@ import React from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
-import {CurrentReportIDContextProvider} from '@components/withCurrentReportID';
 import {EnvironmentProvider} from '@components/withEnvironment';
-import {ReportIDsContextProvider} from '@hooks/useReportIDs';
+import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
 import DateUtils from '@libs/DateUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
@@ -38,6 +38,7 @@ jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
+        useNavigationState: () => true,
         useRoute: jest.fn(),
         useFocusEffect: jest.fn(),
         useIsFocused: () => true,
@@ -63,6 +64,7 @@ const fakePersonalDetails: PersonalDetailsList = {
         displayName: 'Email Two',
         avatar: 'none',
         firstName: 'Two',
+        pronouns: '__predefined_sheHerHers',
     },
     3: {
         accountID: 3,
@@ -124,6 +126,7 @@ const fakePersonalDetails: PersonalDetailsList = {
 
 let lastFakeReportID = 0;
 let lastFakeReportActionID = 0;
+let lastFakeTransactionID = 0;
 
 /**
  * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
@@ -131,7 +134,7 @@ let lastFakeReportActionID = 0;
 function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false, adminIDs: number[] = []): Report {
     const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
 
-    const participants = ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs);
+    const participants = buildParticipantsFromAccountIDs(participantAccountIDs);
 
     adminIDs.forEach((id) => {
         participants[id] = {
@@ -191,6 +194,15 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
     };
 }
 
+function getFakeTransaction(expenseReportID: string, amount = 1, currency: string = CONST.CURRENCY.USD) {
+    return {
+        transactionID: `${++lastFakeTransactionID}`,
+        amount,
+        currency,
+        reportID: expenseReportID,
+    };
+}
+
 function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boolean, hasAddWorkspaceError: boolean, isUnread: boolean, isPinned: boolean): Report {
     return {
         ...getFakeReport([1, 2], 0, isUnread),
@@ -244,6 +256,14 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
     };
 }
 
+function getFakeTransactionViolation(violationName: ViolationName, showInReview = true): TransactionViolation {
+    return {
+        type: CONST.VIOLATION_TYPES.VIOLATION,
+        name: violationName,
+        showInReview,
+    };
+}
+
 /**
  * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  */
@@ -266,7 +286,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
              * So this is a work around to have currentReportID available
              * only in testing environment.
              *  */}
-            <ReportIDsContextProvider currentReportIDForTests={currentReportID}>
+            <SidebarOrderedReportIDsContextProvider currentReportIDForTests={currentReportID}>
                 <SidebarLinksData
                     insets={{
                         top: 0,
@@ -275,7 +295,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
                         bottom: 0,
                     }}
                 />
-            </ReportIDsContextProvider>
+            </SidebarOrderedReportIDsContextProvider>
         </ComposeProviders>
     );
 }
@@ -354,4 +374,6 @@ export {
     getFakeReportWithPolicy,
     getFakePolicy,
     getFakeAdvancedReportAction,
+    getFakeTransactionViolation,
+    getFakeTransaction,
 };

@@ -12,9 +12,9 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '@libs/CardUtils';
+import {clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
+import {addBillingCardAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -30,7 +30,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     const styles = useThemeStyles();
     const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const checkIfCanBeRendered = useCallback(() => {
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
@@ -43,11 +43,11 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
 
     useEffect(
         () => {
-            PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+            clearPaymentCardFormErrorAndSubmit();
             checkIfCanBeRendered();
 
             return () => {
-                PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+                clearPaymentCardFormErrorAndSubmit();
             };
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -61,16 +61,15 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     const addPaymentCard = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
             const cardData = {
-                cardNumber: CardUtils.getMCardNumberString(values.cardNumber),
-                cardMonth: CardUtils.getMonthFromExpirationDateString(values.expirationDate),
-                cardYear: CardUtils.getYearFromExpirationDateString(values.expirationDate),
+                cardNumber: getMCardNumberString(values.cardNumber),
+                cardMonth: getMonthFromExpirationDateString(values.expirationDate),
+                cardYear: getYearFromExpirationDateString(values.expirationDate),
                 cardCVV: values.securityCode,
                 addressName: values.nameOnCard,
                 addressZip: values.addressZipCode,
                 currency: values.currency,
             };
-
-            PolicyActions.addBillingCardAndRequestPolicyOwnerChange(policyID, cardData);
+            addBillingCardAndRequestPolicyOwnerChange(policyID, cardData);
         },
         [policyID],
     );
@@ -88,14 +87,14 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                         {translate('workspace.changeOwner.addPaymentCardReadAndAcceptTextPart1')}{' '}
                         <TextLink
                             style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.TERMS_URL}
+                            href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
                         >
                             {translate('workspace.changeOwner.addPaymentCardTerms')}
                         </TextLink>{' '}
                         {translate('workspace.changeOwner.addPaymentCardAnd')}{' '}
                         <TextLink
                             style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.PRIVACY_URL}
+                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                         >
                             {translate('workspace.changeOwner.addPaymentCardPrivacy')}
                         </TextLink>{' '}
@@ -108,7 +107,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                         containerStyles={[styles.mh0, styles.mt5]}
                     >
                         <View style={[styles.mt4, styles.ph2, styles.pb2]}>
-                            <Text style={[styles.searchInputStyle, styles.dFlex, styles.alignItemsCenter]}>
+                            <Text style={[styles.textSupportingNormal, styles.dFlex, styles.alignItemsCenter]}>
                                 <Icon
                                     src={Expensicons.Checkmark}
                                     additionalStyles={[styles.mr3]}
@@ -116,7 +115,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                                 />
                                 {translate('workspace.changeOwner.addPaymentCardPciCompliant')}
                             </Text>
-                            <Text style={[styles.mt3, styles.searchInputStyle, styles.dFlex, styles.alignItemsCenter]}>
+                            <Text style={[styles.mt3, styles.textSupportingNormal, styles.dFlex, styles.alignItemsCenter]}>
                                 <Icon
                                     src={Expensicons.Checkmark}
                                     additionalStyles={[styles.mr3]}
@@ -124,7 +123,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                                 />
                                 {translate('workspace.changeOwner.addPaymentCardBankLevelEncrypt')}
                             </Text>
-                            <Text style={[styles.mt3, styles.searchInputStyle, styles.dFlex, styles.alignItemsCenter]}>
+                            <Text style={[styles.mt3, styles.textSupportingNormal, styles.dFlex, styles.alignItemsCenter]}>
                                 <Icon
                                     src={Expensicons.Checkmark}
                                     additionalStyles={[styles.mr3]}
@@ -133,10 +132,10 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                                 {translate('workspace.changeOwner.addPaymentCardRedundant')}
                             </Text>
                         </View>
-                        <Text style={[styles.mt3, styles.searchInputStyle]}>
+                        <Text style={[styles.mt3, styles.textSupportingNormal]}>
                             {translate('workspace.changeOwner.addPaymentCardLearnMore')}{' '}
                             <TextLink
-                                style={[styles.searchInputStyle, styles.link]}
+                                style={[styles.textSupportingNormal, styles.link]}
                                 href={CONST.PERSONAL_DATA_PROTECTION_INFO_URL}
                             >
                                 {translate('workspace.changeOwner.addPaymentCardSecurity')}

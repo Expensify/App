@@ -8,6 +8,7 @@ import android.database.CursorWindow
 import android.os.Process
 import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage
+import com.expensify.chat.navbar.NavBarManagerPackage
 import com.expensify.chat.shortcutManagerModule.ShortcutManagerPackage
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
@@ -18,6 +19,7 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.modules.i18nmanager.I18nUtil
+import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.oblador.performance.RNPerformance
@@ -36,6 +38,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             add(BootSplashPackage())
             add(ExpensifyAppPackage())
             add(RNTextInputResetPackage())
+            add(NavBarManagerPackage())
         }
 
         override fun getJSMainModuleName() = ".expo/.virtual-metro-entry"
@@ -61,10 +64,10 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             return
         }
 
-        SoLoader.init(this,  /* native exopackage */false)
+        SoLoader.init(this, OpenSourceMergedSoMapping)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
-            load(bridgelessEnabled = false)
+            load()
         }
         if (BuildConfig.DEBUG) {
             FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false)

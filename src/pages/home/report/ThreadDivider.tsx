@@ -6,15 +6,13 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction, navigateToLinkedReportAction} from '@libs/ReportUtils';
 import type {Ancestor} from '@libs/ReportUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 type ThreadDividerProps = {
     /** Thread ancestor */
@@ -28,6 +26,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {isInNarrowPaneModal} = useResponsiveLayout();
     const {isOffline} = useNetwork();
 
     return (
@@ -47,19 +46,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
                 </>
             ) : (
                 <PressableWithoutFeedback
-                    onPress={() => {
-                        const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(
-                            ancestor.reportAction,
-                            ancestor.reportAction.reportActionID ?? '-1',
-                            ReportUtils.canUserPerformWriteAction(ancestor.report),
-                        );
-                        // Pop the thread report screen before navigating to the chat report.
-                        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));
-                        if (isVisibleAction && !isOffline) {
-                            // Pop the chat report screen before navigating to the linked report action.
-                            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1', ancestor.reportAction.reportActionID));
-                        }
-                    }}
+                    onPress={() => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction(ancestor.report), isOffline)}
                     accessibilityLabel={translate('threads.thread')}
                     role={CONST.ROLE.BUTTON}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}

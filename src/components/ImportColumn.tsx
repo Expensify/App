@@ -11,6 +11,7 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import Text from './Text';
 
+// cspell:disable
 function findColumnName(header: string): string {
     let attribute = '';
     const formattedHeader = Str.removeSpaces(String(header).toLowerCase().trim());
@@ -87,7 +88,7 @@ function findColumnName(header: string): string {
             break;
 
         case 'destination':
-            attribute = CONST.CSV_IMPORT_COLUMNS.NAME;
+            attribute = CONST.CSV_IMPORT_COLUMNS.DESTINATION;
             break;
 
         case 'subrate':
@@ -117,6 +118,7 @@ function findColumnName(header: string): string {
 
     return attribute;
 }
+// cspell:enable
 
 type ColumnRole = {
     /** Translated text to be displayed */

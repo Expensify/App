@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
+import type {ValueOf} from 'type-fest';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -21,9 +22,14 @@ type ConstantSelectorProps = {
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
     inputID: string;
+
+    /** Type of debug form - required to access constant field options for a specific form */
+    formType: ValueOf<typeof CONST.DEBUG.FORMS>;
+
+    policyID?: string;
 };
 
-function ConstantSelector({errorText = '', name, value, onInputChange}: ConstantSelectorProps) {
+function ConstantSelector({formType, policyID, errorText = '', name, value, onInputChange}: ConstantSelectorProps) {
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {
@@ -49,7 +55,7 @@ function ConstantSelector({errorText = '', name, value, onInputChange}: Constant
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}
             onPress={() => {
-                Navigation.navigate(ROUTES.DETAILS_CONSTANT_PICKER_PAGE.getRoute(name, value, Navigation.getActiveRoute()));
+                Navigation.navigate(ROUTES.DETAILS_CONSTANT_PICKER_PAGE.getRoute(formType, name, value, policyID, Navigation.getActiveRoute()));
             }}
             shouldShowRightIcon
         />

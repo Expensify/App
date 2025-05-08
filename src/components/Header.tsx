@@ -20,14 +20,20 @@ type HeaderProps = {
     /** Additional text styles */
     textStyles?: StyleProp<TextStyle>;
 
+    /** Additional header styles */
+    style?: StyleProp<ViewStyle>;
+
     /** Additional header container styles */
     containerStyles?: StyleProp<ViewStyle>;
 
     /** The URL link associated with the attachment's subtitle, if available */
     subTitleLink?: string;
+
+    /** Line number for the title */
+    numberOfTitleLines?: number;
 };
 
-function Header({title = '', subtitle = '', textStyles = [], containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = ''}: HeaderProps) {
+function Header({title = '', subtitle = '', textStyles = [], style, containerStyles = [], shouldShowEnvironmentBadge = false, subTitleLink = '', numberOfTitleLines = 2}: HeaderProps) {
     const styles = useThemeStyles();
     const renderedSubtitle = useMemo(
         () => (
@@ -65,11 +71,11 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
 
     return (
         <View style={[styles.flex1, styles.flexRow, containerStyles]}>
-            <View style={styles.mw100}>
+            <View style={[styles.mw100, style]}>
                 {typeof title === 'string'
                     ? !!title && (
                           <Text
-                              numberOfLines={2}
+                              numberOfLines={numberOfTitleLines}
                               style={[styles.headerText, styles.textLarge, textStyles]}
                           >
                               {title}

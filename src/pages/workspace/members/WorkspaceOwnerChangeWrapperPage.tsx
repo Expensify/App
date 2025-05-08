@@ -1,20 +1,19 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
-import * as MemberActions from '@userActions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -22,7 +21,7 @@ import type SCREENS from '@src/SCREENS';
 import WorkspaceOwnerChangeCheck from './WorkspaceOwnerChangeCheck';
 import WorkspaceOwnerPaymentCardForm from './WorkspaceOwnerPaymentCardForm';
 
-type WorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK>;
+type WorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK>;
 
 function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWrapperPageProps) {
     const styles = useThemeStyles();
@@ -56,7 +55,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
 
         if (changeOwnerErrors && changeOwnerErrors.length > 0) {
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors.at(0) as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
+            Navigation.setParams({error: changeOwnerErrors.at(0)});
         }
     }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
 
@@ -69,7 +68,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
                 <HeaderWithBackButton
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={() => {
-                        MemberActions.clearWorkspaceOwnerChangeFlow(policyID);
+                        clearWorkspaceOwnerChangeFlow(policyID);
                         Navigation.goBack();
                         Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
                     }}

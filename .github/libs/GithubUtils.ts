@@ -10,6 +10,7 @@ import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-method
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
 import {throttling} from '@octokit/plugin-throttling';
+import {RequestError} from '@octokit/request-error';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arrayDifference from '@src/utils/arrayDifference';
 import CONST from './CONST';
@@ -21,6 +22,12 @@ type ListForRepoResult = RestEndpointMethodTypes['issues']['listForRepo']['respo
 type OctokitIssueItem = OctokitComponents['schemas']['issue'];
 
 type ListForRepoMethod = RestEndpointMethods['issues']['listForRepo'];
+
+type CommitType = {
+    commit: string;
+    subject: string;
+    authorName: string;
+};
 
 type StagingDeployCashPR = {
     url: string;
@@ -56,7 +63,8 @@ type StagingDeployCashData = {
     isTimingDashboardChecked: boolean;
     isFirebaseChecked: boolean;
     isGHStatusChecked: boolean;
-    tag?: string;
+    version: string;
+    tag: string;
 };
 
 type InternalOctokit = OctokitCore & Api & {paginate: PaginateInterface};
@@ -184,7 +192,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue: OctokitIssueItem): StagingDeployCashData {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const tag = issue.body?.match(versionRegex)?.[0].replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
 
             return {
                 title: issue.title,
@@ -197,7 +205,8 @@ class GithubUtils {
                 isTimingDashboardChecked: issue.body ? /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body) : false,
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
-                tag,
+                version,
+                tag: `${version}-staging`,
             };
         } catch (exception) {
             throw new Error(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue with correct data.`);
@@ -310,7 +319,7 @@ class GithubUtils {
 
                     // Tag version and comparison URL
                     // eslint-disable-next-line max-len
-                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n`;
+                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
 
                     // PR list
                     if (sortedPRList.length > 0) {
@@ -356,7 +365,11 @@ class GithubUtils {
                     // eslint-disable-next-line max-len
                     issueBody += `\r\n- [${
                         isFirebaseChecked ? 'x' : ' '
-                    }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                    }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                    // eslint-disable-next-line max-len
+                    issueBody += `\r\n- [${
+                        isFirebaseChecked ? 'x' : ' '
+                    }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/android:org.me.mobiexpensifyg/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
                     // eslint-disable-next-line max-len
                     issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
 
@@ -457,6 +470,7 @@ class GithubUtils {
     /**
      * Get the most recent workflow run for the given New Expensify workflow.
      */
+    /* eslint-disable rulesdir/no-default-id-values */
     static getLatestWorkflowRunID(workflow: string | number): Promise<number> {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return this.octokit.actions
@@ -555,7 +569,39 @@ class GithubUtils {
             })
             .then((response) => response.url);
     }
+
+    /**
+     * Get commits between two tags via the GitHub API
+     */
+    static async getCommitHistoryBetweenTags(fromTag: string, toTag: string): Promise<CommitType[]> {
+        console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+
+        try {
+            const {data: comparison} = await this.octokit.repos.compareCommits({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                base: fromTag,
+                head: toTag,
+            });
+
+            // Map API response to our CommitType format
+            return comparison.commits.map((commit) => ({
+                commit: commit.sha,
+                subject: commit.commit.message,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                authorName: commit.commit.author?.name || 'Unknown',
+            }));
+        } catch (error) {
+            if (error instanceof RequestError && error.status === 404) {
+                console.error(
+                    `❓❓ Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`,
+                );
+            }
+            // Re-throw the error after logging
+            throw error;
+        }
+    }
 }
 
 export default GithubUtils;
-export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData};
+export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData, CommitType};

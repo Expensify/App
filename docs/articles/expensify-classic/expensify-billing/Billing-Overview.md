@@ -1,42 +1,120 @@
 ---
-title: Billing Overview
-description: An overview of how billing works in Expensify.
+title: Billing and Subscriptions
+description: Understand how Collect and Control plans are billed in Expensify, including pricing tiers, eligibility, and how to transfer billing ownership.
+keywords: [Expensify Classic, billing, subscription, pricing, collect plan, control plan, expensify card, billing owner, workspace billing, transfer billing]
 ---
-# Overview
-Expensify’s billing is based on monthly member activity. At the beginning of each month, you’ll be billed for the previous month’s activity. Your Expensify bill ultimately depends on your plan type, whether you're on an annual subscription or pay-per-use billing, and whether you’re using the Expensify Visa® Commercial Card. 
-# How billing works in Expensify
-Expensify bills the owners of Group Workspaces on the first of each month for the previous month's usage. You can find billing receipts in **Settings > Account > Payments > Billing History**. We recommend that businesses have one billing owner for all of their Group Workspaces.
-## Active members
-An **active member** is anyone who chats, creates, submits, approves, reimburses, or exports a report in Expensify in any given month. This includes Copilots and automated settings.
-## Annual subscription
-With an annual subscription, you set your monthly active member count at the beginning and get a 50% discount on your monthly active member cost. That means an annual subscription paired with the Collect plan will cost $10 per monthly active member instead of $20, and the Control plan will cost $18 instead of $36.
 
-Each month, you’ll be billed for the amount of members you originally set in your subscription size. Any active members in a given month above this subscription size will be billed at the pay-per-use rate.
+<div id="expensify-classic" markdown="1">
+  
+Here’s everything you need to know about how Expensify bills for Collect and Control plans. Learn how pricing works, who gets billed, and how to transfer billing ownership.
 
-For example, let’s say you set your annual subscription size at 10 members and you’re on the Control plan. You’ll be billed $18/member for 10 members each month. However, let’s say in one particular month you had 12 active members, you’d be billed at $18/member for the 10 members in your subscription size + $36/member (pay-per-use rate) for the additional 2 active members.
+# Billing and Subscriptions
 
-You can always increase your annual subscription size, which will extend your annual subscription length. However, you cannot reduce your annual subscription size until your current subscription has ended. If you have any questions about this, contact Concierge or your account manager. 
-## Pay-per-use
-The pay-per-use rate is the full rate per active member without any discounts. The pay-per-use rate for each member on the Collect plan is $20, and on the Control plan, it is $36.
-## How the Expensify Card can reduce your bill
-Bundling the Expensify Card with an annual subscription ensures you pay the lowest possible monthly price for Expensify. And the more you spend on Expensify Cards, the lower your bill will be.
+Expensify has two plans: **Collect** and **Control**.
 
-If at least 50% of your total settled US spend in a given month is on your company’s Expensify Cards, you will receive an additional 50% discount on the price per member. This additional 50% discount, when coupled with an annual subscription, brings the price per member to $5 on a Collect plan and $9 on a Control plan.
+Collect is perfect for small teams that need an easy way to track receipts and get reimbursed, while Control is built for growing businesses that want more control over spending, smoother approvals, and smarter policy automation. For a full breakdown of features across plans, visit [the Expensify pricing page](https://www.expensify.com/pricing).
 
-Additionally, every month, you receive 1% cash back on all Expensify Card purchases, and 2% if the spend across your Expensify Cards is $250k or more (_applies to US purchases only_). Any cash back from the Expensify Card is first applied to your Expensify bill, further reducing your price per member. Any leftover cash back is deposited directly into your connected bank account.
-## Savings calculator
-To see how much money you can save (and even earn!) by using the Expensify Card, check out our [savings calculator](https://use.expensify.com/price-savings-calculator). Just enter a few details and see how much you’ll save!
+---
 
-{% include faq-begin.md %}
+# Collect Plan
 
-## What if we put less than 50% of our total spend on the Expensify Card?
-If less than 50% of your total settled US spend in a given month is on the Expensify Card, your bill is discounted on a sliding scale.
+## 💵 Pricing
 
-**Example:**
-- Annual subscription discount: 50%
-- % of total settled Expensify Card spend (US purchases only) across all workspaces: 20% 
-- Expensify Card discount: 20%
+- $5 per **unique member** per month  
+- Fully month-to-month (no annual contracts)
 
-In that case, you'd save 70% on the price per member for that month's bill.
+## 👤 Who Gets Billed
 
-{% include faq-end.md %}
+- Every **unique member** added to a workspace, regardless of activity
+
+## 💳 Expensify Card not required
+
+- You do **not** need to use the Expensify Card to access this pricing  
+- However, 1% cash back still applies if you do use it
+
+## 📅 Eligibility
+
+- Applies to new Collect customers whose **first workspace** was created on or after **April 1, 2025**
+
+## 🌍 Localized Pricing
+
+- Equivalent pricing available in **GBP**, **AUD**, and **NZD**
+
+## 🔄 Flexible Scaling
+
+- Add or remove members anytime — your bill automatically adjusts each month
+
+## 🧾 Receipts
+
+- Receipts show: `X Collect members @ $5.00`  
+- View receipts under **Settings > Account > Subscription > Billing History**
+
+---
+
+# Control Plan
+
+## 💸 Best Way to Save
+
+- Combine an **annual subscription** with the **Expensify Visa® Commercial Card**  
+- Price: **$9 per active member/month**
+
+**To qualify:** Use the Expensify Card for **50% or more** of your total settled US spending for the month.
+
+**Bonus:**  
+Earn **1%–2% cash back**  
+- 1% for all US purchases  
+- 2% if monthly spend reaches **$250,000+**  
+- Cash back is applied to your bill first, then to your bank account
+
+👉 Use the [savings calculator](https://use.expensify.com/resource-center/tools/savings-calculator) to estimate your monthly savings.
+
+## 📅 Annual Subscription Only
+
+- Without card usage, pricing is **$18 per active member/month**  
+- Add users anytime (extends your term)  
+- You can only reduce users after your current term ends  
+- Extra users above your committed quantity are billed at **$36/month**
+
+## 🔁 Pay-per-use (no-commitment)
+
+- Price: **$36 per active member/month**  
+- This option allows flexibility without a long-term commitment
+
+## 👤 Who Gets Billed
+
+- Every **active member** (anyone who creates, submits, approves, reimburses, or exports reports during the month)  
+- Includes Copilots and automated Concierge actions
+
+## 💳 Expensify Card Access
+
+- Required for discounted pricing  
+- Cashback still applies even if the discounted rate isn’t reached
+
+## 🌍 Localized Pricing
+
+- Equivalent pricing available in **GBP**, **AUD**, and **NZD**
+
+## 🧾 Receipts
+
+- View billing receipts at **Settings > Account > Subscription > Billing History** 
+- We recommend having **one billing owner** per workspace
+
+---
+
+# Transfer Billing Ownership
+
+To change the billing owner of a workspace:
+
+1. Ensure the new billing owner is a **Workspace Admin**  
+2. Go to: **Settings > Workspaces > [Workspace Name] > Overview > Take Over Billing** 
+3. The new owner adds a payment card and will be billed starting on the 1st of the next month
+
+---
+
+# FAQ
+
+## Why am I being charged more than $5 per user for a Collect plan?
+
+The Collect plan pricing changed in **April 2025**. If your first workspace was created **before April 1, 2025**, your billing is based on the **previous pricing structure**. Contact **Concierge or your Account Manager** if you need help understanding your charges.
+
+</div>
