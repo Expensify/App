@@ -136,8 +136,6 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
         validateCode,
     };
 
-    console.log('CALL API');
-
     API.write(WRITE_COMMANDS.REQUEST_REPLACEMENT_EXPENSIFY_CARD, parameters, {
         optimisticData,
         successData,
