@@ -173,6 +173,9 @@ jobs:
             echo "HAS_CONFLICTS=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # This avoids a race condition where a staging deployment (potentially with a higher version)
+      # could complete before an ongoing production deployment (with a lower version),
+      # leading to failures when the production version is submitted to app stores.
       - name: Check for active production deployments before pushing to staging
         if: ${{ inputs.TARGET == 'staging' }}
         env:
