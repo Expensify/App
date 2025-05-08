@@ -59,6 +59,7 @@ import {rand64} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import Performance from '@libs/Performance';
+import Permissions from '@libs/Permissions';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
@@ -133,7 +134,6 @@ import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     isArchivedReport,
-    isArchivedReportWithID,
     isClosedReport as isClosedReportUtil,
     isDraftReport,
     isExpenseReport,
@@ -274,6 +274,7 @@ type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | '
     receipt?: Receipt;
     taxCode: string;
     taxAmount: number;
+    attendees?: Attendee[];
 };
 
 type TrackedExpensePolicyParams = {
@@ -365,6 +366,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
+    attendees?: Attendee[];
     customUnit: TransactionCustomUnit;
     comment?: string;
 };
@@ -456,6 +458,7 @@ type BuildOnyxDataForMoneyRequestParams = {
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
+    attendees?: Attendee[];
     validWaypoints: WaypointCollection;
     splitShares?: SplitShares;
 };
@@ -474,6 +477,7 @@ type CreateDistanceRequestInformation = {
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
     splitShares: SplitShares;
     iouRequestType?: IOURequestType;
+    attendees?: Attendee[];
 };
 
 type CreateSplitsAndOnyxDataParams = {
@@ -502,6 +506,7 @@ type TrackExpenseTransactionParams = {
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID?: string;
     customUnitRateID?: string;
+    attendees?: Attendee[];
 };
 
 type TrackExpenseAccountantParams = {
@@ -561,6 +566,7 @@ type GetTrackExpenseInformationTransactionParams = {
     taxAmount?: number;
     billable?: boolean;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
+    attendees?: Attendee[];
 };
 
 type GetTrackExpenseInformationParticipantParams = {
@@ -781,6 +787,12 @@ let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
+});
+
+let betas: OnyxEntry<OnyxTypes.Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (betas = value),
 });
 
 /**
@@ -3319,7 +3331,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const {parentChatReport, transactionParams, participantParams, policyParams = {}, moneyRequestReportID = ''} = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {comment = '', currency, created, category, tag, customUnit, billable} = transactionParams;
+    const {comment = '', currency, created, category, tag, customUnit, billable, attendees} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
     const merchant = computePerDiemExpenseMerchant(customUnit, policy);
@@ -3398,6 +3410,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             customUnit,
             billable,
             pendingFields: {subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            attendees,
         },
     });
     // This is to differentiate between a normal expense and a per diem expense
@@ -3524,7 +3537,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams} = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {comment, amount, currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction} = transactionParams;
+    const {comment, amount, currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction, attendees} = transactionParams;
 
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -3628,6 +3641,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
             reimbursable: false,
             filename,
+            attendees,
         },
     });
 
@@ -4860,6 +4874,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         engagementChoice: createdWorkspaceParams?.engagementChoice,
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
         description: transactionParams.comment,
+        attendees: transactionParams.attendees ? JSON.stringify(transactionParams.attendees) : undefined,
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -4962,6 +4977,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
         policyName: createdWorkspaceParams?.policyName,
         description: transactionParams.comment,
+        attendees: transactionParams.attendees ? JSON.stringify(transactionParams.attendees) : undefined,
         accountantEmail,
     };
 
@@ -5147,7 +5163,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         Navigation.removeScreenByKey(trackReport.key);
     }
 
-    if (activeReportID) {
+    if (activeReportID && (!isMoneyRequestReport || !Permissions.canUseTableReportView(betas))) {
         notifyNewAction(activeReportID, payeeAccountID);
     }
 }
@@ -5158,7 +5174,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
 function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInformation) {
     const {report, participantParams, policyParams = {}, transactionParams} = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
-    const {currency, comment = '', category, tag, created, customUnit} = transactionParams;
+    const {currency, comment = '', category, tag, created, customUnit, attendees} = transactionParams;
 
     if (
         isEmptyObject(policyParams.policy) ||
@@ -5219,6 +5235,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         transactionThreadReportID,
         createdReportActionIDForThread,
         billable,
+        attendees: attendees ? JSON.stringify(attendees) : undefined,
     };
 
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
@@ -5325,6 +5342,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         customUnitRateID,
+        attendees,
     } = transactionData;
 
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -5405,6 +5423,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 taxAmount,
                 billable,
                 linkedTrackedExpenseReportAction,
+                attendees,
             },
             policyParams: {
                 policy,
@@ -5444,6 +5463,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
+                attendees,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -5490,6 +5510,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
+                attendees,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -5630,6 +5651,7 @@ function createSplitsAndOnyxData({
         iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
         taxCode = '',
         taxAmount = 0,
+        attendees,
     },
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
@@ -5659,6 +5681,7 @@ function createSplitsAndOnyxData({
             taxAmount,
             billable,
             pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+            attendees,
         },
     });
 
@@ -6872,7 +6895,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const {policy, policyCategories, policyTagList} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
     transactionParams.comment = parsedComment;
-    const {amount, comment, currency, created, category, tag, taxAmount, taxCode, merchant, billable, validWaypoints, customUnitRateID = '', splitShares = {}} = transactionParams;
+    const {amount, comment, currency, created, category, tag, taxAmount, taxCode, merchant, billable, validWaypoints, customUnitRateID = '', splitShares = {}, attendees} = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -6910,6 +6933,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 taxCode,
                 taxAmount,
+                attendees,
             },
         });
         onyxData = splitOnyxData;
@@ -6933,6 +6957,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             splits: JSON.stringify(splits),
             chatType: splitData.chatType,
             description: parsedComment,
+            attendees: attendees ? JSON.stringify(attendees) : undefined,
         };
     } else {
         const participant = participants.at(0) ?? {};
@@ -6974,6 +6999,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 taxCode,
                 taxAmount,
                 billable,
+                attendees,
             },
         });
 
@@ -7000,6 +7026,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             payerEmail,
             customUnitRateID,
             description: parsedComment,
+            attendees: attendees ? JSON.stringify(attendees) : undefined,
         };
     }
 
@@ -7014,7 +7041,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
     dismissModalAndOpenReportInInboxTab(activeReportID);
-    notifyNewAction(activeReportID, userAccountID);
+
+    if (!isMoneyRequestReport || !Permissions.canUseTableReportView(betas)) {
+        notifyNewAction(activeReportID, userAccountID);
+    }
 }
 
 type UpdateMoneyRequestAmountAndCurrencyParams = {
@@ -8752,7 +8782,11 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
     notifyNewAction(params.chatReportID, managerID);
 }
 
-function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport, policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy) {
+function canApproveIOU(
+    iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
+    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
+    iouTransactions?: OnyxTypes.Transaction[],
+) {
     // Only expense reports can be approved
     if (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
         return false;
@@ -8770,7 +8804,7 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> |
     const iouSettled = isSettled(iouReport);
     const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
-    const reportTransactions = getReportTransactions(iouReport?.reportID);
+    const reportTransactions = iouTransactions ?? getReportTransactions(iouReport?.reportID);
     const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every(isPendingCardOrScanningTransaction);
     if (hasOnlyPendingCardOrScanningTransactions) {
         return false;
@@ -8869,10 +8903,10 @@ function canSubmitReport(
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
     transactions: OnyxTypes.Transaction[] | SearchTransaction[],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
+    isReportArchived = false,
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
-    const isArchived = isArchivedReportWithID(report?.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const transactionIDList = transactions.map((transaction) => transaction.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
@@ -8884,7 +8918,7 @@ function canSubmitReport(
     return (
         transactions.length > 0 &&
         isOpenExpenseReport &&
-        !isArchived &&
+        !isReportArchived &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
