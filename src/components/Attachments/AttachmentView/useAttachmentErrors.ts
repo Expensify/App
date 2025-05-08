@@ -9,10 +9,10 @@ function convertSourceToString(source: AttachmentSource) {
         return source.map((src) => src.uri).join(', ');
     }
     if ('uri' in source) {
-        return source.uri ?? 'Unknown source';
+        return source.uri ?? '';
     }
 
-    return 'Unknown source';
+    return '';
 }
 
 /**
@@ -26,12 +26,13 @@ function useAttachmentErrors() {
     const [attachmentErrors, setAttachmentErrors] = useState<Record<string, boolean>>({});
 
     const setAttachmentError = useCallback((key: AttachmentSource) => {
-        if (key === 'Unknown source') {
+        const url = convertSourceToString(key);
+        if (!url) {
             return;
         }
         setAttachmentErrors((prevState) => ({
             ...prevState,
-            [convertSourceToString(key)]: true,
+            [url]: true,
         }));
     }, []);
 
