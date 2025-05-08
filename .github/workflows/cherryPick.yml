@@ -173,6 +173,24 @@ jobs:
             echo "HAS_CONFLICTS=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Check for active production deployments before pushing to staging
+        if: ${{ inputs.TARGET == 'staging' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DEPLOY_WORKFLOW_FILENAME="deploy.yml"
+          ACTIVE_PRODUCTION_RUNS=$(gh api repos/${{ github.repository }}/actions/workflows/${DEPLOY_WORKFLOW_FILENAME}/runs \
+            --jq --arg branch "production" \
+            '.workflow_runs[] | select(.head_branch == $branch and (.status == "in_progress" or .status == "queued")) | .id')
+
+          if [[ -n "$ACTIVE_PRODUCTION_RUNS" ]]; then
+            FORMATTED_RUN_IDS=$(echo "$ACTIVE_PRODUCTION_RUNS" | paste -sd, -)
+            echo "::error::A production deployment (workflow: ${DEPLOY_WORKFLOW_FILENAME}, run IDs: ${FORMATTED_RUN_IDS}) is currently in progress or queued. Please wait for it to complete before cherry-picking to staging."
+            exit 1
+          else
+            echo "No active production deployment found for workflow ${DEPLOY_WORKFLOW_FILENAME}. Proceeding with cherry-pick to staging."
+          fi
+          
       - name: Push changes
         run: |
           if [[ '${{ steps.cherryPick.outputs.HAS_CONFLICTS }}' == 'true' ]]; then
