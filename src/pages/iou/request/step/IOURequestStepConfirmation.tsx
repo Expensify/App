@@ -34,7 +34,7 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getRateID, getRequestType, getTransactionOrDraftTransaction, getValidWaypoints} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import type {GpsPoint} from '@userActions/IOU';
 import {
@@ -64,6 +64,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -78,13 +79,25 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route: {
-        params: {iouType, reportID, transactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport},
+        params: {iouType, reportID, transactionID: initialTransactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport},
     },
-    transaction,
+    transaction: initialTransaction,
     isLoadingTransaction,
 }: IOURequestStepConfirmationProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
+
+    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: (items) => Object.values(items ?? {}).filter((item) => item?.isOptimisticTransaction && item?.reportID === reportID),
+    });
+    const transactions = useMemo(() => {
+        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
+        return allTransactions.filter((transaction) => !!transaction) as Transaction[];
+    }, [initialTransaction, initialTransactionID, optimisticTransactions]);
+    // We will use setCurrentTransactionID later to switch between transactions
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [currentTransactionID, setCurrentTransactionID] = useState<string>(initialTransactionID);
+    const transaction = useMemo(() => getTransactionOrDraftTransaction(currentTransactionID), [currentTransactionID]);
 
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`, {canBeMissing: true});
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, reportReal)}`, {canBeMissing: true});
@@ -213,8 +226,10 @@ function IOURequestStepConfirmation({
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
-        setMoneyRequestBillable(transactionID, defaultBillable);
-    }, [transactionID, defaultBillable]);
+        transactions.forEach((item) => {
+            setMoneyRequestBillable(item.transactionID, defaultBillable);
+        });
+    }, [transactions, defaultBillable]);
 
     useEffect(() => {
         // Exit early if the transaction is still loading
@@ -246,25 +261,29 @@ function IOURequestStepConfirmation({
     }, [isLoadingTransaction, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
-        if (!transaction?.category) {
-            return;
-        }
-        if (policyCategories?.[transaction.category] && !policyCategories[transaction.category].enabled) {
-            setMoneyRequestCategory(transactionID, '', policy?.id);
-        }
-    }, [policy?.id, policyCategories, transaction?.category, transactionID]);
+        transactions.forEach((item) => {
+            if (!item.category) {
+                return;
+            }
+            if (policyCategories?.[item.category] && !policyCategories[item.category].enabled) {
+                setMoneyRequestCategory(item.transactionID, '', policy?.id);
+            }
+        });
+    }, [policy?.id, policyCategories, transactions]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const defaultCategory = policyDistance?.defaultCategory ?? '';
 
     useEffect(() => {
-        if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !!transaction?.category) {
-            return;
-        }
-        setMoneyRequestCategory(transactionID, defaultCategory, policy?.id);
+        transactions.forEach((item) => {
+            if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !!item?.category) {
+                return;
+            }
+            setMoneyRequestCategory(item.transactionID, defaultCategory, policy?.id);
+        });
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [transactionID, requestType, defaultCategory, policy?.id]);
+    }, [transactions, requestType, defaultCategory, policy?.id]);
 
     /**
      * Sets the upload receipt error modal content when an invalid receipt is uploaded
@@ -306,7 +325,7 @@ function IOURequestStepConfirmation({
                 // Store the receipt on the transaction object in Onyx
                 const source = URL.createObjectURL(file as Blob);
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                setMoneyRequestReceipt(transactionID, source, file.name || '', true);
+                setMoneyRequestReceipt(currentTransactionID, source, file.name || '', true);
             });
         });
     };
@@ -319,7 +338,7 @@ function IOURequestStepConfirmation({
             return;
         }
         if (isPerDiemRequest) {
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, initialTransactionID, reportID));
             return;
         }
 
@@ -327,7 +346,9 @@ function IOURequestStepConfirmation({
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action), {compareParams: false});
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, transaction?.reportID || reportID, undefined, action), {
+                    compareParams: false,
+                });
                 return;
             }
 
@@ -338,7 +359,7 @@ function IOURequestStepConfirmation({
         }
 
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
-        navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
+        navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action);
     }, [
         action,
         isPerDiemRequest,
@@ -348,14 +369,14 @@ function IOURequestStepConfirmation({
         transaction?.reportID,
         requestType,
         iouType,
-        transactionID,
+        initialTransactionID,
         reportID,
         participantsAutoAssignedFromRoute,
     ]);
 
     const navigateToAddReceipt = useCallback(() => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-    }, [iouType, transactionID, reportID, action]);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, initialTransactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+    }, [iouType, initialTransactionID, reportID, action]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
@@ -381,8 +402,8 @@ function IOURequestStepConfirmation({
             setReceiptFile(receipt);
         };
 
-        navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
-    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action, transaction?.receipt, report, transaction, participants]);
+        navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, initialTransactionID, reportID, receiptType);
+    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, initialTransactionID, reportID, action, transaction?.receipt, report, transaction, participants]);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: GpsPoint) => {
@@ -711,6 +732,7 @@ function IOURequestStepConfirmation({
 
             if (iouType === CONST.IOU.TYPE.TRACK || isCategorizingTrackExpense || isSharingTrackExpense) {
                 if (receiptFile && transaction) {
+                    // TODO: add multiple transactions support
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                     if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                         if (userLocation) {
@@ -755,6 +777,7 @@ function IOURequestStepConfirmation({
             }
 
             if (receiptFile && !!transaction) {
+                // TODO: add multiple transactions support
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (
                     transaction.amount === 0 &&
@@ -852,9 +875,9 @@ function IOURequestStepConfirmation({
 
     const setBillable = useCallback(
         (billable: boolean) => {
-            setMoneyRequestBillable(transactionID, billable);
+            setMoneyRequestBillable(currentTransactionID, billable);
         },
-        [transactionID],
+        [currentTransactionID],
     );
 
     // This loading indicator is shown because the transaction originalCurrency is being updated later than the component mounts.
