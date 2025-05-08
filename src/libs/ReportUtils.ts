@@ -10352,23 +10352,17 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     let exportIntegrationActionsCount = 0;
     let integrationMessageActionsCount = 0;
 
-    if (Array.isArray(reportActions)) {
-        for (const action of reportActions) {
-            if (isExportIntegrationAction(action)) {
-                exportIntegrationActionsCount++;
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
+    for (const action of reportActionList) {
+        if (isExportIntegrationAction(action)) {
+            // We consider any reports marked manually as exported to be exported, so we shortcircuit here.
+            if (getOriginalMessage(action)?.markedManually) {
+                return true;
             }
-            if (isIntegrationMessageAction(action)) {
-                integrationMessageActionsCount++;
-            }
+            exportIntegrationActionsCount++;
         }
-    } else {
-        for (const action of Object.values(reportActions)) {
-            if (isExportIntegrationAction(action)) {
-                exportIntegrationActionsCount++;
-            }
-            if (isIntegrationMessageAction(action)) {
-                integrationMessageActionsCount++;
-            }
+        if (isIntegrationMessageAction(action)) {
+            integrationMessageActionsCount++;
         }
     }
 
