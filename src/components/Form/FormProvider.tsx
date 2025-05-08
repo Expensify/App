@@ -344,9 +344,7 @@ function FormProvider(
                 defaultValue: inputProps.uncontrolled ? inputProps.defaultValue : undefined,
                 onTouched: (event) => {
                     if (!inputProps.shouldSetTouchedOnBlurOnly) {
-                        setTimeout(() => {
-                            setTouchedInput(inputID);
-                        }, VALIDATE_DELAY);
+                        setTouchedInput(inputID);
                     }
                     inputProps.onTouched?.(event);
                 },
