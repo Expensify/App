@@ -21,7 +21,7 @@ type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute;
 function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
     const styles = useThemeStyles();
     const policyID = route?.params?.policyID;
-    const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const isPolicyLoading = isLoadingOnyxValue(policyResult);
     const inviterEmail = route?.params?.email;
     const isUnmounted = useRef(false);
@@ -32,7 +32,13 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
         }
         if (!isEmptyObject(policy) && !policy?.isJoinRequestPending && !isPendingDeletePolicy(policy)) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.goBack(undefined, {shouldPopToTop: true});
+                if (Navigation.getShouldPopToSidebar()) {
+                    Navigation.popToSidebar();
+                    return;
+                }
+                Navigation.goBack();
+                // Navigation.goBack(undefined, {shouldPopToTop: true});
+                // Navigation.popToSidebar(); // shouldpoptotop
                 Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
             });
             return;

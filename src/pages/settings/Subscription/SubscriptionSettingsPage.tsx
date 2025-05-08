@@ -33,7 +33,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     useEffect(() => {
         openSubscriptionPage();
     }, []);
-    const [isAppLoading] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isAppLoading] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     if (!subscriptionPlan && isAppLoading) {
         return <FullScreenLoadingIndicator />;
@@ -49,7 +49,13 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
-                onBackButtonPress={() => Navigation.goBack(backTo, {shouldPopToTop: true})}
+                onBackButtonPress={() => {
+                    if (Navigation.getShouldPopToSidebar()) {
+                        Navigation.popToSidebar();
+                        return;
+                    }
+                    Navigation.goBack(backTo);
+                }} // tu sprawdzic globalna zmienna i powrot na backto shouldpoptotop
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 icon={Illustrations.CreditCardsNew}
