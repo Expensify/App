@@ -6536,6 +6536,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             CREATED_BY: 'createdBy',
             IN: 'in',
+            EXPAND: 'expand',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
