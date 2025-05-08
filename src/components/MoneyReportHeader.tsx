@@ -716,6 +716,19 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         );
     }
 
+    const reopenExportedReportWarningText = (
+        <Text>
+            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text>
+            <Text>
+                {translate(
+                    'iou.reopenExportedReportConfirmation',
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    {connectionName: connectedIntegration!},
+                )}
+            </Text>
+        </Text>
+    );
+
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
@@ -919,7 +932,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 cancelText={translate('common.cancel')}
                 onCancel={() => setIsReopenWarningModalVisible(false)}
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                prompt={translate('iou.reopenExportedReportConfirmation', {connectionName: connectedIntegration!})}
+                prompt={reopenExportedReportWarningText}
             />
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
