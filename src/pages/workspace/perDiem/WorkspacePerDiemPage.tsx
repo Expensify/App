@@ -42,6 +42,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {openExternalLink} from '@userActions/Link';
 import {turnOffMobileSelectionMode} from '@userActions/MobileSelectionMode';
@@ -195,7 +196,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         [allSubRates, selectedPerDiem, canSelectMultiple, styles.flex2, styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2, styles.alignSelfEnd],
     );
 
-    const filterRate = useCallback((rate: PolicyOption, searchInput: string) => !!rate.text?.toLowerCase().includes(searchInput), []);
+    const filterRate = useCallback((rate: PolicyOption, searchInput: string) => {
+        const rateText = StringUtils.normalize(rate.text?.toLowerCase() ?? '');
+        const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase());
+        return rateText.includes(normalizedSearchInput);
+    }, []);
     const sortRates = useCallback((rates: PolicyOption[]) => lodashSortBy(rates, 'text', localeCompare) as PolicyOption[], []);
     const [inputValue, setInputValue, filteredSubRatesList] = useSearchResults(subRatesList, filterRate, sortRates);
 

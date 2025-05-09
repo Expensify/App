@@ -492,13 +492,12 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         isPolicyAdmin,
     ]);
 
-    const filterMember = useCallback(
-        (memberOption: MemberOption, searchQuery: string) =>
-            !!StringUtils.normalizeWhitespaces(memberOption.text ?? '')
-                .toLowerCase()
-                .includes(searchQuery) || !!memberOption.alternateText?.toLowerCase().includes(searchQuery),
-        [],
-    );
+    const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
+        const memberText = StringUtils.normalize(memberOption.text?.toLowerCase() ?? '');
+        const alternateText = StringUtils.normalize(memberOption.alternateText?.toLowerCase() ?? '');
+        const normalizedSearchQuery = StringUtils.normalize(searchQuery);
+        return memberText.includes(normalizedSearchQuery) || alternateText.includes(normalizedSearchQuery);
+    }, []);
     const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text'), []);
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 

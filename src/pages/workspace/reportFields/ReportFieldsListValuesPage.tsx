@@ -38,6 +38,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -138,7 +139,11 @@ function ReportFieldsListValuesPage({
         [canSelectMultiple, disabledListValues, listValues, selectedValues, translate, updateReportFieldListValueEnabled],
     );
 
-    const filterListValue = useCallback((item: ValueListItem, searchInput: string) => !!item.text?.toLowerCase().includes(searchInput.toLowerCase()), []);
+    const filterListValue = useCallback((item: ValueListItem, searchInput: string) => {
+        const itemText = StringUtils.normalize(item.text?.toLowerCase() ?? '');
+        const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase());
+        return itemText.includes(normalizedSearchInput);
+    }, []);
     const sortListValues = useCallback((values: ValueListItem[]) => values.sort((a, b) => localeCompare(a.value, b.value)), []);
     const [inputValue, setInputValue, filteredListValues] = useSearchResults(data, filterListValue, sortListValues);
 
