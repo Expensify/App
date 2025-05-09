@@ -304,6 +304,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             />
         );
     }, [
+        account?.guideDetails?.calendarLink,
+        canUseCallScheduling,
         report?.reportID,
         reportNameValuePairs?.calendlyCalls,
         shouldShowGuideBookingButtonInEarlyDiscountBanner,
