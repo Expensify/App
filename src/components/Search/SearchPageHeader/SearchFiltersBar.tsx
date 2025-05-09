@@ -32,7 +32,7 @@ import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -210,17 +210,22 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     onChange={(selectedDates) => {
                         const newFilterFormValues = {
                             ...filterFormValues,
+                            ...queryJSON,
                             dateAfter: selectedDates.after ?? undefined,
                             dateBefore: selectedDates.before ?? undefined,
                             dateOn: selectedDates.on ?? undefined,
                         };
-                        const queryString = buildQueryStringFromFilterFormValues(newFilterFormValues);
+
+                        const filterString = buildQueryStringFromFilterFormValues(newFilterFormValues);
+                        const newJSON = buildSearchQueryJSON(filterString);
+                        const queryString = buildSearchQueryString(newJSON);
+
                         Navigation.setParams({q: queryString});
                     }}
                 />
             );
         },
-        [filterFormValues],
+        [filterFormValues, queryJSON],
     );
 
     const userPickerComponent = useCallback(

@@ -71,9 +71,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
-            {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            },
+            {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT},
         );
 
         const filteredOptionsList = filterAndOrderOptions(optionsList, cleanSearchTerm, {

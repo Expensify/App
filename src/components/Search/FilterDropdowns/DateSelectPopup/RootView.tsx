@@ -7,7 +7,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import type {DateSelectPopupValue} from '.';
 
@@ -32,14 +31,15 @@ function RootView({value, applyChanges, resetChanges, setView}: RootViewProps) {
             <View>
                 {Object.values(CONST.SEARCH.DATE_FILTERS).map((dateType) => {
                     const dateValue = value[dateType];
-                    const description = dateValue ? DateUtils.extractDate(dateValue) : undefined;
+                    const description = dateValue ?? undefined;
 
                     return (
                         <MenuItem
+                            key={dateType}
                             shouldShowRightIcon
-                            onPress={() => setView(dateType)}
                             title={translate(`common.${dateType}`)}
                             description={description}
+                            onPress={() => setView(dateType)}
                         />
                     );
                 })}
