@@ -16,6 +16,7 @@ import {setCompanyCardExportAccount} from '@libs/actions/CompanyCards';
 import {filterInactiveCards} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getConnectedIntegration, getCurrentConnectionName} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -36,7 +37,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [searchText, setSearchText] = useState('');
 
-    const [allBankCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`, {selector: filterInactiveCards});
+    const [allBankCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`, {selector: filterInactiveCards, canBeMissing: true});
     const card = allBankCards?.[cardID];
     const connectedIntegration = getConnectedIntegration(policy) ?? CONST.POLICY.CONNECTIONS.NAME.QBO;
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card, Navigation.getActiveRoute());
@@ -46,7 +47,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
     const searchedListOptions = useMemo(() => {
-        return exportMenuItem?.data.filter((option) => option.value.toLowerCase().includes(searchText));
+        return tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.value]);
     }, [exportMenuItem?.data, searchText]);
 
     const listEmptyContent = useMemo(
