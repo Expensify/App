@@ -167,6 +167,7 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                         const numberOfLines = DebugUtils.getNumberOfLinesFromString((formDraftData?.[key as keyof typeof formDraftData] as string) ?? value);
                         return (
                             <InputWrapper
+                                key={key}
                                 InputComponent={TextInput}
                                 inputID={key}
                                 accessibilityLabel={key}
@@ -187,6 +188,7 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {numberFields.map(([key, value]) => (
                         <InputWrapper
+                            key={key}
                             InputComponent={TextInput}
                             inputID={key}
                             accessibilityLabel={key}
@@ -234,6 +236,7 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {booleanFields.map(([key, value]) => (
                         <InputWrapper
+                            key={key}
                             InputComponent={CheckboxWithLabel}
                             label={key}
                             inputID={key}
