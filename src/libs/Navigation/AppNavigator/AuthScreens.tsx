@@ -74,6 +74,7 @@ import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
+import markAllReportsAsRead from '@libs/markAllReportsAsRead';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -277,6 +278,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
+        const markAllReportsAsReadShortcutConfig = CONST.KEYBOARD_SHORTCUTS.MARK_ALL_REPORTS_AS_READ;
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
@@ -413,12 +415,21 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             true,
         );
 
+        const unsubscribeMarkAllReportsAsReadShortcut = KeyboardShortcut.subscribe(
+            markAllReportsAsReadShortcutConfig.shortcutKey,
+            markAllReportsAsRead,
+            markAllReportsAsReadShortcutConfig.descriptionKey,
+            markAllReportsAsReadShortcutConfig.modifiers,
+            true,
+        );
+
         return () => {
             unsubscribeEscapeKey();
             unsubscribeOnyxModal();
             unsubscribeShortcutsOverviewShortcut();
             unsubscribeSearchShortcut();
             unsubscribeChatShortcut();
+            unsubscribeMarkAllReportsAsReadShortcut();
             Session.cleanupSession();
         };
 
