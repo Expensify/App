@@ -10,10 +10,36 @@ class PatchedArtifactsConfig {
 
 def patchedArtifactsConfig = settings.getExtensions().create('patchedArtifactsConfig', PatchedArtifactsConfig)
 
+def lifecycle(message) {
+    logger.lifecycle("\u001B[34m[PatchedArtifacts] $message\u001B[0m")
+}
+
+def warn(message) {
+    logger.warn("\u001B[33m[PatchedArtifacts] $message\u001B[0m")
+}
+
+def error(message) {
+    logger.error("\u001B[31m[PatchedArtifacts] $message\u001B[0m")
+}
+
+def warnIfNotConfigured(reason) {
+    warn("$reason")
+    warn("For setup instructions, refer to: https://github.com/Expensify/App/blob/main/README.md#using-patched-artifacts")
+}
+
 def runCommand(command) {
     def process = command.execute()
     process.waitFor(5, TimeUnit.SECONDS)
-    return [output: process.in.text.trim(), exitCode: process.exitValue()]
+    return [output: process.in.text?.trim(), exitCode: process.exitValue()]
+}
+
+def hasGithubCLI() {
+    return runCommand(["which", "gh"]).exitCode == 0
+}
+
+def hasRequiredScopes() {
+    def scopes = runCommand(["gh", "auth", "status"]).output
+    return scopes.contains("read:packages")
 }
 
 def getGithubUsername() {
@@ -22,6 +48,29 @@ def getGithubUsername() {
 
 def getGithubToken() {
     return runCommand(["gh", "auth", "token"]).output
+}
+
+def getCredentials() {
+    if (!hasGithubCLI()) {
+        warnIfNotConfigured("No Github CLI found.")
+        return null
+    }
+
+    try {
+        if(!hasRequiredScopes()) {
+            warnIfNotConfigured("Github token does not have required scope read:packages.")
+            return null
+        }
+
+        return [
+            githubUsername: getGithubUsername(),
+            githubToken: getGithubToken(),
+        ]
+    } catch (Exception e) {
+        println(e)
+        warnIfNotConfigured("Failed to get Github credentials. This might be due to an expired token or not being logged in.")
+        return null
+    }
 }
 
 def getReactNativeVersion() {
@@ -36,10 +85,10 @@ def getArtifactsCandidates(packageName) {
     return patchedVersions.split("\n").findAll { it.startsWith(reactNativeVersion) }
 }
 
-def getPomFile(version, packageName) {
+def getPomFile(version, packageName, githubToken) {
     return new XmlSlurper().parse(
         new URL("https://maven.pkg.github.com/Expensify/App/com/expensify/${packageName}/react-android/${version}/react-android-${version}.pom").openConnection().with {
-            setRequestProperty("Authorization", "Bearer ${getGithubToken()}")
+            setRequestProperty("Authorization", "Bearer ${githubToken}")
             getInputStream()
         }
     )
@@ -50,27 +99,34 @@ def hasDiff(commitHash) {
     return false
 }
 
-def findMatchingArtifactsVersion(packageName) {
-    def candidates = getArtifactsCandidates(packageName)
-    for (candidate in candidates) {
-        def commitHash = getPomFile(candidate, packageName).properties.commitHash.text()
-        return candidate
-        if (!hasDiff(commitHash)) {
-            return candidate
+def findMatchingArtifactsVersion(packageName, githubToken) {
+    try {
+        def candidates = getArtifactsCandidates(packageName)
+        for (candidate in candidates) {
+            def commitHash = getPomFile(candidate, packageName, githubToken).properties.commitHash.text()
+            if (!hasDiff(commitHash)) {
+                return candidate
+            }
         }
+    } catch (Exception e) {
+        error("Failed to find matching artifacts version for ${packageName}. Reason: $e")
+        return null
     }
-
-    return null
 }
 
 settings.extensions.configure(PatchedArtifactsConfig) { config ->
+    def credentials = getCredentials()
     config.packageName = getProperty('patchedArtifactsConfig.packageName')
-    config.version = findMatchingArtifactsVersion(config.packageName)
-    config.githubUsername = getGithubUsername()
-    config.githubToken = getGithubToken()
+
+    if(credentials != null) {
+        config.githubUsername = credentials.githubUsername
+        config.githubToken = credentials.githubToken
+        config.version = findMatchingArtifactsVersion(config.packageName, config.githubToken)
+    }
 
     if(config.version == null || config.packageName == null || config.githubUsername == null || config.githubToken == null) { 
-        logger.lifecycle("\u001B[34m[PatchedArtifacts] No matching artifacts version found for ${config.packageName}. Buillding react-native from source.\u001B[0m")
+        lifecycle("No matching artifacts version found for ${config.packageName}. Buillding react-native from source.")
+        // TODO: This path needs to be fixed
         includeBuild("$newDotNodeModules/react-native") {
             dependencySubstitution {
                 substitute(module("com.facebook.react:react-android")).using(project(":packages:react-native:ReactAndroid"))
@@ -81,6 +137,6 @@ settings.extensions.configure(PatchedArtifactsConfig) { config ->
         }
     }
     else {
-        logger.lifecycle("\u001B[34m[PatchedArtifacts] Using patched react-native artifacts: ${config.packageName}:${config.version}\u001B[0m")
+        lifecycle("Using patched react-native artifacts: ${config.packageName}:${config.version}")
     }
 }
