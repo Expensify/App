@@ -195,7 +195,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled, canBeMissing: false});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.isDebugModeEnabled, canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -439,7 +439,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 (!isUserCreatedPolicyRoom && participants.length) ||
                 (isUserCreatedPolicyRoom && (isPolicyEmployee || (isChatThread && !isPublicRoomUtil(report))))) &&
             !isConciergeChatReport(report) &&
-            !isSystemChat
+            !isSystemChat &&
+            activeChatMembers.length > 0
         ) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
@@ -779,7 +780,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         caseID !== CASES.DEFAULT &&
         (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) &&
         !isArchivedNonExpenseReport(transactionThreadReportID ? report : parentReport, transactionThreadReportID ? reportNameValuePairs : parentReportNameValuePairs);
-    const canJoin = canJoinChat(report, parentReportAction, policy);
+    const canJoin = canJoinChat(report, parentReportAction, policy, reportNameValuePairs);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
@@ -1173,6 +1174,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     onClose={() => setIsPDFModalVisible(false)}
                     isVisible={isPDFModalVisible}
                     type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+                    innerContainerStyle={styles.pv0}
                 >
                     <View style={[styles.m5]}>
                         <View>

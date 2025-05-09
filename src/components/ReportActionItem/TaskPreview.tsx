@@ -77,7 +77,7 @@ function TaskPreview({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`);
+    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, {canBeMissing: true});
     const taskTitle = action?.childReportName ?? taskReport?.reportName ?? '';
 
     const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
@@ -113,7 +113,7 @@ function TaskPreview({
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
-                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID))}
+                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => {

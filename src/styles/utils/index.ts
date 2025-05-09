@@ -1631,6 +1631,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
+            case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
+            case CONST.SEARCH.TABLE_COLUMNS.CREATED_BY:
+            case CONST.SEARCH.TABLE_COLUMNS.TITLE:
+            case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+            case CONST.SEARCH.TABLE_COLUMNS.IN:
                 columnWidth = styles.flex1;
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
@@ -1767,7 +1772,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : [],
         {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
     ],
-
     getResetStyle: <K extends TextStyle | ViewStyle>(keys: Array<keyof K>) =>
         keys.reduce((styleobj: Nullable<K>, key) => {
             // eslint-disable-next-line no-param-reassign

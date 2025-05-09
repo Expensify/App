@@ -15,6 +15,7 @@ import DecisionModal from '@components/DecisionModal';
 import {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} from '@components/Icon/Expensicons';
 import {ReceiptWrangler} from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -22,12 +23,14 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -51,9 +54,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getAccountIDsByLogins, getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
@@ -61,7 +65,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList, PolicyEmployeeList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyEmployee, PolicyEmployeeList} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -83,9 +87,20 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
 function WorkspaceMembersPage({personalDetails, route, policy, currentUserPersonalDetails}: WorkspaceMembersPageProps) {
-    const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
+    const {policyMemberEmailsToAccountIDs, employeeListDetails} = useMemo(() => {
+        const emailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, true);
+        const details = Object.keys(policy?.employeeList ?? {}).reduce<Record<number, PolicyEmployee>>((acc, email) => {
+            const employee = policy?.employeeList?.[email];
+            const accountID = emailsToAccountIDs[email];
+            if (!employee) {
+                return acc;
+            }
+            acc[accountID] = employee;
+            return acc;
+        }, {});
+        return {policyMemberEmailsToAccountIDs: emailsToAccountIDs, employeeListDetails: details};
+    }, [policy?.employeeList]);
     const styles = useThemeStyles();
-    const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
     const {isOffline} = useNetwork();
@@ -99,6 +114,23 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
+
+    const filterEmployees = useCallback(
+        (employee?: PolicyEmployee) => {
+            if (!employee?.email) {
+                return false;
+            }
+            const employeeAccountID = getAccountIDsByLogins([employee.email]).at(0);
+            if (!employeeAccountID) {
+                return false;
+            }
+            const isPendingDelete = employeeListDetails?.[employeeAccountID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            return accountIDs.includes(employeeAccountID) && !isPendingDelete;
+        },
+        [accountIDs, employeeListDetails],
+    );
+
+    const [selectedEmployees, setSelectedEmployees] = useFilteredSelection(employeeListDetails, filterEmployees);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -180,7 +212,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     // useFocus would make getWorkspaceMembers get called twice on fresh login because policyEmployee is a dependency of getWorkspaceMembers.
     useEffect(() => {
         if (!isFocused) {
-            setSelectedEmployees([]);
             return;
         }
         getWorkspaceMembers();
@@ -195,11 +226,11 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         if (removeMembersConfirmModalVisible && !lodashIsEqual(accountIDs, prevAccountIDs)) {
             setRemoveMembersConfirmModalVisible(false);
         }
-        setSelectedEmployees((prevSelected) => {
+        setSelectedEmployees((prevSelectedEmployees) => {
             // Filter all personal details in order to use the elements needed for the current workspace
             const currentPersonalDetails = filterPersonalDetails(policy?.employeeList ?? {}, personalDetails);
             // We need to filter the previous selected employees by the new personal details, since unknown/new user id's change when transitioning from offline to online
-            const prevSelectedElements = prevSelected.map((id) => {
+            const prevSelectedElements = prevSelectedEmployees.map((id) => {
                 const prevItem = prevPersonalDetails?.[id];
                 const res = Object.values(currentPersonalDetails).find((item) => prevItem?.login === item?.login);
                 return res?.accountID ?? id;
@@ -311,7 +342,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             setSelectedEmployees((prevSelected) => [...prevSelected, accountID]);
             validateSelection();
         },
-        [validateSelection],
+        [validateSelection, setSelectedEmployees],
     );
 
     /**
@@ -322,7 +353,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             setSelectedEmployees((prevSelected) => prevSelected.filter((id) => id !== accountID));
             validateSelection();
         },
-        [validateSelection],
+        [validateSelection, setSelectedEmployees],
     );
 
     /**
@@ -377,9 +408,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
-    const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
-    const getUsers = useCallback((): MemberOption[] => {
-        let result: MemberOption[] = [];
+    const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
+    const data: MemberOption[] = useMemo(() => {
+        const result: MemberOption[] = [];
 
         Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
             const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
@@ -441,7 +472,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 invitedSecondaryLogin: details?.login ? invitedPrimaryToSecondaryLogins[details.login] ?? '' : '',
             });
         });
-        result = sortAlphabetically(result, 'text');
         return result;
     }, [
         isOffline,
@@ -462,7 +492,14 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         isPolicyAdmin,
     ]);
 
-    const data = useMemo(() => getUsers(), [getUsers]);
+    const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
+        const memberText = StringUtils.normalize(memberOption.text?.toLowerCase() ?? '');
+        const alternateText = StringUtils.normalize(memberOption.alternateText?.toLowerCase() ?? '');
+        const normalizedSearchQuery = StringUtils.normalize(searchQuery);
+        return memberText.includes(normalizedSearchQuery) || alternateText.includes(normalizedSearchQuery);
+    }, []);
+    const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text'), []);
+    const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
     useEffect(() => {
         if (!isFocused) {
@@ -532,8 +569,8 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             return policy?.employeeList?.[email]?.role !== role;
         });
 
-        updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
         setSelectedEmployees([]);
+        updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
     };
 
     const getBulkActionsButtonOptions = () => {
@@ -688,6 +725,15 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             {() => (
                 <>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    {shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : getHeaderContent()}
+                    {data.length > CONST.SEARCH_ITEM_LIMIT && (
+                        <SearchBar
+                            inputValue={inputValue}
+                            onChangeText={setInputValue}
+                            label={translate('workspace.people.findMember')}
+                            shouldShowEmptyState={!filteredData.length}
+                        />
+                    )}
                     <ConfirmModal
                         isVisible={isOfflineModalVisible}
                         onConfirm={() => setIsOfflineModalVisible(false)}
@@ -726,33 +772,33 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         isVisible={isDownloadFailureModalVisible}
                         onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
-                    <View style={[styles.w100, styles.flex1]}>
-                        <SelectionListWithModal
-                            ref={selectionListRef}
-                            canSelectMultiple={canSelectMultiple}
-                            sections={[{data, isDisabled: false}]}
-                            ListItem={TableListItem}
-                            turnOnSelectionModeOnLongPress={isPolicyAdmin}
-                            onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
-                            shouldUseUserSkeletonView
-                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                            headerMessage={getHeaderMessage()}
-                            headerContent={!shouldUseNarrowLayout && getHeaderContent()}
-                            onSelectRow={openMemberDetails}
-                            shouldSingleExecuteRowSelect={!isPolicyAdmin}
-                            onCheckboxPress={(item) => toggleUser(item.accountID)}
-                            onSelectAll={() => toggleAllUsers(data)}
-                            onDismissError={dismissError}
-                            showLoadingPlaceholder={isLoading}
-                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                            textInputRef={textInputRef}
-                            customListHeader={getCustomListHeader()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            listHeaderContent={shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : null}
-                            showScrollIndicator={false}
-                            addBottomSafeAreaPadding
-                        />
-                    </View>
+                    {!!filteredData.length && (
+                        <View style={[styles.w100, styles.flex1]}>
+                            <SelectionListWithModal
+                                ref={selectionListRef}
+                                canSelectMultiple={canSelectMultiple}
+                                sections={[{data: filteredData, isDisabled: false}]}
+                                ListItem={TableListItem}
+                                turnOnSelectionModeOnLongPress={isPolicyAdmin}
+                                onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
+                                shouldUseUserSkeletonView
+                                disableKeyboardShortcuts={removeMembersConfirmModalVisible}
+                                headerMessage={getHeaderMessage()}
+                                onSelectRow={openMemberDetails}
+                                shouldSingleExecuteRowSelect={!isPolicyAdmin}
+                                onCheckboxPress={(item) => toggleUser(item.accountID)}
+                                onSelectAll={() => toggleAllUsers(filteredData)}
+                                onDismissError={dismissError}
+                                showLoadingPlaceholder={isLoading}
+                                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                                textInputRef={textInputRef}
+                                customListHeader={getCustomListHeader()}
+                                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                                showScrollIndicator={false}
+                                addBottomSafeAreaPadding
+                            />
+                        </View>
+                    )}
                 </>
             )}
         </WorkspacePageWithSections>
