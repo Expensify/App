@@ -36,6 +36,7 @@ type DropdownOption<TValueType> = {
     description?: string;
     descriptionTextStyle?: StyleProp<TextStyle>;
     wrapperStyle?: StyleProp<ViewStyle>;
+    displayInDefaultIconColor?: boolean;
     shouldPreserveSelectionAfterHideModal?: boolean;
 };
 

@@ -4,16 +4,13 @@ import * as API from '@libs/API';
 import type {GetGuideCallAvailabilityScheduleParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
-import * as NetworkStore from '@libs/Network/NetworkStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, ScheduleCallDraft} from '@src/types/onyx';
 import type {CalendlyCall} from '@src/types/onyx/ReportNameValuePairs';
 import {openExternalLink} from './Link';
 
-function getGuideCallAvailabilitySchedule(policyID: string | undefined, reportID: string, accountID: number, month?: number) {
-    const authToken = NetworkStore.getAuthToken();
-
-    if (!policyID || !authToken) {
+function getGuideCallAvailabilitySchedule(reportID: string) {
+    if (!reportID) {
         return;
     }
 
@@ -56,10 +53,6 @@ function getGuideCallAvailabilitySchedule(policyID: string | undefined, reportID
     ];
 
     const params: GetGuideCallAvailabilityScheduleParams = {
-        policyID,
-        month,
-        authToken,
-        accountID,
         reportID,
     };
 
@@ -75,11 +68,11 @@ function clearBookingDraft() {
 }
 
 function confirmBooking(data: Required<ScheduleCallDraft>, currentUser: PersonalDetails) {
-    const scheduleUrl = `${data.guide.scheduleUrl}?name=${encodeURIComponent(currentUser.displayName ?? '')}&email=${encodeURIComponent(
+    const scheduleURL = `${data.guide.scheduleURL}?name=${encodeURIComponent(currentUser.displayName ?? '')}&email=${encodeURIComponent(
         currentUser?.login ?? '',
-    )}&utm_source=newDot&utm_medium=report&utm_content=${data.reportID}&utm_campaign=91234ebaaffc89-SJC`;
+    )}&utm_source=newDot&utm_medium=report&utm_content=${data.reportID}`;
 
-    openExternalLink(scheduleUrl);
+    openExternalLink(scheduleURL);
     clearBookingDraft();
     Navigation.dismissModal();
 }
@@ -100,4 +93,4 @@ function cancelBooking(call: CalendlyCall) {
     openExternalLink(cancelURL);
 }
 
-export {getGuideCallAvailabilitySchedule, saveBookingDraft, confirmBooking, rescheduleBooking, cancelBooking};
+export {getGuideCallAvailabilitySchedule, saveBookingDraft, clearBookingDraft, confirmBooking, rescheduleBooking, cancelBooking};

@@ -35,6 +35,8 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import {openExternalLink} from '@libs/actions/Link';
+import {clearBookingDraft} from '@libs/actions/ScheduleCall';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -132,7 +134,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
-    const {canUseTalkToAISales, canUseLeftHandBar} = usePermissions();
+    const {canUseTalkToAISales} = usePermissions();
     const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report);
 
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
@@ -176,7 +178,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
-    const canJoin = canJoinChat(report, parentReportAction, policy);
+    const canJoin = canJoinChat(report, parentReportAction, policy, reportNameValuePairs);
 
     const joinButton = (
         <Button
@@ -223,6 +225,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const shouldShowGuideBookingButtonInEarlyDiscountBanner = shouldShowGuideBooking && shouldShowEarlyDiscountBanner && !isDismissedDiscountBanner;
 
+    const {canUseCallScheduling} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
 
@@ -235,8 +238,12 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             return (
                 <Button
                     success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
-                    text={translate('getAssistancePage.scheduleADemo')}
+                    text={translate('getAssistancePage.scheduleACall')}
                     onPress={() => {
+                        if (!canUseCallScheduling) {
+                            openExternalLink(account?.guideDetails?.calendarLink ?? '');
+                            return;
+                        }
                         if (!report?.reportID) {
                             return;
                         }
@@ -248,6 +255,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                     iconWrapperStyles={[styles.mw100]}
                     isContentCentered
                 />
+
             );
         }
         const menuItems: Array<DropdownOption<string>> = [
@@ -333,7 +341,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 style={[styles.borderBottom]}
                 dataSet={{dragArea: true}}
             >
-                <View style={[styles.appContentHeader, styles.pr3, !shouldUseNarrowLayout && styles.headerBarDesktopHeight(canUseLeftHandBar)]}>
+                <View style={[styles.appContentHeader, styles.pr3]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (

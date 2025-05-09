@@ -1,8 +1,9 @@
-import {useRoute} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {compareAsc, format, parse} from 'date-fns';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -14,7 +15,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getGuideCallAvailabilitySchedule, saveBookingDraft} from '@libs/actions/ScheduleCall';
 import {getLatestError} from '@libs/ErrorUtils';
@@ -33,14 +33,13 @@ type TimeSlot = {
     guideAccountID: number;
     guideEmail: string;
     startTime: string;
-    scheduleUrl: string;
+    scheduleURL: string;
 };
 
 function ScheduleCallPage() {
     const styles = useThemeStyles();
-    const styleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK_CALL>>();
+    const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK>>();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
@@ -53,18 +52,21 @@ function ScheduleCallPage() {
         }),
         canBeMissing: true,
     });
-    const [adminRoomsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const calendlySchedule = adminReportNameValuePairs?.calendlySchedule;
-
-    const [containerWidth, setContainerWidth] = useState(0);
-    const slotWidthStyle = styleUtils.getRowChildWidth(2, 8, containerWidth);
 
     useEffect(() => {
         if (!reportID) {
             return;
         }
-        getGuideCallAvailabilitySchedule(adminRoomsReport?.policyID, reportID, currentUserPersonalDetails.accountID);
-    }, [reportID, adminRoomsReport?.policyID, currentUserPersonalDetails.accountID]);
+        getGuideCallAvailabilitySchedule(reportID);
+    }, [reportID]);
+
+    // Clear selected time when user comes back to the selection screen
+    useFocusEffect(
+        useCallback(() => {
+            saveBookingDraft({timeSlot: null});
+        }, []),
+    );
 
     const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
         saveBookingDraft({date});
@@ -83,7 +85,7 @@ function ScheduleCallPage() {
                     guideAccountID: Number(guideAccountID),
                     guideEmail: guideSchedule.guideEmail,
                     startTime: timeSlot.startTime,
-                    scheduleUrl: timeSlot.schedulingURL,
+                    scheduleURL: timeSlot.schedulingURL,
                 });
             });
             return allSlots;
@@ -115,6 +117,22 @@ function ScheduleCallPage() {
         saveBookingDraft({date: firstDate});
     }, [firstDate, calendlySchedule?.isLoading, scheduleCallDraft?.date]);
 
+    // When there is only one time slot on the row, it will take full width of the row, use a hidden filler item to keep 2 columns
+    const timeFillerItem = useMemo(() => {
+        if (timeSlotsForSelectedData.length % 2 === 0) {
+            return null;
+        }
+
+        return (
+            <View
+                key="time-filler-col"
+                aria-hidden
+                accessibilityElementsHidden
+                style={[styles.twoColumnLayoutCol, styles.visibilityHidden]}
+            />
+        );
+    }, [styles.twoColumnLayoutCol, styles.visibilityHidden, timeSlotsForSelectedData.length]);
+
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -124,81 +142,76 @@ function ScheduleCallPage() {
                 title={translate('scheduledCall.book.title')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            {adminReportNameValuePairs?.calendlySchedule?.isLoading ? (
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-            ) : (
-                <ScrollView style={styles.flexGrow1}>
-                    <View style={styles.ph5}>
-                        <Text style={[styles.mb5, styles.colorMuted]}>{translate('scheduledCall.book.description')}</Text>
-                        <View
-                            style={[styles.datePickerPopover, styles.border]}
-                            collapsable={false}
-                        >
-                            <CalendarPicker
-                                value={scheduleCallDraft?.date}
-                                minDate={minDate}
-                                maxDate={maxDate}
-                                selectedableDates={Object.keys(timeSlotDateMap)}
-                                DayComponent={AvailableBookingDay}
-                                onSelected={loadTimeSlotsAndSaveDate}
-                            />
-                        </View>
-                    </View>
-                    <MenuItemWithTopDescription
-                        title={timezone.selected}
-                        description={translate('timezonePage.timezone')}
-                        style={[styles.mt3, styles.mb3]}
-                    />
-                    {!isEmptyObject(adminReportNameValuePairs?.calendlySchedule?.errors) && (
-                        <DotIndicatorMessage
-                            type="error"
-                            style={[styles.mt6, styles.flex0]}
-                            messages={getLatestError(adminReportNameValuePairs?.calendlySchedule?.errors)}
-                        />
-                    )}
-                    {!!scheduleCallDraft?.date && (
-                        <View style={[styles.ph5, styles.mb5]}>
-                            <Text style={[styles.mb5, styles.colorMuted]}>
-                                {translate('scheduledCall.book.slots')}
-                                <Text style={[styles.textStrong, styles.colorMuted]}>{format(scheduleCallDraft.date, CONST.DATE.MONTH_DAY_YEAR_FORMAT)}</Text>
-                            </Text>
+            <FullPageOfflineBlockingView>
+                {adminReportNameValuePairs?.calendlySchedule?.isLoading ? (
+                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                ) : (
+                    <ScrollView style={styles.flexGrow1}>
+                        <View style={styles.ph5}>
+                            <Text style={[styles.mb5, styles.colorMuted]}>{translate('scheduledCall.book.description')}</Text>
                             <View
-                                style={[styles.flexRow, styles.flexWrap, styles.justifyContentStart, styles.gap2]}
-                                onLayout={({
-                                    nativeEvent: {
-                                        layout: {width},
-                                    },
-                                }) => {
-                                    setContainerWidth(width);
-                                }}
+                                style={[styles.datePickerPopover, styles.border]}
+                                collapsable={false}
                             >
-                                {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
-                                    <Button
-                                        key={`time-slot-${timeSlot.startTime}`}
-                                        large
-                                        success={scheduleCallDraft?.slotTime === timeSlot?.startTime}
-                                        onPress={() => {
-                                            saveBookingDraft({
-                                                slotTime: timeSlot.startTime,
-                                                guide: {
-                                                    scheduleUrl: timeSlot.scheduleUrl,
-                                                    accountID: timeSlot.guideAccountID,
-                                                    email: timeSlot.guideEmail,
-                                                },
-                                                reportID,
-                                            });
-                                            Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATON.getRoute(reportID));
-                                        }}
-                                        shouldEnableHapticFeedback
-                                        style={[slotWidthStyle]}
-                                        text={format(timeSlot.startTime, 'p')}
-                                    />
-                                ))}
+                                <CalendarPicker
+                                    value={scheduleCallDraft?.date}
+                                    minDate={minDate}
+                                    maxDate={maxDate}
+                                    selectedableDates={Object.keys(timeSlotDateMap)}
+                                    DayComponent={AvailableBookingDay}
+                                    onSelected={loadTimeSlotsAndSaveDate}
+                                />
                             </View>
                         </View>
-                    )}
-                </ScrollView>
-            )}
+                        <MenuItemWithTopDescription
+                            interactive={false}
+                            title={timezone.selected}
+                            description={translate('timezonePage.timezone')}
+                            style={[styles.mt3, styles.mb3]}
+                        />
+                        {!isEmptyObject(adminReportNameValuePairs?.calendlySchedule?.errors) && (
+                            <DotIndicatorMessage
+                                type="error"
+                                style={[styles.mt6, styles.flex0]}
+                                messages={getLatestError(adminReportNameValuePairs?.calendlySchedule?.errors)}
+                            />
+                        )}
+                        {!!scheduleCallDraft?.date && (
+                            <View style={[styles.ph5, styles.mb5]}>
+                                <Text style={[styles.mb5, styles.colorMuted]}>
+                                    {translate('scheduledCall.book.slots')}
+                                    <Text style={[styles.textStrong, styles.colorMuted]}>{format(scheduleCallDraft.date, CONST.DATE.MONTH_DAY_YEAR_FORMAT)}</Text>
+                                </Text>
+                                <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentStart, styles.gap2]}>
+                                    {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
+                                        <Button
+                                            key={`time-slot-${timeSlot.startTime}`}
+                                            large
+                                            success={scheduleCallDraft?.timeSlot === timeSlot?.startTime}
+                                            onPress={() => {
+                                                saveBookingDraft({
+                                                    timeSlot: timeSlot.startTime,
+                                                    guide: {
+                                                        scheduleURL: timeSlot.scheduleURL,
+                                                        accountID: timeSlot.guideAccountID,
+                                                        email: timeSlot.guideEmail,
+                                                    },
+                                                    reportID,
+                                                });
+                                                Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATON.getRoute(reportID));
+                                            }}
+                                            shouldEnableHapticFeedback
+                                            style={styles.twoColumnLayoutCol}
+                                            text={format(timeSlot.startTime, 'p')}
+                                        />
+                                    ))}
+                                    {timeFillerItem}
+                                </View>
+                            </View>
+                        )}
+                    </ScrollView>
+                )}
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }

@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -22,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -36,6 +38,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -71,7 +74,7 @@ function ReportFieldsListValuesPage({
     // See https://github.com/Expensify/App/issues/48724 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
     const {selectionMode} = useMobileSelectionMode();
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
@@ -116,9 +119,9 @@ function ReportFieldsListValuesPage({
         onNavigationCallBack: () => Navigation.goBack(),
     });
 
-    const listValuesSections = useMemo(() => {
-        const data = listValues
-            .map<ValueListItem>((value, index) => ({
+    const data = useMemo(
+        () =>
+            listValues.map<ValueListItem>((value, index) => ({
                 value,
                 index,
                 text: value,
@@ -132,13 +135,22 @@ function ReportFieldsListValuesPage({
                         onToggle={(newValue: boolean) => updateReportFieldListValueEnabled(newValue, index)}
                     />
                 ),
-            }))
-            .sort((a, b) => localeCompare(a.value, b.value));
-        return [{data, isDisabled: false}];
-    }, [canSelectMultiple, disabledListValues, listValues, selectedValues, translate, updateReportFieldListValueEnabled]);
+            })),
+        [canSelectMultiple, disabledListValues, listValues, selectedValues, translate, updateReportFieldListValueEnabled],
+    );
+
+    const filterListValue = useCallback((item: ValueListItem, searchInput: string) => {
+        const itemText = StringUtils.normalize(item.text?.toLowerCase() ?? '');
+        const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase());
+        return itemText.includes(normalizedSearchInput);
+    }, []);
+    const sortListValues = useCallback((values: ValueListItem[]) => values.sort((a, b) => localeCompare(a.value, b.value)), []);
+    const [inputValue, setInputValue, filteredListValues] = useSearchResults(data, filterListValue, sortListValues);
+
+    const filteredListValuesArray = filteredListValues.map((item) => item.value);
 
     const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
-    const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
+    const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key] && listValues.includes(key));
 
     const toggleValue = (valueItem: ValueListItem) => {
         setSelectedValues((prev) => ({
@@ -148,7 +160,7 @@ function ReportFieldsListValuesPage({
     };
 
     const toggleAllValues = () => {
-        setSelectedValues(selectedValuesArray.length > 0 ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
+        setSelectedValues(selectedValuesArray.length > 0 ? {} : Object.fromEntries(filteredListValuesArray.map((value) => [value, true])));
     };
 
     const handleDeleteValues = () => {
@@ -179,8 +191,6 @@ function ReportFieldsListValuesPage({
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS.getRoute(policyID, valueItem.index, reportFieldID));
-
-        setSelectedValues({});
     };
 
     const getCustomListHeader = () => {
@@ -325,6 +335,14 @@ function ReportFieldsListValuesPage({
                 <View style={[styles.ph5, styles.pv4]}>
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
+                {data.length > CONST.SEARCH_ITEM_LIMIT && (
+                    <SearchBar
+                        label={translate('workspace.reportFields.findReportField')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={!shouldShowEmptyState && filteredListValues.length === 0}
+                    />
+                )}
                 {shouldShowEmptyState && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
@@ -344,7 +362,7 @@ function ReportFieldsListValuesPage({
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={!hasAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
-                        sections={listValuesSections}
+                        sections={[{data: filteredListValues, isDisabled: false}]}
                         onCheckboxPress={toggleValue}
                         onSelectRow={openListValuePage}
                         onSelectAll={toggleAllValues}
