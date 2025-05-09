@@ -6,7 +6,6 @@ import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Network from '@src/types/onyx/Network';
 import FormHelpMessage from './FormHelpMessage';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
