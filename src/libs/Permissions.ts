@@ -47,7 +47,7 @@ function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseTableReportView(betas: OnyxEntry<Beta[]>): boolean {
-    return true || !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
+    return !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
 }
 
 function canUseTalkToAISales(betas: OnyxEntry<Beta[]>): boolean {
