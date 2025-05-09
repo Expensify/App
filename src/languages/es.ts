@@ -4992,8 +4992,8 @@ const translations = {
                     'Marque cualquier recibo donde aparezcan alcohol, apuestas u otros artículos restringidos. Los gastos con recibos que incluyan estos conceptos requerirán una revisión manual.',
                 prohibitedExpenses: 'Gastos prohibidos',
                 alcohol: 'alcohol',
-                hotelIncidentals: 'gastos incidentales de hotel',
-                gambling: 'juegos de azar',
+                hotelIncidentals: 'gastos adicionales de hotel',
+                gambling: 'juegos de apuestas',
                 tobacco: 'tabaco',
                 adultEntertainment: 'entretenimiento para adultos',
             },
@@ -6229,9 +6229,9 @@ const translations = {
                 case 'alcohol':
                     return `${preMessage} alcohol`;
                 case 'gambling':
-                    return `${preMessage} juego de apuestas`;
+                    return `${preMessage} juegos de apuestas`;
                 case 'tobacco':
-                    return `${preMessage} tobacco`;
+                    return `${preMessage} tabaco`;
                 case 'adultEntertainment':
                     return `${preMessage} entretenimiento para adultos`;
                 case 'hotelIncidentals':
