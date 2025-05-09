@@ -68,7 +68,7 @@ function ParentNavigationSubtitle({
                         const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
                         if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
                             const moneyRequestReportID = (lastRoute?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT])?.reportID;
-                            // If the parent report is already displayed under RHP, simply dismiss the modal
+                            // If the parent report is already displayed underneath RHP, simply dismiss the modal
                             if (moneyRequestReportID === parentReportID) {
                                 Navigation.dismissModal();
                                 return;
@@ -79,7 +79,7 @@ function ParentNavigationSubtitle({
                         return;
                     }
 
-                    // It is the similar case as above, but in the Inbox tab
+                    // If the parent report is already displayed underneath RHP, simply dismiss the modal
                     if (Navigation.getTopmostReportId() === parentReportID) {
                         Navigation.dismissModal();
                         return;
