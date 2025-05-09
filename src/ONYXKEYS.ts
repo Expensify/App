@@ -235,7 +235,7 @@ const ONYXKEYS = {
     /** If the user should see the team 2025 subscription pricing */
     NVP_PRIVATE_MANUAL_TEAM_2025_PRICING: 'nvp_private_manualTeam2025Pricing',
 
-    /** Details of an account whether it is locked or not  */
+    /** Details on whether an account is locked or not
     NVP_PRIVATE_LOCK_ACCOUNT_DETAILS: 'nvp_private_lockAccountDetails',
 
     /** Plaid data (access tokens, bank accounts ...) */
