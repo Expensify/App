@@ -7111,8 +7111,10 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
     // STEP 2: Decide if we need to:
     // 1. Delete the transactionThread - delete if there are no visible comments in the thread
     // 2. Update the moneyRequestPreview to show [Deleted expense] - update if the transactionThread exists AND it isn't being deleted
-    const shouldDeleteTransactionThread = transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false;
-    const shouldShowDeletedRequestMessage = !!transactionThreadID && !shouldDeleteTransactionThread;
+    // The current state is that we want to get rid of the [Deleted expense] breadcrumb,
+    // so we never want to display it if transactionThreadID is present.
+    const shouldDeleteTransactionThread = !!transactionThreadID;
+    const shouldShowDeletedRequestMessage = !shouldDeleteTransactionThread;
 
     // STEP 3: Update the IOU reportAction and decide if the iouReport should be deleted. We delete the iouReport if there are no visible comments left in the report.
     const updatedReportAction = {
@@ -7125,7 +7127,8 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
                     html: '',
                     text: '',
                     isEdited: true,
-                    isDeletedParentAction: shouldShowDeletedRequestMessage,
+                    // We need this here to filter out deleted actions
+                    isDeletedParentAction: true,
                 },
             ],
             originalMessage: {
