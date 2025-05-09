@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -237,8 +237,11 @@ function PolicyDistanceRatesPage({
         }
 
         deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates);
-        setSelectedDistanceRates([]);
         setIsDeleteModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedDistanceRates([]);
+        });
     };
 
     const toggleRate = (rate: RateForList) => {

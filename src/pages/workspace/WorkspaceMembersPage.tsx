@@ -300,9 +300,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             });
         }
 
-        setSelectedEmployees([]);
         setRemoveMembersConfirmModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
+            setSelectedEmployees([]);
             removeMembers(accountIDsToRemove, route.params.policyID);
         });
     };
@@ -408,7 +408,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
-    const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
+    const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
     const data: MemberOption[] = useMemo(() => {
         const result: MemberOption[] = [];
 

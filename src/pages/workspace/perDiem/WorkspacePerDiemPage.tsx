@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -256,8 +256,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const handleDeletePerDiemRates = () => {
         deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
-        setSelectedPerDiem([]);
         setDeletePerDiemConfirmModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedPerDiem([]);
+        });
     };
 
     const getHeaderButtons = () => {
@@ -320,20 +323,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     });
 
     const hasVisibleSubRates = subRatesList.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
-
-    const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            <Text>
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.perDiem.subtitle')}</Text>
-                <TextLink
-                    style={[styles.textNormal, styles.link]}
-                    onPress={() => openExternalLink(CONST.DEEP_DIVE_PER_DIEM)}
-                >
-                    {translate('workspace.common.learnMore')}
-                </TextLink>
-            </Text>
-        </View>
-    );
 
     const threeDotsMenuItems = useMemo(() => {
         const menuItems = [
@@ -420,7 +409,17 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     danger
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                {(!hasVisibleSubRates || isLoading) && getHeaderText()}
+                <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Text>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.perDiem.subtitle')}</Text>
+                        <TextLink
+                            style={[styles.textNormal, styles.link]}
+                            onPress={() => openExternalLink(CONST.DEEP_DIVE_PER_DIEM)}
+                        >
+                            {translate('workspace.common.learnMore')}
+                        </TextLink>
+                    </Text>
+                </View>
                 {subRatesList.length > CONST.SEARCH_ITEM_LIMIT && (
                     <SearchBar
                         label={translate('workspace.perDiem.findPerDiemRate')}
