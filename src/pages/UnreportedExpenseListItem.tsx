@@ -52,7 +52,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
                         onSelectRow(item);
                         setIsSelected((val) => !val);
                     }}
-                    shouldShowCheckBox
+                    shouldShowCheckbox
                 />
             </View>
         </BaseListItem>

@@ -1,7 +1,8 @@
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -32,6 +33,7 @@ type AddUnreportedExpensesParamList = {
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {translate} = useLocalize();
+    const [errorMessage, setErrorMessage] = useState<string>('');
 
     function getUnreportedTransactions(transactions: OnyxCollection<Transaction>) {
         if (!transactions) {
@@ -55,7 +57,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         },
     ];
 
-    const thereIsNoUnreportedTransactions = !((sections.at(0)?.data.length ?? 0) > 0);
+    const thereIsNoUnreportedTransaction = !((sections.at(0)?.data.length ?? 0) > 0);
 
     const reportID = route.params.reportID;
     const selectedIds = new Set<string>();
@@ -65,7 +67,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             shouldEnableKeyboardAvoidingView={false}
             includeSafeAreaPaddingBottom
             shouldShowOfflineIndicator={false}
-            includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
             testID={NewChatSelectorPage.displayName}
             focusTrapSettings={{active: false}}
@@ -75,7 +76,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 onBackButtonPress={Navigation.goBack}
             />
 
-            {thereIsNoUnreportedTransactions ? (
+            {thereIsNoUnreportedTransaction ? (
                 <EmptyStateComponent
                     cardStyles={[styles.appBG]}
                     cardContentStyles={[styles.pt5, styles.pb0]}
@@ -117,13 +118,28 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     showConfirmButton
                     confirmButtonText={translate('iou.addUnreportedExpenseConfirm')}
                     onConfirm={() => {
-                        changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
+                        if (selectedIds.size === 0) {
+                            setErrorMessage(translate('iou.selectUnreportedExpense'));
+                            return;
+                        }
                         Navigation.goBack(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
+                        changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
+                        setErrorMessage('');
                     }}
-                />
+                >
+                    {!!errorMessage && (
+                        <FormHelpMessage
+                            style={[styles.mb2, styles.ph4]}
+                            isError
+                            message={errorMessage}
+                        />
+                    )}
+                </SelectionList>
             )}
         </ScreenWrapper>
     );
 }
+
+AddUnreportedExpense.displayName = 'AddUnreportedExpense';
 
 export default AddUnreportedExpense;

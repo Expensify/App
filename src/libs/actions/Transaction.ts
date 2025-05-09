@@ -22,7 +22,7 @@ import {
 import {getAmount, getTransaction, waypointHasValidAddress} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, RecentWaypoint, Report, ReportAction, ReportActions, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, RecentWaypoint, Report, ReportAction, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -279,11 +279,15 @@ function getOnyxDataForRouteRequest(transactionID: string, transactionState: Tra
  * @returns The sanitized collection of waypoints.
  */
 function sanitizeRecentWaypoints(waypoints: WaypointCollection): WaypointCollection {
-    return Object.entries(waypoints).reduce((acc, [key, waypoint]) => {
-        const {pendingAction, ...rest} = waypoint as RecentWaypoint;
-        acc[key] = rest;
+    return Object.entries(waypoints).reduce((acc: WaypointCollection, [key, waypoint]) => {
+        if ('pendingAction' in waypoint) {
+            const {pendingAction, ...rest} = waypoint;
+            acc[key] = rest;
+        } else {
+            acc[key] = waypoint;
+        }
         return acc;
-    }, {} as WaypointCollection);
+    }, {});
 }
 
 /**
@@ -518,7 +522,7 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: optimisticReportActions as ReportActions,
+                value: optimisticReportActions,
             },
         ],
         failureData: [

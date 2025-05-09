@@ -8,11 +8,10 @@ import DateCell from '@components/SelectionList/Search/DateCell';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useHover from '@hooks/useHover';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMerchant, getCreated as getTransactionCreated} from '@libs/TransactionUtils';
+import {getMerchant, getCreated as getTransactionCreated, isPartialMerchant} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CategoryCell from './DataCells/CategoryCell';
@@ -32,7 +31,7 @@ function TransactionItemRow({
     dateColumnSize,
     shouldShowChatBubbleComponent = false,
     onCheckboxPress,
-    shouldShowCheckBox = false,
+    shouldShowCheckbox = false,
 }: {
     transactionItem: TransactionWithOptionalHighlight;
     shouldUseNarrowLayout: boolean;
@@ -41,7 +40,7 @@ function TransactionItemRow({
     dateColumnSize: TableColumnSize;
     shouldShowChatBubbleComponent?: boolean;
     onCheckboxPress: (transactionID: string) => void;
-    shouldShowCheckBox: boolean;
+    shouldShowCheckbox: boolean;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -59,7 +58,6 @@ function TransactionItemRow({
         backgroundColor: theme.highlightBG,
     });
 
-    const {selectionMode} = useMobileSelectionMode();
     const {hovered, bind: bindHover} = useHover();
     const bgActiveStyles = useMemo(() => {
         if (isSelected) {
@@ -72,7 +70,7 @@ function TransactionItemRow({
     }, [hovered, isSelected, styles.activeComponentBG, styles.hoveredComponentBG]);
 
     const merchantName = getMerchant(transactionItem);
-    const isMerchantEmpty = merchantName === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isMerchantEmpty = isPartialMerchant(merchantName);
 
     return (
         <View
@@ -84,7 +82,7 @@ function TransactionItemRow({
                 <Animated.View style={[animatedHighlightStyle]}>
                     <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3, bgActiveStyles]}>
                         <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
-                            {(!!selectionMode?.isEnabled || shouldShowCheckBox) && (
+                            {shouldShowCheckbox && (
                                 <View style={[styles.mr3, styles.justifyContentCenter]}>
                                     <Checkbox
                                         onPress={() => {
