@@ -48,6 +48,7 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, hideSearchRouterL
     const InputRightComponent = useMemo(() => {
         return (
             <Button
+                large
                 innerStyles={[styles.searchAutocompleteInputResults, styles.borderNone, styles.bgTransparent]}
                 icon={Expensicons.Clear}
                 onPress={clearFilters}

@@ -23,7 +23,7 @@ type DropdownButtonProps = {
     PopoverComponent: React.FC<PopoverComponentProps>;
 };
 
-const PADDING_MODAL_DATE_PICKER = 8;
+const PADDING_MODAL = 8;
 
 const ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -52,7 +52,7 @@ function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
             triggerRef.current?.measureInWindow((x, y, _, height) => {
                 setPopoverTriggerPosition({
                     horizontal: x,
-                    vertical: y + height + PADDING_MODAL_DATE_PICKER,
+                    vertical: y + height + PADDING_MODAL,
                 });
             });
 
@@ -112,7 +112,7 @@ function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
             >
-                <PopoverComponent closeOverlay={toggleOverlay} />;
+                <PopoverComponent closeOverlay={toggleOverlay} />
             </PopoverWithMeasuredContent>
         </>
     );
