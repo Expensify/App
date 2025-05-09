@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
+import {clearSessionStorage} from '@libs/Navigation/helpers/getLastVisitedWorkspace';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {clearAllPolicies} from './Policy/Policy';
-import { clearSessionStorage } from '@libs/Navigation/helpers/getLastVisitedWorkspace';
 
 let currentIsOffline: boolean | undefined;
 let currentShouldForceOffline: boolean | undefined;
@@ -51,10 +51,9 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
  * @param [errorMessage] error message to be displayed on the sign in page
  */
 function redirectToSignIn(errorMessage?: string): Promise<void> {
-    return clearStorageAndRedirect(errorMessage)
-        .then(() => {
-            clearSessionStorage();
-        });
+    return clearStorageAndRedirect(errorMessage).then(() => {
+        clearSessionStorage();
+    });
 }
 
 export default redirectToSignIn;
