@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {DotIndicator} from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,11 +35,7 @@ function TransactionItemRowRBR({transaction, containerStyles}: {transaction: Tra
                     width={variables.iconSizeExtraSmall}
                 />
                 <View style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}, styles.mw100]}>
-                    {/* {RBRMessages} */}
-                    <RenderHTML
-                        // html={`<alert-text>${RBRMessages}</alert-text>`}
-                        html={`<rbr shouldShowEllipsis="1">${'Expense details and receipt added manually. Please verify the details. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Learn more</a> about automatic auditing for all receipts.'}</rbr>`}
-                    />
+                    <RenderHTML html={`<rbr shouldShowEllipsis="1">${RBRMessages}</rbr>`} />
                 </View>
             </View>
         )

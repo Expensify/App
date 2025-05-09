@@ -88,7 +88,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         let linkStyle: StyleProp<TextStyle> = styles.link;
 
         // Special handling for links in alert-text to maintain consistent font size
-        if (HTMLEngineUtils.isChildOfAlertText(tnode)) {
+        if (HTMLEngineUtils.isChildOfRbr(tnode)) {
             linkStyle = [
                 styles.link,
                 {
@@ -100,7 +100,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
         return (
             <Text
-                // style={styles.link}
                 style={linkStyle}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
                 suppressHighlighting

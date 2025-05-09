@@ -55,13 +55,8 @@ function ReceiptAuditMessages({notes = []}: {notes?: string[]}) {
         <View style={[styles.mtn1, styles.mb2, styles.ph5, styles.gap1]}>
             {notes.length > 0 &&
                 notes.map((message) => (
-                    <View
-                        style={[styles.textLabelError]}
-                        key={message}
-                    >
-                        <RenderHTML
-                            html={`<rbr>${'Expense details and receipt added manually. Please verify the details. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Learn more</a> about automatic auditing for all receipts.'}</rbr>`}
-                        />
+                    <View key={message}>
+                        <RenderHTML html={`<rbr>${message}</rbr>`} />
                     </View>
                 ))}
         </View>

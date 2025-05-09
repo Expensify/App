@@ -74,14 +74,14 @@ function isDeletedNode(tnode: TNode): boolean {
 /**
  * @returns Whether the node is a child of alert-text
  */
-function isChildOfAlertText(tnode: TNode): boolean {
+function isChildOfRbr(tnode: TNode): boolean {
     if (!tnode.parent) {
         return false;
     }
     if (tnode.parent.tagName === 'rbr') {
         return true;
     }
-    return isChildOfAlertText(tnode.parent);
+    return isChildOfRbr(tnode.parent);
 }
 
-export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle, isChildOfAlertText, isCommentTag};
+export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle, isChildOfRbr, isCommentTag};
