@@ -13,7 +13,7 @@
 ## Pre-requisites
 
 - Clone and/or pull the [App repo](https://github.com/Expensify/App) to your local machine.
-- Check the [requirements](https://jekyllrb.com/docs/installation/) to install Jekyll.
+- Check the [requirements](https://jekyllrb.com/docs/installation/) to ins     tall Jekyll.
 - Install Jekyll locally by running:
 
 ```bash
