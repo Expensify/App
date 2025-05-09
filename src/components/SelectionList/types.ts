@@ -259,6 +259,12 @@ type TransactionListItemType = ListItem &
 
         /** Attendees in the transaction */
         attendees?: Attendee[];
+
+        /** IOUs report */
+        iouReportID?: string | undefined;
+
+        /** Whether the report is policyExpenseChat */
+        isPolicyExpenseChat?: boolean;
     };
 
 type ReportActionListItemType = ListItem &

@@ -5,18 +5,20 @@ import type {EmitterSubscription, GestureResponderEvent, View} from 'react-nativ
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import useOnyx from '@hooks/useOnyx';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
-import {completePaymentOnboarding} from '@libs/actions/IOU';
+import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU';
+import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
-import {isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
 import {kycWallRef} from '@userActions/PaymentMethods';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
 import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import viewRef from '@src/types/utils/viewRef';
 import type {AnchorPosition, DomRect, KYCWallProps, PaymentMethod} from './types';
@@ -45,11 +47,11 @@ function KYCWall({
     source,
     shouldShowPersonalBankAccountOption = false,
 }: KYCWallProps) {
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
 
     const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
@@ -100,16 +102,41 @@ function KYCWall({
     }, [getAnchorPosition]);
 
     const selectPaymentMethod = useCallback(
-        (paymentMethod: PaymentMethod) => {
-            onSelectPaymentMethod(paymentMethod);
+        (paymentMethod?: PaymentMethod, policy?: Policy) => {
+            if (paymentMethod) {
+                onSelectPaymentMethod(paymentMethod);
+            }
 
             if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                 openPersonalBankAccountSetupView();
             } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 Navigation.navigate(addDebitCardRoute ?? ROUTES.HOME);
-            } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
+            } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT || policy) {
                 if (iouReport && isIOUReport(iouReport)) {
+                    if (policy) {
+                        const policyExpenseChatReportID = getPolicyExpenseChat(iouReport.ownerAccountID, policy.id)?.reportID;
+                        if (!policyExpenseChatReportID) {
+                            const {policyExpenseChatReportID: newPolicyExpenseChatReportID} = moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id) ?? {};
+                            savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU);
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newPolicyExpenseChatReportID));
+                        } else {
+                            moveIOUReportToPolicy(iouReport.reportID, policy.id, true);
+                            savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU);
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(policyExpenseChatReportID));
+                        }
+
+                        if (policy?.achAccount) {
+                            return;
+                        }
+                        // Navigate to the bank account set up flow for this specific policy
+                        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policy.id));
+                        return;
+                    }
+
                     const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = createWorkspaceFromIOUPayment(iouReport) ?? {};
+                    if (policyID) {
+                        savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU);
+                    }
                     completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID, reportPreviewReportActionID));
@@ -117,7 +144,6 @@ function KYCWall({
 
                     // Navigate to the bank account set up flow for this specific policy
                     Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID));
-
                     return;
                 }
                 Navigation.navigate(addBankAccountRoute);
@@ -133,7 +159,7 @@ function KYCWall({
      *
      */
     const continueAction = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => {
+        (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType, paymentMethod?: PaymentMethod, policy?: Policy) => {
             const currentSource = walletTerms?.source ?? source;
 
             /**
@@ -169,6 +195,13 @@ function KYCWall({
 
                 const clickedElementLocation = getClickedTargetLocation(targetElement as HTMLDivElement);
                 const position = getAnchorPosition(clickedElementLocation);
+
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (paymentMethod || policy) {
+                    setShouldShowAddPaymentMenu(false);
+                    selectPaymentMethod(paymentMethod, policy);
+                    return;
+                }
 
                 setPositionAddPaymentMenu(position);
                 setShouldShowAddPaymentMenu(true);
