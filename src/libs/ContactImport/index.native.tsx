@@ -11,7 +11,7 @@ function contactImport(): Promise<ContactImportResult> {
     return getContactPermission()
         .then((response: PermissionStatus) => {
             permissionStatus = response;
-            if (response !== RESULTS.GRANTED) {
+            if (response !== RESULTS.GRANTED && response !== RESULTS.LIMITED) {
                 return [] as Contact[];
             }
 
