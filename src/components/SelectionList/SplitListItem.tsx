@@ -34,10 +34,12 @@ function SplitListItem<TItem extends ListItem>({
         splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
     };
 
+    const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
+
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.p3, styles.br2]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.p2, styles.br2]}
             isFocused={isFocused}
             containerStyle={[styles.mh4, styles.mv2, styles.reportPreviewBoxHoverBorder, styles.br2]}
             hoverStyle={[styles.br2]}
@@ -51,88 +53,93 @@ function SplitListItem<TItem extends ListItem>({
             onFocus={onFocus}
             pendingAction={item.pendingAction}
         >
-            <View>
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
-                    >
-                        {splitItem.headerText}
-                    </Text>
-                </View>
-                <View style={[styles.flexRow, styles.mtn2]}>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentBetween]}>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+            <View style={[styles.flexRow, styles.containerWithSpaceBetween]}>
+                <View style={[styles.flex1]}>
+                    <View style={[styles.containerWithSpaceBetween, !isBottomVisible && styles.justifyContentCenter]}>
+                        <View style={[styles.minHeight5, styles.justifyContentCenter]}>
                             <Text
-                                fontSize={variables.fontSizeNormal}
-                                style={[styles.flexShrink1]}
                                 numberOfLines={1}
+                                style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                             >
-                                {splitItem.merchant}
+                                {splitItem.headerText}
                             </Text>
                         </View>
-                        <View style={[styles.flexRow]}>
-                            <MoneyRequestAmountInput
-                                autoGrow={false}
-                                amount={splitItem.amount}
-                                currency={splitItem.currency}
-                                prefixCharacter={splitItem.currencySymbol}
-                                disableKeyboard={false}
-                                isCurrencyPressable={false}
-                                hideFocusedState={false}
-                                hideCurrencySymbol
-                                formatAmountOnBlur
-                                onAmountChange={onSplitExpenseAmountChange}
-                                prefixContainerStyle={[styles.pv0]}
-                                inputStyle={[styles.optionRowAmountInput]}
-                                containerStyle={[styles.textInputContainer]}
-                                touchableInputWrapperStyle={[styles.ml3]}
-                                maxLength={formattedOriginalAmount.length}
-                                contentWidth={formattedOriginalAmount.length * 8}
-                            />
-                            <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
-                                <Icon
-                                    src={Expensicons.ArrowRight}
-                                    fill={theme.icon}
-                                />
+                        <View style={[styles.maxHeight5, styles.justifyContentCenter, styles.gap2]}>
+                            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                                <Text
+                                    fontSize={variables.fontSizeNormal}
+                                    style={[styles.flexShrink1]}
+                                    numberOfLines={1}
+                                >
+                                    {splitItem.merchant}
+                                </Text>
                             </View>
                         </View>
                     </View>
+                    {isBottomVisible && (
+                        <View style={[styles.splitItemBottomContent]}>
+                            {!!splitItem.category && (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mw50, styles.pr1, styles.flexShrink1]}>
+                                    <Icon
+                                        src={Folder}
+                                        height={variables.iconSizeExtraSmall}
+                                        width={variables.iconSizeExtraSmall}
+                                        fill={theme.icon}
+                                    />
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
+                                    >
+                                        {splitItem.category}
+                                    </Text>
+                                </View>
+                            )}
+                            {!!splitItem.tags?.at(0) && (
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pl1]}>
+                                    <Icon
+                                        src={Tag}
+                                        height={variables.iconSizeExtraSmall}
+                                        width={variables.iconSizeExtraSmall}
+                                        fill={theme.icon}
+                                    />
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
+                                    >
+                                        {getCleanedTagName(splitItem.tags?.at(0) ?? '')}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+                    )}
                 </View>
-                <View style={[styles.splitItemBottomContent]}>
-                    {!!splitItem.category && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mw50, styles.pr1, styles.flexShrink1]}>
-                            <Icon
-                                src={Folder}
-                                height={variables.iconSizeExtraSmall}
-                                width={variables.iconSizeExtraSmall}
-                                fill={theme.icon}
-                            />
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
-                            >
-                                {splitItem.category}
-                            </Text>
-                        </View>
-                    )}
-                    {!!splitItem.tags?.at(0) && (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pl1]}>
-                            <Icon
-                                src={Tag}
-                                height={variables.iconSizeExtraSmall}
-                                width={variables.iconSizeExtraSmall}
-                                fill={theme.icon}
-                            />
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
-                            >
-                                {getCleanedTagName(splitItem.tags?.at(0) ?? '')}
-                            </Text>
-                        </View>
-                    )}
-                    <View style={[styles.textInputContainer, styles.pr10, styles.borderNone, styles.ml3]} />
+                <View style={[styles.flexRow]}>
+                    <View style={[styles.justifyContentCenter]}>
+                        <MoneyRequestAmountInput
+                            autoGrow={false}
+                            amount={splitItem.amount}
+                            currency={splitItem.currency}
+                            prefixCharacter={splitItem.currencySymbol}
+                            disableKeyboard={false}
+                            isCurrencyPressable={false}
+                            hideFocusedState={false}
+                            hideCurrencySymbol
+                            formatAmountOnBlur
+                            onAmountChange={onSplitExpenseAmountChange}
+                            prefixContainerStyle={[styles.pv0]}
+                            inputStyle={[styles.optionRowAmountInput]}
+                            containerStyle={[styles.textInputContainer]}
+                            touchableInputWrapperStyle={[styles.ml3]}
+                            maxLength={formattedOriginalAmount.length}
+                            contentWidth={formattedOriginalAmount.length * 8}
+                        />
+                    </View>
+                    <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
+                        <Icon
+                            src={Expensicons.ArrowRight}
+                            fill={theme.icon}
+                        />
+                    </View>
                 </View>
             </View>
         </BaseListItem>

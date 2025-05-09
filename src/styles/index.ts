@@ -5357,9 +5357,9 @@ const styles = (theme: ThemeColors) =>
         splitItemBottomContent: {
             flexDirection: 'row',
             alignItems: 'center',
-            marginTop: -4,
+            marginTop: 12,
             justifyContent: 'space-between',
-            minHeight: 12,
+            minHeight: 16,
         },
 
         volumeSliderOverlay: {
