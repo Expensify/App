@@ -8,7 +8,7 @@ import type TooltipProps from '@components/Tooltip/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 
 type MouseEvents = {
-    onMouseEnter: (e: MouseEvent) => void | undefined;
+    onMouseEnter: (e: React.MouseEvent) => void | undefined;
 };
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
@@ -54,7 +54,7 @@ function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps,
     const target = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
-    const updateTargetAndMousePosition = useCallback((e: MouseEvent) => {
+    const updateTargetAndMousePosition = useCallback((e: React.MouseEvent) => {
         if (!(e.currentTarget instanceof HTMLElement)) {
             return;
         }
@@ -77,7 +77,7 @@ function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps,
     };
 
     const updateTargetPositionOnMouseEnter = useCallback(
-        (e: MouseEvent) => {
+        (e: React.MouseEvent) => {
             updateTargetAndMousePosition(e);
             if (React.isValidElement(children)) {
                 const onMouseEnter = (children.props as MouseEvents).onMouseEnter;
@@ -111,9 +111,9 @@ function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps,
                             onHoverOut={hideTooltip}
                             shouldHandleScroll={shouldHandleScroll}
                         >
-                            {React.cloneElement(children as React.ReactElement, {
+                            {React.cloneElement(children, {
                                 onMouseEnter: updateTargetPositionOnMouseEnter,
-                            })}
+                            } as React.HTMLAttributes<HTMLElement>)}
                         </Hoverable>
                     </BoundsObserver>
                 ) : (
