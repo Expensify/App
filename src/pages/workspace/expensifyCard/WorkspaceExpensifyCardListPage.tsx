@@ -179,7 +179,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             {isEmptyObject(cardsList) ? (
                 <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
             ) : (
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                <ScrollView>
                     <View style={styles.appBG}>
                         <WorkspaceCardListLabels
                             policyID={policyID}
