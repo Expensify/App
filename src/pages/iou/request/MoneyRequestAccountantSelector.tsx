@@ -99,7 +99,6 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-            shouldAcceptName: true,
         });
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm]);

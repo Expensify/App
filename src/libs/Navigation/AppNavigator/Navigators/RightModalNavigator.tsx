@@ -4,7 +4,6 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
-import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useCustomScreenOptions from '@libs/Navigation/AppNavigator/useCustomScreenOptions';
@@ -65,21 +64,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 });
                             },
                         }}
-                        id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     >
-                        <Stack.Screen
-                            name={SCREENS.RIGHT_MODAL.SETTINGS}
-                            component={ModalStackNavigators.SettingsModalStackNavigator}
-                        />
-                        <Stack.Screen
-                            name={SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH}
-                            component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
-                            listeners={{
-                                beforeRemove: () => {
-                                    InteractionManager.runAfterInteractions(clearTwoFactorAuthData);
-                                },
-                            }}
-                        />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.NEW_CHAT}
                             component={ModalStackNavigators.NewChatModalStackNavigator}
@@ -220,6 +205,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS}
                             component={ModalStackNavigators.MissingPersonalDetailsModalStackNavigator}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE}
+                            component={ModalStackNavigators.AddUnreportedExpenseModalStackNavigator}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.SCHEDULE_CALL}
+                            component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                         />
                     </Stack.Navigator>
                 </View>

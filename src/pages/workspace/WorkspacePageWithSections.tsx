@@ -11,7 +11,6 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -130,7 +129,6 @@ function WorkspacePageWithSections({
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
     const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
-    const {canUseLeftHandBar} = usePermissions();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -203,13 +201,13 @@ function WorkspacePageWithSections({
                 shouldShow={shouldShow}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
                 shouldForceFullScreen
+                shouldDisplaySearchRouter
             >
                 <HeaderWithBackButton
                     title={headerText}
                     onBackButtonPress={handleOnBackButtonPress}
                     shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     icon={icon ?? undefined}
-                    style={styles.headerBarDesktopHeight(canUseLeftHandBar)}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
