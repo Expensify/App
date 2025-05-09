@@ -861,7 +861,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     });
 }
 
-function getOptimisticTransactions(): Transaction[] {
+function getDraftTransactions(): Transaction[] {
     return Object.values(allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 }
 
@@ -873,7 +873,7 @@ export {
     clearError,
     markAsCash,
     dismissDuplicateTransactionViolation,
-    getOptimisticTransactions,
+    getDraftTransactions,
     generateTransactionID,
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
