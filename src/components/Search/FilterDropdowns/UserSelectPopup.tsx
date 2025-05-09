@@ -12,12 +12,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import * as Report from '@userActions/Report';
+import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function getSelectedOptionData(option: Option): OptionData {
-    return {...option, selected: true, reportID: option.reportID ?? '-1'};
+function getSelectedOptionData(option: Option) {
+    return {...option, selected: true};
 }
 
 type UserSelectPopupProps = {
@@ -59,8 +59,8 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, []);
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelectedData);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [selectedOptions, setSelectedOptions] = useState<Option[]>(initialSelectedData);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
 
@@ -155,7 +155,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     };
 
     useEffect(() => {
-        Report.searchInServer(debouncedSearchTerm.trim());
+        searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
