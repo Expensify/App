@@ -1,6 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getBrickRoadForPolicy} from '@libs/WorkspacesSettingsUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
@@ -13,6 +14,7 @@ describe('WorkspacesSettingsUtils', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        initOnyxDerivedValues();
     });
 
     beforeEach(() => {
@@ -39,8 +41,8 @@ describe('WorkspacesSettingsUtils', () => {
 
             await waitForBatchedUpdates();
 
-            // When calling getBrickRoadForPolicy with a report and report actions
-            const result = getBrickRoadForPolicy(report as Report, reportActions as OnyxCollection<ReportActions>);
+            // When calling getBrickRoadForPolicy with a report
+            const result = getBrickRoadForPolicy(report as Report);
 
             // The result should be 'error' because there is at least one IOU action associated with a transaction that has a violation.
             expect(result).toBe('error');
@@ -62,7 +64,7 @@ describe('WorkspacesSettingsUtils', () => {
             await waitForBatchedUpdates();
 
             // When calling getBrickRoadForPolicy with a report and report actions
-            const result = getBrickRoadForPolicy(report as Report, reportActions as OnyxCollection<ReportActions>);
+            const result = getBrickRoadForPolicy(report as Report);
 
             // Then the result should be 'undefined' since no IOU action is linked to a transaction with a violation.
             expect(result).toBe(undefined);

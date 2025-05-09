@@ -8,6 +8,7 @@ import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import OnyxProvider from '@components/OnyxProvider';
 import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -16,6 +17,7 @@ jest.mock('@src/hooks/useRootNavigationState');
 describe('NavigationTabBar', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
     });
     beforeEach(() => {
         Onyx.clear();
