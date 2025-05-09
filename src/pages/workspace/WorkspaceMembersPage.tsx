@@ -513,19 +513,10 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
     useEffect(() => {
-        // if (areSearchResultsPending) {
-        // console.log('RORY_DEBUG transition is pending, returning early');
-        // return;
-        // }
-        if (!isFocused) {
-            return;
-        }
-        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || deepEqual(accountIDs, prevAccountIDs)) {
-            // console.log('RORY_DEBUG returning early', {invitedEmailsToAccountIDsDraft, accountIDs, prevAccountIDs});
+        if (!isFocused || isEmptyObject(invitedEmailsToAccountIDsDraft) || deepEqual(accountIDs, prevAccountIDs)) {
             return;
         }
         const invitedAccountIDs = Object.values(invitedEmailsToAccountIDsDraft).map(String);
-        // console.log('RORY_DEBUG scrolling and highlighting item', {invitedAccountIDs});
         selectionListRef.current?.scrollAndHighlightItem?.(invitedAccountIDs);
         clearInviteDraft(route.params.policyID);
     }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, route.params.policyID]);
