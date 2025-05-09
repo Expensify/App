@@ -8,6 +8,10 @@ function saveSettingsTabPathToSessionStorage(url: string) {
     sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_TAB_PATH, url);
 }
 
+function clearSessionStorage() {
+    sessionStorage.clear();
+}
+
 function getSettingsTabStateFromSessionStorage(): PartialState<NavigationState> | undefined {
     const lastVisitedSettingsPath = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_TAB_PATH);
     if (!lastVisitedSettingsPath) {
@@ -34,4 +38,4 @@ function getLastVisitedWorkspaceScreen() {
     return workspaceScreenName ?? undefined;
 }
 
-export {getLastVisitedWorkspaceScreen, getLastVisitedSettingsPath, saveSettingsTabPathToSessionStorage, getSettingsTabStateFromSessionStorage};
+export {getLastVisitedWorkspaceScreen, getLastVisitedSettingsPath, saveSettingsTabPathToSessionStorage, getSettingsTabStateFromSessionStorage, clearSessionStorage};
