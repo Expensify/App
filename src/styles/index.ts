@@ -5760,7 +5760,7 @@ const styles = (theme: ThemeColors) =>
             flexBasis: '35%',
         },
         thumbnailImageContainer: {
-            background: theme.activeComponentBG,
+            backgroundColor: theme.activeComponentBG,
         },
     } satisfies Styles);
 
