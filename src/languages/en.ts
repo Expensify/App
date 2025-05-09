@@ -897,6 +897,7 @@ const translations = {
         deleteReceipt: 'Delete receipt',
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
+        scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
     },
     quickAction: {
         scanReceipt: 'Scan receipt',
