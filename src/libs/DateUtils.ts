@@ -358,7 +358,7 @@ function getCurrentTimezone(): Required<Timezone> {
 }
 
 /**
- * @returns [January, Fabruary, March, April, May, June, July, August, ...]
+ * @returns [January, February, March, April, May, June, July, August, ...]
  */
 function getMonthNames(preferredLocale: Locale): string[] {
     if (preferredLocale) {
@@ -374,7 +374,7 @@ function getMonthNames(preferredLocale: Locale): string[] {
 }
 
 /**
- * @returns [Monday, Thuesday, Wednesday, ...]
+ * @returns [Monday, Tuesday, Wednesday, ...]
  */
 function getDaysOfWeek(preferredLocale: Locale): string[] {
     if (preferredLocale) {

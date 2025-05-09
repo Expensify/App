@@ -11,7 +11,7 @@ import {
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
-    isPrefferedExporter,
+    isPreferredExporter,
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID} from './ReportActionsUtils';
 import {
@@ -168,7 +168,7 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
         return false;
     }
 
-    const isReportExporter = isPrefferedExporter(policy);
+    const isReportExporter = isPreferredExporter(policy);
     if (!isReportExporter) {
         return false;
     }

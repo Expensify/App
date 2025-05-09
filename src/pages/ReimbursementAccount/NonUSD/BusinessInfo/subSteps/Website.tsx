@@ -60,7 +60,7 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('businessInfoStep.enterYourCompanysWebsite')}
+            formTitle={translate('businessInfoStep.enterYourCompanyWebsite')}
             formDisclaimer={translate('common.websiteExample')}
             validate={validate}
             onSubmit={handleSubmit}

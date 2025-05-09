@@ -17,11 +17,11 @@ import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SubscriptionPlanCardActionButton from './SubscriptionPlanCardActionButton';
 
-type PersonalPolicyTypeExludedProps = Exclude<ValueOf<typeof CONST.POLICY.TYPE>, 'personal'>;
+type PersonalPolicyTypeExcludedProps = Exclude<ValueOf<typeof CONST.POLICY.TYPE>, 'personal'>;
 
 type SubscriptionPlanCardProps = {
     /** Subscription plan to display */
-    subscriptionPlan: PersonalPolicyTypeExludedProps | null;
+    subscriptionPlan: PersonalPolicyTypeExcludedProps | null;
 
     /** Whether the plan card was rendered inside the comparison modal */
     isFromComparisonModal?: boolean;
@@ -106,4 +106,4 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
 SubscriptionPlanCard.displayName = 'SubscriptionPlanCard';
 
 export default SubscriptionPlanCard;
-export type {PersonalPolicyTypeExludedProps};
+export type {PersonalPolicyTypeExcludedProps};

@@ -18,7 +18,7 @@ type KeyboardShortcutConfig = {
     excludedNodes?: string[];
     /* Is keyboard shortcut is already active */
     isActive?: boolean;
-    /* Shuld stop propagation? */
+    /* Should stop propagation? */
     shouldStopPropagation?: boolean;
 };
 

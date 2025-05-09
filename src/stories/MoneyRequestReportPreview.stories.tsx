@@ -91,7 +91,7 @@ export default {
             control: {type: 'radio'},
         },
         /** Callback for updating context menu active state, used for showing context menu */
-        chceckIfContextMenuActive: {
+        checkIfContextMenuActive: {
             options: [undefined, () => {}],
             control: {type: 'radio'},
         },

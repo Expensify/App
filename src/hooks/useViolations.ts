@@ -89,7 +89,7 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
             const currentViolations = violationsByField.get(field) ?? [];
             const firstViolation = currentViolations.at(0);
 
-            // someTagLevelsRequired has special logic becase data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
+            // someTagLevelsRequired has special logic because data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
             // tagListIndex can be 0 so we compare with undefined
             if (firstViolation?.name === CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && data?.tagListIndex !== undefined && Array.isArray(firstViolation?.data?.errorIndexes)) {
                 return currentViolations

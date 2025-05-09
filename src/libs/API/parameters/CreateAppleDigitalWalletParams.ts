@@ -1,4 +1,4 @@
-type CreateAppleSigitalWalletParams = {
+type CreateAppleDigitalWalletParams = {
     platform: string;
     appVersion: string;
     // stringified {"certificates": string[]}
@@ -7,4 +7,4 @@ type CreateAppleSigitalWalletParams = {
     nonceSignature: string;
 };
 
-export default CreateAppleSigitalWalletParams;
+export default CreateAppleDigitalWalletParams;

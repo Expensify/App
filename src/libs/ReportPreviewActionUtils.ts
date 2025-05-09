@@ -12,7 +12,7 @@ import {
     hasAccountingConnections,
     hasIntegrationAutoSync,
     isPolicyAdmin,
-    isPrefferedExporter,
+    isPreferredExporter,
 } from './PolicyUtils';
 import {
     getMoneyRequestSpendBreakdown,
@@ -135,7 +135,7 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
 
 function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, reportActions?: OnyxEntry<ReportActions> | ReportAction[]) {
     const isExpense = isExpenseReport(report);
-    const isExporter = policy ? isPrefferedExporter(policy) : false;
+    const isExporter = policy ? isPreferredExporter(policy) : false;
     const isReimbursed = isSettled(report);
     const isClosed = isClosedReport(report);
     const isApproved = isReportApproved({report});

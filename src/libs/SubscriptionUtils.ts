@@ -6,7 +6,7 @@ import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
-import type {PersonalPolicyTypeExludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
+import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
 import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -198,7 +198,7 @@ function getOverdueGracePeriodDate(): OnyxEntry<number> {
  * @returns Whether the workspace owner has an overdue grace period.
  */
 function hasOverdueGracePeriod(): boolean {
-    return !!ownerBillingGraceEndPeriod ?? false;
+    return !!ownerBillingGraceEndPeriod;
 }
 
 /**
@@ -233,7 +233,7 @@ function hasCardAuthenticatedError() {
  * @returns Whether there is a billing dispute pending.
  */
 function hasBillingDisputePending() {
-    return !!billingDisputePending ?? false;
+    return !!billingDisputePending;
 }
 
 /**
@@ -344,14 +344,14 @@ function getEarlyDiscountInfo(): DiscountInfo | null {
  * @returns Whether there is a retry billing error.
  */
 function hasRetryBillingError(): boolean {
-    return !!retryBillingFailed ?? false;
+    return !!retryBillingFailed;
 }
 
 /**
  * @returns Whether the retry billing was successful.
  */
 function isRetryBillingSuccessful(): boolean {
-    return !!retryBillingSuccessful ?? false;
+    return !!retryBillingSuccessful;
 }
 
 type SubscriptionStatus = {
@@ -599,7 +599,7 @@ function checkIfHasTeam2025Pricing() {
     return differenceInDays(firstPolicyDate, CONST.SUBSCRIPTION.TEAM_2025_PRICING_START_DATE) >= 0;
 }
 
-function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps | null, preferredCurrency: PreferredCurrency, privateSubscriptionType: SubscriptionType | undefined): number {
+function getSubscriptionPrice(plan: PersonalPolicyTypeExcludedProps | null, preferredCurrency: PreferredCurrency, privateSubscriptionType: SubscriptionType | undefined): number {
     if (!privateSubscriptionType || !plan) {
         return 0;
     }
@@ -614,7 +614,7 @@ function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps | null, prefe
 }
 
 function getSubscriptionPlanInfo(
-    subscriptionPlan: PersonalPolicyTypeExludedProps | null,
+    subscriptionPlan: PersonalPolicyTypeExcludedProps | null,
     privateSubscriptionType: SubscriptionType | undefined,
     preferredCurrency: PreferredCurrency,
     isFromComparisonModal: boolean,

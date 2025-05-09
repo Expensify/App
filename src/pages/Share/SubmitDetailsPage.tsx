@@ -137,7 +137,7 @@ function SubmitDetailsPage({
         }
 
         const receipt: Receipt = file;
-        receipt.state = file && CONST.IOU.RECEIPT_STATE.SCANREADY;
+        receipt.state = file && CONST.IOU.RECEIPT_STATE.SCAN_READY;
         if (locationPermissionGranted) {
             getCurrentPosition(
                 (successData) => {

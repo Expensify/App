@@ -26,7 +26,7 @@ function setMissingOnyxUpdatesQueryPromise(promise: Promise<Response | Response[
     missingOnyxUpdatesQueryPromise = promise;
 }
 
-type GetDeferredOnyxUpdatesOptiosn = {
+type GetDeferredOnyxUpdatesOptions = {
     minUpdateID?: number;
 };
 
@@ -35,7 +35,7 @@ type GetDeferredOnyxUpdatesOptiosn = {
  * @param minUpdateID An optional minimum update ID to filter the deferred updates by
  * @returns
  */
-function getUpdates(options?: GetDeferredOnyxUpdatesOptiosn) {
+function getUpdates(options?: GetDeferredOnyxUpdatesOptions) {
     if (options?.minUpdateID == null) {
         return deferredUpdates;
     }
