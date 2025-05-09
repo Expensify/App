@@ -305,7 +305,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         () => getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions)),
         [reportActions, transactionThreadReportID, transactionThreadReportActions],
     );
-    const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
+    const lastReportAction = useMemo(
+        () => [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action)),
+        [combinedReportActions, parentReportAction],
+    );
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
