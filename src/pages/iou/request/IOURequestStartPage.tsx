@@ -176,6 +176,7 @@ function IOURequestStartPage({
                                             <IOURequestStepScan
                                                 route={route}
                                                 navigation={navigation}
+                                                isTooltipAllowed
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}

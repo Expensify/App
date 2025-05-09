@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -23,6 +24,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
@@ -40,6 +42,7 @@ import {
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -157,31 +160,44 @@ function WorkspaceTaxesPage({
         if (!policy) {
             return [];
         }
-        return Object.entries(policy.taxRates?.taxes ?? {})
-            .map(([key, value]) => {
-                const canEditTaxRate = policy && canEditTaxRatePolicyUtils(policy, key);
+        return Object.entries(policy.taxRates?.taxes ?? {}).map(([key, value]) => {
+            const canEditTaxRate = policy && canEditTaxRatePolicyUtils(policy, key);
 
-                return {
-                    text: value.name,
-                    alternateText: textForDefault(key, value),
-                    keyForList: key,
-                    isSelected: !!selectedTaxesIDs.includes(key) && canSelectMultiple,
-                    isDisabledCheckbox: !canEditTaxRatePolicyUtils(policy, key),
-                    isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
-                    errors: value.errors ?? getLatestErrorFieldForAnyField(value),
-                    rightElement: (
-                        <Switch
-                            isOn={!value.isDisabled}
-                            disabled={!canEditTaxRate || value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                            accessibilityLabel={translate('workspace.taxes.actions.enable')}
-                            onToggle={(newValue: boolean) => updateWorkspaceTaxEnabled(newValue, key)}
-                        />
-                    ),
-                };
-            })
-            .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
+            return {
+                text: value.name,
+                alternateText: textForDefault(key, value),
+                keyForList: key,
+                isSelected: !!selectedTaxesIDs.includes(key) && canSelectMultiple,
+                isDisabledCheckbox: !canEditTaxRatePolicyUtils(policy, key),
+                isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
+                errors: value.errors ?? getLatestErrorFieldForAnyField(value),
+                rightElement: (
+                    <Switch
+                        isOn={!value.isDisabled}
+                        disabled={!canEditTaxRate || value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                        accessibilityLabel={translate('workspace.taxes.actions.enable')}
+                        onToggle={(newValue: boolean) => updateWorkspaceTaxEnabled(newValue, key)}
+                    />
+                ),
+            };
+        });
     }, [policy, textForDefault, selectedTaxesIDs, canSelectMultiple, translate, updateWorkspaceTaxEnabled]);
+
+    const filterTax = useCallback((tax: ListItem, searchInput: string) => {
+        const taxName = StringUtils.normalize(tax.text?.toLowerCase() ?? '');
+        const taxAlternateText = StringUtils.normalize(tax.alternateText?.toLowerCase() ?? '');
+        const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase() ?? '');
+        return taxName.includes(normalizedSearchInput) || taxAlternateText.includes(normalizedSearchInput);
+    }, []);
+    const sortTaxes = useCallback((taxes: ListItem[]) => {
+        return taxes.sort((a, b) => {
+            const aText = a.text ?? a.keyForList ?? '';
+            const bText = b.text ?? b.keyForList ?? '';
+            return aText.localeCompare(bText);
+        });
+    }, []);
+    const [inputValue, setInputValue, filteredTaxesList] = useSearchResults(taxesList, filterTax, sortTaxes);
 
     const isLoading = !isOffline && taxesList === undefined;
 
@@ -200,7 +216,7 @@ function WorkspaceTaxesPage({
     };
 
     const toggleAllTaxes = () => {
-        const taxesToSelect = taxesList.filter(
+        const taxesToSelect = filteredTaxesList.filter(
             (tax) => tax.keyForList !== defaultExternalID && tax.keyForList !== foreignTaxDefault && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         setSelectedTaxesIDs((prev) => {
@@ -370,7 +386,15 @@ function WorkspaceTaxesPage({
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
 
-                {!shouldUseNarrowLayout && getHeaderText()}
+                {getHeaderText()}
+                {taxesList.length > CONST.SEARCH_ITEM_LIMIT && (
+                    <SearchBar
+                        label={translate('workspace.taxes.findTaxRate')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={filteredTaxesList.length === 0}
+                    />
+                )}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -382,13 +406,12 @@ function WorkspaceTaxesPage({
                     canSelectMultiple={canSelectMultiple}
                     turnOnSelectionModeOnLongPress
                     onTurnOnSelectionMode={(item) => item && toggleTax(item)}
-                    sections={[{data: taxesList, isDisabled: false}]}
+                    sections={[{data: filteredTaxesList, isDisabled: false}]}
                     onCheckboxPress={toggleTax}
                     onSelectRow={navigateToEditTaxRate}
                     onSelectAll={toggleAllTaxes}
                     ListItem={TableListItem}
                     customListHeader={getCustomListHeader()}
-                    listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
