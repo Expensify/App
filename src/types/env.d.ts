@@ -1,7 +1,8 @@
 declare namespace NodeJS {
-    type ProcessEnv = {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+    interface ProcessEnv {
         GITHUB_REPOSITORY_OWNER: string;
-        GITHUB_REPOSITORY: string | undefined;
+        GITHUB_REPOSITORY: string;
         GITHUB_TOKEN: string | undefined;
         PORT: number | undefined;
         WORKING_DIRECTORY: string | undefined;
