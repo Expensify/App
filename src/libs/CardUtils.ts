@@ -19,6 +19,7 @@ import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import StringUtils from './StringUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -271,11 +272,17 @@ function sortCardsByCardholderName(cards: Card[], personalDetails: OnyxEntry<Per
 }
 
 function filterCardsByPersonalDetails(card: Card, searchQuery: string, personalDetails?: PersonalDetailsList) {
-    const cardTitle = card.nameValuePairs?.cardTitle?.toLowerCase() ?? '';
-    const lastFourPAN = card?.lastFourPAN?.toLowerCase() ?? '';
-    const accountLogin = personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login?.toLowerCase() ?? '';
-    const accountName = personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName?.toLowerCase() ?? '';
-    return cardTitle.includes(searchQuery) || lastFourPAN.includes(searchQuery) || accountLogin.includes(searchQuery) || accountName.includes(searchQuery);
+    const normalizedSearchQuery = StringUtils.normalize(searchQuery.toLowerCase());
+    const cardTitle = StringUtils.normalize(card.nameValuePairs?.cardTitle?.toLowerCase() ?? '');
+    const lastFourPAN = StringUtils.normalize(card?.lastFourPAN?.toLowerCase() ?? '');
+    const accountLogin = StringUtils.normalize(personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login?.toLowerCase() ?? '');
+    const accountName = StringUtils.normalize(personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName?.toLowerCase() ?? '');
+    return (
+        cardTitle.includes(normalizedSearchQuery) ||
+        lastFourPAN.includes(normalizedSearchQuery) ||
+        accountLogin.includes(normalizedSearchQuery) ||
+        accountName.includes(normalizedSearchQuery)
+    );
 }
 
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, illustrations: IllustrationsType): IconAsset {
