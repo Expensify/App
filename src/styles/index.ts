@@ -5354,6 +5354,14 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: colors.green700,
         },
 
+        splitItemBottomContent: {
+            flexDirection: "row",
+            alignItems: "center",
+            marginTop: -4,
+            justifyContent: "space-between",
+            minHeight: 12,
+        },
+
         volumeSliderOverlay: {
             width: 4,
             height: 60,

@@ -41,7 +41,7 @@ function SplitListItem<TItem extends ListItem>({
             isFocused={isFocused}
             containerStyle={[styles.mh4, styles.mv2, styles.reportPreviewBoxHoverBorder, styles.br2]}
             hoverStyle={[styles.br2]}
-            pressableStyle={[styles.br2]}
+            pressableStyle={[styles.br2,styles.p1]}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             onSelectRow={onSelectRow}
@@ -99,7 +99,7 @@ function SplitListItem<TItem extends ListItem>({
                         </View>
                     </View>
                 </View>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mtn1, styles.justifyContentBetween]}>
+                <View style={[styles.splitItemBottomContent]}>
                     {!!splitItem.category && (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mw50, styles.pr1, styles.flexShrink1]}>
                             <Icon
