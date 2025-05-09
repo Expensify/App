@@ -224,9 +224,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused]);
 
-    useEffect(() => {
-        validateSelection();
-    }, [preferredLocale, validateSelection]);
+    useEffect(validateSelection, [preferredLocale, validateSelection]);
 
     useEffect(() => {
         if (removeMembersConfirmModalVisible && !deepEqual(accountIDs, prevAccountIDs)) {
@@ -415,6 +413,11 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
     const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
+
+    const badgeOwner = useMemo(() => <Badge text={translate('common.owner')} />, [translate]);
+    const badgeAdmin = useMemo(() => <Badge text={translate('common.admin')} />, [translate]);
+    const badgeAuditor = useMemo(() => <Badge text={translate('common.auditor')} />, [translate]);
+
     const data: MemberOption[] = useMemo(() => {
         const result: MemberOption[] = [];
 
@@ -446,10 +449,12 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
             const isAuditor = policyEmployee.role === CONST.POLICY.ROLE.AUDITOR;
             let roleBadge = null;
-            if (isOwner || isAdmin) {
-                roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
+            if (isOwner) {
+                roleBadge = badgeOwner;
+            } else if (isAdmin) {
+                roleBadge = badgeAdmin;
             } else if (isAuditor) {
-                roleBadge = <Badge text={translate('common.auditor')} />;
+                roleBadge = badgeAuditor;
             }
             const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
 
@@ -508,14 +513,20 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
     useEffect(() => {
+        // if (areSearchResultsPending) {
+        // console.log('RORY_DEBUG transition is pending, returning early');
+        // return;
+        // }
         if (!isFocused) {
             return;
         }
         if (isEmptyObject(invitedEmailsToAccountIDsDraft) || deepEqual(accountIDs, prevAccountIDs)) {
+            // console.log('RORY_DEBUG returning early', {invitedEmailsToAccountIDsDraft, accountIDs, prevAccountIDs});
             return;
         }
-        const invitedEmails = Object.values(invitedEmailsToAccountIDsDraft).map(String);
-        selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails);
+        const invitedAccountIDs = Object.values(invitedEmailsToAccountIDsDraft).map(String);
+        // console.log('RORY_DEBUG scrolling and highlighting item', {invitedAccountIDs});
+        selectionListRef.current?.scrollAndHighlightItem?.(invitedAccountIDs);
         clearInviteDraft(route.params.policyID);
     }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, route.params.policyID]);
 
@@ -546,7 +557,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         if (selectionMode?.isEnabled) {
             return;
         }
-
         setSelectedEmployees([]);
     }, [setSelectedEmployees, selectionMode?.isEnabled]);
 

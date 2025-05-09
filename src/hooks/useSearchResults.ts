@@ -1,3 +1,4 @@
+import {deepEqual} from 'fast-equals';
 import {useEffect, useState, useTransition} from 'react';
 import CONST from '@src/CONST';
 import usePrevious from './usePrevious';
@@ -8,17 +9,27 @@ import usePrevious from './usePrevious';
  * the result of the filtering and sorting are deprioritized, allowing them to happen in the background.
  */
 function useSearchResults<TValue>(data: TValue[], filterData: (datum: TValue, searchInput: string) => boolean, sortData: (data: TValue[]) => TValue[] = (d) => d) {
+    // The text input value for the search bar this hook is meant to be used with
     const [inputValue, setInputValue] = useState('');
+
+    // The return result
     const [result, setResult] = useState(data);
+
     const [, startTransition] = useTransition();
     const prevData = usePrevious(data);
+
     useEffect(() => {
+        const filtered = inputValue.length ? data.filter((item) => filterData(item, inputValue)) : data;
+        const sorted = sortData(filtered);
+
+        if (deepEqual(result, sorted)) {
+            return;
+        }
+
         startTransition(() => {
-            const filtered = inputValue.length ? data.filter((item) => filterData(item, inputValue)) : data;
-            const sorted = sortData(filtered);
             setResult(sorted);
         });
-    }, [data, filterData, inputValue, sortData]);
+    }, [data, filterData, inputValue, result, sortData]);
 
     useEffect(() => {
         if (prevData.length <= CONST.SEARCH_ITEM_LIMIT || data.length > CONST.SEARCH_ITEM_LIMIT) {
