@@ -42,6 +42,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {openExternalLink} from '@userActions/Link';
 import {turnOffMobileSelectionMode} from '@userActions/MobileSelectionMode';
@@ -195,7 +196,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         [allSubRates, selectedPerDiem, canSelectMultiple, styles.flex2, styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2, styles.alignSelfEnd],
     );
 
-    const filterRate = useCallback((rate: PolicyOption, searchInput: string) => !!rate.text?.toLowerCase().includes(searchInput), []);
+    const filterRate = useCallback((rate: PolicyOption, searchInput: string) => {
+        const rateText = StringUtils.normalize(rate.text?.toLowerCase() ?? '');
+        const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase());
+        return rateText.includes(normalizedSearchInput);
+    }, []);
     const sortRates = useCallback((rates: PolicyOption[]) => lodashSortBy(rates, 'text', localeCompare) as PolicyOption[], []);
     const [inputValue, setInputValue, filteredSubRatesList] = useSearchResults(subRatesList, filterRate, sortRates);
 
@@ -316,20 +321,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const hasVisibleSubRates = subRatesList.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
-    const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            <Text>
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.perDiem.subtitle')}</Text>
-                <TextLink
-                    style={[styles.textNormal, styles.link]}
-                    onPress={() => openExternalLink(CONST.DEEP_DIVE_PER_DIEM)}
-                >
-                    {translate('workspace.common.learnMore')}
-                </TextLink>
-            </Text>
-        </View>
-    );
-
     const threeDotsMenuItems = useMemo(() => {
         const menuItems = [
             {
@@ -415,7 +406,17 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     danger
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                {(!hasVisibleSubRates || isLoading) && getHeaderText()}
+                <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Text>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.perDiem.subtitle')}</Text>
+                        <TextLink
+                            style={[styles.textNormal, styles.link]}
+                            onPress={() => openExternalLink(CONST.DEEP_DIVE_PER_DIEM)}
+                        >
+                            {translate('workspace.common.learnMore')}
+                        </TextLink>
+                    </Text>
+                </View>
                 {subRatesList.length > CONST.SEARCH_ITEM_LIMIT && (
                     <SearchBar
                         label={translate('workspace.perDiem.findPerDiemRate')}
