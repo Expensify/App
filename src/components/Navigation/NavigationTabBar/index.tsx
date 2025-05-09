@@ -62,10 +62,11 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
-    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
-        isTooltipAllowed && selectedTab !== NAVIGATION_TABS.HOME,
-    );
+    const {
+        renderProductTrainingTooltip: renderInboxTooltip,
+        shouldShowProductTrainingTooltip: shouldShowInboxTooltip,
+        hideProductTrainingTooltip: hideInboxTooltip,
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP, isTooltipAllowed && selectedTab !== NAVIGATION_TABS.HOME);
     const StyleUtils = useStyleUtils();
 
     // On a wide layout DebugTabView should be rendered only within the navigation tab bar displayed directly on screens.
@@ -82,9 +83,9 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             return;
         }
 
-        hideProductTrainingTooltip();
+        hideInboxTooltip();
         Navigation.navigate(ROUTES.HOME);
-    }, [hideProductTrainingTooltip, selectedTab]);
+    }, [hideInboxTooltip, selectedTab]);
 
     const navigateToSearch = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SEARCH) {
@@ -220,13 +221,13 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             />
                         </PressableWithFeedback>
                         <EducationalTooltip
-                            shouldRender={shouldShowProductTrainingTooltip}
+                            shouldRender={shouldShowInboxTooltip}
                             anchorAlignment={{
                                 horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                             }}
                             shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarInboxTooltipShiftHorizontal}
-                            renderTooltipContent={renderProductTrainingTooltip}
+                            renderTooltipContent={renderInboxTooltip}
                             wrapperStyle={styles.productTrainingTooltipWrapper}
                             shouldHideOnNavigate={false}
                             onTooltipPress={navigateToChats}
@@ -293,6 +294,8 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             style={styles.leftNavigationTabBarItem}
                             isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                             onPress={showSettingsPage}
+                            isWebOrDesktop={isWebOrDesktop}
+                            isTooltipAllowed={isTooltipAllowed}
                         />
                     </View>
                     <View style={styles.leftNavigationTabBarItem}>
@@ -314,13 +317,13 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             )}
             <View style={styles.navigationTabBarContainer}>
                 <EducationalTooltip
-                    shouldRender={shouldShowProductTrainingTooltip}
+                    shouldRender={shouldShowInboxTooltip}
                     anchorAlignment={{
                         horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     }}
                     shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarInboxTooltipShiftHorizontal}
-                    renderTooltipContent={renderProductTrainingTooltip}
+                    renderTooltipContent={renderInboxTooltip}
                     wrapperStyle={styles.productTrainingTooltipWrapper}
                     shouldHideOnNavigate={false}
                     onTooltipPress={navigateToChats}
@@ -387,6 +390,8 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                     style={styles.navigationTabBarItem}
                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                     onPress={showSettingsPage}
+                    isWebOrDesktop={isWebOrDesktop}
+                    isTooltipAllowed={isTooltipAllowed}
                 />
                 <View style={[styles.flex1, styles.navigationTabBarItem]}>
                     <NavigationTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
