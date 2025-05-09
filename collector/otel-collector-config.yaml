@@ -1,0 +1,46 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+        include_metadata: true
+        cors:
+          allowed_origins:
+            - https://dev.new.expensify.com:8082
+          max_age: 7200
+
+processors:
+  batch:
+
+extensions:
+  health_check:
+  pprof:
+    endpoint: :1888
+  zpages:
+    endpoint: :55679
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: promexample
+    const_labels:
+      label1: value1
+
+  debug:
+    verbosity: detailed
+
+  zipkin:
+      endpoint: "http://zipkin-all-in-one:9411/api/v2/spans"
+      format: proto
+
+service:
+  extensions: [pprof, zpages, health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug, zipkin]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus, debug]
