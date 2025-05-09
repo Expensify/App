@@ -9,10 +9,8 @@ import usePrevious from './usePrevious';
  * the result of the filtering and sorting are deprioritized, allowing them to happen in the background.
  */
 function useSearchResults<TValue>(data: TValue[], filterData: (datum: TValue, searchInput: string) => boolean, sortData: (data: TValue[]) => TValue[] = (d) => d) {
-    // The text input value for the search bar this hook is meant to be used with
     const [inputValue, setInputValue] = useState('');
 
-    // The return result
     const [result, setResult] = useState(data);
 
     const [, startTransition] = useTransition();
