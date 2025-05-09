@@ -18,11 +18,13 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
+import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import ImageSVG from './ImageSVG';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
 import type DotLottieAnimation from './LottieAnimations/types';
 import Modal from './Modal';
+import OfflineIndicator from './OfflineIndicator';
 import RenderHTML from './RenderHTML';
 import ScrollView from './ScrollView';
 import Text from './Text';
@@ -115,6 +117,9 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether the modal is displaying a confirmation loading spinner (useful when fetching data from API during confirmation) */
     shouldShowConfirmationLoader?: boolean;
+
+    /** Whether the user can confirm the tutorial while offline */
+    canConfirmWhileOffline?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -177,6 +182,7 @@ function FeatureTrainingModal({
     avoidKeyboard = false,
     shouldUseScrollView = false,
     shouldShowConfirmationLoader = false,
+    canConfirmWhileOffline = true,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -397,14 +403,13 @@ function FeatureTrainingModal({
                             text={helpText}
                         />
                     )}
-                    <Button
-                        large
-                        success
-                        pressOnEnter
-                        onPress={closeAndConfirmModal}
+                    <FormAlertWithSubmitButton
+                        onSubmit={closeAndConfirmModal}
                         isLoading={shouldShowConfirmationLoader}
-                        text={confirmText}
+                        buttonText={confirmText}
+                        enabledWhenOffline={canConfirmWhileOffline}
                     />
+                    {!canConfirmWhileOffline && <OfflineIndicator addBottomSafeAreaPadding />}
                 </View>
             </Wrapper>
         </Modal>
