@@ -6,7 +6,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {config} from '@libs/Navigation/linkingConfig/config';
-import {RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, SEARCH_TO_RHP} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -69,12 +69,15 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
         return getMatchingFullScreenRoute(focusedStateForBackToRoute, policyID);
     }
 
-    if (SEARCH_TO_RHP.includes(route.name)) {
-        const paramsFromRoute = getParamsFromRoute(SCREENS.SEARCH.ROOT);
-
+    if (RHP_TO_SEARCH[route.name]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_SEARCH[route.name]);
+        const searchRoute = {
+            name: RHP_TO_SEARCH[route.name],
+            params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+        };
         return {
             name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-            params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            state: getRoutesWithIndex([searchRoute]),
         };
     }
 
