@@ -29,6 +29,7 @@ import {
     deleteWorkspace,
     deleteWorkspaceAvatar,
     openPolicyProfilePage,
+    setIsComingFromGlobalReimbursementsFlow,
     updateLastAccessedWorkspaceSwitcher,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
@@ -69,6 +70,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         selector: (session) => session?.accountID,
         canBeMissing: true,
     });
+    const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, {canBeMissing: true});
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -205,6 +207,20 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         setIsDeleteModalOpen(true);
     }, [setIsDeletingPaidWorkspace]);
 
+    const handleBackButtonPress = () => {
+        if (isComingFromGlobalReimbursementsFlow) {
+            setIsComingFromGlobalReimbursementsFlow(false);
+            Navigation.goBack();
+        }
+
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        goBackFromWorkspaceCentralScreen(policy?.id);
+    };
+
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -216,14 +232,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowNonAdmin
             icon={Building}
             shouldShowNotFoundPage={policy === undefined}
-            onBackButtonPress={() => {
-                if (backTo) {
-                    Navigation.goBack(backTo);
-                    return;
-                }
-
-                goBackFromWorkspaceCentralScreen(policy?.id);
-            }}
+            onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
         >
             {(hasVBA?: boolean) => (
