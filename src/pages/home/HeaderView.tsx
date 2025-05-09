@@ -34,9 +34,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DateUtils from '@libs/DateUtils';
 import {openExternalLink} from '@libs/actions/Link';
-import {clearBookingDraft} from '@libs/actions/ScheduleCall';
+import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
+import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -84,7 +84,6 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {cancelBooking, rescheduleBooking} from '@libs/actions/ScheduleCall';
 import TalkToSalesButton from './TalkToSalesButton';
 
 type HeaderViewProps = {
@@ -247,6 +246,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                         if (!report?.reportID) {
                             return;
                         }
+                        clearBookingDraft();
                         Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK.getRoute(report?.reportID));
                     }}
                     style={shouldUseNarrowLayout && shouldShowGuideBookingButtonInEarlyDiscountBanner && styles.earlyDiscountButton}
@@ -255,7 +255,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                     iconWrapperStyles={[styles.mw100]}
                     isContentCentered
                 />
-
             );
         }
         const menuItems: Array<DropdownOption<string>> = [
