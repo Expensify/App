@@ -45,8 +45,8 @@ type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNav
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
     const {policyID, cardID, backTo} = route.params;
     const bank = decodeURIComponent(route.params.bank);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
@@ -58,8 +58,8 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [allBankCards, allBankCardsMetadata] = useCardsList(policyID, bank as CompanyCardFeed);
     const card = allBankCards?.[cardID];
 

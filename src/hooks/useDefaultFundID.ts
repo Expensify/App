@@ -10,7 +10,7 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
  */
 function useDefaultFundID(policyID: string | undefined) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
+    const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`, {canBeMissing: true});
 
     const [domainFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
         selector: (cardSettings) => {
@@ -21,6 +21,7 @@ function useDefaultFundID(policyID: string | undefined) {
 
             return getFundIdFromSettingsKey(matchingKey?.[0] ?? '');
         },
+        canBeMissing: true,
     });
 
     if (lastSelectedExpensifyCardFeed) {
