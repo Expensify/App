@@ -498,10 +498,13 @@ function filterInactiveCards(cards: CardList | undefined): CardList {
     return filterObject(cards ?? {}, (key, card) => !closedStates.includes(card.state));
 }
 
-function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): CardList {
+function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards, cardFeeds?: CardFeeds): CardList {
     const cards = {};
+    const domainIDs = Object.values(cardFeeds?.settings?.companyCards ?? {})
+        .map((feed) => feed?.domainID)
+        .filter((domainID): domainID is number => !!domainID);
     for (const [key, values] of Object.entries(allCardList ?? {})) {
-        if (key.includes(workspaceAccountID.toString()) && values) {
+        if ((key.includes(workspaceAccountID.toString()) || domainIDs?.some((id) => key.includes(id.toString()))) && values) {
             const {cardList, ...rest} = values;
             const filteredCards = filterInactiveCards(rest);
             Object.assign(cards, filteredCards);
