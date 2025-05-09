@@ -9,7 +9,7 @@
     </h1>
 </div>
 
-#### Table of Contents
+#### Table of 
 * [Local Development](#local-development)
 * [Testing on browsers in simulators and emulators](#testing-on-browsers-in-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
