@@ -766,7 +766,10 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         isVisible={isDownloadFailureModalVisible}
                         onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                    >
                         {shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : getHeaderContent()}
                         {data.length > CONST.SEARCH_ITEM_LIMIT && (
                             <SearchBar

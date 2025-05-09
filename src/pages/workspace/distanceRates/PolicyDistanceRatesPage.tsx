@@ -385,7 +385,10 @@ function PolicyDistanceRatesPage({
                     {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.ph5]}>{headerButtons}</View>}
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                >
                     {Object.values(customUnitRates).length > 0 && getHeaderText()}
                     {isLoading && (
                         <ActivityIndicator

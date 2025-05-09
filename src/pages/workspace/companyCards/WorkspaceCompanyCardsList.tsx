@@ -120,7 +120,10 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
 
     return (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+        <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+        >
             {allCards.length > 0 && (
                 <SearchBar
                     label={translate('workspace.companyCards.findCard')}
