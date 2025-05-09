@@ -216,6 +216,7 @@ const SCREENS = {
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
         SPLIT_EXPENSE: 'Split_Expense',
+        ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
         SCHEDULE_CALL: 'ScheduleCall',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
@@ -672,6 +673,10 @@ const SCREENS = {
         ROOT: 'TestDrive_Demo_Root',
     },
 
+    TEST_TOOLS_MODAL: {
+        ROOT: 'TestToolsModal_Root',
+    },
+
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
     INTRO_SCHOOL_PRINCIPAL: 'Intro_School_Principal',
     I_AM_A_TEACHER: 'I_Am_A_Teacher',
@@ -709,6 +714,7 @@ const SCREENS = {
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
     MISSING_PERSONAL_DETAILS_ROOT: 'MissingPersonalDetails_Root',
+    ADD_UNREPORTED_EXPENSES_ROOT: 'AddUnreportedExpenses_Root',
     DEBUG: {
         REPORT: 'Debug_Report',
         REPORT_ACTION: 'Debug_Report_Action',
