@@ -57,6 +57,7 @@ import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
@@ -407,7 +408,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
-    const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
+    const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
     const data: MemberOption[] = useMemo(() => {
         const result: MemberOption[] = [];
 
@@ -491,10 +492,12 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         isPolicyAdmin,
     ]);
 
-    const filterMember = useCallback(
-        (memberOption: MemberOption, searchQuery: string) => !!memberOption.text?.toLowerCase().includes(searchQuery) || !!memberOption.alternateText?.toLowerCase().includes(searchQuery),
-        [],
-    );
+    const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
+        const memberText = StringUtils.normalize(memberOption.text?.toLowerCase() ?? '');
+        const alternateText = StringUtils.normalize(memberOption.alternateText?.toLowerCase() ?? '');
+        const normalizedSearchQuery = StringUtils.normalize(searchQuery);
+        return memberText.includes(normalizedSearchQuery) || alternateText.includes(normalizedSearchQuery);
+    }, []);
     const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text'), []);
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
