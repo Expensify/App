@@ -1,6 +1,8 @@
 import React, {useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
+import useNarrowPaneOfflineIndicatorContext from '@components/ScreenWrapper/useNarrowPaneOfflineIndicatorContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
@@ -13,7 +15,6 @@ import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigati
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import NarrowPaneOfflineIndicatorContextProvider from './NarrowPaneOfflineIndicatorContextProvider';
 import Overlay from './Overlay';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
@@ -26,6 +27,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const isExecutingRef = useRef<boolean>(false);
 
     const screenOptions = useCustomScreenOptions();
+    const offlineIndicatorContextValue = useNarrowPaneOfflineIndicatorContext();
 
     return (
         <NoDropZone>
@@ -43,7 +45,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     }}
                 />
             )}
-            <NarrowPaneOfflineIndicatorContextProvider>
+            <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
                 <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
@@ -216,7 +218,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                     </Stack.Navigator>
                 </View>
-            </NarrowPaneOfflineIndicatorContextProvider>
+            </ScreenWrapperOfflineIndicatorContext.Provider>
         </NoDropZone>
     );
 }

@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import ReactNativeModal from 'react-native-modal';
@@ -27,9 +27,6 @@ import type ModalProps from './BottomDockedModal/types';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
 import type BaseModalProps from './types';
-
-// In Modals we need to reset the ScreenWrapperOfflineIndicatorContext to allow nested ScreenWrapper components to render offline indicators.
-const OFFLINE_INDICATOR_CONTEXT_RESET_IN_MODAL_VALUE = {};
 
 type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
@@ -253,9 +250,14 @@ function BaseModal(
         [isVisible, type],
     );
 
+    // In Modals we need to reset the ScreenWrapperOfflineIndicatorContext to allow nested ScreenWrapper components to render offline indicators,
+    // except if we are in a narrow pane navigator. In this case, we use the narrow pane's original values.
+    const {isInNarrowPane, originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
+    const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? originalValues ?? {} : {}), [isInNarrowPane, originalValues]);
+
     return (
         <ModalContext.Provider value={modalContextValue}>
-            <ScreenWrapperOfflineIndicatorContext.Provider value={OFFLINE_INDICATOR_CONTEXT_RESET_IN_MODAL_VALUE}>
+            <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
                 <View
                     // this is a workaround for modal not being visible on the new arch in some cases
                     // it's necessary to have a non-collapsible view as a parent of the modal to prevent
