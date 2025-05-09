@@ -1495,7 +1495,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             continue;
         }
 
-        // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
+        // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to expense chats only.
         if (!includeP2P && !isPolicyExpenseChat) {
             continue;
         }

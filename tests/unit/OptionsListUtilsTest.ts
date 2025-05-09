@@ -1594,8 +1594,8 @@ describe('OptionsListUtils', () => {
     });
 
     describe('filterWorkspaceChats()', () => {
-        it('should return an empty array if there are no workspace chats', () => {
-            // Given an empty array of workspace chats and no search terms
+        it('should return an empty array if there are no expense chats', () => {
+            // Given an empty array of expense chats and no search terms
             // When we call filterWorkspaceChats
             const result = filterWorkspaceChats([], []);
 
@@ -1603,8 +1603,8 @@ describe('OptionsListUtils', () => {
             expect(result.length).toEqual(0);
         });
 
-        it('should return all workspace chats if there are no search terms', () => {
-            // Given a list of workspace chats and no search terms
+        it('should return all expense chats if there are no search terms', () => {
+            // Given a list of expense chats and no search terms
             // When we call filterWorkspaceChats
             const result = filterWorkspaceChats(WORKSPACE_CHATS, []);
 
@@ -1614,26 +1614,26 @@ describe('OptionsListUtils', () => {
             expect(result.length).toEqual(WORKSPACE_CHATS.length);
         });
 
-        it('should filter multiple workspace chats by search term', () => {
-            // Given a list of workspace chats and one search term
+        it('should filter multiple expense chats by search term', () => {
+            // Given a list of expense chats and one search term
             // When we call filterWorkspaceChats
             const result = filterWorkspaceChats(WORKSPACE_CHATS, ['Google']);
 
-            // Then the returned value should should only include the matching workspace chats
+            // Then the returned value should should only include the matching expense chats
             expect(result.length).toEqual(2);
         });
 
-        it('should filter workspace chat by exact name', () => {
-            // Given a list of workspace chats and multiple search terms that reflect the exact name
+        it('should filter expense chat by exact name', () => {
+            // Given a list of expense chats and multiple search terms that reflect the exact name
             // When we call filterWorkspaceChats
             const result = filterWorkspaceChats(WORKSPACE_CHATS, ['Microsoft', 'Teams', 'Workspace']);
 
-            // Then the returned value should should only include the matching workspace chat
+            // Then the returned value should should only include the matching expense chat
             expect(result.length).toEqual(1);
         });
 
-        it('should return an empty array if there are no matching workspace chats', () => {
-            // Given a list of workspace chats and a search term that does not match any workspace chats
+        it('should return an empty array if there are no matching expense chats', () => {
+            // Given a list of expense chats and a search term that does not match any expense chats
             // When we call filterWorkspaceChats
             const result = filterWorkspaceChats(WORKSPACE_CHATS, ['XYZ']);
 
@@ -1644,7 +1644,7 @@ describe('OptionsListUtils', () => {
 
     describe('orderWorkspaceOptions()', () => {
         it('should put the default workspace on top of the list', () => {
-            // Given a list of workspace chats
+            // Given a list of expense chats
             // When we call orderWorkspaceOptions
             const result = orderWorkspaceOptions(WORKSPACE_CHATS);
 

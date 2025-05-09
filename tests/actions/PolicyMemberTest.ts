@@ -358,8 +358,8 @@ describe('actions/PolicyMember', () => {
             expect(adminRoom?.participants?.[userAccountID]).toBeUndefined();
         });
 
-        it('should unarchive existing workspace chat when adding back a member', async () => {
-            // Given an archived workspace chat
+        it('should unarchive existing expense chat when adding back a member', async () => {
+            // Given an archived expense chat
             const policyID = '1';
             const workspaceReportID = '1';
             const userAccountID = 1236;
@@ -380,7 +380,7 @@ describe('actions/PolicyMember', () => {
 
             await waitForBatchedUpdates();
 
-            // Then the member workspace chat should be unarchived optimistically
+            // Then the member expense chat should be unarchived optimistically
             const isArchived = await new Promise<boolean>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
@@ -473,8 +473,8 @@ describe('actions/PolicyMember', () => {
             expect(successAdminRoomMetadata?.pendingChatMembers).toBeUndefined();
         });
 
-        it('should archive the member workspace chat', async () => {
-            // Given a workspace chat
+        it('should archive the member expense chat', async () => {
+            // Given a expense chat
             const policyID = '1';
             const workspaceReportID = '1';
             const userAccountID = 1236;
@@ -492,7 +492,7 @@ describe('actions/PolicyMember', () => {
 
             await waitForBatchedUpdates();
 
-            // Then the member workspace chat should be archived optimistically
+            // Then the member expense chat should be archived optimistically
             const isArchived = await new Promise<boolean>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,

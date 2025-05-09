@@ -642,14 +642,14 @@ To export your expense data to a CSV file:
 
 #### [Exporting Reports to Xero] How do I export reports to Xero manually?
 If an error occurs during an automatic export to Xero:
-1. Check your email or the related Workspace Chat for error notifications.
+1. Check your email or the related Expense Chat for error notifications.
 2. Resolve the issue by opening the expense and making necessary changes.
 3. Ensure the report is in the Approved, Closed, or Reimbursed state.
 4. An admin must press the heading at the top of the expense, select **Export**, and then choose **Xero**.
 
 #### [Exporting Reports to QuickBooks Online] How do I manually export reports to QuickBooks Online?
 If an error occurs during an automatic export to QuickBooks Online:
-1. Check your email or the related Workspace Chat for error notifications.
+1. Check your email or the related Expense Chat for error notifications.
 2. Open the expense and make necessary changes.
 3. Ensure the report is in the Approved, Closed, or Reimbursed state.
 4. An admin must press the heading at the top of the expense, select **Export**, and then choose **QuickBooks Online**.
