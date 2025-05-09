@@ -1022,10 +1022,14 @@ function getSortedReportActionsForDisplay(
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     canUserPerformWriteAction?: boolean,
     shouldIncludeInvisibleActions = false,
+    debug = false,
 ): ReportAction[] {
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
         return [];
+    }
+    if (debug) {
+        console.log('getting sorted actions');
     }
 
     if (shouldIncludeInvisibleActions) {
