@@ -184,7 +184,7 @@ jobs:
           DEPLOY_WORKFLOW_FILENAME="deploy.yml"
           ACTIVE_PRODUCTION_RUNS=$(gh api repos/${{ github.repository }}/actions/workflows/${DEPLOY_WORKFLOW_FILENAME}/runs \
             --jq --arg branch "production" \
-            '.workflow_runs[] | select(.head_branch == $branch and (.status == "in_progress" or .status == "queued")) | .id')
+            ".workflow_runs[] | select(.head_branch == $branch and (.status == \"in_progress\" or .status == \"queued\")) | .id")
 
           if [[ -n "$ACTIVE_PRODUCTION_RUNS" ]]; then
             FORMATTED_RUN_IDS=$(echo "$ACTIVE_PRODUCTION_RUNS" | paste -sd, -)
