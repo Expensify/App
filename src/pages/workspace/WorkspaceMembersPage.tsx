@@ -15,6 +15,7 @@ import DecisionModal from '@components/DecisionModal';
 import {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} from '@components/Icon/Expensicons';
 import {ReceiptWrangler} from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
+import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -725,15 +726,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             {() => (
                 <>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                    {shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : getHeaderContent()}
-                    {data.length > CONST.SEARCH_ITEM_LIMIT && (
-                        <SearchBar
-                            inputValue={inputValue}
-                            onChangeText={setInputValue}
-                            label={translate('workspace.people.findMember')}
-                            shouldShowEmptyState={!filteredData.length}
-                        />
-                    )}
                     <ConfirmModal
                         isVisible={isOfflineModalVisible}
                         onConfirm={() => setIsOfflineModalVisible(false)}
@@ -772,33 +764,44 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         isVisible={isDownloadFailureModalVisible}
                         onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
-                    {!!filteredData.length && (
-                        <View style={[styles.w100, styles.flex1]}>
-                            <SelectionListWithModal
-                                ref={selectionListRef}
-                                canSelectMultiple={canSelectMultiple}
-                                sections={[{data: filteredData, isDisabled: false}]}
-                                ListItem={TableListItem}
-                                turnOnSelectionModeOnLongPress={isPolicyAdmin}
-                                onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
-                                shouldUseUserSkeletonView
-                                disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                                headerMessage={getHeaderMessage()}
-                                onSelectRow={openMemberDetails}
-                                shouldSingleExecuteRowSelect={!isPolicyAdmin}
-                                onCheckboxPress={(item) => toggleUser(item.accountID)}
-                                onSelectAll={() => toggleAllUsers(filteredData)}
-                                onDismissError={dismissError}
-                                showLoadingPlaceholder={isLoading}
-                                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                                textInputRef={textInputRef}
-                                customListHeader={getCustomListHeader()}
-                                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                                showScrollIndicator={false}
-                                addBottomSafeAreaPadding
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                        {shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : getHeaderContent()}
+                        {data.length > CONST.SEARCH_ITEM_LIMIT && (
+                            <SearchBar
+                                inputValue={inputValue}
+                                onChangeText={setInputValue}
+                                label={translate('workspace.people.findMember')}
+                                shouldShowEmptyState={!filteredData.length}
                             />
-                        </View>
-                    )}
+                        )}
+                        {!!filteredData.length && (
+                            <View style={[styles.w100, styles.flex1]}>
+                                <SelectionListWithModal
+                                    ref={selectionListRef}
+                                    canSelectMultiple={canSelectMultiple}
+                                    sections={[{data: filteredData, isDisabled: false}]}
+                                    ListItem={TableListItem}
+                                    turnOnSelectionModeOnLongPress={isPolicyAdmin}
+                                    onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
+                                    shouldUseUserSkeletonView
+                                    disableKeyboardShortcuts={removeMembersConfirmModalVisible}
+                                    headerMessage={getHeaderMessage()}
+                                    onSelectRow={openMemberDetails}
+                                    shouldSingleExecuteRowSelect={!isPolicyAdmin}
+                                    onCheckboxPress={(item) => toggleUser(item.accountID)}
+                                    onSelectAll={() => toggleAllUsers(filteredData)}
+                                    onDismissError={dismissError}
+                                    showLoadingPlaceholder={isLoading}
+                                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                                    textInputRef={textInputRef}
+                                    customListHeader={getCustomListHeader()}
+                                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                                    showScrollIndicator={false}
+                                    addBottomSafeAreaPadding
+                                />
+                            </View>
+                        )}
+                    </ScrollView>
                 </>
             )}
         </WorkspacePageWithSections>

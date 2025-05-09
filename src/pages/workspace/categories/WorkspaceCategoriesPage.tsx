@@ -421,30 +421,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     danger
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    {!hasSyncError && isConnectionVerified ? (
-                        <Text>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
-                            <TextLink
-                                style={[styles.textNormal, styles.link]}
-                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
-                            >
-                                {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                            </TextLink>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                        </Text>
-                    ) : (
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-                    )}
-                </View>
-                {categoryList.length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        label={translate('workspace.categories.findCategory')}
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        shouldShowEmptyState={hasVisibleCategories && !isLoading && filteredCategoryList.length === 0}
-                    />
-                )}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -452,6 +428,50 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         color={theme.spinner}
                     />
                 )}
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                    <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        {!hasSyncError && isConnectionVerified ? (
+                            <Text>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
+                                <TextLink
+                                    style={[styles.textNormal, styles.link]}
+                                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
+                                >
+                                    {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                                </TextLink>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                            </Text>
+                        ) : (
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+                        )}
+                    </View>
+                    {categoryList.length > CONST.SEARCH_ITEM_LIMIT && (
+                        <SearchBar
+                            label={translate('workspace.categories.findCategory')}
+                            inputValue={inputValue}
+                            onChangeText={setInputValue}
+                            shouldShowEmptyState={hasVisibleCategories && !isLoading && filteredCategoryList.length === 0}
+                        />
+                    )}
+                    {hasVisibleCategories && !isLoading && (
+                        <SelectionListWithModal
+                            canSelectMultiple={canSelectMultiple}
+                            turnOnSelectionModeOnLongPress={isSmallScreenWidth}
+                            onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
+                            sections={[{data: filteredCategoryList, isDisabled: false}]}
+                            onCheckboxPress={toggleCategory}
+                            onSelectRow={navigateToCategorySettings}
+                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                            onSelectAll={toggleAllCategories}
+                            ListItem={TableListItem}
+                            onDismissError={dismissError}
+                            customListHeader={getCustomListHeader()}
+                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            showScrollIndicator={false}
+                            addBottomSafeAreaPadding
+                        />
+                    )}
+                </ScrollView>
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
@@ -466,25 +486,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         />
                     </ScrollView>
                 )}
-                {hasVisibleCategories && !isLoading && (
-                    <SelectionListWithModal
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={isSmallScreenWidth}
-                        onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
-                        sections={[{data: filteredCategoryList, isDisabled: false}]}
-                        onCheckboxPress={toggleCategory}
-                        onSelectRow={navigateToCategorySettings}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        onSelectAll={toggleAllCategories}
-                        ListItem={TableListItem}
-                        onDismissError={dismissError}
-                        customListHeader={getCustomListHeader()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        showScrollIndicator={false}
-                        addBottomSafeAreaPadding
-                    />
-                )}
-
                 <ConfirmModal
                     isVisible={isOfflineModalVisible}
                     onConfirm={() => setIsOfflineModalVisible(false)}
