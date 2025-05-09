@@ -1,5 +1,5 @@
 import lodashIsEqual from 'lodash/isEqual';
-import type {MutableRefObject, RefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {memo, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
