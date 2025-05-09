@@ -68,6 +68,9 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_PAID: 'search/filters/paid',
     SEARCH_ADVANCED_FILTERS_EXPORTED: 'search/filters/exported',
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
+    SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
+    SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
+    SEARCH_ADVANCED_FILTERS_CREATED_BY: 'search/filters/createdBy',
     SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
     SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
     SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
@@ -342,10 +345,6 @@ const ROUTES = {
     SETTINGS_EXIT_SURVEY_REASON: {
         route: 'settings/exit-survey/reason',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/reason', backTo),
-    },
-    SETTINGS_EXIT_SURVERY_BOOK_CALL: {
-        route: 'settings/exit-survey/book-call',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/book-call', backTo),
     },
     SETTINGS_EXIT_SURVEY_RESPONSE: {
         route: 'settings/exit-survey/response',
@@ -1945,6 +1944,8 @@ const ROUTES = {
     },
     MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',
 
+    TEST_TOOLS_MODAL: 'test-tools',
+
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
         getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, isFromReviewDuplicates = false, action?: IOUAction, iouType?: IOUType) => {
@@ -2402,6 +2403,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
     },
+    ADD_UNREPORTED_EXPENSE: {
+        route: 'search/r/:reportID/add-unreported-expense',
+        getRoute: (reportID: string | undefined) => `search/r/${reportID}/add-unreported-expense` as const,
+    },
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',
         getRoute: (reportID: string | undefined) => `debug/report/${reportID}` as const,
@@ -2483,6 +2488,14 @@ const ROUTES = {
     DEBUG_TRANSACTION_VIOLATION_TAB_JSON: {
         route: 'debug/transaction/:transactionID/violations/:index/json',
         getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}/json` as const,
+    },
+    SCHEDULE_CALL_BOOK: {
+        route: 'r/:reportID/schedule-call/book',
+        getRoute: (reportID: string) => `r/${reportID}/schedule-call/book` as const,
+    },
+    SCHEDULE_CALL_CONFIRMATON: {
+        route: 'r/:reportID/schedule-call/confimation',
+        getRoute: (reportID: string) => `r/${reportID}/schedule-call/confimation` as const,
     },
 } as const;
 

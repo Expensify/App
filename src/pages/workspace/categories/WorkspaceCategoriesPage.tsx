@@ -14,6 +14,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -25,13 +26,14 @@ import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
@@ -44,6 +46,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {close} from '@userActions/Modal';
 import {clearCategoryErrors, deleteWorkspaceCategories, downloadCategoriesCSV, openPolicyCategoriesPage, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
@@ -53,7 +56,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategory} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PolicyOption = ListItem & {
     /** Category name is used as a key for the selectedCategories state */
@@ -71,7 +73,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {translate} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
-    const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const {environmentURL} = useEnvironment();
@@ -87,7 +88,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = !!backTo;
-    const {canUseLeftHandBar} = usePermissions();
+    const filterCategories = useCallback((category: PolicyCategory | undefined) => !!category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, []);
+
+    const [selectedCategories, setSelectedCategories] = useFilteredSelection(policyCategories, filterCategories);
 
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
@@ -103,31 +106,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
+    const cleanupSelectedOption = useCallback(() => setSelectedCategories([]), [setSelectedCategories]);
     useCleanupSelectedOptions(cleanupSelectedOption);
 
-    useEffect(() => {
-        if (isEmptyObject(selectedCategories) || !canSelectMultiple) {
-            return;
-        }
-
-        setSelectedCategories((prevSelectedCategories) => {
-            const keys = Object.keys(prevSelectedCategories);
-            const newSelectedCategories: Record<string, boolean> = {};
-
-            for (const key of keys) {
-                if (policyCategories?.[key] && policyCategories[key].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    newSelectedCategories[key] = prevSelectedCategories[key];
-                }
-            }
-
-            return newSelectedCategories;
-        });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [policyCategories]);
-
     useSearchBackPress({
-        onClearSelection: () => setSelectedCategories({}),
+        onClearSelection: () => setSelectedCategories([]),
         onNavigationCallBack: () => Navigation.goBack(backTo),
     });
 
@@ -139,7 +122,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
-        const categories = lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[];
+        const categories = Object.values(policyCategories ?? {});
         return categories.reduce<PolicyOption[]>((acc, value) => {
             const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -150,7 +133,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             acc.push({
                 text: value.name,
                 keyForList: value.name,
-                isSelected: !!selectedCategories[value.name] && canSelectMultiple,
+                isSelected: selectedCategories.includes(value.name) && canSelectMultiple,
                 isDisabled,
                 pendingAction: value.pendingAction,
                 errors: value.errors ?? undefined,
@@ -168,22 +151,35 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }, []);
     }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceRequiresCategory]);
 
-    useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
-
-    const toggleCategory = useCallback((category: PolicyOption) => {
-        setSelectedCategories((prev) => {
-            if (prev[category.keyForList]) {
-                const {[category.keyForList]: omittedCategory, ...newCategories} = prev;
-                return newCategories;
-            }
-            return {...prev, [category.keyForList]: true};
-        });
+    const filterCategory = useCallback((categoryOption: PolicyOption, searchInput: string) => {
+        const categoryText = StringUtils.normalize(categoryOption.text?.toLowerCase() ?? '');
+        const alternateText = StringUtils.normalize(categoryOption.alternateText?.toLowerCase() ?? '');
+        const normalizedSearchInput = StringUtils.normalize(searchInput);
+        return categoryText.includes(normalizedSearchInput) || alternateText.includes(normalizedSearchInput);
     }, []);
+    const sortCategories = useCallback((data: PolicyOption[]) => {
+        return lodashSortBy(data, 'text', localeCompare) as PolicyOption[];
+    }, []);
+    const [inputValue, setInputValue, filteredCategoryList] = useSearchResults(categoryList, filterCategory, sortCategories);
+
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(filteredCategoryList);
+
+    const toggleCategory = useCallback(
+        (category: PolicyOption) => {
+            setSelectedCategories((prev) => {
+                if (prev.includes(category.keyForList)) {
+                    return prev.filter((key) => key !== category.keyForList);
+                }
+                return [...prev, category.keyForList];
+            });
+        },
+        [setSelectedCategories],
+    );
 
     const toggleAllCategories = () => {
-        const availableCategories = categoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const someSelected = availableCategories.some((category) => selectedCategories[category.keyForList]);
-        setSelectedCategories(someSelected ? {} : Object.fromEntries(availableCategories.map((item) => [item.keyForList, true])));
+        const availableCategories = filteredCategoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const someSelected = availableCategories.some((category) => selectedCategories.includes(category.keyForList));
+        setSelectedCategories(someSelected ? [] : availableCategories.map((item) => item.keyForList));
     };
 
     const getCustomListHeader = () => {
@@ -220,11 +216,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         clearCategoryErrors(policyId, item.keyForList);
     };
 
-    const selectedCategoriesArray = Object.keys(selectedCategories).filter((key) => selectedCategories[key]);
-
     const handleDeleteCategories = () => {
-        setSelectedCategories({});
-        deleteWorkspaceCategories(policyId, selectedCategoriesArray);
+        setSelectedCategories([]);
+        deleteWorkspaceCategories(policyId, selectedCategories);
         setDeleteCategoriesConfirmModalVisible(false);
     };
 
@@ -232,19 +226,19 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
-        if (isSmallScreenWidth ? canSelectMultiple : selectedCategoriesArray.length > 0) {
+        if (isSmallScreenWidth ? canSelectMultiple : selectedCategories.length > 0) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
                     icon: Expensicons.Trashcan,
-                    text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
+                    text: translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: () => setDeleteCategoriesConfirmModalVisible(true),
                 });
             }
 
-            const enabledCategories = selectedCategoriesArray.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
+            const enabledCategories = selectedCategories.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
             if (enabledCategories.length > 0) {
-                const categoriesToDisable = selectedCategoriesArray
+                const categoriesToDisable = selectedCategories
                     .filter((categoryName) => policyCategories?.[categoryName]?.enabled)
                     .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
                         acc[categoryName] = {
@@ -259,15 +253,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
-                        setSelectedCategories({});
+                        setSelectedCategories([]);
                         setWorkspaceCategoryEnabled(policyId, categoriesToDisable);
                     },
                 });
             }
 
-            const disabledCategories = selectedCategoriesArray.filter((categoryName) => !policyCategories?.[categoryName]?.enabled);
+            const disabledCategories = selectedCategories.filter((categoryName) => !policyCategories?.[categoryName]?.enabled);
             if (disabledCategories.length > 0) {
-                const categoriesToEnable = selectedCategoriesArray
+                const categoriesToEnable = selectedCategories
                     .filter((categoryName) => !policyCategories?.[categoryName]?.enabled)
                     .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
                         acc[categoryName] = {
@@ -281,7 +275,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
-                        setSelectedCategories({});
+                        setSelectedCategories([]);
                         setWorkspaceCategoryEnabled(policyId, categoriesToEnable);
                     },
                 });
@@ -293,11 +287,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedCategoriesArray.length})}
+                    customText={translate('workspace.common.selected', {count: selectedCategories.length})}
                     options={options}
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                    isDisabled={!selectedCategoriesArray.length}
+                    isDisabled={!selectedCategories.length}
                     testID={`${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`}
                 />
             );
@@ -331,29 +325,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             return;
         }
 
-        setSelectedCategories({});
+        setSelectedCategories([]);
     }, [setSelectedCategories, selectionMode?.isEnabled]);
 
     const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
-
-    const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            {!hasSyncError && isConnectionVerified ? (
-                <Text>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
-                    <TextLink
-                        style={[styles.textNormal, styles.link]}
-                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
-                    >
-                        {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                    </TextLink>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                </Text>
-            ) : (
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-            )}
-        </View>
-    );
 
     const threeDotsMenuItems = useMemo(() => {
         const menuItems = [];
@@ -417,7 +392,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
-                            setSelectedCategories({});
+                            setSelectedCategories([]);
                             turnOffMobileSelectionMode();
                             return;
                         }
@@ -430,7 +405,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         goBackFromWorkspaceCentralScreen(policyId);
                     }}
                     shouldShowThreeDotsButton
-                    style={styles.headerBarDesktopHeight(canUseLeftHandBar)}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
                 >
@@ -440,14 +414,37 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     isVisible={deleteCategoriesConfirmModalVisible}
                     onConfirm={handleDeleteCategories}
                     onCancel={() => setDeleteCategoriesConfirmModalVisible(false)}
-                    title={translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories')}
-                    prompt={translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt')}
+                    title={translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories')}
+                    prompt={translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                {(!shouldUseNarrowLayout || !hasVisibleCategories || isLoading) && getHeaderText()}
+                <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    {!hasSyncError && isConnectionVerified ? (
+                        <Text>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
+                            <TextLink
+                                style={[styles.textNormal, styles.link]}
+                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
+                            >
+                                {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                            </TextLink>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                        </Text>
+                    ) : (
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+                    )}
+                </View>
+                {categoryList.length > CONST.SEARCH_ITEM_LIMIT && (
+                    <SearchBar
+                        label={translate('workspace.categories.findCategory')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={hasVisibleCategories && !isLoading && filteredCategoryList.length === 0}
+                    />
+                )}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -455,8 +452,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         color={theme.spinner}
                     />
                 )}
-
-                {!hasVisibleCategories && !isLoading && (
+                {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             SkeletonComponent={TableListItemSkeleton}
@@ -475,7 +471,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={isSmallScreenWidth}
                         onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
-                        sections={[{data: categoryList, isDisabled: false}]}
+                        sections={[{data: filteredCategoryList, isDisabled: false}]}
                         onCheckboxPress={toggleCategory}
                         onSelectRow={navigateToCategorySettings}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
@@ -484,7 +480,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onDismissError={dismissError}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
                     />
