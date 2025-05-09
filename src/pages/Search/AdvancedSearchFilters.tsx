@@ -263,8 +263,8 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
             CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
         ],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
     [CONST.SEARCH.DATA_TYPES.TASK]: [
         [
@@ -273,8 +273,8 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
             CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
         ],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
 };
 
