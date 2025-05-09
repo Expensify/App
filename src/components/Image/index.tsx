@@ -8,7 +8,16 @@ import BaseImage from './BaseImage';
 import {ImageBehaviorContext} from './ImageBehaviorContextProvider';
 import type {ImageOnLoadEvent, ImageProps} from './types';
 
-function Image({source: propsSource, isAuthTokenRequired = false, onLoad, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL, style, imageIconSize, ...forwardedProps}: ImageProps) {
+function Image({
+    source: propsSource,
+    isAuthTokenRequired = false,
+    onLoad,
+    objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
+    style,
+    imageIconSize,
+    loadingStyle,
+    ...forwardedProps
+}: ImageProps) {
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
     const session = useSession();
@@ -130,7 +139,12 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
         return undefined;
     }
     if (source === undefined) {
-        return <FullScreenLoadingIndicator iconSize={imageIconSize} />;
+        return (
+            <FullScreenLoadingIndicator
+                iconSize={imageIconSize}
+                style={loadingStyle}
+            />
+        );
     }
     return (
         <BaseImage

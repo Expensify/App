@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
@@ -76,6 +76,9 @@ type ReceiptImageProps = (
     /** The size of the loading indicator */
     imageIconSize?: FullScreenLoadingIndicatorIconSize;
 
+    /** The style of the loading indicator */
+    loadingStyle?: StyleProp<ViewStyle>;
+
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
 
@@ -125,6 +128,7 @@ function ReceiptImage({
     transactionItem,
     isPerDiemRequest,
     shouldUseFullHeight,
+    loadingStyle,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -193,6 +197,7 @@ function ReceiptImage({
             style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
             isAuthTokenRequired={isAuthTokenRequired}
             imageIconSize={imageIconSize}
+            loadingStyle={loadingStyle}
         />
     );
 }
