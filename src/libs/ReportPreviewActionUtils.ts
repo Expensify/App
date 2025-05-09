@@ -86,7 +86,6 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
 }
 
 function canPay(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, isReportArchived = false, invoiceReceiverPolicy?: Policy) {
-    console.log('canPay', isReportArchived, invoiceReceiverPolicy);
     if (isReportArchived) {
         return false;
     }
@@ -203,7 +202,6 @@ function getReportPreviewAction(
     reportActions?: OnyxEntry<ReportActions> | ReportAction[],
     invoiceReceiverPolicy?: Policy,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
-    console.log('invoiceReceiverPolicy :>> 2', invoiceReceiverPolicy);
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
