@@ -301,7 +301,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
-    const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
+    const combinedReportActions = useMemo(
+        () => getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions)),
+        [reportActions, transactionThreadReportID, transactionThreadReportActions],
+    );
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
