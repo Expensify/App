@@ -192,14 +192,11 @@ function SuggestionMention(
 
     function getOriginalMentionText(inputValue: string, atSignIndex: number) {
         const rest = inputValue.slice(atSignIndex);
-        const breakerMatch = rest.match(CONST.REGEX.MENTION_BREAKER);
-        const breakerIndex = breakerMatch ? rest.search(CONST.REGEX.MENTION_BREAKER) : -1;
 
-        if (breakerIndex === -1) {
-            return rest; // No breaker found, whole rest is the mention
-        }
+        const breakerIndex = rest.search(CONST.REGEX.MENTION_BREAKER);
 
-        return rest.slice(0, breakerIndex);
+        // If no breaker is found, return the entire rest of the string
+        return breakerIndex === -1 ? rest : rest.slice(0, breakerIndex);
     }
 
     /**
