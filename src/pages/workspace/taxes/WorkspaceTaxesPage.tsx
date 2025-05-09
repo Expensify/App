@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -242,8 +242,11 @@ function WorkspaceTaxesPage({
             return;
         }
         deletePolicyTaxes(policy, selectedTaxesIDs);
-        setSelectedTaxesIDs([]);
         setIsDeleteModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedTaxesIDs([]);
+        });
     }, [policy, selectedTaxesIDs]);
 
     const toggleTaxes = useCallback(
