@@ -25,7 +25,6 @@ import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -280,16 +279,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
 
     const canWrite = useMemo(() => ReportUtils.canUserPerformWriteAction(report), [report]);
-    const sortedAllReportActions = useMemo(
-        () => {
-            if (!rawAllReportActions) {
-                return [];
-            }
-            return ReportActionsUtils.getSortedReportActionsForDisplay(rawAllReportActions, canWrite, true, true);
-        },
-        [rawAllReportActions, report, canWrite],
-        `sortedAllReportActions (reportID: ${nonEmptyStringReportID})`,
-    );
+    const sortedAllReportActions = useMemo(() => {
+        if (!rawAllReportActions) {
+            return [];
+        }
+        return ReportActionsUtils.getSortedReportActionsForDisplay(rawAllReportActions, canWrite, true, true);
+    }, [rawAllReportActions, canWrite]);
 
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`, {canBeMissing: true});
 
