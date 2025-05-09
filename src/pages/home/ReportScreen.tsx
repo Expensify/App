@@ -300,7 +300,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         canBeMissing: false,
     });
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
-    const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
+    const [transactionThreadReportActions = CONST.EMPTY_OBJECT] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
     const combinedReportActions = useMemo(
         () => getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions)),
         [reportActions, transactionThreadReportID, transactionThreadReportActions],
