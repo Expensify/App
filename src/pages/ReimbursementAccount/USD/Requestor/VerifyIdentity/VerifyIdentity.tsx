@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -26,6 +26,7 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [onfidoApplicantID] = useOnyx(ONYXKEYS.ONFIDO_APPLICANT_ID);
     const [onfidoToken] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
+    const [onfidoKey, setOnfidoKey] = useState(() => Math.floor(Math.random() * 1000000));
 
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const handleOnfidoSuccess = useCallback(
@@ -43,9 +44,13 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
         BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
     };
 
-    const handleOnfidoUserExit = () => {
-        BankAccounts.clearOnfidoToken();
-        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+    const handleOnfidoUserExit = (isUserInitiated?: boolean) => {
+        if (isUserInitiated) {
+            BankAccounts.clearOnfidoToken();
+            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+        } else {
+            setOnfidoKey(Math.floor(Math.random() * 1000000));
+        }
     };
 
     return (
@@ -60,6 +65,7 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                 <ScrollView contentContainerStyle={styles.flex1}>
                     <Onfido
+                        key={onfidoKey}
                         sdkToken={onfidoToken ?? ''}
                         onUserExit={handleOnfidoUserExit}
                         onError={handleOnfidoError}
