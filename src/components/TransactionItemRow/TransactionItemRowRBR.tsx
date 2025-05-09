@@ -18,7 +18,12 @@ function TransactionItemRowRBR({transaction, containerStyles}: {transaction: Tra
     const {translate} = useLocalize();
     const theme = useTheme();
 
-    const RBRMessages = transactionViolations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)).join('. ');
+    // Some violations end with a period already so lets make sure the connected messages have only single period between them
+    // and end with a single dot.
+    const RBRMessages = transactionViolations.map((violation) => {
+        const message = ViolationsUtils.getViolationTranslation(violation, translate);
+        return (message.endsWith('.') || transactionViolations.length === 1) ? message : `${message}.`
+    }).join(' ');
 
     return (
         transactionViolations.length > 0 && (
