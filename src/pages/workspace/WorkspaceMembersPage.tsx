@@ -501,6 +501,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         styles.cursorDefault,
         canSelectMultiple,
         isPolicyAdmin,
+        badgeAdmin,
+        badgeAuditor,
+        badgeOwner,
     ]);
 
     const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
