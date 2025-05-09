@@ -138,7 +138,6 @@ function WorkspacesListPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [technicalContact] = useOnyx(ONYXKEYS.TECHNICAL_CONTACT, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.WORKSPACES>>();
 
@@ -150,6 +149,7 @@ function WorkspacesListPage() {
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
+    const technicalContact = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.technicalContact;
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -207,7 +207,7 @@ function WorkspacesListPage() {
         const qboConfig = policyToLeave?.connections?.quickbooksOnline?.config;
         const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
 
-        if (technicalContact === policyOwnerDisplayName) {
+        if (technicalContact === session?.email) {
             return translate('common.leaveWorkspaceConfirmationForTechnicalContact', {
                 workspaceOwner: policyOwnerDisplayName,
             });
