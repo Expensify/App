@@ -1,0 +1,101 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 2,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "zipkin",
+        "uid": "P92163275D6A014C9"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 21,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "spanFilters": {
+          "criticalPathOnly": false,
+          "matchesOnly": false,
+          "serviceName": "unknown_service:java",
+          "serviceNameOperator": "=",
+          "spanName": "my-js-homepage-span",
+          "spanNameOperator": "=",
+          "tags": [
+            {
+              "id": "efbd234e-765",
+              "key": "telemetry.sdk.name",
+              "operator": "=",
+              "value": "opentelemetry"
+            }
+          ]
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "zipkin",
+            "uid": "P92163275D6A014C9"
+          },
+          "query": "7ec888ea443119d5dda3d08473d95930",
+          "queryType": "traceID",
+          "refId": "A"
+        }
+      ],
+      "title": "Traces from React Native App",
+      "type": "traces"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 40,
+  "tags": [
+    "opentelemetry",
+    "traces",
+    "zipkin"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Zipkin Traces",
+  "uid": "zipkin-traces",
+  "version": 6,
+  "weekStart": ""
+}
