@@ -19,7 +19,6 @@ import type {
     EnablePolicyAutoReimbursementLimitParams,
     EnablePolicyCompanyCardsParams,
     EnablePolicyConnectionsParams,
-    EnablePolicyDefaultReportTitleParams,
     EnablePolicyExpensifyCardsParams,
     EnablePolicyInvoicingParams,
     EnablePolicyReportFieldsParams,
@@ -3044,7 +3043,7 @@ function enableCompanyCards(policyID: string, enabled: boolean, shouldGoBack = t
     }
 }
 
-function enablePolicyReportFields(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyReportFields(policyID: string, enabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3088,10 +3087,6 @@ function enablePolicyReportFields(policyID: string, enabled: boolean, shouldGoBa
     API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData, {
         checkAndFixConflictingRequest: (persistedRequests) => resolveEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, persistedRequests, parameters),
     });
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature(policyID);
-    }
 }
 
 function enablePolicyTaxes(policyID: string, enabled: boolean) {
@@ -4274,79 +4269,6 @@ function getAdminPoliciesConnectedToNetSuite(): Policy[] {
 }
 
 /**
- * Call the API to enable custom report title for the reports in the given policy
- * @param policyID - id of the policy to apply the limit to
- * @param enabled - whether custom report title for the reports is enabled in the given policy
- */
-function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
-    const policy = getPolicy(policyID);
-
-    if (enabled === policy?.shouldShowCustomReportTitleOption) {
-        return;
-    }
-
-    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE] ?? {};
-    const titleFieldValues = enabled ? {} : {fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {...previousReportTitleField, defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN}}};
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                shouldShowCustomReportTitleOption: enabled,
-                ...titleFieldValues,
-                pendingFields: {
-                    shouldShowCustomReportTitleOption: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingFields: {
-                    shouldShowCustomReportTitleOption: null,
-                },
-                errorFields: null,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                shouldShowCustomReportTitleOption: !!policy?.shouldShowCustomReportTitleOption,
-                fieldList: {
-                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: previousReportTitleField,
-                },
-                pendingFields: {
-                    shouldShowCustomReportTitleOption: null,
-                },
-                errorFields: {
-                    shouldShowCustomReportTitleOption: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                },
-            },
-        },
-    ];
-
-    const parameters: EnablePolicyDefaultReportTitleParams = {
-        enable: enabled,
-        policyID,
-    };
-
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_DEFAULT_REPORT_TITLE, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
-}
-
-/**
  * Call the API to set default report title pattern for the given policy
  * @param policyID - id of the policy to apply the naming pattern to
  * @param customName - name pattern to be used for the reports
@@ -5170,6 +5092,14 @@ function clearBillingReceiptDetailsErrors() {
     Onyx.merge(ONYXKEYS.BILLING_RECEIPT_DETAILS, {errors: null});
 }
 
+function setIsForcedToChangeCurrency(value: boolean) {
+    Onyx.set(ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY, value);
+}
+
+function setIsComingFromGlobalReimbursementsFlow(value: boolean) {
+    Onyx.set(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, value);
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -5252,7 +5182,6 @@ export {
     setPolicyAutomaticApprovalLimit,
     setPolicyAutomaticApprovalRate,
     setPolicyAutoReimbursementLimit,
-    enablePolicyDefaultReportTitle,
     enablePolicyAutoReimbursementLimit,
     enableAutoApprovalOptions,
     setPolicyMaxExpenseAmountNoReceipt,
@@ -5276,4 +5205,6 @@ export {
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
     updateLastAccessedWorkspaceSwitcher,
+    setIsForcedToChangeCurrency,
+    setIsComingFromGlobalReimbursementsFlow,
 };

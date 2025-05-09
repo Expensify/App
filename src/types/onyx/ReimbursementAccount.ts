@@ -34,6 +34,8 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_CURRENCY]: string;
     /** Company name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
+    /** Company website */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_WEBSITE]: string;
     /** Company address - street */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STREET]: string;
     /** Company address - city */
