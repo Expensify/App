@@ -203,6 +203,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     }, []);
     const sortRates = useCallback((rates: PolicyOption[]) => lodashSortBy(rates, 'text', localeCompare) as PolicyOption[], []);
     const [inputValue, setInputValue, filteredSubRatesList] = useSearchResults(subRatesList, filterRate, sortRates);
+    const sections = useMemo(() => [{data: filteredSubRatesList, isDisabled: false}], [filteredSubRatesList]);
 
     const toggleSubRate = (subRate: PolicyOption) => {
         if (selectedPerDiem.find((selectedSubRate) => selectedSubRate.subRateID === subRate.subRateID) !== undefined) {
@@ -439,7 +440,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             canSelectMultiple={canSelectMultiple}
                             turnOnSelectionModeOnLongPress
                             onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
-                            sections={[{data: filteredSubRatesList, isDisabled: false}]}
+                            sections={sections}
                             onCheckboxPress={toggleSubRate}
                             onSelectRow={openSubRateDetails}
                             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

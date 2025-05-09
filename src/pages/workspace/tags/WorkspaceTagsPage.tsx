@@ -218,6 +218,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, []);
     const sortTags = useCallback((tags: TagListItem[]) => lodashSortBy(tags, 'value', localeCompare) as TagListItem[], []);
     const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
+    const sections = useMemo(() => [{data: filteredTagList, isDisabled: false}], [filteredTagList]);
 
     const filteredTagListKeyedByName = useMemo(
         () =>
@@ -508,7 +509,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             canSelectMultiple={canSelectMultiple}
                             turnOnSelectionModeOnLongPress={!isMultiLevelTags}
                             onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                            sections={[{data: filteredTagList, isDisabled: false}]}
+                            sections={sections}
                             onCheckboxPress={toggleTag}
                             onSelectRow={navigateToTagSettings}
                             shouldSingleExecuteRowSelect={!canSelectMultiple}

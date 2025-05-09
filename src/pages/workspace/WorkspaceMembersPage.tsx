@@ -700,6 +700,8 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
+    const sections = useMemo(() => [{data: filteredData, isDisabled: false}], [filteredData]);
+
     return (
         <WorkspacePageWithSections
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
@@ -779,7 +781,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                                 <SelectionListWithModal
                                     ref={selectionListRef}
                                     canSelectMultiple={canSelectMultiple}
-                                    sections={[{data: filteredData, isDisabled: false}]}
+                                    sections={sections}
                                     ListItem={TableListItem}
                                     turnOnSelectionModeOnLongPress={isPolicyAdmin}
                                     onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
