@@ -131,14 +131,22 @@ jest.mock(
     '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
-            private handler: (info: unknown) => void = () => {};
+            private handler: ((info: unknown) => void) | undefined = undefined;
+
+            private onEndReached: (() => void) | undefined = undefined;
 
             add(info: unknown) {
                 this.handler(info);
             }
 
-            setHandler(handler: () => void) {
+            start() {}
+
+            setHandler(handler: (info: unknown) => void) {
                 this.handler = handler;
+            }
+
+            setOnEndReached(onEndReached: (() => void) | undefined) {
+                this.onEndReached = onEndReached;
             }
 
             cancel() {}

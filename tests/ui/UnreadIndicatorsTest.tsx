@@ -27,6 +27,7 @@ import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/nativ
 import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
+import {triggerListLayout} from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import {navigateToSidebarOption} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -220,6 +221,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
+                triggerListLayout();
                 await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
 
                 // That the report actions are visible along with the created action
@@ -228,7 +230,7 @@ describe('Unread Indicators', () => {
                 expect(createdAction).toBeTruthy();
                 const reportCommentsHintText = translateLocal('accessibilityHints.chatMessage');
                 const reportComments = screen.queryAllByLabelText(reportCommentsHintText);
-                expect(reportComments).toHaveLength(9);
+                expect(reportComments).toHaveLength(4);
                 // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
                 // have actionID of 4
                 const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
@@ -511,6 +513,7 @@ describe('Unread Indicators', () => {
             signInAndGetAppWithUnreadChat()
                 // Navigate to the chat and simulate leaving a comment from the current user
                 .then(() => navigateToSidebarOption(0))
+                .then(() => triggerListLayout())
                 .then(() => {
                     // Leave a comment as the current user
                     addComment(REPORT_ID, 'Current User Comment 1');
@@ -557,6 +560,7 @@ describe('Unread Indicators', () => {
         });
         await signInAndGetAppWithUnreadChat();
         await navigateToSidebarOption(0);
+        triggerListLayout();
 
         addComment(REPORT_ID, 'Comment 1');
 

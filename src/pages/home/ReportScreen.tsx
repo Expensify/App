@@ -65,6 +65,7 @@ import {
     isPolicyExpenseChat,
     isReportTransactionThread,
     isTaskReport,
+    isUnread,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {isNumeric} from '@libs/ValidationUtils';
@@ -298,6 +299,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         canBeMissing: false,
     });
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: false});
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
@@ -721,6 +723,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const onComposerFocus = useCallback(() => setIsComposerFocus(true), []);
     const onComposerBlur = useCallback(() => setIsComposerFocus(false), []);
 
+    // When opening an unread report, it is very likely that the message we will open to is not the latest, which is the
+    // only one we will have in cache.
+    const isInitiallyLoadingReport = isUnread(report, transactionThreadReport) && (reportMetadata.isLoadingInitialReportActions ?? false) && reportActions.length <= 1;
+    const isInitiallyLoadingReportWhileOffline = isUnread(report, transactionThreadReport) && (reportMetadata.isLoadingInitialReportActions ?? false) && isOffline;
+    const isReportReady = !isInitiallyLoadingReport && !isInitiallyLoadingReportWhileOffline;
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
@@ -730,7 +738,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
-    const shouldDisplayMoneyRequestActionsList = canUseTableReportView && isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
+    const shouldDisplayMoneyRequestActionsList = (canUseTableReportView && isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions)) ?? false;
 
     return (
         <ActionListContext.Provider value={actionListValue}>
@@ -777,8 +785,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {!report && <ReportActionsSkeletonView />}
-                                {!!report && !shouldDisplayMoneyRequestActionsList ? (
+                                {(!report || !isReportReady) && <ReportActionsSkeletonView />}
+                                {!!report && isReportReady && !shouldDisplayMoneyRequestActionsList && (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
@@ -788,8 +796,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
-                                ) : null}
-                                {!!report && shouldDisplayMoneyRequestActionsList ? (
+                                )}
+                                {!!report && isReportReady && shouldDisplayMoneyRequestActionsList && (
                                     <MoneyRequestReportActionsList
                                         report={report}
                                         policy={policy}
@@ -798,8 +806,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
                                     />
-                                ) : null}
-                                {isCurrentReportLoadedFromOnyx ? (
+                                )}
+                                {isCurrentReportLoadedFromOnyx && (
                                     <ReportFooter
                                         onComposerFocus={onComposerFocus}
                                         onComposerBlur={onComposerBlur}
@@ -810,7 +818,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         isComposerFullSize={!!isComposerFullSize}
                                         lastReportAction={lastReportAction}
                                     />
-                                ) : null}
+                                )}
                             </View>
                             <PortalHost name="suggestions" />
                         </DragAndDropProvider>
