@@ -35,7 +35,6 @@ Onyx.connect({
 /**
  * Debounce the prompt to promote focus mode as many reports updates could happen in a short burst
  */
-// eslint-disable-next-line @typescript-eslint/no-use-before-define
 const autoSwitchToFocusMode = debounce(tryFocusModeUpdate, 300, {leading: true});
 
 let isLoadingReportData = true;
@@ -44,8 +43,6 @@ Onyx.connect({
     initWithStoredValues: false,
     callback: (value) => {
         isLoadingReportData = value ?? false;
-
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         checkRequiredData();
     },
 });
@@ -55,8 +52,6 @@ Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
     callback: (priorityMode) => {
         isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         checkRequiredData();
     },
 });
@@ -66,8 +61,6 @@ Onyx.connect({
     key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
     callback: (val) => {
         hasTriedFocusMode = val;
-
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         checkRequiredData();
     },
 });
