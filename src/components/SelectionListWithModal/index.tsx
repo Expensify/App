@@ -65,8 +65,7 @@ function SelectionListWithModal<TItem extends ListItem>(
         } else if (selectedItems.length === 0 && selectionMode?.isEnabled && !wasSelectionOnRef.current) {
             turnOffMobileSelectionMode();
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [sections, isSmallScreenWidth, isSelected, isFocused]);
+    }, [sections, selectionMode, isSmallScreenWidth, isSelected, isFocused]);
 
     useEffect(
         () => () => {
