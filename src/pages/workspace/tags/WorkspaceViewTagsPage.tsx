@@ -40,6 +40,7 @@ import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getCleanedTagName, getTagListName, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -131,7 +132,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled],
     );
 
-    const filterTag = useCallback((tag: TagListItem, searchInput: string) => !!tag.text?.toLowerCase().includes(searchInput) || !!tag.value?.toLowerCase().includes(searchInput), []);
+    const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
+        const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
+        const tagValue = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
+        const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase() ?? '');
+        return tagText.includes(normalizedSearchInput) || tagValue.includes(normalizedSearchInput);
+    }, []);
     const sortTags = useCallback((tags: TagListItem[]) => tags.sort((tagA, tagB) => localeCompare(tagA.value, tagB.value)), []);
     const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
 
