@@ -3277,7 +3277,11 @@ function openReportFromDeepLink(url: string) {
         waitForUserSignIn().then(() => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
-                callback: () => {
+                callback: (val) => {
+                    if (!val) {
+                        return;
+                    }
+
                     Navigation.waitForProtectedRoutes().then(() => {
                         if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
                             signOutAndRedirectToSignIn(true);
