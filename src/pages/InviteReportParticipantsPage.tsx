@@ -14,6 +14,7 @@ import type {WithNavigationTransitionEndProps} from '@components/withNavigationT
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {inviteToGroupChat, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {appendCountryCode} from '@libs/LoginUtils';
@@ -35,7 +36,6 @@ import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getGroupChatName, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {inviteToGroupChat, searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -56,7 +56,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
@@ -121,7 +121,8 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             filterSelectedOptions = tokenizedSearch(selectedOptions, processedSearchValue, (option) => [option.text ?? '', option.login ?? '']).filter((option) => {
                 const accountID = option?.accountID;
                 const isOptionInPersonalDetails = inviteOptions.personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
-                return isOptionInPersonalDetails;
+                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(processedSearchValue) || !!option.login?.toLowerCase().includes(processedSearchValue);
+                return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }
         const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => formatMemberForList(selectedOption));
@@ -178,8 +179,12 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions]);
 
     const reportID = report.reportID;
-    const backRoute = useMemo(() => ROUTES.REPORT_PARTICIPANTS.getRoute(reportID, route.params.backTo), [reportID, route.params.backTo]);
     const reportName = useMemo(() => getGroupChatName(undefined, true, report), [report]);
+
+    const goBack = useCallback(() => {
+        Navigation.goBack(ROUTES.REPORT_PARTICIPANTS.getRoute(reportID, route.params.backTo));
+    }, [reportID, route.params.backTo]);
+
     const inviteUsers = useCallback(() => {
         if (!validate()) {
             return;
@@ -194,8 +199,8 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             invitedEmailsToAccountIDs[login] = accountID;
         });
         inviteToGroupChat(reportID, invitedEmailsToAccountIDs);
-        Navigation.navigate(backRoute);
-    }, [selectedOptions, backRoute, reportID, validate]);
+        goBack();
+    }, [selectedOptions, goBack, reportID, validate]);
 
     const headerMessage = useMemo(() => {
         const processedLogin = debouncedSearchTerm.trim().toLowerCase();
@@ -236,9 +241,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             <HeaderWithBackButton
                 title={translate('workspace.invite.members')}
                 subtitle={reportName}
-                onBackButtonPress={() => {
-                    Navigation.goBack(backRoute);
-                }}
+                onBackButtonPress={goBack}
             />
 
             <SelectionList
