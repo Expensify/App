@@ -1048,14 +1048,16 @@ function getSortedReportActionsForDisplay(
  */
 function getLastClosedReportAction(reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
     // If closed report action is not present, return early
-if (!Object.values(reportActions ?? {}).some((action) => {
-    if (!action) {
-        return false;
+    if (
+        !Object.values(reportActions ?? {}).some((action) => {
+            if (!action) {
+                return false;
+            }
+            return action?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED;
+        })
+    ) {
+        return undefined;
     }
-    return action?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED;
-})) {
-    return undefined;
-}
 
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions);
