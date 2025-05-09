@@ -10,9 +10,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyReportHeader from '@components/MoneyReportHeader';
-import MoneyReportHeaderOld from '@components/MoneyReportHeaderOld';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
-import MoneyRequestHeaderOld from '@components/MoneyRequestHeaderOld';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -355,15 +353,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     if (isTransactionThreadView) {
-        headerView = canUseTableReportView ? (
+        headerView = (
             <MoneyRequestHeader
-                report={report}
-                policy={policy}
-                parentReportAction={parentReportAction}
-                onBackButtonPress={onBackButtonPress}
-            />
-        ) : (
-            <MoneyRequestHeaderOld
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
@@ -373,16 +364,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     if (isMoneyRequestOrInvoiceReport) {
-        headerView = canUseTableReportView ? (
+        headerView = (
             <MoneyReportHeader
-                report={report}
-                policy={policy}
-                transactionThreadReportID={transactionThreadReportID}
-                reportActions={reportActions}
-                onBackButtonPress={onBackButtonPress}
-            />
-        ) : (
-            <MoneyReportHeaderOld
                 report={report}
                 policy={policy}
                 transactionThreadReportID={transactionThreadReportID}
@@ -467,6 +450,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
+        if (reportMetadata.isOptimisticReport) {
+            return;
+        }
+
         const {moneyRequestReportActionID, transactionID, iouReportID} = route.params;
 
         // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
@@ -490,7 +477,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [route.params, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail, report, reportID, transactionThreadReport, transactionThreadReportID]);
+    }, [reportMetadata.isOptimisticReport, route.params, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail, report, reportID, transactionThreadReport, transactionThreadReportID]);
 
     useEffect(() => {
         if (!reportID || !isFocused) {
@@ -778,12 +765,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         shouldShow={shouldShowNotFoundPage}
                         subtitleKey={shouldShowNotFoundLinkedAction ? '' : 'notFound.noAccess'}
                         subtitleStyle={[styles.textSupporting]}
-                        shouldDisplaySearchRouter
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
                         shouldShowLink={shouldShowNotFoundLinkedAction}
                         linkKey="notFound.noAccess"
                         onLinkPress={navigateToEndOfReport}
+                        shouldDisplaySearchRouter
                     >
                         <OfflineWithFeedback
                             pendingAction={reportPendingAction}
