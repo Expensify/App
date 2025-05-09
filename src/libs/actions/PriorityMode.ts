@@ -19,8 +19,14 @@ import type {Report} from '@src/types/onyx';
  *     - Reports to load (in ReconnectApp or OpenApp). As we check the count of the reports to determine whether the user is eligible to be automatically switched.
  */
 
-let resolveIsReadyPromise: (args?: unknown[]) => void;
-let isReadyPromise = new Promise((resolve) => {
+type FocusModeState = {
+    allReports: OnyxCollection<Report>;
+    hasTriedFocusMode: boolean;
+    isInFocusMode: boolean;
+}
+
+let resolveIsReadyPromise: (state: FocusModeState) => void;
+let isReadyPromise = new Promise<FocusModeState>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
@@ -87,11 +93,11 @@ function checkRequiredData() {
         return;
     }
 
-    resolveIsReadyPromise();
+    resolveIsReadyPromise({allReports, hasTriedFocusMode, isInFocusMode});
 }
 
 function tryFocusModeUpdate() {
-    isReadyPromise.then(() => {
+    isReadyPromise.then((state) => {
         // User is signed out so do not try to switch them
         if (!currentUserAccountID) {
             return;
@@ -107,13 +113,13 @@ function tryFocusModeUpdate() {
         }
 
         // Check to see if the user is using #focus mode, has tried it before, or we have already switched them over automatically.
-        if ((isInFocusMode ?? false) || hasTriedFocusMode) {
+        if ((state.isInFocusMode ?? false) || state.hasTriedFocusMode) {
             Log.info('Not switching user to optimized focus mode.', false, {isInFocusMode, hasTriedFocusMode});
             return;
         }
 
         const validReports = [];
-        Object.keys(allReports ?? {}).forEach((key) => {
+        Object.keys(state.allReports ?? {}).forEach((key) => {
             const report = allReports?.[key];
             if (!report) {
                 return;
