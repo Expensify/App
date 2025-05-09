@@ -1,9 +1,14 @@
 ---
 title: Managing Single Sign-On (SSO) and User Authentication in Expensify
-description: Learn how to effectively manage Single Sign-On (SSO) and user authentication in Expensify alongside your preferred SSO provider. Our comprehensive guide covers SSO setup, domain verification, and specific instructions for popular providers like AWS, Okta, and Microsoft Azure. Streamline user access and enhance security with Expensify's SAML-based SSO integration.
+description: Learn how to effectively manage Single Sign-On (SSO) and user authentication in Expensify alongside your preferred SSO provider. 
+keywords: [Expensify Classic, SAML, single sign-on, SSO]
 ---
 
+<div id="expensify-classic" markdown="1">
+
 Expensify supports Single Sign-On (SSO) through the SAML protocol, allowing you to optimize user authentication and improve security across your organization. Whether you're an IT admin configuring your domain or a team lead ensuring secure user access, this guide walks you through setting up and managing SAML SSO for your Expensify account
+
+---
 
 # Accessing SAML Settings
 ⚠️ **Pre-requisite:** Ensure your [domain is verified](https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain#step-2-verify-domain-ownership).
@@ -15,7 +20,9 @@ Expensify supports Single Sign-On (SSO) through the SAML protocol, allowing you 
    - Enable the **"SAML required for login"** option, ensuring users sign in via SSO only.
 
 ---
-## Provider-Specific Setup Instructions
+
+# Provider-Specific Setup Instructions
+
 Click on your Identity (SAML) Provider for detailed steps:  
 - [Amazon Web Services (AWS SSO)](https://static.global.sso.amazonaws.com/app-202a715cb67cddd9/instructions/index.htm)  
 - [Google SAML (Gsuite)](https://support.google.com/a/answer/7371682)  
@@ -26,10 +33,11 @@ Click on your Identity (SAML) Provider for detailed steps:
 - [SAASPASS](https://saaspass.com/saaspass/expensify-two-factor-authentication-2fa-single-sign-on-sso-saml.html)  
 - Microsoft ADFS (instructions below).  
 
-**Note: If your provider isn't listed, contact them directly for guidance.**
+**Note:** If your provider isn't listed, contact them directly for guidance.
 
 ---
-# FAQ and Troubleshooting
+
+# Common Troubleshooting Scenarios
 
 ## User Login with SSO
 - Employees using their **company email** or a **secondary linked email** (e.g., Gmail) will be prompted to log in through SSO.  
@@ -53,9 +61,10 @@ Steps to avoid configuration errors during certificate renewal:
 3. Replace the **IDP** in Expensify with the new one.  
 4. Log in via SSO.  
 
-If issues persist, contact Concierge for assistance.  
+If issues persist, contact Concierge Support for assistance.  
 
 ---
+
 # Advanced Configurations
 
 ## Okta SCIM API for User Deactivation
@@ -75,3 +84,5 @@ Refer to the full setup in Okta's documentation for attribute mapping and provis
 4. Add two claim rules:  
    - Send LDAP Attributes as Claims.  
    - Transform Incoming Claim (Name ID). 
+
+</div>

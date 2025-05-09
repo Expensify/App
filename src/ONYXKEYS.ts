@@ -93,9 +93,6 @@ const ONYXKEYS = {
      * It is expected to provide a two-letter country code such as US for United States, and so on. */
     COUNTRY: 'country',
 
-    /** Contains all the users settings for the Settings page and sub pages */
-    USER: 'user',
-
     /** Contains latitude and longitude of user's last known location */
     USER_LOCATION: 'userLocation',
 
@@ -131,7 +128,7 @@ const ONYXKEYS = {
     NVP_ONBOARDING: 'nvp_onboarding',
 
     /** This NVP contains data associated with HybridApp */
-    NVP_TRYNEWDOT: 'nvp_tryNewDot',
+    NVP_TRY_NEW_DOT: 'nvp_tryNewDot',
 
     /** Contains the platforms for which the user muted the sounds */
     NVP_MUTED_PLATFORMS: 'nvp_mutedPlatforms',
@@ -504,6 +501,9 @@ const ONYXKEYS = {
     /** Information about loading states while talking with AI sales */
     TALK_TO_AI_SALES: 'talkToAISales',
 
+    /** Stores draft information while user is scheduling the call. */
+    SCHEDULE_CALL_DRAFT: 'scheduleCallDraft',
+
     /** Onyx updates that should be stored after sequential queue is flushed */
     QUEUE_FLUSHED_DATA: 'queueFlushedData',
 
@@ -519,6 +519,13 @@ const ONYXKEYS = {
 
     /** Billing receipt details */
     BILLING_RECEIPT_DETAILS: 'billingReceiptDetails',
+
+    /** Set when user tries to connect VBBA but workspace currency is unsupported and is forced to change
+     * This is later used to redirect user directly back to the VBBA flow */
+    IS_FORCED_TO_CHANGE_CURRENCY: 'isForcedToChangeCurrency',
+
+    /** Set this gets redirected from global reimbursements flow */
+    IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW: 'isComingFromGlobalReimbursementsFlow',
 
     /** Collection Keys */
     COLLECTION: {
@@ -541,6 +548,7 @@ const ONYXKEYS = {
         POLICY_CONNECTION_SYNC_PROGRESS: 'policyConnectionSyncProgress_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
+        WORKSPACE_INVITE_ROLE_DRAFT: 'workspaceInviteRoleDraft_',
         REPORT: 'report_',
         REPORT_NAME_VALUE_PAIRS: 'reportNameValuePairs_',
         REPORT_DRAFT: 'reportDraft_',
@@ -932,6 +940,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyEmployeeList;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string;
+    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT]: string;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: OnyxTypes.ReportNameValuePairs;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
@@ -981,8 +990,8 @@ type OnyxValuesMapping = {
 
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding;
 
-    // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
-    [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;
+    // ONYXKEYS.NVP_TRY_NEW_DOT is HybridApp onboarding data
+    [ONYXKEYS.NVP_TRY_NEW_DOT]: OnyxTypes.TryNewDot;
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
@@ -1009,7 +1018,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
     [ONYXKEYS.COUNTRY_CODE]: number;
     [ONYXKEYS.COUNTRY]: string;
-    [ONYXKEYS.USER]: OnyxTypes.User;
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
@@ -1149,6 +1157,9 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
+    [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft;
+    [ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY]: boolean | undefined;
+    [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
 };
 
 type OnyxDerivedValuesMapping = {
