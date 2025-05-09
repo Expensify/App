@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -164,8 +164,6 @@ function ReportFieldsListValuesPage({
     };
 
     const handleDeleteValues = () => {
-        setSelectedValues({});
-
         const valuesToDelete = selectedValuesArray.reduce<number[]>((acc, valueName) => {
             const index = listValues?.indexOf(valueName) ?? -1;
 
@@ -183,6 +181,10 @@ function ReportFieldsListValuesPage({
         }
 
         setDeleteValuesConfirmModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedValues({});
+        });
     };
 
     const openListValuePage = (valueItem: ValueListItem) => {
