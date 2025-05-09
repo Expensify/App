@@ -4677,9 +4677,9 @@ function getReportNameInternal({
     ) {
         const harvesting = !isMarkAsClosedAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.harvesting ?? false : false;
         if (harvesting) {
-            return Parser.htmlToText(getReportAutomaticallySubmittedMessage());
+            return Parser.htmlToText(translateLocal('iou.automaticallySubmitted'));
         }
-        return getIOUSubmittedMessage();
+        return translateLocal('iou.submitted');
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
@@ -4736,12 +4736,12 @@ function getReportNameInternal({
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
-            return Parser.htmlToText(getReportAutomaticallyApprovedMessage());
+            return Parser.htmlToText(translateLocal('iou.automaticallyApproved'));
         }
-        return getIOUApprovedMessage();
+        return translateLocal('iou.approvedMessage');
     }
     if (isUnapprovedAction(parentReportAction)) {
-        return getIOUUnapprovedMessage();
+        return translateLocal('iou.unapproved');
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
@@ -5657,26 +5657,6 @@ function getFormattedAmount(reportAction: ReportAction, report?: Report | null) 
     const amount = report && isExpenseReport(report) ? (report?.total ?? 0) * -1 : Math.abs(originalMessage?.amount ?? 0);
     const formattedAmount = convertToDisplayString(amount, originalMessage?.currency);
     return formattedAmount;
-}
-
-function getReportAutomaticallySubmittedMessage() {
-    return translateLocal('iou.automaticallySubmitted');
-}
-
-function getIOUSubmittedMessage() {
-    return translateLocal('iou.submitted');
-}
-
-function getReportAutomaticallyApprovedMessage() {
-    return translateLocal('iou.automaticallyApproved');
-}
-
-function getIOUUnapprovedMessage() {
-    return translateLocal('iou.unapproved');
-}
-
-function getIOUApprovedMessage() {
-    return translateLocal('iou.approvedText');
 }
 
 /**
@@ -10594,9 +10574,6 @@ export {
     prepareOnboardingOnyxData,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
-    getReportAutomaticallyApprovedMessage,
-    getIOUUnapprovedMessage,
-    getIOUApprovedMessage,
     getReportAutomaticallyForwardedMessage,
     getIOUForwardedMessage,
     getRejectedReportMessage,
@@ -10604,8 +10581,6 @@ export {
     getDeletedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getDowngradeWorkspaceMessage,
-    getReportAutomaticallySubmittedMessage,
-    getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
