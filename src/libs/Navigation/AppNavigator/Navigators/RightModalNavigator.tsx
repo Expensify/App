@@ -30,22 +30,22 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const offlineIndicatorContextValue = useNarrowPaneOfflineIndicatorContext();
 
     return (
-        <NoDropZone>
-            {!shouldUseNarrowLayout && (
-                <Overlay
-                    onPress={() => {
-                        if (isExecutingRef.current) {
-                            return;
-                        }
-                        isExecutingRef.current = true;
-                        navigation.goBack();
-                        setTimeout(() => {
-                            isExecutingRef.current = false;
-                        }, CONST.ANIMATED_TRANSITION);
-                    }}
-                />
-            )}
-            <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+        <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+            <NoDropZone>
+                {!shouldUseNarrowLayout && (
+                    <Overlay
+                        onPress={() => {
+                            if (isExecutingRef.current) {
+                                return;
+                            }
+                            isExecutingRef.current = true;
+                            navigation.goBack();
+                            setTimeout(() => {
+                                isExecutingRef.current = false;
+                            }, CONST.ANIMATED_TRANSITION);
+                        }}
+                    />
+                )}
                 <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
@@ -218,8 +218,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                     </Stack.Navigator>
                 </View>
-            </ScreenWrapperOfflineIndicatorContext.Provider>
-        </NoDropZone>
+            </NoDropZone>
+        </ScreenWrapperOfflineIndicatorContext.Provider>
     );
 }
 

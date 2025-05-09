@@ -26,14 +26,14 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
     const screenOptions = useSideModalStackScreenOptions('horizontal-inverted');
     const offlineIndicatorContextValue = useNarrowPaneOfflineIndicatorContext();
     return (
-        <NoDropZone>
-            {!shouldUseNarrowLayout && (
-                <Overlay
-                    isModalOnTheLeft
-                    onPress={navigation.goBack}
-                />
-            )}
-            <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+        <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+            <NoDropZone>
+                {!shouldUseNarrowLayout && (
+                    <Overlay
+                        isModalOnTheLeft
+                        onPress={navigation.goBack}
+                    />
+                )}
                 <View style={styles.LHPNavigatorContainer(shouldUseNarrowLayout)}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
@@ -45,8 +45,8 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
                         />
                     </Stack.Navigator>
                 </View>
-            </ScreenWrapperOfflineIndicatorContext.Provider>
-        </NoDropZone>
+            </NoDropZone>
+        </ScreenWrapperOfflineIndicatorContext.Provider>
     );
 }
 

@@ -26,9 +26,9 @@ function PublicRightModalNavigatorComponent({navigation}: PublicRightModalNaviga
     const offlineIndicatorContextValue = useNarrowPaneOfflineIndicatorContext();
 
     return (
-        <NoDropZone>
-            {!shouldUseNarrowLayout && <Overlay onPress={navigation.goBack} />}
-            <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+        <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+            <NoDropZone>
+                {!shouldUseNarrowLayout && <Overlay onPress={navigation.goBack} />}
                 <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
@@ -40,8 +40,8 @@ function PublicRightModalNavigatorComponent({navigation}: PublicRightModalNaviga
                         />
                     </Stack.Navigator>
                 </View>
-            </ScreenWrapperOfflineIndicatorContext.Provider>
-        </NoDropZone>
+            </NoDropZone>
+        </ScreenWrapperOfflineIndicatorContext.Provider>
     );
 }
 
