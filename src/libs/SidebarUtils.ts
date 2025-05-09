@@ -20,7 +20,6 @@ import {hasValidDraftComment} from './DraftCommentUtils';
 import {translateLocal} from './Localize';
 import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
 import Parser from './Parser';
-import Performance from './Performance';
 import {getCleanedTagName, getPolicy} from './PolicyUtils';
 import {
     getAddedApprovalRuleMessage,
@@ -126,6 +125,7 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
+import telemetry from './Telemetry';
 import {getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
@@ -347,7 +347,8 @@ function sortReportsToDisplayInLHN(
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string[] {
-    Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
+    const span = telemetry.tracer.startSpan(CONST.TIMING.GET_ORDERED_REPORT_IDS);
+
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -417,7 +418,16 @@ function sortReportsToDisplayInLHN(
 
     const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID).filter(Boolean) as string[];
 
-    Performance.markEnd(CONST.TIMING.GET_ORDERED_REPORT_IDS);
+    span.setAttributes({
+        reportsToDisplayLength: reportsToDisplay.length,
+        allReportsLength: allReportsDictValues.length,
+        pinnedAndGBRReportsLength: pinnedAndGBRReports.length,
+        errorReportsLength: errorReports.length,
+        draftReportsLength: draftReports.length,
+        nonArchivedReports: nonArchivedReports.length,
+        archivedReports: archivedReports.length,
+    });
+    span.end();
     return LHNReports;
 }
 
