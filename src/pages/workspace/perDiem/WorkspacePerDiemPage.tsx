@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -257,8 +257,11 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const handleDeletePerDiemRates = () => {
         deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
-        setSelectedPerDiem([]);
         setDeletePerDiemConfirmModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedPerDiem([]);
+        });
     };
 
     const getHeaderButtons = () => {

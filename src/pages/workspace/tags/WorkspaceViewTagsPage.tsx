@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -193,9 +193,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const deleteTags = () => {
-        setSelectedTags([]);
         deletePolicyTags(policyID, selectedTags);
         setIsDeleteTagsConfirmModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedTags([]);
+        });
     };
 
     const isLoading = !isOffline && policyTags === undefined;

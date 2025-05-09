@@ -301,9 +301,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             });
         }
 
-        setSelectedEmployees([]);
         setRemoveMembersConfirmModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
+            setSelectedEmployees([]);
             removeMembers(accountIDsToRemove, route.params.policyID);
         });
     };
