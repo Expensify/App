@@ -4203,7 +4203,7 @@ function getReportPreviewMessage(
     }
 
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
-    const totalAmount = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
+    const {totalDisplaySpend: totalAmount, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const parentReport = getParentReport(report);
     const policyName = getPolicyName({report: parentReport ?? report, policy});
@@ -4235,6 +4235,7 @@ function getReportPreviewMessage(
 
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
+        const formattedReimbursableAmount = convertToDisplayString(reimbursableSpend, report.currency);
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey: TranslationPaths = 'iou.paidElsewhereWithAmount';
         if (isPreviewMessageForParentChatReport) {
@@ -4255,10 +4256,10 @@ function getReportPreviewMessage(
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (isForListPreview && report?.parentReportID != null) {
             const payerText = isDM(parentReport) && translatePhraseKey === 'iou.payerPaidAmount' ? '' : payerDisplayName;
-            return translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerText});
+            return translateLocal(translatePhraseKey, {amount: formattedReimbursableAmount, payer: payerText});
         }
 
-        return translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerDisplayName ?? ''});
+        return translateLocal(translatePhraseKey, {amount: formattedReimbursableAmount, payer: payerDisplayName ?? ''});
     }
 
     if (report.isWaitingOnBankAccount) {
@@ -9327,7 +9328,12 @@ function isAdminOwnerApproverOrReportOwner(report: OnyxEntry<Report>, policy: On
 /**
  * Whether the user can join a report
  */
-function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>, policy: OnyxInputOrEntry<Policy>): boolean {
+function canJoinChat(
+    report: OnyxEntry<Report>,
+    parentReportAction: OnyxInputOrEntry<ReportAction>,
+    policy: OnyxInputOrEntry<Policy>,
+    reportNameValuePairs: ReportNameValuePairs | undefined,
+): boolean {
     // We disabled thread functions for whisper action
     // So we should not show join option for existing thread on whisper message that has already been left, or manually leave it
     if (isWhisperAction(parentReportAction)) {
@@ -9347,6 +9353,10 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrE
 
     // The user who is a member of the workspace has already joined the public announce room.
     if (isPublicAnnounceRoom(report) && !isEmptyObject(policy)) {
+        return false;
+    }
+
+    if (isArchivedReport(reportNameValuePairs)) {
         return false;
     }
 
@@ -9935,7 +9945,6 @@ function prepareOnboardingOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
             value: {
-                lastMentionedTime: DateUtils.getDBTime(),
                 hasOutstandingChildTask,
                 lastVisibleActionCreated,
                 lastActorAccountID: actorAccountID,
@@ -10343,23 +10352,17 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     let exportIntegrationActionsCount = 0;
     let integrationMessageActionsCount = 0;
 
-    if (Array.isArray(reportActions)) {
-        for (const action of reportActions) {
-            if (isExportIntegrationAction(action)) {
-                exportIntegrationActionsCount++;
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
+    for (const action of reportActionList) {
+        if (isExportIntegrationAction(action)) {
+            // We consider any reports marked manually as exported to be exported, so we shortcircuit here.
+            if (getOriginalMessage(action)?.markedManually) {
+                return true;
             }
-            if (isIntegrationMessageAction(action)) {
-                integrationMessageActionsCount++;
-            }
+            exportIntegrationActionsCount++;
         }
-    } else {
-        for (const action of Object.values(reportActions)) {
-            if (isExportIntegrationAction(action)) {
-                exportIntegrationActionsCount++;
-            }
-            if (isIntegrationMessageAction(action)) {
-                integrationMessageActionsCount++;
-            }
+        if (isIntegrationMessageAction(action)) {
+            integrationMessageActionsCount++;
         }
     }
 
@@ -10398,7 +10401,7 @@ function verifyStatus(report: OnyxEntry<Report>, validStatuses: Array<ValueOf<ty
 /**
  * Determines whether the report can be moved to the workspace.
  */
-function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, session: OnyxEntry<Session>): boolean {
+function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, session: OnyxEntry<Session>, currentPolicy?: OnyxEntry<Policy>): boolean {
     if (!session?.accountID) {
         return false;
     }
@@ -10409,6 +10412,7 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
     const managerLogin = report?.managerID && getLoginByAccountID(report?.managerID);
     const isManagerMember = !!managerLogin && !!newPolicy?.employeeList?.[managerLogin];
     const isCurrentUserAdmin = isPolicyAdminPolicyUtils(newPolicy, session?.email);
+    const isAdminOfCurrentPolicy = isPolicyAdminPolicyUtils(currentPolicy, session?.email);
     const isPaidGroupPolicyType = isPaidGroupPolicyPolicyUtils(newPolicy);
     const isReportOpenOrSubmitted = verifyState(report, [CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATE_NUM.SUBMITTED]);
 
@@ -10421,13 +10425,15 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
 
     // From this point on, reports must be of type Expense, the policy must be a paid type.
     // The submitter and manager must also be policy members OR the current user is an admin so they can invite the non-members to the policy.
+    // Additionally, if the report is not open or submitted, the current user must be an admin.
+    // We're temporarily disabling moving reports to a workspace if the submitter is not a member of the new policy because this flow requires additional API changes.
     const isExpenseReportType = isExpenseReport(report);
-    if (!isExpenseReportType || !isPaidGroupPolicyType || !((isSubmitterMember && isManagerMember) || isCurrentUserAdmin)) {
+    if (!isExpenseReportType || !isPaidGroupPolicyType || !isSubmitterMember || (!isReportOpenOrSubmitted && !isAdminOfCurrentPolicy)) {
         return false;
     }
 
     const isCurrentUserReportSubmitter = session.accountID === report?.ownerAccountID;
-    if (isCurrentUserReportSubmitter && isReportOpenOrSubmitted) {
+    if (isCurrentUserReportSubmitter) {
         return true;
     }
 
