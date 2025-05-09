@@ -2,7 +2,7 @@
 name: Add or remove expert contributor from the team
 about: In order to get access to the HybridApp setup, expert contributors need to be added to our Github Organization. They also need to be added to the necessary rooms in Slack
 title: "Expert Contributor Change Request - <insert-name>"
-labels: Daily, Task, ring0
+labels: Daily, Task, Access Change
 ---
 
 ### Expert Contributor Details
