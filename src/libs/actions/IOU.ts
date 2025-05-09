@@ -75,6 +75,7 @@ import {
 } from '@libs/PolicyUtils';
 import {
     getAllReportActions,
+    getIOUActionForReportID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
     getLastVisibleMessage,
@@ -112,6 +113,7 @@ import {
     buildOptimisticSubmittedReportAction,
     buildOptimisticUnapprovedReportAction,
     buildOptimisticUnHoldReportAction,
+    buildTransactionThread,
     canBeAutoReimbursed,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
@@ -5140,7 +5142,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
-                transactionThreadReportID,
                 createdReportActionIDForThread,
                 reimbursible,
                 description: parsedComment,
@@ -10046,7 +10047,63 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+    let createdReportActionIDForThread;
+    if (!report) {
+        const iouAction = getIOUActionForReportID(iouReport?.reportID, transactionID);
+        const transactionThread = buildTransactionThread(iouAction, iouReport, undefined, reportID);
+        const createdActionForTransactionThread = buildOptimisticCreatedReportAction(currentUserEmail);
+        createdReportActionIDForThread = createdActionForTransactionThread.reportActionID;
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: transactionThread,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {
+                    [createdActionForTransactionThread.reportActionID]: createdActionForTransactionThread as ReportAction,
+                },
+            },
+        );
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
+                value: {
+                    pendingFields: null,
+                    errorFields: null,
+                    isOptimisticReport: false,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+                value: {
+                    [createdActionForTransactionThread?.reportActionID]: {
+                        pendingAction: null,
+                        errors: null,
+                    },
+                },
+            },
+        );
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
+            value: {
+                errorFields: {
+                    createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+                },
+            },
+        });
+    }
+
+    optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -10077,7 +10134,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
                 lastVisibleActionCreated: createdReportActionComment.created,
             },
         },
-    ];
+    );
 
     if (iouReport && iouReport.currency === transaction?.currency) {
         const isExpenseReportLocal = isExpenseReport(iouReport);
@@ -10100,17 +10157,15 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
         optimisticData.push(parentActionData);
     });
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                pendingAction: null,
-            },
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {
+            pendingAction: null,
         },
-    ];
+    });
 
-    const failureData: OnyxUpdate[] = [
+    failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -10137,8 +10192,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
                 lastVisibleActionCreated: report?.lastVisibleActionCreated,
             },
         },
-    ];
-
+    );
     // If we are holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
     if (searchHash) {
         optimisticData.push({
@@ -10168,12 +10222,14 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
     }
 
     API.write(
-        'HoldRequest',
+        WRITE_COMMANDS.HOLD_MONEY_REQUEST,
         {
             transactionID,
             comment,
             reportActionID: createdReportAction.reportActionID,
             commentReportActionID: createdReportActionComment.reportActionID,
+            transactionThreadReportID: reportID,
+            createdReportActionIDForThread,
         },
         {optimisticData, successData, failureData},
     );
@@ -10310,7 +10366,7 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
     }
 
     API.write(
-        'UnHoldRequest',
+        WRITE_COMMANDS.UNHOLD_MONEY_REQUEST,
         {
             transactionID,
             reportActionID: createdReportAction.reportActionID,
