@@ -7,7 +7,6 @@ import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHand
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import type {SvgProps} from 'react-native-svg';
 import ConfirmModal from '@components/ConfirmModal';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FloatingActionButton from '@components/FloatingActionButton';
@@ -43,13 +42,13 @@ import {
     isPaidGroupPolicy,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
-import {canCreateRequest, generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
+import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getNavatticURL} from '@libs/TourUtils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -85,89 +84,6 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         name: policy.name,
         areInvoicesEnabled: policy.areInvoicesEnabled,
     }) as PolicySelector;
-
-const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
-    switch (action) {
-        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-            return getIconForAction(CONST.IOU.TYPE.REQUEST);
-        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-            return Expensicons.ReceiptScan;
-        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-            return Expensicons.Car;
-        case CONST.QUICK_ACTIONS.PER_DIEM:
-            return Expensicons.CalendarSolid;
-        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
-        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-            return getIconForAction(CONST.IOU.TYPE.SPLIT);
-        case CONST.QUICK_ACTIONS.SEND_MONEY:
-            return getIconForAction(CONST.IOU.TYPE.SEND);
-        case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            return Expensicons.Task;
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            return Expensicons.Car;
-        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-            return getIconForAction(CONST.IOU.TYPE.TRACK);
-        case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            return Expensicons.ReceiptScan;
-        case CONST.QUICK_ACTIONS.CREATE_REPORT:
-            return Expensicons.Document;
-        default:
-            return Expensicons.MoneyCircle;
-    }
-};
-
-const getIouType = (action: QuickActionName) => {
-    switch (action) {
-        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-        case CONST.QUICK_ACTIONS.PER_DIEM:
-            return CONST.IOU.TYPE.SUBMIT;
-        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
-        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-            return CONST.IOU.TYPE.SPLIT;
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-        case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            return CONST.IOU.TYPE.TRACK;
-        case CONST.QUICK_ACTIONS.SEND_MONEY:
-            return CONST.IOU.TYPE.PAY;
-        default:
-            return undefined;
-    }
-};
-
-const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
-    switch (action) {
-        case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-            return 'quickAction.requestMoney';
-        case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-        case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            return 'quickAction.scanReceipt';
-        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            return 'quickAction.recordDistance';
-        case CONST.QUICK_ACTIONS.PER_DIEM:
-            return 'quickAction.perDiem';
-        case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
-            return 'quickAction.splitBill';
-        case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-            return 'quickAction.splitScan';
-        case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-            return 'quickAction.splitDistance';
-        case CONST.QUICK_ACTIONS.SEND_MONEY:
-            return 'quickAction.paySomeone';
-        case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            return 'quickAction.assignTask';
-        case CONST.QUICK_ACTIONS.CREATE_REPORT:
-            return 'quickAction.createReport';
-        default:
-            return '' as TranslationPaths;
-    }
-};
 
 /**
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
@@ -401,11 +317,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         };
 
         if (quickAction?.action) {
-            const iouType = getIouType(quickAction?.action);
-            if (!!iouType && !canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
-                return [];
-            }
-            if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM && !quickActionPolicy?.arePerDiemRatesEnabled) {
+            if (!isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy)) {
                 return [];
             }
             const onSelected = () => {
@@ -514,23 +426,28 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
                               let workspaceIDForReportCreation: string | undefined;
 
-                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
                               if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                  // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
                                   workspaceIDForReportCreation = activePolicyID;
                               } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                  // If the user has only one paid group workspace with chat enabled, we create a report with it
                                   workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
                               }
 
-                              if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
+                              if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
+                                  // If we counld't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
+                                  Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                  return;
+                              }
+
+                              if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
                                   const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
                                       Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                   });
-                                  return;
+                              } else {
+                                  Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
                               }
-
-                              // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
-                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
                           });
                       },
                   },

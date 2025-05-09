@@ -58,6 +58,18 @@ describe('getReportPreviewAction', () => {
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
+    it('isAddExpenseAction should return true for report preview with no transactions', () => {
+        const report: Report = {
+            ...createRandomReport(REPORT_ID),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        expect(getReportPreviewAction(VIOLATIONS, report, undefined, [])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+    });
+
     it('canSubmit should return true for expense preview report with manual submit', async () => {
         const report: Report = {
             ...createRandomReport(REPORT_ID),
