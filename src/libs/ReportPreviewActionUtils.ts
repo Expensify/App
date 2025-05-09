@@ -14,6 +14,7 @@ import {
     isPolicyAdmin,
     isPrefferedExporter,
 } from './PolicyUtils';
+import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
@@ -203,6 +204,9 @@ function getReportPreviewAction(
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
+    }
+    if (isAddExpenseAction(report, transactions ?? [])) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
     if (canSubmit(report, violations, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
