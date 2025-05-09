@@ -4991,11 +4991,11 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Marque cualquier recibo donde aparezcan alcohol, apuestas u otros artículos restringidos. Los gastos con recibos que incluyan estos conceptos requerirán una revisión manual.',
                 prohibitedExpenses: 'Gastos prohibidos',
-                alcohol: 'Alcohol',
-                hotelIncidentals: 'Gastos incidentales de hotel',
-                gambling: 'Juegos de azar',
-                tobacco: 'Tabaco',
-                adultEntertainment: 'Entretenimiento para adultos',
+                alcohol: 'alcohol',
+                hotelIncidentals: 'gastos incidentales de hotel',
+                gambling: 'juegos de azar',
+                tobacco: 'tabaco',
+                adultEntertainment: 'entretenimiento para adultos',
             },
             expenseReportRules: {
                 examples: 'Ejemplos:',
@@ -6227,15 +6227,15 @@ const translations = {
             const preMessage = 'Gasto prohibido:';
             switch (prohibitedExpenseType) {
                 case 'alcohol':
-                    return `${preMessage} Alcohol`;
+                    return `${preMessage} alcohol`;
                 case 'gambling':
-                    return `${preMessage} Juego de apuestas`;
+                    return `${preMessage} juego de apuestas`;
                 case 'tobacco':
-                    return `${preMessage} Tobacco`;
+                    return `${preMessage} tobacco`;
                 case 'adultEntertainment':
-                    return `${preMessage} Entretenimiento para adultos`;
+                    return `${preMessage} entretenimiento para adultos`;
                 case 'hotelIncidentals':
-                    return `${preMessage} Gastos adicionales de hotel`;
+                    return `${preMessage} gastos adicionales de hotel`;
                 default:
                     return `${preMessage}${prohibitedExpenseType}`;
             }
