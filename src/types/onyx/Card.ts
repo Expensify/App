@@ -111,6 +111,10 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Card expiration date */
         expirationDate?: string;
 
+        /** Card's primary account identifier */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        expensifyCard_panReferenceID?: string;
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 

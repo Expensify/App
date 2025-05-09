@@ -32,13 +32,14 @@ function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescripti
 }
 
 function isCardInWallet(card: Card): Promise<boolean> {
-    if (card.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
+    const panReferenceID = card.nameValuePairs?.expensifyCard_panReferenceID;
+    if (!panReferenceID) {
         return Promise.resolve(false);
     }
 
     let callback = null;
     if (card.token) {
-        callback = getCardStatusByIdentifier(card.token, ExpensifyCardNetwork);
+        callback = getCardStatusByIdentifier(panReferenceID, ExpensifyCardNetwork);
     } else if (card.lastFourPAN) {
         callback = getCardStatusBySuffix(card.lastFourPAN);
     }
