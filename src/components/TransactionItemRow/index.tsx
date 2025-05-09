@@ -11,7 +11,7 @@ import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCreated as getTransactionCreated} from '@libs/TransactionUtils';
+import {getMerchant, getCreated as getTransactionCreated, isPartialMerchant} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CategoryCell from './DataCells/CategoryCell';
@@ -26,21 +26,21 @@ import TransactionItemRowRBR from './TransactionItemRowRBR';
 function TransactionItemRow({
     transactionItem,
     shouldUseNarrowLayout,
-    shouldShowCheckbox,
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
     shouldShowChatBubbleComponent = false,
     onCheckboxPress,
+    shouldShowCheckbox = false,
 }: {
     transactionItem: TransactionWithOptionalHighlight;
     shouldUseNarrowLayout: boolean;
-    shouldShowCheckbox: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
     shouldShowChatBubbleComponent?: boolean;
     onCheckboxPress: (transactionID: string) => void;
+    shouldShowCheckbox: boolean;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -69,6 +69,9 @@ function TransactionItemRow({
         }
     }, [hovered, isSelected, styles.activeComponentBG, styles.hoveredComponentBG]);
 
+    const merchantName = getMerchant(transactionItem);
+    const isMerchantEmpty = isPartialMerchant(merchantName);
+
     return (
         <View
             style={[styles.flex1]}
@@ -80,7 +83,7 @@ function TransactionItemRow({
                     <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3, bgActiveStyles]}>
                         <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
                             {shouldShowCheckbox && (
-                                <View style={[styles.mr2, styles.justifyContentCenter]}>
+                                <View style={[styles.mr3, styles.justifyContentCenter]}>
                                     <Checkbox
                                         onPress={() => {
                                             onCheckboxPress(transactionItem.transactionID);
@@ -109,19 +112,30 @@ function TransactionItemRow({
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
+                                    {isMerchantEmpty && (
+                                        <View style={[styles.mlAuto]}>
+                                            <TotalCell
+                                                transactionItem={transactionItem}
+                                                shouldShowTooltip={shouldShowTooltip}
+                                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                            />
+                                        </View>
+                                    )}
                                 </View>
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                                    <MerchantCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    />
-                                    <TotalCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    />
-                                </View>
+                                {!isMerchantEmpty && (
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                        <MerchantCell
+                                            transactionItem={transactionItem}
+                                            shouldShowTooltip={shouldShowTooltip}
+                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                        />
+                                        <TotalCell
+                                            transactionItem={transactionItem}
+                                            shouldShowTooltip={shouldShowTooltip}
+                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                        />
+                                    </View>
+                                )}
                             </View>
                         </View>
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.mb3]}>

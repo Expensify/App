@@ -25,6 +25,7 @@ import {
     isCurrencySupportedForDirectReimbursement,
     isCurrencySupportedForGlobalReimbursement,
     openPolicyWorkflowsPage,
+    setIsForcedToChangeCurrency,
     setWorkspaceApprovalMode,
     setWorkspaceAutoReportingFrequency,
     setWorkspaceReimbursement,
@@ -104,6 +105,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         setIsUpdateWorkspaceCurrencyModalOpen(false);
 
         if (canUseGlobalReimbursementsOnND) {
+            setIsForcedToChangeCurrency(true);
             Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
         } else {
             updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);

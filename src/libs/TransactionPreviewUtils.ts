@@ -125,12 +125,14 @@ const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<OnyxTypes.Tr
     return {isBillSplit: !!originalTransaction, originalTransaction: originalTransaction ?? transaction};
 };
 
-function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, hasFieldErrors: boolean, violationMessage: string): TranslationPathOrText {
+function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, hasFieldErrors: boolean, violationMessage: string, isTransactionOnHold: boolean): TranslationPathOrText {
     const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
+
+    const hasViolationsAndHold = violationsCount > 0 && isTransactionOnHold;
     const isTooLong = violationsCount > 1 || violationMessage.length > CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW;
     const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-    return isTooLong || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
+    return isTooLong || hasViolationsAndHold || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
 }
 
 function getTransactionPreviewTextAndTranslationPaths({
@@ -178,8 +180,9 @@ function getTransactionPreviewTextAndTranslationPaths({
         RBRMessage = {translationPath: 'iou.expenseWasPutOnHold'};
     }
 
-    if (violationMessage && RBRMessage === undefined) {
-        RBRMessage = getViolationTranslatePath(violations, hasFieldErrors, violationMessage);
+    const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold);
+    if (path.translationPath === 'violations.reviewRequired' || (RBRMessage === undefined && violationMessage)) {
+        RBRMessage = path;
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {

@@ -88,6 +88,10 @@ function isSingleTransactionReport(report: OnyxEntry<Report>, transactions: Tran
  * Likewise, if report has only 1 connected transaction, then we also use other views.
  */
 function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: Transaction[]) {
+    if (!report || !transactions.length) {
+        return false;
+    }
+
     return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
 }
 

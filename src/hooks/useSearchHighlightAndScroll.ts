@@ -52,6 +52,11 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         const hasTransactionsIDsChange = !isEqual(transactionsIDs, previousTransactionsIDs);
         const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
 
+        // NOTE: This if statement should NOT assume report actions can only change
+        // in one type, i.e.: isChat && hasReportActionsIDsChange
+        // because they can also change in other types such as CONST.SEARCH.DATA_TYPES.EXPENSE.
+        // Assuming they can only change in one type leads to issues such as
+        // https://github.com/Expensify/App/issues/57605
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.

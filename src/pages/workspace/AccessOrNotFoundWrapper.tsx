@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
@@ -151,7 +151,6 @@ function AccessOrNotFoundWrapper({
 
     const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName) : true;
 
-    const [isPolicyFeatureEnabled, setIsPolicyFeatureEnabled] = useState(isFeatureEnabled);
     const {isOffline} = useNetwork();
 
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
@@ -160,15 +159,20 @@ function AccessOrNotFoundWrapper({
     }, true);
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy);
-    const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !isPolicyFeatureEnabled || shouldBeBlocked;
+    const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || shouldBeBlocked;
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
-    // Without this, we can have unexpectedly have 'Not Found' be shown.
+    // Without this, we can be unexpectedly navigated to the More Features page.
     useEffect(() => {
-        if (pendingField && !isOffline && !isFeatureEnabled) {
+        if (isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled)) {
             return;
         }
-        setIsPolicyFeatureEnabled(isFeatureEnabled);
+
+        // When a workspace feature linked to the current page is disabled we will navigate to the More Features page.
+        Navigation.isNavigationReady().then(() => Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+        // We don't need to run the effect on policyID change as we only use it to get the route to navigate to.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingField, isOffline, isFeatureEnabled]);
 
     useEffect(() => {

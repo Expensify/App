@@ -75,6 +75,22 @@ function normalizeAccents(text: string) {
 }
 
 /**
+ * Normalize a string by:
+ * - removing diacritical marks
+ * - Removing non-alphabetic and non-latin characters from a string
+ * - Removing invisible characters
+ * - normalizing space-like characters into normal spaces
+ * - collapsing whitespaces
+ * - trimming
+ */
+function normalize(text: string): string {
+    return removeInvisibleCharacters(sanitizeString(text))
+        .replace(/[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, ' ') // space-like -> ' '
+        .replace(/\s+/g, ' ') // collapse spaces
+        .trim();
+}
+
+/**
  *  Replace all CRLF with LF
  *  @param value - The input string
  *  @returns The string with all CRLF replaced with LF
@@ -125,6 +141,7 @@ export default {
     sanitizeString,
     isEmptyString,
     removeInvisibleCharacters,
+    normalize,
     normalizeAccents,
     normalizeCRLF,
     lineBreaksToSpaces,

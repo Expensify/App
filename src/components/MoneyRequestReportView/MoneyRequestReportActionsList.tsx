@@ -454,7 +454,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                             isChecked={selectedTransactionsID.length === transactions.length}
                             isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
                             onPress={() => {
-                                if (selectedTransactionsID.length === transactions.length) {
+                                if (selectedTransactionsID.length !== 0) {
                                     setSelectedTransactionsID([]);
                                 } else {
                                     setSelectedTransactionsID(transactions.map((t) => t.transactionID));

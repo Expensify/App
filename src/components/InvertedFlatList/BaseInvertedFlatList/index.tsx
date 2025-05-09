@@ -88,7 +88,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     const maintainVisibleContentPosition = useMemo(() => {
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
             // This needs to be 1 to avoid using loading views as anchors.
-            minIndexForVisible: 1,
+            minIndexForVisible: data.length ? Math.min(1, data.length - 1) : 0,
         };
 
         if (shouldEnableAutoScrollToTopThreshold && !isLoadingData && !wasLoadingData) {
@@ -96,7 +96,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         }
 
         return config;
-    }, [shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
+    }, [data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
 
     const listRef = useRef<RNFlatList | null>(null);
     useImperativeHandle(ref, () => {
