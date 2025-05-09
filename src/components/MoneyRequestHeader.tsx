@@ -61,12 +61,9 @@ type MoneyRequestHeaderProps = {
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
-
-    /** Whether to open the parent report in the current tab if possible */
-    openParentReportInCurrentTab?: boolean;
 };
 
-function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress, openParentReportInCurrentTab}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -257,7 +254,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 shouldDisplayHelpButton={!isReportInRHP}
                 onBackButtonPress={onBackButtonPress}
                 shouldEnableDetailPageNavigation
-                openParentReportInCurrentTab={openParentReportInCurrentTab}
+                openParentReportInCurrentTab
             >
                 {!shouldUseNarrowLayout && (
                     <View style={[styles.flexRow, styles.gap2]}>

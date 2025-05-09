@@ -352,7 +352,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 policy={policy}
                 parentReportAction={parentReportAction}
                 onBackButtonPress={onBackButtonPress}
-                openParentReportInCurrentTab
             />
         );
     }
