@@ -158,8 +158,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     }, [onSaveSplitExpense, styles.mb2, styles.ph1, styles.w100, translate, errorMessage]);
 
     return (
-        <FullPageNotFoundView shouldShow={!route.params.reportID || isEmptyObject(draftTransaction)}>
-            <ScreenWrapper testID={SplitExpensePage.displayName}>
+        <ScreenWrapper testID={SplitExpensePage.displayName}>
+            <FullPageNotFoundView shouldShow={!route.params.reportID || isEmptyObject(draftTransaction)}>
                 <HeaderWithBackButton
                     title={translate('iou.split')}
                     subtitle={translate('iou.splitExpenseSubtitle', {
@@ -168,16 +168,18 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     })}
                     onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
                 />
-                <SelectionList
-                    onSelectRow={() => {}}
-                    headerContent={headerContent}
-                    sections={sections}
-                    ListItem={SplitListItem}
-                    shouldUseDynamicMaxToRenderPerBatch
-                    footerContent={footerContent}
-                />
-            </ScreenWrapper>
-        </FullPageNotFoundView>
+                <View style={[styles.containerWithSpaceBetween]}>
+                    <SelectionList
+                        onSelectRow={() => {}}
+                        headerContent={headerContent}
+                        sections={sections}
+                        ListItem={SplitListItem}
+                        containerStyle={[styles.flexBasisAuto]}
+                        footerContent={footerContent}
+                    />
+                </View>
+            </FullPageNotFoundView>
+        </ScreenWrapper>
     );
 }
 SplitExpensePage.displayName = 'SplitExpensePage';

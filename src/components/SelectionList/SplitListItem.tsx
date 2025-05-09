@@ -37,10 +37,11 @@ function SplitListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.p3]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.p3, styles.br2]}
             isFocused={isFocused}
             containerStyle={[styles.mh4, styles.mv2, styles.reportPreviewBoxHoverBorder, styles.br2]}
-            hoverStyle={[styles.br3]}
+            hoverStyle={[styles.br2]}
+            pressableStyle={[styles.br2]}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             onSelectRow={onSelectRow}
