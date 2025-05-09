@@ -1279,7 +1279,7 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
         transactionID: testDriveIOUParams.transaction.transactionID,
     });
 
-    const text = Localize.translateLocal('testDrive.employeeInviteMessage', {name: getDisplayNameOrDefault(personalDetailsList?.[userAccountID])});
+    const text = Localize.translateLocal('testDrive.employeeInviteMessage', {name: personalDetailsList?.[userAccountID]?.firstName ?? ''});
     const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID);
     textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
 
