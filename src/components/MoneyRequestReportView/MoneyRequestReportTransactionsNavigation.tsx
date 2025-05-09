@@ -37,7 +37,7 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
     const backTo = Navigation.getActiveRoute();
 
     /**
-     * We clear the sibling transactionThreadIDs when unfocusing this component
+     * We clear the sibling transactionThreadIDs when blurring this component
      * only when the focus actually goes to a different SCREEN (and not a different version of the same SCREEN)
      */
     useFocusEffect(

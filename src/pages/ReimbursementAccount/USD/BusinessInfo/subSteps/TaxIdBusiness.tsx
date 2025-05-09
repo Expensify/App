@@ -57,7 +57,7 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('businessInfoStep.enterYourCompanysTaxIdNumber')}
+            formTitle={translate('businessInfoStep.enterYourCompanyTaxIdNumber')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={COMPANY_TAX_ID_KEY}
