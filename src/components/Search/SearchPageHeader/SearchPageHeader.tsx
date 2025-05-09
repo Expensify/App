@@ -32,7 +32,7 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, hideSearchRouterL
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions} = useSearchContext();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 

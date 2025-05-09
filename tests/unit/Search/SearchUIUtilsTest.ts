@@ -956,14 +956,14 @@ describe('SearchUIUtils', () => {
                 .map((section) => section.menuItems)
                 .flat();
 
-            const expectedRoutes = [
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc groupBy:reports'}),
-                ROUTES.SEARCH_ROOT.getRoute({query: 'type:chat status:all sortBy:date sortOrder:desc'}),
+            const expectedQueries = [
+                'type:expense status:all sortBy:date sortOrder:desc',
+                'type:expense status:all sortBy:date sortOrder:desc groupBy:reports',
+                'type:chat status:all sortBy:date sortOrder:desc',
             ];
 
             menuItems.forEach((item, index) => {
-                expect(item.getSearchQuery()).toStrictEqual(expectedRoutes.at(index));
+                expect(item.getSearchQuery()).toStrictEqual(expectedQueries.at(index));
             });
         });
     });
