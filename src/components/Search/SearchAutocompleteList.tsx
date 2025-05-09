@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SelectionList from '@components/SelectionList';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -76,6 +77,9 @@ type SearchAutocompleteListProps = {
 
     /** Callback to highlight (e.g. scroll to) the first matched item in the list. */
     onHighlightFirstItem?: () => void;
+
+    /** Ref for textInput */
+    textInputRef?: React.RefObject<AnimatedTextInputRef>;
 };
 
 const defaultListOptions = {
@@ -134,8 +138,9 @@ function SearchAutocompleteList(
         onListItemPress,
         setTextQuery,
         updateAutocompleteSubstitutions,
-        shouldSubscribeToArrowKeyEvents,
+        shouldSubscribeToArrowKeyEvents = true,
         onHighlightFirstItem,
+        textInputRef,
     }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -582,6 +587,9 @@ function SearchAutocompleteList(
                 onLayout={() => {
                     setPerformanceTimersEnd();
                     setIsInitialRender(false);
+                    if (!!textInputRef?.current && ref && 'current' in ref) {
+                        ref.current?.updateExternalTextInputFocus?.(textInputRef.current.isFocused());
+                    }
                 }}
                 showScrollIndicator={!shouldUseNarrowLayout}
                 sectionTitleStyles={styles.mhn2}
