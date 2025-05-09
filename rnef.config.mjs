@@ -3,7 +3,7 @@ import {platformIOS} from '@rnef/platform-ios';
 import {pluginMetro} from '@rnef/plugin-metro';
 
 const isHybrid = process.env.IS_HYBRID_APP === 'true';
-const hybridRoot = './Mobile-Expensify/';
+const hybridRoot = './Mobile-Expensify';
 
 /** @type {import('@rnef/config').Config} */
 export default {
