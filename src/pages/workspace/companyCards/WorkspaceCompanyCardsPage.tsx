@@ -5,22 +5,13 @@ import DecisionModal from '@components/DecisionModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useDefaultFundID from '@hooks/useDefaultFundID';
+import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    checkIfFeedConnectionIsBroken,
-    filterInactiveCards,
-    getCompanyFeeds,
-    getFilteredCardList,
-    getSelectedFeed,
-    hasOnlyOneCardToAssign,
-    isCustomFeed,
-    isSelectedFeedExpired,
-} from '@libs/CardUtils';
+import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getFilteredCardList, getSelectedFeed, hasOnlyOneCardToAssign, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -52,7 +43,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [cardFeeds] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`, {selector: filterInactiveCards, canBeMissing: true});
+    const [cardsList] = useCardsList(policyID, selectedFeed);
 
     const {cardList, ...cards} = cardsList ?? {};
 
@@ -76,8 +67,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
     const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
 
-    const defaultFundID = useDefaultFundID(policyID);
-
     useEffect(() => {
         fetchCompanyCards();
     }, [fetchCompanyCards]);
@@ -87,8 +76,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             return;
         }
 
-        openPolicyCompanyCardsFeed(defaultFundID, policyID, selectedFeed);
-    }, [selectedFeed, isLoading, policyID, isPending, defaultFundID]);
+        openPolicyCompanyCardsFeed(selectedFeedData?.domainID ?? workspaceAccountID, policyID, selectedFeed);
+    }, [selectedFeed, isLoading, policyID, isPending, selectedFeedData, workspaceAccountID]);
 
     const handleAssignCard = () => {
         if (isActingAsDelegate) {
