@@ -603,6 +603,7 @@ function MoneyRequestReportPreviewContent({
                         styles.justifyContentBetween,
                         StyleUtils.getBackgroundColorStyle(theme.cardBG),
                         shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
+                        isReportDeleted && styles.pointerEventsNone,
                     ]}
                     role={getButtonRole(true)}
                     isNested
