@@ -15,11 +15,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import AddMembersButton from './AddMembersButton';
-import type {PersonalPolicyTypeExludedProps} from './SubscriptionPlanCard';
+import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
 
 type SubscriptionPlanCardActionButtonProps = {
     /** Subscription plan to display */
-    subscriptionPlan: PersonalPolicyTypeExludedProps | null;
+    subscriptionPlan: PersonalPolicyTypeExcludedProps | null;
 
     /** Whether the plan card was rendered inside the comparison modal */
     isFromComparisonModal: boolean;
@@ -44,7 +44,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
 
-    const handlePlanPress = (planType: PersonalPolicyTypeExludedProps) => {
+    const handlePlanPress = (planType: PersonalPolicyTypeExcludedProps) => {
         closeComparisonModal?.();
 
         // If user has no policies, return.

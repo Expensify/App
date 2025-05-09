@@ -31,7 +31,7 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
     const routePolicyID = getRoutePolicyID(lastRoute);
 
-    // If invalid policy page is displayed on narrow layout, sidebar screen should not be pushed to the navigation state to avoid adding reduntant not found page
+    // If invalid policy page is displayed on narrow layout, sidebar screen should not be pushed to the navigation state to avoid adding redundant not found page
     if (isNarrowLayout && !!routePolicyID) {
         if (shouldDisplayPolicyNotFoundPage(routePolicyID)) {
             return;
