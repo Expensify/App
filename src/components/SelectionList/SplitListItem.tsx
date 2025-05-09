@@ -41,7 +41,7 @@ function SplitListItem<TItem extends ListItem>({
             isFocused={isFocused}
             containerStyle={[styles.mh4, styles.mv2, styles.reportPreviewBoxHoverBorder, styles.br2]}
             hoverStyle={[styles.br2]}
-            pressableStyle={[styles.br2,styles.p1]}
+            pressableStyle={[styles.br2, styles.p1]}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             onSelectRow={onSelectRow}

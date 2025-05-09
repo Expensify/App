@@ -5355,10 +5355,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         splitItemBottomContent: {
-            flexDirection: "row",
-            alignItems: "center",
+            flexDirection: 'row',
+            alignItems: 'center',
             marginTop: -4,
-            justifyContent: "space-between",
+            justifyContent: 'space-between',
             minHeight: 12,
         },
 
