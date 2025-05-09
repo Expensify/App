@@ -1,8 +1,9 @@
 import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, Onfido as OnfidoSDK, OnfidoTheme} from '@onfido/react-native-sdk';
 import React, {useEffect} from 'react';
-import {Alert, Linking} from 'react-native';
+import {Alert, AppState, Linking} from 'react-native';
 import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useAppState from '@hooks/useAppState';
 import useLocalize from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -11,6 +12,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {OnfidoError, OnfidoProps} from './types';
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
+    const appState = useAppState()
     const {translate} = useLocalize();
 
     useEffect(() => {
@@ -39,7 +41,8 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                 // If the user cancels the Onfido flow we won't log this error as it's normal. In the React Native SDK the user exiting the flow will trigger this error which we can use as
                 // our "user exited the flow" callback. On web, this event has it's own callback passed as a config so we don't need to bother with this there.
                 if (([CONST.ONFIDO.ERROR.USER_CANCELLED, CONST.ONFIDO.ERROR.USER_TAPPED_BACK, CONST.ONFIDO.ERROR.USER_EXITED] as string[]).includes(errorMessage)) {
-                    onUserExit();
+                    const wasInBackground = ['background', 'inactive'].includes(AppState.currentState) && appState.isForeground;
+                    onUserExit(!wasInBackground);
                     return;
                 }
 
