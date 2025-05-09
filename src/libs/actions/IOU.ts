@@ -216,7 +216,7 @@ import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID
 import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
 import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
-import {getDraftTransactions, getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
+import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
@@ -927,13 +927,8 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
 }
 
 function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
-    const draftTransactions = getDraftTransactions();
-    const draftTransactionsSet = draftTransactions.reduce((acc, item) => {
-        acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
-        return acc;
-    }, {} as Record<string, null>);
+    removeDraftTransactions();
     Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
-    Onyx.multiSet(draftTransactionsSet);
 }
 
 function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation = false, backToReport?: string) {
