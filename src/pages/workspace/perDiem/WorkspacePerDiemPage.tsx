@@ -418,19 +418,19 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             </TextLink>
                         </Text>
                     </View>
+                    {isLoading && (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                            color={theme.spinner}
+                        />
+                    )}
                     {subRatesList.length > CONST.SEARCH_ITEM_LIMIT && (
                         <SearchBar
                             label={translate('workspace.perDiem.findPerDiemRate')}
                             inputValue={inputValue}
                             onChangeText={setInputValue}
                             shouldShowEmptyState={hasVisibleSubRates && !isLoading && filteredSubRatesList.length === 0}
-                        />
-                    )}
-                    {isLoading && (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                            color={theme.spinner}
                         />
                     )}
                     {hasVisibleSubRates && !isLoading && (

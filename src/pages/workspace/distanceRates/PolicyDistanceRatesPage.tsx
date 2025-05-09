@@ -381,15 +381,15 @@ function PolicyDistanceRatesPage({
                     {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.ph5]}>{headerButtons}</View>}
-                {isLoading && (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
-                        color={theme.spinner}
-                    />
-                )}
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                     {Object.values(customUnitRates).length > 0 && getHeaderText()}
+                    {isLoading && (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                            color={theme.spinner}
+                        />
+                    )}
                     {Object.values(customUnitRates).length > CONST.SEARCH_ITEM_LIMIT && (
                         <SearchBar
                             label={translate('workspace.distanceRates.findRate')}
