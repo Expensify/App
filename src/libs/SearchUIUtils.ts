@@ -340,8 +340,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
-        transactionsSections.push({
-            ...transactionItem,
+        const transactionSection: TransactionListItemType = {
             action: getAction(data, key),
             from,
             to,
@@ -356,9 +355,121 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             shouldShowTax,
             keyForList: transactionItem.transactionID,
             shouldShowYear: doesDataContainAPastYearTransaction,
-        });
+
+            // Manually copying all the properties from transactionItem
+            transactionID: transactionItem.transactionID,
+            created: transactionItem.created,
+            modifiedCreated: transactionItem.modifiedCreated,
+            amount: transactionItem.amount,
+            canDelete: transactionItem.canDelete,
+            canHold: transactionItem.canHold,
+            canUnhold: transactionItem.canUnhold,
+            modifiedAmount: transactionItem.modifiedAmount,
+            currency: transactionItem.currency,
+            modifiedCurrency: transactionItem.modifiedCurrency,
+            merchant: transactionItem.merchant,
+            modifiedMerchant: transactionItem.modifiedMerchant,
+            receipt: transactionItem.receipt,
+            tag: transactionItem.tag,
+            comment: transactionItem.comment,
+            category: transactionItem.category,
+            transactionType: transactionItem.transactionType,
+            reportType: transactionItem.reportType,
+            policyID: transactionItem.policyID,
+            parentTransactionID: transactionItem.parentTransactionID,
+            hasEReceipt: transactionItem.hasEReceipt,
+            description: transactionItem.description,
+            accountID: transactionItem.accountID,
+            managerID: transactionItem.managerID,
+            taxAmount: transactionItem.taxAmount,
+            reportID: transactionItem.reportID,
+            transactionThreadReportID: transactionItem.transactionThreadReportID,
+            mccGroup: transactionItem.mccGroup,
+            modifiedMCCGroup: transactionItem.modifiedMCCGroup,
+            moneyRequestReportActionID: transactionItem.moneyRequestReportActionID,
+            isFromOneTransactionReport: transactionItem.isFromOneTransactionReport,
+            isActionLoading: transactionItem.isActionLoading,
+            errors: transactionItem.errors,
+            pendingAction: transactionItem.pendingAction,
+        };
+
+        transactionsSections.push(transactionSection);
     }
     return transactionsSections;
+}
+
+/**
+ * @private
+ * Retrieves all transactions associated with a specific report ID from the search data.
+ * @param data - The search results data containing transactions
+ * @param reportID - The ID of the report to find transactions for
+ * @returns Array of transactions belonging to the specified report
+ */
+function getTransactionsForReport(data: OnyxTypes.SearchResults['data'], reportID: string): SearchTransaction[] {
+    return Object.entries(data)
+        .filter(([key, value]) => isTransactionEntry(key) && (value as SearchTransaction)?.reportID === reportID)
+        .map(([, value]) => value as SearchTransaction);
+}
+
+/**
+ * @private
+ * Extracts all transaction violations from the search data.
+ * @param data - The search results data containing violations
+ * @returns Object containing transaction violations indexed by their keys
+ */
+function getViolations(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.TransactionViolation[]> {
+    return Object.fromEntries(Object.entries(data).filter(([key]) => isViolationEntry(key))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
+}
+
+/**
+ * @private
+ * Retrieves a report from the search data based on the provided key.
+ * @param data - The search results data containing reports
+ * @param key - The key to look up the report (can be a transaction or report key)
+ * @returns The report object if found, undefined otherwise
+ */
+function getReportFromKey(data: OnyxTypes.SearchResults['data'], key: string): OnyxTypes.Report | undefined {
+    if (isTransactionEntry(key)) {
+        const transaction = data[key];
+        return data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] as OnyxTypes.Report;
+    }
+    if (isReportEntry(key)) {
+        return data[key] as OnyxTypes.Report;
+    }
+    return undefined;
+}
+
+/**
+ * @private
+ * Retrieves the chat report associated with a given report.
+ * @param data - The search results data containing reports
+ * @param report - The report to find the associated chat report for
+ * @returns The chat report object if found, empty object otherwise
+ */
+function getChatReport(data: OnyxTypes.SearchResults['data'], report: OnyxTypes.Report) {
+    return data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
+}
+
+/**
+ * @private
+ * Determines the permission flags for a user reviewing a report.
+ * @param report - The report being reviewed
+ * @param policy - The policy associated with the report
+ * @returns Object containing flags indicating if the user is a submitter, admin, or approver
+ */
+function getReviewerPermissionFlags(
+    report: OnyxTypes.Report,
+    policy: OnyxTypes.Policy,
+): {
+    isSubmitter: boolean;
+    isAdmin: boolean;
+    isApprover: boolean;
+} {
+    return {
+        isSubmitter: report.ownerAccountID === currentAccountID,
+        isAdmin: policy.role === CONST.POLICY.ROLE.ADMIN,
+        isApprover: report.managerID === currentAccountID,
+    };
 }
 
 /**
@@ -368,13 +479,11 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
  */
 function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTransactionAction {
     const isTransaction = isTransactionEntry(key);
+    const report = getReportFromKey(data, key);
+
     if (!isTransaction && !isReportEntry(key)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
-
-    const transaction = isTransaction ? data[key] : undefined;
-    const report = isTransaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key];
-
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
@@ -383,14 +492,14 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     if (isSettled(report)) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
     }
-
     if (isClosedReport(report)) {
         return CONST.SEARCH.ACTION_TYPES.DONE;
     }
 
+    const transaction = isTransaction ? data[key] : undefined;
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (transaction?.errors || report?.errors) {
+    if (transaction?.errors ?? report?.errors) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
@@ -399,65 +508,49 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
-    // Get all transactions for this report - optimize by using a Set for faster lookups
-    const reportTransactions = new Set<string>();
-    const allReportTransactions: SearchTransaction[] = [];
-
+    let allReportTransactions: SearchTransaction[];
     if (isReportEntry(key)) {
-        for (const [itemKey, value] of Object.entries(data)) {
-            if (isTransactionEntry(itemKey) && (value as SearchTransaction)?.reportID === report.reportID) {
-                reportTransactions.add(itemKey);
-                allReportTransactions.push(value as SearchTransaction);
-            }
-        }
-    } else if (transaction) {
-        allReportTransactions.push(transaction);
+        allReportTransactions = getTransactionsForReport(data, report.reportID);
+    } else {
+        allReportTransactions = transaction ? [transaction] : [];
     }
-
     // Get violations - optimize by using a Map for faster lookups
-    const allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]> = {};
-    for (const [violationKey, value] of Object.entries(data)) {
-        if (isViolationEntry(violationKey)) {
-            allViolations[violationKey] = value as OnyxTypes.TransactionViolation[];
-        }
-    }
+    const allViolations = getViolations(data);
+    const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
+    const {isSubmitter, isAdmin, isApprover} = getReviewerPermissionFlags(report, policy);
 
-    const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
-    const isSubmitter = report.ownerAccountID === currentAccountID;
-    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-    const isApprover = report.managerID === currentAccountID;
     // Only check for violations if we need to (when user has permission to review)
-    if (isSubmitter || isApprover || isAdmin) {
-        if (hasViolations(report.reportID, allViolations, undefined, allReportTransactions)) {
-            return CONST.SEARCH.ACTION_TYPES.REVIEW;
-        }
+    if ((isSubmitter || isApprover || isAdmin) && hasViolations(report.reportID, allViolations, undefined, allReportTransactions)) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
-
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
-    if (isTransaction && !data[key].isFromOneTransactionReport) {
+    if (isTransaction && !transaction?.isFromOneTransactionReport) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
 
     const invoiceReceiverPolicy =
-        isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
-            ? data[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`]
+        isInvoiceReport(report) && report.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
+            ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`]
             : undefined;
 
-    const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
-    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`] ?? undefined;
+    const chatReport = getChatReport(data, report);
+    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`];
+    const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
 
-    if (canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
+    if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
+
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every(isPendingCardOrScanningTransaction);
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
+
     if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    const reportNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`] ?? undefined;
+    const reportNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
     const isArchived = isArchivedReport(reportNVP);
 
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
