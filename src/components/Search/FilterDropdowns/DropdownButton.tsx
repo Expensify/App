@@ -112,7 +112,7 @@ function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
             >
-                <PopoverComponent closeOverlay={toggleOverlay} />
+                <PopoverComponent closeOverlay={toggleOverlay} />;
             </PopoverWithMeasuredContent>
         </>
     );

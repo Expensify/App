@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -204,4 +204,4 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 }
 
 UserSelectPopup.displayName = 'UserSelectPopup';
-export default UserSelectPopup;
+export default memo(UserSelectPopup);

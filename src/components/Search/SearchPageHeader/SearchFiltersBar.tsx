@@ -148,6 +148,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [filterFormValues]);
 
+    // We need to create a stable key for filterFormValues so that we don't infinitely
+    // re-render components that access all of the filterFormValues. This is due to the way
+    // that react calculates diffs (it doesn't know how to compare objects).
+    const filterFormValuesKey = JSON.stringify(filterFormValues);
+
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const value = typeOptions.find((option) => option.value === type) ?? null;
@@ -225,7 +230,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [filterFormValues, queryJSON],
+        // Disable exhaustive deps because we use filterFormValuesKey as the dependency, which is a stable key based on filterFormValues
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [filterFormValuesKey, queryJSON],
     );
 
     const userPickerComponent = useCallback(
@@ -244,7 +252,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [filterFormValues],
+        // Disable exhaustive deps because we use filterFormValuesKey as the dependency, which is a stable key based on filterFormValues
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [filterFormValuesKey],
     );
 
     /**
