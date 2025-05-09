@@ -39,7 +39,7 @@ def hasGithubCLI() {
 
 def hasRequiredScopes() {
     def scopes = runCommand(["gh", "auth", "status"]).output
-    return scopes.contains("read:packages")
+    return ['read:packages', 'write:packages'].any { scope -> scopes.contains(scope) }
 }
 
 def getGithubUsername() {
