@@ -23,7 +23,6 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
-import useMemoWithLogging from '@hooks/useMemoWithLogging';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -281,7 +280,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
 
     const canWrite = useMemo(() => ReportUtils.canUserPerformWriteAction(report), [report]);
-    const sortedAllReportActions = useMemoWithLogging(
+    const sortedAllReportActions = useMemo(
         () => {
             if (!rawAllReportActions) {
                 return [];
