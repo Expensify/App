@@ -18,12 +18,7 @@ function TransactionItemRowRBR({transaction, containerStyles}: {transaction: Tra
     const {translate} = useLocalize();
     const theme = useTheme();
 
-    const RBRMessages = transactionViolations
-        .map((violation, index) => {
-            const translation = ViolationsUtils.getViolationTranslation(violation, translate);
-            return index > 0 ? translation.charAt(0).toLowerCase() + translation.slice(1) : translation;
-        })
-        .join(', ');
+    const RBRMessages = transactionViolations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)).join('. ');
 
     return (
         transactionViolations.length > 0 && (
