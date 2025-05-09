@@ -1,6 +1,7 @@
 import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
+import Growl from '@libs/Growl';
 import Log from '@libs/Log';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
@@ -38,8 +39,12 @@ function googleSignInRequest() {
             */
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
                 Log.info('[Google Sign In] Google Sign In cancelled');
+                // TODO: Growl is temporary to allow debugging
+                Growl.error('[Google Sign In] Google Sign In cancelled');
             } else {
                 Log.alert(`[Google Sign In] Error Code: ${error.code}. ${error.message}`, {}, false);
+                // TODO: Growl is temporary to allow debugging
+                Growl.error(`[Google Sign In] Error Code: ${error.code}. ${error.message}`);
             }
         });
 }
