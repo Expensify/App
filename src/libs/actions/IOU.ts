@@ -59,7 +59,7 @@ import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@lib
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import Performance from '@libs/Performance';
 import Permissions from '@libs/Permissions';
-import {getAccountIDsByLogins, getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     getMemberAccountIDsForWorkspace,
