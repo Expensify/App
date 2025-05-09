@@ -16,6 +16,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addSplitExpenseField, completeSplitTransaction, updateSplitExpenseAmountField} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
@@ -33,6 +34,8 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    //
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -158,17 +161,22 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     }, [onSaveSplitExpense, styles.mb2, styles.ph1, styles.w100, translate, errorMessage]);
 
     return (
-        <ScreenWrapper testID={SplitExpensePage.displayName}>
+        <ScreenWrapper
+            testID={SplitExpensePage.displayName}
+            shouldEnableMaxHeight={canUseTouchScreen()}
+            keyboardAvoidingViewBehavior="height"
+            shouldDismissKeyboardBeforeClose={false}
+        >
             <FullPageNotFoundView shouldShow={!route.params.reportID || isEmptyObject(draftTransaction)}>
-                <HeaderWithBackButton
-                    title={translate('iou.split')}
-                    subtitle={translate('iou.splitExpenseSubtitle', {
-                        amount: convertToDisplayString(transactionDetails?.amount, transactionDetails?.currency),
-                        merchant: draftTransaction?.merchant ?? '',
-                    })}
-                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
-                />
-                <View style={[styles.containerWithSpaceBetween]}>
+                <View style={[styles.flex1]}>
+                    <HeaderWithBackButton
+                        title={translate('iou.split')}
+                        subtitle={translate('iou.splitExpenseSubtitle', {
+                            amount: convertToDisplayString(transactionDetails?.amount, transactionDetails?.currency),
+                            merchant: draftTransaction?.merchant ?? '',
+                        })}
+                        onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                    />
                     <SelectionList
                         onSelectRow={() => {}}
                         headerContent={headerContent}
@@ -176,6 +184,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         ListItem={SplitListItem}
                         containerStyle={[styles.flexBasisAuto]}
                         footerContent={footerContent}
+                        disableKeyboardShortcuts
+                        shouldSingleExecuteRowSelect
+                        canSelectMultiple={false}
+                        shouldPreventDefaultFocusOnSelectRow
                     />
                 </View>
             </FullPageNotFoundView>
