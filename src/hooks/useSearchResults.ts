@@ -10,9 +10,7 @@ import usePrevious from './usePrevious';
  */
 function useSearchResults<TValue>(data: TValue[], filterData: (datum: TValue, searchInput: string) => boolean, sortData: (data: TValue[]) => TValue[] = (d) => d) {
     const [inputValue, setInputValue] = useState('');
-
     const [result, setResult] = useState(data);
-
     const [, startTransition] = useTransition();
     const prevData = usePrevious(data);
 
