@@ -7,6 +7,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
 import EReceiptWithSizeCalculation from './EReceiptWithSizeCalculation';
+import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
@@ -72,6 +73,9 @@ type ReceiptImageProps = (
     /** number of images displayed in the same parent container */
     iconSize?: IconSize;
 
+    /** The size of the loading indicator */
+    imageIconSize?: FullScreenLoadingIndicatorIconSize;
+
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
 
@@ -110,6 +114,7 @@ function ReceiptImage({
     style,
     fileExtension,
     iconSize,
+    imageIconSize,
     fallbackIcon,
     fallbackIconSize,
     shouldUseInitialObjectPosition = false,
@@ -187,6 +192,7 @@ function ReceiptImage({
             source={{uri: source}}
             style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
             isAuthTokenRequired={isAuthTokenRequired}
+            imageIconSize={imageIconSize}
         />
     );
 }

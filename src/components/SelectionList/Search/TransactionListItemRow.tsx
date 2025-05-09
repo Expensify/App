@@ -123,6 +123,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={transactionItem.isSelected ? theme.buttonHoveredBG : undefined}
                 iconSize="x-small"
+                imageIconSize="small"
                 transactionItem={transactionItem}
             />
         </View>

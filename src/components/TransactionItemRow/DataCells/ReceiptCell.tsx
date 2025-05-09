@@ -48,6 +48,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={isSelected ? theme.buttonHoveredBG : undefined}
                 iconSize="x-small"
+                imageIconSize="small"
                 transactionItem={transactionItem}
             />
         </View>
