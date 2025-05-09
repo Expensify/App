@@ -377,7 +377,7 @@ type SettingsNavigatorParamList = {
         policyID: string;
         accountID: string;
     };
-    [SCREENS.WORKSPACE.CUSTOM_FIELDS]: {
+    [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
         policyID: string;
         accountID: string;
         customFieldType: CustomFieldType;

@@ -47,7 +47,7 @@ export type {WorkspaceCategoryForm} from './WorkspaceCategoryForm';
 export type {WorkspaceSettingsForm} from './WorkspaceSettingsForm';
 export type {ReportPhysicalCardForm} from './ReportPhysicalCardForm';
 export type {WorkspaceDescriptionForm} from './WorkspaceDescriptionForm';
-export type {WorkspaceCustomFieldsForm} from './WorkspaceCustomFieldsForm';
+export type {WorkspaceMemberCustomFieldsForm} from './WorkspaceCustomFieldsForm';
 export type {AdditionalDetailStepForm} from './AdditionalDetailStepForm';
 export type {PolicyTagNameForm} from './PolicyTagNameForm';
 export type {WorkspaceTagForm} from './WorkspaceTagForm';

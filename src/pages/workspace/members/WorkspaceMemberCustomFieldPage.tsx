@@ -10,7 +10,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateCustomField} from '@libs/actions/Policy/Policy';
+import {updateMemberCustomField} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -27,11 +27,11 @@ type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
-type MembersCustomFieldsPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
+type WorkspaceMemberCustomFieldPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     WorkspacePolicyOnyxProps &
-    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CUSTOM_FIELDS>;
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD>;
 
-function MembersCustomFieldsPage({policy, route, personalDetails}: MembersCustomFieldsPageProps) {
+function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: WorkspaceMemberCustomFieldPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -41,7 +41,7 @@ function MembersCustomFieldsPage({policy, route, personalDetails}: MembersCustom
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
-    const [customField, setCustomField] = useState(member?.[customFieldKey ?? '']);
+    const [customField, setCustomField] = useState(member?.[customFieldKey ?? ''] ?? '');
     const customFieldText = translate(`workspace.common.${customFieldType}`);
     const policyID = params.policyID;
     const goBack = useCallback(() => {
@@ -54,7 +54,7 @@ function MembersCustomFieldsPage({policy, route, personalDetails}: MembersCustom
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
             <ScreenWrapper
-                testID="MembersCustomFieldsPage"
+                testID="WorkspaceMemberCustomFieldPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -65,12 +65,12 @@ function MembersCustomFieldsPage({policy, route, personalDetails}: MembersCustom
                     <Text>{translate('workspace.common.customFieldHint')}</Text>
                 </View>
                 <FormProvider
-                    formID={ONYXKEYS.FORMS.WORKSPACE_CUSTOM_FIELD_FORM}
+                    formID={ONYXKEYS.FORMS.WORKSPACE_MEMBER_CUSTOM_FIELD_FORM}
                     style={[styles.flexGrow1, styles.ph5]}
                     enabledWhenOffline
                     submitButtonText={translate('common.save')}
                     onSubmit={() => {
-                        updateCustomField(params.policyID, memberLogin, customFieldType, customField?.trim() ?? '');
+                        updateMemberCustomField(params.policyID, memberLogin, customFieldType, customField.trim());
                         goBack();
                     }}
                 >
@@ -78,6 +78,7 @@ function MembersCustomFieldsPage({policy, route, personalDetails}: MembersCustom
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
                         label={customFieldText}
+                        accessibilityLabel={customFieldText}
                         role={CONST.ROLE.PRESENTATION}
                         inputID="customField"
                         value={customField}
@@ -89,6 +90,6 @@ function MembersCustomFieldsPage({policy, route, personalDetails}: MembersCustom
     );
 }
 
-MembersCustomFieldsPage.displayName = 'MembersCustomFieldsPage';
+WorkspaceMemberCustomFieldPage.displayName = 'WorkspaceMemberCustomFieldPage';
 
-export default withPolicyAndFullscreenLoading(MembersCustomFieldsPage);
+export default withPolicyAndFullscreenLoading(WorkspaceMemberCustomFieldPage);

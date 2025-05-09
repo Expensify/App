@@ -9,10 +9,10 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Role of the user in the policy */
     role?: string;
 
-    /** Custom field 1 of the member of the workspace */
+    /** Custom field 1 of the member in the policy */
     employeeUserID?: string;
 
-    /** Custom field 2 of the member of the workspace */
+    /** Custom field 2 of the member in the policy */
     employeePayrollID?: string;
 
     /** Email of the user */

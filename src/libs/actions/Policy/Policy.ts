@@ -2407,7 +2407,7 @@ function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number) {
     API.write(WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE, params);
 }
 
-function updateCustomField(policyID: string, login: string, customFieldType: CustomFieldType, value: string) {
+function updateMemberCustomField(policyID: string, login: string, customFieldType: CustomFieldType, value: string) {
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
     const policy = getPolicy(policyID);
     const previousValue = policy?.employeeList?.[login]?.[customFieldKey];
@@ -5212,7 +5212,7 @@ export {
     createPolicyExpenseChats,
     upgradeToCorporate,
     openPolicyExpensifyCardsPage,
-    updateCustomField,
+    updateMemberCustomField,
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
     getAdminPoliciesConnectedToNetSuite,

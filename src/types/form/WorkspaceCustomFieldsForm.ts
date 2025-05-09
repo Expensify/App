@@ -7,12 +7,12 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type WorkspaceCustomFieldsForm = Form<
+type WorkspaceMemberCustomFieldsForm = Form<
     InputID,
     {
         [INPUT_IDS.CUSTOM_FIELD]: string;
     }
 >;
 
-export type {WorkspaceCustomFieldsForm};
+export type {WorkspaceMemberCustomFieldsForm};
 export default INPUT_IDS;
