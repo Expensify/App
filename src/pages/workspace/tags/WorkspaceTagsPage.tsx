@@ -420,25 +420,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         return menuItems;
     }, [policy, hasVisibleTags, translate, isOffline, isQuickSettingsFlow, policyID, backTo]);
 
-    const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            {!hasSyncError && isConnectionVerified ? (
-                <Text>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
-                    <TextLink
-                        style={[styles.textNormal, styles.link]}
-                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                    >
-                        {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                    </TextLink>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                </Text>
-            ) : (
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
-            )}
-        </View>
-    );
-
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     return (
@@ -490,7 +471,22 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {(!shouldUseNarrowLayout || !hasVisibleTags || isLoading) && getHeaderText()}
+                <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    {!hasSyncError && isConnectionVerified ? (
+                        <Text>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
+                            <TextLink
+                                style={[styles.textNormal, styles.link]}
+                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                            >
+                                {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                            </TextLink>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                        </Text>
+                    ) : (
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+                    )}
+                </View>
                 {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
                     <SearchBar
                         label={translate('workspace.tags.findTag')}
@@ -535,7 +531,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         onDismissError={(item) => !isMultiLevelTags && clearPolicyTagErrors(policyID, item.value, 0)}
-                        listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
                     />
