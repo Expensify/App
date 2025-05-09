@@ -136,10 +136,13 @@ describe('getReportPreviewAction', () => {
         policy.type = CONST.POLICY.TYPE.CORPORATE;
         policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
+        const invoiceReceiverPolicy = createRandomPolicy(0);
+        invoiceReceiverPolicy.role = CONST.POLICY.ROLE.ADMIN;
+
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, undefined, isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+        expect(getReportPreviewAction(VIOLATIONS, report, policy, undefined, isReportArchived.current, undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('canPay should return false for archived invoice', async () => {
@@ -156,15 +159,17 @@ describe('getReportPreviewAction', () => {
         policy.type = CONST.POLICY.TYPE.CORPORATE;
         policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
+        const invoiceReceiverPolicy = createRandomPolicy(0);
+        invoiceReceiverPolicy.role = CONST.POLICY.ROLE.ADMIN;
+
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
             private_isArchived: new Date().toString(),
         });
-
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, report, policy, undefined, isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+        expect(getReportPreviewAction(VIOLATIONS, report, policy, undefined, isReportArchived.current, undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('canExport should return true for finished reports', async () => {
