@@ -6,13 +6,11 @@ import type {LayoutRectangle} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type TooltipProps from '@components/Tooltip/types';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
 
 type MouseEvents = {
     onMouseEnter: (e: MouseEvent) => void | undefined;
 };
-
-const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
 /**
  * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
