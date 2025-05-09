@@ -1050,9 +1050,6 @@ function getLastClosedReportAction(reportActions: OnyxEntry<ReportActions>): Ony
     // If closed report action is not present, return early
     if (
         !Object.values(reportActions ?? {}).some((action) => {
-            if (!action) {
-                return false;
-            }
             return action?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED;
         })
     ) {
