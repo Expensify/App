@@ -46,6 +46,7 @@ import {
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestReceipt,
+    setMoneyRequestReimbursable,
     splitBill,
     splitBillAndOpenReport,
     startMoneyRequest,
@@ -210,6 +211,11 @@ function IOURequestStepConfirmation({
     useEffect(() => {
         setMoneyRequestBillable(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
+
+    const defaultReimbursable = !!policy?.defaultReimbursable;
+    useEffect(() => {
+        setMoneyRequestReimbursable(transactionID, defaultReimbursable);
+    }, [transactionID, defaultReimbursable]);
 
     useEffect(() => {
         // Exit early if the transaction is still loading
@@ -417,6 +423,7 @@ function IOURequestStepConfirmation({
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
@@ -470,6 +477,7 @@ function IOURequestStepConfirmation({
                     tag: transaction.tag,
                     customUnit: transaction.comment?.customUnit,
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
                 },
             });
@@ -572,6 +580,7 @@ function IOURequestStepConfirmation({
                     splitShares: transaction.splitShares,
                     validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true),
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
                 },
             });
@@ -621,6 +630,7 @@ function IOURequestStepConfirmation({
                         receipt: receiptFile,
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
                         category: transaction.category,
                         tag: transaction.tag,
                         currency: transaction.currency,
@@ -648,6 +658,7 @@ function IOURequestStepConfirmation({
                         tag: transaction.tag,
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
@@ -673,6 +684,7 @@ function IOURequestStepConfirmation({
                         category: transaction.category,
                         tag: transaction.tag,
                         billable: !!transaction.billable,
+                        reimbursable: !!transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs,
@@ -836,6 +848,13 @@ function IOURequestStepConfirmation({
         [transactionID],
     );
 
+    const setReimbursable = useCallback(
+        (reimbursable: boolean) => {
+            setMoneyRequestReimbursable(transactionID, reimbursable);
+        },
+        [transactionID],
+    );
+
     // This loading indicator is shown because the transaction originalCurrency is being updated later than the component mounts.
     // To prevent the component from rendering with the wrong currency, we show a loading indicator until the correct currency is set.
     const isLoading = !!transaction?.originalCurrency;
@@ -981,6 +1000,8 @@ function IOURequestStepConfirmation({
                         shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
+                        iouIsReimbursable={transaction?.reimbursable}
+                        onToggleReimbursable={setReimbursable}
                         isReceiptEditable
                     />
                 </View>
