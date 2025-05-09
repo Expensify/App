@@ -12,13 +12,13 @@ import {
     Car,
     Coins,
     CreditCard,
+    Document,
     ExpensifyAppIcon,
     ExpensifyCard,
     Feed,
     Folder,
     Gear,
     InvoiceGeneric,
-    Pencil,
     Sync,
     Tag,
     Users,
@@ -34,7 +34,6 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -126,8 +125,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
     const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
     const prevPendingFields = usePrevious(policy?.pendingFields);
-    const {canUseLeftHandBar} = usePermissions();
-    const shouldDisplayLHB = !!canUseLeftHandBar && !shouldUseNarrowLayout;
+    const shouldDisplayLHB = !shouldUseNarrowLayout;
     const policyFeatureStates = useMemo(
         () => ({
             [CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]: policy?.areDistanceRatesEnabled,
@@ -178,6 +176,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const workspaceMenuItems: WorkspaceMenuItem[] = useMemo(() => {
         const protectedMenuItems: WorkspaceMenuItem[] = [];
+
+        protectedMenuItems.push({
+            translationKey: 'common.reports',
+            icon: Document,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
+            screenName: SCREENS.WORKSPACE.REPORT_FIELDS,
+        });
 
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]) {
             protectedMenuItems.push({
@@ -262,16 +267,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 screenName: SCREENS.WORKSPACE.TAXES,
                 brickRoadIndicator: shouldShowTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED,
-            });
-        }
-
-        if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]) {
-            protectedMenuItems.push({
-                translationKey: 'workspace.common.reportFields',
-                icon: Pencil,
-                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
-                screenName: SCREENS.WORKSPACE.REPORT_FIELDS,
-                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED,
             });
         }
 
@@ -444,12 +439,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
                 addBottomSafeAreaPadding
+                shouldForceFullScreen
+                shouldDisplaySearchRouter
             >
                 <HeaderWithBackButton
                     title={policyName}
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS_WORKSPACES.route)}
                     policyAvatar={policyAvatar}
-                    style={styles.headerBarDesktopHeight(canUseLeftHandBar)}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 
