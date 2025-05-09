@@ -9,7 +9,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ValidSkeletons = typeof SearchRowSkeleton | typeof TableRowSkeleton;
 type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
-type EmptyStateButton = {buttonText?: string; buttonAction?: () => void; success?: boolean; icon?: IconAsset; isDisabled?: boolean};
+type EmptyStateButton = {buttonText?: string; buttonAction?: () => void; success?: boolean; icon?: IconAsset; isDisabled?: boolean; style?: StyleProp<ViewStyle>};
 
 type SharedProps<T> = {
     SkeletonComponent?: ValidSkeletons;
