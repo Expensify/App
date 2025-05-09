@@ -128,6 +128,32 @@ describe('getPrimaryAction', () => {
         expect(getReportPrimaryAction(report, [], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
+    it('should not return EXPORT TO ACCOUNTING for reports marked manually as exported', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            connections: {
+                intacct: {
+                    config: {
+                        export: {
+                            exporter: CURRENT_USER_EMAIL,
+                        },
+                    },
+                },
+            },
+        };
+        const reportActions = [
+            {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, reportActionID: '1', created: '2025-01-01', originalMessage: {markedManually: true}},
+        ] as unknown as ReportAction[];
+
+        expect(getReportPrimaryAction(report, [], {}, policy as Policy, {}, reportActions)).toBe('');
+    });
+
     it('should return REMOVE HOLD for reports with transactions on hold', async () => {
         const report = {
             reportID: REPORT_ID,
