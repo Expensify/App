@@ -245,6 +245,7 @@
     "@rnef/platform-ios": "^0.7.6",
     "@rnef/plugin-repack": "^0.7.6",
     "@rspack/core": "~1.2.0",
+    "@rnef/plugin-metro": "^0.7.6",
     "@storybook/addon-a11y": "^8.6.9",
     "@storybook/addon-essentials": "^8.6.9",
     "@storybook/addon-webpack5-compiler-babel": "^3.0.5",
