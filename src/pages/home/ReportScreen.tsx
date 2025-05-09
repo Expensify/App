@@ -23,7 +23,6 @@ import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -37,7 +36,9 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import PaginationUtils from '@libs/PaginationUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {
     getCombinedReportActions,
     getOneTransactionThreadReportID,
@@ -47,6 +48,7 @@ import {
     isWhisperAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import {
     canEditReportAction,
     canUserPerformWriteAction,
@@ -266,7 +268,42 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID, canBeMissing: false});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const {reportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+
+    const nonEmptyStringReportID = getNonEmptyStringOnyxID(reportID);
+
+    const [rawAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`, {
+        canEvict: false,
+        canBeMissing: true,
+    });
+
+    const canWrite = useMemo(() => ReportUtils.canUserPerformWriteAction(report), [report]);
+    const sortedAllReportActions = useMemo(() => {
+        if (!rawAllReportActions) {
+            return [];
+        }
+        return ReportActionsUtils.getSortedReportActionsForDisplay(rawAllReportActions, canWrite, true, true);
+    }, [rawAllReportActions, canWrite]);
+
+    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`, {canBeMissing: true});
+
+    const {
+        data: reportActions,
+        hasNextPage,
+        hasPreviousPage,
+    } = useMemo(() => {
+        if (!sortedAllReportActions?.length) {
+            return {data: [], hasNextPage: false, hasPreviousPage: false};
+        }
+        return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, reportActionIDFromRoute);
+    }, [reportActionIDFromRoute, reportActionPages, sortedAllReportActions]);
+
+    const linkedAction = useMemo(
+        () => (reportActionIDFromRoute ? sortedAllReportActions?.find((reportAction) => String(reportAction.reportActionID) === String(reportActionIDFromRoute)) : undefined),
+        [reportActionIDFromRoute, sortedAllReportActions],
+    );
+
+    const hasOlderActions = hasNextPage;
+    const hasNewerActions = hasPreviousPage;
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
@@ -298,9 +335,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         canBeMissing: false,
     });
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
-    const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
-    const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
-    const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
+    const [transactionThreadReportActions = CONST.EMPTY_OBJECT] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
+    const combinedReportActions = useMemo(
+        () => getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions)),
+        [reportActions, transactionThreadReportID, transactionThreadReportActions],
+    );
+    const lastReportAction = useMemo(
+        () => [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action)),
+        [combinedReportActions, parentReportAction],
+    );
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
