@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -8,6 +8,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -71,6 +72,26 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const handleBackButtonPress = () => {
         setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
     };
+
+    // Handle browser back button
+    const handlePopStateRef = useRef(() => {
+        handleBackButtonPress();
+    });
+
+    useEffect(() => {
+        window.history.pushState({shouldGoBack: true}, '', null);
+
+        window.addEventListener('popstate', handlePopStateRef.current);
+        return () => {
+            window.removeEventListener('popstate', handlePopStateRef.current);
+        };
+    }, []);
+
+    // Handle android back button
+    useHandleBackButton(() => {
+        handleBackButtonPress();
+        return true;
+    });
 
     return (
         <InteractiveStepWrapper

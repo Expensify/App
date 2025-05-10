@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -90,6 +91,26 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         }
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
+
+    // Handle browser back button
+    const handlePopStateRef = useRef(() => {
+        handleBackButtonPress();
+    });
+
+    useEffect(() => {
+        window.history.pushState({shouldGoBack: true}, '', null);
+
+        window.addEventListener('popstate', handlePopStateRef.current);
+        return () => {
+            window.removeEventListener('popstate', handlePopStateRef.current);
+        };
+    }, [backTo, feed, bankName]);
+
+    // Handle android back button
+    useHandleBackButton(() => {
+        handleBackButtonPress();
+        return true;
+    });
 
     const CustomSubtitle = (
         <Text style={[styles.textAlignCenter, styles.textSupporting]}>

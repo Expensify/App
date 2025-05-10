@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Log from '@libs/__mocks__/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
@@ -22,7 +23,7 @@ type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamLi
 
 function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const currentStep = assignCard?.currentStep;
+    let currentStep = assignCard?.currentStep;
 
     const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
     const backTo = route.params?.backTo;
@@ -46,6 +47,9 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             </ScreenWrapper>
         );
     }
+    useEffect(() => {
+        currentStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
+    }, []);
 
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:

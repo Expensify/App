@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -11,6 +11,7 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -104,6 +105,26 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         }
         Navigation.goBack();
     };
+
+    // Handle browser back button
+    const handlePopStateRef = useRef(() => {
+        handleBackButtonPress();
+    });
+
+    useEffect(() => {
+        window.history.pushState({shouldGoBack: true}, '', null);
+
+        window.addEventListener('popstate', handlePopStateRef.current);
+        return () => {
+            window.removeEventListener('popstate', handlePopStateRef.current);
+        };
+    }, [isEditing]);
+
+    // Handle android back button
+    useHandleBackButton(() => {
+        handleBackButtonPress();
+        return true;
+    });
 
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
     const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;

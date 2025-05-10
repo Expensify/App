@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -13,6 +13,7 @@ import TextLink from '@components/TextLink';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useEnvironment from '@hooks/useEnvironment';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -64,6 +65,26 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         }
         setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
     };
+
+    // Handle android back button
+    useHandleBackButton(() => {
+        handleBackButtonPress();
+        return true;
+    });
+
+    // Handle browser back button
+    const handlePopStateRef = useRef(() => {
+        handleBackButtonPress();
+    });
+
+    useEffect(() => {
+        window.history.pushState({shouldGoBack: true}, '', null);
+
+        window.addEventListener('popstate', handlePopStateRef.current);
+        return () => {
+            window.removeEventListener('popstate', handlePopStateRef.current);
+        };
+    }, []);
 
     const handleSelectCard = (cardNumber: string) => {
         setCardSelected(cardNumber);
