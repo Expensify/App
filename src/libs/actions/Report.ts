@@ -16,6 +16,7 @@ import type {
     AddEmojiReactionParams,
     AddWorkspaceRoomParams,
     CompleteGuidedSetupParams,
+    DeleteAppReportParams,
     DeleteCommentParams,
     ExpandURLPreviewParams,
     ExportReportPDFParams,
@@ -66,7 +67,6 @@ import * as Environment from '@libs/Environment/Environment';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import getEnvironment from '@libs/Environment/getEnvironment';
 import type EnvironmentType from '@libs/Environment/getEnvironment/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -107,6 +107,8 @@ import {
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
     buildOptimisticRoomDescriptionUpdatedReportAction,
+    buildOptimisticSelfDMReport,
+    buildOptimisticUnreportedTransactionAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     completeShortMention,
     findLastAccessedReport,
@@ -749,7 +751,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         failureReportActions[actionKey] = {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             ...(action as OptimisticAddCommentReportAction),
-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+            errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
         };
     });
 
@@ -2236,7 +2238,7 @@ function updateReportName(reportID: string, value: string, previousValue: string
                     reportName: null,
                 },
                 errorFields: {
-                    reportName: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericUpdateReporNameEditFailureMessage'),
+                    reportName: getMicroSecondOnyxErrorWithTranslationKey('report.genericUpdateReporNameEditFailureMessage'),
                 },
             },
         },
@@ -2340,7 +2342,7 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
                     [fieldKey]: null,
                 },
                 errorFields: {
-                    [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericUpdateReportFieldFailureMessage'),
+                    [fieldKey]: getMicroSecondOnyxErrorWithTranslationKey('report.genericUpdateReportFieldFailureMessage'),
                 },
             },
         },
@@ -2349,7 +2351,7 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [optimisticChangeFieldAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericUpdateReportFieldFailureMessage'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericUpdateReportFieldFailureMessage'),
                 },
             },
         },
@@ -2428,7 +2430,7 @@ function deleteReportField(reportID: string, reportField: PolicyReportField) {
                     [fieldKey]: null,
                 },
                 errorFields: {
-                    [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericUpdateReportFieldFailureMessage'),
+                    [fieldKey]: getMicroSecondOnyxErrorWithTranslationKey('report.genericUpdateReportFieldFailureMessage'),
                 },
             },
         },
@@ -2821,7 +2823,7 @@ function addPolicyReport(policyReport: OptimisticChatReport) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
             value: {
                 errorFields: {
-                    addWorkspaceRoom: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+                    addWorkspaceRoom: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
                 },
             },
         },
@@ -3645,7 +3647,7 @@ function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: 
                         }
                         return {
                             ...pendingChatMember,
-                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('roomMembersPage.error.genericAdd'),
+                            errors: getMicroSecondOnyxErrorWithTranslationKey('roomMembersPage.error.genericAdd'),
                         };
                     }) ?? null,
             },
@@ -3954,7 +3956,7 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
             value: {
                 privateNotes: {
                     [accountID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('privateNotes.error.genericFailureMessage'),
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('privateNotes.error.genericFailureMessage'),
                     },
                 },
             },
@@ -4427,7 +4429,7 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [optimisticReportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         },
@@ -4478,7 +4480,7 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [optimisticReportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         },
@@ -4555,6 +4557,151 @@ function setDeleteTransactionNavigateBackUrl(url: string) {
 
 function clearDeleteTransactionNavigateBackUrl() {
     Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
+}
+
+/** Deletes a report and unreports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
+function deleteAppReport(reportID: string | undefined) {
+    if (!reportID) {
+        Log.warn('[Report] deleteReport called with no reportID');
+        return;
+    }
+    const optimisticData: OnyxUpdate[] = [];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+    let selfDMReportID = findSelfDMReportID();
+
+    if (!selfDMReportID) {
+        const currentTime = DateUtils.getDBTime();
+        const selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        selfDMReportID = selfDMReport.reportID;
+    }
+    // 1. Get all report transactions
+    const reportActionsForReport = allReportActions?.[reportID];
+    const transactionIDs = [];
+    for (const reportAction of Object.values(reportActionsForReport ?? {})) {
+        if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+            transactionIDs.push(ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
+        }
+    }
+
+    // 2. Set transaction's reportID to 0
+    [...new Set(transactionIDs)].forEach((transactionID) => {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {reportID: 0},
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: null,
+        });
+    });
+
+    const transactionIDToMoneyRequestReportActionIDMap: Record<string, string> = {};
+
+    Object.values(reportActionsForReport ?? {})
+        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
+        .reverse()
+        .forEach((reportAction) => {
+            // 3. Move the IOU reportActions to the selfDM
+            const newReportActionID = rand64();
+            const updatedReportAction = {
+                ...reportAction,
+                originalMessage: {
+                    // eslint-disable-next-line deprecation/deprecation
+                    ...reportAction.originalMessage,
+                    IOUReportID: 0,
+                    type: CONST.IOU.TYPE.TRACK,
+                },
+                childReportID: reportAction.childReportID,
+                reportActionID: newReportActionID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                value: {
+                    [newReportActionID]: updatedReportAction,
+                },
+            });
+
+            const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
+            if (transactionID) {
+                transactionIDToMoneyRequestReportActionIDMap[transactionID] = newReportActionID;
+            }
+
+            // 4. Get transaction thread
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`,
+                value: {
+                    parentReportActionID: newReportActionID,
+                    parentReportID: selfDMReportID,
+                    chatReportID: selfDMReportID,
+                    policyID: '_FAKE_',
+                },
+            });
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`,
+                value: {
+                    [newReportActionID]: {
+                        originalMessage: {
+                            movedToReportID: selfDMReportID,
+                        },
+                    },
+                },
+            });
+
+            // 5. Add UNREPORTEDTRANSACTION report actions
+            const unreportedAction = buildOptimisticUnreportedTransactionAction(reportAction.childReportID, reportID);
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`,
+                value: {
+                    [unreportedAction.reportActionID]: unreportedAction,
+                },
+            });
+        });
+
+    // 6. Delete report actions on the report
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: null,
+    });
+
+    // 7. Delete the report
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: null,
+    });
+
+    // 8. Delete chat report preview
+    const reportactionID = report?.parentReportActionID;
+    const parentReportID = report?.parentReportID;
+
+    if (reportactionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {
+                [reportactionID]: null,
+            },
+        });
+    }
+
+    const parameters: DeleteAppReportParams = {
+        reportID,
+        transactionIDToMoneyRequestReportActionIDMap: JSON.stringify(transactionIDToMoneyRequestReportActionIDMap),
+        selfDMReportID,
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters, {optimisticData});
 }
 
 /**
@@ -4794,7 +4941,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
 
     const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {
         [submitterLogin]: {
-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
+            errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
         },
     };
 
@@ -5311,6 +5458,7 @@ export {
     updateReportName,
     updateRoomVisibility,
     updateWriteCapability,
+    deleteAppReport,
     getOptimisticChatReport,
     saveReportDraft,
     moveIOUReportToPolicy,
