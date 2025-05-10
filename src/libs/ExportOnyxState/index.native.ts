@@ -1,19 +1,20 @@
 import RNFS from 'react-native-fs';
-import {open} from 'react-native-quick-sqlite';
+import {open} from 'react-native-nitro-sqlite';
+import type {OnyxSQLiteKeyValuePair} from 'react-native-onyx';
 import Share from 'react-native-share';
 import CONST from '@src/CONST';
-import * as ExportOnyxState from './common';
+import {maskOnyxState} from './common';
 
 const readFromOnyxDatabase = () =>
     new Promise((resolve) => {
         const db = open({name: CONST.DEFAULT_DB_NAME});
         const query = `SELECT * FROM ${CONST.DEFAULT_TABLE_NAME}`;
 
-        db.executeAsync(query, []).then(({rows}) => {
+        db.executeAsync<OnyxSQLiteKeyValuePair>(query, []).then(({rows}) => {
             // eslint-disable-next-line no-underscore-dangle
             const result = rows?._array.reduce<Record<string, unknown>>((acc, row) => {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                acc[row?.record_key] = JSON.parse(row?.valueJSON as string) as unknown;
+                acc[row?.record_key] = JSON.parse(row?.valueJSON) as unknown;
                 return acc;
             }, {});
             resolve(result);
@@ -39,7 +40,7 @@ const shareAsFile = (value: string) => {
 };
 
 export default {
-    maskOnyxState: ExportOnyxState.maskOnyxState,
+    maskOnyxState,
     readFromOnyxDatabase,
     shareAsFile,
 };
