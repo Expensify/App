@@ -1,6 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -47,8 +47,8 @@ const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => v
 function useOptions() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<Array<ListItem & OptionData>>([]);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: false});
     const personalData = useCurrentUserPersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
@@ -134,7 +134,11 @@ function useOptions() {
     };
 }
 
-function NewChatPage() {
+type NewChatPageRef = {
+    focus?: () => void;
+};
+
+function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
@@ -142,8 +146,12 @@ function NewChatPage() {
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const selectionListRef = useRef<SelectionListHandle>(null);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
+    const selectionListRef = useRef<SelectionListHandle | null>(null);
+
+    useImperativeHandle(ref, () => ({
+        focus: selectionListRef.current?.focusTextInput,
+    }));
 
     const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
         useOptions();
@@ -203,7 +211,7 @@ function NewChatPage() {
             if (isOptionInList) {
                 newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
             } else {
-                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`}];
+                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? String(CONST.DEFAULT_NUMBER_ID)}];
                 selectionListRef?.current?.scrollToIndex(0, true);
             }
 
@@ -360,6 +368,7 @@ function NewChatPage() {
                 initiallyFocusedOptionKey={firstKeyForList}
                 shouldTextInputInterceptSwipe
                 addBottomSafeAreaPadding
+                textInputAutoFocus={false}
             />
         </ScreenWrapper>
     );
@@ -367,4 +376,4 @@ function NewChatPage() {
 
 NewChatPage.displayName = 'NewChatPage';
 
-export default NewChatPage;
+export default forwardRef(NewChatPage);
