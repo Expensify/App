@@ -34,6 +34,7 @@ function ValidateCodeActionModal({
     disableAnimation,
     threeDotsMenuItems = [],
     onThreeDotsButtonPress = () => {},
+    onBackButtonPress,
 }: ValidateCodeActionModalProps) {
     const themeStyles = useThemeStyles();
     const firstRenderRef = useRef(true);
@@ -83,7 +84,7 @@ function ValidateCodeActionModal({
             >
                 <HeaderWithBackButton
                     title={title}
-                    onBackButtonPress={hide}
+                    onBackButtonPress={onBackButtonPress ?? hide}
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     shouldOverlayDots
