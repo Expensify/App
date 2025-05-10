@@ -547,6 +547,18 @@ const translations = {
         comments: 'Comentarios',
         sharedIn: 'Compartido en',
         unreported: 'No reportado',
+        explore: 'Explorar',
+        todo: 'Tereas',
+        invoice: 'Factura',
+        expense: 'Gasto',
+        chat: 'Chat',
+        task: 'Tarea',
+        trip: 'Viaje',
+        apply: 'Aplicar',
+        status: 'Estado',
+        on: 'El',
+        before: 'Antes',
+        after: 'Después',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -644,6 +656,7 @@ const translations = {
     selectionList: {
         nameEmailOrPhoneNumber: 'Nombre, correo electrónico o número de teléfono',
         findMember: 'Encuentra un miembro',
+        searchForSomeone: 'Busca a alguien',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -5282,6 +5295,23 @@ const translations = {
                 title: 'No tienes viajes',
                 subtitle: 'Reserva tu primer viaje a continuación.',
                 buttonText: 'Reserva un viaje',
+            },
+            emptySubmitResults: {
+                title: 'No hay gastos para enviar',
+                subtitle: 'Todo despejado. ¡Date una vuelta de victoria!',
+                buttonText: 'Crear informe',
+            },
+            emptyApproveResults: {
+                title: 'No hay gastos para aprobar',
+                subtitle: 'Cero gastos. Máxima relajación. ¡Bien hecho!',
+            },
+            emptyPayResults: {
+                title: 'No hay gastos para pagar',
+                subtitle: '¡Felicidades! Has cruzado la línea de meta.',
+            },
+            emptyExportResults: {
+                title: 'No hay gastos para exportar',
+                subtitle: 'Es hora de relajarse, buen trabajo.',
             },
         },
         saveSearch: 'Guardar búsqueda',

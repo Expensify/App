@@ -5086,7 +5086,8 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
-        searchStatusBarContainer: {
+        searchFiltersBarContainer: {
+            marginTop: 8,
             flexDirection: 'row',
             alignItems: 'center',
         },
@@ -5587,6 +5588,13 @@ const styles = (theme: ThemeColors) =>
             ...display.dFlex,
         },
 
+        emptyStateFireworksWebStyles: {
+            width: 250,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+            ...display.dFlex,
+        },
+
         workflowApprovalVerticalLine: {
             height: 16,
             width: 1,
@@ -5714,6 +5722,23 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 20,
             marginBottom: 20,
         }),
+
+        getSelectionListPopoverHeight: (itemCount: number) => ({
+            height: itemCount * variables.listItemHeightNormal,
+            ...sizing.mh65vh,
+        }),
+
+        getUserSelectionListPopoverHeight: (itemCount: number) => {
+            const SEARCHBAR_HEIGHT = 50;
+            const SEARCHBAR_MARGIN = 14;
+            const BUTTON_HEIGHT = 40;
+            const PADDING = 32;
+
+            return {
+                height: itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_MARGIN + BUTTON_HEIGHT + PADDING,
+                ...sizing.mh65vh,
+            };
+        },
 
         earlyDiscountButton: {
             flexGrow: 1,

@@ -403,6 +403,9 @@ const CONST = {
         horizontal: 12 + variables.navigationTabBarSize,
         vertical: 72,
     },
+    POPOVER_DROPDOWN_WIDTH: 336,
+    POPOVER_DROPDOWN_MIN_HEIGHT: 0,
+    POPOVER_DROPDOWN_MAX_HEIGHT: 476,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
@@ -6535,7 +6538,6 @@ const CONST = {
             TAX_AMOUNT: 'taxAmount',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
-            CREATED_BY: 'createdBy',
             IN: 'in',
         },
         SYNTAX_OPERATORS: {
@@ -6579,7 +6581,6 @@ const CONST = {
             POSTED: 'posted',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
-            CREATED_BY: 'createdBy',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
@@ -6620,13 +6621,13 @@ const CONST = {
             POSTED: 'posted',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
-            CREATED_BY: 'created-by',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
             AFTER: 'After',
+            ON: 'On',
         },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,
@@ -6637,6 +6638,11 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
+        DATE_FILTERS: {
+            BEFORE: 'before',
+            AFTER: 'after',
+            ON: 'on',
+        },
     },
 
     EXPENSE: {

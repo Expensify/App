@@ -12,9 +12,9 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
+import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {PaymentData} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -69,7 +69,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
 
-    const {q, name} = route.params;
+    const {q} = route.params;
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
 
@@ -360,9 +360,6 @@ function SearchPage({route}: SearchPageProps) {
     const {resetVideoPlayerData} = usePlaybackContext();
     const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults;
 
-    const isSearchNameModified = name === q;
-    const searchName = isSearchNameModified ? undefined : name;
-
     const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
 
@@ -390,7 +387,6 @@ function SearchPage({route}: SearchPageProps) {
             <>
                 <SearchPageNarrow
                     queryJSON={queryJSON}
-                    searchName={searchName}
                     headerButtonsOptions={headerButtonsOptions}
                     lastNonEmptySearchResults={lastNonEmptySearchResults}
                     currentSearchResults={currentSearchResults}
@@ -478,7 +474,7 @@ function SearchPage({route}: SearchPageProps) {
                                 queryJSON={queryJSON}
                                 headerButtonsOptions={headerButtonsOptions}
                             />
-                            <SearchStatusBar
+                            <SearchFiltersBar
                                 queryJSON={queryJSON}
                                 headerButtonsOptions={headerButtonsOptions}
                             />
