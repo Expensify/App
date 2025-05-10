@@ -29,11 +29,14 @@ type RadioButtonWithLabelProps = {
 
     /** Error text to display */
     errorText?: string;
+
+    /** Additional styles to apply to the wrapper */
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 const PressableWithFeedback = Pressables.PressableWithFeedback;
 
-function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = false, errorText = '', isChecked, onPress}: RadioButtonWithLabelProps) {
+function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = false, errorText = '', isChecked, onPress, wrapperStyle}: RadioButtonWithLabelProps) {
     const styles = useThemeStyles();
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
 
@@ -54,7 +57,7 @@ function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = fal
                     accessible={false}
                     onPress={onPress}
                     style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
-                    wrapperStyle={[styles.flex1, styles.ml3, styles.pr2]}
+                    wrapperStyle={[styles.flex1, styles.ml3, styles.pr2, wrapperStyle]}
                     // disable hover style when disabled
                     hoverDimmingValue={0.8}
                     pressDimmingValue={0.5}
