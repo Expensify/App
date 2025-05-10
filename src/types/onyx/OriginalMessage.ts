@@ -361,6 +361,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Report field type */
     fieldType?: string;
 
+    /** Custom field type  */
+    field?: string;
+
     /** Report field name */
     fieldName?: string;
 
