@@ -504,15 +504,7 @@ function ReportActionsList({
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
      * the height of the smallest report action possible.
      */
-    const initialNumToRender = useMemo((): number | undefined => {
-        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
-        const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
-        if (linkedReportActionID) {
-            return getInitialNumToRender(numToRender);
-        }
-        return numToRender || undefined;
-    }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID]);
+    const initialNumToRender = 6;
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
