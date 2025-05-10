@@ -4813,6 +4813,7 @@ const translations = {
             },
             pricing: {
                 perActiveMember: 'per active member per month.',
+                perMember: 'per member per month.',
             },
             note: {
                 upgradeWorkspace: 'Upgrade your workspace to access this feature, or',

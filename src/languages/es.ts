@@ -4889,6 +4889,7 @@ const translations = {
             },
             pricing: {
                 perActiveMember: 'por miembro activo al mes.',
+                perMember: 'por miembro al mes.',
             },
             upgradeToUnlock: 'Desbloquear esta función',
             completed: {
