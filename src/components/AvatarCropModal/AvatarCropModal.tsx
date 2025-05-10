@@ -351,11 +351,12 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             onModalHide={resetState}
             shouldUseCustomBackdrop
             shouldHandleNavigationBack
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
                 testID={AvatarCropModal.displayName}
             >
