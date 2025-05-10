@@ -9860,10 +9860,10 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
         },
     ];
 
-    if (currentSearchQueryJSON) {
+    if (currentSearchQueryJSON?.hash) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
@@ -9876,7 +9876,7 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
@@ -9885,7 +9885,7 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
                     },
                 },
             },
-        })
+        });
     }
 
     const parameters: ReplaceReceiptParams = {
