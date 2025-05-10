@@ -1,0 +1,17 @@
+{
+    "cxxNamespace": ["utils"],
+    "ios": {
+        "iosModuleName": "ExpensifyNitroUtils"
+    },
+    "android": {
+        "androidNamespace": ["utils"],
+        "androidCxxLibName": "ExpensifyNitroUtils"
+    },
+    "autolinking": {
+        "ContactsModule": {
+            "swift": "HybridContactsModule",
+            "kotlin": "HybridContactsModule"
+        }
+    },
+    "ignorePaths": ["node_modules"]
+}

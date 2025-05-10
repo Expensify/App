@@ -755,6 +755,9 @@ type OptionData = {
     icons?: Icon[];
     iouReportAmount?: number;
     displayName?: string;
+    firstName?: string;
+    lastName?: string;
+    avatar?: AvatarSource;
 } & Report &
     ReportNameValuePairs;
 
