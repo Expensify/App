@@ -9811,6 +9811,7 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
     };
 
     const retryParams = {transactionID, file: undefined, source};
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -9853,6 +9854,34 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
             },
         },
     ];
+
+    if (currentSearchQueryJSON?.hash) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        receipt: receiptOptimistic,
+                        filename: file.name,
+                    },
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
+                        filename: transaction?.filename,
+                    },
+                },
+            },
+        });
+    }
 
     const parameters: ReplaceReceiptParams = {
         transactionID,
