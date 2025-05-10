@@ -342,6 +342,9 @@ function isAmountMissing(transaction: OnyxEntry<Transaction>) {
 }
 
 function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
+    if (!transaction) {
+        return true;
+    }
     return transaction?.created === '' && (!transaction.created || transaction.modifiedCreated === '');
 }
 
