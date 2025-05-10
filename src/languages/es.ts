@@ -6,8 +6,9 @@ import type {
     AccountOwnerParams,
     ActionsAreCurrentlyRestricted,
     AddedOrDeletedPolicyReportFieldParams,
-    AddedPolicyCustomUnitRateParams,
+    AddedPolicyApprovalRuleParams,
     AddEmployeeParams,
+    AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
@@ -131,6 +132,9 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PolicyAddedReportFieldOptionParams,
+    PolicyDisabledReportFieldAllOptionsParams,
+    PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
@@ -189,13 +193,23 @@ import type {
     UnreportedTransactionParams,
     UnshareParams,
     UntilTimeParams,
+    UpdatedPolicyApprovalRuleParams,
+    UpdatedPolicyAuditRateParams,
+    UpdatedPolicyCategoryExpenseLimitTypeParams,
+    UpdatedPolicyCategoryGLCodeParams,
+    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCategoryMaxExpenseAmountParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomUnitRateParams,
+    UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
+    UpdatedPolicyCustomUnitTaxRateExternalIDParams,
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,
     UpdatedPolicyFrequencyParams,
+    UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
@@ -203,6 +217,8 @@ import type {
     UpdatedPolicyTagParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
+    UpdatePolicyCustomUnitParams,
+    UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
@@ -5133,10 +5149,60 @@ const translations = {
         billcom: 'BILLCOM',
     },
     workspaceActions: {
+        addApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) => `agregó a ${approverName} (${approverEmail}) como aprobador de ${field} "${name}"`,
+        deleteApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) =>
+            `eliminó a ${approverName} (${approverEmail}) como aprobador de ${field} "${name}"`,
+        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) =>
+            `actualizó el aprobador de ${field} "${name}" a ${newApproverName} (${newApproverEmail}) (previamente ${oldApproverName} (${oldApproverEmail}))`,
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `añadió la categoría "${categoryName}""`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `eliminó la categoría "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'deshabilitó' : 'habilitó'} la categoría "${categoryName}"`,
+        updateCategoryPayrollCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+            if (!oldValue) {
+                return `actualizó la categoría "${categoryName}" añadiendo un Código de Nómina de ${newValue}`;
+            }
+            if (!newValue && oldValue) {
+                return `actualizó la categoría "${categoryName}" eliminando el Código de Nómina (previamente "${oldValue}")`;
+            }
+            return `actualizó la categoría "${categoryName}" cambiando el Código de Nómina a ${newValue} (previamente "${oldValue}")`;
+        },
+        updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
+            if (!oldValue) {
+                return `actualizó la categoría "${categoryName}" añadiendo un Código GL de ${newValue}`;
+            }
+            if (!newValue && oldValue) {
+                return `actualizó la categoría "${categoryName}" eliminando el Código GL (previamente "${oldValue}")`;
+            }
+            return `actualizó la categoría "${categoryName}" cambiando el Código GL a ${newValue} (previamente "${oldValue}")`;
+        },
+        updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
+            return `actualizó la categoría "${categoryName}" cambiando la descripción a ${!oldValue ? 'Obligatoria' : 'No obligatoria'} (previamente ${
+                !oldValue ? 'No obligatoria' : 'Obligatoria'
+            })`;
+        },
+        updateCategoryMaxExpenseAmount: ({categoryName, oldAmount, newAmount}: UpdatedPolicyCategoryMaxExpenseAmountParams) => {
+            if (newAmount && !oldAmount) {
+                return `actualizó la categoría "${categoryName}" añadiendo un importe máximo de ${newAmount}`;
+            }
+            if (oldAmount && !newAmount) {
+                return `actualizó la categoría "${categoryName}" eliminando el importe máximo (previamente ${oldAmount})`;
+            }
+            return `actualizó la categoría "${categoryName}" cambiando el importe máximo a ${newAmount} (previamente ${oldAmount})`;
+        },
+        updateCategoryExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryExpenseLimitTypeParams) => {
+            if (!oldValue) {
+                return `actualizó la categoría "${categoryName}" añadiendo un Tipo de Límite de ${newValue}`;
+            }
+            return `actualizó la categoría "${categoryName}" cambiando el Tipo de Límite a ${newValue} (previamente "${oldValue}")`;
+        },
+        updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+            if (!oldValue) {
+                return `actualizó la categoría "${categoryName}" cambiando Recibos a ${newValue}`;
+            }
+            return `actualizó la categoría "${categoryName}" cambiando Recibos a ${newValue} (previamente "${oldValue}")`;
+        },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renombró la categoría "${oldName}" a "${newName}`,
+        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `actualizó el nombre de la lista de etiquetas a "${newName}" (previamente "${oldName}")`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
@@ -5148,10 +5214,40 @@ const translations = {
             }
             return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" añadiendo un ${updatedField} de "${newValue}"`;
         },
-        addCustomUnitRate: ({customUnitName, rateName}: AddedPolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
+        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
+            `actualizó el ${updatedField} de ${customUnitName} a "${newValue}" (previamente "${oldValue}")`,
+        updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'habilitó' : 'deshabilitó'} el seguimiento de impuestos en las tasas de distancia`,
+        addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
+        updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
+            `actualizó la tasa de ${customUnitName} ${updatedField} "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`,
+        updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
+            if (oldTaxPercentage && oldValue) {
+                return `actualizó la tasa de impuesto a "${newValue} (${newTaxPercentage})" en la tarifa de distancia "${customUnitRateName}" (previamente "${oldValue} (${oldTaxPercentage})")`;
+            }
+            return `añadió la tasa de impuesto "${newValue} (${newTaxPercentage})" a la tasa de distancia "${customUnitRateName}"`;
+        },
+        updatedCustomUnitTaxClaimablePercentage: ({customUnitRateName, newValue, oldValue}: UpdatedPolicyCustomUnitTaxClaimablePercentageParams) => {
+            if (oldValue) {
+                return `añadió la porción recuperable de impuestos a "${newValue}" en la tarifa de distancia "${customUnitRateName}" (previamente "${oldValue}")`;
+            }
+            return `añadió la parte recuperable de impuestos "${newValue}" a la tasa de distancia "${customUnitRateName}"`;
+        },
+        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `eliminó una nueva tasa de "${rateName}" para "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `estableció el valor predeterminado del campo de informe "${fieldName}" en "${defaultValue}"`,
+        addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `actualizó el campo de informe "${fieldName}"; agregó la opción "${optionName}"`,
+        removedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `actualizó el campo de informe "${fieldName}"; eliminó la opción "${optionName}"`,
+        updateReportFieldOptionDisabled: ({fieldName, optionName, optionEnabled}: PolicyDisabledReportFieldOptionParams) =>
+            `actualizó el campo de informe "${fieldName}"; estableció la opción "${optionName}" como ${optionEnabled ? 'Habilitada' : 'Deshabilitada'}`,
+        updateReportFieldAllOptionsDisabled: ({fieldName, optionName, allEnabled, toggledOptionsCount}: PolicyDisabledReportFieldAllOptionsParams) => {
+            if (toggledOptionsCount && toggledOptionsCount > 1) {
+                return `actualizó el campo de informe "${fieldName}"; estableció todas las opciones como ${allEnabled ? 'Habilitadas' : 'Deshabilitadas'}`;
+            }
+            return `actualizó el campo de informe "${fieldName}"; estableció la opción "${optionName}" como ${
+                allEnabled ? 'Habilitada' : 'Deshabilitada'
+            }, haciendo que todas las opciones estén ${allEnabled ? 'Habilitadas' : 'Deshabilitadas'}`;
+        },
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `eliminó el campo de informe ${fieldType} "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
@@ -5197,6 +5293,10 @@ const translations = {
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `actualizó el modo de aprobación a "${newValue}" (previamente "${oldValue}")`,
         upgradedWorkspace: 'mejoró este espacio de trabajo al plan Controlar',
         downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
+        updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
+            `actualizó la tasa de informes enrutados aleatoriamente para aprobación manual a ${Math.round(newAuditRate * 100)}% (previamente ${Math.round(oldAuditRate * 100)}%)`,
+        updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
+            `actualizó el límite para aprobación manual de todos los gastos a ${newLimit} (previamente ${oldLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -5501,6 +5601,7 @@ const translations = {
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} salió del espacio de trabajo`,
                 removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                addedConnection: ({connectionName}: ConnectionNameParams) => `se conectó a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'salió del chat',
             },
         },
