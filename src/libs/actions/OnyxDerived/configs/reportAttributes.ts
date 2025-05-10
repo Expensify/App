@@ -1,4 +1,4 @@
-import {generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
+import {generateIsEmptyReport, generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import hasKeyTriggeredCompute from '@userActions/OnyxDerived/utils';
@@ -38,6 +38,7 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.TRANSACTION,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
+        ONYXKEYS.COLLECTION.REPORT_DRAFT,
     ],
     compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs], {currentValue, sourceValues, areAllConnectionsSet}) => {
         if (!areAllConnectionsSet) {
@@ -111,6 +112,7 @@ export default createOnyxDerivedValueConfig({
 
             acc[report.reportID] = {
                 reportName: generateReportName(report),
+                isEmpty: generateIsEmptyReport(report),
                 brickRoadStatus,
             };
 
