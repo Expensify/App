@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -19,10 +19,12 @@ import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
+import {isSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidAddress} from '@libs/ValidationUtils';
+import variables from '@styles/variables';
 import {removeWaypoint, saveWaypoint} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -78,9 +80,10 @@ function IOURequestStepWaypoint({
     const currentWaypoint = allWaypoints[`waypoint${pageIndex}`] ?? {};
     const waypointCount = Object.keys(allWaypoints).length;
     const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => !isEmptyObject(waypoint)).length;
+    const [caretHidden, setCaretHidden] = useState(false);
 
-    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector});
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector, canBeMissing: true});
 
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
@@ -169,6 +172,24 @@ function IOURequestStepWaypoint({
         goBack();
     };
 
+    const onScroll = useCallback(() => {
+        if (!isSafari()) {
+            return;
+        }
+        // eslint-disable-next-line react-compiler/react-compiler
+        textInput.current?.measureInWindow((x, y) => {
+            if (y < variables.contentHeaderHeight) {
+                setCaretHidden(true);
+            } else {
+                setCaretHidden(false);
+            }
+        });
+    }, []);
+
+    const resetCaretHiddenValue = useCallback(() => {
+        setCaretHidden(false);
+    }, []);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -219,6 +240,7 @@ function IOURequestStepWaypoint({
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
                     shouldHideFixErrorsAlert
+                    onScroll={onScroll}
                 >
                     <View>
                         <InputWrapperWithRef
@@ -248,6 +270,8 @@ function IOURequestStepWaypoint({
                             }}
                             predefinedPlaces={recentWaypoints}
                             resultTypes=""
+                            caretHidden={caretHidden}
+                            onValueChange={resetCaretHiddenValue}
                         />
                     </View>
                 </FormProvider>
