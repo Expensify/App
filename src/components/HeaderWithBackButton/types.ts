@@ -156,6 +156,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** The URL link associated with the attachment's subtitle, if available */
     subTitleLink?: string;
+
+    /** Whether to open the parent report link in the current tab if possible */
+    openParentReportInCurrentTab?: boolean;
 };
 
 export type {ThreeDotsMenuItem};
