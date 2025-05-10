@@ -393,7 +393,7 @@ const transactionsListItems = [
         formattedFrom: 'Admin',
         formattedMerchant: 'Expense',
         formattedTo: '',
-        formattedTotal: 5000,
+        formattedTotal: -5000,
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -446,7 +446,7 @@ const transactionsListItems = [
         formattedFrom: 'Admin',
         formattedMerchant: 'Expense',
         formattedTo: 'Admin',
-        formattedTotal: 5000,
+        formattedTotal: -5000,
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -636,7 +636,7 @@ const reportsListItems = [
                 formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
                 formattedTo: '',
-                formattedTotal: 5000,
+                formattedTotal: -5000,
                 from: {
                     accountID: 18439984,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -725,7 +725,7 @@ const reportsListItems = [
                 formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
                 formattedTo: 'Admin',
-                formattedTotal: 5000,
+                formattedTotal: -5000,
                 from: {
                     accountID: 18439984,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
