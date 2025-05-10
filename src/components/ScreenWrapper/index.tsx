@@ -423,7 +423,7 @@ function ScreenWrapper(
     const {isInNarrowPane} = useContext(NarrowPaneContext);
     const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens, originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => {
-        const newAddSafeAreaPadding = isInNarrowPane ? shouldUseNarrowLayout : addSafeAreaPadding;
+        const newAddSafeAreaPadding = isInNarrowPane ? isSmallScreenWidth : addSafeAreaPadding;
 
         const newOriginalValues = originalValues ?? {
             addSafeAreaPadding: newAddSafeAreaPadding,
@@ -441,7 +441,7 @@ function ScreenWrapper(
             // to allow nested ScreenWrapperOfflineIndicatorContext.Provider to access these values. (e.g. in Modals)
             originalValues: newOriginalValues,
         };
-    }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, originalValues, shouldUseNarrowLayout, showOnSmallScreens, showOnWideScreens]);
+    }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, isSmallScreenWidth, originalValues, showOnSmallScreens, showOnWideScreens]);
 
     const displaySmallScreenOfflineIndicator = isSmallScreenWidth && (shouldShowOfflineIndicator ?? showOnSmallScreens ?? true);
     const displayWidescreenOfflineIndicator = !shouldUseNarrowLayout && (shouldShowOfflineIndicatorInWideScreen ?? showOnWideScreens ?? false);
