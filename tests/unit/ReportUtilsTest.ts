@@ -444,6 +444,33 @@ describe('ReportUtils', () => {
                 ).toBe('floki@vikings.net');
             });
 
+            test('with deleted message and provided parent action param', () => {
+                expect(
+                    getReportName({
+                        type: CONST.REPORT.TYPE.CHAT,
+                        parentReportActionID: "id",
+                        parentReportID: "id",
+                        reportID: "id"
+                    },
+                    undefined,
+                    { message: [{ deleted: "someDate", type: "COMMENT", text: "" }] } as ReportAction),
+                ).toEqual(translateLocal('parentReportAction.deletedMessage'));
+            });
+
+            test('with deleted message and not provided parent action param', async () => {
+                const reportAction = { reportActionID: "reportActionID", parentReportID: "parentID", message: [{ deleted: "someDate", type: "COMMENT", text: "" }] }
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.parentReportID}`, { [reportAction.reportActionID]: reportAction as any} )
+                expect(
+                    getReportName({
+                        type: CONST.REPORT.TYPE.CHAT,
+                        parentReportActionID: "reportActionID",
+                        parentReportID: "parentID",
+                        reportID: "id"
+                    })).toEqual(translateLocal('parentReportAction.deletedMessage'));
+                
+                
+            });
+
             test('SMS', () => {
                 expect(
                     getReportName({

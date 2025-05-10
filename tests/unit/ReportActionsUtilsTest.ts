@@ -9,6 +9,7 @@ import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+import { isMessageDeleted } from '../../src/libs/ReportActionsUtils';
 
 jest.mock('@components/ConfirmedRoute.tsx');
 
@@ -696,6 +697,86 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('isMessageDeleted', () => {
+        it('should return true if there is property deleted inside message', () => {
+            expect(
+                isMessageDeleted(
+                    {
+                        message: [
+                            {
+                                deleted: "someDate",
+                                type: "COMMENT",
+                                text: ""
+                            }
+                        ]
+                    } as ReportAction
+                )
+            ).toBeTruthy();
+        })
+        it('should return true if there is property isDeletedParentAction inside message', () => {
+            expect(
+                isMessageDeleted(
+                    {
+                        message: [
+                            {
+                                isDeletedParentAction: true,
+                                type: "COMMENT",
+                                text: ""
+                            }
+                        ]
+                    } as ReportAction
+                )
+            ).toBeTruthy();
+        })
+        it('should return true if there is property deleted inside original message', () => {
+            expect(
+                isMessageDeleted(
+                    {
+                        originalMessage: {
+                            deleted: "someDate",
+                            type: "COMMENT",
+                            text: "",
+                        },
+                        reportActionID: "reportActionID",
+                        actionName: "ACTIONABLEADDPAYMENTCARD",
+                        created: "someDate"
+                    } as ReportAction
+                )
+            ).toBeTruthy();
+        })
+        it('should return true if there is property isDeletedParentAction inside original message', () => {
+            expect(
+                isMessageDeleted(
+                    {
+                        originalMessage: {
+                            isDeletedParentAction: true,
+                            type: "COMMENT",
+                            text: "",
+                        },
+                        reportActionID: "reportActionID",
+                        actionName: "ACTIONABLEADDPAYMENTCARD",
+                        created: "someDate"
+                    } as ReportAction
+                )
+            ).toBeTruthy();
+        })
+        it('should return false if there are no deletion properties in message and originalMessage', () => {
+            expect(
+                isMessageDeleted(
+                    {
+                        originalMessage: {
+                            type: "COMMENT",
+                            text: "",
+                        },
+                        reportActionID: "reportActionID",
+                        actionName: "ACTIONABLEADDPAYMENTCARD",
+                        created: "someDate"
+                    } as ReportAction
+                )
+            ).toBeFalsy();
+        })
+    })
+
     describe('getReportActionMessageFragments', () => {
         it('should return the correct fragment for the REIMBURSED action', () => {
             const action = {
@@ -733,6 +814,22 @@ describe('ReportActionsUtils', () => {
             const expectedMessage = ReportActionsUtils.getReportActionMessageText(action);
             const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
+        });
+        it('should return the correct fragment for the deleted message', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                created: '1',
+                message: [
+                    {
+                        type: 'COMMENT',
+                        text: '',
+                        deleted: 'someDate'
+                    }
+                ],
+            };
+            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
+            expect(expectedFragments).toEqual([{text: '', type: 'COMMENT', isDeletedParentAction: true, deleted: 'someDate'}]);
         });
     });
 
