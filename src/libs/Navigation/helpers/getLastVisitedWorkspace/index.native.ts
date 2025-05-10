@@ -9,6 +9,9 @@ function getSettingsTabStateFromSessionStorage(): PartialState<NavigationState> 
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+function clearSessionStorage() {}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getLastVisitedSettingsPath(state: NavigationState | PartialState<NavigationState>): Route | undefined {
     return undefined;
 }
@@ -17,4 +20,4 @@ function getLastVisitedWorkspaceScreen() {
     return undefined;
 }
 
-export {getLastVisitedWorkspaceScreen, getLastVisitedSettingsPath, saveSettingsTabPathToSessionStorage, getSettingsTabStateFromSessionStorage};
+export {getLastVisitedWorkspaceScreen, getLastVisitedSettingsPath, saveSettingsTabPathToSessionStorage, getSettingsTabStateFromSessionStorage, clearSessionStorage};
