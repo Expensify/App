@@ -92,30 +92,26 @@ function TabSelectorItem({
         </AnimatedPressableWithFeedback>
     );
 
-    return (
-        <>
-            {shouldShowEducationTooltip ? (
-                <EducationalTooltip
-                    shouldRender={shouldShowEducationTooltip}
-                    renderTooltipContent={renderProductTrainingTooltip}
-                    shouldHideOnNavigate
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                    wrapperStyle={styles.productTrainingTooltipWrapper}
-                >
-                    {children}
-                </EducationalTooltip>
-            ) : (
-                <Tooltip
-                    shouldRender={!shouldShowLabelWhenInactive && !isActive}
-                    text={title}
-                >
-                    {children}
-                </Tooltip>
-            )}
-        </>
+    return shouldShowEducationTooltip ? (
+        <EducationalTooltip
+            shouldRender={shouldShowEducationTooltip}
+            renderTooltipContent={renderProductTrainingTooltip}
+            shouldHideOnNavigate
+            anchorAlignment={{
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+            }}
+            wrapperStyle={styles.productTrainingTooltipWrapper}
+        >
+            {children}
+        </EducationalTooltip>
+    ) : (
+        <Tooltip
+            shouldRender={!shouldShowLabelWhenInactive && !isActive}
+            text={title}
+        >
+            {children}
+        </Tooltip>
     );
 }
 
