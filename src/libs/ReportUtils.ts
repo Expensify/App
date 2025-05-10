@@ -4249,7 +4249,7 @@ function getReportPreviewMessage(
             !!reportActionMessage.match(/ (with Expensify|using Expensify)$/) ||
             report.isWaitingOnBankAccount
         ) {
-            translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
+            translatePhraseKey = 'iou.paidWithExpensify';
             if (originalMessage?.automaticAction) {
                 translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
             }
@@ -4692,9 +4692,9 @@ function getReportNameInternal({
     ) {
         const harvesting = !isMarkAsClosedAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.harvesting ?? false : false;
         if (harvesting) {
-            return Parser.htmlToText(getReportAutomaticallySubmittedMessage(parentReportAction));
+            return Parser.htmlToText(translateLocal('iou.automaticallySubmitted'));
         }
-        return getIOUSubmittedMessage(parentReportAction);
+        return translateLocal('iou.submitted');
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
@@ -4751,12 +4751,12 @@ function getReportNameInternal({
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
-            return Parser.htmlToText(getReportAutomaticallyApprovedMessage(parentReportAction));
+            return Parser.htmlToText(translateLocal('iou.automaticallyApproved'));
         }
-        return getIOUApprovedMessage(parentReportAction);
+        return translateLocal('iou.approvedMessage');
     }
     if (isUnapprovedAction(parentReportAction)) {
-        return getIOUUnapprovedMessage(parentReportAction);
+        return translateLocal('iou.unapproved');
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
@@ -5672,38 +5672,6 @@ function getFormattedAmount(reportAction: ReportAction, report?: Report | null) 
     const amount = report && isExpenseReport(report) ? (report?.total ?? 0) * -1 : Math.abs(originalMessage?.amount ?? 0);
     const formattedAmount = convertToDisplayString(amount, originalMessage?.currency);
     return formattedAmount;
-}
-
-function getReportAutomaticallySubmittedMessage(
-    reportAction:
-        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>
-        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>
-        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>,
-    report?: Report,
-) {
-    return translateLocal('iou.automaticallySubmittedAmount', {formattedAmount: getFormattedAmount(reportAction, report)});
-}
-
-function getIOUSubmittedMessage(
-    reportAction:
-        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>
-        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>
-        | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>,
-    report?: Report,
-) {
-    return translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction, report)});
-}
-
-function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>, report?: Report) {
-    return translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction, report)});
-}
-
-function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>, report?: Report) {
-    return translateLocal('iou.unapprovedAmount', {amount: getFormattedAmount(reportAction, report)});
-}
-
-function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>, report?: Report) {
-    return translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction, report)});
 }
 
 /**
@@ -8802,7 +8770,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
                 break;
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
             case CONST.IOU.PAYMENT_TYPE.VBBA:
-                translationKey = 'iou.paidWithExpensifyWithAmount';
+                translationKey = 'iou.paidWithExpensify';
                 if (automaticAction) {
                     translationKey = 'iou.automaticallyPaidWithExpensify';
                 }
@@ -10796,9 +10764,6 @@ export {
     prepareOnboardingOnyxData,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
-    getReportAutomaticallyApprovedMessage,
-    getIOUUnapprovedMessage,
-    getIOUApprovedMessage,
     getReportAutomaticallyForwardedMessage,
     getIOUForwardedMessage,
     getRejectedReportMessage,
@@ -10806,8 +10771,6 @@ export {
     getDeletedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getDowngradeWorkspaceMessage,
-    getReportAutomaticallySubmittedMessage,
-    getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
