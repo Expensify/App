@@ -215,6 +215,7 @@ const SCREENS = {
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
+        SPLIT_EXPENSE: 'Split_Expense',
         ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
         SCHEDULE_CALL: 'ScheduleCall',
     },

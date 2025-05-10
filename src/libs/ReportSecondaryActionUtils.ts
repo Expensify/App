@@ -32,7 +32,7 @@ import {
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, isPending, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -42,6 +42,34 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     }
 
     return canAddTransaction(report);
+}
+
+function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+    if (Number(reportTransactions?.length) !== 1) {
+        return false;
+    }
+
+    const reportTransaction = reportTransactions.at(0);
+    if (isPending(reportTransaction)) {
+        return false;
+    }
+
+    if (!isExpenseReportUtils(report)) {
+        return false;
+    }
+
+    if (report.stateNum && report.stateNum >= CONST.REPORT.STATE_NUM.APPROVED) {
+        return false;
+    }
+
+    const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
+    if (isSubmitter || isAdmin || isManager) {
+        return true;
+    }
+
+    return false;
 }
 
 function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs): boolean {
@@ -387,6 +415,10 @@ function getSecondaryReportActions(
 
     if (isHoldAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
+    }
+
+    if (isSplitAction(report, reportTransactions, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD);

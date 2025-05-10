@@ -1202,6 +1202,7 @@ const CONST = {
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             ADD_EXPENSE: 'addExpense',
+            SPLIT: 'split',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',

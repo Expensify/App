@@ -220,6 +220,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.MissingPersonalDetailsModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SPLIT_EXPENSE}
+                        component={ModalStackNavigators.MoneyRequestModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE}
                         component={ModalStackNavigators.AddUnreportedExpenseModalStackNavigator}
                     />
