@@ -37,6 +37,7 @@ const EXPENSIFY_POLICY_DOMAIN_EXTENSION = '.exfy';
 
 const keyModifierControl = KeyCommand?.constants?.keyModifierControl ?? 'keyModifierControl';
 const keyModifierCommand = KeyCommand?.constants?.keyModifierCommand ?? 'keyModifierCommand';
+const keyModifierShift = KeyCommand?.constants?.keyModifierShift ?? 'keyModifierShift';
 const keyModifierShiftControl = KeyCommand?.constants?.keyModifierShiftControl ?? 'keyModifierShiftControl';
 const keyModifierShiftCommand = KeyCommand?.constants?.keyModifierShiftCommand ?? 'keyModifierShiftCommand';
 const keyInputEscape = KeyCommand?.constants?.keyInputEscape ?? 'keyInputEscape';
@@ -869,6 +870,14 @@ const CONST = {
         },
     },
     KEYBOARD_SHORTCUTS: {
+        MARK_ALL_REPORTS_AS_READ: {
+            descriptionKey: 'markAllReportsAsRead',
+            shortcutKey: 'Escape',
+            modifiers: ['SHIFT'],
+            trigger: {
+                DEFAULT: {input: keyInputEscape, modifierFlags: keyModifierShift},
+            },
+        },
         SEARCH: {
             descriptionKey: 'search',
             shortcutKey: 'K',

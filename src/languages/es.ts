@@ -5248,6 +5248,7 @@ const translations = {
         subtitle: 'Ahorra tiempo con estos atajos de teclado:',
         shortcuts: {
             openShortcutDialog: 'Abre el cuadro de diálogo de métodos abreviados de teclado',
+            markAllReportsAsRead: 'Marcar todos los informes como leídos',
             escape: 'Diálogos de escape',
             search: 'Abrir diálogo de búsqueda',
             newChat: 'Nueva pantalla de chat',
