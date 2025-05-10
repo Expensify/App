@@ -12,7 +12,7 @@ type TalkToSalesButtonProps = {
     reportID: string | undefined;
     shouldUseNarrowLayout: boolean;
 };
-
+ 
 function TalkToSalesButton({shouldUseNarrowLayout, reportID}: TalkToSalesButtonProps) {
     const {translate} = useLocalize();
     const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES, {canBeMissing: false});
