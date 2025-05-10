@@ -269,7 +269,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 shouldShowTooltip
                                 shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
                                 shouldShowCheckbox={!!selectionMode?.isEnabled || isMediumScreenWidth}
-                                shouldShowChatBubbleComponent
                                 onCheckboxPress={toggleTransaction}
                             />
                         </PressableWithFeedback>
