@@ -28,6 +28,29 @@ PODS:
     - AppAuth/Core
   - AppLogs (0.1.0)
   - boost (1.84.0)
+  - callstack-repack (5.0.6):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - JWTDecode (~> 3.0.0)
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SwiftyRSA (~> 1.7)
+    - Yoga
   - DoubleConversion (1.1.6)
   - EXAV (15.0.2):
     - ExpoModulesCore
@@ -259,6 +282,8 @@ PODS:
   - hermes-engine (0.77.1):
     - hermes-engine/Pre-built (= 0.77.1)
   - hermes-engine/Pre-built (0.77.1)
+  - JitsiWebRTC (124.0.2)
+  - JWTDecode (3.0.1)
   - libavif/core (0.11.1)
   - libavif/libdav1d (0.11.1):
     - libavif/core
@@ -2915,6 +2940,9 @@ PODS:
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.7.1)
+  - SwiftyRSA (1.7.0):
+    - SwiftyRSA/ObjC (= 1.7.0)
+  - SwiftyRSA/ObjC (1.7.0)
   - Turf (2.8.0)
   - TweetNacl (1.0.2)
   - VisionCamera (4.6.1):
@@ -2929,6 +2957,7 @@ DEPENDENCIES:
   - AirshipServiceExtension
   - AppLogs (from `../node_modules/react-native-app-logs/AppLogsPod`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
+  - "callstack-repack (from `../node_modules/@callstack/repack`)"
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXAV (from `../node_modules/expo-av/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
@@ -3082,6 +3111,8 @@ SPEC REPOS:
     - GTMAppAuth
     - GTMSessionFetcher
     - GzipSwift
+    - JitsiWebRTC
+    - JWTDecode
     - libavif
     - libdav1d
     - libwebp
@@ -3101,6 +3132,7 @@ SPEC REPOS:
     - SDWebImageSVGCoder
     - SDWebImageWebPCoder
     - SocketRocket
+    - SwiftyRSA
     - Turf
     - TweetNacl
 
@@ -3109,6 +3141,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-app-logs/AppLogsPod"
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
+  callstack-repack:
+    :path: "../node_modules/@callstack/repack"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   EXAV:
@@ -3374,6 +3408,7 @@ SPEC CHECKSUMS:
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   boost: d7090b1a93a9798c029277a8288114f2948f471c
+  callstack-repack: 26cee8773b1a4e3e1b35a8adca9941b2ff02b530
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXAV: 57ea461614a714b8b8fcc72c6fbc298b8f1ec78b
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
@@ -3408,6 +3443,8 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: ccc24d29d650ea725d582a9a53d57cd417fbdb53
+  JitsiWebRTC: b47805ab5668be38e7ee60e2258f49badfe8e1d0
+  JWTDecode: 2eed97c2fa46ccaf3049a787004eedf0be474a87
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
@@ -3535,6 +3572,7 @@ SPEC CHECKSUMS:
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
+  SwiftyRSA: 8c6dd1ea7db1b8dc4fb517a202f88bb1354bc2c6
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
