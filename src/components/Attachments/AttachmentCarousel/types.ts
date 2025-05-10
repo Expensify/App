@@ -34,6 +34,9 @@ type AttachmentCarouselProps = {
     onClose: () => void;
 
     attachmentLink?: string;
+
+    /** Callback for attachment errors */
+    onAttachmentError?: (source: AttachmentSource) => void;
 };
 
 export type {AttachmentCarouselProps, UpdatePageProps};
