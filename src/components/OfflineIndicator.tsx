@@ -31,6 +31,7 @@ function OfflineIndicator({style, containerStyles: containerStylesProp, addBotto
     const fallbackStyle = useMemo(() => [styles.offlineIndicatorContainer, containerStylesProp], [styles.offlineIndicatorContainer, containerStylesProp]);
     const containerStyles = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
         style: fallbackStyle,
     });
 
