@@ -35,7 +35,7 @@ import {getIOUReportPreviewButtonType, getTotalAmountForIOUReportPreviewButton} 
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportActionText} from '@libs/ReportActionsUtils';
 import {
@@ -463,7 +463,7 @@ function ReportPreviewOld({
     /*
      * Manual export
      */
-    const connectedIntegration = getConnectedIntegration(policy);
+    const connectedIntegration = getValidConnectedIntegration(policy);
 
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && !!connectedIntegration && isAdmin && canBeExported(iouReport);
 
