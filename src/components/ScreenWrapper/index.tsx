@@ -30,6 +30,7 @@ import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
+import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
@@ -419,19 +420,20 @@ function ScreenWrapper(
 
     // This context allows us to disable the safe area padding offseting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.
     // This is useful e.g. for the RightModalNavigator, where we want to avoid the safe area padding offseting the offline indicator because we only show the offline indicator on small screens.
-    const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens, isInNarrowPane, originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
+    const {isInNarrowPane} = useContext(NarrowPaneContext);
+    const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens, originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => {
+        const newAddSafeAreaPadding = isInNarrowPane ? shouldUseNarrowLayout : addSafeAreaPadding;
+
         const newOriginalValues = originalValues ?? {
-            addSafeAreaPadding,
+            addSafeAreaPadding: newAddSafeAreaPadding,
             showOnSmallScreens,
             showOnWideScreens,
-            isInNarrowPane,
         };
 
         return {
-            isInNarrowPane,
             // Allows for individual screens to disable the offline indicator safe area padding for the screen and all nested ScreenWrapper components.
-            addSafeAreaPadding: disableOfflineIndicatorSafeAreaPadding === undefined ? addSafeAreaPadding ?? true : !disableOfflineIndicatorSafeAreaPadding,
+            addSafeAreaPadding: disableOfflineIndicatorSafeAreaPadding === undefined ? newAddSafeAreaPadding ?? true : !disableOfflineIndicatorSafeAreaPadding,
             // Prevent any nested ScreenWrapper components from rendering another offline indicator.
             showOnSmallScreens: false,
             showOnWideScreens: false,
@@ -439,7 +441,7 @@ function ScreenWrapper(
             // to allow nested ScreenWrapperOfflineIndicatorContext.Provider to access these values. (e.g. in Modals)
             originalValues: newOriginalValues,
         };
-    }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, originalValues, showOnSmallScreens, showOnWideScreens]);
+    }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, originalValues, shouldUseNarrowLayout, showOnSmallScreens, showOnWideScreens]);
 
     const displaySmallScreenOfflineIndicator = isSmallScreenWidth && (shouldShowOfflineIndicator ?? showOnSmallScreens ?? true);
     const displayWidescreenOfflineIndicator = !shouldUseNarrowLayout && (shouldShowOfflineIndicatorInWideScreen ?? showOnWideScreens ?? false);

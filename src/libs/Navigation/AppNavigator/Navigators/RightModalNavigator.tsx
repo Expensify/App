@@ -1,8 +1,6 @@
 import React, {useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
-import useNarrowPaneOfflineIndicatorContext from '@components/ScreenWrapper/useNarrowPaneOfflineIndicatorContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
@@ -15,6 +13,7 @@ import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigati
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import {NarrowPaneContextProvider} from './NarrowPaneContext';
 import Overlay from './Overlay';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
@@ -27,26 +26,25 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const isExecutingRef = useRef<boolean>(false);
 
     const screenOptions = useCustomScreenOptions();
-    const offlineIndicatorContextValue = useNarrowPaneOfflineIndicatorContext();
 
     return (
-        <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
-            <NoDropZone>
-                {!shouldUseNarrowLayout && (
-                    <Overlay
-                        onPress={() => {
-                            if (isExecutingRef.current) {
-                                return;
-                            }
-                            isExecutingRef.current = true;
-                            navigation.goBack();
-                            setTimeout(() => {
-                                isExecutingRef.current = false;
-                            }, CONST.ANIMATED_TRANSITION);
-                        }}
-                    />
-                )}
-                <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
+        <NoDropZone>
+            {!shouldUseNarrowLayout && (
+                <Overlay
+                    onPress={() => {
+                        if (isExecutingRef.current) {
+                            return;
+                        }
+                        isExecutingRef.current = true;
+                        navigation.goBack();
+                        setTimeout(() => {
+                            isExecutingRef.current = false;
+                        }, CONST.ANIMATED_TRANSITION);
+                    }}
+                />
+            )}
+            <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
+                <NarrowPaneContextProvider>
                     <Stack.Navigator
                         screenOptions={screenOptions}
                         screenListeners={{
@@ -217,9 +215,9 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                         />
                     </Stack.Navigator>
-                </View>
-            </NoDropZone>
-        </ScreenWrapperOfflineIndicatorContext.Provider>
+                </NarrowPaneContextProvider>
+            </View>
+        </NoDropZone>
     );
 }
 

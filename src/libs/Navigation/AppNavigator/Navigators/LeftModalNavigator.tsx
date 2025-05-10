@@ -1,8 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
-import useNarrowPaneOfflineIndicatorContext from '@components/ScreenWrapper/useNarrowPaneOfflineIndicatorContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useSideModalStackScreenOptions from '@libs/Navigation/AppNavigator/useSideModalStackScreenOptions';
@@ -12,6 +10,7 @@ import type {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navi
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import {NarrowPaneContextProvider} from './NarrowPaneContext';
 import Overlay from './Overlay';
 
 type LeftModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.LEFT_MODAL_NAVIGATOR>;
@@ -24,9 +23,9 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const screenOptions = useSideModalStackScreenOptions('horizontal-inverted');
-    const offlineIndicatorContextValue = useNarrowPaneOfflineIndicatorContext();
+
     return (
-        <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+        <NarrowPaneContextProvider>
             <NoDropZone>
                 {!shouldUseNarrowLayout && (
                     <Overlay
@@ -46,7 +45,7 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
                     </Stack.Navigator>
                 </View>
             </NoDropZone>
-        </ScreenWrapperOfflineIndicatorContext.Provider>
+        </NarrowPaneContextProvider>
     );
 }
 

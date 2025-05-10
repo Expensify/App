@@ -17,6 +17,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -252,7 +253,8 @@ function BaseModal(
 
     // In Modals we need to reset the ScreenWrapperOfflineIndicatorContext to allow nested ScreenWrapper components to render offline indicators,
     // except if we are in a narrow pane navigator. In this case, we use the narrow pane's original values.
-    const {isInNarrowPane, originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
+    const {isInNarrowPane} = useContext(NarrowPaneContext);
+    const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? originalValues ?? {} : {}), [isInNarrowPane, originalValues]);
 
     return (

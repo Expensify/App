@@ -1,14 +1,12 @@
 import {createContext} from 'react';
 
 type ScreenWrapperOfflineIndicatorBaseContext = {
-    isInNarrowPane?: boolean;
     showOnSmallScreens?: boolean;
     showOnWideScreens?: boolean;
     addSafeAreaPadding?: boolean;
 };
 
 type ScreenWrapperOfflineIndicatorContextType = {
-    isInNarrowPane?: boolean;
     showOnSmallScreens?: boolean;
     showOnWideScreens?: boolean;
     addSafeAreaPadding?: boolean;
