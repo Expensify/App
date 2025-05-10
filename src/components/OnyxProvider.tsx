@@ -47,6 +47,7 @@ OnyxProvider.displayName = 'OnyxProvider';
 export default OnyxProvider;
 
 export {
+    NetworkProvider,
     withNetwork,
     usePersonalDetails,
     withCurrentDate,

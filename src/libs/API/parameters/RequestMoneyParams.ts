@@ -30,6 +30,8 @@ type RequestMoneyParams = {
     reimbursible?: boolean;
     description?: string;
     attendees?: string;
+    isTestDrive?: boolean;
+    guidedSetupData?: string;
 };
 
 export default RequestMoneyParams;
