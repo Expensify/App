@@ -147,7 +147,7 @@ function ThumbnailImage({
     return (
         <View style={[style, styles.overflowHidden]}>
             {!!isDeleted && <AttachmentDeletedIndicator containerStyles={[...sizeStyles]} />}
-            <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
+            <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter, styles.thumbnailImageContainer]}>
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
                     altText={altText}
