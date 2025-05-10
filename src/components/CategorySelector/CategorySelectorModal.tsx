@@ -56,7 +56,6 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
                     policyID={policyID}
                     selectedCategory={currentCategory}
                     onSubmit={onCategorySelected}
-                    contentContainerStyle={styles.pb5}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
