@@ -556,6 +556,7 @@ const translations = {
         comments: 'Comments',
         sharedIn: 'Shared in',
         unreported: 'Unreported',
+        reschedule: 'Reschedule',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -6320,6 +6321,7 @@ const translations = {
             dateTime: 'Date & time',
             minutes: '30 minutes',
         },
+        callScheduled: 'Call scheduled',
     },
     testDrive: {
         quickAction: {

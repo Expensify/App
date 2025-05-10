@@ -6,6 +6,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, ScheduleCallDraft} from '@src/types/onyx';
+import type {CalendlyCall} from '@src/types/onyx/ReportNameValuePairs';
 import {openExternalLink} from './Link';
 
 function getGuideCallAvailabilitySchedule(reportID: string) {
@@ -75,4 +76,21 @@ function confirmBooking(data: Required<ScheduleCallDraft>, currentUser: Personal
     clearBookingDraft();
     Navigation.dismissModal();
 }
-export {getGuideCallAvailabilitySchedule, saveBookingDraft, clearBookingDraft, confirmBooking};
+
+function getEventIDFromURI(eventURI: string) {
+    const parts = eventURI.split('/');
+    // Last path in the URI is ID
+    return parts.slice(-1).at(0);
+}
+
+function rescheduleBooking(call: CalendlyCall) {
+    const rescheduleURL = `https://icalendly.com/reschedulings/${getEventIDFromURI(call.eventURI)}`;
+    openExternalLink(rescheduleURL);
+}
+
+function cancelBooking(call: CalendlyCall) {
+    const cancelURL = `https://calendly.com/cancellations/${getEventIDFromURI(call.eventURI)}`;
+    openExternalLink(cancelURL);
+}
+
+export {getGuideCallAvailabilitySchedule, saveBookingDraft, clearBookingDraft, confirmBooking, rescheduleBooking, cancelBooking};

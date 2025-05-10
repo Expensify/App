@@ -1,14 +1,18 @@
 import {useRoute} from '@react-navigation/native';
+import {addMinutes, compareDesc, format, isPast, parseISO} from 'date-fns';
 import React, {memo, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-import {BackArrow, CalendarSolid, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
+import {BackArrow, CalendarSolid, Close, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import LoadingBar from '@components/LoadingBar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -21,6 +25,7 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -30,7 +35,8 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
-import {clearBookingDraft} from '@libs/actions/ScheduleCall';
+import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
+import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -76,6 +82,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TalkToSalesButton from './TalkToSalesButton';
 
@@ -218,29 +225,102 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldShowGuideBookingButtonInEarlyDiscountBanner = shouldShowGuideBooking && shouldShowEarlyDiscountBanner && !isDismissedDiscountBanner;
 
     const {canUseCallScheduling} = usePermissions();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
 
-    const guideBookingButton = (
-        <Button
-            success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
-            text={translate('getAssistancePage.scheduleACall')}
-            onPress={() => {
-                if (!canUseCallScheduling) {
-                    openExternalLink(account?.guideDetails?.calendarLink ?? '');
-                    return;
-                }
-                if (!report?.reportID) {
-                    return;
-                }
-                clearBookingDraft();
-                Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK.getRoute(report?.reportID));
-            }}
-            style={shouldUseNarrowLayout && shouldShowGuideBookingButtonInEarlyDiscountBanner && styles.earlyDiscountButton}
-            icon={CalendarSolid}
-            // Ensure that a button with an icon displays an ellipsis when its content overflows https://github.com/Expensify/App/issues/58974#issuecomment-2794297554
-            iconWrapperStyles={[styles.mw100]}
-            isContentCentered
-        />
-    );
+    const guideBookingButton = useMemo(() => {
+        const activeScheduledCall = reportNameValuePairs?.calendlyCalls
+            ?.sort((callA, callB) => compareDesc(parseISO(callA.eventTime), parseISO(callB.eventTime)))
+            .find((call) => !isPast(parseISO(call.eventTime)) && call.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED);
+
+        if (!activeScheduledCall) {
+            return (
+                <Button
+                    success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
+                    text={translate('getAssistancePage.scheduleACall')}
+                    onPress={() => {
+                        if (!canUseCallScheduling) {
+                            openExternalLink(account?.guideDetails?.calendarLink ?? '');
+                            return;
+                        }
+                        if (!report?.reportID) {
+                            return;
+                        }
+                        clearBookingDraft();
+                        Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK.getRoute(report?.reportID));
+                    }}
+                    style={shouldUseNarrowLayout && shouldShowGuideBookingButtonInEarlyDiscountBanner && styles.earlyDiscountButton}
+                    icon={CalendarSolid}
+                    // Ensure that a button with an icon displays an ellipsis when its content overflows https://github.com/Expensify/App/issues/58974#issuecomment-2794297554
+                    iconWrapperStyles={[styles.mw100]}
+                    isContentCentered
+                />
+            );
+        }
+        const menuItems: Array<DropdownOption<string>> = [
+            {
+                text: `${format(new Date(activeScheduledCall.eventTime), CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${format(
+                    new Date(activeScheduledCall.eventTime),
+                    CONST.DATE.MONTH_DAY_YEAR_FORMAT,
+                )}`,
+                value: activeScheduledCall.eventTime,
+                description: `${DateUtils.formatToLocalTime(activeScheduledCall.eventTime)} - ${DateUtils.formatToLocalTime(
+                    addMinutes(activeScheduledCall.eventTime, 30),
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                )} ${DateUtils.getZoneAbbreviation(new Date(activeScheduledCall.eventTime), timezone.selected!)}`,
+                descriptionTextStyle: styles.themeTextColor,
+                icon: Illustrations.HeadSet,
+                iconWidth: 40,
+                iconHeight: 40,
+                wrapperStyle: [styles.mb4, styles.ph5, styles.pv5, styles.borderBottom],
+                interactive: false,
+            },
+            {
+                text: translate('common.reschedule'),
+                value: 'Reschedule',
+                onSelected: () => rescheduleBooking(activeScheduledCall),
+                icon: CalendarSolid,
+            },
+            {
+                text: translate('common.cancel'),
+                value: 'Cancel',
+                onSelected: () => cancelBooking(activeScheduledCall),
+                icon: Close,
+            },
+        ];
+
+        return (
+            <ButtonWithDropdownMenu
+                success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
+                onPress={() => null}
+                shouldAlwaysShowDropdownMenu
+                pressOnEnter
+                customText={translate('scheduledCall.callScheduled')}
+                icon={CalendarSolid}
+                options={menuItems}
+                isSplitButton={false}
+                style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                testID="scheduled-call-header-dropdown-menu-button"
+            />
+        );
+    }, [
+        account?.guideDetails?.calendarLink,
+        canUseCallScheduling,
+        report?.reportID,
+        reportNameValuePairs?.calendlyCalls,
+        shouldShowGuideBookingButtonInEarlyDiscountBanner,
+        shouldUseNarrowLayout,
+        styles.borderBottom,
+        styles.earlyDiscountButton,
+        styles.flexGrow1,
+        styles.mb4,
+        styles.mw100,
+        styles.ph5,
+        styles.pv5,
+        styles.themeTextColor,
+        timezone.selected,
+        translate,
+    ]);
 
     const talkToSalesButton = (
         <TalkToSalesButton
