@@ -34,7 +34,6 @@ type DropdownOption<TValueType> = {
     titleStyle?: ViewStyle;
     shouldCloseModalOnSelect?: boolean;
     displayInDefaultIconColor?: boolean;
-    shouldPreserveSelectionAfterHideModal?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
