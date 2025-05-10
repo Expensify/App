@@ -148,7 +148,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
      * Callback to handle scrolling to the new search result.
      */
     const handleSelectionListScroll = useCallback(
-        (data: SearchListItem[]) => (ref: SelectionListHandle | null) => {
+        (data: SearchListItem[], ref: SelectionListHandle | null) => {
             // Early return if there's no ref, new transaction wasn't brought in by this hook
             // or there's no new search result key
             if (!ref || !triggeredByHookRef.current || newSearchResultKey === null) {
