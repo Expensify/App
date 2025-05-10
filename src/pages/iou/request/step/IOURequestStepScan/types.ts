@@ -9,8 +9,11 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-        /* If the tooltip is allowed to be shown */
-        isTooltipAllowed?: boolean;
+        /**
+         * Callback function that is triggered on the `onLayout` event.
+         * Receives a function (`setTestReceiptAndNavigate`) as an argument,
+         */
+        onLayout: (setTestReceiptAndNavigate: () => void) => void;
     };
 
 export default IOURequestStepScanProps;
