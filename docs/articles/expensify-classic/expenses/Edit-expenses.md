@@ -4,8 +4,6 @@ description: Learn how to edit expenses in Expensify, including restrictions and
 keywords: [Expensify Classic, edit expenses, merge expenses, split expenses, delete expenses]
 ---
 
-<div id="expensify-classic" markdown="1">
-
 You can edit expenses in Expensify to update details like category, description, or attendees. You can also split or merge expenses to break up a larger expense or resolve duplicates. However, some fields have restrictions based on the expense type and report status.
 
 ---
@@ -189,4 +187,3 @@ Yes! When a SmartScanned receipt matches an imported credit card transaction by 
 
 You can still merge expenses manually if both are **Unreported** or **Open** and exist in the same account.
 
-</div>
