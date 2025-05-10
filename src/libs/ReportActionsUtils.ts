@@ -1048,7 +1048,11 @@ function getSortedReportActionsForDisplay(
  */
 function getLastClosedReportAction(reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
     // If closed report action is not present, return early
-    if (!Object.values(reportActions ?? {}).some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
+    if (
+        !Object.values(reportActions ?? {}).some((action) => {
+            return action?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED;
+        })
+    ) {
         return undefined;
     }
 
