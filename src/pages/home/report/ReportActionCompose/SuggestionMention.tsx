@@ -92,7 +92,7 @@ function SuggestionMention(
     // eslint-disable-next-line react-compiler/react-compiler
     suggestionValuesRef.current = suggestionValues;
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
@@ -190,6 +190,15 @@ function SuggestionMention(
         [formatLoginPrivateDomain],
     );
 
+    function getOriginalMentionText(inputValue: string, atSignIndex: number) {
+        const rest = inputValue.slice(atSignIndex);
+
+        const breakerIndex = rest.search(CONST.REGEX.MENTION_BREAKER);
+
+        // If no breaker is found, return the entire rest of the string
+        return breakerIndex === -1 ? rest : rest.slice(0, breakerIndex);
+    }
+
     /**
      * Replace the code of mention and update selection
      */
@@ -201,8 +210,8 @@ function SuggestionMention(
                 return;
             }
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
-            const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
-
+            const originalMention = getOriginalMentionText(value, suggestionValues.atSignIndex);
+            const commentAfterMention = value.slice(suggestionValues.atSignIndex + originalMention.length);
             updateComment(`${commentBeforeAtSign}${mentionCode} ${trimLeadingSpace(commentAfterMention)}`, true);
             const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH;
             setSelection({
@@ -216,16 +225,7 @@ function SuggestionMention(
                 shouldShowSuggestionMenu: false,
             }));
         },
-        [
-            value,
-            suggestionValues.atSignIndex,
-            suggestionValues.suggestedMentions,
-            suggestionValues.prefixType,
-            suggestionValues.mentionPrefix.length,
-            getMentionCode,
-            updateComment,
-            setSelection,
-        ],
+        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.prefixType, getMentionCode, updateComment, setSelection],
     );
 
     /**
