@@ -583,9 +583,6 @@ function setTransactionReport(transactionID: string, reportID: string, isDraft: 
 
 function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    if (!newReport) {
-        return;
-    }
 
     const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
@@ -626,7 +623,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         if (oldReportID) {
             updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : oldReport?.total ?? 0) + transactionAmount;
         }
-        if (reportID) {
+        if (reportID && newReport) {
             updatedReportTotals[reportID] = (updatedReportTotals[reportID] ? updatedReportTotals[reportID] : newReport.total ?? 0) - transactionAmount;
         }
 
@@ -702,7 +699,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             value: {
                 parentReportID: reportID,
                 parentReportActionID: optimisticMoneyRequestReportActionID,
-                policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? newReport.policyID : CONST.POLICY.ID_FAKE,
+                policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
             },
         });
 
