@@ -11,6 +11,7 @@ const componentsSpacing = {
 };
 
 const NEXT_TRANSACTION_PEEK = 32;
+const TRANSACTION_WIDTH_WIDE = 303;
 
 const mobileStyle = (currentWidth: number, isSingleTransaction?: boolean) => {
     const peek = isSingleTransaction ? spacing.p4.padding : NEXT_TRANSACTION_PEEK;
@@ -18,17 +19,24 @@ const mobileStyle = (currentWidth: number, isSingleTransaction?: boolean) => {
     return {
         transactionPreviewStyle: {width: transactionPreviewWidth, maxWidth: transactionPreviewWidth},
         componentStyle: [sizing.mw100, {width: '100%'}],
+        expenseCountVisible: false,
     };
 };
 
-const desktopStyle = {
-    transactionPreviewStyle: {width: 303},
-    componentStyle: [{maxWidth: 'min(680px, 100%)'}, {width: 'min-content'}],
+const desktopStyle = (currentWidth: number, isSingleTransaction?: boolean) => {
+    const peek = isSingleTransaction ? spacing.p4.padding : NEXT_TRANSACTION_PEEK;
+    const transactionPreviewWidth = currentWidth - spacing.p4.padding - peek;
+    const minimalWrapperWidth = TRANSACTION_WIDTH_WIDE + spacing.p4.padding + peek;
+    return {
+        transactionPreviewStyle: {width: currentWidth > minimalWrapperWidth ? TRANSACTION_WIDTH_WIDE : transactionPreviewWidth},
+        componentStyle: [{maxWidth: 'min(680px, 100%)'}, {width: 'min-content'}],
+        expenseCountVisible: transactionPreviewWidth >= TRANSACTION_WIDTH_WIDE,
+    };
 };
 
 const getMoneyRequestReportPreviewStyle = (shouldUseNarrowLayout: boolean, currentWidth?: number, isSingleTransaction?: boolean): MoneyRequestReportPreviewStyleType => ({
     ...componentsSpacing,
-    ...(shouldUseNarrowLayout ? mobileStyle(currentWidth ?? 256, isSingleTransaction) : desktopStyle),
+    ...(shouldUseNarrowLayout ? mobileStyle(currentWidth ?? 256, isSingleTransaction) : desktopStyle(currentWidth ?? 1000, isSingleTransaction)),
 });
 
 export default getMoneyRequestReportPreviewStyle;
