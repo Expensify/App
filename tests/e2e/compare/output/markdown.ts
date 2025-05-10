@@ -7,8 +7,15 @@ import type {Data, Entry} from './console';
 import * as format from './format';
 import markdownTable from './markdownTable';
 
-const MAX_CHARACTERS_PER_FILE = 65536;
-const FILE_SIZE_SAFETY_MARGIN = 1000;
+// This is the maximum number of characters allowed to post to a GitHub comment body through the GitHub CLI
+// Total of 65536 4-byte unicode characters, but we're mostly not sending 4 bytes per character
+// const MAX_CHARACTERS_PER_FILE = 65536;
+
+// According to (1.) article and (2.) oist, the maximum number of characters per file is actually 262.144 characters
+// 1. https://github.com/dead-claudia/github-limits (PR Body)
+// 2. https://github.com/orgs/community/discussions/41331#discussioncomment-9276173
+const MAX_CHARACTERS_PER_FILE = 262144;
+const FILE_SIZE_SAFETY_MARGIN = 500;
 const MAX_CHARACTERS_PER_FILE_WITH_SAFETY_MARGIN = MAX_CHARACTERS_PER_FILE - FILE_SIZE_SAFETY_MARGIN;
 
 const tableHeader = ['Name', 'Duration'];
@@ -49,41 +56,49 @@ const formatEntryDuration = (entry: Entry): string => {
     return '';
 };
 
-const buildDetailsTable = (entries: Entry[], numberOfTables = 1) => {
-    if (!entries.length) {
-        return [''];
-    }
-
+const splitEntriesPerTable = (entries: Entry[], numberOfTables: number) => {
     // We always need at least one table
     const safeNumberOfTables = numberOfTables === 0 ? 1 : numberOfTables;
 
     const entriesPerTable = Math.floor(entries.length / safeNumberOfTables);
-    const tables: string[] = [];
-    for (let i = 0; i < safeNumberOfTables; i++) {
+    const tables: Entry[][] = [];
+    for (let i = 0; i < numberOfTables; i++) {
         const start = i * entriesPerTable;
-        const end = i === safeNumberOfTables - 1 ? entries.length : start + entriesPerTable;
+        const end = i === numberOfTables - 1 ? entries.length : start + entriesPerTable;
         const tableEntries = entries.slice(start, end);
 
-        const rows = tableEntries.map((entry) => [entry.name, buildDurationDetailsEntry(entry)]);
-        const content = markdownTable([tableHeader, ...rows]);
-
-        const tableMarkdown = collapsibleSection('Show details', content);
-
-        tables.push(tableMarkdown);
+        tables.push(tableEntries);
     }
 
     return tables;
 };
 
-const buildSummaryTable = (entries: Entry[], collapse = false) => {
-    if (!entries.length) {
-        return '_There are no entries_';
+const buildDetailsTable = (entriesByTable: Entry[][]) => {
+    if (!entriesByTable.length) {
+        return [''];
     }
 
-    const rows = entries.map((entry) => [entry.name, formatEntryDuration(entry)]);
-    const content = markdownTable([tableHeader, ...rows]);
+    return entriesByTable.map((entries) => {
+        const rows = entries.map((entry) => [entry.name, buildDurationDetailsEntry(entry)]);
+        const content = markdownTable([tableHeader, ...rows]);
 
-    return collapse ? collapsibleSection('Show entries', content) : content;
+        const tableMarkdown = collapsibleSection('Show details', content);
+        return tableMarkdown;
+    });
+};
+
+const buildSummaryTable = (entriesByTable: Entry[][], collapse = false) => {
+    if (!entriesByTable.length) {
+        return ['_There are no entries_'];
+    }
+
+    return entriesByTable.map((entries) => {
+        const rows = entries.map((entry) => [entry.name, formatEntryDuration(entry)]);
+        const content = markdownTable([tableHeader, ...rows]);
+
+        const tableMarkdown = collapse ? collapsibleSection('Show entries', content) : content;
+        return tableMarkdown;
+    });
 };
 
 const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: number): [string, ...string[]] => {
@@ -126,16 +141,18 @@ const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: 
     }
 
     mainFile += '\n\n### Significant Changes To Duration';
-    mainFile += `\n${buildSummaryTable(data.significance)}`;
-    mainFile += `\n${buildDetailsTable(data.significance, 1).at(0)}`;
+    mainFile += `\n${buildSummaryTable([data.significance]).at(0)}`;
+    mainFile += `\n${buildDetailsTable([data.significance]).at(0)}`;
 
     // We always need at least one table
-    const numberOfMeaninglessDetailsTables = nExtraFiles === 0 ? 1 : nExtraFiles;
-    const meaninglessDetailsTables = buildDetailsTable(data.meaningless, numberOfMeaninglessDetailsTables);
+    const numberOfMeaninglessDataTables = nExtraFiles === 0 ? 1 : nExtraFiles;
+    const meaninglessEntriesPerTable = splitEntriesPerTable(data.meaningless, numberOfMeaninglessDataTables);
+    const meaninglessSummaryTable = buildSummaryTable(meaninglessEntriesPerTable, true);
+    const meaninglessDetailsTables = buildDetailsTable(meaninglessEntriesPerTable);
 
     if (nExtraFiles === 0) {
         mainFile += '\n\n### Meaningless Changes To Duration';
-        mainFile += `\n${buildSummaryTable(data.meaningless, true)}`;
+        mainFile += `\n${meaninglessSummaryTable.at(0)}`;
         mainFile += `\n${meaninglessDetailsTables.at(0)}`;
 
         return [mainFile];
@@ -149,7 +166,7 @@ const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: 
         extraFile += '\n\n### Meaningless Changes To Duration';
         extraFile += nExtraFiles >= 2 ? ` (${i + 1}/${nExtraFiles})` : '';
 
-        extraFile += `\n${buildSummaryTable(data.meaningless, true)}`;
+        extraFile += `\n${meaninglessSummaryTable.at(i)}`;
         extraFile += `\n${meaninglessDetailsTables.at(i)}`;
         extraFile += '\n';
 
