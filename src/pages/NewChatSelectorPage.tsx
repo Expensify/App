@@ -38,6 +38,8 @@ function NewChatSelectorPage() {
         setActiveTabContainerElement(activeTabElement ?? null);
     }, []);
 
+    // We're focusing the input using internal onPageSelected to fix input focus inconsistencies on native.
+    // More info: https://github.com/Expensify/App/issues/59388
     const onTabSelectFocusHandler = (index: number) => {
         // Chat tab (0) / Room tab (1) according to OnyxTabNavigator (see below)
         if (index === 0) {
