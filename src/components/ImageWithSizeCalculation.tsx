@@ -31,6 +31,8 @@ type ImageWithSizeCalculationProps = {
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
 
+    onLoaded?: () => void;
+
     /** Callback fired when the image has been measured. */
     onMeasure: OnMeasure;
 
@@ -49,7 +51,16 @@ type ImageWithSizeCalculationProps = {
  * performing some calculation on a network image after fetching dimensions so
  * it can be appropriately resized.
  */
-function ImageWithSizeCalculation({url, altText, style, onMeasure, onLoadFailure, isAuthTokenRequired, objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL}: ImageWithSizeCalculationProps) {
+function ImageWithSizeCalculation({
+    url,
+    altText,
+    style,
+    onLoaded,
+    onMeasure,
+    onLoadFailure,
+    isAuthTokenRequired,
+    objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
+}: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
@@ -73,6 +84,7 @@ function ImageWithSizeCalculation({url, altText, style, onMeasure, onLoadFailure
 
     const imageLoadedSuccessfully = (event: OnLoadNativeEvent) => {
         isLoadedRef.current = true;
+        onLoaded?.();
         setIsLoading(false);
         setIsImageCached(true);
         onMeasure({

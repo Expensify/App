@@ -1,13 +1,15 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Attachment from '@libs/actions/Attachment';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Download from '@userActions/Download';
 import CONST from '@src/CONST';
@@ -22,8 +24,8 @@ type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
     onPressOut?: () => void;
 };
 
-function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onPressIn, onPressOut, isDeleted}: BaseAnchorForAttachmentsOnlyProps) {
-    const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
+function BaseAnchorForAttachmentsOnly({style, attachmentID, source = '', displayName = '', onPressIn, onPressOut, isDeleted = false}: BaseAnchorForAttachmentsOnlyProps) {
+    const finalSourceURL = FileUtils.isLocalFile(source) ? source : addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
@@ -32,6 +34,21 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     const styles = useThemeStyles();
 
     const isDownloading = download?.isDownloading ?? false;
+
+    const cacheAttachmentFile = () => {
+        if (FileUtils.isLocalFile(source) || !attachmentID) {
+            return;
+        }
+        Attachment.cacheAttachment({
+            attachmentID,
+            url: finalSourceURL,
+        });
+    };
+
+    useEffect(() => {
+        // This is to improve the loading perfomance by caching the remote source
+        cacheAttachmentFile();
+    }, []);
 
     return (
         <ShowContextMenuContext.Consumer>
@@ -43,7 +60,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                             return;
                         }
                         Download.setDownload(sourceID, true);
-                        fileDownload(sourceURLWithAuth, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(sourceID, false));
+                        fileDownload(finalSourceURL, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(sourceID, false));
                     }}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
@@ -60,12 +77,12 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                     <AttachmentView
                         source={source}
                         file={{name: displayName}}
+                        isAuthTokenRequired={true}
                         shouldShowDownloadIcon={!!sourceID && !isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
                         isUsedAsChatAttachment
                         isDeleted={!!isDeleted}
                         isUploading={!sourceID}
-                        isAuthTokenRequired={!!sourceID}
                     />
                 </PressableWithoutFeedback>
             )}

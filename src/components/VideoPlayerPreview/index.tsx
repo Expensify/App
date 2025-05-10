@@ -14,6 +14,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+import * as Attachment from '@libs/actions/Attachment';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
@@ -24,6 +26,9 @@ type VideoDimensions = {
 };
 
 type VideoPlayerPreviewProps = {
+    /** attachmentID of the video */
+    attachmentID?: string;
+
     /** Url to a video. */
     videoUrl: string;
 
@@ -51,7 +56,7 @@ type VideoPlayerPreviewProps = {
 
 const isOnAttachmentRoute = () => Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}`;
 
-function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress, isDeleted}: VideoPlayerPreviewProps) {
+function VideoPlayerPreview({attachmentID, videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress, isDeleted}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID} = usePlaybackContext();
@@ -74,6 +79,14 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
     const onVideoLoaded = (event: VideoReadyForDisplayEvent & {srcElement: HTMLVideoElement}) => {
         setMeasuredDimensions({width: event.srcElement.videoWidth, height: event.srcElement.videoHeight});
+        const isLocalOrCachedSource = FileUtils.isLocalFile(videoUrl);
+        if (isLocalOrCachedSource || !attachmentID) {
+            return;
+        }
+        Attachment.cacheAttachment({
+            attachmentID,
+            url: videoUrl,
+        });
     };
 
     const handleOnPress = () => {

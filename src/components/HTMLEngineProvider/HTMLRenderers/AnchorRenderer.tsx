@@ -5,12 +5,14 @@ import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
+import {useAttachmentContext} from '@components/AttachmentContext';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Attachment from '@libs/actions/Attachment';
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openExternalLink, openLink} from '@libs/actions/Link';
 import {isAnonymousUser} from '@libs/actions/Session';
 import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
@@ -40,12 +42,15 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
     const styles = useThemeStyles();
     const htmlAttribs = tnode.attributes;
+    const {reportID, reportActionID} = useAttachmentContext();
     const {environment, environmentURL} = useEnvironment();
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
     const tNodeChild = tnode?.domNode?.children?.at(0);
     const displayName = tNodeChild && 'data' in tNodeChild && typeof tNodeChild.data === 'string' ? tNodeChild.data : '';
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
+    const attachmentURLID = useMemo(() => `${reportID}_${reportActionID}`, [reportID, reportActionID]);
+    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] || attachmentURLID;
     const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
     const internalNewExpensifyPath = getInternalNewExpensifyPath(attrHref);
     const internalExpensifyPath = getInternalExpensifyPath(attrHref);
@@ -94,11 +99,13 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     }
 
     if (isAttachment && !isVideo) {
+        const source = tryResolveUrlFromApiRoot(attrHref);
+        const attachmentSource = Attachment.getAttachmentSource(attachmentID, source);
         return (
             <AnchorForAttachmentsOnly
-                source={tryResolveUrlFromApiRoot(attrHref)}
+                attachmentID={attachmentID}
+                source={attachmentSource}
                 displayName={displayName}
-                isDeleted={isDeleted}
             />
         );
     }

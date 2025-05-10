@@ -292,7 +292,7 @@ function isLocalFile(receiptUri?: string | number): boolean {
     if (!receiptUri) {
         return false;
     }
-    return typeof receiptUri === 'number' || receiptUri?.startsWith('blob:') || receiptUri?.startsWith('file:') || receiptUri?.startsWith('/');
+    return typeof receiptUri === 'number' || receiptUri?.startsWith('blob:') || receiptUri?.startsWith('file:') || receiptUri?.startsWith('content:') || receiptUri?.startsWith('/');
 }
 
 function getFileResolution(targetFile: FileObject | undefined): Promise<{width: number; height: number} | null> {

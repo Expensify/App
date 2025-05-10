@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
-import {AttachmentContext} from '@components/AttachmentContext';
+import {AttachmentContext, useAttachmentContext} from '@components/AttachmentContext';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import VideoPlayerPreview from '@components/VideoPlayerPreview';
+import {getAttachmentSource} from '@libs/actions/Attachment';
 import {getFileName} from '@libs/fileDownload/FileUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import Navigation from '@navigation/Navigation';
@@ -19,14 +20,16 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const htmlAttribs = tnode.attributes;
     const attrHref = htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || htmlAttribs.src || htmlAttribs.href || '';
     const sourceURL = tryResolveUrlFromApiRoot(attrHref);
+    const {reportID, reportActionID} = useAttachmentContext();
     const fileName = getFileName(`${sourceURL}`);
     const thumbnailUrl = tryResolveUrlFromApiRoot(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE]);
     const width = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE]);
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
     const isDeleted = isDeletedNode(tnode);
-    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE];
+    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] || `${reportID}_${reportActionID}`;
 
+    const videoSource = getAttachmentSource(attachmentID, sourceURL) || sourceURL;
     return (
         <ShowContextMenuContext.Consumer>
             {({report}) => (
@@ -34,7 +37,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                     {({accountID, type, hashKey, reportID}) => (
                         <VideoPlayerPreview
                             key={key}
-                            videoUrl={sourceURL}
+                            videoUrl={videoSource}
                             reportID={reportID ?? report?.reportID}
                             fileName={fileName}
                             thumbnailUrl={thumbnailUrl}
@@ -42,11 +45,11 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                             videoDuration={duration}
                             isDeleted={isDeleted}
                             onShowModalPress={() => {
-                                if (!sourceURL || !type) {
+                                if (!videoSource || !type) {
                                     return;
                                 }
                                 const isAuthTokenRequired = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, attachmentID, type, sourceURL, accountID, isAuthTokenRequired, undefined, undefined, hashKey);
+                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, attachmentID, type, videoSource, accountID, isAuthTokenRequired, undefined, undefined, hashKey);
                                 Navigation.navigate(route);
                             }}
                         />
