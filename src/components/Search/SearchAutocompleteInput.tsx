@@ -16,12 +16,16 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearAdvancedFilters} from '@libs/actions/Search';
 import {parseFSAttributes} from '@libs/Fullstory';
+import Navigation from '@libs/Navigation/Navigation';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import getSearchFiltersButtonTransition from './getSearchFiltersButtonTransition.ts/index';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
@@ -178,7 +182,14 @@ function SearchAutocompleteInput(
 
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
-
+    const onClearInput = () => {
+        clearAdvancedFilters();
+        Navigation.navigate(
+            ROUTES.SEARCH_ROOT.getRoute({
+                query: buildCannedSearchQuery(),
+            }),
+        );
+    };
     return (
         <View style={[outerWrapperStyle]}>
             <Animated.View
@@ -227,6 +238,9 @@ function SearchAutocompleteInput(
                         multiline={false}
                         parser={parser}
                         selection={selection}
+                        shouldHideClearButton={false}
+                        shouldAddMarginTopToClearButton={false}
+                        onClearInput={onClearInput}
                     />
                 </View>
                 {!!rightComponent && (
