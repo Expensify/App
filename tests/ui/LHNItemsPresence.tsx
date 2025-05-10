@@ -274,6 +274,7 @@ describe('SidebarLinksData', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const archivedReport: Report = {
                 ...createReport(false),
+                lastMessageText: 'some last message',
             };
             const reportNameValuePairs = {
                 type: 'chat',
