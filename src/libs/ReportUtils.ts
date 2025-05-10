@@ -456,6 +456,11 @@ type OptimisticHoldReportAction = Pick<
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
+type OptimisticRetractedReportAction = Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+>;
+
 type OptimisticCancelPaymentReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
@@ -6843,6 +6848,33 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
     };
 }
 
+function buildOptimisticRetractedReportAction(created = DateUtils.getDBTime()): OptimisticRetractedReportAction {
+    return {
+        reportActionID: rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+        actorAccountID: currentUserAccountID,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: 'retracted',
+                html: `<muted-text>retracted</muted-text>`,
+            },
+        ],
+        person: [
+            {
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+        ],
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        created,
+        shouldShow: true,
+    };
+}
+
 function buildOptimisticEditedTaskFieldReportAction({title, description}: Task): OptimisticEditedTaskReportAction {
     // We do not modify title & description in one request, so we need to create a different optimistic action for each field modification
     let field = '';
@@ -10716,6 +10748,7 @@ export {
     buildOptimisticGroupChatReport,
     buildOptimisticHoldReportAction,
     buildOptimisticHoldReportActionComment,
+    buildOptimisticRetractedReportAction,
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
     buildOptimisticModifiedExpenseReportAction,

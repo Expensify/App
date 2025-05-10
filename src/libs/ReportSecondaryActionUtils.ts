@@ -13,6 +13,7 @@ import {
     hasAccountingConnections,
     hasIntegrationAutoSync,
     isPrefferedExporter,
+    isSubmitAndClose as isSubmitAndCloseUtils,
 } from './PolicyUtils';
 import {getIOUActionForReportID, isPayAction} from './ReportActionsUtils';
 import {
@@ -347,6 +348,26 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[]): bool
     return isReportOpen || isProcessingReport;
 }
 
+function isRetractAction(report: Report, policy?: Policy): boolean {
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isSubmitAndClose = isSubmitAndCloseUtils(policy);
+    if (!isExpenseReport || isSubmitAndClose) {
+        return false;
+    }
+
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    if (!isReportSubmitter) {
+        return false;
+    }
+
+    const isProcessingReport = isProcessingReportUtils(report);
+    if (!isProcessingReport) {
+        return false;
+    }
+
+    return true;
+}
+
 function getSecondaryReportActions(
     report: Report,
     reportTransactions: Transaction[],
@@ -383,6 +404,10 @@ function getSecondaryReportActions(
 
     if (isMarkAsExportedAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
+    }
+
+    if (isRetractAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
     }
 
     if (isHoldAction(report, reportTransactions)) {
