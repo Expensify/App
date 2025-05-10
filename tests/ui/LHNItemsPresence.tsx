@@ -25,7 +25,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
 jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
-jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),

@@ -19,6 +19,7 @@ import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -135,9 +136,10 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isReportArchived = useReportIsArchived(viewTourTaskReport?.parentReportID);
-    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isReportArchived);
-    const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const parentReport = useParentReport(viewTourTaskReport?.reportID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const isTaskModifiable = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const isTaskActionable = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
     const content = useMemo(() => {
         switch (type) {
@@ -164,7 +166,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
+                                              if (viewTourTaskReport && isTaskModifiable && isTaskActionable) {
                                                   completeTask(viewTourTaskReport);
                                               }
                                           },
@@ -204,7 +206,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
+                                              if (viewTourTaskReport && isTaskModifiable && isTaskActionable) {
                                                   completeTask(viewTourTaskReport);
                                               }
                                           },
@@ -253,8 +255,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         shouldRedirectToExpensifyClassic,
         hasResults,
         viewTourTaskReport,
-        canModifyTheTask,
-        canActionTheTask,
+        isTaskModifiable,
+        isTaskActionable,
     ]);
 
     return (

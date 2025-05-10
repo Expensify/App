@@ -21,7 +21,6 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 TestHelper.setupGlobalFetchMock();
-jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.unmock('react-native-reanimated');
 
