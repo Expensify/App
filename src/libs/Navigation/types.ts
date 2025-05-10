@@ -1620,6 +1620,15 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
         domain: string;
     };
+    [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: {
+        backTo?: Routes;
+    };
+    [SCREENS.TRAVEL.UPGRADE]: {
+        backTo?: Routes;
+    };
+    [SCREENS.TRAVEL.DOMAIN_SELECTOR]: {
+        backTo?: Routes;
+    };
 };
 
 type ReportsSplitNavigatorParamList = {
