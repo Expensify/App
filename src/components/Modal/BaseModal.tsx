@@ -100,7 +100,7 @@ function BaseModal(
     const insets = useSafeAreaInsets();
 
     const isVisibleRef = useRef(isVisible);
-    const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>();
+    const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
 
     const wasVisible = usePrevious(isVisible);
 

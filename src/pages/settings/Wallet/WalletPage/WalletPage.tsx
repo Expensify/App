@@ -522,7 +522,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                             source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                             shouldIncludeDebitCard={hasActivatedWallet}
                                         >
-                                            {(triggerKYCFlow: (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => void, buttonRef: RefObject<View>) => {
+                                            {(
+                                                triggerKYCFlow: (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => void,
+                                                buttonRef: RefObject<View | null>,
+                                            ) => {
                                                 if (shouldShowLoadingSpinner) {
                                                     return null;
                                                 }
@@ -611,7 +614,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         top: anchorPosition.anchorPositionTop,
                         right: anchorPosition.anchorPositionRight,
                     }}
-                    anchorRef={paymentMethodButtonRef as RefObject<View>}
+                    anchorRef={paymentMethodButtonRef as RefObject<View | null>}
                 >
                     {!showConfirmDeleteModal && (
                         <View
@@ -679,7 +682,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         top: anchorPosition.anchorPositionTop,
                         right: anchorPosition.anchorPositionRight,
                     }}
-                    anchorRef={paymentMethodButtonRef as RefObject<View>}
+                    anchorRef={paymentMethodButtonRef as RefObject<View | null>}
                 >
                     <View
                         style={[

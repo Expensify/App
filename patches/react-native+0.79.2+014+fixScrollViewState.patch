@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollViewHelper.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollViewHelper.kt
+index fabeec1..603c47c 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollViewHelper.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollViewHelper.kt
+@@ -503,7 +503,7 @@ public object ReactScrollViewHelper {
+     /** Get the padding on the top for nav bar */
+     public var scrollAwayPaddingTop: Int = 0
+     /** Get the Fabric state of last scroll position */
+-    public val lastStateUpdateScroll: Point = Point(-1, -1)
++    public val lastStateUpdateScroll: Point = Point(0, 0)
+     /** Get true if the previous animation was canceled */
+     public var isCanceled: Boolean = false
+     /** Get true if previous animation was finished */

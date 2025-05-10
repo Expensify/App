@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ScreenWrapperChildrenProps} from '@components/ScreenWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import callOrReturn from '@src/types/utils/callOrReturn';
 
 type StepScreenWrapperProps = {
@@ -35,7 +35,7 @@ type StepScreenWrapperProps = {
     includeSafeAreaPaddingBottom?: boolean;
 
     /** Returns a function as a child to pass insets to or a node to render without insets */
-    children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
+    children: ReactNode | ((props: ScreenWrapperChildrenProps) => ReactNode);
 };
 
 function StepScreenWrapper({
@@ -60,7 +60,7 @@ function StepScreenWrapper({
             includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
-            shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMaxHeight={canUseTouchScreen()}
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
         >
             {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
