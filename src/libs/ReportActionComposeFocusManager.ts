@@ -83,6 +83,10 @@ function isEditFocused(): boolean {
     return !!editComposerRef.current?.isFocused();
 }
 
+function preventFocusOnFirstResponderOnce() {
+    composerRef.current?.preventFocusOnFirstResponderOnce();
+}
+
 export default {
     composerRef,
     onComposerFocus,
@@ -91,4 +95,5 @@ export default {
     isFocused,
     editComposerRef,
     isEditFocused,
+    preventFocusOnFirstResponderOnce,
 };

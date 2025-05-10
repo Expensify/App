@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
+import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {emojiPickerRef, resetEmojiPopoverAnchor, showEmojiPicker} from '@userActions/EmojiPickerAction';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
@@ -58,6 +59,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
 
     const onPress = () => {
         const openPicker = (refParam?: PickerRefElement, anchorOrigin?: AnchorOrigin) => {
+            const wasComposerFocused = contextMenuRef.current?.wasComposerFocused;
             showEmojiPicker(
                 () => {
                     setIsEmojiPickerActive?.(false);
@@ -69,6 +71,8 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                 anchorOrigin,
                 onWillShowPicker,
                 reportAction.reportActionID,
+                undefined,
+                wasComposerFocused,
             );
         };
 

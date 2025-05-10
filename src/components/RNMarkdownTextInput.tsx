@@ -71,7 +71,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
     );
 }
 
-RNMarkdownTextInputWithRef.displayName = 'RNTextInputWithRef';
+RNMarkdownTextInputWithRef.displayName = 'RNMarkdownTextInputWithRef';
 
 export default forwardRef(RNMarkdownTextInputWithRef);
 export type {AnimatedMarkdownTextInputRef};
