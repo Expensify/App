@@ -1,21 +1,25 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {dismissProductTraining} from '@libs/actions/Welcome';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getPerDiemCustomUnit, getPerDiemCustomUnits} from '@libs/PolicyUtils';
+import Permissions from '@libs/Permissions';
+import {getPerDiemCustomUnit, getPerDiemCustomUnits, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
@@ -119,6 +123,21 @@ function IOURequestStartPage({
     const shouldShowPerDiemOption =
         iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+    const setTestReceiptAndNavigateRef = useRef<() => void>();
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
+        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && selectedTab === CONST.TAB_REQUEST.SCAN && !isUserInvitedToWorkspace(),
+        {
+            onConfirm: () => {
+                setTestReceiptAndNavigateRef?.current?.();
+            },
+            onDismiss: () => {
+                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
+            },
+        },
+    );
+
     return (
         <AccessOrNotFoundWrapper
             reportID={reportID}
@@ -158,6 +177,8 @@ function IOURequestStartPage({
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                                 shouldShowLabelWhenInactive={!shouldShowPerDiemOption}
+                                shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
+                                renderProductTrainingTooltip={renderProductTrainingTooltip}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
@@ -176,7 +197,9 @@ function IOURequestStartPage({
                                             <IOURequestStepScan
                                                 route={route}
                                                 navigation={navigation}
-                                                isTooltipAllowed
+                                                onLayout={(setTestReceiptAndNavigate) => {
+                                                    setTestReceiptAndNavigateRef.current = setTestReceiptAndNavigate;
+                                                }}
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
