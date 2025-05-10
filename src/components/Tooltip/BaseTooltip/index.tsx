@@ -87,7 +87,7 @@ function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps,
         [children, updateTargetAndMousePosition],
     );
 
-    // If the device doesn't support hover or the element isn't focused, skip rendering the tooltip and just return the children.
+    // Skip the tooltip and return the children if the device does not support hovering or if navigation does not focus.
     if (!hasHoverSupport || !isFocused) {
         return children;
     }
