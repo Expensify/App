@@ -1387,7 +1387,7 @@ function PureReportActionItem({
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
                         {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                        {shouldDisplayContextMenu && (
+                        {hovered && shouldDisplayContextMenu && (
                             <MiniReportActionContextMenu
                                 reportID={reportID}
                                 reportActionID={action.reportActionID}
