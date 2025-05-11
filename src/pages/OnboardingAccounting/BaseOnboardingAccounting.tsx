@@ -268,6 +268,16 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         userReportedIntegration,
     ]);
 
+    const getLabelComponent = useCallback(
+        (item: OnboardingListItem) => (
+            <View style={[styles.alignItemsCenter, styles.flexRow]}>
+                {item.leftElement}
+                <Text style={styles.textStrong}>{item.text}</Text>
+            </View>
+        ),
+        [styles.alignItemsCenter, styles.flexRow, styles.textStrong],
+    );
+
     const renderOption = useCallback(
         (item: OnboardingListItem) => (
             <RadioButtonWithLabel
@@ -279,15 +289,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 }}
                 style={[styles.flexRowReverse, styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}
                 wrapperStyle={[styles.ml0]}
-                LabelComponent={() => (
-                    <View style={[styles.alignItemsCenter, styles.flexRow]}>
-                        {item.leftElement}
-                        <Text style={styles.textStrong}>{item.text}</Text>
-                    </View>
-                )}
+                LabelComponent={() => getLabelComponent(item)}
             />
         ),
-        [isSmallScreenWidth, styles],
+        [getLabelComponent, isSmallScreenWidth, styles.flexBasis100, styles.flexRowReverse, styles.ml0, styles.onboardingAccountingItem],
     );
 
     return (
