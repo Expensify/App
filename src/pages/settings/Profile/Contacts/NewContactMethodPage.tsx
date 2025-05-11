@@ -23,7 +23,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getContactMethod} from '@libs/UserUtils';
-import VerifyAccountPage from '@pages/settings/Wallet/VerifyAccountPage';
 import {
     addNewContactMethod as addNewContactMethodUser,
     addPendingContactMethod,
@@ -42,7 +41,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type NewContactMethodPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
-function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
+function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const contactMethod = getContactMethod();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -52,7 +51,6 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE.getRoute();
 
@@ -129,14 +127,6 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
     }, [navigateBackTo]);
 
-    if (!isUserValidated) {
-        return (
-            <VerifyAccountPage
-                route={route}
-                navigation={navigation}
-            />
-        );
-    }
 
     return (
         <ScreenWrapper
