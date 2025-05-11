@@ -560,7 +560,7 @@ function MoneyRequestConfirmationListFooter({
                         disabled={didConfirm}
                         interactive={!isReadOnly}
                         rightLabel={isTagRequired ? translate('common.required') : ''}
-                        descriptionTextStyle={{lineHeight: variables.lineHeightLarge}}
+                        descriptionTextStyle={{lineHeight: variables.lineHeightXLarge}}
                     />
                 ),
                 shouldShow,
