@@ -10,7 +10,20 @@ import isE2ETestSession from './E2E/isE2ETestSession';
 import getComponentDisplayName from './getComponentDisplayName';
 import canCapturePerformanceMetrics from './Metrics';
 
-const METRIC_NAMES = {
+const MARKS = {
+    NATIVE_LAUNCH_START: 'nativeLaunchStart',
+    NATIVE_LAUNCH_END: 'nativeLaunchEnd',
+    DOWNLOAD_START: 'downloadStart',
+    DOWNLOAD_END: 'downloadEnd',
+    RUN_JS_BUNDLE_START: 'runJsBundleStart',
+    RUN_JS_BUNDLE_END: 'runJsBundleEnd',
+    APP_CREATION_START: 'appCreationStart',
+    APP_CREATION_END: 'appCreationEnd',
+    CONTENT_APPEARED: 'contentAppeared',
+    SCREEN_TTI: 'screenTTI',
+} as const;
+
+const METRICS = {
     NATIVE_LAUNCH: 'nativeLaunch',
     NATIVE_LAUNCH_END_TO_APP_CREATION_START: 'nativeLaunchEnd_To_appCreationStart',
     APP_CREATION: 'appCreation',
@@ -60,7 +73,7 @@ function measureTTI(endMark?: string): void {
     // Make sure TTI is captured when the app is really usable
     InteractionManager.runAfterInteractions(() => {
         requestAnimationFrame(() => {
-            measureFailSafe(METRIC_NAMES.TTI, 'nativeLaunchStart', endMark);
+            measureFailSafe(METRICS.TTI, MARKS.NATIVE_LAUNCH_START, endMark);
 
             // We don't want an alert to show:
             // - on builds with performance metrics collection disabled by a feature flag
@@ -79,26 +92,26 @@ function measureTTI(endMark?: string): void {
  */
 const nativeMarksObserver = new PerformanceObserver((list, _observer) => {
     list.getEntries().forEach((entry) => {
-        if (entry.name === 'nativeLaunchEnd') {
-            measureFailSafe(METRIC_NAMES.NATIVE_LAUNCH, 'nativeLaunchStart', 'nativeLaunchEnd');
+        if (entry.name === MARKS.NATIVE_LAUNCH_END) {
+            measureFailSafe(METRICS.NATIVE_LAUNCH, MARKS.NATIVE_LAUNCH_START, MARKS.NATIVE_LAUNCH_END);
         }
-        if (entry.name === 'downloadEnd') {
-            measureFailSafe(METRIC_NAMES.JS_BUNDLE_DOWNLOAD, 'downloadStart', 'downloadEnd');
+        if (entry.name === MARKS.DOWNLOAD_END) {
+            measureFailSafe(METRICS.JS_BUNDLE_DOWNLOAD, MARKS.DOWNLOAD_START, MARKS.DOWNLOAD_END);
         }
-        if (entry.name === 'runJsBundleEnd') {
-            measureFailSafe(METRIC_NAMES.RUN_JS_BUNDLE, 'runJsBundleStart', 'runJsBundleEnd');
+        if (entry.name === MARKS.RUN_JS_BUNDLE_END) {
+            measureFailSafe(METRICS.RUN_JS_BUNDLE, MARKS.RUN_JS_BUNDLE_START, MARKS.RUN_JS_BUNDLE_END);
         }
-        if (entry.name === 'appCreationEnd') {
-            measureFailSafe(METRIC_NAMES.APP_CREATION, 'appCreationStart', 'appCreationEnd');
-            measureFailSafe(METRIC_NAMES.NATIVE_LAUNCH_END_TO_APP_CREATION_START, 'nativeLaunchEnd', 'appCreationStart');
+        if (entry.name === MARKS.APP_CREATION_END) {
+            measureFailSafe(METRICS.APP_CREATION, MARKS.APP_CREATION_START, MARKS.APP_CREATION_END);
+            measureFailSafe(METRICS.NATIVE_LAUNCH_END_TO_APP_CREATION_START, MARKS.NATIVE_LAUNCH_END, MARKS.APP_CREATION_START);
         }
-        if (entry.name === 'contentAppeared') {
-            measureFailSafe(METRIC_NAMES.APP_CREATION_END_TO_CONTENT_APPEARED, 'appCreationEnd', 'contentAppeared');
+        if (entry.name === MARKS.CONTENT_APPEARED) {
+            measureFailSafe(METRICS.APP_CREATION_END_TO_CONTENT_APPEARED, MARKS.APP_CREATION_END, MARKS.CONTENT_APPEARED);
         }
 
         // At this point we've captured and processed all the native marks we're interested in
         // and are not expecting to have more thus we can safely disconnect the observer
-        if (entry.name === 'runJsBundleEnd' || entry.name === 'downloadEnd') {
+        if (entry.name === MARKS.RUN_JS_BUNDLE_END || entry.name === MARKS.DOWNLOAD_END) {
             _observer.disconnect();
         }
     });
@@ -128,7 +141,7 @@ const customMarksObserver = new PerformanceObserver((list) => {
 
         // Capture any custom measures or metrics below
         if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
-            measureFailSafe(METRIC_NAMES.CONTENT_APPEARED_TO_SCREEN_TTI, 'contentAppeared', mark.name);
+            measureFailSafe(METRICS.CONTENT_APPEARED_TO_SCREEN_TTI, MARKS.CONTENT_APPEARED, mark.name);
             measureTTI(mark.name);
         }
     });
@@ -145,18 +158,10 @@ function setCustomMarksObserverEnabled(enabled = false): void {
 }
 
 function getPerformanceMetrics(): PerformanceEntry[] {
-    return [
-        ...performance.getEntriesByName(METRIC_NAMES.NATIVE_LAUNCH),
-        ...performance.getEntriesByName(METRIC_NAMES.NATIVE_LAUNCH_END_TO_APP_CREATION_START),
-        ...performance.getEntriesByName(METRIC_NAMES.APP_CREATION),
-        ...performance.getEntriesByName(METRIC_NAMES.APP_CREATION_END_TO_CONTENT_APPEARED),
-        ...performance.getEntriesByName(METRIC_NAMES.CONTENT_APPEARED_TO_SCREEN_TTI),
-        ...performance.getEntriesByName(METRIC_NAMES.RUN_JS_BUNDLE),
-        ...performance.getEntriesByName(METRIC_NAMES.JS_BUNDLE_DOWNLOAD),
-        ...performance.getEntriesByName(METRIC_NAMES.TTI),
-        ...performance.getEntriesByName(METRIC_NAMES.REGULAR_APP_START),
-        ...performance.getEntriesByName(METRIC_NAMES.APP_STARTED_TO_READY),
-    ].filter((entry) => entry.duration > 0);
+    return Object.values(METRICS)
+        .map((name) => performance.getEntriesByName(name))
+        .flat()
+        .filter((entry) => entry.duration > 0);
 }
 
 function getPerformanceMeasures(): PerformanceEntry[] {
@@ -280,3 +285,5 @@ export default {
     markEnd,
     withRenderTrace,
 };
+
+export {METRICS as PERFORMANCE_METRICS, MARKS as PERFORMANCE_MARKS};
