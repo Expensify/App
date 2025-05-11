@@ -51,6 +51,7 @@ import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
 import ShowMoreButton from './ShowMoreButton';
+import variables from '@styles/variables';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -559,6 +560,7 @@ function MoneyRequestConfirmationListFooter({
                         disabled={didConfirm}
                         interactive={!isReadOnly}
                         rightLabel={isTagRequired ? translate('common.required') : ''}
+                        descriptionTextStyle={{lineHeight: variables.lineHeightLarge}}
                     />
                 ),
                 shouldShow,
