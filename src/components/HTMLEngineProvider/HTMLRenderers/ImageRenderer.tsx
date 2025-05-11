@@ -1,9 +1,8 @@
-import {cloneDeep} from 'lodash';
-import React, {memo, useMemo} from 'react';
+import React, {memo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
-import {AttachmentContext, useAttachmentContext} from '@components/AttachmentContext';
+import {AttachmentContext} from '@components/AttachmentContext';
 import {getButtonRole} from '@components/Button/utils';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import {Document, GalleryNotFound} from '@components/Icon/Expensicons';
@@ -35,12 +34,9 @@ type ImageRendererProps = ImageRendererWithOnyxProps & CustomRendererProps<TBloc
 function ImageRenderer({tnode}: ImageRendererProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const tnodeClone = cloneDeep(tnode);
     const htmlAttribs = tnode.attributes;
     const isDeleted = isDeletedNode(tnode);
 
-    const {reportID, reportActionID} = useAttachmentContext();
-    const attachmentURLID = useMemo(() => `${reportID}_${reportActionID}`, [reportID, reportActionID]);
     // There are two kinds of images that need to be displayed:
     //
     //     - Chat Attachment images
@@ -73,7 +69,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
     const imageHeight = (htmlAttribs['data-expensify-height'] && parseInt(htmlAttribs['data-expensify-height'], 10)) || undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
-    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] || attachmentURLID;
+    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE];
     const imageSource = getAttachmentSource(attachmentID, previewSource) || processedPreviewSource;
     const isAuthTokenRequired = isLocalFile(imageSource) ? false : isAttachmentOrReceipt;
     const fileType = getFileType(attachmentSourceAttribute);

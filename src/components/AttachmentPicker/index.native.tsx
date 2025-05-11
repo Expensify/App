@@ -1,4 +1,5 @@
-import {pick, types} from '@react-native-documents/picker';
+import type {FileToCopy} from '@react-native-documents/picker';
+import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import {Str} from 'expensify-common';
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
@@ -201,19 +202,29 @@ function AttachmentPicker({
     // eslint-disable-next-line @lwc/lwc/no-async-await
     const showDocumentPicker = useCallback(async (): Promise<LocalCopy[]> => {
         const pickedFiles = await pick({
-            mode: 'open',
             type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
             allowMultiSelection: fileLimit !== 1,
-            requestLongTermAccess: true,
         });
 
-        return pickedFiles.map((file) => {
-            if (file.bookmarkStatus !== 'success') {
-                throw new Error('Failed to request long term access');
+        const localCopies = await keepLocalCopy({
+            files: pickedFiles.map((file) => {
+                return {
+                    uri: file.uri,
+                    fileName: file.name ?? '',
+                };
+            }) as [FileToCopy, ...FileToCopy[]],
+            destination: 'cachesDirectory',
+        });
+
+        return pickedFiles.map((file, index) => {
+            const localCopy = localCopies[index];
+            if (localCopy.status !== 'success') {
+                throw new Error("Couldn't create local file copy");
             }
+
             return {
                 name: file.name,
-                uri: file.uri,
+                uri: localCopy.localUri,
                 size: file.size,
                 type: file.type,
             };
