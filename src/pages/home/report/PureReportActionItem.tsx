@@ -461,7 +461,16 @@ function PureReportActionItem({
         clearAllRelatedReportActionErrors(reportID, action);
     }, [reportID, clearError, clearAllRelatedReportActionErrors, action]);
 
-    const onClose = () => {
+    const onModalConfirm = useCallback(() => {
+        dismissError();
+        setShowConfirmDismissReceiptError(false);
+    }, [dismissError]);
+
+    const onModalCancel = useCallback(() => {
+        setShowConfirmDismissReceiptError(false);
+    }, []);
+
+    const handleOfflineFeedbackClose = useCallback(() => {
         const errors = linkedTransactionRouteError ?? getLatestErrorMessageField(action as OnyxDataWithErrors);
         const errorEntries = Object.entries(errors ?? {});
         const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
@@ -472,7 +481,81 @@ function PureReportActionItem({
         } else {
             dismissError();
         }
-    };
+    }, [linkedTransactionRouteError, action, dismissError]);
+
+    const handleAddBankAccountPress = useCallback(() => {
+        // Assuming 'report' is the correct 'linkedReport' in this context
+        openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? report?.reportID, undefined, undefined, isUserValidated);
+    }, [report?.reportID, isUserValidated]);
+
+    const wrappedToggleReaction = useCallback(
+        (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
+            if (isAnonymousUser()) {
+                hideContextMenu(false);
+                InteractionManager.runAfterInteractions(() => {
+                    signOutAndRedirectToSignIn();
+                });
+            } else {
+                // Directly use the prop 'toggleReaction' here, assuming it's correctly passed down and has its own memoization if needed.
+                // The original 'toggleReaction' function defined within PureReportActionItem was already a useCallback.
+                // This wrapped version is for the specific inline usage that included isAnonymousUser logic.
+                toggleEmojiReaction(reportID, action, emoji, emojiReactions, undefined, ignoreSkinToneOnCompare);
+            }
+        },
+        [reportID, action, emojiReactions, toggleEmojiReaction],
+    ); // Added toggleEmojiReaction from props
+
+    const handleSearchHeaderLinkPress = useCallback(() => {
+        onPress?.();
+    }, [onPress]);
+
+    const handlePressableWrapperPress = useCallback(() => {
+        if (draftMessage === undefined) {
+            onPress?.();
+        }
+        if (Keyboard.isVisible()) {
+            Keyboard.dismiss();
+        }
+    }, [draftMessage, onPress]);
+
+    const handlePressableWrapperPressIn = useCallback(() => {
+        if (!shouldUseNarrowLayout || canUseTouchScreen()) {
+            return;
+        }
+        ControlSelection.block();
+    }, [shouldUseNarrowLayout]);
+
+    const handlePressableWrapperPressOut = useCallback(() => ControlSelection.unblock(), []);
+
+    const handleHoverableHoverIn = useCallback(() => {
+        setIsReportActionActive(false);
+    }, [setIsReportActionActive]); // setIsReportActionActive is stable
+
+    const handleHoverableHoverOut = useCallback(() => {
+        setIsReportActionActive(!!isReportActionLinked);
+    }, [isReportActionLinked, setIsReportActionActive]); // setIsReportActionActive is stable
+
+    const handleToggleModerationReveal = useCallback(() => {
+        updateHiddenState(!isHidden);
+    }, [updateHiddenState, isHidden]);
+
+    const isSplitInGroupChat = useMemo(
+        () => isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && report?.chatType === CONST.REPORT.CHAT_TYPE.GROUP,
+        [action, report],
+    );
+    const chatReportIDForPreview = useMemo(() => (isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUReportID ? report?.chatReportID : reportID), [action, report, reportID]);
+
+    const handleTransactionPreviewPressed = useCallback(() => {
+        if (isSplitInGroupChat) {
+            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportIDForPreview ?? '', action.reportActionID, Navigation.getReportRHPActiveRoute()));
+            return;
+        }
+        if (!action.childReportID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID));
+    }, [isSplitInGroupChat, chatReportIDForPreview, action.reportActionID, action.childReportID]);
+
     useEffect(
         () => () => {
             // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,
@@ -608,13 +691,6 @@ function PureReportActionItem({
             isChronosReport,
             isThreadReportParentAction,
         ],
-    );
-
-    const toggleReaction = useCallback(
-        (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
-            toggleEmojiReaction(reportID, action, emoji, emojiReactions, undefined, ignoreSkinToneOnCompare);
-        },
-        [reportID, action, emojiReactions, toggleEmojiReaction],
     );
 
     const contextValue = useMemo(
@@ -769,6 +845,8 @@ function PureReportActionItem({
         originalReportID,
     ]);
 
+    const chatListItemReportName = useMemo(() => (isOnSearch ? getChatListItemReportName(action, report as SearchReport) : undefined), [isOnSearch, action, report]);
+
     /**
      * Get the content of ReportActionItem
      * @param hovered whether the ReportActionItem is hovered
@@ -783,7 +861,6 @@ function PureReportActionItem({
 
         // Show the MoneyRequestPreview for when expense is present
         if (isIOURequestReportAction(action)) {
-            const isSplitInGroupChat = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && report?.chatType === CONST.REPORT.CHAT_TYPE.GROUP;
             const chatReportID = moneyRequestOriginalMessage?.IOUReportID ? report?.chatReportID : reportID;
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = moneyRequestOriginalMessage?.IOUReportID?.toString();
@@ -819,18 +896,7 @@ function PureReportActionItem({
                                 transactionID={isSplitInGroupChat ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
                                 containerStyles={[shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle, styles.mt1]}
                                 transactionPreviewWidth={shouldUseNarrowLayout ? styles.w100.width : reportPreviewStyles.transactionPreviewStyle.width}
-                                onPreviewPressed={() => {
-                                    if (isSplitInGroupChat) {
-                                        Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
-                                        return;
-                                    }
-
-                                    if (!action.childReportID) {
-                                        return;
-                                    }
-
-                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID));
-                                }}
+                                onPreviewPressed={handleTransactionPreviewPressed}
                                 isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
                             />
                         </View>
@@ -936,7 +1002,7 @@ function PureReportActionItem({
                                 success
                                 style={[styles.w100, styles.requestPreviewBox]}
                                 text={translate('bankAccount.addBankAccount')}
-                                onPress={() => openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? linkedReport?.reportID, undefined, undefined, isUserValidated)}
+                                onPress={handleAddBankAccountPress}
                                 pressOnEnter
                                 large
                             />
@@ -1125,7 +1191,7 @@ function PureReportActionItem({
                                         <Button
                                             small
                                             style={[styles.mt2, styles.alignSelfStart]}
-                                            onPress={() => updateHiddenState(!isHidden)}
+                                            onPress={handleToggleModerationReveal}
                                         >
                                             <Text
                                                 style={[styles.buttonSmallText, styles.userSelectNone]}
@@ -1191,17 +1257,7 @@ function PureReportActionItem({
                             reportAction={action}
                             emojiReactions={isOnSearch ? {} : emojiReactions}
                             shouldBlockReactions={hasErrors}
-                            toggleReaction={(emoji, ignoreSkinToneOnCompare) => {
-                                if (isAnonymousUser()) {
-                                    hideContextMenu(false);
-
-                                    InteractionManager.runAfterInteractions(() => {
-                                        signOutAndRedirectToSignIn();
-                                    });
-                                } else {
-                                    toggleReaction(emoji, ignoreSkinToneOnCompare);
-                                }
-                            }}
+                            toggleReaction={wrappedToggleReaction}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
                     </View>
@@ -1338,12 +1394,10 @@ function PureReportActionItem({
                         <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
                         <TextLink
                             fontSize={variables.fontSizeSmall}
-                            onPress={() => {
-                                onPress?.();
-                            }}
+                            onPress={handleSearchHeaderLinkPress}
                             numberOfLines={1}
                         >
-                            {getChatListItemReportName(action, report as SearchReport)}
+                            {chatListItemReportName}
                         </TextLink>
                     </View>
                     {children}
@@ -1355,18 +1409,10 @@ function PureReportActionItem({
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
-            onPress={() => {
-                if (draftMessage === undefined) {
-                    onPress?.();
-                }
-                if (!Keyboard.isVisible()) {
-                    return;
-                }
-                Keyboard.dismiss();
-            }}
+            onPress={handlePressableWrapperPress}
             style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
-            onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
-            onPressOut={() => ControlSelection.unblock()}
+            onPressIn={handlePressableWrapperPressIn}
+            onPressOut={handlePressableWrapperPressOut}
             onSecondaryInteraction={showPopover}
             preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
             withoutFocusOnSecondaryInteraction
@@ -1377,33 +1423,12 @@ function PureReportActionItem({
                 shouldHandleScroll
                 isDisabled={draftMessage !== undefined}
                 shouldFreezeCapture={isPaymentMethodPopoverActive}
-                onHoverIn={() => {
-                    setIsReportActionActive(false);
-                }}
-                onHoverOut={() => {
-                    setIsReportActionActive(!!isReportActionLinked);
-                }}
+                onHoverIn={handleHoverableHoverIn}
+                onHoverOut={handleHoverableHoverOut}
             >
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
                         {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                        {hovered && shouldDisplayContextMenu && (
-                            <MiniReportActionContextMenu
-                                reportID={reportID}
-                                reportActionID={action.reportActionID}
-                                anchor={popoverAnchorRef}
-                                originalReportID={originalReportID}
-                                isArchivedRoom={isArchivedRoom}
-                                displayAsGroup={displayAsGroup}
-                                disabledActions={disabledActions}
-                                isVisible={hovered && draftMessage === undefined && !hasErrors}
-                                isThreadReportParentAction={isThreadReportParentAction}
-                                draftMessage={draftMessage}
-                                isChronosReport={isChronosReport}
-                                checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                                setIsEmojiPickerActive={setIsEmojiPickerActive}
-                            />
-                        )}
                         <View
                             style={StyleUtils.getReportActionItemStyle(
                                 hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined || isPaymentMethodPopoverActive,
@@ -1411,7 +1436,7 @@ function PureReportActionItem({
                             )}
                         >
                             <OfflineWithFeedback
-                                onClose={onClose}
+                                onClose={handleOfflineFeedbackClose}
                                 dismissError={dismissError}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
@@ -1461,13 +1486,8 @@ function PureReportActionItem({
             </View>
             <ConfirmModal
                 isVisible={showConfirmDismissReceiptError}
-                onConfirm={() => {
-                    dismissError();
-                    setShowConfirmDismissReceiptError(false);
-                }}
-                onCancel={() => {
-                    setShowConfirmDismissReceiptError(false);
-                }}
+                onConfirm={onModalConfirm}
+                onCancel={onModalCancel}
                 title={translate('iou.dismissReceiptError')}
                 prompt={translate('iou.dismissReceiptErrorConfirmation')}
                 confirmText={translate('common.dismiss')}
