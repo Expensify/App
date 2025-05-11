@@ -3,6 +3,7 @@ import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -76,7 +77,7 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
                     ? !!title && (
                           <Text
                               numberOfLines={numberOfTitleLines}
-                              style={[styles.headerText, styles.textLarge, textStyles]}
+                              style={[styles.headerText, styles.textLarge, {lineHeight: variables.lineHeightLarge}, textStyles]}
                           >
                               {title}
                           </Text>
