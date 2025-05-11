@@ -4706,6 +4706,9 @@ function getReportNameInternal({
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         return getRejectedReportMessage();
     }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
+        return getRetractedReportMessage();
+    }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
         return getUpgradeWorkspaceMessage();
     }
@@ -5750,6 +5753,10 @@ function getIOUForwardedMessage(
 
 function getRejectedReportMessage() {
     return translateLocal('iou.rejectedThisReport');
+}
+
+function getRetractedReportMessage() {
+    return translateLocal('iou.retracted');
 }
 
 function getUpgradeWorkspaceMessage() {

@@ -1016,6 +1016,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getReportActionText(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
+            children = <ReportActionItemBasicMessage message={translate('iou.retracted')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
