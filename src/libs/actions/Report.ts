@@ -469,6 +469,13 @@ function getReportChannelName(reportID: string): string {
     return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
 
+function openUnreportedExpense(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    Navigation.navigate(ROUTES.ADD_UNREPORTED_EXPENSE.getRoute(reportID));
+}
+
 /**
  * There are 2 possibilities that we can receive via pusher for a user's typing/leaving status:
  * 1. The "new" way from New Expensify is passed as {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
@@ -1344,11 +1351,11 @@ function navigateToAndOpenReport(
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             });
         }
+        // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
+        openReport(newChat?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
-    // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(report?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     if (shouldDismissModal) {
         if (getIsNarrowLayout()) {
             Navigation.dismissModalWithReport({report});
@@ -1376,11 +1383,11 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
         newChat = buildOptimisticChatReport({
             participantList: [...participantAccountIDs, currentUserAccountID],
         });
+        // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
+        openReport(newChat?.reportID, '', [], newChat, '0', false, participantAccountIDs);
     }
     const report = chat ?? newChat;
 
-    // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(report?.reportID, '', [], newChat, '0', false, participantAccountIDs);
     Navigation.navigateToReportWithPolicyCheck({report});
 }
 
@@ -1394,7 +1401,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
 function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
     const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
     if (childReport?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
@@ -1420,7 +1427,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
 
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     }
 }
 
@@ -2715,11 +2722,6 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
-            value: {[reportActionID]: {pendingAction: null}},
-        },
     ];
 
     return {optimisticReportName: optimisticReportData.reportName, optimisticData, successData, failureData};
@@ -3286,7 +3288,7 @@ function openReportFromDeepLink(url: string) {
         waitForUserSignIn().then(() => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
-                callback: () => {
+                callback: (val) => {
                     Navigation.waitForProtectedRoutes().then(() => {
                         if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
                             signOutAndRedirectToSignIn(true);
@@ -3344,7 +3346,7 @@ function openReportFromDeepLink(url: string) {
                         }
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
-                            onNotCompleted: () => startOnboardingFlow(),
+                            onNotCompleted: () => startOnboardingFlow(undefined, val),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });
@@ -5327,4 +5329,5 @@ export {
     dismissChangePolicyModal,
     changeReportPolicy,
     removeFailedReport,
+    openUnreportedExpense,
 };
