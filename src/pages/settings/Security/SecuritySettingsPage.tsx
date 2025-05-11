@@ -52,7 +52,7 @@ function SecuritySettingsPage() {
     const personalDetails = usePersonalDetails();
     const {canUseMergeAccounts} = usePermissions();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const isUserValidated = account?.validated;
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
