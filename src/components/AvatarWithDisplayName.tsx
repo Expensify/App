@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import type {TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
@@ -8,6 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
 import {
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
@@ -31,10 +33,12 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
+import type DisplayNamesProps from './DisplayNames/types';
 import {FallbackAvatar} from './Icon/Expensicons';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import type {TransactionListItemType} from './SelectionList/types';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 
@@ -53,6 +57,12 @@ type AvatarWithDisplayNameProps = {
 
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
+
+    /** Whether we should enable custom title logic designed for search lis */
+    shouldUseCustomSearchTitleName?: boolean;
+
+    /** Transactions inside report */
+    transactions?: TransactionListItemType[];
 };
 
 const fallbackIcon: Icon = {
@@ -62,10 +72,93 @@ const fallbackIcon: Icon = {
     id: -1,
 };
 
-function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONST.AVATAR_SIZE.DEFAULT, shouldEnableDetailPageNavigation = false}: AvatarWithDisplayNameProps) {
+function getCustomDisplayName(
+    shouldUseCustomSearchTitleName: boolean,
+    report: OnyxEntry<Report>,
+    title: string,
+    displayNamesWithTooltips: DisplayNameWithTooltips,
+    transactions: TransactionListItemType[],
+    shouldUseFullTitle: boolean,
+    customSearchDisplayStyle: TextStyle[],
+    regularStyle: TextStyle[],
+    isAnonymous: boolean,
+    isMoneyRequestOrReport: boolean,
+): React.ReactNode {
+    const reportName = report?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME;
+    const isIOUOrInvoice = report?.type === CONST.REPORT.TYPE.IOU || report?.type === CONST.REPORT.TYPE.INVOICE;
+    const hasTransactions = transactions.length > 0;
+
+    function getDisplayProps(): DisplayNamesProps {
+        const baseProps = {
+            displayNamesWithTooltips,
+            tooltipEnabled: true,
+            numberOfLines: 1,
+        };
+
+        if (shouldUseCustomSearchTitleName) {
+            const styleProps = {
+                textStyles: customSearchDisplayStyle,
+            };
+
+            if (!hasTransactions) {
+                return {
+                    fullTitle: reportName,
+                    shouldUseFullTitle,
+                    ...baseProps,
+                    ...styleProps,
+                };
+            }
+
+            if (isIOUOrInvoice) {
+                return {
+                    fullTitle: title,
+                    shouldUseFullTitle: true,
+                    ...baseProps,
+                    ...styleProps,
+                };
+            }
+
+            return {
+                fullTitle: reportName,
+                shouldUseFullTitle,
+                ...baseProps,
+                ...styleProps,
+            };
+        }
+
+        return {
+            fullTitle: title,
+            textStyles: regularStyle,
+            shouldUseFullTitle: isMoneyRequestOrReport || isAnonymous,
+            ...baseProps,
+        };
+    }
+
+    const {fullTitle, textStyles, displayNamesWithTooltips: displayNamesWithTooltipsProp, tooltipEnabled, numberOfLines, shouldUseFullTitle: shouldUseFullTitleProp} = getDisplayProps();
+
+    return (
+        <DisplayNames
+            fullTitle={fullTitle}
+            displayNamesWithTooltips={displayNamesWithTooltipsProp}
+            tooltipEnabled={tooltipEnabled}
+            numberOfLines={numberOfLines}
+            textStyles={textStyles}
+            shouldUseFullTitle={shouldUseFullTitleProp}
+        />
+    );
+}
+
+function AvatarWithDisplayName({
+    policy,
+    report,
+    isAnonymous = false,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+    shouldEnableDetailPageNavigation = false,
+    shouldUseCustomSearchTitleName = false,
+    transactions = [],
+}: AvatarWithDisplayNameProps) {
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false}) ?? CONST.EMPTY_OBJECT;
-
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -128,7 +221,7 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
             Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         }
     }, [report, shouldEnableDetailPageNavigation, goToDetailsPage]);
-
+    const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (
@@ -156,14 +249,18 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
                         </View>
                     </PressableWithoutFeedback>
                     <View style={[styles.flex1, styles.flexColumn]}>
-                        <DisplayNames
-                            fullTitle={title}
-                            displayNamesWithTooltips={displayNamesWithTooltips}
-                            tooltipEnabled
-                            numberOfLines={1}
-                            textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                            shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
-                        />
+                        {getCustomDisplayName(
+                            shouldUseCustomSearchTitleName,
+                            report,
+                            title,
+                            displayNamesWithTooltips,
+                            transactions,
+                            shouldUseFullTitle,
+                            [styles.headerText, styles.pre],
+                            [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
+                            isAnonymous,
+                            isMoneyRequestOrReport,
+                        )}
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
