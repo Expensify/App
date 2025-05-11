@@ -141,7 +141,7 @@ const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: 
     }
 
     mainFile += '\n\n### Significant Changes To Duration';
-    mainFile += `\n${buildSummaryTable([data.significance]).at(0)}`;
+    mainFile += `\n\n${buildSummaryTable([data.significance]).at(0)}`;
     mainFile += `\n${buildDetailsTable([data.significance]).at(0)}`;
 
     // We always need at least one table
@@ -152,7 +152,7 @@ const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: 
 
     if (nExtraFiles === 0) {
         mainFile += '\n\n### Meaningless Changes To Duration';
-        mainFile += `\n${meaninglessSummaryTable.at(0)}`;
+        mainFile += `\n\n${meaninglessSummaryTable.at(0)}`;
         mainFile += `\n${meaninglessDetailsTables.at(0)}`;
 
         return [mainFile];
@@ -164,9 +164,12 @@ const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: 
         extraFile += ` (${i + 2}/${nExtraFiles + 1})`;
 
         extraFile += '\n\n### Meaningless Changes To Duration';
-        extraFile += nExtraFiles >= 2 ? ` (${i + 1}/${nExtraFiles})` : '';
 
-        extraFile += `\n${meaninglessSummaryTable.at(i)}`;
+        const entries = meaninglessEntriesPerTable.at(i);
+        const fromToString = `\n> ${entries?.at(0)?.name} - ${entries?.at(-1)?.name}`;
+        extraFile += nExtraFiles >= 2 ? fromToString : '';
+
+        extraFile += `\n\n${meaninglessSummaryTable.at(i)}`;
         extraFile += `\n${meaninglessDetailsTables.at(i)}`;
         extraFile += '\n';
 
