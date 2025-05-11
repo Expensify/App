@@ -134,7 +134,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                     </>
                 )}
             </View>
-            <FixedFooter>
+            <FixedFooter style={styles.pb0}>
                 {!!footerText && footerText}
                 <FormAlertWithSubmitButton
                     isAlertVisible={shouldShowReasonError}
