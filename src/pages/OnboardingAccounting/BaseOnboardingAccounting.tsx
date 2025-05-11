@@ -222,16 +222,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             userReportedIntegration,
         });
 
-        const shouldStayInNewDot = supportedIntegrationsInNewDot.includes(userReportedIntegration) || userReportedIntegration === null;
+        const isSupportedIntegration = supportedIntegrationsInNewDot.includes(userReportedIntegration) || userReportedIntegration === null;
+        const isLargeCompanySize = onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.SMALL;
 
-        if (!shouldStayInNewDot) {
-            if (CONFIG.IS_HYBRID_APP) {
-                return;
-            }
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-        }
-
-        if (onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP) {
+        if (!isSupportedIntegration || (isLargeCompanySize && getPlatform() !== CONST.PLATFORM.DESKTOP)) {
             if (CONFIG.IS_HYBRID_APP) {
                 return;
             }
