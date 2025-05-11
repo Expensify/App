@@ -29,6 +29,7 @@ import {
     getArchiveReason,
     getBankAccountRoute,
     getIntegrationIcon,
+    getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getTransactionsWithReceipts,
@@ -154,6 +155,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
 
     const isExported = isExportedUtils(reportActions);
+    const integrationNameFromExportMessage = isExported ? getIntegrationNameFromExportMessageUtils(reportActions) : null;
 
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isCancelPaymentModalVisible, setIsCancelPaymentModalVisible] = useState(false);
@@ -718,14 +720,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const reopenExportedReportWarningText = (
         <Text>
-            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text>
-            <Text>
-                {translate(
-                    'iou.reopenExportedReportConfirmation',
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    {connectionName: connectedIntegration!},
-                )}
-            </Text>
+            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')} </Text>
+            <Text>{translate('iou.reopenExportedReportConfirmation', integrationNameFromExportMessage ?? '')}</Text>
         </Text>
     );
 

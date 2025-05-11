@@ -9250,6 +9250,14 @@ function reopenReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
             value: currentNextStep,
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                stateNum: expenseReport.stateNum,
+                statusNum: expenseReport.statusNum,
+            },
+        },
     ];
 
     if (expenseReport.parentReportID && expenseReport.parentReportActionID) {

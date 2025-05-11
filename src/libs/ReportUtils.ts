@@ -12,6 +12,7 @@ import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {
     OriginalMessageChangePolicy,
+    OriginalMessageExportIntegration,
     OriginalMessageIOU,
     OriginalMessageModifiedExpense,
     OriginalMessageMovedTransaction,
@@ -10367,6 +10368,23 @@ function canBeExported(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && isCorrectState;
 }
 
+function getIntegrationNameFromExportMessage(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
+    if (!reportActions) {
+        return '';
+    }
+
+    if (Array.isArray(reportActions)) {
+        const exportIntegrationAction = reportActions.find((action) => isExportIntegrationAction(action));
+        if (!exportIntegrationAction || !isExportIntegrationAction(exportIntegrationAction)) {
+            return null;
+        }
+
+        const originalMessage = (getOriginalMessage(exportIntegrationAction) ?? {}) as OriginalMessageExportIntegration;
+        const {label} = originalMessage;
+        return label ?? null;
+    }
+}
+
 function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     if (!reportActions) {
         return false;
@@ -11031,6 +11049,7 @@ export {
     getReportLastVisibleActionCreated,
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
+    getIntegrationNameFromExportMessage,
 
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
