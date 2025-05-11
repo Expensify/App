@@ -10,8 +10,8 @@ import isE2ETestSession from './E2E/isE2ETestSession';
 import getComponentDisplayName from './getComponentDisplayName';
 import canCapturePerformanceMetrics from './Metrics';
 
-const MARKS = {
-    // Native performance marks provided by react-native-performance under the 'react-native-mark' type
+// Native performance marks provided by react-native-performance under the 'react-native-mark' type
+const NATIVE_MARKS = {
     NATIVE_LAUNCH_START: 'nativeLaunchStart',
     NATIVE_LAUNCH_END: 'nativeLaunchEnd',
     DOWNLOAD_START: 'downloadStart',
@@ -21,9 +21,6 @@ const MARKS = {
     APP_CREATION_START: 'appCreationStart',
     APP_CREATION_END: 'appCreationEnd',
     CONTENT_APPEARED: 'contentAppeared',
-
-    // Custom performance marks
-    SCREEN_TTI: 'screenTTI',
 } as const;
 
 const METRICS = {
@@ -76,7 +73,7 @@ function measureTTI(endMark?: string): void {
     // Make sure TTI is captured when the app is really usable
     InteractionManager.runAfterInteractions(() => {
         requestAnimationFrame(() => {
-            measureFailSafe(METRICS.TTI, MARKS.NATIVE_LAUNCH_START, endMark);
+            measureFailSafe(METRICS.TTI, NATIVE_MARKS.NATIVE_LAUNCH_START, endMark);
 
             // We don't want an alert to show:
             // - on builds with performance metrics collection disabled by a feature flag
@@ -95,26 +92,26 @@ function measureTTI(endMark?: string): void {
  */
 const nativeMarksObserver = new PerformanceObserver((list, _observer) => {
     list.getEntries().forEach((entry) => {
-        if (entry.name === MARKS.NATIVE_LAUNCH_END) {
-            measureFailSafe(METRICS.NATIVE_LAUNCH, MARKS.NATIVE_LAUNCH_START, MARKS.NATIVE_LAUNCH_END);
+        if (entry.name === NATIVE_MARKS.NATIVE_LAUNCH_END) {
+            measureFailSafe(METRICS.NATIVE_LAUNCH, NATIVE_MARKS.NATIVE_LAUNCH_START, NATIVE_MARKS.NATIVE_LAUNCH_END);
         }
-        if (entry.name === MARKS.DOWNLOAD_END) {
-            measureFailSafe(METRICS.JS_BUNDLE_DOWNLOAD, MARKS.DOWNLOAD_START, MARKS.DOWNLOAD_END);
+        if (entry.name === NATIVE_MARKS.DOWNLOAD_END) {
+            measureFailSafe(METRICS.JS_BUNDLE_DOWNLOAD, NATIVE_MARKS.DOWNLOAD_START, NATIVE_MARKS.DOWNLOAD_END);
         }
-        if (entry.name === MARKS.RUN_JS_BUNDLE_END) {
-            measureFailSafe(METRICS.RUN_JS_BUNDLE, MARKS.RUN_JS_BUNDLE_START, MARKS.RUN_JS_BUNDLE_END);
+        if (entry.name === NATIVE_MARKS.RUN_JS_BUNDLE_END) {
+            measureFailSafe(METRICS.RUN_JS_BUNDLE, NATIVE_MARKS.RUN_JS_BUNDLE_START, NATIVE_MARKS.RUN_JS_BUNDLE_END);
         }
-        if (entry.name === MARKS.APP_CREATION_END) {
-            measureFailSafe(METRICS.APP_CREATION, MARKS.APP_CREATION_START, MARKS.APP_CREATION_END);
-            measureFailSafe(METRICS.NATIVE_LAUNCH_END_TO_APP_CREATION_START, MARKS.NATIVE_LAUNCH_END, MARKS.APP_CREATION_START);
+        if (entry.name === NATIVE_MARKS.APP_CREATION_END) {
+            measureFailSafe(METRICS.APP_CREATION, NATIVE_MARKS.APP_CREATION_START, NATIVE_MARKS.APP_CREATION_END);
+            measureFailSafe(METRICS.NATIVE_LAUNCH_END_TO_APP_CREATION_START, NATIVE_MARKS.NATIVE_LAUNCH_END, NATIVE_MARKS.APP_CREATION_START);
         }
-        if (entry.name === MARKS.CONTENT_APPEARED) {
-            measureFailSafe(METRICS.APP_CREATION_END_TO_CONTENT_APPEARED, MARKS.APP_CREATION_END, MARKS.CONTENT_APPEARED);
+        if (entry.name === NATIVE_MARKS.CONTENT_APPEARED) {
+            measureFailSafe(METRICS.APP_CREATION_END_TO_CONTENT_APPEARED, NATIVE_MARKS.APP_CREATION_END, NATIVE_MARKS.CONTENT_APPEARED);
         }
 
         // At this point we've captured and processed all the native marks we're interested in
         // and are not expecting to have more thus we can safely disconnect the observer
-        if (entry.name === MARKS.RUN_JS_BUNDLE_END || entry.name === MARKS.DOWNLOAD_END) {
+        if (entry.name === NATIVE_MARKS.RUN_JS_BUNDLE_END || entry.name === NATIVE_MARKS.DOWNLOAD_END) {
             _observer.disconnect();
         }
     });
@@ -144,7 +141,7 @@ const customMarksObserver = new PerformanceObserver((list) => {
 
         // Capture any custom measures or metrics below
         if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
-            measureFailSafe(METRICS.CONTENT_APPEARED_TO_SCREEN_TTI, MARKS.CONTENT_APPEARED, mark.name);
+            measureFailSafe(METRICS.CONTENT_APPEARED_TO_SCREEN_TTI, NATIVE_MARKS.CONTENT_APPEARED, mark.name);
             measureTTI(mark.name);
         }
     });
@@ -289,4 +286,4 @@ export default {
     withRenderTrace,
 };
 
-export {METRICS as PERFORMANCE_METRICS, MARKS as PERFORMANCE_MARKS};
+export {METRICS as PERFORMANCE_METRICS, NATIVE_MARKS as PERFORMANCE_MARKS};
