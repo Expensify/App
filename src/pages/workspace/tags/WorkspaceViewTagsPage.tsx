@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -40,6 +40,7 @@ import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getCleanedTagName, getTagListName, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -131,7 +132,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled],
     );
 
-    const filterTag = useCallback((tag: TagListItem, searchInput: string) => !!tag.text?.toLowerCase().includes(searchInput) || !!tag.value?.toLowerCase().includes(searchInput), []);
+    const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
+        const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
+        const tagValue = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
+        const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase() ?? '');
+        return tagText.includes(normalizedSearchInput) || tagValue.includes(normalizedSearchInput);
+    }, []);
     const sortTags = useCallback((tags: TagListItem[]) => tags.sort((tagA, tagB) => localeCompare(tagA.value, tagB.value)), []);
     const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
 
@@ -145,6 +151,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             }, {}),
         [filteredTagList],
     );
+
+    const sections = useMemo(() => [{data: filteredTagList, isDisabled: false}], [filteredTagList]);
 
     if (!currentPolicyTag) {
         return <NotFoundPage />;
@@ -185,9 +193,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const deleteTags = () => {
-        setSelectedTags([]);
         deletePolicyTags(policyID, selectedTags);
         setIsDeleteTagsConfirmModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedTags([]);
+        });
     };
 
     const isLoading = !isOffline && policyTags === undefined;
@@ -366,7 +377,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                        sections={[{data: filteredTagList, isDisabled: false}]}
+                        sections={sections}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
                         onSelectAll={toggleAllTags}

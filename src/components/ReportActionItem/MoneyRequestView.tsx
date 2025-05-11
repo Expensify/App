@@ -170,7 +170,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!transactionAmount) && transactionAmount !== undefined;
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(transactionAmount, transactionCurrency) : '';
     const formattedPerAttendeeAmount =
-        shouldDisplayTransactionAmount && !isReceiptBeingScanned && didReceiptScanSucceed
+        shouldDisplayTransactionAmount && ((hasReceipt && !isReceiptBeingScanned && didReceiptScanSucceed) || !isPerDiemRequest)
             ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency)
             : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
@@ -533,6 +533,24 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         />
                     </OfflineWithFeedback>
                 )}
+                {shouldShowReceiptEmptyState && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('receipt')}>
+                        <ReceiptEmptyState
+                            hasError={hasErrors}
+                            disabled={!canEditReceipt}
+                            onPress={() => {
+                                if (!transaction?.transactionID || !report?.reportID) {
+                                    return;
+                                }
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                                );
+                            }}
+                            isThumbnail={!canEditReceipt}
+                            isInMoneyRequestView
+                        />
+                    </OfflineWithFeedback>
+                )}
                 {(hasReceipt || !!errors) && (
                     <OfflineWithFeedback
                         pendingAction={isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt')}
@@ -571,24 +589,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 />
                             </View>
                         )}
-                    </OfflineWithFeedback>
-                )}
-                {shouldShowReceiptEmptyState && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('receipt')}>
-                        <ReceiptEmptyState
-                            hasError={hasErrors}
-                            disabled={!canEditReceipt}
-                            onPress={() => {
-                                if (!transaction?.transactionID || !report?.reportID) {
-                                    return;
-                                }
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
-                                );
-                            }}
-                            isThumbnail={!canEditReceipt}
-                            isInMoneyRequestView
-                        />
                     </OfflineWithFeedback>
                 )}
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
@@ -759,11 +759,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
                         <MenuItemWithTopDescription
                             key="attendees"
-                            shouldShowRightIcon
                             title={Array.isArray(transactionAttendees) ? transactionAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : ''}
                             description={`${translate('iou.attendees')} ${
                                 Array.isArray(transactionAttendees) && transactionAttendees.length > 1 && formattedPerAttendeeAmount
-                                    ? `${formattedPerAttendeeAmount} ${translate('common.perPerson')}`
+                                    ? `${CONST.DOT_SEPARATOR} ${formattedPerAttendeeAmount} ${translate('common.perPerson')}`
                                     : ''
                             }`}
                             style={[styles.moneyRequestMenuItem]}
@@ -774,7 +773,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 }
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID));
                             }}
-                            interactive
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
                             shouldRenderAsHTML
                         />
                     </OfflineWithFeedback>
