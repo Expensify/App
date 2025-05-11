@@ -4363,7 +4363,7 @@ const translations = {
             import: 'Importar',
             export: 'Exportar',
             advanced: 'Avanzado',
-            other: 'Otras integraciones',
+            other: 'Otro',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
             reinstall: 'Reinstalar el conector',
