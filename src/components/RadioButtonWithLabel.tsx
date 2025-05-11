@@ -18,7 +18,7 @@ type RadioButtonWithLabelProps = {
     /** Container styles */
     style?: StyleProp<ViewStyle>;
 
-    /** Simple text label */
+    /** Text that appears next to check box */
     label?: string;
 
     /** React element to display for the label */

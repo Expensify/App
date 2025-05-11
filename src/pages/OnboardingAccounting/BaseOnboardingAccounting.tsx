@@ -200,12 +200,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             return;
         }
 
-        const shouldStayInNewDot = supportedIntegrationsInNewDot.includes(userReportedIntegration) || userReportedIntegration === null;
-        if (!shouldStayInNewDot) {
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-            return;
-        }
-
         const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
 
         // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
@@ -227,6 +221,15 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             companySize: onboardingCompanySize,
             userReportedIntegration,
         });
+
+        const shouldStayInNewDot = supportedIntegrationsInNewDot.includes(userReportedIntegration) || userReportedIntegration === null;
+
+        if (!shouldStayInNewDot) {
+            if (CONFIG.IS_HYBRID_APP) {
+                return;
+            }
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        }
 
         if (onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP) {
             if (CONFIG.IS_HYBRID_APP) {
