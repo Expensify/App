@@ -232,6 +232,25 @@ function StatusPage() {
                         />
                     )}
                 </View>
+                <View style={[styles.mb2, styles.mt6]}>
+                    <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>
+                    <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{translate('statusPage.vacationDelegate')}</Text>
+                    <MenuItem
+                        title={translate('statusPage.vacationDelegate')}
+                        description="desc"
+                        shouldShowRightIcon
+                        onPress={() => {}}
+                        containerStyle={styles.pr2}
+                    />
+                    {/* title: personalDetail?.displayName ?? formattedEmail,
+                                            description: personalDetail?.displayName ? formattedEmail : '',
+                                            badgeText: translate('delegate.role', {role}),
+                                            avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                                            icon: personalDetail?.avatar ?? FallbackAvatar,
+                                            iconType: CONST.ICON_TYPE_AVATAR,
+                                            numberOfLinesDescription: 1,
+                                            wrapperStyle: [styles.sectionMenuItemTopDescription], */}
+                </View>
             </FormProvider>
         </ScreenWrapper>
     );
