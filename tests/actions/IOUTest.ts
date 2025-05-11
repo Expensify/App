@@ -16,6 +16,7 @@ import {
     initMoneyRequest,
     payMoneyRequest,
     putOnHold,
+    replaceReceipt,
     requestMoney,
     resolveDuplicates,
     sendInvoice,
@@ -27,7 +28,6 @@ import {
     unholdRequest,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestCategory,
-    replaceReceipt
 } from '@libs/actions/IOU';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {addComment, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
@@ -5875,10 +5875,12 @@ describe('actions/IOU', () => {
                 query: 'test',
             };
 
-            // @ts-ignore
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-            }});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {
+                // @ts-expect-error: Allow partial record in snapshot update
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+                },
+            });
             await waitForBatchedUpdates();
 
             replaceReceipt({transactionID, file, source});
@@ -5930,10 +5932,12 @@ describe('actions/IOU', () => {
                 query: 'test',
             };
 
-            // @ts-ignore
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-            }});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {
+                // @ts-expect-error: Allow partial record in snapshot update
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+                },
+            });
             await waitForBatchedUpdates();
 
             replaceReceipt({transactionID, file, source});
