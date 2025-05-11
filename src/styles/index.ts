@@ -385,6 +385,20 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
+        textWithMiddleEllipsisContainer: {
+            width: '100%',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            display: 'flex',
+            flexDirection: 'row',
+        },
+
+        textWithMiddleEllipsisText: {
+            overflow: 'hidden',
+            textOverflow: 'clip',
+            whiteSpace: 'nowrap',
+        },
+
         verticalAlignTopText: {
             verticalAlign: 'text-top',
         },
@@ -844,6 +858,10 @@ const styles = (theme: ThemeColors) =>
 
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
+        },
+
+        hoveredComponentBG2: {
+            backgroundColor: 'black',
         },
 
         activeComponentBG: {
@@ -1870,6 +1888,27 @@ const styles = (theme: ThemeColors) =>
                 overflow: 'hidden',
             } satisfies ViewStyle),
 
+        TestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
+            flex: 1,
+            justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+            alignItems: 'center',
+        }),
+
+        TestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
+            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+            const defaultHeight = shouldUseNarrowLayout ? '78%' : '75%';
+            const height = isAuthenticated ? defaultHeight : '55%';
+
+            return {
+                width: shouldUseNarrowLayout ? '100%' : '91%',
+                height,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderBottomRightRadius: borderBottomRadius,
+                borderBottomLeftRadius: borderBottomRadius,
+                overflow: 'hidden',
+            };
+        },
+
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
@@ -2703,6 +2742,14 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 20,
             height: variables.contentHeaderHeight,
             width: '100%',
+        },
+
+        reportSearchHeaderBar: {
+            overflow: 'hidden',
+            justifyContent: 'center',
+            display: 'flex',
+            width: '100%',
+            height: 52,
         },
 
         searchResultsHeaderBar: {
@@ -5436,6 +5483,17 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
+        emptyStateMoneyRequestPreviewReport: {
+            borderWidth: 1,
+            borderColor: theme.border,
+            height: 168,
+            width: '100%',
+            boxSizing: 'border-box',
+            ...borders.br4,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+        },
+
         pendingStateCardIllustration: {
             width: 233,
             height: 162,
@@ -5695,6 +5753,10 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
+        },
+
+        unreportedExpenseCreateExpenseButton: {
+            ...flex.alignSelfStart,
         },
 
         testDriveBannerGap: {

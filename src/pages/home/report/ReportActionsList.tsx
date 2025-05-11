@@ -584,28 +584,30 @@ function ReportActionsList({
     }, [isFocused, isVisible]);
 
     const renderItem = useCallback(
-        ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
-            <ReportActionsListItemRenderer
-                reportAction={reportAction}
-                reportActions={sortedReportActions}
-                parentReportAction={parentReportAction}
-                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                index={index}
-                report={report}
-                transactionThreadReport={transactionThreadReport}
-                linkedReportActionID={linkedReportActionID}
-                displayAsGroup={
-                    !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
-                    isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)
-                }
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
-                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
-                isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-            />
-        ),
+        ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+            return (
+                <ReportActionsListItemRenderer
+                    reportAction={reportAction}
+                    reportActions={sortedReportActions}
+                    parentReportAction={parentReportAction}
+                    parentReportActionForTransactionThread={parentReportActionForTransactionThread}
+                    index={index}
+                    report={report}
+                    transactionThreadReport={transactionThreadReport}
+                    linkedReportActionID={linkedReportActionID}
+                    displayAsGroup={
+                        !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
+                        isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)
+                    }
+                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                    shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
+                    isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                    shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                />
+            );
+        },
         [
             report,
             linkedReportActionID,
