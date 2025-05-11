@@ -1121,7 +1121,7 @@ const translations = {
         undoClose: 'Undo close',
         reopened: 'reopened',
         reopenReport: 'Reopen report',
-        reopenExportedReportConfirmation: (connectionName: string) =>
+        reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
             `This report has already been exported to ${connectionName}. Changing it may lead to data discrepancies. Are you sure you want to reopen this report?`,
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',

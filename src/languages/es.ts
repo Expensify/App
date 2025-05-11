@@ -1117,7 +1117,7 @@ const translations = {
         undoClose: 'Deshacer cierre',
         reopened: 'Reabrir',
         reopenReport: 'Reabrir informe',
-        reopenExportedReportConfirmation: (connectionName: string) =>
+        reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
             `Este informe ya ha sido exportado a ${connectionName}. Cambiarlo puede provocar discrepancias en los datos. ¿Estás seguro de que deseas reabrir este informe?`,
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para retener.',

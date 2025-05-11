@@ -721,7 +721,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const reopenExportedReportWarningText = (
         <Text>
             <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')} </Text>
-            <Text>{translate('iou.reopenExportedReportConfirmation', integrationNameFromExportMessage ?? '')}</Text>
+            <Text>{translate('iou.reopenExportedReportConfirmation', {connectionName: integrationNameFromExportMessage ?? ''})}</Text>
         </Text>
     );
 
