@@ -561,14 +561,17 @@ function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>):
  *
  * @param allCardsList the list where cards split by workspaces and feeds and stored under `card_${workspaceAccountID}_${feedName}` keys
  * @param workspaceAccountID the workspace account id we want to get cards for
+ * @param domainIDs the domain ids we want to get cards for
  */
-function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): Record<string, Card> | undefined {
+function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number, domainIDs?: number[]): Record<string, Card> | undefined {
     if (!allCardsList) {
         return;
     }
 
     return Object.entries(allCardsList).reduce((acc, [key, cards]) => {
-        if (!key.includes(workspaceAccountID.toString()) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
+        const isWorkspaceAccountCards = key.includes(workspaceAccountID.toString());
+        const isDomainCards = domainIDs?.some((domainID) => key.includes(domainID.toString()));
+        if ((!isWorkspaceAccountCards && !isDomainCards) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
             return acc;
         }
         const {cardList, ...feedCards} = cards ?? {};
