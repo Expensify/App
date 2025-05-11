@@ -1090,10 +1090,6 @@ const styles = (theme: ThemeColors) =>
         textInputDisabledContainer: {
             // Adding disabled color theme to indicate user that the field is not editable.
             backgroundColor: theme.highlightBG,
-            borderWidth: 1,
-            padding: 8,
-            paddingBottom: 0,
-            borderRadius: 8,
             borderColor: theme.borderLighter,
         },
 
@@ -1378,10 +1374,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         textInputDesktop: addOutlineWidth(theme, {}, 0),
-
-        textInputIconContainerMarginTop: {
-            marginTop: 8,
-        },
 
         textInputIconContainer: {
             paddingHorizontal: 11,
