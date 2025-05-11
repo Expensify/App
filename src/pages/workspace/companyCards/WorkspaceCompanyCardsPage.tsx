@@ -11,7 +11,16 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getFilteredCardList, getSelectedFeed, hasOnlyOneCardToAssign, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
+import {
+    checkIfFeedConnectionIsBroken,
+    getCompanyFeeds,
+    getDomainOrWorkspaceAccountID,
+    getFilteredCardList,
+    getSelectedFeed,
+    hasOnlyOneCardToAssign,
+    isCustomFeed,
+    isSelectedFeedExpired,
+} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -60,9 +69,10 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(cards);
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCards, selectedFeed);
     const fetchCompanyCards = useCallback(() => {
-        openPolicyCompanyCardsPage(policyID, workspaceAccountID);
-    }, [policyID, workspaceAccountID]);
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
+    }, [policyID, domainOrWorkspaceAccountID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
     const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
@@ -76,8 +86,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             return;
         }
 
-        openPolicyCompanyCardsFeed(selectedFeedData?.domainID ?? workspaceAccountID, policyID, selectedFeed);
-    }, [selectedFeed, isLoading, policyID, isPending, selectedFeedData, workspaceAccountID]);
+        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, selectedFeed);
+    }, [selectedFeed, isLoading, policyID, isPending, domainOrWorkspaceAccountID]);
 
     const handleAssignCard = () => {
         if (isActingAsDelegate) {

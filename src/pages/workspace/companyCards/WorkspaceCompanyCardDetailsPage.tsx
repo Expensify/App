@@ -12,6 +12,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,7 +20,7 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getDefaultCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, maskCardNumber} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -68,16 +69,20 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const displayName = getDisplayNameOrDefault(cardholder);
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
 
+    const [cardFeeds] = useCardFeeds(policyID);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds, bank as CompanyCardFeed);
+
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
         if (card) {
-            unassignWorkspaceCompanyCard(workspaceAccountID, bank, card);
+            unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bank, card);
         }
         Navigation.goBack();
     };
 
     const updateCard = () => {
-        updateWorkspaceCompanyCard(workspaceAccountID, cardID, bank as CompanyCardFeed);
+        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank as CompanyCardFeed);
     };
 
     const lastScrape = useMemo(() => {
@@ -137,7 +142,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
                         errorRowStyles={[styles.ph5, styles.mb3]}
                         errors={getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
-                        onClose={() => clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'cardTitle')}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'cardTitle')}
                     >
                         <MenuItemWithTopDescription
                             description={translate('workspace.moreFeatures.companyCards.cardName')}
@@ -156,7 +161,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 if (!exportMenuItem.exportType) {
                                     return;
                                 }
-                                clearCompanyCardErrorField(workspaceAccountID, cardID, bank, exportMenuItem.exportType);
+                                clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, exportMenuItem.exportType);
                             }}
                         >
                             <MenuItemWithTopDescription
@@ -200,7 +205,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         pendingAction={card?.pendingFields?.lastScrape}
                         errorRowStyles={[styles.ph5, styles.mb3]}
                         errors={getLatestErrorField(card ?? {}, 'lastScrape')}
-                        onClose={() => clearCompanyCardErrorField(workspaceAccountID, cardID, bank, 'lastScrape', true)}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'lastScrape', true)}
                     >
                         <MenuItem
                             icon={Expensicons.Sync}

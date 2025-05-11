@@ -7,12 +7,14 @@ import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {setCompanyCardExportAccount} from '@libs/actions/CompanyCards';
+import {getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getConnectedIntegration, getCurrentConnectionName} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -44,6 +46,10 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
+    const [cardFeeds] = useCardFeeds(policyID);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds, bank as CompanyCardFeed);
+
     const searchedListOptions = useMemo(() => {
         return exportMenuItem?.data.filter((option) => option.value.toLowerCase().includes(searchText));
     }, [exportMenuItem?.data, searchText]);
@@ -69,11 +75,11 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             }
             const isDefaultCardSelected = value === defaultCard;
             const exportValue = isDefaultCardSelected ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : value;
-            setCompanyCardExportAccount(policyID, workspaceAccountID, cardID, exportMenuItem.exportType, exportValue, bank);
+            setCompanyCardExportAccount(policyID, domainOrWorkspaceAccountID, cardID, exportMenuItem.exportType, exportValue, bank);
 
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank));
         },
-        [exportMenuItem?.exportType, workspaceAccountID, cardID, policyID, bank, defaultCard],
+        [exportMenuItem?.exportType, domainOrWorkspaceAccountID, cardID, policyID, bank, defaultCard],
     );
 
     return (

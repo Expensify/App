@@ -405,6 +405,16 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     return customFeedName ?? formattedFeedName;
 }
 
+function getDomainOrWorkspaceAccountID(workspaceAccountID: number, companyFeeds: CompanyFeeds, selectedFeed: CompanyCardFeed | undefined): number {
+    const feedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
+
+    if (feedData?.domainID) {
+        return feedData.domainID;
+    }
+
+    return workspaceAccountID;
+}
+
 // We will simplify the logic below once we have #50450 #50451 implemented
 const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) => {
     const banksWithFeedType = [
@@ -640,6 +650,7 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    getDomainOrWorkspaceAccountID,
     mergeCardListWithWorkspaceFeeds,
     isCard,
     getAllCardsForWorkspace,

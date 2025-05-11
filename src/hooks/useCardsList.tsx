@@ -1,5 +1,5 @@
 import type {ResultMetadata} from 'react-native-onyx';
-import {filterInactiveCards, getCompanyFeeds} from '@libs/CardUtils';
+import {filterInactiveCards, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, CompanyCardFeed} from '@src/types/onyx';
 import useCardFeeds from './useCardFeeds';
@@ -10,8 +10,8 @@ const useCardsList = (policyID: string | undefined, selectedFeed: CompanyCardFee
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const companyCards = getCompanyFeeds(cardFeeds);
-    const selectedFeedData = selectedFeed && companyCards[selectedFeed];
-    const [cardsList, cardsListMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${selectedFeedData?.domainID ?? workspaceAccountID}_${selectedFeed}`, {
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCards, selectedFeed);
+    const [cardsList, cardsListMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`, {
         selector: filterInactiveCards,
         canBeMissing: true,
     });

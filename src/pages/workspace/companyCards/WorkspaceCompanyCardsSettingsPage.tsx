@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteWorkspaceCompanyCardFeed, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
-import {getCompanyFeeds, getCustomOrFormattedFeedName, getSelectedFeed} from '@libs/CardUtils';
+import {getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -50,6 +50,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const liabilityType = selectedFeed && companyFeeds[selectedFeed]?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds, selectedFeed);
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));
@@ -65,7 +66,7 @@ function WorkspaceCompanyCardsSettingsPage({
                 .filter((feed) => feed !== selectedFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
                 .at(0);
             InteractionManager.runAfterInteractions(() => {
-                deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, selectedFeed, cardIDs, feedToOpen);
+                deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, selectedFeed, cardIDs, feedToOpen);
             });
         }
     };
@@ -75,7 +76,7 @@ function WorkspaceCompanyCardsSettingsPage({
             return;
         }
         setWorkspaceCompanyCardTransactionLiability(
-            workspaceAccountID,
+            domainOrWorkspaceAccountID,
             policyID,
             selectedFeed,
             isOn ? CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW : CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.RESTRICT,
