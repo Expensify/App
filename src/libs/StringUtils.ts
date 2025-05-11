@@ -75,6 +75,22 @@ function normalizeAccents(text: string) {
 }
 
 /**
+ * Normalize a string by:
+ * - removing diacritical marks
+ * - Removing non-alphabetic and non-latin characters from a string
+ * - Removing invisible characters
+ * - normalizing space-like characters into normal spaces
+ * - collapsing whitespaces
+ * - trimming
+ */
+function normalize(text: string): string {
+    return removeInvisibleCharacters(text)
+        .replace(/[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, ' ') // space-like -> ' '
+        .replace(/\s+/g, ' ') // collapse spaces
+        .trim();
+}
+
+/**
  *  Replace all CRLF with LF
  *  @param value - The input string
  *  @returns The string with all CRLF replaced with LF
@@ -107,10 +123,30 @@ function removeDoubleQuotes(text = '') {
 }
 
 /**
+ * Sort an array of strings by their length.
+ * The longest strings will be at the end of the array.
+ */
+function sortStringArrayByLength(arr: string[]): string[] {
+    return arr.sort((a, b) => a.length - b.length);
+}
+
+/**
  * Remove pre tag from the html
  */
 function removePreCodeBlock(text = '') {
     return text.replace(/<pre[^>]*>|<\/pre>/g, '');
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, lineBreaksToSpaces, getFirstLine, removeDoubleQuotes, removePreCodeBlock};
+export default {
+    sanitizeString,
+    isEmptyString,
+    removeInvisibleCharacters,
+    normalize,
+    normalizeAccents,
+    normalizeCRLF,
+    lineBreaksToSpaces,
+    getFirstLine,
+    removeDoubleQuotes,
+    removePreCodeBlock,
+    sortStringArrayByLength,
+};

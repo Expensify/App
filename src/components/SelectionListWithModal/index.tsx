@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef, useState} from 'react';
-import {CheckSquare, EmptySquare} from '@components/Icon/Expensicons';
+import {CheckSquare} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
@@ -65,7 +65,8 @@ function SelectionListWithModal<TItem extends ListItem>(
         } else if (selectedItems.length === 0 && selectionMode?.isEnabled && !wasSelectionOnRef.current) {
             turnOffMobileSelectionMode();
         }
-    }, [sections, selectionMode, isSmallScreenWidth, isSelected, isFocused]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [sections, isSmallScreenWidth, isSelected, isFocused]);
 
     useEffect(
         () => () => {
@@ -82,6 +83,11 @@ function SelectionListWithModal<TItem extends ListItem>(
         if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || (!isFocused && !isScreenFocused)) {
             return;
         }
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            rest?.onCheckboxPress?.(item);
+            return;
+        }
+
         setLongPressedItem(item);
         setIsModalVisible(true);
 
@@ -114,10 +120,11 @@ function SelectionListWithModal<TItem extends ListItem>(
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={() => setIsModalVisible(false)}
                 shouldPreventScrollOnFocus
+                shouldUseNewModal
             >
                 <MenuItem
-                    title={longPressedItem?.isSelected ? translate('common.deselect') : translate('common.select')}
-                    icon={longPressedItem?.isSelected ? EmptySquare : CheckSquare}
+                    title={translate('common.select')}
+                    icon={CheckSquare}
                     onPress={turnOnSelectionMode}
                     pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
                 />

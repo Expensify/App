@@ -21,7 +21,6 @@ import type {
     UpdatePreferredEmojiSkinToneParams,
     UpdateStatusParams,
     UpdateThemeParams,
-    ValidateLoginParams,
     ValidateSecondaryLoginParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -40,7 +39,6 @@ import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -189,20 +187,20 @@ function requestContactMethodValidateCode(contactMethod: string) {
 }
 
 /**
- * Sets whether the user is subscribed to Expensify news
+ * Sets whether the user account is subscribed to Expensify news
  */
 function updateNewsletterSubscription(isSubscribed: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.USER,
+            key: ONYXKEYS.ACCOUNT,
             value: {isSubscribedToNewsletter: isSubscribed},
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.USER,
+            key: ONYXKEYS.ACCOUNT,
             value: {isSubscribedToNewsletter: !isSubscribed},
         },
     ];
@@ -337,6 +335,12 @@ function clearUnvalidatedNewContactMethodAction() {
     Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, null);
 }
 
+function clearPendingContactActionErrors() {
+    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
+        errorFields: null,
+    });
+}
+
 /**
  * When user adds a new contact method, they need to verify the magic code first
  * So we add the temporary contact method to Onyx to use it later, after user verified magic code.
@@ -345,76 +349,6 @@ function addPendingContactMethod(contactMethod: string) {
     Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
         contactMethod,
     });
-}
-
-/**
- * Validates the action to add secondary contact method
- */
-function saveNewContactMethodAndRequestValidationCode(contactMethod: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                contactMethod,
-                errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
-                    actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: true},
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                validateCodeSent: true,
-                errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
-                    actionVerified: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                validateCodeSent: null,
-                errorFields: {
-                    actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
-                },
-                pendingFields: {
-                    actionVerified: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
 }
 
 /**
@@ -432,9 +366,6 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
                     errorFields: {
                         addedLogin: null,
                     },
-                    pendingFields: {
-                        addedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
                 },
             },
         },
@@ -447,26 +378,12 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
-            value: {
-                [contactMethod]: {
-                    pendingFields: {
-                        addedLogin: null,
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
                 contactMethod: null,
                 validateCodeSent: null,
                 actionVerified: true,
                 errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
                     actionVerified: null,
                 },
             },
@@ -480,26 +397,12 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
-            value: {
-                [contactMethod]: {
-                    errorFields: {
-                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
-                    },
-                    pendingFields: {
-                        addedLogin: null,
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {isLoading: false},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {validateCodeSent: null},
         },
     ];
@@ -567,38 +470,6 @@ function requestValidateCodeAction() {
 }
 
 /**
- * Validates a login given an accountID and validation code
- */
-function validateLogin(accountID: number, validateCode: string) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const finallyData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const parameters: ValidateLoginParams = {accountID, validateCode};
-
-    API.write(WRITE_COMMANDS.VALIDATE_LOGIN, parameters, {optimisticData, finallyData});
-    Navigation.navigate(ROUTES.HOME);
-}
-
-/**
  * Validates a secondary login / contact method
  */
 function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string, shouldResetActionCode?: boolean) {
@@ -648,13 +519,6 @@ function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: 
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                validated: true,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.USER,
-            value: {
                 validated: true,
             },
         },
@@ -856,12 +720,12 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
                 // mention user
                 if ('html' in message && typeof message.html === 'string' && message.html.includes(`<mention-user>@${currentEmail}</mention-user>`)) {
-                    return playSoundExcludingMobile(SOUNDS.ATTENTION);
+                    return playSound(SOUNDS.ATTENTION);
                 }
 
                 // mention @here
                 if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-here>')) {
-                    return playSoundExcludingMobile(SOUNDS.ATTENTION);
+                    return playSound(SOUNDS.ATTENTION);
                 }
 
                 // assign a task
@@ -881,7 +745,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
                 // plain message
                 if ('html' in message) {
-                    return playSoundExcludingMobile(SOUNDS.RECEIVE);
+                    return playSound(SOUNDS.RECEIVE);
                 }
             }
         } catch (e) {
@@ -1147,11 +1011,7 @@ function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
     if (CONFIG.IS_HYBRID_APP) {
         HybridAppModule.shouldUseStaging(shouldUseStagingServer);
     }
-    Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
-}
-
-function clearUserErrorMessage() {
-    Onyx.merge(ONYXKEYS.USER, {error: ''});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {shouldUseStagingServer});
 }
 
 function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<Platform, true>>) {
@@ -1517,7 +1377,7 @@ function requestRefund() {
 }
 
 function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
-    Onyx.merge(ONYXKEYS.USER, {isDebugModeEnabled});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {isDebugModeEnabled});
 }
 
 export {
@@ -1532,14 +1392,12 @@ export {
     clearContactMethodErrors,
     clearContactMethod,
     addNewContactMethod,
-    validateLogin,
     validateSecondaryLogin,
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
     setShouldUseStagingServer,
     togglePlatformMute,
-    clearUserErrorMessage,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
@@ -1552,8 +1410,8 @@ export {
     updateDraftCustomStatus,
     clearDraftCustomStatus,
     requestRefund,
-    saveNewContactMethodAndRequestValidationCode,
     clearUnvalidatedNewContactMethodAction,
+    clearPendingContactActionErrors,
     requestValidateCodeAction,
     addPendingContactMethod,
     clearValidateCodeActionError,

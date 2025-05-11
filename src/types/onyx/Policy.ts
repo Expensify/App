@@ -476,6 +476,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Credentials of the current QBO connection */
     credentials: QBOCredentials;
+
+    /** The accounting Method for NetSuite conenction config */
+    accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 }>;
 
 /**
@@ -1713,11 +1716,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             'limit' | 'auditRate'
         >;
 
-        /**
-         * Whether the custom report name options are enabled in the policy rules
-         */
-        shouldShowCustomReportTitleOption?: boolean;
-
         /** Whether to leave the calling account as an admin on the policy */
         makeMeAdmin?: boolean;
 
@@ -1934,7 +1932,6 @@ export type {
     IntegrationEntityMap,
     PolicyFeatureName,
     PolicyDetailsForNonMembers,
-    PendingJoinRequestPolicy,
     PolicyConnectionName,
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
@@ -1955,13 +1952,11 @@ export type {
     NetSuiteSubsidiary,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
-    NetSuiteCustomListSource,
     NetSuiteCustomFieldMapping,
     NetSuiteAccount,
     NetSuiteVendor,
     InvoiceItem,
     NetSuiteTaxAccount,
-    NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
     SageIntacctMappingValue,
     SageIntacctMappingType,

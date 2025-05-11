@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportNameValuePairs, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
@@ -41,7 +42,6 @@ import {
     getReportAction,
     getReportActionMessageText,
     getSortedReportActions,
-    getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
@@ -77,6 +77,7 @@ import {
     getPolicyName,
     getReportDescription,
     getReportName,
+    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
@@ -87,7 +88,6 @@ import {
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
-    isArchivedReportWithID,
     isChatRoom,
     isChatThread,
     isConciergeChatReport,
@@ -242,6 +242,7 @@ function getOrderedReportIDs(
             isSystemChat ||
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
+            (!isInFocusMode && isArchivedReport(reportNameValuePairs)) ||
             requiresAttentionFromCurrentUser(report, parentReportAction);
         if (isHidden && !shouldOverrideHidden) {
             return;
@@ -291,7 +292,7 @@ function getOrderedReportIDs(
 
         const isPinned = report?.isPinned ?? false;
         const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-        const rNVPs = reportNameValuePairs?.[report?.reportID];
+        const rNVPs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
         if (isPinned || requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
@@ -345,12 +346,13 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
+    isReportArchived = false,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
     const errors = getAllReportErrors(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
 
-    if (isArchivedReportWithID(report.reportID)) {
+    if (isReportArchived) {
         return null;
     }
 
@@ -394,8 +396,14 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     return null;
 }
 
-function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, transactionViolations?: OnyxCollection<TransactionViolation[]>) {
-    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations);
+function shouldShowRedBrickRoad(
+    report: Report,
+    reportActions: OnyxEntry<ReportActions>,
+    hasViolations: boolean,
+    transactionViolations?: OnyxCollection<TransactionViolation[]>,
+    isReportArchived = false,
+) {
+    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isReportArchived);
 }
 
 /**
@@ -403,6 +411,7 @@ function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportA
  */
 function getOptionData({
     report,
+    reportAttributes,
     oneTransactionThreadReport,
     reportNameValuePairs,
     reportActions,
@@ -410,9 +419,7 @@ function getOptionData({
     preferredLocale,
     policy,
     parentReportAction,
-    hasViolations,
     lastMessageTextFromReport: lastMessageTextFromReportProp,
-    transactionViolations,
     invoiceReceiverPolicy,
 }: {
     report: OnyxEntry<Report>;
@@ -423,10 +430,9 @@ function getOptionData({
     preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
-    hasViolations: boolean;
     lastMessageTextFromReport?: string;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
-    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    reportAttributes: OnyxEntry<ReportAttributes>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -466,6 +472,7 @@ function getOptionData({
         isAllowedToComment: true,
         isDeletedParentAction: false,
         isConciergeChat: false,
+        shouldShowGreenDot: false,
     };
 
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
@@ -485,7 +492,7 @@ function getOptionData({
     result.isMoneyRequestReport = isMoneyRequestReport(report);
     result.shouldShowSubscript = shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
-    result.brickRoadIndicator = shouldShowRedBrickRoad(report, reportActions, hasViolations, transactionViolations) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
@@ -512,8 +519,10 @@ function getOptionData({
     result.hasParentAccess = report.hasParentAccess;
     result.isConciergeChat = isConciergeChatReport(report);
     result.participants = report.participants;
+    result.shouldShowGreenDot = result.brickRoadIndicator !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && requiresAttentionFromCurrentUser(report, parentReportAction);
 
-    const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || isExpenseReport(report);
+    const isExpense = isExpenseReport(report);
+    const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || isExpense;
     const subtitle = getChatRoomSubtitle(report);
 
     const login = Str.removeSMSDomain(personalDetail?.login ?? '');
@@ -523,13 +532,17 @@ function getOptionData({
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, undefined, isSelfDM(report));
 
+    const lastAction = visibleReportActionItems[report.reportID];
+    // lastActorAccountID can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const lastActorAccountID = report.lastActorAccountID || lastAction?.actorAccountID;
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
-    let lastActorDetails: Partial<PersonalDetails> | null = report.lastActorAccountID && personalDetails?.[report.lastActorAccountID] ? personalDetails[report.lastActorAccountID] : null;
+    let lastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? personalDetails?.[lastActorAccountID] ?? null : null;
 
-    if (!lastActorDetails && visibleReportActionItems[report.reportID]) {
-        const lastActorDisplayName = visibleReportActionItems[report.reportID]?.person?.[0]?.text;
+    if (!lastActorDetails && lastAction) {
+        const lastActorDisplayName = lastAction?.person?.[0]?.text;
         lastActorDetails = lastActorDisplayName
             ? {
                   displayName: lastActorDisplayName,
@@ -547,7 +560,6 @@ function getOptionData({
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
     let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
 
-    const lastAction = visibleReportActionItems[report.reportID];
     const isGroupChat = isGroupChatUtil(report) || isDeprecatedGroupDM(report);
 
     const isThreadMessage = isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -556,7 +568,7 @@ function getOptionData({
         const prefix = getReportSubtitlePrefix(report);
 
         if (isRenamedAction(lastAction)) {
-            result.alternateText = getRenamedAction(lastAction);
+            result.alternateText = getRenamedAction(lastAction, isExpense, lastActorDisplayName);
         } else if (isTaskAction(lastAction)) {
             result.alternateText = formatReportLastMessageText(getTaskReportActionMessage(lastAction).text);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM) {
@@ -582,7 +594,7 @@ function getOptionData({
                 lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
                     ? translate(preferredLocale, 'workspace.invite.invited')
                     : translate(preferredLocale, 'workspace.invite.removed');
-            const users = translate(preferredLocale, targetAccountIDsLength > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
+            const users = translate(preferredLocale, targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
             const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]) || lastActionOriginalMessage?.roomName;
             if (roomName) {
@@ -592,8 +604,6 @@ function getOptionData({
                         : ` ${translate(preferredLocale, 'workspace.invite.from')}`;
                 result.alternateText += `${preposition} ${roomName}`;
             }
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
-            result.alternateText = `${lastActorDisplayName} ${getUpdateRoomDescriptionMessage(lastAction)}`;
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {
             result.alternateText = getWorkspaceNameUpdatedMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION)) {
@@ -667,7 +677,7 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
         }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails) && !isArchivedReport(reportNameValuePairs)) {
+        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isArchivedReport(reportNameValuePairs)) {
             result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`;
         } else {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
@@ -678,7 +688,6 @@ function getOptionData({
 
     if (isJoinRequestInAdminRoom(report)) {
         result.isUnread = true;
-        result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
     if (!hasMultipleParticipants) {
@@ -779,7 +788,11 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         return welcomeMessage;
     }
 
-    if (isArchivedReportWithID(report?.reportID)) {
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
+    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+
+    if (isArchivedReport(reportNameValuePairs)) {
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (isDomainRoom(report)) {

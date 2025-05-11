@@ -21,10 +21,13 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
     anchorDimensions?: AnchorDimensions;
 
     /** Whether we should change the vertical position if the popover's position is overflow */
-    shoudSwitchPositionIfOverflow?: boolean;
+    shouldSwitchPositionIfOverflow?: boolean;
 
     /** Whether handle navigation back when modal show. */
     shouldHandleNavigationBack?: boolean;
+
+    /** Whether we should should use top side for the anchor positioning */
+    shouldMeasureAnchorPositionFromTop?: boolean;
 };
 
 /**
@@ -58,10 +61,11 @@ function PopoverWithMeasuredContent({
         height: 0,
         width: 0,
     },
-    shoudSwitchPositionIfOverflow = false,
+    shouldSwitchPositionIfOverflow = false,
     shouldHandleNavigationBack = false,
     shouldEnableNewFocusManagement,
-    shouldUseNewModal = false,
+    shouldMeasureAnchorPositionFromTop = false,
+    shouldUseNewModal = true,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();
@@ -120,7 +124,6 @@ function PopoverWithMeasuredContent({
             default:
                 verticalConstraint = {top: anchorPosition.vertical};
         }
-
         return {
             ...horizontalConstraint,
             ...verticalConstraint,
@@ -133,10 +136,11 @@ function PopoverWithMeasuredContent({
         popoverHeight,
         windowHeight,
         anchorDimensions.height,
-        shoudSwitchPositionIfOverflow,
+        shouldSwitchPositionIfOverflow,
     );
     const shiftedAnchorPosition: PopoverAnchorPosition = {
         left: adjustedAnchorPosition.left + horizontalShift,
+        ...(shouldMeasureAnchorPositionFromTop ? {top: adjustedAnchorPosition.top + verticalShift} : {}),
     };
 
     if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
@@ -195,3 +199,5 @@ export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => 
     }
     return isEqual(prevProps, nextProps);
 });
+
+export type {PopoverWithMeasuredContentProps};

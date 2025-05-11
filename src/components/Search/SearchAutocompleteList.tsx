@@ -1,13 +1,14 @@
 import {Str} from 'expensify-common';
-import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import type {ForwardedRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SelectionList from '@components/SelectionList';
-import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
+import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -20,10 +21,10 @@ import {searchInServer} from '@libs/actions/Report';
 import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import memoize from '@libs/memoize';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions} from '@libs/OptionsListUtils';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
+import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
@@ -34,7 +35,7 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -73,6 +74,12 @@ type SearchAutocompleteListProps = {
 
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
     shouldSubscribeToArrowKeyEvents?: boolean;
+
+    /** Callback to highlight (e.g. scroll to) the first matched item in the list. */
+    onHighlightFirstItem?: () => void;
+
+    /** Ref for textInput */
+    textInputRef?: React.RefObject<AnimatedTextInputRef>;
 };
 
 const defaultListOptions = {
@@ -131,7 +138,9 @@ function SearchAutocompleteList(
         onListItemPress,
         setTextQuery,
         updateAutocompleteSubstitutions,
-        shouldSubscribeToArrowKeyEvents,
+        shouldSubscribeToArrowKeyEvents = true,
+        onHighlightFirstItem,
+        textInputRef,
     }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -141,10 +150,10 @@ function SearchAutocompleteList(
 
     const {activeWorkspaceID} = useActiveWorkspace();
     const policy = usePolicy(activeWorkspaceID);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
-    const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const taxRates = getAllTaxRates();
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -159,11 +168,18 @@ function SearchAutocompleteList(
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
     const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
-    const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
+    const statusAutocompleteList = Object.values({
+        ...CONST.SEARCH.STATUS.EXPENSE,
+        ...CONST.SEARCH.STATUS.INVOICE,
+        ...CONST.SEARCH.STATUS.CHAT,
+        ...CONST.SEARCH.STATUS.TRIP,
+        ...CONST.SEARCH.STATUS.TASK,
+    });
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
+    const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
 
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const cardAutocompleteList = Object.values(allCards);
     const cardFeedNamesWithType = useMemo(() => {
@@ -205,8 +221,8 @@ function SearchAutocompleteList(
 
     const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates, policy), [policy, taxRates]);
 
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
+    const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const categoryAutocompleteList = useMemo(() => {
         return getAutocompleteCategories(allPolicyCategories, activeWorkspaceID);
     }, [activeWorkspaceID, allPolicyCategories]);
@@ -214,11 +230,22 @@ function SearchAutocompleteList(
         return getAutocompleteRecentCategories(allRecentCategories, activeWorkspaceID);
     }, [activeWorkspaceID, allRecentCategories]);
 
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+
+    const workspaceList = useMemo(
+        () =>
+            Object.values(policies)
+                .filter((singlePolicy) => !!singlePolicy && shouldShowPolicy(singlePolicy, false, currentUserLogin) && !singlePolicy?.isJoinRequestPending)
+                .map((singlePolicy) => ({id: singlePolicy?.id, name: singlePolicy?.name ?? ''})),
+        [policies, currentUserLogin],
+    );
+
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
     const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currency) => !currencyList?.[currency]?.retired);
-    const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
+    const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
+    const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS, {canBeMissing: true});
     const tagAutocompleteList = useMemo(() => {
         return getAutocompleteTags(allPoliciesTags, activeWorkspaceID);
     }, [activeWorkspaceID, allPoliciesTags]);
@@ -290,28 +317,21 @@ function SearchAutocompleteList(
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
+                const filterKey = autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY ? CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CREATED_BY : autocompleteKey;
+
                 const filteredParticipants = getParticipantsAutocompleteList()
                     .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                     .slice(0, 10);
 
                 return filteredParticipants.map((participant) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FROM,
+                    filterKey,
                     text: participant.name,
                     autocompleteID: participant.accountID,
-                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                }));
-            }
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO: {
-                const filteredParticipants = getParticipantsAutocompleteList()
-                    .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
-                    .slice(0, 10);
-
-                return filteredParticipants.map((participant) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO,
-                    text: participant.name,
-                    autocompleteID: participant.accountID,
-                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                    mapKey: autocompleteKey,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
@@ -389,6 +409,28 @@ function SearchAutocompleteList(
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE: {
+                const filteredValues = booleanTypes.filter((value) => value.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(value)).sort();
+
+                return filteredValues.map((value) => ({
+                    filterKey: autocompleteKey,
+                    text: value,
+                }));
+            }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID: {
+                const filteredPolicies = workspaceList
+                    .filter((workspace) => workspace.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(workspace.name.toLowerCase()))
+                    .sort()
+                    .slice(0, 10);
+
+                return filteredPolicies.map((workspace) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID,
+                    text: workspace.name,
+                    autocompleteID: workspace.id,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                }));
+            }
             default: {
                 return [];
             }
@@ -405,13 +447,15 @@ function SearchAutocompleteList(
         getParticipantsAutocompleteList,
         searchOptions.recentReports,
         typeAutocompleteList,
+        groupByAutocompleteList,
         statusAutocompleteList,
         expenseTypes,
         feedAutoCompleteList,
         workspaceCardFeeds,
         cardAutocompleteList,
         allCards,
-        groupByAutocompleteList,
+        booleanTypes,
+        workspaceList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -421,7 +465,7 @@ function SearchAutocompleteList(
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType) : query,
+            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies) : query,
             singleIcon: Expensicons.History,
             searchQuery: query,
             keyForList: timestamp,
@@ -443,7 +487,7 @@ function SearchAutocompleteList(
         const filteredOptions = filterOptions(autocompleteQueryValue);
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
             sortByReportTypeInSearch: true,
-            preferChatroomsOverThreads: true,
+            preferChatRoomsOverThreads: true,
         });
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
@@ -514,29 +558,50 @@ function SearchAutocompleteList(
         [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions],
     );
 
+    const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
+    const normalizedReferenceText = useMemo(() => sectionItemText.toLowerCase(), [sectionItemText]);
+
+    useEffect(() => {
+        const targetText = autocompleteQueryValue;
+
+        if (shouldHighlight(normalizedReferenceText, targetText)) {
+            onHighlightFirstItem?.();
+        }
+    }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
+
     return (
-        <SelectionList<OptionData | SearchQueryItem>
-            sections={sections}
-            onSelectRow={onListItemPress}
-            ListItem={SearchRouterItem}
-            containerStyle={[styles.mh100]}
-            sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
-            listItemWrapperStyle={[styles.pr0, styles.pl0]}
-            getItemHeight={getItemHeight}
-            onLayout={() => {
-                setPerformanceTimersEnd();
-                setIsInitialRender(false);
-            }}
-            showScrollIndicator={!shouldUseNarrowLayout}
-            sectionTitleStyles={styles.mhn2}
-            shouldSingleExecuteRowSelect
-            onArrowFocus={onArrowFocus}
-            ref={ref}
-            initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
-            shouldScrollToFocusedIndex={!isInitialRender}
-            shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
-            disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
-        />
+        // On page refresh, when the list is rendered before options are initialized the auto-focusing on initiallyFocusedOptionKey
+        // will fail because the list will be empty on first render so we only render after options are initialized.
+        areOptionsInitialized && (
+            <SelectionList<OptionData | SearchQueryItem>
+                showLoadingPlaceholder={!areOptionsInitialized}
+                fixedNumItemsForLoader={4}
+                loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                sections={sections}
+                onSelectRow={onListItemPress}
+                ListItem={SearchRouterItem}
+                containerStyle={[styles.mh100]}
+                sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
+                listItemWrapperStyle={[styles.pr0, styles.pl0]}
+                getItemHeight={getItemHeight}
+                onLayout={() => {
+                    setPerformanceTimersEnd();
+                    setIsInitialRender(false);
+                    if (!!textInputRef?.current && ref && 'current' in ref) {
+                        ref.current?.updateExternalTextInputFocus?.(textInputRef.current.isFocused());
+                    }
+                }}
+                showScrollIndicator={!shouldUseNarrowLayout}
+                sectionTitleStyles={styles.mhn2}
+                shouldSingleExecuteRowSelect
+                onArrowFocus={onArrowFocus}
+                ref={ref}
+                initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
+                shouldScrollToFocusedIndex={!isInitialRender}
+                shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
+                disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
+            />
+        )
     );
 }
 
