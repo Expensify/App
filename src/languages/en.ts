@@ -4338,14 +4338,6 @@ const translations = {
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
-                    case CONST.POLICY.CONNECTIONS.NAME.SAP:
-                        return 'SAP';
-                    case CONST.POLICY.CONNECTIONS.NAME.ORACLE:
-                        return 'Oracle';
-                    case CONST.POLICY.CONNECTIONS.NAME.MICROSOFT_DYNAMICS:
-                        return 'Microsoft Dynamics';
-                    case CONST.POLICY.CONNECTIONS.NAME.OTHER:
-                        return 'Other';
                     default: {
                         return '';
                     }

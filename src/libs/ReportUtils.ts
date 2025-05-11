@@ -9656,7 +9656,7 @@ function prepareOnboardingOnyxData(
         return;
     }
 
-    const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
+    const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] : '';
     const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? 'Setup Specialist';
     const assignedGuidePersonalDetail = Object.values(allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === assignedGuideEmail);
     let assignedGuideAccountID: number;

@@ -69,6 +69,10 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
     netsuite: 'NetSuite',
     intacct: 'Sage Intacct',
     quickbooksDesktop: 'QuickBooks Desktop',
+    sap: 'SAP',
+    oracle: 'Oracle',
+    microsoftDynamics: 'Microsoft Dynamics',
+    other: 'Other',
 };
 
 const connectionsVideoPaths = {
@@ -273,7 +277,7 @@ type OnboardingPurpose = ValueOf<typeof onboardingChoices>;
 
 type OnboardingCompanySize = ValueOf<typeof onboardingCompanySize>;
 
-type OnboardingAccounting = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
+type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -2985,10 +2989,6 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
-                SAP: 'sap',
-                ORACLE: 'oracle',
-                MICROSOFT_DYNAMICS: 'Microsoft Dynamics',
-                OTHER: 'other',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
@@ -3006,6 +3006,10 @@ const CONST = {
                 financialForce: 'FinancialForce',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
+                sap: 'SAP',
+                oracle: 'Oracle',
+                microsoftDynamics: 'Microsoft Dynamics',
+                other: 'Other',
             },
             AUTH_HELP_LINKS: {
                 intacct:

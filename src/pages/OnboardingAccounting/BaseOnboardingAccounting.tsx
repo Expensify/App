@@ -2,6 +2,7 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {SvgProps} from 'react-native-svg';
 import Button from '@components/Button';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FixedFooter from '@components/FixedFooter';
@@ -12,7 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -35,8 +36,58 @@ import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseOnboardingAccountingProps} from './types';
+
+type Integration = {
+    key: OnboardingAccounting;
+    icon: React.FC<SvgProps>;
+    translationKey: TranslationPaths;
+};
+
+const integrations: Integration[] = [
+    {
+        key: 'quickbooksOnline',
+        icon: Expensicons.QBOCircle,
+        translationKey: 'workspace.accounting.qbo',
+    },
+    {
+        key: 'quickbooksDesktop',
+        icon: Expensicons.QBDSquare,
+        translationKey: 'workspace.accounting.qbd',
+    },
+    {
+        key: 'xero',
+        icon: Expensicons.XeroCircle,
+        translationKey: 'workspace.accounting.xero',
+    },
+    {
+        key: 'netsuite',
+        icon: Expensicons.NetSuiteSquare,
+        translationKey: 'workspace.accounting.netsuite',
+    },
+    {
+        key: 'intacct',
+        icon: Expensicons.IntacctSquare,
+        translationKey: 'workspace.accounting.intacct',
+    },
+    {
+        key: 'sap',
+        icon: Expensicons.SapSquare,
+        translationKey: 'workspace.accounting.sap',
+    },
+    {
+        key: 'oracle',
+        icon: Expensicons.OracleSquare,
+        translationKey: 'workspace.accounting.oracle',
+    },
+    {
+        key: 'microsoftDynamics',
+        icon: Expensicons.MicrosoftDynamicsSquare,
+        translationKey: 'workspace.accounting.microsoftDynamics',
+    },
+];
 
 type OnboardingListItem = ListItem & {
     keyForList: OnboardingAccounting;
@@ -89,70 +140,20 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
-        const policyAccountingOptions = Object.values(CONST.POLICY.CONNECTIONS.NAME)
-            .map((connectionName): OnboardingListItem | undefined => {
-                let text;
-                let accountingIcon;
-                switch (connectionName) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO: {
-                        text = translate('workspace.accounting.qbo');
-                        accountingIcon = Expensicons.QBOCircle;
-                        break;
-                    }
-                    case CONST.POLICY.CONNECTIONS.NAME.QBD: {
-                        text = translate('workspace.accounting.qbd');
-                        accountingIcon = Expensicons.QBDSquare;
-                        break;
-                    }
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO: {
-                        text = translate('workspace.accounting.xero');
-                        accountingIcon = Expensicons.XeroCircle;
-                        break;
-                    }
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE: {
-                        text = translate('workspace.accounting.netsuite');
-                        accountingIcon = Expensicons.NetSuiteSquare;
-                        break;
-                    }
-                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
-                        text = translate('workspace.accounting.intacct');
-                        accountingIcon = Expensicons.IntacctSquare;
-                        break;
-                    }
-                    case CONST.POLICY.CONNECTIONS.NAME.SAP: {
-                        text = translate('workspace.accounting.sap');
-                        accountingIcon = Expensicons.SapSquare;
-                        break;
-                    }
-                    case CONST.POLICY.CONNECTIONS.NAME.ORACLE: {
-                        text = translate('workspace.accounting.oracle');
-                        accountingIcon = Expensicons.OracleSquare;
-                        break;
-                    }
-                    case CONST.POLICY.CONNECTIONS.NAME.MICROSOFT_DYNAMICS: {
-                        text = translate('workspace.accounting.microsoftDynamics');
-                        accountingIcon = Expensicons.MicrosoftDynamicsSquare;
-                        break;
-                    }
-                    default: {
-                        return;
-                    }
-                }
-                return {
-                    keyForList: connectionName,
-                    text,
-                    leftElement: (
-                        <Icon
-                            src={accountingIcon}
-                            width={variables.iconSizeExtraLarge}
-                            height={variables.iconSizeExtraLarge}
-                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3]}
-                        />
-                    ),
-                    isSelected: userReportedIntegration === connectionName,
-                };
-            })
-            .filter((item): item is OnboardingListItem => !!item);
+        const createAccountingOption = (integration: Integration): OnboardingListItem => ({
+            keyForList: integration.key,
+            text: translate(integration.translationKey),
+            leftElement: (
+                <Icon
+                    src={integration.icon}
+                    width={variables.iconSizeExtraLarge}
+                    height={variables.iconSizeExtraLarge}
+                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3]}
+                />
+            ),
+            isSelected: userReportedIntegration === integration.key,
+        });
+
         const noneAccountingOption: OnboardingListItem = {
             keyForList: null,
             text: translate('onboarding.accounting.none'),
@@ -167,8 +168,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             ),
             isSelected: userReportedIntegration === null,
         };
+
         const othersAccountingOption: OnboardingListItem = {
-            keyForList: CONST.POLICY.CONNECTIONS.NAME.OTHER,
+            keyForList: 'other',
             text: translate('workspace.accounting.other'),
             leftElement: (
                 <Icon
@@ -179,19 +181,13 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3, styles.onboardingSmallIcon]}
                 />
             ),
-            isSelected: userReportedIntegration === CONST.POLICY.CONNECTIONS.NAME.OTHER,
+            isSelected: userReportedIntegration === 'other',
         };
-        return [...policyAccountingOptions, othersAccountingOption, noneAccountingOption];
+
+        return [...integrations.map(createAccountingOption), othersAccountingOption, noneAccountingOption];
     }, [StyleUtils, styles.mr3, styles.onboardingSmallIcon, theme.icon, translate, userReportedIntegration]);
 
-    const supportedIntegrationsInNewDot = [
-        CONST.POLICY.CONNECTIONS.NAME.QBO,
-        CONST.POLICY.CONNECTIONS.NAME.QBD,
-        CONST.POLICY.CONNECTIONS.NAME.XERO,
-        CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
-        CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
-        CONST.POLICY.CONNECTIONS.NAME.OTHER,
-    ];
+    const supportedIntegrationsInNewDot = useMemo(() => ['quickbooksOnline', 'quickbooksDesktop', 'xero', 'netsuite', 'intacct', 'other'] as OnboardingAccounting[], []);
 
     const handleContinue = useCallback(() => {
         if (userReportedIntegration === undefined) {
@@ -203,7 +199,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             return;
         }
 
-        const shouldStayInNewDot = supportedIntegrationsInNewDot.includes(userReportedIntegration as (typeof supportedIntegrationsInNewDot)[number]);
+        const shouldStayInNewDot = supportedIntegrationsInNewDot.includes(userReportedIntegration) || userReportedIntegration === null;
         if (!shouldStayInNewDot) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
             return;
@@ -258,17 +254,18 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             );
         });
     }, [
-        userReportedIntegration,
-        translate,
-        onboardingPurposeSelected,
+        activeWorkspaceID,
+        canUseDefaultRooms,
+        isSmallScreenWidth,
+        onboardingAdminsChatReportID,
         onboardingCompanySize,
         onboardingPolicyID,
+        onboardingPurposeSelected,
         paidGroupPolicy,
-        onboardingAdminsChatReportID,
-        isSmallScreenWidth,
-        canUseDefaultRooms,
-        activeWorkspaceID,
-        session,
+        session?.email,
+        supportedIntegrationsInNewDot,
+        translate,
+        userReportedIntegration,
     ]);
 
     const renderOption = useCallback(
