@@ -10,6 +10,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -278,21 +279,30 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         [styles.alignItemsCenter, styles.flexRow, styles.textStrong],
     );
 
+    const handleIntegrationSelect = useCallback((integrationKey: OnboardingAccounting | null) => {
+        setUserReportedIntegration(integrationKey);
+        setError('');
+    }, []);
+
     const renderOption = useCallback(
         (item: OnboardingListItem) => (
-            <RadioButtonWithLabel
+            <PressableWithoutFeedback
                 key={item.keyForList ?? ''}
-                isChecked={!!item.isSelected}
-                onPress={() => {
-                    setUserReportedIntegration(item.keyForList);
-                    setError('');
-                }}
-                style={[styles.flexRowReverse, styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}
-                wrapperStyle={[styles.ml0]}
-                LabelComponent={() => getLabelComponent(item)}
-            />
+                onPress={() => handleIntegrationSelect(item.keyForList)}
+                accessibilityLabel={item.text}
+                accessible={false}
+                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}
+            >
+                <RadioButtonWithLabel
+                    isChecked={!!item.isSelected}
+                    onPress={() => handleIntegrationSelect(item.keyForList)}
+                    style={[styles.flexRowReverse]}
+                    wrapperStyle={[styles.ml0]}
+                    LabelComponent={() => getLabelComponent(item)}
+                />
+            </PressableWithoutFeedback>
         ),
-        [getLabelComponent, isSmallScreenWidth, styles.flexBasis100, styles.flexRowReverse, styles.ml0, styles.onboardingAccountingItem],
+        [getLabelComponent, handleIntegrationSelect, isSmallScreenWidth, styles.flexBasis100, styles.flexRowReverse, styles.ml0, styles.onboardingAccountingItem],
     );
 
     return (
