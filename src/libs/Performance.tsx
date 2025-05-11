@@ -11,6 +11,7 @@ import getComponentDisplayName from './getComponentDisplayName';
 import canCapturePerformanceMetrics from './Metrics';
 
 const MARKS = {
+    // Native performance marks provided by react-native-performance under the 'react-native-mark' type
     NATIVE_LAUNCH_START: 'nativeLaunchStart',
     NATIVE_LAUNCH_END: 'nativeLaunchEnd',
     DOWNLOAD_START: 'downloadStart',
@@ -20,6 +21,8 @@ const MARKS = {
     APP_CREATION_START: 'appCreationStart',
     APP_CREATION_END: 'appCreationEnd',
     CONTENT_APPEARED: 'contentAppeared',
+
+    // Custom performance marks
     SCREEN_TTI: 'screenTTI',
 } as const;
 
