@@ -269,16 +269,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         userReportedIntegration,
     ]);
 
-    const getLabelComponent = useCallback(
-        (item: OnboardingListItem) => (
-            <View style={[styles.alignItemsCenter, styles.flexRow]}>
-                {item.leftElement}
-                <Text style={styles.textStrong}>{item.text}</Text>
-            </View>
-        ),
-        [styles.alignItemsCenter, styles.flexRow, styles.textStrong],
-    );
-
     const handleIntegrationSelect = useCallback((integrationKey: OnboardingAccounting | null) => {
         setUserReportedIntegration(integrationKey);
         setError('');
@@ -298,11 +288,26 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     onPress={() => handleIntegrationSelect(item.keyForList)}
                     style={[styles.flexRowReverse]}
                     wrapperStyle={[styles.ml0]}
-                    LabelComponent={() => getLabelComponent(item)}
+                    labelElement={
+                        <View style={[styles.alignItemsCenter, styles.flexRow]}>
+                            {item.leftElement}
+                            <Text style={styles.textStrong}>{item.text}</Text>
+                        </View>
+                    }
                 />
             </PressableWithoutFeedback>
         ),
-        [getLabelComponent, handleIntegrationSelect, isSmallScreenWidth, styles.flexBasis100, styles.flexRowReverse, styles.ml0, styles.onboardingAccountingItem],
+        [
+            handleIntegrationSelect,
+            isSmallScreenWidth,
+            styles.alignItemsCenter,
+            styles.flexBasis100,
+            styles.flexRow,
+            styles.flexRowReverse,
+            styles.ml0,
+            styles.onboardingAccountingItem,
+            styles.textStrong,
+        ],
     );
 
     return (

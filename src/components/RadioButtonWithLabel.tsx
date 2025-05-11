@@ -1,4 +1,4 @@
-import type {ComponentType} from 'react';
+import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -18,13 +18,13 @@ type RadioButtonWithLabelProps = {
     /** Container styles */
     style?: StyleProp<ViewStyle>;
 
-    /** Text that appears next to check box */
+    /** Simple text label */
     label?: string;
 
-    /** Component to display for label */
-    LabelComponent?: ComponentType;
+    /** React element to display for the label */
+    labelElement?: ReactNode;
 
-    /** Should the input be styled for errors  */
+    /** Should the input be styled for errors */
     hasError?: boolean;
 
     /** Error text to display */
@@ -36,12 +36,12 @@ type RadioButtonWithLabelProps = {
 
 const PressableWithFeedback = Pressables.PressableWithFeedback;
 
-function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = false, errorText = '', isChecked, onPress, wrapperStyle}: RadioButtonWithLabelProps) {
+function RadioButtonWithLabel({labelElement, style, label = '', hasError = false, errorText = '', isChecked, onPress, wrapperStyle}: RadioButtonWithLabelProps) {
     const styles = useThemeStyles();
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
 
-    if (!label && !LabelComponent) {
-        throw new Error('Must provide at least label or LabelComponent prop');
+    if (!label && !labelElement) {
+        throw new Error('Must provide at least label or labelComponent prop');
     }
     return (
         <>
@@ -63,7 +63,7 @@ function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = fal
                     pressDimmingValue={0.5}
                 >
                     {!!label && <Text style={[styles.ml1]}>{label}</Text>}
-                    {!!LabelComponent && <LabelComponent />}
+                    {!!labelElement && labelElement}
                 </PressableWithFeedback>
             </View>
             <FormHelpMessage message={errorText} />
