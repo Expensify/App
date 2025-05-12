@@ -54,17 +54,19 @@ function Backdrop({
 
     if (!customBackdrop) {
         return (
-            <PressableWithoutFeedback
-                accessible
-                accessibilityLabel={translate('modal.backdropLabel')}
-                onPress={onBackdropPress}
+            <Animated.View
+                style={[styles.modalBackdrop, backdropStyle, style]}
+                entering={Entering}
+                exiting={Exiting}
             >
-                <Animated.View
-                    style={[styles.modalBackdrop, backdropStyle, style]}
-                    entering={Entering}
-                    exiting={Exiting}
-                />
-            </PressableWithoutFeedback>
+                <PressableWithoutFeedback
+                    accessible
+                    accessibilityLabel={translate('modal.backdropLabel')}
+                    onPress={onBackdropPress}
+                >
+                    <View style={[styles.modalBackdrop, backdropStyle, style]} />
+                </PressableWithoutFeedback>
+            </Animated.View>
         );
     }
 
