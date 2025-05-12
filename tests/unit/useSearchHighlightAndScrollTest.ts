@@ -6,8 +6,21 @@ import {search} from '@libs/actions/Search';
 
 jest.mock('@libs/actions/Search');
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual('@react-navigation/native'),
+    useNavigation: jest.fn(),
+}));
+
+import {useNavigation} from '@react-navigation/native';
 
 describe('useSearchHighlightAndScroll', () => {
+    beforeEach(() => {
+        // Default mock implementation
+        (useNavigation as jest.Mock).mockReturnValue({
+            isFocused: () => true,
+        });
+    });
+
     it('should trigger Search when transactionIDs list change', () => {
         const initialProps: UseSearchHighlightAndScroll = {
             searchResults: {
@@ -190,7 +203,12 @@ describe('useSearchHighlightAndScroll', () => {
         expect(search).toHaveBeenCalled();
     });
 
-    it('should not trigger Search when isOpeningReport is true', () => {
+    it('should not trigger Search when navigation is not focused', () => {
+        // Mock navigation.isFocused to return false
+        (useNavigation as jest.Mock).mockReturnValue({
+            isFocused: () => false,
+        });
+
         const initialProps: UseSearchHighlightAndScroll = {
             searchResults: {
                 data: {personalDetailsList: {}},
@@ -316,7 +334,6 @@ describe('useSearchHighlightAndScroll', () => {
                 recentSearchHash: 422547233,
             },
             offset: 0,
-            isOpeningReport: true, // Set isOpeningReport to true
         };
         const changedProp: UseSearchHighlightAndScroll = {
             ...initialProps,
@@ -359,7 +376,6 @@ describe('useSearchHighlightAndScroll', () => {
                     hasEReceipt: false,
                 },
             },
-            isOpeningReport: true, // Keep isOpeningReport true
         };
 
         // Reset the mock to track new calls
@@ -370,7 +386,7 @@ describe('useSearchHighlightAndScroll', () => {
         });
         expect(search).not.toHaveBeenCalled();
 
-        // When the transaction ids list changes but isOpeningReport is true
+        // When the transaction ids list changes but navigation is not focused
         rerender(changedProp);
 
         // Then Search should NOT be triggered
