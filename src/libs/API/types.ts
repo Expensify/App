@@ -475,7 +475,6 @@ const WRITE_COMMANDS = {
     COMPLETE_CONCIERGE_CALL: 'CompleteConciergeCall',
     FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING: 'FinishCorpayBankAccountOnboarding',
     LOCK_ACCOUNT: 'LockAccount',
-    UNLOCK_ACCOUNT: 'UnlockAccount',
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
 } as const;
 
