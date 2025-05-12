@@ -1,4 +1,4 @@
-/** Details of an account whether it is locked or not */
+/** Details on whether an account is locked or not */
 type LockAccountDetails = {
     /** Whether the account is locked */
     isLocked?: boolean;
