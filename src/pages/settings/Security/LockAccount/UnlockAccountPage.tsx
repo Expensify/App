@@ -20,7 +20,7 @@ function UnlockAccountPage() {
         >
             <HeaderWithBackButton
                 onBackButtonPress={() => Navigation.dismissModal()}
-                title={translate('lockAccountPage.unlockAccount')}
+                title={translate('unlockAccountPage.accountLocked')}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <ConfirmationPage

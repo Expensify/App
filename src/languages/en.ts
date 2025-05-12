@@ -1528,6 +1528,7 @@ const translations = {
         warning: `Once your account is locked, our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge to secure your account.`,
     },
     unlockAccountPage: {
+        accountLocked: 'Account locked',
         yourAccountIsLocked: 'Your account is locked',
         chatToConciergeToUnlock: 'Chat with Concierge to resolve security concerns and unlock your account.',
         chatWithConcierge: 'Chat with Concierge',

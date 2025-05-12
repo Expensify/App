@@ -1528,6 +1528,7 @@ const translations = {
         warning: `Una vez que tu cuenta esté bloqueada, nuestro equipo investigará y eliminará cualquier acceso no autorizado. Para recuperar el acceso, deberás trabajar con Concierge para asegurar tu cuenta.`,
     },
     unlockAccountPage: {
+        accountLocked: 'Cuenta bloqueada',
         yourAccountIsLocked: 'Tu cuenta está bloqueada',
         chatToConciergeToUnlock: 'Chatea con Concierge para resolver los problemas de seguridad y desbloquear tu cuenta.',
         chatWithConcierge: 'Chatear con Concierge',
