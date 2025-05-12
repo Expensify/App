@@ -1620,7 +1620,7 @@ function getBankAccountRoute(report: OnyxEntry<Report>): Route {
         return ROUTES.WORKSPACE_INVOICES.getRoute(report?.invoiceReceiver?.policyID);
     }
 
-    return ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
+    return ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route;
 }
 
 /**
@@ -2276,9 +2276,9 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
     const isManager = iouReport?.managerID === session?.accountID;
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            // If we get here without a reimburser only show the pay button if we are the manager.
+            // If we get here without a reimburser only show the pay button if we are the admin.
             if (!policy?.achAccount?.reimburser) {
-                return isManager;
+                return isAdmin;
             }
 
             // If we are the reimburser and the report is approved or we are the manager then we can pay it.

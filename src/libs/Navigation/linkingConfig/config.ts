@@ -250,7 +250,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
+                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
@@ -737,6 +737,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
+                            path: ROUTES.WORKSPACE_CUSTOM_FIELDS.route,
                         },
                         [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: {
                             path: ROUTES.WORKSPACE_MEMBER_NEW_CARD.route,

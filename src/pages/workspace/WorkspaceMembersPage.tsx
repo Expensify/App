@@ -210,12 +210,16 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedEmployees, policy?.owner, session?.accountID]);
 
+    useEffect(() => {
+        getWorkspaceMembers();
+    }, [getWorkspaceMembers]);
+
     // useFocus would make getWorkspaceMembers get called twice on fresh login because policyEmployee is a dependency of getWorkspaceMembers.
     useEffect(() => {
         if (!isFocused) {
             return;
         }
-        getWorkspaceMembers();
+        setSelectedEmployees([]);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused]);
 
