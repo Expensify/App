@@ -192,6 +192,17 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         );
     };
 
+    const toggleOrNavigate = (tag: TagListItem) => {
+        if (tag.isDisabledCheckbox) {
+            return;
+        }
+        if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
+            toggleTag(tag);
+            return;
+        }
+        navigateToTagSettings(tag);
+    };
+
     const deleteTags = () => {
         deletePolicyTags(policyID, selectedTags);
         setIsDeleteTagsConfirmModalVisible(false);
@@ -379,7 +390,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                         sections={sections}
                         onCheckboxPress={toggleTag}
-                        onSelectRow={navigateToTagSettings}
+                        onSelectRow={toggleOrNavigate}
                         onSelectAll={toggleAllTags}
                         showScrollIndicator
                         ListItem={TableListItem}
