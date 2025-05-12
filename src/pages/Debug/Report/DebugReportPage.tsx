@@ -7,6 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -58,6 +59,7 @@ function DebugReportPage({
         canBeMissing: true,
     });
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
+    const isReportArchived = useReportIsArchived(reportID);
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -69,7 +71,7 @@ function DebugReportPage({
         const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
-            DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, hasViolations, reportAttributes?.reportErrors ?? {}) ?? {};
+            DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, hasViolations, reportAttributes?.reportErrors ?? {}, isReportArchived) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
         const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
@@ -117,7 +119,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, reportActions, reportAttributes?.reportErrors, reportID, transactionViolations, translate]);
+    }, [report, reportActions, reportAttributes?.reportErrors, reportID, transactionViolations, translate, isReportArchived]);
 
     const DebugDetailsTab = useCallback(
         () => (
@@ -134,7 +136,10 @@ function DebugReportPage({
             >
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {metadata?.map(({title, subtitle, message, action}) => (
-                        <View style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p5, styles.br4, styles.flexColumn, styles.gap2]}>
+                        <View
+                            key={title}
+                            style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p5, styles.br4, styles.flexColumn, styles.gap2]}
+                        >
                             <View style={[styles.flexRow, styles.justifyContentBetween]}>
                                 <Text style={styles.h4}>{title}</Text>
                                 <Text>{subtitle}</Text>

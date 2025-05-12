@@ -73,9 +73,13 @@ export default createOnyxDerivedValueConfig({
                 dataToIterate = prepareReportKeys(updates);
                 recentlyUpdated = updates;
             } else if (!!transactionsUpdates || !!transactionViolationsUpdates) {
+                let transactionReportIds: string[] = [];
+                if (transactionsUpdates) {
+                    transactionReportIds = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+                }
                 // if transactions are updated, they might not be directly related to the reports yet (e.g. transaction is optimistically created)
                 // so we use report keys that were updated before to recompute the reports
-                const recentReportKeys = prepareReportKeys(recentlyUpdated);
+                const recentReportKeys = prepareReportKeys([...recentlyUpdated, ...transactionReportIds]);
                 dataToIterate = recentReportKeys;
             }
         }
