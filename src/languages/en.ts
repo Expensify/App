@@ -1999,7 +1999,7 @@ const translations = {
     },
     onboarding: {
         welcome: 'Welcome!',
-        welcomeSignOffTitleManageTeam: "Once you finish the tasks above, we can explore more functionality like approval workflows and rules!",
+        welcomeSignOffTitleManageTeam: 'Once you finish the tasks above, we can explore more functionality like approval workflows and rules!',
         welcomeSignOffTitle: "It's great to meet you!",
         explanationModal: {
             title: 'Welcome to Expensify',
