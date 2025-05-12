@@ -472,7 +472,7 @@ function MoneyRequestReportPreviewContent({
                     if (!iouReport?.reportID) {
                         return;
                     }
-                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReport?.reportID);
+                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReport?.reportID, undefined, false, chatReportID);
                 },
             },
             {
@@ -484,7 +484,7 @@ function MoneyRequestReportPreviewContent({
                 },
             },
         ],
-        [iouReport?.reportID, translate],
+        [chatReportID, iouReport?.reportID, translate],
     );
 
     const reportPreviewActions = {

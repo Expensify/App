@@ -74,7 +74,7 @@ import type IOURequestStepScanProps from './types';
 function IOURequestStepScan({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo, backToReport},
     },
     transaction,
     currentUserPersonalDetails,
@@ -313,10 +313,11 @@ function IOURequestStepScan({
                         merchant: '',
                         receipt,
                     },
+                    backToReport,
                 });
             }
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.comment?.attendees, transaction?.created, transaction?.currency],
+        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.comment?.attendees, transaction?.created, transaction?.currency],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -429,6 +430,7 @@ function IOURequestStepScan({
                                             receipt,
                                             billable: false,
                                         },
+                                        backToReport,
                                     });
                                 }
                             },
@@ -475,25 +477,26 @@ function IOURequestStepScan({
         },
         [
             backTo,
+            report,
+            reportNameValuePairs,
+            iouType,
+            activePolicy,
+            transactionID,
+            navigateToConfirmationPage,
+            shouldSkipConfirmation,
+            personalDetails,
+            createTransaction,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            reportID,
             transaction?.currency,
             transaction?.created,
             transaction?.comment?.attendees,
-            iouType,
-            report,
-            transactionID,
-            shouldSkipConfirmation,
-            navigateToConfirmationPage,
-            activePolicy,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails.login,
-            navigateToParticipantPage,
-            personalDetails,
-            createTransaction,
-            reportID,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
-            reportNameValuePairs,
+            backToReport,
+            navigateToParticipantPage,
         ],
     );
 

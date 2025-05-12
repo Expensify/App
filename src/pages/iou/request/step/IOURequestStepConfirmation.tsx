@@ -76,7 +76,7 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route: {
-        params: {iouType, reportID, transactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute},
+        params: {iouType, reportID, transactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport},
     },
     transaction,
     isLoadingTransaction,
@@ -423,20 +423,22 @@ function IOURequestStepConfirmation({
                     waypoints: Object.keys(transaction.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
                     customUnitRateID,
                 },
+                backToReport,
             });
         },
         [
-            report,
             transaction,
-            transactionTaxCode,
-            transactionTaxAmount,
+            report,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             policy,
             policyTags,
             policyCategories,
             action,
+            transactionTaxCode,
+            transactionTaxAmount,
             customUnitRateID,
+            backToReport,
         ],
     );
 
