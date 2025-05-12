@@ -21,6 +21,9 @@ jest.mock('@gorhom/portal');
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     useAnimatedRef: jest.fn(),
+    LayoutAnimationConfig: () => {
+        return ({children}: {children: React.ReactNode}) => children;
+    },
 }));
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
