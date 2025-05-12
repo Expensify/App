@@ -6851,7 +6851,11 @@ const translations = {
         },
         settingsTab: {
             part1: 'Explora ',
-            part2: 'tu espacio de trabajo\ny la configuración de tu cuenta',
+            part2: 'la configuración de tu cuenta',
+        },
+        workspacesTab: {
+            part1: 'Explora ',
+            part2: 'la configuración\nde tu espacio de trabajo',
         },
         workspacesSettings: {
             part1: 'Ver tus ',

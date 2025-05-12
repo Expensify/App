@@ -6326,7 +6326,11 @@ const translations = {
         },
         settingsTab: {
             part1: 'Explore your ',
-            part2: 'workspace\nand account settings',
+            part2: 'account settings',
+        },
+        workspacesTab: {
+            part1: 'Explore your ',
+            part2: 'workspace settings',
         },
         workspacesSettings: {
             part1: 'View your ',
