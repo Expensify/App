@@ -895,7 +895,7 @@ const ROUTES = {
     MONEY_REQUEST_CREATE_TAB_DISTANCE: {
         route: ':action/:iouType/start/:transactionID/:reportID/distance/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `create/${iouType as string}/start/${transactionID}/${reportID}/${backToReport}/distance` as const,
+            `create/${iouType as string}/start/${transactionID}/${reportID}/distance/${backToReport}` as const,
     },
     MONEY_REQUEST_CREATE_TAB_MANUAL: {
         route: ':action/:iouType/start/:transactionID/:reportID/manual/:backToReport?',
