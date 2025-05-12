@@ -43,7 +43,6 @@ function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonal
             fullscreen
             withoutOverlay
             anchorRef={reactionListRef}
-            shouldUseNewModal
         >
             <BaseReactionList
                 isVisible

@@ -1,5 +1,7 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useEffect} from 'react';
+import type {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -23,7 +25,12 @@ type DateTimeSelectorProps = {
     inputID: string;
 };
 
-function DateTimeSelector({errorText = '', name, value, onInputChange}: DateTimeSelectorProps) {
+function DateTimeSelector(
+    {errorText = '', name, value, onInputChange}: DateTimeSelectorProps,
+    // The ref is required by React.forwardRef to avoid warnings, even though it's not used yet.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ref: ForwardedRef<View>,
+) {
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {
@@ -58,4 +65,4 @@ function DateTimeSelector({errorText = '', name, value, onInputChange}: DateTime
 
 DateTimeSelector.displayName = 'DateTimeSelector';
 
-export default DateTimeSelector;
+export default forwardRef(DateTimeSelector);
