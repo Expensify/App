@@ -345,6 +345,7 @@ function IOURequestStepDistance({
                             billable: false,
                             validWaypoints: getValidWaypoints(waypoints, true),
                             customUnitRateID,
+                            attendees: transaction?.comment?.attendees,
                         },
                     });
                     return;
@@ -368,6 +369,7 @@ function IOURequestStepDistance({
                         validWaypoints: getValidWaypoints(waypoints, true),
                         customUnitRateID: DistanceRequestUtils.getCustomUnitRateID(report.reportID),
                         splitShares: transaction?.splitShares,
+                        attendees: transaction?.comment?.attendees,
                     },
                 });
                 return;
