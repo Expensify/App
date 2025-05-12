@@ -91,7 +91,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const currentReportIDValue = useCurrentReportID();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -112,7 +111,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
         }
 
-        if (!user || user.isFromPublicDomain) {
+        if (!account || account.isFromPublicDomain) {
             return;
         }
 

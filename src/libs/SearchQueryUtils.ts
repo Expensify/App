@@ -72,6 +72,9 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     exported: 'exported',
     posted: 'posted',
     groupBy: 'group-by',
+    title: 'title',
+    assignee: 'assignee',
+    createdBy: 'created-by',
     billable: 'billable',
     reimbursable: 'reimbursable',
 };
@@ -338,7 +341,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
  */
 function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, policyID, ...otherFilters} = filterValues;
+    const {type, status, policyID, groupBy, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
@@ -354,6 +357,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${sanitizedStatus}`);
     }
 
+    if (groupBy) {
+        const sanitizedGroupBy = sanitizeSearchValue(groupBy);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
+    }
+
     if (policyID) {
         const sanitizedPolicyID = sanitizeSearchValue(policyID);
         filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${sanitizedPolicyID}`);
@@ -366,7 +374,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.DESCRIPTION ||
                     filterKey === FILTER_KEYS.REPORT_ID ||
                     filterKey === FILTER_KEYS.REIMBURSABLE ||
-                    filterKey === FILTER_KEYS.BILLABLE) &&
+                    filterKey === FILTER_KEYS.BILLABLE ||
+                    filterKey === FILTER_KEYS.TITLE) &&
                 filterValue
             ) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
@@ -390,7 +399,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.FROM ||
                     filterKey === FILTER_KEYS.TO ||
                     filterKey === FILTER_KEYS.FEED ||
-                    filterKey === FILTER_KEYS.IN) &&
+                    filterKey === FILTER_KEYS.IN ||
+                    filterKey === FILTER_KEYS.ASSIGNEE ||
+                    filterKey === FILTER_KEYS.CREATED_BY) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
@@ -443,7 +454,12 @@ function buildFilterFormValuesFromQuery(
         const filterKey = queryFilter.key;
         const filterList = queryFilter.filters;
         const filterValues = filterList.map((item) => item.value.toString());
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION) {
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
+        ) {
             filtersForm[filterKey] = filterValues.at(0);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
@@ -463,7 +479,12 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
             filtersForm[filterKey] = filterValues.filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]?.reportID);
         }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY
+        ) {
             filtersForm[filterKey] = filterValues.filter((id) => personalDetails && personalDetails[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
@@ -539,6 +560,10 @@ function buildFilterFormValuesFromQuery(
         filtersForm[FILTER_KEYS.POLICY_ID] = queryJSON.policyID;
     }
 
+    if (queryJSON.groupBy) {
+        filtersForm[FILTER_KEYS.GROUP_BY] = queryJSON.groupBy;
+    }
+
     return filtersForm;
 }
 
@@ -563,12 +588,9 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
 }
 
 /**
- * A copy of `getFilterDisplayValue` handling the policy ID, used if you have access to the leftHandBar beta.
- * When this beta is no longer needed, this method will be renamed to `getFilterDisplayValue` and will replace the old method.
- *
  * Returns the human-readable "pretty" string for a specified filter value.
  */
-function getFilterDisplayValueWithPolicyID(
+function getFilterDisplayValue(
     filterName: string,
     filterValue: string,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
@@ -577,7 +599,12 @@ function getFilterDisplayValueWithPolicyID(
     cardFeedNamesWithType: CardFeedNamesWithType,
     policies: OnyxCollection<OnyxTypes.Policy>,
 ) {
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+    if (
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY
+    ) {
         // login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return personalDetails?.[filterValue]?.displayName || filterValue;
@@ -620,64 +647,12 @@ function getFilterDisplayValueWithPolicyID(
 }
 
 /**
- * Returns the human-readable "pretty" string for a specified filter value.
- */
-function getFilterDisplayValue(
-    filterName: string,
-    filterValue: string,
-    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    cardList: OnyxTypes.CardList,
-    cardFeedNamesWithType: CardFeedNamesWithType,
-) {
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
-        // login can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return personalDetails?.[filterValue]?.displayName || filterValue;
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-        const cardID = parseInt(filterValue, 10);
-        if (Number.isNaN(cardID)) {
-            return filterValue;
-        }
-        return getCardDescription(cardID, cardList) || filterValue;
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-        const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
-        return Number.isNaN(frontendAmount) ? filterValue : frontendAmount.toString();
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-        return getCleanedTagName(filterValue);
-    }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-        const workspaceFeedKey = getWorkspaceCardFeedKey(filterValue);
-
-        const workspaceValue = cardFeedNamesWithType[workspaceFeedKey];
-        const domainValue = cardFeedNamesWithType[filterValue];
-
-        if (workspaceValue && workspaceValue.type === 'workspace') {
-            return workspaceValue.name;
-        }
-
-        if (domainValue && domainValue.type === 'domain') {
-            return domainValue.name;
-        }
-    }
-    return filterValue;
-}
-
-/**
- * A copy of `buildUserReadableQueryString` handling the policy ID, used if you have access to the leftHandBar beta.
- * When this beta is no longer needed, this method will be renamed to `buildUserReadableQueryString` and will replace the old method.
  * Formats a given `SearchQueryJSON` object into the human-readable string version of query.
  * This format of query is the one which we want to display to users.
  * We try to replace every numeric id value with a display version of this value,
  * So: user IDs get turned into emails, report ids into report names etc.
  */
-function buildUserReadableQueryStringWithPolicyID(
+function buildUserReadableQueryString(
     queryJSON: SearchQueryJSON,
     PersonalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
@@ -725,64 +700,7 @@ function buildUserReadableQueryStringWithPolicyID(
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
-                value: getFilterDisplayValueWithPolicyID(key, filter.value.toString(), PersonalDetails, reports, cardList, cardFeedNamesWithType, policies),
-            }));
-        }
-        title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
-    }
-
-    return title;
-}
-
-/**
- * Formats a given `SearchQueryJSON` object into the human-readable string version of query.
- * This format of query is the one which we want to display to users.
- * We try to replace every numeric id value with a display version of this value,
- * So: user IDs get turned into emails, report ids into report names etc.
- */
-function buildUserReadableQueryString(
-    queryJSON: SearchQueryJSON,
-    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    taxRates: Record<string, string[]>,
-    cardList: OnyxTypes.CardList,
-    cardFeedNamesWithType: CardFeedNamesWithType,
-) {
-    const {type, status, groupBy} = queryJSON;
-    const filters = queryJSON.flatFilters;
-
-    let title = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
-
-    if (groupBy) {
-        title += ` group-by:${groupBy}`;
-    }
-
-    for (const filterObject of filters) {
-        const key = filterObject.key;
-        const queryFilter = filterObject.filters;
-
-        let displayQueryFilters: QueryFilter[] = [];
-        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
-            const taxRateNames = taxRateIDs
-                .map((id) => {
-                    const taxRate = Object.entries(taxRates)
-                        .filter(([, IDs]) => IDs.includes(id))
-                        .map(([name]) => name);
-                    return taxRate.length > 0 ? taxRate : id;
-                })
-                .flat();
-
-            const uniqueTaxRateNames = [...new Set(taxRateNames)];
-
-            displayQueryFilters = uniqueTaxRateNames.map((taxRate) => ({
-                operator: queryFilter.at(0)?.operator ?? CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                value: taxRate,
-            }));
-        } else {
-            displayQueryFilters = queryFilter.map((filter) => ({
-                operator: filter.operator,
-                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports, cardList, cardFeedNamesWithType),
+                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports, cardList, cardFeedNamesWithType, policies),
             }));
         }
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
@@ -827,20 +745,6 @@ function buildCannedSearchQuery({
 }
 
 /**
- * A copy of `isCannedSearchQuery` handling the policy ID, used if you have access to the leftHandBar beta.
- * When this beta is no longer needed, this method will be renamed to `isCannedSearchQuery` and will replace the old method.
- *
- * Returns whether a given search query is a Canned query.
- *
- * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
- * In addition, they can contain an optional policyID.
- * For example: "type:trip status:all" is a canned query.
- */
-function isCannedSearchQueryWithPolicyIDCheck(queryJSON: SearchQueryJSON) {
-    return !queryJSON.filters && !queryJSON.policyID;
-}
-
-/**
  * Returns whether a given search query is a Canned query.
  *
  * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
@@ -848,19 +752,11 @@ function isCannedSearchQueryWithPolicyIDCheck(queryJSON: SearchQueryJSON) {
  * For example: "type:trip status:all" is a canned query.
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    return !queryJSON.filters;
-}
-
-/**
- * A copy of `isDefaultExpensesQuery` handling the policy ID, used if you have access to the leftHandBar beta.
- * When this beta is no longer needed, this method will be renamed to `isDefaultExpensesQuery` and will replace the old method.
- */
-function isDefaultExpensesQueryWithPolicyIDCheck(queryJSON: SearchQueryJSON) {
-    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
+    return !queryJSON.filters && !queryJSON.policyID;
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
-    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.filters && !queryJSON.groupBy;
+    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
 }
 
 /**
@@ -895,38 +791,15 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (
 }
 
 /**
- * A copy of `getQueryWithUpdatedValues` handling the policy ID, used if you have access to the leftHandBar beta.
- * When this beta is no longer needed, this method will be renamed to `getQueryWithUpdatedValues` and will replace the old method.
- *
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
  */
-function getQueryWithUpdatedValuesWithoutPolicy(query: string) {
+function getQueryWithUpdatedValues(query: string) {
     const queryJSON = buildSearchQueryJSON(query);
 
     if (!queryJSON) {
         Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, {}, false);
         return;
-    }
-
-    const standardizedQuery = traverseAndUpdatedQuery(queryJSON, getUpdatedFilterValue);
-    return buildSearchQueryString(standardizedQuery);
-}
-
-/**
- * Returns new string query, after parsing it and traversing to update some filter values.
- * If there are any personal emails, it will try to substitute them with accountIDs
- */
-function getQueryWithUpdatedValues(query: string, policyID?: string) {
-    const queryJSON = buildSearchQueryJSON(query);
-
-    if (!queryJSON) {
-        Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, {}, false);
-        return;
-    }
-
-    if (policyID) {
-        queryJSON.policyID = policyID;
     }
 
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, getUpdatedFilterValue);
@@ -1007,22 +880,17 @@ export {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
-    buildUserReadableQueryStringWithPolicyID,
     getFilterDisplayValue,
-    getFilterDisplayValueWithPolicyID,
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     getPolicyIDFromSearchQuery,
     buildCannedSearchQuery,
     isCannedSearchQuery,
-    isCannedSearchQueryWithPolicyIDCheck,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
-    getQueryWithUpdatedValuesWithoutPolicy,
     getCurrentSearchQueryJSON,
     getQueryWithoutFilters,
     getUserFriendlyKey,
     isDefaultExpensesQuery,
     shouldHighlight,
-    isDefaultExpensesQueryWithPolicyIDCheck,
 };

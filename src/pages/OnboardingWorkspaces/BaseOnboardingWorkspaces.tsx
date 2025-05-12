@@ -5,7 +5,6 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -68,7 +67,13 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID(policy.policyID);
 
-            navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, policy.automaticJoiningEnabled ? policy.policyID : undefined, activeWorkspaceID);
+            navigateAfterOnboarding(
+                CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                isSmallScreenWidth,
+                canUseDefaultRooms,
+                policy.automaticJoiningEnabled ? policy.policyID : undefined,
+                activeWorkspaceID,
+            );
         },
         [onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, canUseDefaultRooms, activeWorkspaceID],
     );
@@ -126,6 +131,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             shouldEnableMaxHeight
             testID="BaseOnboardingWorkspaces"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
+            shouldShowOfflineIndicator={isSmallScreenWidth}
         >
             <HeaderWithBackButton
                 shouldShowBackButton
@@ -158,7 +164,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     />
                 }
             />
-            {isSmallScreenWidth && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }
