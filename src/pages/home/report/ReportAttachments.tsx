@@ -32,17 +32,19 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
         canBeMissing: true,
     });
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
-        canBeMissing: true,
+        canBeMissing: false,
     });
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const {isOffline} = useNetwork();
     const fileName = route.params?.fileName;
 
+    // Extract the reportActionID from the attachmentID (format: reportActionID_index)
+    const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);
+
     const shouldFetchReport = useMemo(() => {
-        // Extract the reportActionID from the attachmentID (format: reportActionID_index)
-        const reportActionID = attachmentID?.split('_')?.[0];
         return isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);
-    }, [reportActions, attachmentID]);
+    }, [reportActions, reportActionID]);
+
     const isLoading = useMemo(() => {
         if (isOffline || isReportNotFound(report) || !reportID) {
             return false;
@@ -55,8 +57,8 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     const source = Number(route.params.source) || tryResolveUrlFromApiRoot(decodeURIComponent(route.params.source));
 
     const fetchReport = useCallback(() => {
-        openReport(reportID);
-    }, [reportID]);
+        openReport(reportID, reportActionID);
+    }, [reportID, reportActionID]);
 
     useEffect(() => {
         if (!reportID || !shouldFetchReport) {

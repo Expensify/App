@@ -26,7 +26,10 @@ function queueOnyxUpdates(updates: OnyxUpdate[]): Promise<void> {
 
 function flushQueue(): Promise<void> {
     let copyUpdates = [...queuedOnyxUpdates];
+
+    // Clear queue immediately to prevent race conditions with new updates during Onyx processing
     queuedOnyxUpdates = [];
+
     if (!currentAccountID && !CONFIG.IS_TEST_ENV && !CONFIG.E2E_TESTING) {
         const preservedKeys: OnyxKey[] = [
             ONYXKEYS.NVP_TRY_FOCUS_MODE,
