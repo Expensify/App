@@ -39,6 +39,7 @@ import {
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
+    getReopenedMessage,
     getReportAction,
     getReportActionMessageText,
     getSortedReportActions,
@@ -662,6 +663,8 @@ function getOptionData({
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
             result.alternateText = getRemovedConnectionMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
+            result.alternateText = getReopenedMessage();
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
