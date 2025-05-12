@@ -900,17 +900,17 @@ const ROUTES = {
     MONEY_REQUEST_CREATE_TAB_MANUAL: {
         route: ':action/:iouType/start/:transactionID/:reportID/manual/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/${backToReport}/manual` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/manual/${backToReport}` as const,
     },
     MONEY_REQUEST_CREATE_TAB_SCAN: {
         route: ':action/:iouType/start/:transactionID/:reportID/scan/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `create/${iouType as string}/start/${transactionID}/${reportID}/${backToReport}/scan` as const,
+            `create/${iouType as string}/start/${transactionID}/${reportID}/scan/${backToReport}` as const,
     },
     MONEY_REQUEST_CREATE_TAB_PER_DIEM: {
         route: ':action/:iouType/start/:transactionID/:reportID/per-diem/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `create/${iouType as string}/start/${transactionID}/${reportID}/${backToReport}/per-diem` as const,
+            `create/${iouType as string}/start/${transactionID}/${reportID}/per-diem/${backToReport}` as const,
     },
 
     MONEY_REQUEST_STATE_SELECTOR: {
