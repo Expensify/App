@@ -29,6 +29,7 @@ function ValueSelectorModal({
             hideModalContentWhileAnimating
             useNativeDriver
             onBackdropPress={onBackdropPress}
+            shouldHandleNavigationBack
         >
             <ScreenWrapper
                 style={styles.pb0}
