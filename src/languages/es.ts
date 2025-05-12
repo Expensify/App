@@ -6754,7 +6754,7 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGbr: {
+        conciergeLHNGBR: {
             part1: '¡Comienza',
             part2: ' aquí!',
         },
@@ -6778,7 +6778,7 @@ const translations = {
             part3: '\ny más.',
             part4: ' ¡Pruébalo!',
         },
-        gbrRbrChat: {
+        GBRRBRChat: {
             part1: 'Verás 🟢 en ',
             part2: 'las acciones a realizar',
             part3: '\ny 🔴 en ',

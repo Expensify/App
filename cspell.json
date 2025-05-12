@@ -209,6 +209,7 @@
         "fullstory",
         "FXHF",
         "Gaber",
+        "GBRRBR",
         "gcsc",
         "gcse",
         "genkey",
@@ -277,6 +278,7 @@
         "laggy",
         "lastname",
         "LDFLAGS",
+        "LHNGBR",
         "LIBCPP",
         "licence",
         "LIGHTBOXES",
@@ -673,7 +675,9 @@
         "src/libs/SearchParser/*",
         ".gitignore"
     ],
-    "ignoreRegExpList": ["@assets/.*"],
+    "ignoreRegExpList": [
+        "@assets/.*"
+    ],
     "useGitignore": true,
     "overrides": [
         {

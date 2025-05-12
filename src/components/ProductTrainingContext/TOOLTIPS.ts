@@ -41,8 +41,8 @@ type TooltipData = {
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     [CONCIERGE_LHN_GBR]: {
         content: [
-            {text: 'productTrainingTooltip.conciergeLHNGbr.part1', isBold: false},
-            {text: 'productTrainingTooltip.conciergeLHNGbr.part2', isBold: true},
+            {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
+            {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCIERGE_LHN_GBR, isDismissedUsingCloseButton),
         name: CONCIERGE_LHN_GBR,
@@ -97,10 +97,10 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [GBR_RBR_CHAT]: {
         content: [
-            {text: 'productTrainingTooltip.gbrRbrChat.part1', isBold: false},
-            {text: 'productTrainingTooltip.gbrRbrChat.part2', isBold: true},
-            {text: 'productTrainingTooltip.gbrRbrChat.part3', isBold: false},
-            {text: 'productTrainingTooltip.gbrRbrChat.part4', isBold: true},
+            {text: 'productTrainingTooltip.GBRRBRChat.part1', isBold: false},
+            {text: 'productTrainingTooltip.GBRRBRChat.part2', isBold: true},
+            {text: 'productTrainingTooltip.GBRRBRChat.part3', isBold: false},
+            {text: 'productTrainingTooltip.GBRRBRChat.part4', isBold: true},
         ],
         onHideTooltip: () => dismissProductTraining(GBR_RBR_CHAT),
         name: GBR_RBR_CHAT,
