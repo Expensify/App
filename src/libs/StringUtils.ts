@@ -84,7 +84,7 @@ function normalizeAccents(text: string) {
  * - trimming
  */
 function normalize(text: string): string {
-    return removeInvisibleCharacters(sanitizeString(text))
+    return removeInvisibleCharacters(text)
         .replace(/[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, ' ') // space-like -> ' '
         .replace(/\s+/g, ' ') // collapse spaces
         .trim();
