@@ -274,12 +274,12 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
     return (isAdmin && syncEnabled) || (isExporter && !syncEnabled);
 }
 
-function isHoldAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[] | undefined): boolean {
+function isHoldAction(report: Report, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
     const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions);
     const isOneExpenseReport = reportTransactions.length === 1;
     const transaction = reportTransactions.at(0);
 
-    if (!transactionThreadReportID || !isOneExpenseReport || !transaction) {
+    if ((!!reportActions && !transactionThreadReportID) || !isOneExpenseReport || !transaction) {
         return false;
     }
 
