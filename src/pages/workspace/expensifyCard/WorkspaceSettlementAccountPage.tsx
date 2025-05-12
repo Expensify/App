@@ -45,7 +45,9 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
-    const paymentBankAccountNumber = paymentBankAccountID ? bankAccountsList?.[paymentBankAccountID.toString()]?.accountData?.accountNumber ?? '' : '';
+    const paymentBankAccountNumberFromCardSettings = cardSettings?.paymentBankAccountNumber;
+    const paymentBankAccountAddressName = cardSettings?.paymentBankAccountAddressName;
+    const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumberFromCardSettings ?? '';
 
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList ?? {});
 
@@ -77,8 +79,30 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                 isSelected: bankAccountID === paymentBankAccountID,
             };
         });
+        if (options.length === 0) {
+            const bankName = (paymentBankAccountAddressName ?? '') as BankName;
+            const bankAccountNumber = paymentBankAccountNumberFromCardSettings ?? '';
+            const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
+            options.push({
+                value: paymentBankAccountID,
+                text: paymentBankAccountAddressName,
+                leftElement: (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
+                        <Icon
+                            src={icon}
+                            width={iconSize}
+                            height={iconSize}
+                            additionalStyles={iconStyles}
+                        />
+                    </View>
+                ),
+                alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
+                keyForList: paymentBankAccountID?.toString(),
+                isSelected: true,
+            });
+        }
         return options;
-    }, [eligibleBankAccounts, paymentBankAccountID, styles, translate]);
+    }, [eligibleBankAccounts, paymentBankAccountAddressName, paymentBankAccountID, paymentBankAccountNumberFromCardSettings, styles, translate]);
 
     const updateSettlementAccount = (value: number) => {
         updateSettlementAccountCard(domainName, defaultFundID, policyID, value, paymentBankAccountID);
