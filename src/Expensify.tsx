@@ -4,7 +4,6 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
-import alert from './components/Alert';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -12,7 +11,6 @@ import FocusModeNotification from './components/FocusModeNotification';
 import GrowlNotification from './components/GrowlNotification';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
-import TestToolsModal from './components/TestToolsModal';
 import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
@@ -28,7 +26,7 @@ import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
-import * as Growl from './libs/Growl';
+import Growl, {growlRef} from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
@@ -57,7 +55,7 @@ Onyx.registerLogger(({level, message, parameters}) => {
         // when they don't return data.
         const shouldShowAlert = typeof parameters === 'object' && !Array.isArray(parameters) && 'showAlert' in parameters && 'key' in parameters;
         if (Environment.isDevelopment() && shouldShowAlert) {
-            alert(`${message} Key: ${parameters.key as string}`);
+            Growl.error(`${message} Key: ${parameters.key as string}`, 10000);
         }
     } else if (level === 'hmmm') {
         Log.hmmm(message, parameters);
@@ -277,7 +275,7 @@ function Expensify() {
         >
             {shouldInit && (
                 <>
-                    <GrowlNotification ref={Growl.growlRef} />
+                    <GrowlNotification ref={growlRef} />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
@@ -307,7 +305,6 @@ function Expensify() {
                 />
             )}
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
-            <TestToolsModal />
         </DeeplinkWrapper>
     );
 }

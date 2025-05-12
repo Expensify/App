@@ -70,10 +70,9 @@ function DatePickerModal({
             innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}}
             anchorAlignment={DEFAULT_ANCHOR_ORIGIN}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shoudSwitchPositionIfOverflow
+            shouldSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
             shouldMeasureAnchorPositionFromTop={shouldPositionFromTop}
-            shouldUseNewModal
         >
             <CalendarPicker
                 minDate={minDate}

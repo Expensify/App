@@ -1,5 +1,6 @@
 import getKeyEventModifiers from '@libs/KeyboardShortcut/getKeyEventModifiers';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import CONST from '@src/CONST';
 import type BindHandlerToKeydownEvent from './types';
 
 /**
@@ -30,7 +31,7 @@ const bindHandlerToKeydownEvent: BindHandlerToKeydownEvent = (getDisplayName, ev
         }
 
         // If configured to do so, prevent input text control to trigger this event
-        if (!callback.captureOnInputs && (nodeName === 'INPUT' || nodeName === 'TEXTAREA' || contentEditable === 'true')) {
+        if (!callback.captureOnInputs && (nodeName === CONST.ELEMENT_NAME.INPUT || nodeName === CONST.ELEMENT_NAME.TEXTAREA || contentEditable === 'true')) {
             return true;
         }
 

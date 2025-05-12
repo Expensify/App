@@ -12,10 +12,12 @@ export default {
     EXPLANATION_MODAL_NAVIGATOR: 'ExplanationModalNavigator',
     MIGRATED_USER_MODAL_NAVIGATOR: 'MigratedUserModalNavigator',
     TEST_DRIVE_MODAL_NAVIGATOR: 'TestDriveModalNavigator',
+    TEST_DRIVE_DEMO_NAVIGATOR: 'TestDriveDemoNavigator',
     REPORTS_SPLIT_NAVIGATOR: 'ReportsSplitNavigator',
     SETTINGS_SPLIT_NAVIGATOR: 'SettingsSplitNavigator',
     WORKSPACE_SPLIT_NAVIGATOR: 'WorkspaceSplitNavigator',
     SEARCH_FULLSCREEN_NAVIGATOR: 'SearchFullscreenNavigator',
     SHARE_MODAL_NAVIGATOR: 'ShareModalNavigator',
     PUBLIC_RIGHT_MODAL_NAVIGATOR: 'PublicRightModalNavigator',
+    TEST_TOOLS_MODAL_NAVIGATOR: 'TestToolsModalNavigator',
 } as const;
