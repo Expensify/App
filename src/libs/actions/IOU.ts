@@ -476,6 +476,7 @@ type CreateDistanceRequestInformation = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionParams: DistanceRequestTransactionParams;
     policyParams?: BasePolicyParams;
+    backToReport?: string;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -6885,6 +6886,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         existingTransaction,
         transactionParams,
         policyParams = {},
+        backToReport,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -7034,7 +7036,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
-    dismissModalAndOpenReportInInboxTab(activeReportID);
+    dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
 
     if (!isMoneyRequestReport || !Permissions.canUseTableReportView(betas)) {
         notifyNewAction(activeReportID, userAccountID);

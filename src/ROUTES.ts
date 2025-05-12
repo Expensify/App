@@ -893,22 +893,22 @@ const ROUTES = {
         getRoute: (iouType: IOUType, iouRequestType: IOURequestType) => `start/${iouType as string}/${iouRequestType as string}` as const,
     },
     MONEY_REQUEST_CREATE_TAB_DISTANCE: {
-        route: ':action/:iouType/start/:transactionID/:reportID/:backToReport?/distance',
+        route: ':action/:iouType/start/:transactionID/:reportID/distance/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `create/${iouType as string}/start/${transactionID}/${reportID}/${backToReport}/distance` as const,
     },
     MONEY_REQUEST_CREATE_TAB_MANUAL: {
-        route: ':action/:iouType/start/:transactionID/:reportID/:backToReport?/manual',
+        route: ':action/:iouType/start/:transactionID/:reportID/manual/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/${backToReport}/manual` as const,
     },
     MONEY_REQUEST_CREATE_TAB_SCAN: {
-        route: ':action/:iouType/start/:transactionID/:reportID/:backToReport?/scan',
+        route: ':action/:iouType/start/:transactionID/:reportID/scan/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `create/${iouType as string}/start/${transactionID}/${reportID}/${backToReport}/scan` as const,
     },
     MONEY_REQUEST_CREATE_TAB_PER_DIEM: {
-        route: ':action/:iouType/start/:transactionID/:reportID/:backToReport?/per-diem',
+        route: ':action/:iouType/start/:transactionID/:reportID/per-diem/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `create/${iouType as string}/start/${transactionID}/${reportID}/${backToReport}/per-diem` as const,
     },

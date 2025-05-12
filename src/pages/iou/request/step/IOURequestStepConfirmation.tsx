@@ -576,9 +576,23 @@ function IOURequestStepConfirmation({
                     billable: transaction.billable,
                     attendees: transaction.comment?.attendees,
                 },
+                backToReport,
             });
         },
-        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],
+        [
+            transaction,
+            report,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            iouType,
+            policy,
+            policyCategories,
+            policyTags,
+            transactionTaxCode,
+            transactionTaxAmount,
+            customUnitRateID,
+            backToReport,
+        ],
     );
 
     const createTransaction = useCallback(

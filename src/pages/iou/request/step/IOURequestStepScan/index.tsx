@@ -283,7 +283,7 @@ function IOURequestStepScan({
         (isTestTransaction = false, reportIDParam: string | undefined = undefined) => {
             switch (iouType) {
                 case CONST.IOU.TYPE.REQUEST:
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
                     break;
                 case CONST.IOU.TYPE.SEND:
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
@@ -296,11 +296,12 @@ function IOURequestStepScan({
                             transactionID,
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             reportIDParam || reportID,
+                            backToReport,
                         ),
                     );
             }
         },
-        [iouType, reportID, transactionID],
+        [backToReport, iouType, reportID, transactionID],
     );
 
     const createTransaction = useCallback(

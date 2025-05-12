@@ -1249,6 +1249,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        backToReport?: string;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
