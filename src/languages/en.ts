@@ -3763,6 +3763,7 @@ const translations = {
                 },
                 yourCardProvider: `Who's your card provider?`,
                 whoIsYourBankAccount: 'Who’s your bank?',
+                whereIsYourBankLocated: 'Where’s your bank located?',
                 howDoYouWantToConnect: 'How do you want to connect to your bank?',
                 learnMoreAboutOptions: {
                     text: 'Learn more about these ',
@@ -3808,6 +3809,7 @@ const translations = {
                     pleaseSelectProvider: 'Please select a card provider before continuing',
                     pleaseSelectBankAccount: 'Please select a bank account before continuing',
                     pleaseSelectBank: 'Please select a bank before continuing',
+                    pleaseSelectCountry: 'Please select a country before continuing',
                     pleaseSelectFeedType: 'Please select a feed type before continuing',
                 },
             },

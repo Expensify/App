@@ -3804,6 +3804,7 @@ const translations = {
                 },
                 yourCardProvider: `¿Quién es su proveedor de tarjetas?`,
                 whoIsYourBankAccount: '¿Cuál es tu banco?',
+                whereIsYourBankLocated: '¿Dónde está ubicado su banco?',
                 howDoYouWantToConnect: '¿Cómo deseas conectarte a tu banco?',
                 learnMoreAboutOptions: {
                     text: 'Obtén más información sobre estas ',
@@ -3850,6 +3851,7 @@ const translations = {
                     pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar',
                     pleaseSelectBankAccount: 'Seleccione una cuenta bancaria antes de continuar',
                     pleaseSelectBank: 'Seleccione una bancaria antes de continuar',
+                    pleaseSelectCountry: 'Seleccione un país antes de continuar',
                     pleaseSelectFeedType: 'Seleccione un tipo de pienso antes de continuar',
                 },
             },

@@ -814,6 +814,7 @@ const CONST = {
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
+        PLAID_COMPANY_CARDS: 'plaidCompanyCards',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -3252,6 +3253,7 @@ const CONST = {
             CARD_DETAILS: 'CardDetails',
             BANK_CONNECTION: 'BankConnection',
             AMEX_CUSTOM_FEED: 'AmexCustomFeed',
+            SELECT_COUNTRY: 'SelectCountry',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -4068,6 +4070,8 @@ const CONST = {
         ES: 'Spain',
         SE: 'Sweden',
     },
+
+    PLAID_EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP'] as string[],
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
     // https://github.com/Expensify/App/issues/14958#issuecomment-1456026810
