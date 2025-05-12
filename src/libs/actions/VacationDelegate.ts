@@ -17,7 +17,7 @@ Onyx.connect({
     },
 });
 
-function SetVacationDelegate(creator: string, delegate: string) {
+function setVacationDelegate(creator: string, delegate: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -63,7 +63,7 @@ function SetVacationDelegate(creator: string, delegate: string) {
     API.write(WRITE_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
-function DeleteVacationDelegate() {
+function deleteVacationDelegate() {
     if (isEmptyObject(vacationDelegate)) {
         return;
     }
@@ -109,4 +109,4 @@ function DeleteVacationDelegate() {
     API.write(WRITE_COMMANDS.DELETE_VACATION_DELEGATE, null, {optimisticData, successData, failureData});
 }
 
-export {SetVacationDelegate, DeleteVacationDelegate};
+export {setVacationDelegate, deleteVacationDelegate};
