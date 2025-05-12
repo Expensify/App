@@ -9,7 +9,7 @@ import * as Attachment from '@libs/actions/Attachment';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as Browser from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Download from '@userActions/Download';
 import CONST from '@src/CONST';
@@ -25,24 +25,20 @@ type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
 };
 
 function BaseAnchorForAttachmentsOnly({style, attachmentID, source = '', displayName = '', onPressIn, onPressOut, isDeleted = false}: BaseAnchorForAttachmentsOnlyProps) {
-    const finalSourceURL = FileUtils.isLocalFile(source) ? source : addEncryptedAuthTokenToURL(source);
-    const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+    const finalSourceURL = isLocalFile(source) ? source : addEncryptedAuthTokenToURL(source);
 
-    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
-
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${attachmentID}`);
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
 
     const isDownloading = download?.isDownloading ?? false;
+    const isAuthTokenRequired = isLocalFile(source) ? false : true;
 
     const cacheAttachmentFile = () => {
-        if (FileUtils.isLocalFile(source) || !attachmentID) {
+        if (isLocalFile(source) || !attachmentID) {
             return;
         }
-        Attachment.cacheAttachment({
-            attachmentID,
-            url: finalSourceURL,
-        });
+        Attachment.cacheAttachment(attachmentID, source);
     };
 
     useEffect(() => {
@@ -54,13 +50,13 @@ function BaseAnchorForAttachmentsOnly({style, attachmentID, source = '', display
         <ShowContextMenuContext.Consumer>
             {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                 <PressableWithoutFeedback
-                    style={[style, (isOffline || !sourceID) && styles.cursorDefault]}
+                    style={[style, (isOffline || !attachmentID) && styles.cursorDefault]}
                     onPress={() => {
-                        if (isDownloading || isOffline || !sourceID) {
+                        if (isDownloading || isOffline || !attachmentID) {
                             return;
                         }
-                        Download.setDownload(sourceID, true);
-                        fileDownload(finalSourceURL, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(sourceID, false));
+                        Download.setDownload(attachmentID, true);
+                        fileDownload(finalSourceURL, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(attachmentID, false));
                     }}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
@@ -77,12 +73,12 @@ function BaseAnchorForAttachmentsOnly({style, attachmentID, source = '', display
                     <AttachmentView
                         source={source}
                         file={{name: displayName}}
-                        isAuthTokenRequired={true}
-                        shouldShowDownloadIcon={!!sourceID && !isOffline}
+                        isAuthTokenRequired={isAuthTokenRequired}
+                        shouldShowDownloadIcon={!!attachmentID && !isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
                         isUsedAsChatAttachment
                         isDeleted={!!isDeleted}
-                        isUploading={!sourceID}
+                        isUploading={!attachmentID}
                     />
                 </PressableWithoutFeedback>
             )}
