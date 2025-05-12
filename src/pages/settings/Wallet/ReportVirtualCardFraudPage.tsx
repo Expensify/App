@@ -36,6 +36,7 @@ function ReportVirtualCardFraudPage({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD, {canBeMissing: true});
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const primaryLogin = account?.primaryLogin ?? '';
 
     const virtualCard = cardList?.[cardID];
@@ -57,7 +58,7 @@ function ReportVirtualCardFraudPage({
         if (!prevIsLoading || formData?.isLoading) {
             return;
         }
-        if (!isEmptyObject(virtualCard?.errors)) {
+        if (!isEmptyObject(virtualCard?.errors) || !isEmptyObject(validateCodeAction?.errorFields?.reportVirtualCard)) {
             return;
         }
 
@@ -66,7 +67,7 @@ function ReportVirtualCardFraudPage({
             Navigation.goBack(ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.getRoute(latestIssuedVirtualCardID));
             setIsValidateCodeActionModalVisible(false);
         }
-    }, [formData?.isLoading, latestIssuedVirtualCardID, prevIsLoading, virtualCard?.errors]);
+    }, [formData?.isLoading, latestIssuedVirtualCardID, prevIsLoading, virtualCard?.errors, validateCodeAction?.errorFields]);
 
     const handleValidateCodeEntered = useCallback(
         (validateCode: string) => {

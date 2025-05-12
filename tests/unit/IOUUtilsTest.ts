@@ -1,5 +1,7 @@
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import {canSubmitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -15,6 +17,9 @@ import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import currencyList from './currencyList.json';
+
+// This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const testDate = DateUtils.getDBTime();
 const currentUserAccountID = 5;
@@ -323,6 +328,31 @@ describe('canSubmitReport', () => {
         };
 
         expect(canSubmitReport(expenseReport, fakePolicy, [], undefined)).toBe(false);
+    });
+
+    it('returns false if the report is archived', async () => {
+        const policy: Policy = {
+            ...createRandomPolicy(7),
+            ownerAccountID: currentUserAccountID,
+            areRulesEnabled: true,
+            preventSelfApproval: false,
+        };
+        const report: Report = {
+            ...createRandomReport(7),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: currentUserAccountID,
+            ownerAccountID: currentUserAccountID,
+            policyID: policy.id,
+        };
+
+        // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
+            private_isArchived: new Date().toString(),
+        });
+
+        // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current)).toBe(false);
     });
 });
 

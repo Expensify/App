@@ -498,6 +498,9 @@ const ONYXKEYS = {
     /** Information about loading states while talking with AI sales */
     TALK_TO_AI_SALES: 'talkToAISales',
 
+    /** Stores draft information while user is scheduling the call. */
+    SCHEDULE_CALL_DRAFT: 'scheduleCallDraft',
+
     /** Onyx updates that should be stored after sequential queue is flushed */
     QUEUE_FLUSHED_DATA: 'queueFlushedData',
 
@@ -513,6 +516,13 @@ const ONYXKEYS = {
 
     /** Billing receipt details */
     BILLING_RECEIPT_DETAILS: 'billingReceiptDetails',
+
+    /** Set when user tries to connect VBBA but workspace currency is unsupported and is forced to change
+     * This is later used to redirect user directly back to the VBBA flow */
+    IS_FORCED_TO_CHANGE_CURRENCY: 'isForcedToChangeCurrency',
+
+    /** Set this gets redirected from global reimbursements flow */
+    IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW: 'isComingFromGlobalReimbursementsFlow',
 
     HYBRID_APP: 'hybridApp',
 
@@ -1145,6 +1155,9 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
+    [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft;
+    [ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY]: boolean | undefined;
+    [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
 };
 
