@@ -30,6 +30,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
+import {clearBookingDraft} from '@libs/actions/ScheduleCall';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -71,6 +72,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {deleteTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
@@ -116,6 +118,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const [isDismissedDiscountBanner, setIsDismissedDiscountBanner] = useState(false);
 
     const {translate} = useLocalize();
@@ -123,10 +126,10 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
-    const {canUseTalkToAISales, canUseLeftHandBar} = usePermissions();
+    const {canUseTalkToAISales} = usePermissions();
     const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report);
 
-    const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
+    const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
     const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
     const isMultipleParticipant = participants.length > 1;
@@ -167,7 +170,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
-    const canJoin = canJoinChat(report, parentReportAction, policy);
+    const canJoin = canJoinChat(report, parentReportAction, policy, reportNameValuePairs);
 
     const joinButton = (
         <Button
@@ -214,15 +217,28 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const shouldShowGuideBookingButtonInEarlyDiscountBanner = shouldShowGuideBooking && shouldShowEarlyDiscountBanner && !isDismissedDiscountBanner;
 
+    const {canUseCallScheduling} = usePermissions();
+
     const guideBookingButton = (
         <Button
             success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
-            text={translate('getAssistancePage.scheduleADemo')}
+            text={translate('getAssistancePage.scheduleACall')}
             onPress={() => {
-                openExternalLink(account?.guideDetails?.calendarLink ?? '');
+                if (!canUseCallScheduling) {
+                    openExternalLink(account?.guideDetails?.calendarLink ?? '');
+                    return;
+                }
+                if (!report?.reportID) {
+                    return;
+                }
+                clearBookingDraft();
+                Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK.getRoute(report?.reportID));
             }}
-            style={shouldUseNarrowLayout && shouldShowGuideBookingButtonInEarlyDiscountBanner && [styles.flex1]}
+            style={shouldUseNarrowLayout && shouldShowGuideBookingButtonInEarlyDiscountBanner && styles.earlyDiscountButton}
             icon={CalendarSolid}
+            // Ensure that a button with an icon displays an ellipsis when its content overflows https://github.com/Expensify/App/issues/58974#issuecomment-2794297554
+            iconWrapperStyles={[styles.mw100]}
+            isContentCentered
         />
     );
 
@@ -246,7 +262,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 style={[styles.borderBottom]}
                 dataSet={{dragArea: true}}
             >
-                <View style={[styles.appContentHeader, styles.pr3, !shouldUseNarrowLayout && styles.headerBarDesktopHeight(canUseLeftHandBar)]}>
+                <View style={[styles.appContentHeader, styles.pr3]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (

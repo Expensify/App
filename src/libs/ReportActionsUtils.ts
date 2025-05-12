@@ -209,6 +209,10 @@ function isSubmittedAndClosedAction(reportAction: OnyxInputOrEntry<ReportAction>
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED);
 }
 
+function isMarkAsClosedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CLOSED) && !!getOriginalMessage(reportAction)?.amount;
+}
+
 function isApprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED);
 }
@@ -272,8 +276,12 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     return reportAction.originalMessage;
 }
 
-function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE && !!getOriginalMessage(reportAction as ReportAction<'INTEGRATIONSMESSAGE'>)?.result?.success;
+function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION;
+}
+
+function isIntegrationMessageAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE> {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE;
 }
 
 /**
@@ -745,10 +753,6 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.DONATION,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-
-        // We're temporarily deprecating the actions below since the feature is still WIP and these actions are being shown as duplicated
-        CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-        CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
     ];
     if (deprecatedOldDotReportActions.includes(reportAction.actionName)) {
         Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
@@ -832,7 +836,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && !isMarkAsClosedAction(reportAction)) {
         return false;
     }
 
@@ -1230,7 +1234,6 @@ function getOneTransactionThreadReportID(
         if (
             actionType &&
             iouRequestTypesSet.has(actionType) &&
-            action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an assocaited IOU transaction ID or
             // - they have visibile childActions (like comments) that we'd want to display
@@ -1258,8 +1261,8 @@ function getOneTransactionThreadReportID(
         return;
     }
 
-    // Ensure we have a childReportID associated with the IOU report action
-    return singleAction?.childReportID;
+    // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
+    return singleAction?.childReportID ?? CONST.FAKE_REPORT_ID;
 }
 
 /**
@@ -1529,6 +1532,10 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>, g
     };
 }
 
+function getLeaveRoomMessage() {
+    return translateLocal('report.actions.type.leftTheChat');
+}
+
 function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
     const html = getUpdateRoomDescriptionMessage(reportAction);
     return {
@@ -1547,6 +1554,11 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
         const message = getUpdateRoomDescriptionMessage(action);
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION)) {
+        const message = getWorkspaceDescriptionUpdatedMessage(action);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
@@ -2226,10 +2238,11 @@ function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): str
     return connectionName ? translateLocal('report.actions.type.removedConnection', {connectionName}) : '';
 }
 
-function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, actorName?: string) {
+function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, isExpenseReport: boolean, actorName?: string) {
     const originalMessage = getOriginalMessage(reportAction);
     return translateLocal('newRoomPage.renamedRoomAction', {
         actorName,
+        isExpenseReport,
         oldName: originalMessage?.oldName ?? '',
         newName: originalMessage?.newName ?? '',
     });
@@ -2429,6 +2442,7 @@ export {
     isLinkedTransactionHeld,
     isMemberChangeAction,
     isExportIntegrationAction,
+    isIntegrationMessageAction,
     isMessageDeleted,
     useNewTableReportViewActionRenderConditionals,
     isModifiedExpenseAction,
@@ -2447,6 +2461,7 @@ export {
     isReportActionDeprecated,
     isReportPreviewAction,
     isReversedTransaction,
+    getMentionedAccountIDsFromAction,
     isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction,
@@ -2458,6 +2473,7 @@ export {
     isWhisperAction,
     isSubmittedAction,
     isSubmittedAndClosedAction,
+    isMarkAsClosedAction,
     isApprovedAction,
     isUnapprovedAction,
     isForwardedAction,
@@ -2502,6 +2518,7 @@ export {
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,
     getReportActions,
+    getLeaveRoomMessage,
 };
 
 export type {LastVisibleMessage};

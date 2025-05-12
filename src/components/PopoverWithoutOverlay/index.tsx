@@ -91,7 +91,7 @@ function PopoverWithoutOverlay(
 
     return (
         <View
-            style={[modalStyle, {zIndex: variables.popoverzIndex}]}
+            style={[modalStyle, {zIndex: variables.popoverZIndex}]}
             ref={viewRef(withoutOverlayRef)}
             // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
             onClick={(e) => e.stopPropagation()}

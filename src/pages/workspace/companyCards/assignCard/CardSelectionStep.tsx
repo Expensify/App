@@ -176,9 +176,8 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                             buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
                             onSubmit={submit}
                             isAlertVisible={shouldShowError}
-                            containerStyles={[styles.ph5, !shouldShowError && styles.mt5]}
+                            containerStyles={[!shouldShowError && styles.mt5]}
                             message={translate('common.error.pleaseSelectOne')}
-                            buttonStyles={styles.mb5}
                         />
                     }
                 />
