@@ -34,7 +34,7 @@ const mockTransactionsBig = Array.from({length: 12}).map((item, index) => {
     return {...transactionR14932, transactionID: `${transactionR14932.transactionID}${index}`};
 });
 
-const reportPreviewStyle = getMoneyRequestReportPreviewStyle(false, 400, false);
+const reportPreviewStyle = getMoneyRequestReportPreviewStyle(false, 400, 400, false);
 
 const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
     <TransactionPreviewContent
