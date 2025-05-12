@@ -659,14 +659,17 @@ function PureReportActionItem({
             if (!options) {
                 return [];
             }
-            const isResolved = isResolvedConciergeCategoryOptions(action);
+
+            if (isResolvedConciergeCategoryOptions(action)) {
+                return [];
+            }
+
             return options.map((option, i) => ({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
                     addComment(originalReportID, option);
                 },
-                isDisabled: isResolved,
             }));
         }
 
