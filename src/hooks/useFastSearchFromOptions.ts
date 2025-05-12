@@ -74,9 +74,6 @@ function useFastSearchFromOptions(
         ]);
         setFastSearch(newFastSearch);
         previousFastSearchRef.current = newFastSearch;
-    }, [options]);
-
-    useEffect(() => {
         return () => {
             if (!previousFastSearchRef.current) {
                 return;
@@ -84,7 +81,7 @@ function useFastSearchFromOptions(
             previousFastSearchRef.current.dispose();
             previousFastSearchRef.current = null;
         };
-    }, []);
+    }, [options]);
 
     const findInSearchTree = useMemo(() => {
         function search(searchInput: string): AllOrSelectiveOptions {
