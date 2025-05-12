@@ -521,7 +521,9 @@ function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCo
         .map((feed) => feed?.domainID)
         .filter((domainID): domainID is number => !!domainID);
     for (const [key, values] of Object.entries(allCardList ?? {})) {
-        if ((key.includes(workspaceAccountID.toString()) || domainIDs?.some((id) => key.includes(id.toString()))) && values) {
+        const isWorkspaceAccountCards = key.includes(workspaceAccountID.toString());
+        const isDomainCards = domainIDs?.some((domainID) => key.includes(domainID.toString()));
+        if ((isWorkspaceAccountCards || isDomainCards) && values) {
             const {cardList, ...rest} = values;
             const filteredCards = filterInactiveCards(rest);
             Object.assign(cards, filteredCards);
