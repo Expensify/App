@@ -1150,6 +1150,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: Routes;
     };
+    [SCREENS.MONEY_REQUEST.EDIT_REPORT]: {
+        action: IOUAction;
+        iouType: IOUType;
+        reportID: string;
+        backTo: Routes;
+    };
     [SCREENS.MONEY_REQUEST.STEP_REPORT]: {
         action: IOUAction;
         iouType: IOUType;

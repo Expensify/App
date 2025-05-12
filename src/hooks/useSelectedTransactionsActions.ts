@@ -11,6 +11,7 @@ import {getTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session} from '@src/types/onyx';
+import useActiveRoute from './useActiveRoute';
 import useLocalize from './useLocalize';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ingored.
@@ -33,6 +34,7 @@ function useSelectedTransactionsActions({
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const {getReportRHPActiveRoute} = useActiveRoute();
 
     const handleDeleteTransactions = useCallback(() => {
         const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
@@ -71,6 +73,17 @@ function useSelectedTransactionsActions({
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
         let canHoldTransactions = selectedTransactions.length > 0 && isMoneyRequestReport && !isReportReimbursed;
         let canUnholdTransactions = selectedTransactions.length > 0 && isMoneyRequestReport;
+
+        options.push({
+            text: 'Move Expenses',
+            icon: Expensicons.Document, // TODO change
+            value: 'MOVE',
+            onSelected: () => {
+                const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, '12', report?.reportID ?? '-1');
+                console.log(route);
+                Navigation.navigate(route);
+            },
+        });
 
         selectedTransactions.forEach((selectedTransaction) => {
             if (!canHoldTransactions && !canHoldTransactions) {
@@ -156,7 +169,7 @@ function useSelectedTransactionsActions({
             });
         }
         return options;
-    }, [onExportFailed, report, reportActions, selectedTransactionsID, session?.accountID, setSelectedTransactionsID, translate, showDeleteModal]);
+    }, [selectedTransactionsID, report, translate, getReportRHPActiveRoute, reportActions, setSelectedTransactionsID, onExportFailed, session?.accountID, showDeleteModal]);
 
     return {
         options: computedOptions,
