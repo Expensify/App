@@ -2711,11 +2711,6 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
-            value: {[reportActionID]: {pendingAction: null}},
-        },
     ];
 
     return {optimisticReportName: optimisticReportData.reportName, optimisticData, successData, failureData};
@@ -3282,7 +3277,7 @@ function openReportFromDeepLink(url: string) {
         waitForUserSignIn().then(() => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
-                callback: () => {
+                callback: (val) => {
                     Navigation.waitForProtectedRoutes().then(() => {
                         if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
                             signOutAndRedirectToSignIn(true);
@@ -3340,7 +3335,7 @@ function openReportFromDeepLink(url: string) {
                         }
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
-                            onNotCompleted: () => startOnboardingFlow(),
+                            onNotCompleted: () => startOnboardingFlow(undefined, val),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });
