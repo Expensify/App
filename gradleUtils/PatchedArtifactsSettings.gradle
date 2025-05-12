@@ -30,7 +30,7 @@ def warnIfNotConfigured(reason) {
 
 def runCommand(command) {
     def process = command.execute()
-    process.waitFor(5, TimeUnit.SECONDS)
+    process.waitFor(10, TimeUnit.SECONDS)
     return [output: process.in.text?.trim(), exitCode: process.exitValue()]
 }
 
