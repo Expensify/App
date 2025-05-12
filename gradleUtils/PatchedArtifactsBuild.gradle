@@ -1,4 +1,4 @@
-def config = project.gradle.settings.extensions.findByName('patchedArtifactsConfig')
+def config = project.gradle.settings.extensions.findByName('patchedArtifacts')
 
 if(config.version != null && config.packageName != null && config.githubUsername != null && config.githubToken != null) {
     rootProject.allprojects { subproject ->

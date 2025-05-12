@@ -15,7 +15,7 @@ project(':react-native-plaid-link-sdk').projectDir = new File(rootProject.projec
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
 
-if(settings.extensions.patchedArtifactsConfig.buildFromSource) {
+if(settings.extensions.patchedArtifacts.buildFromSource) {
     includeBuild('../node_modules/react-native') {
         dependencySubstitution {
             substitute(module("com.facebook.react:react-android")).using(project(":packages:react-native:ReactAndroid"))

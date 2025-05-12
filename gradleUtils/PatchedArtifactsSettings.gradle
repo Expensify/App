@@ -9,7 +9,7 @@ class PatchedArtifactsConfig {
     Boolean buildFromSource = true
 }
 
-def patchedArtifactsConfig = settings.getExtensions().create('patchedArtifactsConfig', PatchedArtifactsConfig)
+def patchedArtifacts = settings.getExtensions().create('patchedArtifacts', PatchedArtifactsConfig)
 
 def lifecycle(message) {
     logger.lifecycle("\u001B[34m[PatchedArtifacts] $message\u001B[0m")
@@ -116,14 +116,14 @@ def findMatchingArtifactsVersion(packageName, githubToken) {
 }
 
 settings.extensions.configure(PatchedArtifactsConfig) { config ->
-    config.buildFromSource = getProperty('patchedArtifactsConfig.forceBuildFromSource') == 'true'
+    config.buildFromSource = getProperty('patchedArtifacts.forceBuildFromSource') == 'true'
     if(config.buildFromSource) {
         lifecycle("Forcing build from source.")
         return
     }
 
     def credentials = getCredentials()
-    config.packageName = getProperty('patchedArtifactsConfig.packageName')
+    config.packageName = getProperty('patchedArtifacts.packageName')
 
     if(credentials != null) {
         config.githubUsername = credentials.githubUsername
