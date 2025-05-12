@@ -6,6 +6,7 @@ class PatchedArtifactsConfig {
     String packageName = null
     String githubUsername = null
     String githubToken = null
+    Boolean buildFromSource = true
 }
 
 def patchedArtifactsConfig = settings.getExtensions().create('patchedArtifactsConfig', PatchedArtifactsConfig)
@@ -115,6 +116,12 @@ def findMatchingArtifactsVersion(packageName, githubToken) {
 }
 
 settings.extensions.configure(PatchedArtifactsConfig) { config ->
+    config.buildFromSource = getProperty('patchedArtifactsConfig.forceBuildFromSource') == 'true'
+    if(config.buildFromSource) {
+        lifecycle("Forcing build from source.")
+        return
+    }
+
     def credentials = getCredentials()
     config.packageName = getProperty('patchedArtifactsConfig.packageName')
 
@@ -126,15 +133,6 @@ settings.extensions.configure(PatchedArtifactsConfig) { config ->
 
     if(config.version == null || config.packageName == null || config.githubUsername == null || config.githubToken == null) { 
         lifecycle("No matching artifacts version found for ${config.packageName}. Buillding react-native from source.")
-        // TODO: This path needs to be fixed
-        includeBuild("$newDotNodeModules/react-native") {
-            dependencySubstitution {
-                substitute(module("com.facebook.react:react-android")).using(project(":packages:react-native:ReactAndroid"))
-                substitute(module("com.facebook.react:react-native")).using(project(":packages:react-native:ReactAndroid"))
-                substitute(module("com.facebook.react:hermes-android")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
-                substitute(module("com.facebook.react:hermes-engine")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
-            }
-        }
     }
     else {
         lifecycle("Using patched react-native artifacts: ${config.packageName}:${config.version}")
