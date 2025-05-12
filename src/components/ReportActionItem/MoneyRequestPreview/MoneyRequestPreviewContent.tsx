@@ -261,7 +261,7 @@ function MoneyRequestPreviewContent({
                 const canEdit = isMoneyRequestAction && canEditMoneyRequest(action, transaction);
                 const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
 
-                const translationPath = getViolationTranslatePath(violations, hasFieldErrors, violationMessage);
+                const translationPath = getViolationTranslatePath(violations, hasFieldErrors, violationMessage, isOnHold);
                 return `${message} ${CONST.DOT_SEPARATOR} ${getTranslatedText(translationPath)}`;
             }
             if (hasFieldErrors) {
