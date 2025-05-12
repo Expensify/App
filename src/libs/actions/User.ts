@@ -1382,6 +1382,7 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
 }
 
 function lockAccount() {
+    // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
     if (currentUserAccountID === -1) {
         return;
     }
