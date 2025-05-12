@@ -55,6 +55,7 @@ import {
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
     getSortedReportActions,
@@ -818,6 +819,8 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
         lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
+        lastMessageTextFromReport = getReopenedMessage();
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report

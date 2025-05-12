@@ -829,6 +829,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
+    [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
     } & {

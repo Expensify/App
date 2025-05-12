@@ -813,6 +813,7 @@ const CONST = {
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
+        RETRACT_NEWDOT: 'retractNewDot',
         PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
@@ -1204,6 +1205,7 @@ const CONST = {
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             ADD_EXPENSE: 'addExpense',
+            REOPEN: 'reopen',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1292,6 +1294,7 @@ const CONST = {
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
                 DEMOTED_FROM_WORKSPACE: 'DEMOTEDFROMWORKSPACE',
                 RENAMED: 'RENAMED',
+                REOPENED: 'REOPENED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
                 SHARE: 'SHARE', // OldDot Action

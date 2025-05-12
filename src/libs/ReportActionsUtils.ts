@@ -1536,6 +1536,10 @@ function getLeaveRoomMessage() {
     return translateLocal('report.actions.type.leftTheChat');
 }
 
+function getReopenedMessage(): string {
+    return translateLocal('iou.reopened');
+}
+
 function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
     const html = getUpdateRoomDescriptionMessage(reportAction);
     return {
@@ -1564,6 +1568,11 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
         const message = getReportActionMessageText(action);
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
+        const message = getReopenedMessage();
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
@@ -2529,6 +2538,7 @@ export {
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,
     getReportActions,
+    getReopenedMessage,
     getLeaveRoomMessage,
 };
 

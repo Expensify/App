@@ -12,6 +12,7 @@ import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {
     OriginalMessageChangePolicy,
+    OriginalMessageExportIntegration,
     OriginalMessageIOU,
     OriginalMessageModifiedExpense,
     OriginalMessageMovedTransaction,
@@ -151,6 +152,7 @@ import {
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
     getRenamedAction,
+    getReopenedMessage,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage as getReportActionMessageReportUtils,
@@ -452,6 +454,11 @@ type OptimisticSubmittedReportAction = Pick<
 >;
 
 type OptimisticHoldReportAction = Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+>;
+
+type OptimisticReopenedReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
@@ -4710,6 +4717,9 @@ function getReportNameInternal({
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
         return getRejectedReportMessage();
     }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
+        return getReopenedMessage();
+    }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
         return getUpgradeWorkspaceMessage();
     }
@@ -6838,6 +6848,33 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
                 text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        created,
+        shouldShow: true,
+    };
+}
+
+function buildOptimisticReopenedReportAction(created = DateUtils.getDBTime()): OptimisticReopenedReportAction {
+    return {
+        reportActionID: rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.REOPENED,
+        actorAccountID: currentUserAccountID,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: 'reopened',
+                html: '<muted-text>reopened</muted-text>',
+            },
+        ],
+        person: [
+            {
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             },
         ],
         automatic: false,
@@ -10367,6 +10404,23 @@ function canBeExported(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && isCorrectState;
 }
 
+function getIntegrationNameFromExportMessage(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
+    if (!reportActions) {
+        return '';
+    }
+
+    if (Array.isArray(reportActions)) {
+        const exportIntegrationAction = reportActions.find((action) => isExportIntegrationAction(action));
+        if (!exportIntegrationAction || !isExportIntegrationAction(exportIntegrationAction)) {
+            return null;
+        }
+
+        const originalMessage = (getOriginalMessage(exportIntegrationAction) ?? {}) as OriginalMessageExportIntegration;
+        const {label} = originalMessage;
+        return label ?? null;
+    }
+}
+
 function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     if (!reportActions) {
         return false;
@@ -10720,6 +10774,7 @@ export {
     buildOptimisticGroupChatReport,
     buildOptimisticHoldReportAction,
     buildOptimisticHoldReportActionComment,
+    buildOptimisticReopenedReportAction,
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
     buildOptimisticModifiedExpenseReportAction,
@@ -11028,6 +11083,7 @@ export {
     getReportLastVisibleActionCreated,
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
+    getIntegrationNameFromExportMessage,
 
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
