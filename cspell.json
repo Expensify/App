@@ -675,9 +675,7 @@
         "src/libs/SearchParser/*",
         ".gitignore"
     ],
-    "ignoreRegExpList": [
-        "@assets/.*"
-    ],
+    "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true,
     "overrides": [
         {
