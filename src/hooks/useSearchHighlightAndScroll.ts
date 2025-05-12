@@ -1,6 +1,6 @@
+import {useNavigation} from '@react-navigation/native';
 import isEqual from 'lodash/isEqual';
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {useNavigation} from '@react-navigation/native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {ReportListItemType, SearchListItem, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
@@ -24,15 +24,7 @@ type UseSearchHighlightAndScroll = {
 /**
  * Hook used to trigger a search when a new transaction or report action is added and handle highlighting and scrolling.
  */
-function useSearchHighlightAndScroll({
-    searchResults,
-    transactions,
-    previousTransactions,
-    reportActions,
-    previousReportActions,
-    queryJSON,
-    offset,
-}: UseSearchHighlightAndScroll) {
+function useSearchHighlightAndScroll({searchResults, transactions, previousTransactions, reportActions, previousReportActions, queryJSON, offset}: UseSearchHighlightAndScroll) {
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
     const searchTriggeredRef = useRef(false);

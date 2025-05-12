@@ -202,8 +202,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         search({queryJSON, offset});
     }, [isOffline, offset, queryJSON]);
 
-
-
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
         transactions,

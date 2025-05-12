@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {useNavigation} from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
@@ -10,8 +11,6 @@ jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual('@react-navigation/native'),
     useNavigation: jest.fn(),
 }));
-
-import {useNavigation} from '@react-navigation/native';
 
 describe('useSearchHighlightAndScroll', () => {
     beforeEach(() => {
