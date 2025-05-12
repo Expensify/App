@@ -25,6 +25,7 @@ const syncOptions: NetSuiteConnectionConfig['syncOptions'] = {
 
 const netSuiteConnection: Pick<Connections, 'netsuite'> = {
     netsuite: {
+        // cspell:disable-next-line
         accountID: 'TESTACC68486',
         config: {
             autoSync: {
@@ -169,7 +170,7 @@ const netSuiteConnection: Pick<Connections, 'netsuite'> = {
                     {
                         email: 'fakeemail+2@gmail.com',
                         id: '3',
-                        name: 'Jesse Pinkman, Inc.',
+                        name: 'Jesse Pink Man, Inc.',
                     },
                 ],
             },
