@@ -24,6 +24,7 @@ import useLocalize from './useLocalize';
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ingored.
 const HOLD = 'HOLD';
 const UNHOLD = 'UNHOLD';
+const MOVE = 'MOVE';
 
 function useSelectedTransactionsActions({
     report,
@@ -41,11 +42,11 @@ function useSelectedTransactionsActions({
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const isTrackExpense = isTrackExpenseReport(report);
+    const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
     let iouType: IOUType = CONST.IOU.TYPE.SUBMIT;
 
-    if (isTrackExpense) {
+    if (isTrackExpenseThread) {
         iouType = CONST.IOU.TYPE.TRACK;
     }
     if (isInvoice) {
@@ -157,7 +158,7 @@ function useSelectedTransactionsActions({
         options.push({
             text: 'Move Expenses',
             icon: Expensicons.DocumentMerge,
-            value: 'MOVE',
+            value: MOVE,
             onSelected: () => {
                 const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID);
                 Navigation.navigate(route);

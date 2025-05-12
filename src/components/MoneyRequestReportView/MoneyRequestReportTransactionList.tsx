@@ -129,14 +129,12 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
             return CONST.EMPTY_ARRAY as unknown as string[];
         }
 
-        return transactions
-            .filter((transaction) => !prevTransactions.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID))
-            .reduce((acc, t) => {
-                if (!prevTransactions.some((prevTransaction) => prevTransaction.transactionID === t.transactionID)) {
-                    acc.push(t.transactionID);
-                }
-                return acc;
-            }, [] as string[]);
+        return transactions.reduce((acc, t) => {
+            if (!prevTransactions.some((prevTransaction) => prevTransaction.transactionID === t.transactionID)) {
+                acc.push(t.transactionID);
+            }
+            return acc;
+        }, [] as string[]);
     }, [prevTransactions, transactions]);
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
