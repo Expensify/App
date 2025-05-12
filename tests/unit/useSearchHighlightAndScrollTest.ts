@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {useNavigation} from '@react-navigation/native';
+import type * as NativeNavigation from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
@@ -8,7 +9,7 @@ import {search} from '@libs/actions/Search';
 jest.mock('@libs/actions/Search');
 jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual('@react-navigation/native'),
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
     useNavigation: jest.fn(),
 }));
 
