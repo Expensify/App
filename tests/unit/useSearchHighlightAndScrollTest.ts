@@ -21,6 +21,10 @@ describe('useSearchHighlightAndScroll', () => {
         });
     });
 
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
     it('should trigger Search when transactionIDs list change', () => {
         const initialProps: UseSearchHighlightAndScroll = {
             searchResults: {
