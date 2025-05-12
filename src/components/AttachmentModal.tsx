@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -211,7 +211,7 @@ function AttachmentModal({
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const [file, setFile] = useState<FileObject | undefined>(
@@ -532,15 +532,17 @@ function AttachmentModal({
                     }
 
                     if (isReplaceReceipt.current) {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                iouAction ?? CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                draftTransactionID ?? transaction?.transactionID,
-                                report?.reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
-                        );
+                        InteractionManager.runAfterInteractions(() => {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                    iouAction ?? CONST.IOU.ACTION.EDIT,
+                                    iouType,
+                                    draftTransactionID ?? transaction?.transactionID,
+                                    report?.reportID,
+                                    Navigation.getActiveRoute(),
+                                ),
+                            );
+                        });
                     }
                 }}
                 propagateSwipe
