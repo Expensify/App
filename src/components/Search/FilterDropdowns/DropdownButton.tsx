@@ -98,6 +98,7 @@ function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
                 anchorRef={triggerRef}
                 isVisible={isOverlayVisible}
                 onClose={toggleOverlay}
+                avoidKeyboard
                 anchorPosition={popoverTriggerPosition}
                 anchorAlignment={ANCHOR_ORIGIN}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}

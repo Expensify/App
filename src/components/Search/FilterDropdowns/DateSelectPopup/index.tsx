@@ -42,8 +42,8 @@ function DateSelectPopup({value, closeOverlay, onChange}: DateSelectPopupProps) 
     }, []);
 
     const applyChanges = useCallback(() => {
-        onChange(localDateValues);
         closeOverlay();
+        onChange(localDateValues);
     }, [closeOverlay, localDateValues, onChange]);
 
     if (!view) {
