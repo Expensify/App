@@ -3,6 +3,7 @@ import type {MoneyRequestReportPreviewStyleType} from '@components/ReportActionI
 import sizing from '@styles/utils/sizing';
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
+import CONST from '@src/CONST';
 
 const componentsSpacing = {
     flatListStyle: [spacing.mhn4],
@@ -11,7 +12,7 @@ const componentsSpacing = {
 };
 
 const NEXT_TRANSACTION_PEEK = 32;
-const TRANSACTION_WIDTH_WIDE = 303;
+const TRANSACTION_WIDTH_WIDE = CONST.REPORT.TRANSACTION_PREVIEW_WIDTH_WIDE;
 
 const mobileStyle = (currentWidth: number, isSingleTransaction?: boolean) => {
     const peek = isSingleTransaction ? spacing.p4.padding : NEXT_TRANSACTION_PEEK;
