@@ -1,43 +1,26 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import type {RootNavigatorParamList, State} from '@navigation/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {getActiveTransactionReportIDs} from './TransactionReportIDRepository';
+import {clearActiveTransactionThreadIDs, getActiveTransactionThreadIDs} from './TransactionThreadReportIDRepository';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentReportID: string;
 };
 
-/**
- * We only want to show the extra navigation for switching between transactions
- * If a transaction was opened from MoneyRequestReportView
- */
-function shouldShowTransactionNavigation(rootState?: State<RootNavigatorParamList>) {
-    const lastFullscreenNavigator = rootState?.routes.findLast((route) => isFullScreenName(route.name));
-    if (lastFullscreenNavigator?.state) {
-        const focusedRoute = findFocusedRoute(lastFullscreenNavigator.state);
-        return focusedRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
-    }
-}
-
 function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyRequestReportRHPNavigationButtonsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-    const shouldShow = shouldShowTransactionNavigation(rootState);
-
-    const reportIDsList = getActiveTransactionReportIDs();
+    const reportIDsList = getActiveTransactionThreadIDs();
     const {prevReportID, nextReportID} = useMemo(() => {
         if (!reportIDsList) {
             return {prevReportID: undefined, nextReportID: undefined};
@@ -53,7 +36,21 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
 
     const backTo = Navigation.getActiveRoute();
 
-    if (!shouldShow || reportIDsList.length < 2) {
+    /**
+     * We clear the sibling transactionThreadIDs when unmounting this component
+     * only when the mount actually goes to a different SCREEN (and not a different version of the same SCREEN)
+     */
+    useEffect(() => {
+        return () => {
+            const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+            if (focusedRoute?.name === SCREENS.SEARCH.REPORT_RHP) {
+                return;
+            }
+            clearActiveTransactionThreadIDs();
+        };
+    }, []);
+
+    if (reportIDsList.length < 2) {
         return;
     }
 
