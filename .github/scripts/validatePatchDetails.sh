@@ -6,7 +6,7 @@ DETAILS_MD="details.md"
 ERRORS=()
 
 # Get list of modified patch files in PR (compared to main branch)
-CHANGED_PATCHES=$(git diff --name-only origin/main...HEAD | grep "^patches/.*\.patch$" || true)
+CHANGED_PATCHES=$(git diff --name-only origin/main | grep "^patches/.*\.patch$" || true)
 
 if [ -z "$CHANGED_PATCHES" ]; then
   echo "✅  No modified patch files."
