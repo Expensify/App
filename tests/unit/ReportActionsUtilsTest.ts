@@ -699,81 +699,103 @@ describe('ReportActionsUtils', () => {
 
     describe('isMessageDeleted', () => {
         it('should return true if there is property deleted inside message', () => {
-            expect(
-                isMessageDeleted(
+            const reportAction = {
+                created: '2025-05-12 17:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: []
+                },
+                message: [
                     {
-                        message: [
-                            {
-                                deleted: "someDate",
-                                type: "COMMENT",
-                                text: ""
-                            }
-                        ]
-                    } as ReportAction
-                )
-            ).toBeTruthy();
+                        html: 'Hello world',
+                        deleted: '2025-05-12 17:37:01.825',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        text: ''
+                    },
+                ],
+            };
+            expect(isMessageDeleted(reportAction)).toBeTruthy();
         })
         it('should return true if there is property isDeletedParentAction inside message', () => {
-            expect(
-                isMessageDeleted(
+            const reportAction = {
+                created: '2025-05-12 17:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: []
+                },
+                message: [
                     {
-                        message: [
-                            {
-                                isDeletedParentAction: true,
-                                type: "COMMENT",
-                                text: ""
-                            }
-                        ]
-                    } as ReportAction
-                )
-            ).toBeTruthy();
+                        html: 'Hello world',
+                        isDeletedParentAction: true,
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        text: ''
+                    },
+                ],
+            };
+            expect(isMessageDeleted(reportAction)).toBeTruthy();
         })
         it('should return true if there is property deleted inside original message', () => {
-            expect(
-                isMessageDeleted(
+            const reportAction = {
+                created: '2025-05-12 17:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                    deleted: '2025-05-12 17:37:01.825'
+                },
+                message: [
                     {
-                        originalMessage: {
-                            deleted: "someDate",
-                            type: "COMMENT",
-                            text: "",
-                        },
-                        reportActionID: "reportActionID",
-                        actionName: "ACTIONABLEADDPAYMENTCARD",
-                        created: "someDate"
-                    } as ReportAction
-                )
-            ).toBeTruthy();
+                        html: 'Hello world',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        text: ''
+                    },
+                ],
+            };
+            expect(isMessageDeleted(reportAction)).toBeTruthy();
         })
         it('should return true if there is property isDeletedParentAction inside original message', () => {
-            expect(
-                isMessageDeleted(
+            const reportAction = {
+                created: '2025-05-12 17:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                    isDeletedParentAction: true
+                },
+                message: [
                     {
-                        originalMessage: {
-                            isDeletedParentAction: true,
-                            type: "COMMENT",
-                            text: "",
-                        },
-                        reportActionID: "reportActionID",
-                        actionName: "ACTIONABLEADDPAYMENTCARD",
-                        created: "someDate"
-                    } as ReportAction
-                )
-            ).toBeTruthy();
+                        html: 'Hello world',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        text: ''
+                    },
+                ],
+            };
+            expect(isMessageDeleted(reportAction)).toBeTruthy();
         })
         it('should return false if there are no deletion properties in message and originalMessage', () => {
-            expect(
-                isMessageDeleted(
+            const reportAction = {
+                created: '2025-05-12 17:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: []
+                },
+                message: [
                     {
-                        originalMessage: {
-                            type: "COMMENT",
-                            text: "",
-                        },
-                        reportActionID: "reportActionID",
-                        actionName: "ACTIONABLEADDPAYMENTCARD",
-                        created: "someDate"
-                    } as ReportAction
-                )
-            ).toBeFalsy();
+                        html: 'Hello world',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        text: ''
+                    },
+                ],
+            };
+            expect(isMessageDeleted(reportAction)).toBeFalsy();
         })
     })
 
@@ -822,14 +844,14 @@ describe('ReportActionsUtils', () => {
                 created: '1',
                 message: [
                     {
-                        type: 'COMMENT',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                         text: '',
-                        deleted: 'someDate'
+                        deleted: '2025-05-12 17:27:01.825'
                     }
                 ],
             };
             const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
-            expect(expectedFragments).toEqual([{text: '', type: 'COMMENT', isDeletedParentAction: true, deleted: 'someDate'}]);
+            expect(expectedFragments).toEqual([{text: '', type: CONST.REPORT.MESSAGE.TYPE.COMMENT, isDeletedParentAction: true, deleted: '2025-05-12 17:27:01.825'}]);
         });
     });
 
