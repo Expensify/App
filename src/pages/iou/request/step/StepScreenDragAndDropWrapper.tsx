@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import callOrReturn from '@src/types/utils/callOrReturn';
 
 type StepScreenDragAndDropWrapperProps = {
@@ -46,7 +46,7 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
             shouldEnableKeyboardAvoidingView={false}
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
-            shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMaxHeight={canUseTouchScreen()}
             headerGapStyles={isDraggingOver ? [canUseMultiFilesDragAndDrop ? styles.dropWrapper : styles.isDraggingOver] : []}
         >
             {({safeAreaPaddingBottomStyle}) => (
