@@ -35,15 +35,15 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    //
+    const {reportID, transactionID, splitTransactionID, backTo} = route.params;
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
     const {currentSearchHash} = useSearchContext();
 
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${route.params.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
@@ -114,13 +114,15 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                 currencySymbol,
                 onSplitExpenseAmountChange,
+                isTransactionLinked: splitTransactionID === item.transactionID,
+                keyForList: item?.transactionID,
             }),
         );
 
         const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
 
         return [newSections];
-    }, [transaction, draftTransaction, getTranslatedText, transactionDetails?.amount, currencySymbol, onSplitExpenseAmountChange]);
+    }, [transaction, draftTransaction, getTranslatedText, transactionDetails?.amount, currencySymbol, onSplitExpenseAmountChange, splitTransactionID]);
 
     const headerContent = useMemo(
         () => (
@@ -160,6 +162,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         );
     }, [onSaveSplitExpense, styles.mb2, styles.ph1, styles.w100, translate, errorMessage]);
 
+    const initiallyFocusedOptionKey = useMemo(() => sections.at(0)?.data.find((option) => option.transactionID === splitTransactionID)?.keyForList, [sections, splitTransactionID]);
+
     return (
         <ScreenWrapper
             testID={SplitExpensePage.displayName}
@@ -167,7 +171,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             keyboardAvoidingViewBehavior="height"
             shouldDismissKeyboardBeforeClose={false}
         >
-            <FullPageNotFoundView shouldShow={!route.params.reportID || isEmptyObject(draftTransaction)}>
+            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction)}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={translate('iou.split')}
@@ -175,12 +179,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             amount: convertToDisplayString(transactionDetails?.amount, transactionDetails?.currency),
                             merchant: draftTransaction?.merchant ?? '',
                         })}
-                        onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                        onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <SelectionList
                         onSelectRow={() => {}}
                         headerContent={headerContent}
                         sections={sections}
+                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         ListItem={SplitListItem}
                         containerStyle={[styles.flexBasisAuto]}
                         footerContent={footerContent}

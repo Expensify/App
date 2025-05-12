@@ -566,12 +566,12 @@ const ROUTES = {
         },
     },
     SPLIT_EXPENSE: {
-        route: 'r/:reportID/split-expense/:transactionID',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, backTo?: string) => {
-            if (!reportID || !transactionID) {
+        route: 'r/:reportID/split-expense/:transactionID/:splitTransactionID?',
+        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitTransactionID?: string, backTo?: string) => {
+            if (!reportID || !originalTransactionID) {
                 Log.warn('Invalid reportID or transactionID is used to build the SPLIT_EXPENSE route');
             }
-            return getUrlWithBackToParam(`r/${reportID}/split-expense/${transactionID}`, backTo);
+            return getUrlWithBackToParam(`r/${reportID}/split-expense/${originalTransactionID}${splitTransactionID ? `/${splitTransactionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_HOLD_REASON: {

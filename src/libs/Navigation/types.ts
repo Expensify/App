@@ -1974,6 +1974,7 @@ type SplitExpenseParamList = {
         reportID: string;
         transactionID: string;
         backTo?: Routes;
+        splitTransactionID?: string;
     };
 };
 

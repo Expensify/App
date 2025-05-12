@@ -67,7 +67,7 @@ import {
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
-import {cleanUpMoneyRequest, updateMoneyRequestBillable} from '@userActions/IOU';
+import {cleanUpMoneyRequest, initSplitExpense, updateMoneyRequestBillable} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
@@ -610,6 +610,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             if (!transaction?.transactionID || !report?.reportID) {
                                 return;
                             }
+
+                            // if (isSplitTransaction(transaction)) {
+                            //     initSplitExpense(transaction, report.reportID ?? String(CONST.DEFAULT_NUMBER_ID), true);
+                            //     return;
+                            // }
+
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, '', getReportRHPActiveRoute()),
                             );

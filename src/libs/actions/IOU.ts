@@ -10751,8 +10751,55 @@ function getSearchOnyxUpdate({participant, transaction}: GetSearchOnyxUpdatePara
 /**
  * Initialize split expense info
  */
-function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportID: string) {
+function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportID: string, isOpenCreatedSplit?: boolean) {
     if (!transaction) {
+        return;
+    }
+
+    if (isOpenCreatedSplit) {
+        const originalTransactionID = transaction.comment?.originalTransactionID;
+        const originalTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
+
+        const relatedTransactions = Object.values(allTransactions).filter((currentTransaction) => {
+            const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
+            return currentTransaction?.comment?.originalTransactionID === originalTransactionID && !!currentReport && currentReport?.stateNum !== CONST.REPORT.STATUS_NUM.CLOSED;
+        });
+
+        const transactionDetails = getTransactionDetails(originalTransaction);
+
+        const draftTransaction = buildOptimisticTransaction({
+            originalTransactionID,
+            transactionParams: {
+                splitExpenses: relatedTransactions.map((currentTransaction) => {
+                    const currentTransactionDetails = getTransactionDetails(currentTransaction);
+                    return {
+                        transactionID: currentTransaction?.transactionID,
+                        amount: currentTransactionDetails?.amount ?? 0,
+                        description: currentTransactionDetails?.comment,
+                        category: currentTransactionDetails?.category,
+                        tags: currentTransactionDetails?.tag ? [currentTransactionDetails?.tag] : [],
+                        created: currentTransaction?.created,
+                    };
+                }),
+                amount: Number(transactionDetails?.amount),
+                currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
+                merchant: transactionDetails?.merchant ?? '',
+                participants: transaction?.participants,
+                attendees: transactionDetails?.attendees as Attendee[],
+                reportID: originalTransaction?.reportID,
+            },
+        });
+
+        Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
+
+        Navigation.navigate(
+            ROUTES.SPLIT_EXPENSE.getRoute(
+                originalTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                originalTransactionID,
+                transaction.transactionID,
+                Navigation.getActiveRouteWithoutParams(),
+            ),
+        );
         return;
     }
 
@@ -10789,6 +10836,8 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
     });
 
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction?.transactionID}`, draftTransaction);
+
+    Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID ?? String(CONST.DEFAULT_NUMBER_ID), transaction.transactionID, undefined, Navigation.getActiveRouteWithoutParams()));
 }
 
 /**

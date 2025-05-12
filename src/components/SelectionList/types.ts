@@ -407,6 +407,9 @@ type SplitListItemType = ListItem &
 
         /** Function for updating amount */
         onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
+
+        /** Indicates whether a split was opened through this transaction */
+        isTransactionLinked: boolean;
     };
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
