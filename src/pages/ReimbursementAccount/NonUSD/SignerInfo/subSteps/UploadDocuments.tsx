@@ -126,9 +126,9 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
                     {(isDocumentNeededStatus.isAddressProofNeeded ||
-                        isDocumentNeededStatus.isProofOfDirecorsNeeded ||
+                        isDocumentNeededStatus.isProofOfDirectorsNeeded ||
                         isDocumentNeededStatus.isCodiceFiscaleNeeded ||
-                        isDocumentNeededStatus.isPRDandFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
+                        isDocumentNeededStatus.isPRDAndFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
                 </View>
             )}
             {isDocumentNeededStatus.isAddressProofNeeded && (
@@ -153,12 +153,12 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         fileLimit={1}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
-                    {(isDocumentNeededStatus.isProofOfDirecorsNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDandFSGNeeded) && (
+                    {(isDocumentNeededStatus.isProofOfDirectorsNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDAndFSGNeeded) && (
                         <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />
                     )}
                 </View>
             )}
-            {isDocumentNeededStatus.isProofOfDirecorsNeeded && (
+            {isDocumentNeededStatus.isProofOfDirectorsNeeded && (
                 <View>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.proofOfDirectors')}</Text>
                     <InputWrapper
@@ -180,7 +180,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         fileLimit={1}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.proofOfDirectorsDescription')}</Text>
-                    {(isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDandFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
+                    {(isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDAndFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
                 </View>
             )}
             {isDocumentNeededStatus.isCodiceFiscaleNeeded && (
@@ -205,7 +205,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         fileLimit={1}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.codiceFiscaleDescription')}</Text>
-                    {isDocumentNeededStatus.isPRDandFSGNeeded && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
+                    {isDocumentNeededStatus.isPRDAndFSGNeeded && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
                 </View>
             )}
             <WhyLink containerStyles={[styles.mt6]} />

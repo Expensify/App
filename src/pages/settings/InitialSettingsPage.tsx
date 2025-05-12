@@ -159,7 +159,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     );
 
     /**
-     * Retuns a list of menu items data for account section
+     * Return a list of menu items data for account section
      * @returns object with translationKey, style and items for the account section
      */
     const accountMenuItemsData: Menu = useMemo(() => {
@@ -206,7 +206,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [hideWorkspaceSettingsTooltip]);
 
     /**
-     * Retuns a list of menu items data for workspace section
+     * Return a list of menu items data for workspace section
      * @returns object with translationKey, style and items for the workspace section
      */
     const workspaceMenuItemsData: Menu = useMemo(() => {
@@ -264,7 +264,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     ]);
 
     /**
-     * Retuns a list of menu items data for general section
+     * Return a list of menu items data for general section
      * @returns object with translationKey, style and items for the general section
      */
     const generalMenuItemsData: Menu = useMemo(() => {
@@ -337,7 +337,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [styles.pt4, setRootStatusBarEnabled, shouldOpenSurveyReasonPage, signOut]);
 
     /**
-     * Retuns JSX.Element with menu items
+     * Return JSX.Element with menu items
      * @param menuItemsData list with menu items data
      * @returns the menu items for passed data
      */
@@ -482,7 +482,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
         (e) => {
-            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
+            // If the layout measurement is 0, it means the flash list is not displayed but the onScroll may be triggered with offset value 0.
             // We should ignore this case.
             if (e.nativeEvent.layoutMeasurement.height === 0) {
                 return;

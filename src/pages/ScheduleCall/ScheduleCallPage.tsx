@@ -157,7 +157,7 @@ function ScheduleCallPage() {
                                     value={scheduleCallDraft?.date}
                                     minDate={minDate}
                                     maxDate={maxDate}
-                                    selectedableDates={Object.keys(timeSlotDateMap)}
+                                    selectableDates={Object.keys(timeSlotDateMap)}
                                     DayComponent={AvailableBookingDay}
                                     onSelected={loadTimeSlotsAndSaveDate}
                                 />

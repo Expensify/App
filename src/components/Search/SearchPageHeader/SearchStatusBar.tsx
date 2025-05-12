@@ -270,7 +270,7 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
         ? queryJSON.status.includes(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING)
         : queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.OUTSANDING_FILTER,
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.OUTSTANDING_FILTER,
         isScreenFocused && !isOutstandingStatusActive && queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE,
     );
     // Controls the visibility of the educational tooltip based on user scrolling.

@@ -68,7 +68,7 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** ID of the policy */
     policyID?: string;
 
-    /** is policy defualt */
+    /** Is default policy */
     isDefault?: boolean;
 
     /** Whether the bill is loading */

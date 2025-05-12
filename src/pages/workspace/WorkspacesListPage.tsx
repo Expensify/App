@@ -402,7 +402,7 @@ function WorkspacesListPage() {
 
     const navigateToWorkspace = useCallback(
         (policyID: string) => {
-            // On the wide layout, we always want to open the Profile page when opening workpsace settings from the list
+            // On the wide layout, we always want to open the Profile page when opening workspace settings from the list
             if (shouldUseNarrowLayout) {
                 Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
                 return;

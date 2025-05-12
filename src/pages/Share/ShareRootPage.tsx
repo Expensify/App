@@ -39,7 +39,7 @@ function ShareRootPage() {
     const {translate} = useLocalize();
     const [isFileScannable, setIsFileScannable] = useState(false);
     const receiptFileFormats = Object.values(CONST.RECEIPT_ALLOWED_FILE_TYPES) as string[];
-    const shareFileMimetypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];
+    const shareFileMimeTypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
@@ -57,7 +57,7 @@ function ShareRootPage() {
             if (errorTitle) {
                 return;
             }
-            if (!tempFile?.mimeType || !shareFileMimetypes.includes(tempFile?.mimeType)) {
+            if (!tempFile?.mimeType || !shareFileMimeTypes.includes(tempFile?.mimeType)) {
                 setErrorTitle(translate('attachmentPicker.wrongFileType'));
                 setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
                 return;
@@ -100,7 +100,7 @@ function ShareRootPage() {
                 addTempShareFile(tempFile);
             }
         });
-    }, [receiptFileFormats, shareFileMimetypes, translate, errorTitle]);
+    }, [receiptFileFormats, shareFileMimeTypes, translate, errorTitle]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
