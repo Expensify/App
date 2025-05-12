@@ -410,7 +410,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
         });
 
         // Add closed actions to all chat reports linked to this policy
-        // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
+        // Announce & admin chats have FAKE owners, but expense chats w/ users do have owners.
         let emailClosingReport: string = CONST.POLICY.OWNER_EMAIL_FAKE;
         if (!!ownerAccountID && ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
             emailClosingReport = allPersonalDetails?.[ownerAccountID]?.login ?? '';
@@ -2513,7 +2513,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
 
     const employeeEmail = allPersonalDetails?.[employeeAccountID]?.login ?? '';
 
-    // Create the workspace chat for the employee whose IOU is being paid
+    // Create the expense chat for the employee whose IOU is being paid
     const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: employeeAccountID}, true);
     const newWorkspace = {
         id: policyID,
@@ -2735,7 +2735,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     ];
 
     // Compose the memberData object which is used to add the employee to the workspace and
-    // optimistically create the workspace chat for them.
+    // optimistically create the expense chat for them.
     const memberData = {
         accountID: Number(employeeAccountID),
         email: employeeEmail,
@@ -2750,7 +2750,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     // - report type
     // - change the sign of the report total
     // - update its policyID and policyName
-    // - update the chatReportID to point to the new workspace chat
+    // - update the chatReportID to point to the new expense chat
     const expenseReport = {
         ...iouReport,
         chatReportID: memberData.workspaceChatReportID,
@@ -2797,7 +2797,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         value: transactionFailureData,
     });
 
-    // We need to move the report preview action from the DM to the workspace chat.
+    // We need to move the report preview action from the DM to the expense chat.
     const parentReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`];
     const parentReportActionID = iouReport.parentReportActionID;
     const reportPreview = iouReport?.parentReportID && parentReportActionID ? parentReport?.[parentReportActionID] : undefined;
@@ -2832,7 +2832,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     });
 
     if (reportPreview?.reportActionID) {
-        // Update the created timestamp of the report preview action to be after the workspace chat created timestamp.
+        // Update the created timestamp of the report preview action to be after the expense chat created timestamp.
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,

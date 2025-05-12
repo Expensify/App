@@ -2236,7 +2236,7 @@ function updateReportName(reportID: string, value: string, previousValue: string
                     reportName: null,
                 },
                 errorFields: {
-                    reportName: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericUpdateReporNameEditFailureMessage'),
+                    reportName: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericUpdateReportNameEditFailureMessage'),
                 },
             },
         },
@@ -4520,7 +4520,7 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${reportID}`,
             value: null,
         },
     ];
@@ -4528,7 +4528,7 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${reportID}`,
             value: 'error',
         },
     ];
@@ -4596,7 +4596,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
     // - report type
     // - change the sign of the report total
     // - update its policyID and policyName
-    // - update the chatReportID to point to the workspace chat if the policy has policy expense chat enabled
+    // - update the chatReportID to point to the expense chat if the policy has policy expense chat enabled
     const expenseReport = {
         ...iouReport,
         chatReportID: policy.isPolicyExpenseChatEnabled ? expenseChatReportId : undefined,
@@ -4644,7 +4644,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
         value: transactionFailureData,
     });
 
-    // We need to move the report preview action from the DM to the workspace chat.
+    // We need to move the report preview action from the DM to the expense chat.
     const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`];
     const parentReportActionID = iouReport.parentReportActionID;
     const reportPreview = iouReport?.parentReportID && parentReportActionID ? parentReportActions?.[parentReportActionID] : undefined;
@@ -4662,7 +4662,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string) {
             value: {[reportPreview.reportActionID]: reportPreview},
         });
 
-        // Add the reportPreview action to workspace chat
+        // Add the reportPreview action to expense chat
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
@@ -4757,7 +4757,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    // Optimistically add the submitter to the workspace and create a workspace chat for them
+    // Optimistically add the submitter to the workspace and create a expense chat for them
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {
         [submitterEmail]: submitterAccountID,
@@ -4831,7 +4831,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
     // - report type
     // - change the sign of the report total
     // - update its policyID and policyName
-    // - update the chatReportID to point to the workspace chat if the policy has policy expense chat enabled
+    // - update the chatReportID to point to the expense chat if the policy has policy expense chat enabled
     const expenseReport = {
         ...iouReport,
         chatReportID: optimisticPolicyExpenseChatReportID,
@@ -4879,7 +4879,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
         value: transactionFailureData,
     });
 
-    // We need to move the report preview action from the DM to the workspace chat.
+    // We need to move the report preview action from the DM to the expense chat.
     const oldChatReportID = iouReport.chatReportID;
     const reportPreviewActionID = iouReport.parentReportActionID;
     const reportPreview = !!oldChatReportID && !!reportPreviewActionID ? allReportActions?.[oldChatReportID]?.[reportPreviewActionID] : undefined;
@@ -4896,7 +4896,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
             value: {[reportPreview.reportActionID]: reportPreview},
         });
 
-        // Add the reportPreview action to workspace chat
+        // Add the reportPreview action to expense chat
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticPolicyExpenseChatReportID}`,
@@ -5034,7 +5034,7 @@ function updatePolicyIdForReportAndThreads(
 }
 
 /**
- * Changes the policy of a report and all its child reports, and moves the report to the new policy's workspace chat.
+ * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
  */
 function changeReportPolicy(reportID: string, policyID: string) {
     if (!reportID || !policyID) {
@@ -5057,7 +5057,7 @@ function changeReportPolicy(reportID: string, policyID: string) {
     // Recursively update the policyID of the report and all its child reports
     updatePolicyIdForReportAndThreads(reportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
-    // 2. If the old workspace had a workspace chat, mark the report preview action as deleted
+    // 2. If the old workspace had a expense chat, mark the report preview action as deleted
     if (reportToMove?.parentReportID && reportToMove?.parentReportActionID) {
         const workspaceChatReportID = reportToMove.parentReportID;
         const reportPreviewActionID = reportToMove.parentReportActionID;
@@ -5096,7 +5096,7 @@ function changeReportPolicy(reportID: string, policyID: string) {
             value: {[reportPreviewActionID]: oldReportPreviewAction},
         });
 
-        // Update the workspace chat report
+        // Update the expense chat report
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`];
         const lastMessageText = getLastVisibleMessage(workspaceChatReportID, {[reportPreviewActionID]: updatedReportPreviewAction as ReportAction})?.lastMessageText;
         const lastVisibleActionCreated = getReportLastMessage(workspaceChatReportID, {[reportPreviewActionID]: updatedReportPreviewAction as ReportAction})?.lastVisibleActionCreated;
@@ -5145,7 +5145,7 @@ function changeReportPolicy(reportID: string, policyID: string) {
         });
 
         // Set the new report preview action as a parent of the moved report,
-        // and set the parentReportID on the moved report as the workspace chat reportID
+        // and set the parentReportID on the moved report as the expense chat reportID
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
