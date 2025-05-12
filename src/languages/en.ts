@@ -2217,7 +2217,8 @@ const translations = {
         clearAfter: 'Clear after',
         whenClearStatus: 'When should we clear your status?',
         vacationDelegate: 'Vacation delegate',
-        setVacationDelegate: `Set a vacation delegate to approve reports on your behalf while you're out of office.`
+        setVacationDelegate: `Set a vacation delegate to approve reports on your behalf while you're out of office.`,
+        vacationDelegateError: 'There was an error updating your vacation delegate.',
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Step ${step}`;

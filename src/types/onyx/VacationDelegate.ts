@@ -1,10 +1,15 @@
+import type * as OnyxCommon from './OnyxCommon';
+
 /** Information about vacation delegate */
-type VacationDelegate = {
+type VacationDelegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Email of the user that set the vacation delegate */
-    creator: string;
+    creator?: string;
 
     /** Email of the vacation delegate */
-    delegate: string;
-};
+    delegate?: string;
+
+    /** Error message */
+    errors?: OnyxCommon.Errors;
+}>;
 
 export default VacationDelegate;
