@@ -39,7 +39,7 @@ import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
-import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
+import {shouldStartLocationPermissionFlow, navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -56,7 +56,6 @@ import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableRe
 import variables from '@styles/variables';
 import {
     getMoneyRequestParticipantsFromReport,
-    navigateToParticipantPage,
     replaceReceipt,
     requestMoney,
     setMoneyRequestParticipants,

@@ -8,6 +8,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZoneUI';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
@@ -39,7 +40,6 @@ import {
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import {resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
-import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -48,7 +48,7 @@ import {generateReportID} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
-import {navigateToParticipantPage, setMoneyRequestReceipt, startMoneyRequest} from '@userActions/IOU';
+import {setMoneyRequestReceipt, startMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,6 +82,7 @@ function SearchPage({route}: SearchPageProps) {
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
+    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const {q, name} = route.params;
 
@@ -391,7 +392,7 @@ function SearchPage({route}: SearchPageProps) {
                 // With the image size > 24MB, we use manipulateAsync to resize the image.
                 // It takes a long time so we should display a loading indicator while the resize image progresses.
                 if (Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                    // setIsLoadingReceipt(true);
+                    setIsLoadingReceipt(true);
                 }
                 resizeImageIfNeeded(file).then((resizedFile) => {
                     // setIsLoadingReceipt(false);
@@ -541,6 +542,7 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
                             offlineIndicatorStyle={styles.mtAuto}
                         >
+                            {isLoadingReceipt && <FullScreenLoadingIndicator />}
                             <DragAndDropProvider isDisabled={queryJSON.type !== CONST.REPORT.TYPE.EXPENSE}>
                                 <SearchPageHeader
                                     queryJSON={queryJSON}

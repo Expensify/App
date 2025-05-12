@@ -37,7 +37,7 @@ import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
-import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
+import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -53,7 +53,6 @@ import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableRe
 import variables from '@styles/variables';
 import {
     getMoneyRequestParticipantsFromReport,
-    navigateToParticipantPage,
     replaceReceipt,
     requestMoney,
     setMoneyRequestParticipants,
@@ -320,7 +319,17 @@ function IOURequestStepScan({
                 if (!managerMcTestParticipant.reportID && report?.reportID) {
                     reportIDParam = generateReportID();
                 }
-                setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, reportID: reportIDParam, selected: true}], true).then(() => {
+                setMoneyRequestParticipants(
+                    transactionID,
+                    [
+                        {
+                            ...managerMcTestParticipant,
+                            reportID: reportIDParam,
+                            selected: true,
+                        },
+                    ],
+                    true,
+                ).then(() => {
                     navigateToConfirmationPage(true, reportIDParam);
                 });
                 return;
