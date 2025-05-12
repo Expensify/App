@@ -94,6 +94,7 @@ function IOURequestStepConfirmation({
         const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
+    const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions]);
     // We will use setCurrentTransactionID later to switch between transactions
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentTransactionID, setCurrentTransactionID] = useState<string>(initialTransactionID);
@@ -166,7 +167,7 @@ function IOURequestStepConfirmation({
         };
     }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
 
-    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFiles.length && !isTestTransaction;
+    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && !isTestTransaction;
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
 
@@ -227,10 +228,10 @@ function IOURequestStepConfirmation({
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
-        transactions.forEach((item) => {
-            setMoneyRequestBillable(item.transactionID, defaultBillable);
+        transactionIDs.forEach((transactionID) => {
+            setMoneyRequestBillable(transactionID, defaultBillable);
         });
-    }, [transactions, defaultBillable]);
+    }, [transactionIDs, defaultBillable]);
 
     useEffect(() => {
         // Exit early if the transaction is still loading
