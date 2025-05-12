@@ -124,4 +124,57 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
             expect(lastSplitAfterPopToSidebar?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
         });
     });
+
+    describe('After navigating to workspace tab from chat through link', () => {
+        it('Should replace the route with LHN', () => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 2,
+                                    routes: [
+                                        {
+                                            name: SCREENS.HOME,
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '1'},
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '2'},
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            const lastSplitBeforeNavigate = navigationRef.current?.getRootState().routes.at(-1);
+            expect(lastSplitBeforeNavigate?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+
+            act(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('1'));
+            });
+
+            const lastSplitAfterNavigate = navigationRef.current?.getRootState().routes.at(-1);
+            expect(lastSplitAfterNavigate?.name).toBe(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+            expect(lastSplitAfterNavigate?.state?.index).toBe(0);
+            expect(lastSplitAfterNavigate?.state?.routes.at(0)?.name).toBe(SCREENS.WORKSPACE.CATEGORIES);
+
+            act(() => {
+                Navigation.popToSidebar();
+            });
+
+            const lastSplitAfterPopToSidebar = navigationRef.current?.getRootState().routes.at(-1);
+            expect(lastSplitAfterPopToSidebar?.state?.index).toBe(0);
+            expect(lastSplitAfterPopToSidebar?.state?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.INITIAL);
+        });
+    });
 });
