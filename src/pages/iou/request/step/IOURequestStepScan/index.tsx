@@ -1,6 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import {heicTo, isHeic} from 'heic-to';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -35,7 +34,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
-import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
+import {base64ToFile, convertHeicImage, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
@@ -533,7 +532,7 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
+    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean, conversionAttempted = false) => {
         validateReceipt(originalFile, setUploadReceiptError).then((isFileValid) => {
             if (!isFileValid) {
                 return;
@@ -542,6 +541,22 @@ function IOURequestStepScan({
             // If we have a pdf file and if it is not validated then set the pdf file for validation and return
             if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
                 setPdfFile(originalFile);
+                return;
+            }
+
+            // Check if the file is HEIC/HEIF and needs conversion (only if not already attempted)
+            if (
+                !conversionAttempted &&
+                originalFile?.type?.startsWith('image') &&
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                (originalFile.name?.toLowerCase().endsWith('.heic') || originalFile.name?.toLowerCase().endsWith('.heif'))
+            ) {
+                convertHeicImage(originalFile, {
+                    onStart: () => setIsLoadingReceipt(true),
+                    onSuccess: (convertedFile) => setReceiptAndNavigate(convertedFile, isPdfValidated, false),
+                    onError: (_, nonConvertedFile) => setReceiptAndNavigate(nonConvertedFile, isPdfValidated, true),
+                    onFinish: () => setIsLoadingReceipt(false),
+                });
                 return;
             }
 
@@ -577,54 +592,6 @@ function IOURequestStepScan({
                 navigateToConfirmationStep(file, source, false);
             });
         });
-    };
-
-    /**
-     * Converts HEIC images to JPEG format before sending to setReceiptAndNavigate
-     */
-    const convertReceipt = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        if (originalFile?.type?.startsWith('image')) {
-            if (!originalFile.uri) {
-                console.error('File URI is undefined');
-                return;
-            }
-
-            fetch(originalFile.uri)
-                .then((response) => response.blob())
-                .then((blob) => {
-                    const fileFromBlob = new File([blob], originalFile.name ?? 'temp-file', {
-                        type: blob.type,
-                    });
-
-                    return isHeic(fileFromBlob).then((isHEIC) => {
-                        if (isHEIC) {
-                            setIsLoadingReceipt(true);
-                            return heicTo({
-                                blob,
-                                type: 'image/jpeg',
-                            })
-                                .then((convertedBlob) => {
-                                    const fileName = originalFile.name ? originalFile.name.replace(/\.heic$/i, '.jpg') : 'converted-image.jpg';
-                                    const jpegFile = new File([convertedBlob], fileName, {type: 'image/jpeg'});
-                                    setReceiptAndNavigate(jpegFile, isPdfValidated);
-                                })
-                                .catch((err) => {
-                                    console.error('Error converting HEIC to JPEG:', err);
-                                })
-                                .finally(() => {
-                                    setIsLoadingReceipt(false);
-                                });
-                        }
-                        setReceiptAndNavigate(originalFile, isPdfValidated);
-                        return null;
-                    });
-                })
-                .catch((err) => {
-                    console.error('Error processing the file:', err);
-                });
-        } else {
-            setReceiptAndNavigate(originalFile, isPdfValidated);
-        }
     };
 
     /**
@@ -844,10 +811,7 @@ function IOURequestStepScan({
                             role={CONST.ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: (data) => {
-                                        const file = data.at(0) ?? {};
-                                        convertReceipt(file);
-                                    },
+                                    onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
                                 });
                             }}
                         >
@@ -924,10 +888,7 @@ function IOURequestStepScan({
                         style={[styles.p9]}
                         onPress={() => {
                             openPicker({
-                                onPicked: (data) => {
-                                    const file = data.at(0) ?? {};
-                                    convertReceipt(file);
-                                },
+                                onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
                             });
                         }}
                     />
@@ -982,7 +943,7 @@ function IOURequestStepScan({
                                 const file = e?.dataTransfer?.files[0];
                                 if (file) {
                                     file.uri = URL.createObjectURL(file);
-                                    convertReceipt(file);
+                                    setReceiptAndNavigate(file);
                                 }
                             }}
                             receiptImageTopPosition={receiptImageTopPosition}

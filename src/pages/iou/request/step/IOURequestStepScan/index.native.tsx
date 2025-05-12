@@ -1,6 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/core';
 import {Str} from 'expensify-common';
-import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, Image, InteractionManager, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -33,7 +32,7 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import {convertHeicImage, readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
@@ -561,100 +560,59 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = useCallback(
-        (originalFile: FileObject, isPdfValidated?: boolean) => {
-            if (!validateReceipt(originalFile)) {
-                return;
-            }
+    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean, conversionAttempted = false) => {
+        if (!validateReceipt(originalFile)) {
+            return;
+        }
 
-            // If we have a pdf file and if it is not validated then set the pdf file for validation and return
-            if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
-                setPdfFile(originalFile);
-                return;
-            }
+        // If we have a pdf file and if it is not validated then set the pdf file for validation and return
+        if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
+            setPdfFile(originalFile);
+            return;
+        }
 
-            resizeImageIfNeeded(originalFile).then((file) => {
-                // Store the receipt on the transaction object in Onyx
-                // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
-                // So, let us also save the file type in receipt for later use during blob fetch
-                setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
-
-                if (isEditing) {
-                    updateScanAndNavigate(file, file?.uri ?? '');
-                    return;
-                }
-                if (shouldSkipConfirmation) {
-                    setFileResize(file);
-                    setFileSource(file?.uri ?? '');
-                    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
-
-                    if (gpsRequired) {
-                        const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
-                        if (beginLocationPermissionFlow) {
-                            setStartLocationPermissionFlow(true);
-                            return;
-                        }
-                    }
-                }
-                navigateToConfirmationStep(file, file?.uri ?? '', false);
+        // Check if the file is HEIC/HEIF and needs conversion (only if not already attempted)
+        if (
+            !conversionAttempted &&
+            originalFile?.type?.startsWith('image') &&
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            (originalFile.name?.toLowerCase().endsWith('.heic') || originalFile.name?.toLowerCase().endsWith('.heif'))
+        ) {
+            convertHeicImage(originalFile, {
+                onStart: () => setIsLoaderVisible(true),
+                onSuccess: (convertedFile) => setReceiptAndNavigate(convertedFile, isPdfValidated, false),
+                onError: (_, nonConvertedFile) => setReceiptAndNavigate(nonConvertedFile, isPdfValidated, true),
+                onFinish: () => setIsLoaderVisible(false),
             });
-        },
-        [transactionID, isEditing, shouldSkipConfirmation, transaction?.amount, iouType, updateScanAndNavigate, navigateToConfirmationStep, validateReceipt],
-    );
+            return;
+        }
 
-    /**
-     * Converts HEIC images to JPEG format before sending to setReceiptAndNavigate
-     */
-    const convertReceipt = useCallback(
-        (originalFile: FileObject, isPdfValidated?: boolean): void => {
-            if (!originalFile?.type?.startsWith('image')) {
-                setReceiptAndNavigate(originalFile, isPdfValidated);
+        resizeImageIfNeeded(originalFile).then((file) => {
+            // Store the receipt on the transaction object in Onyx
+            // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
+            // So, let us also save the file type in receipt for later use during blob fetch
+            setMoneyRequestReceipt(transactionID, file?.uri ?? '', file.name ?? '', !isEditing, file.type);
+
+            if (isEditing) {
+                updateScanAndNavigate(file, file?.uri ?? '');
                 return;
             }
+            if (shouldSkipConfirmation) {
+                setFileResize(file);
+                setFileSource(file?.uri ?? '');
+                const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
 
-            const fileUri = originalFile.uri;
-            if (!fileUri) {
-                Log.warn('File URI is undefined');
-                return;
-            }
-
-            setIsLoaderVisible(true);
-
-            verifyFileFormat({fileUri, formatSignatures: CONST.HEIC_SIGNATURES})
-                .then((isHEIC) => {
-                    if (isHEIC) {
-                        return ImageManipulator.manipulate(fileUri)
-                            .renderAsync()
-                            .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-                            .then((manipulationResult) => {
-                                const convertedFile = {
-                                    uri: manipulationResult.uri,
-                                    name: originalFile.name?.replace(/\.heic$/i, '.jpg'),
-                                    type: 'image/jpeg',
-                                    size: originalFile.size,
-                                    width: manipulationResult.width,
-                                    height: manipulationResult.height,
-                                };
-                                setReceiptAndNavigate(convertedFile, isPdfValidated);
-                            })
-                            .catch((err) => {
-                                Log.warn('Error converting HEIC to JPEG:', err instanceof Error ? {message: err.message} : {err});
-                                setReceiptAndNavigate(originalFile, isPdfValidated);
-                            });
+                if (gpsRequired) {
+                    const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
+                    if (beginLocationPermissionFlow) {
+                        setStartLocationPermissionFlow(true);
+                        return;
                     }
-                    setReceiptAndNavigate(originalFile, isPdfValidated);
-                    return null;
-                })
-                .catch((err) => {
-                    Log.warn('Error processing the file:', err instanceof Error ? {message: err.message} : {err});
-                    setReceiptAndNavigate(originalFile, isPdfValidated);
-                })
-                .finally(() => {
-                    setIsLoaderVisible(false);
-                });
-        },
-        [setReceiptAndNavigate, setIsLoaderVisible],
-    );
+                }
+            }
+            navigateToConfirmationStep(file, file?.uri ?? '', false);
+        });
+    };
 
     const capturePhoto = useCallback(() => {
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
@@ -781,7 +739,7 @@ function IOURequestStepScan({
                         onLoadSuccess={() => {
                             setPdfFile(null);
                             if (pdfFile) {
-                                convertReceipt(pdfFile, true);
+                                setReceiptAndNavigate(pdfFile, true);
                             }
                         }}
                         onPassword={() => {
@@ -865,10 +823,7 @@ function IOURequestStepScan({
                                 style={[styles.alignItemsStart]}
                                 onPress={() => {
                                     openPicker({
-                                        onPicked: (data) => {
-                                            const file = data.at(0) ?? {};
-                                            convertReceipt(file);
-                                        },
+                                        onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
                                         onCanceled: () => setIsLoaderVisible(false),
                                         // makes sure the loader is not visible anymore e.g. when there is an error while uploading a file
                                         onClosed: () => {
