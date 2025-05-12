@@ -5868,6 +5868,7 @@ describe('actions/IOU', () => {
                 },
             };
 
+            // Given a transaction with a receipt
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
             const searchQueryJSON = {
@@ -5875,6 +5876,7 @@ describe('actions/IOU', () => {
                 query: 'test',
             };
 
+            // Given a snapshot of the transaction
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {
                 // @ts-expect-error: Allow partial record in snapshot update
                 data: {
@@ -5883,9 +5885,11 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
+            // When the receipt is replaced
             replaceReceipt({transactionID, file, source});
             await waitForBatchedUpdates();
 
+            // Then the transaction should have the new receipt source
             const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -5898,6 +5902,7 @@ describe('actions/IOU', () => {
                 });
             });
 
+            // Then the snapshot should have the new receipt source
             const updatedSearch = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.SNAPSHOT,
@@ -5924,6 +5929,7 @@ describe('actions/IOU', () => {
                 transactionID,
             };
 
+            // Given a transaction without a receipt
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
 
@@ -5932,6 +5938,7 @@ describe('actions/IOU', () => {
                 query: 'test',
             };
 
+            // Given a snapshot of the transaction
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {
                 // @ts-expect-error: Allow partial record in snapshot update
                 data: {
@@ -5940,9 +5947,11 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
+            // When the receipt is replaced
             replaceReceipt({transactionID, file, source});
             await waitForBatchedUpdates();
 
+            // Then the transaction should have the new receipt source
             const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -5955,6 +5964,7 @@ describe('actions/IOU', () => {
                 });
             });
 
+            // Then the snapshot should have the new receipt source
             const updatedSearch = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.SNAPSHOT,
