@@ -692,7 +692,7 @@ const ROUTES = {
             if (!reportID) {
                 Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
             }
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit`, backTo);
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit`, backTo);
         },
     },
     SETTINGS_TAGS_ROOT: {
