@@ -1,7 +1,6 @@
 import * as Repack from '@callstack/repack';
 import {ExpoModulesPlugin} from '@callstack/repack-plugin-expo-modules';
 import {ReanimatedPlugin} from '@callstack/repack-plugin-reanimated';
-import rspack from '@rspack/core';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
