@@ -349,7 +349,7 @@ function FeatureTrainingModal({
             onClose={closeModal}
             innerContainerStyle={{
                 boxShadow: 'none',
-                paddingBottom: 20,
+                ...(shouldUseScrollView ? styles.pb0 : styles.pb5),
                 paddingTop: onboardingIsMediumOrLargerScreenWidth ? undefined : MODAL_PADDING,
                 ...(onboardingIsMediumOrLargerScreenWidth
                     ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
@@ -365,6 +365,7 @@ function FeatureTrainingModal({
         >
             <Wrapper
                 style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
+                contentContainerStyle={shouldUseScrollView ? styles.pb5 : undefined}
                 fsClass={CONST.FULL_STORY.UNMASK}
                 testID={CONST.FULL_STORY.UNMASK}
             >
