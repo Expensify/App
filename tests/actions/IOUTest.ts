@@ -94,6 +94,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     removeScreenByKey: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getReportRouteByID: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(),
 }));
 
 jest.mock('@src/libs/Navigation/navigationRef', () => ({
