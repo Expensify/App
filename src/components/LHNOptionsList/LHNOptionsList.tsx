@@ -23,7 +23,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport, hasReportErrors} from '@libs/OptionsListUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, getReportAttributes} from '@libs/ReportUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -77,7 +77,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             if (hasReportErrors(itemFullReport, itemReportActions)) {
                 return true;
             }
-            const hasGBR = reportAttributes?.[reportID]?.requiresAttention;
+            const hasGBR = getReportAttributes(reportID, reportAttributes).requiresAttention;
             return hasGBR;
         });
     }, [isGBRorRBRTooltipDismissed, data, reports, reportActions, reportAttributes]);

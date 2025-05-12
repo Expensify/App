@@ -75,6 +75,7 @@ import {
     getIcons,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
+    getReportAttributes,
     getReportDescription,
     getReportName,
     getReportNameValuePairs,
@@ -243,7 +244,7 @@ function getOrderedReportIDs(
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
             (!isInFocusMode && isArchivedReport(reportNameValuePairs)) ||
-            reportAttributes?.[report.reportID]?.requiresAttention;
+            getReportAttributes(report.reportID, reportAttributes)?.requiresAttention;
         if (isHidden && !shouldOverrideHidden) {
             return;
         }
@@ -292,7 +293,7 @@ function getOrderedReportIDs(
 
         const isPinned = report?.isPinned ?? false;
         const rNVPs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        if (isPinned || reportAttributes?.[report?.reportID]?.requiresAttention) {
+        if (isPinned || getReportAttributes(report?.reportID, reportAttributes)?.requiresAttention) {
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
             errorReports.push(miniReport);
