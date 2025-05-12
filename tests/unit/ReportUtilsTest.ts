@@ -28,6 +28,7 @@ import {
     getIconsForParticipants,
     getInvoiceChatByParticipants,
     getMostRecentlyVisitedReport,
+    getParticipantsList,
     getPolicyExpenseChat,
     getQuickActionDetails,
     getReportIDFromLink,
@@ -58,6 +59,7 @@ import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/r
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
+import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -2546,6 +2548,114 @@ describe('ReportUtils', () => {
             const expectedNames = [secondUser?.firstName, fourthUser?.firstName].sort();
             const resultNames = result.split(', ').sort();
             expect(resultNames).toEqual(expect.arrayContaining(expectedNames));
+        });
+    });
+
+    describe('getParticipantsList', () => {
+        it('should exclude hidden participants', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                participants: {
+                    1: {notificationPreference: 'hidden'},
+                    2: {notificationPreference: 'always'},
+                },
+            };
+            const participants = getParticipantsList(report, participantsPersonalDetails);
+            expect(participants.length).toBe(1);
+        });
+
+        it('should include hidden participants for IOU report', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.IOU,
+                participants: {
+                    1: {notificationPreference: 'hidden'},
+                    2: {notificationPreference: 'always'},
+                },
+            };
+            const participants = getParticipantsList(report, participantsPersonalDetails);
+            expect(participants.length).toBe(2);
+        });
+
+        it('should include hidden participants for expense report', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                participants: {
+                    1: {notificationPreference: 'hidden'},
+                    2: {notificationPreference: 'always'},
+                },
+            };
+            const participants = getParticipantsList(report, participantsPersonalDetails);
+            expect(participants.length).toBe(2);
+        });
+
+        it('should include hidden participants for IOU transaction report', async () => {
+            const parentReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+            };
+            const parentReportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    amount: 1,
+                    currency: 'USD',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {
+                [parentReportAction.reportActionID]: parentReportAction,
+            });
+
+            const report: Report = {
+                ...createRandomReport(1),
+                parentReportID: parentReport.reportID,
+                parentReportActionID: parentReportAction.reportActionID,
+                participants: {
+                    1: {notificationPreference: 'hidden'},
+                    2: {notificationPreference: 'always'},
+                },
+            };
+            const participants = getParticipantsList(report, participantsPersonalDetails);
+            expect(participants.length).toBe(2);
+        });
+
+        it('should include hidden participants for expense transaction report', async () => {
+            const parentReport: Report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const parentReportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    amount: 1,
+                    currency: 'USD',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {
+                [parentReportAction.reportActionID]: parentReportAction,
+            });
+
+            const report: Report = {
+                ...createRandomReport(1),
+                parentReportID: parentReport.reportID,
+                parentReportActionID: parentReportAction.reportActionID,
+                participants: {
+                    1: {notificationPreference: 'hidden'},
+                    2: {notificationPreference: 'always'},
+                },
+            };
+            const participants = getParticipantsList(report, participantsPersonalDetails);
+            expect(participants.length).toBe(2);
         });
     });
 });
