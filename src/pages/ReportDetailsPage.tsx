@@ -439,7 +439,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 (!isUserCreatedPolicyRoom && participants.length) ||
                 (isUserCreatedPolicyRoom && (isPolicyEmployee || (isChatThread && !isPublicRoomUtil(report))))) &&
             !isConciergeChatReport(report) &&
-            !isSystemChat
+            !isSystemChat &&
+            activeChatMembers.length > 0
         ) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
@@ -1174,6 +1175,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     isVisible={isPDFModalVisible}
                     type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
                     innerContainerStyle={styles.pv0}
+                    shouldUseNewModal
                 >
                     <View style={[styles.m5]}>
                         <View>
