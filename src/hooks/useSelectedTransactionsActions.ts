@@ -159,7 +159,7 @@ function useSelectedTransactionsActions({
             icon: Expensicons.DocumentMerge,
             value: 'MOVE',
             onSelected: () => {
-                const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID ?? '-1');
+                const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID);
                 Navigation.navigate(route);
             },
         });
