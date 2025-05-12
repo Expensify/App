@@ -19,7 +19,6 @@ import type {
     EnablePolicyAutoReimbursementLimitParams,
     EnablePolicyCompanyCardsParams,
     EnablePolicyConnectionsParams,
-    EnablePolicyDefaultReportTitleParams,
     EnablePolicyExpensifyCardsParams,
     EnablePolicyInvoicingParams,
     EnablePolicyReportFieldsParams,
@@ -61,6 +60,7 @@ import type {
     UpdateWorkspaceGeneralSettingsParams,
     UpgradeToCorporateParams,
 } from '@libs/API/parameters';
+import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -101,6 +101,7 @@ import type {
 } from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate} from '@src/types/onyx/Policy';
+import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
@@ -2406,6 +2407,48 @@ function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number) {
     API.write(WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE, params);
 }
 
+function updateMemberCustomField(policyID: string, login: string, customFieldType: CustomFieldType, value: string) {
+    const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
+    const policy = getPolicy(policyID);
+    const previousValue = policy?.employeeList?.[login]?.[customFieldKey];
+
+    if (value === (previousValue ?? '')) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                employeeList: {[login]: {[customFieldKey]: value, pendingFields: {[customFieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                employeeList: {[login]: {pendingFields: {[customFieldKey]: null}}},
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                employeeList: {[login]: {[customFieldKey]: previousValue, pendingFields: {[customFieldKey]: null}}},
+            },
+        },
+    ];
+
+    const params: UpdatePolicyMembersCustomFieldsParams = {policyID, employees: JSON.stringify([{email: login, [customFieldType]: value}])};
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS, params, {optimisticData, successData, failureData});
+}
+
 function setWorkspaceInviteMessageDraft(policyID: string, message: string | null) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`, message);
 }
@@ -3044,7 +3087,7 @@ function enableCompanyCards(policyID: string, enabled: boolean, shouldGoBack = t
     }
 }
 
-function enablePolicyReportFields(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyReportFields(policyID: string, enabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3088,10 +3131,6 @@ function enablePolicyReportFields(policyID: string, enabled: boolean, shouldGoBa
     API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData, {
         checkAndFixConflictingRequest: (persistedRequests) => resolveEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, persistedRequests, parameters),
     });
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature(policyID);
-    }
 }
 
 function enablePolicyTaxes(policyID: string, enabled: boolean) {
@@ -4274,79 +4313,6 @@ function getAdminPoliciesConnectedToNetSuite(): Policy[] {
 }
 
 /**
- * Call the API to enable custom report title for the reports in the given policy
- * @param policyID - id of the policy to apply the limit to
- * @param enabled - whether custom report title for the reports is enabled in the given policy
- */
-function enablePolicyDefaultReportTitle(policyID: string, enabled: boolean) {
-    const policy = getPolicy(policyID);
-
-    if (enabled === policy?.shouldShowCustomReportTitleOption) {
-        return;
-    }
-
-    const previousReportTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE] ?? {};
-    const titleFieldValues = enabled ? {} : {fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {...previousReportTitleField, defaultValue: CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN}}};
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                shouldShowCustomReportTitleOption: enabled,
-                ...titleFieldValues,
-                pendingFields: {
-                    shouldShowCustomReportTitleOption: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingFields: {
-                    shouldShowCustomReportTitleOption: null,
-                },
-                errorFields: null,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                shouldShowCustomReportTitleOption: !!policy?.shouldShowCustomReportTitleOption,
-                fieldList: {
-                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: previousReportTitleField,
-                },
-                pendingFields: {
-                    shouldShowCustomReportTitleOption: null,
-                },
-                errorFields: {
-                    shouldShowCustomReportTitleOption: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                },
-            },
-        },
-    ];
-
-    const parameters: EnablePolicyDefaultReportTitleParams = {
-        enable: enabled,
-        policyID,
-    };
-
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_DEFAULT_REPORT_TITLE, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
-}
-
-/**
  * Call the API to set default report title pattern for the given policy
  * @param policyID - id of the policy to apply the naming pattern to
  * @param customName - name pattern to be used for the reports
@@ -5170,6 +5136,14 @@ function clearBillingReceiptDetailsErrors() {
     Onyx.merge(ONYXKEYS.BILLING_RECEIPT_DETAILS, {errors: null});
 }
 
+function setIsForcedToChangeCurrency(value: boolean) {
+    Onyx.set(ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY, value);
+}
+
+function setIsComingFromGlobalReimbursementsFlow(value: boolean) {
+    Onyx.set(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, value);
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -5238,6 +5212,7 @@ export {
     createPolicyExpenseChats,
     upgradeToCorporate,
     openPolicyExpensifyCardsPage,
+    updateMemberCustomField,
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
     getAdminPoliciesConnectedToNetSuite,
@@ -5252,7 +5227,6 @@ export {
     setPolicyAutomaticApprovalLimit,
     setPolicyAutomaticApprovalRate,
     setPolicyAutoReimbursementLimit,
-    enablePolicyDefaultReportTitle,
     enablePolicyAutoReimbursementLimit,
     enableAutoApprovalOptions,
     setPolicyMaxExpenseAmountNoReceipt,
@@ -5276,4 +5250,6 @@ export {
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
     updateLastAccessedWorkspaceSwitcher,
+    setIsForcedToChangeCurrency,
+    setIsComingFromGlobalReimbursementsFlow,
 };

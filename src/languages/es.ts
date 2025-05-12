@@ -189,6 +189,7 @@ import type {
     UnreportedTransactionParams,
     UnshareParams,
     UntilTimeParams,
+    UpdatedCustomFieldParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
@@ -522,7 +523,7 @@ const translations = {
         offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
         outstanding: 'Pendiente',
         chats: 'Chats',
-        tasks: 'Tereas',
+        tasks: 'Tareas',
         unread: 'No leído',
         sent: 'Enviado',
         links: 'Enlaces',
@@ -759,8 +760,8 @@ const translations = {
         sayHello: '¡Saluda!',
         yourSpace: 'Tu espacio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUsa el botón + para ${additionalText} un gasto`,
-        askConcierge: 'Haz preguntas y obtén soporte en tiempo real las 24/7.',
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa el botón + para ${additionalText} un gasto`,
+        askConcierge: ' Haz preguntas y obtén soporte en tiempo real las 24/7.',
         conciergeSupport: 'Soporte 24/7',
         create: 'crear',
         iouTypes: {
@@ -1116,6 +1117,12 @@ const translations = {
         enableWallet: 'Habilitar billetera',
         holdExpense: 'Retener gasto',
         unholdExpense: 'Desbloquear gasto',
+        moveUnreportedExpense: 'Mover gasto no reportado',
+        addUnreportedExpense: 'Añadir gasto no reportado',
+        selectUnreportedExpense: 'Selecciona al menos un gasto para agregar al informe.',
+        emptyStateUnreportedExpenseTitle: 'No hay gastos no reportados',
+        emptyStateUnreportedExpenseSubtitle: 'Parece que no tienes gastos no reportados. Puedes crear uno a continuación.',
+        addUnreportedExpenseConfirm: 'Añadir al informe',
         heldExpense: 'retuvo este gasto',
         unheldExpense: 'desbloqueó este gasto',
         explainHold: 'Explica la razón para retener esta solicitud.',
@@ -2002,8 +2009,7 @@ const translations = {
     onboarding: {
         welcome: '¡Bienvenido!',
         welcomeSignOffTitle: '¡Es un placer conocerte!',
-        welcomeSignOffTitleManageTeam:
-            'Podemos explorar más características como flujos de trabajo de aprobación y reglas cuando hayas avanzado en estos pasos, ya que son requisitos previos.',
+        welcomeSignOffTitleManageTeam: 'Una vez que termines las tareas anteriores, podemos explorar más funcionalidades como flujos de aprobación y reglas.',
         explanationModal: {
             title: 'Bienvenido a Expensify',
             description: 'Una aplicación para gestionar en un chat todos los gastos de tu empresa y personales. Inténtalo y dinos qué te parece. ¡Hay mucho más por venir!',
@@ -2750,10 +2756,10 @@ const translations = {
         letsDoubleCheck: 'Vamos a verificar que todo esté correcto.',
         legalName: 'Nombre legal',
         proofOf: 'Comprobante de domicilio personal',
-        enterOneEmail: 'Introduce el correo electrónico del director o alto funcionario en',
+        enterOneEmail: ({companyName}: CompanyNameParams) => `Introduce el correo electrónico del director o alto funcionario en ${companyName}`,
         regulationRequiresOneMoreDirector: 'El reglamento exige que haya otro director o funcionario superior como firmante.',
         hangTight: 'Espera un momento...',
-        enterTwoEmails: 'Introduce los correos electrónicos de dos directores o altos funcionarios en',
+        enterTwoEmails: ({companyName}: CompanyNameParams) => `Introduce los correos electrónicos de dos directores o altos funcionarios en ${companyName}`,
         sendReminder: 'Enviar un recordatorio',
         chooseFile: 'Seleccionar archivo',
         weAreWaiting: 'Estamos esperando que otros verifiquen sus identidades como directores o altos funcionarios de la empresa.',
@@ -2935,7 +2941,11 @@ const translations = {
             reimburse: 'Reembolsos',
             categories: 'Categorías',
             tags: 'Etiquetas',
+            customField1: 'Campo personalizado 1',
+            customField2: 'Campo personalizado 2',
+            customFieldHint: 'Añade una codificación personalizada que se aplique a todos los gastos de este miembro.',
             reportFields: 'Campos de informe',
+            reportTitle: 'El título del informe.',
             taxes: 'Impuestos',
             bills: 'Pagar facturas',
             invoices: 'Facturas',
@@ -4999,9 +5009,8 @@ const translations = {
                 examples: 'Ejemplos:',
                 title: 'Informes de gastos',
                 subtitle: 'Automatiza el cumplimiento, la aprobación y el pago de los informes de gastos.',
-                customReportNamesTitle: 'Nombres personalizados de informes',
-                customReportNamesSubtitle: 'Crea nombres personalizados usando nuestras fórmulas variadas.',
-                customNameTitle: 'Nombre personalizado',
+                customReportNamesSubtitle: 'Personaliza los títulos de los informes usando nuestras amplias fórmulas.',
+                customNameTitle: 'Título de informe predeterminado',
                 customNameDescription: 'Elige un nombre personalizado para los informes de gastos usando nuestras ',
                 customNameDescriptionLink: 'fórmulas variadas',
                 customNameInputLabel: 'Nombre',
@@ -5074,8 +5083,6 @@ const translations = {
         scheduleACall: 'Programar llamada',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
-        registerForWebinar: 'Registrarse para el seminario web',
-        onboardingHelp: 'Ayuda de incorporación',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
@@ -5338,7 +5345,7 @@ const translations = {
             reimbursable: 'Reembolsable',
         },
         moneyRequestReport: {
-            emptyStateTitle: 'Este informe no tiene gastos',
+            emptyStateTitle: 'Este informe no tiene gastos.',
             emptyStateSubtitle: 'Puedes añadir gastos a este informe usando el botón de arriba.',
         },
         noCategory: 'Sin categoría',
@@ -5499,6 +5506,24 @@ const translations = {
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
+                updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                    if (!newValue) {
+                        return `eliminó el campo personalizado 1 de ${email} (previamente "${previousValue}")`;
+                    }
+
+                    return !previousValue
+                        ? `añadió "${newValue}" al campo personalizado 1 de ${email}`
+                        : `cambió el campo personalizado 1 de ${email} a "${newValue}" (previamente "${previousValue}")`;
+                },
+                updatedCustomField2: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                    if (!newValue) {
+                        return `eliminó el campo personalizado 2 de ${email} (previamente "${previousValue}")`;
+                    }
+
+                    return !previousValue
+                        ? `añadió "${newValue}" al campo personalizado 2 de ${email}`
+                        : `cambió el campo personalizado 2 de ${email} a "${newValue}" (previamente "${previousValue}")`;
+                },
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} salió del espacio de trabajo`,
                 removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,

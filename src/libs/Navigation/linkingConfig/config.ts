@@ -101,6 +101,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
+        [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
+                    path: ROUTES.TEST_TOOLS_MODAL,
+                    exact: true,
+                },
+            },
+        },
+
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
             // Don't set the initialRouteName, because when the user continues from the last visited onboarding page,
             // the onboarding purpose page will be briefly visible.
@@ -241,7 +250,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
+                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
@@ -728,6 +737,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
+                        },
+                        [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
+                            path: ROUTES.WORKSPACE_CUSTOM_FIELDS.route,
                         },
                         [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: {
                             path: ROUTES.WORKSPACE_MEMBER_NEW_CARD.route,
@@ -1500,6 +1512,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: {
                     screens: {
                         [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: ROUTES.MISSING_PERSONAL_DETAILS,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: {
+                    screens: {
+                        [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: ROUTES.ADD_UNREPORTED_EXPENSE.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.DEBUG]: {

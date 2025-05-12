@@ -190,6 +190,7 @@ import type {
     UnreportedTransactionParams,
     UnshareParams,
     UntilTimeParams,
+    UpdatedCustomFieldParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
@@ -765,8 +766,8 @@ const translations = {
         sayHello: 'Say hello!',
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nUse the + button to ${additionalText} an expense.`,
-        askConcierge: '\nAsk questions and get 24/7 realtime support.',
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the + button to ${additionalText} an expense.`,
+        askConcierge: ' Ask questions and get 24/7 realtime support.',
         conciergeSupport: '24/7 support',
         create: 'create',
         iouTypes: {
@@ -1122,6 +1123,12 @@ const translations = {
         unholdExpense: 'Unhold expense',
         heldExpense: 'held this expense',
         unheldExpense: 'unheld this expense',
+        moveUnreportedExpense: 'Move unreported expense',
+        addUnreportedExpense: 'Add unreported expense',
+        selectUnreportedExpense: 'Select at least one expense to add to the report.',
+        emptyStateUnreportedExpenseTitle: 'No unreported expenses',
+        emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
+        addUnreportedExpenseConfirm: 'Add to report',
         explainHold: "Explain why you're holding this expense.",
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
@@ -1998,7 +2005,7 @@ const translations = {
     },
     onboarding: {
         welcome: 'Welcome!',
-        welcomeSignOffTitleManageTeam: 'We can explore more features such as approval workflows and rules when you have progressed on these steps as these are pre-requisites.',
+        welcomeSignOffTitleManageTeam: 'Once you finish the tasks above, we can explore more functionality like approval workflows and rules!',
         welcomeSignOffTitle: "It's great to meet you!",
         explanationModal: {
             title: 'Welcome to Expensify',
@@ -2724,10 +2731,10 @@ const translations = {
         letsDoubleCheck: 'Let’s double check that everything looks right.',
         legalName: 'Legal name',
         proofOf: 'Proof of personal address',
-        enterOneEmail: 'Enter the email of director or senior officer at',
+        enterOneEmail: ({companyName}: CompanyNameParams) => `Enter the email of director or senior officer at ${companyName}`,
         regulationRequiresOneMoreDirector: 'Regulation requires at least more director or senior officer as a signer.',
         hangTight: 'Hang tight...',
-        enterTwoEmails: 'Enter the emails of two directors or senior officers at',
+        enterTwoEmails: ({companyName}: CompanyNameParams) => `Enter the emails of two directors or senior officers at ${companyName}`,
         sendReminder: 'Send a reminder',
         chooseFile: 'Choose file',
         weAreWaiting: "We're waiting for others to verify their identities as directors or senior officers of the business.",
@@ -2909,7 +2916,11 @@ const translations = {
             reimburse: 'Reimbursements',
             categories: 'Categories',
             tags: 'Tags',
+            customField1: 'Custom field 1',
+            customField2: 'Custom field 2',
+            customFieldHint: 'Add custom coding that applies to all spend from this member.',
             reportFields: 'Report fields',
+            reportTitle: 'Report title',
             reportField: 'Report field',
             taxes: 'Taxes',
             bills: 'Bills',
@@ -4927,9 +4938,8 @@ const translations = {
                 examples: 'Examples:',
                 title: 'Expense reports',
                 subtitle: 'Automate expense report compliance, approvals, and payment.',
-                customReportNamesTitle: 'Custom report names',
-                customReportNamesSubtitle: 'Create custom names using our extensive formulas.',
-                customNameTitle: 'Custom name',
+                customReportNamesSubtitle: 'Customize report titles using our ',
+                customNameTitle: 'Default report title',
                 customNameDescription: 'Choose a custom name for expense reports using our ',
                 customNameDescriptionLink: 'extensive formulas',
                 customNameInputLabel: 'Name',
@@ -5021,8 +5031,6 @@ const translations = {
         scheduleACall: 'Schedule call',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
-        registerForWebinar: 'Register for webinar',
-        onboardingHelp: 'Onboarding help',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
@@ -5282,7 +5290,7 @@ const translations = {
             reimbursable: 'Reimbursable',
         },
         moneyRequestReport: {
-            emptyStateTitle: 'This report has no expenses',
+            emptyStateTitle: 'This report has no expenses.',
             emptyStateSubtitle: 'You can add expenses to this report \n using the button above.',
         },
         noCategory: 'No category',
@@ -5442,6 +5450,20 @@ const translations = {
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
+                updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                    if (!newValue) {
+                        return `removed ${email}'s custom field 1 (previously "${previousValue}")`;
+                    }
+
+                    return !previousValue ? `added "${newValue}" to ${email}’s custom field 1` : `changed ${email}’s custom field 1 to "${newValue}" (previously "${previousValue}")`;
+                },
+                updatedCustomField2: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                    if (!newValue) {
+                        return `removed ${email}'s custom field 2 (previously "${previousValue}")`;
+                    }
+
+                    return !previousValue ? `added "${newValue}" to ${email}’s custom field 2` : `changed ${email}’s custom field 2 to "${newValue}" (previously "${previousValue}")`;
+                },
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} left the workspace`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,

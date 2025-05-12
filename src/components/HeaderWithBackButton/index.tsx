@@ -95,7 +95,6 @@ function HeaderWithBackButton({
                 </>
             );
         }
-
         if (shouldShowReportAvatarWithDisplay) {
             return (
                 <AvatarWithDisplayName

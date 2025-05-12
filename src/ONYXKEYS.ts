@@ -520,6 +520,13 @@ const ONYXKEYS = {
     /** Billing receipt details */
     BILLING_RECEIPT_DETAILS: 'billingReceiptDetails',
 
+    /** Set when user tries to connect VBBA but workspace currency is unsupported and is forced to change
+     * This is later used to redirect user directly back to the VBBA flow */
+    IS_FORCED_TO_CHANGE_CURRENCY: 'isForcedToChangeCurrency',
+
+    /** Set this gets redirected from global reimbursements flow */
+    IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW: 'isComingFromGlobalReimbursementsFlow',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -637,6 +644,8 @@ const ONYXKEYS = {
         WORKSPACE_TAG_FORM_DRAFT: 'workspaceTagFormDraft',
         WORKSPACE_SETTINGS_FORM_DRAFT: 'workspaceSettingsFormDraft',
         WORKSPACE_DESCRIPTION_FORM: 'workspaceDescriptionForm',
+        WORKSPACE_MEMBER_CUSTOM_FIELD_FORM: 'WorkspaceMemberCustomFieldForm',
+        WORKSPACE_MEMBER_CUSTOM_FIELD_FORM_DRAFT: 'WorkspaceMemberCustomFieldFormDraft',
         WORKSPACE_DESCRIPTION_FORM_DRAFT: 'workspaceDescriptionFormDraft',
         WORKSPACE_TAX_CUSTOM_NAME: 'workspaceTaxCustomName',
         WORKSPACE_TAX_CUSTOM_NAME_DRAFT: 'workspaceTaxCustomNameDraft',
@@ -873,6 +882,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.ReimbursementAccountForm;
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM]: FormTypes.PersonalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
+    [ONYXKEYS.FORMS.WORKSPACE_MEMBER_CUSTOM_FIELD_FORM]: FormTypes.WorkspaceMemberCustomFieldsForm;
     [ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS]: FormTypes.AdditionalDetailStepForm;
     [ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM]: FormTypes.PolicyTagNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM]: FormTypes.WorkspaceNewTaxForm;
@@ -1151,6 +1161,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
     [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft;
+    [ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY]: boolean | undefined;
+    [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
 };
 
 type OnyxDerivedValuesMapping = {
