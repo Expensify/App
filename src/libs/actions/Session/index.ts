@@ -72,6 +72,7 @@ const INVALID_TOKEN = 'pizza';
 
 let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
+let isSetUpReady = false;
 
 let hasSwitchedAccountInHybridMode = false;
 
@@ -86,7 +87,7 @@ Onyx.connect({
             authPromiseResolver(true);
             authPromiseResolver = null;
         }
-        if (CONFIG.IS_HYBRID_APP && session.authToken && session.authToken !== INVALID_TOKEN) {
+        if (CONFIG.IS_HYBRID_APP && session.authToken && session.authToken !== INVALID_TOKEN && isSetUpReady) {
             HybridAppModule.sendAuthToken({authToken: session.authToken});
         }
     },
@@ -593,6 +594,10 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: string, tryNewD
         )
         .then(resetDidUserLoginDuringSessionIfNeeded)
         .then(() => Onyx.multiSet(newDotOnyxValues))
+        .then(() => {
+            isSetUpReady = true;
+            return Promise.resolve();
+        })
         .catch((error) => {
             Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
         });
