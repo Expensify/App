@@ -1400,7 +1400,7 @@ function lockAccount() {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: false
+                isLoading: false,
             },
         },
     ];
