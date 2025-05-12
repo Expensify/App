@@ -71,7 +71,6 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={handleOnCloseMenu}
                 onModalHide={handleOnModalHide}
-                shouldUseNewModal
             >
                 {options.map((option, index) => (
                     <MenuItem

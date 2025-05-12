@@ -1175,7 +1175,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     isVisible={isPDFModalVisible}
                     type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
                     innerContainerStyle={styles.pv0}
-                    shouldUseNewModal
                 >
                     <View style={[styles.m5]}>
                         <View>

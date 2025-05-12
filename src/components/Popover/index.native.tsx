@@ -14,7 +14,7 @@ function Popover({
     disableAnimation,
     anchorPosition = {},
     fromSidebarMediumScreen,
-    shouldUseNewModal = true,
+
     ...propsWithoutAnimation
 }: PopoverProps) {
     return (
@@ -23,7 +23,6 @@ function Popover({
             popoverAnchorPosition={fromSidebarMediumScreen ? anchorPosition : undefined}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsWithoutAnimation}
-            shouldUseNewModal={shouldUseNewModal}
             // Mobile will always has fullscreen menu
             fullscreen
             animationIn="slideInUp"
