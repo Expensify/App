@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FormActions from '@libs/actions/FormActions';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID} from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +51,7 @@ type FeedbackSurveyProps = {
 function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading, formID, enabledWhenOffline = true}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [draft, draftResults] = useOnyx(`${formID}Draft`);
+    const [draft, draftResults] = useOnyx(`${formID}Draft`, {canBeMissing: true});
     const [reason, setReason] = useState<string | undefined>(draft?.reason);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
 
@@ -88,7 +88,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         }
 
         onSubmit(draft.reason, draft.note?.trim());
-        FormActions.clearDraftValues(formID);
+        clearDraftValues(formID);
     };
 
     const handleSetNote = () => {
@@ -134,7 +134,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                     </>
                 )}
             </View>
-            <FixedFooter>
+            <FixedFooter style={styles.pb0}>
                 {!!footerText && footerText}
                 <FormAlertWithSubmitButton
                     isAlertVisible={shouldShowReasonError}
