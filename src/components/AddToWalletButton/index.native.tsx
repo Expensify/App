@@ -6,12 +6,11 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
-import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
+import {handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
 import CONST from '@src/CONST';
 import type AddToWalletButtonProps from './types';
 
 function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}: AddToWalletButtonProps) {
-    const [isWalletAvailable, setIsWalletAvailable] = React.useState<boolean>(false);
     const [isInWallet, setIsInWallet] = React.useState<boolean | null>(null);
     const {translate} = useLocalize();
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
@@ -42,24 +41,11 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
         if (!isCardAvailable) {
             return;
         }
+
         checkIfCardIsInWallet();
     }, [checkIfCardIsInWallet, isCardAvailable, card]);
 
-    useEffect(() => {
-        if (!isCardAvailable) {
-            return;
-        }
-
-        checkIfWalletIsAvailable()
-            .then((result) => {
-                setIsWalletAvailable(result);
-            })
-            .catch(() => {
-                setIsWalletAvailable(false);
-            });
-    }, [isCardAvailable]);
-
-    if (!isWalletAvailable || isInWallet == null || !isCardAvailable) {
+    if (isInWallet == null || !isCardAvailable) {
         return null;
     }
 
@@ -75,7 +61,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
     if (isInWallet) {
         return (
             <View style={buttonStyle}>
-                <Text style={[styles.textLabelSupporting, styles.mt6]}>{translate('cardPage.cardAddedToWallet', {platform})}</Text>;
+                <Text style={[styles.textLabelSupporting, styles.mt6]}>{translate('cardPage.cardAddedToWallet', {platform})}</Text>
             </View>
         );
     }
