@@ -844,7 +844,14 @@ function getQueryWithoutFilters(searchQuery: string) {
         return searchQuery.trim();
     }
 
-    return searchQuery.slice(lastFilter.start + lastFilter.length).trim();
+    const queryJSON = buildSearchQueryJSON(searchQuery);
+    if (!queryJSON) {
+        return searchQuery.trim();
+    }
+
+    const keywordFilter = queryJSON.flatFilters.find((filter) => filter.key === 'keyword');
+
+    return keywordFilter?.filters.map((filter) => filter.value).join(' ') ?? '';
 }
 
 /**
