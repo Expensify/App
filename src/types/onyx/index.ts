@@ -91,6 +91,7 @@ import type Request from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type {SaveSearch} from './SaveSearch';
+import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
@@ -107,7 +108,6 @@ import type TransactionViolations from './TransactionViolation';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
-import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
@@ -210,7 +210,6 @@ export type {
     TransactionViolation,
     TransactionViolations,
     TravelSettings,
-    User,
     UserLocation,
     UserMetadata,
     UserWallet,
@@ -260,6 +259,7 @@ export type {
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
     TalkToAISales,
+    ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
 };

@@ -5,10 +5,15 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
+import {filterCardsByPersonalDetails, getCardsByCardholderName, getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
+import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,10 +39,18 @@ type WorkspaceCompanyCardsListProps = {
 function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDisabledAssignCardButton}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const policy = usePolicy(policyID);
 
-    const sortedCards = useMemo(() => sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
+    const allCards = useMemo(() => {
+        const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
+        return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
+    }, [cardsList, policy?.employeeList]);
+
+    const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
+    const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails), [personalDetails]);
+    const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<Card>) => {
@@ -95,7 +108,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
         [styles, translate],
     );
 
-    if (sortedCards.length === 0) {
+    if (allCards.length === 0) {
         return (
             <WorkspaceCompanyCardsFeedAddedEmptyPage
                 handleAssignCard={handleAssignCard}
@@ -104,14 +117,30 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
         );
     }
 
+    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
+
     return (
-        <FlatList
-            contentContainerStyle={styles.flexGrow1}
-            data={sortedCards}
-            renderItem={renderItem}
-            ListHeaderComponent={renderListHeader}
-            stickyHeaderIndices={[0]}
-        />
+        <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+        >
+            {allCards.length > 0 && (
+                <SearchBar
+                    label={translate('workspace.companyCards.findCard')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={isSearchEmpty}
+                    style={[styles.mt5]}
+                />
+            )}
+            <FlatList
+                contentContainerStyle={styles.flexGrow1}
+                data={filteredSortedCards}
+                renderItem={renderItem}
+                ListHeaderComponent={!isSearchEmpty ? renderListHeader : null}
+                stickyHeaderIndices={[0]}
+            />
+        </ScrollView>
     );
 }
 

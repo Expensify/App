@@ -21,13 +21,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
+import {getIOUReportIDOfLastAction, getLastMessageTextForReport, hasReportErrors} from '@libs/OptionsListUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, requiresAttentionFromCurrentUser} from '@libs/ReportUtils';
+import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import OptionRowLHNData from './OptionRowLHNData';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
 import type {LHNOptionsListProps, RenderItemProps} from './types';
@@ -42,13 +44,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: false});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
+    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -58,6 +61,28 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
+    const isGBRorRBRTooltipDismissed =
+        !isLoadingOnyxValue(dismissedProductTrainingMetadata) && isProductTrainingElementDismissed(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GBR_RBR_CHAT, dismissedProductTraining);
+
+    const firstReportIDWithGBRorRBR = useMemo(() => {
+        if (isGBRorRBRTooltipDismissed) {
+            return undefined;
+        }
+        return data.find((reportID) => {
+            const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            if (!itemFullReport) {
+                return false;
+            }
+            if (hasReportErrors(itemFullReport, itemReportActions)) {
+                return true;
+            }
+            const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
+            const itemParentReportAction = itemFullReport?.parentReportActionID ? itemParentReportActions?.[itemFullReport?.parentReportActionID] : undefined;
+            const hasGBR = requiresAttentionFromCurrentUser(itemFullReport, itemParentReportAction);
+            return hasGBR;
+        });
+    }, [isGBRorRBRTooltipDismissed, data, reportActions, reports]);
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -137,6 +162,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getOneTransactionThreadReportID(reportID, itemReportActions, isOffline)}`];
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
             const itemParentReportAction = itemFullReport?.parentReportActionID ? itemParentReportActions?.[itemFullReport?.parentReportActionID] : undefined;
+            const itemReportAttributes = reportAttributes?.[reportID];
 
             let invoiceReceiverPolicyID = '-1';
             if (itemFullReport?.invoiceReceiver && 'policyID' in itemFullReport.invoiceReceiver) {
@@ -181,11 +207,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             const lastMessageTextFromReport = getLastMessageTextForReport(itemFullReport, lastActorDetails, itemPolicy, itemReportNameValuePairs);
 
+            const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
+
             return (
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={itemFullReport}
-                    reportAttributes={reportAttributes ?? {}}
+                    reportAttributes={itemReportAttributes}
                     oneTransactionThreadReport={itemOneTransactionThreadReport}
                     reportNameValuePairs={itemReportNameValuePairs}
                     reportActions={itemReportActions}
@@ -205,6 +233,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     hasDraftComment={hasDraftComment}
                     transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
+                    shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
                 />
             );
         },
@@ -224,6 +253,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             transactionViolations,
             onLayoutItem,
             isOffline,
+            firstReportIDWithGBRorRBR,
         ],
     );
 

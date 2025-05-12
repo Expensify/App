@@ -80,13 +80,14 @@ function MoneyRequestReportPreview({
 
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
             chatReportID={chatReportID}
             action={getIOUActionForReportID(item.reportID, item.transactionID)}
+            contextAction={action}
             reportID={item.reportID}
             isBillSplit={isSplitBillAction}
             isTrackExpense={isTrackExpenseAction}
@@ -95,9 +96,11 @@ function MoneyRequestReportPreview({
             isHovered={isHovered}
             iouReportID={iouReportID}
             containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle, containerStyles]}
+            shouldDisplayContextMenu={shouldDisplayContextMenu}
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
+            onPreviewPressed={openReportFromPreview}
             shouldShowIOUData={shouldShowIOUData}
         />
     );

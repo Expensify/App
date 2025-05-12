@@ -21,7 +21,6 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,7 +38,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasVBBA} from '@libs/PolicyUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -64,7 +63,6 @@ function SearchPage({route}: SearchPageProps) {
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-    const {canUseLeftHandBar} = usePermissions();
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -73,12 +71,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const {q, name} = route.params;
 
-    const {queryJSON, policyID} = useMemo(() => {
-        const parsedQuery = buildSearchQueryJSON(q);
-        const extractedPolicyID = parsedQuery && getPolicyIDFromSearchQuery(parsedQuery);
-
-        return {queryJSON: parsedQuery, policyID: extractedPolicyID};
-    }, [q]);
+    const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -282,6 +275,7 @@ function SearchPage({route}: SearchPageProps) {
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 shouldCloseModalOnSelect: true,
+                shouldPreserveSelectionAfterHideModal: true,
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
@@ -396,7 +390,6 @@ function SearchPage({route}: SearchPageProps) {
             <>
                 <SearchPageNarrow
                     queryJSON={queryJSON}
-                    policyID={policyID}
                     searchName={searchName}
                     headerButtonsOptions={headerButtonsOptions}
                     lastNonEmptySearchResults={lastNonEmptySearchResults}
@@ -444,7 +437,7 @@ function SearchPage({route}: SearchPageProps) {
         <ScreenWrapper
             testID={Search.displayName}
             shouldEnableMaxHeight
-            headerGapStyles={[styles.searchHeaderGap, canUseLeftHandBar && styles.h0]}
+            headerGapStyles={[styles.searchHeaderGap, styles.h0]}
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
@@ -453,13 +446,12 @@ function SearchPage({route}: SearchPageProps) {
                 shouldShowLink={false}
             >
                 {!!queryJSON && (
-                    <View style={[styles.searchSplitContainer, canUseLeftHandBar && {marginLeft: variables.navigationTabBarSize}]}>
-                        <View style={canUseLeftHandBar ? styles.searchSidebarWithLHB : styles.searchSidebar}>
+                    <View style={styles.searchSplitContainer}>
+                        <View style={styles.searchSidebar}>
                             {queryJSON ? (
                                 <View style={styles.flex1}>
                                     <TopBar
                                         shouldShowLoadingBar={shouldShowLoadingState}
-                                        activeWorkspaceID={policyID}
                                         breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
                                         shouldDisplayHelpButton={false}

@@ -56,6 +56,9 @@ exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
 groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 feed = "feed"i { return "feed"; }
+title = "title"i { return "title"; }
+assignee = "assignee"i { return "assignee"; }
+createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 
 operator "operator"
   = (":" / "=") { return "eq"; }
