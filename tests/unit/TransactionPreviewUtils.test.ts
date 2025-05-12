@@ -2,10 +2,8 @@ import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/Re
 import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths, getUniqueActionErrors, getViolationTranslatePath} from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
-import type {Report, ReportActions} from '@src/types/onyx';
-import {iouReportR14932 as mockedReport} from '../../__mocks__/reportData/reports';
+import type {ReportActions} from '@src/types/onyx';
 
 const basicProps = {
     iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
@@ -258,14 +256,8 @@ describe('TransactionPreviewUtils', () => {
     });
 
     describe('getUniqueActionErrors', () => {
-        test('returns an empty array if there is no report or it is empty', () => {
-            expect(getUniqueActionErrors(undefined)).toEqual([]);
-            expect(getUniqueActionErrors({} as Report)).toEqual([]);
-        });
-
-        test('returns an empty array if there are no actions in the report', () => {
-            jest.spyOn(ReportActionUtils, 'getReportActions').mockReturnValue({});
-            expect(getUniqueActionErrors(mockedReport)).toEqual([]);
+        test('returns an empty array if there are no actions', () => {
+            expect(getUniqueActionErrors({})).toEqual([]);
         });
 
         test('returns unique error messages from report actions', () => {
@@ -276,10 +268,9 @@ describe('TransactionPreviewUtils', () => {
                 3: {errors: {a: 'Error A', d: 'Error D'}},
                 /* eslint-enable @typescript-eslint/naming-convention */
             } as unknown as ReportActions;
-            jest.spyOn(ReportActionUtils, 'getReportActions').mockReturnValue(actions);
 
             const expectedErrors = ['Error B', 'Error C', 'Error D'];
-            expect(getUniqueActionErrors(mockedReport).sort()).toEqual(expectedErrors.sort());
+            expect(getUniqueActionErrors(actions).sort()).toEqual(expectedErrors.sort());
         });
 
         test('returns the latest error message if multiple errors exist under a single action', () => {
@@ -288,9 +279,8 @@ describe('TransactionPreviewUtils', () => {
                 1: {errors: {z: 'Error Z2', a: 'Error A', f: 'Error Z'}},
                 /* eslint-enable @typescript-eslint/naming-convention */
             } as unknown as ReportActions;
-            jest.spyOn(ReportActionUtils, 'getReportActions').mockReturnValue(actions);
 
-            expect(getUniqueActionErrors(mockedReport)).toEqual(['Error Z2']);
+            expect(getUniqueActionErrors(actions)).toEqual(['Error Z2']);
         });
 
         test('filters out non-string error messages', () => {
@@ -300,9 +290,8 @@ describe('TransactionPreviewUtils', () => {
                 2: {errors: {c: null, d: 'Error D'}},
                 /* eslint-enable @typescript-eslint/naming-convention */
             } as unknown as ReportActions;
-            jest.spyOn(ReportActionUtils, 'getReportActions').mockReturnValue(actions);
 
-            expect(getUniqueActionErrors(mockedReport)).toEqual(['Error B', 'Error D']);
+            expect(getUniqueActionErrors(actions)).toEqual(['Error B', 'Error D']);
         });
     });
 });
