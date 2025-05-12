@@ -34,6 +34,7 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
 
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
+    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
     const {canUseMultiFilesDragAndDrop} = usePermissions();
 
     if (!shouldShowWrapper) {
