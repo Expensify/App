@@ -72,7 +72,7 @@ function SplitListItem<TItem extends ListItem>({
                                 {splitItem.headerText}
                             </Text>
                         </View>
-                        <View style={[styles.maxHeight5, styles.justifyContentCenter, styles.gap2]}>
+                        <View style={[styles.minHeight5, styles.justifyContentCenter, styles.gap2]}>
                             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                                 <Text
                                     fontSize={variables.fontSizeNormal}
@@ -87,7 +87,7 @@ function SplitListItem<TItem extends ListItem>({
                     {isBottomVisible && (
                         <View style={[styles.splitItemBottomContent]}>
                             {!!splitItem.category && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mw50, styles.pr1, styles.flexShrink1]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pr1, styles.flexShrink1]}>
                                     <Icon
                                         src={Folder}
                                         height={variables.iconSizeExtraSmall}
@@ -132,6 +132,7 @@ function SplitListItem<TItem extends ListItem>({
                             isCurrencyPressable={false}
                             hideFocusedState={false}
                             hideCurrencySymbol
+                            submitBehavior="blurAndSubmit"
                             formatAmountOnBlur
                             onAmountChange={onSplitExpenseAmountChange}
                             prefixContainerStyle={[styles.pv0]}
