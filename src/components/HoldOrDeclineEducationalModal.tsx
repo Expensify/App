@@ -77,7 +77,7 @@ function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducat
             title={title}
             description={translate('iou.decline.educationalText')}
             confirmText={translate('common.buttonConfirm')}
-            image={Illustrations.HoldExpense}
+            image={Illustrations.CardHoldVsDecline}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
             illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}

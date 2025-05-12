@@ -14,6 +14,7 @@ import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/ca
 import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
 import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-brex-large.svg';
 import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/card-capital_one-large.svg';
+import CardHoldVsDecline from '@assets/images/product-illustrations/card-hold-vs-decline.svg';
 import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
 import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
 import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
@@ -312,4 +313,5 @@ export {
     Flash,
     ExpensifyMobileApp,
     ReportReceipt,
+    CardHoldVsDecline
 };

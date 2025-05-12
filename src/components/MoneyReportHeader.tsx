@@ -664,7 +664,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DECLINE]: {
             text: translate('common.decline'),
-            icon: Expensicons.ThumbsUp,
+            icon: Expensicons.ThumbsDown,
             value: CONST.REPORT.SECONDARY_ACTIONS.DECLINE,
             onSelected: () => {
                 if (dismissedDeclineUseExplanation) {
