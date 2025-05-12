@@ -5,7 +5,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, HybridApp, Session, TryNewDot} from '@src/types/onyx';
-import * as HybridAppActions from './actions/HybridApp';
+import {setNewDotSignInState, setReadyToShowAuthScreens, setUseNewDotSignInPage} from './actions/HybridApp';
 import Log from './Log';
 import {getCurrentUserEmail} from './Network/NetworkStore';
 
@@ -40,7 +40,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session: OnyxEntry<Session>) => {
         if (!currentSession?.authToken && session?.authToken && currentHybridApp?.newDotSignInState === CONST.HYBRID_APP_SIGN_IN_STATE.STARTED) {
-            HybridAppActions.setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.FINISHED);
+            setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.FINISHED);
         }
         currentSession = session;
     },
@@ -86,12 +86,12 @@ function handleChangeInHybridAppSignInFlow(hybridApp: OnyxEntry<HybridApp>, tryN
             email: getCurrentUserEmail() ?? '',
             policyID: activePolicyID ?? '',
         });
-        HybridAppActions.setUseNewDotSignInPage(false).then(() => {
+        setUseNewDotSignInPage(false).then(() => {
             if (shouldUseOD) {
                 HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
             } else {
                 Log.info('[HybridApp] The user should see NewDot. There is no need to block the user on the `SignInPage` until the sign-in process is completed on the OldDot side.');
-                HybridAppActions.setReadyToShowAuthScreens(true);
+                setReadyToShowAuthScreens(true);
             }
         });
     }

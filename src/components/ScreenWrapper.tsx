@@ -195,7 +195,7 @@ function ScreenWrapper(
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
     const {initialURL} = useContext(InitialURLContext);
 
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
 
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPaddingProp !== undefined;

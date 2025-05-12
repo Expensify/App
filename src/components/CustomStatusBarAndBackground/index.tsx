@@ -21,7 +21,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     const {isRootStatusBarEnabled, setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const theme = useTheme();
     const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle>();
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
 
     const isDisabled = (!isNested && !isRootStatusBarEnabled) || (hybridApp?.closingReactNativeApp ?? false);
 

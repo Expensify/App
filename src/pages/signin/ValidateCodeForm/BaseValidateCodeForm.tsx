@@ -239,6 +239,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (account?.isLoading || hybridApp?.readyToShowAuthScreens || session?.authToken) {
             return;
         }
@@ -304,7 +305,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         account?.errors,
         account?.requiresTwoFactorAuth,
         hybridApp?.readyToShowAuthScreens,
-        hybridApp?.newDotSignInState,
         session?.authToken,
         isUsingRecoveryCode,
         recoveryCode,
