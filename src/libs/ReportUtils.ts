@@ -3566,11 +3566,11 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     if (!isAdmin && (isReportSettled || isReportClosed || isApproved)) {
         return true;
     }
-    
+
     if (isTitleField) {
         return !reportField?.deletable;
     }
-    
+
     return false;
 }
 
