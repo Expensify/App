@@ -46,25 +46,15 @@ export default (env) => ({
             },
         ],
     },
+    ignoreWarnings: [
+        /^@react-native-masked-view/,
+        /^react-native-worklets-core$/,
+        /^@shopify\/react-native-skia$/,
+        /^react-native-reanimated\/src\/reanimated2\/core$/,
+    ],
     plugins: [
         new Repack.RepackPlugin(),
         new ReanimatedPlugin(),
         new ExpoModulesPlugin(),
-        // optional dep warning
-        new rspack.IgnorePlugin({
-            resourceRegExp: /^@react-native-masked-view/,
-        }),
-        // optional dep warning
-        new rspack.IgnorePlugin({
-            resourceRegExp: /^react-native-worklets-core$/,
-        }),
-        // optional dep warning
-        new rspack.IgnorePlugin({
-            resourceRegExp: /^@shopify\/react-native-skia$/,
-        }),
-        // optional dep warning from keyboard-controller
-        new rspack.IgnorePlugin({
-            resourceRegExp: /^react-native-reanimated\/src\/reanimated2\/core$/,
-        }),
     ],
 });
