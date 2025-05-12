@@ -31,7 +31,7 @@ function SelectBankStep() {
     const illustrations = useThemeIllustrations();
     const {canUsePlaidCompanyCards} = usePermissions();
 
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>>();
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;

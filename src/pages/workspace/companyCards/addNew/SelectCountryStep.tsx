@@ -34,11 +34,11 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [currentCountry, setCurrentCountry] = useState<string | undefined>('');
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [hasError, setHasError] = useState(false);
     const isEur = policy?.outputCurrency === CONST.CURRENCY.EUR;
 
