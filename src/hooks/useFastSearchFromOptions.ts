@@ -1,8 +1,9 @@
 import deburr from 'lodash/deburr';
-import {useEffect, useMemo, useRef} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import FastSearch from '@libs/FastSearch';
 import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 
 type AllOrSelectiveOptions = ReportAndPersonalDetailOptions | OptionsListType;
@@ -12,8 +13,8 @@ type Options = {
 };
 
 const emptyResult = {
-    personalDetails: [],
-    recentReports: [],
+    personalDetails: [] as OptionData[],
+    recentReports: [] as OptionData[],
 };
 
 // You can either use this to search within report and personal details options
@@ -34,23 +35,16 @@ function useFastSearchFromOptions(
     options: ReportAndPersonalDetailOptions | OptionsListType,
     {includeUserToInvite}: Options = {includeUserToInvite: false},
 ): (searchInput: string) => AllOrSelectiveOptions {
+    const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
     const previousFastSearchRef = useRef<ReturnType<typeof FastSearch.createFastSearch> | null>(null);
 
     useEffect(() => {
-        return () => {
-            if (previousFastSearchRef.current) {
-                previousFastSearchRef.current.dispose();
-                previousFastSearchRef.current = null;
-            }
-        };
-    }, []);
-
-    const findInSearchTree = useMemo(() => {
         if (previousFastSearchRef.current) {
             previousFastSearchRef.current.dispose();
             previousFastSearchRef.current = null;
         }
-        const fastSearch = FastSearch.createFastSearch([
+
+        const newFastSearch = FastSearch.createFastSearch([
             {
                 data: options.personalDetails,
                 toSearchableString: (option) => {
@@ -78,10 +72,25 @@ function useFastSearchFromOptions(
                 },
             },
         ]);
+        setFastSearch(newFastSearch);
+        previousFastSearchRef.current = newFastSearch;
+    }, [options]);
 
-        previousFastSearchRef.current = fastSearch;
+    useEffect(() => {
+        return () => {
+            if (!previousFastSearchRef.current) {
+                return;
+            }
+            previousFastSearchRef.current.dispose();
+            previousFastSearchRef.current = null;
+        };
+    }, []);
 
+    const findInSearchTree = useMemo(() => {
         function search(searchInput: string): AllOrSelectiveOptions {
+            if (!fastSearch) {
+                return emptyResult;
+            }
             const deburredInput = deburr(searchInput);
             const searchWords = deburredInput.split(/\s+/);
             const searchWordsSorted = StringUtils.sortStringArrayByLength(searchWords);
@@ -124,7 +133,7 @@ function useFastSearchFromOptions(
         }
 
         return search;
-    }, [includeUserToInvite, options]);
+    }, [includeUserToInvite, options, fastSearch]);
 
     return findInSearchTree;
 }
