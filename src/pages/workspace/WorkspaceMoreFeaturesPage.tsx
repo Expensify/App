@@ -316,11 +316,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const sections: SectionObject[] = [
         {
-            titleTranslationKey: 'workspace.moreFeatures.spendSection.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.spendSection.subtitle',
-            items: spendItems,
-        },
-        {
             titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
             items: integrateItems,
@@ -334,6 +329,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.manageSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.manageSection.subtitle',
             items: manageItems,
+        },
+        {
+            titleTranslationKey: 'workspace.moreFeatures.spendSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.spendSection.subtitle',
+            items: spendItems,
         },
         {
             titleTranslationKey: 'workspace.moreFeatures.earnSection.title',
