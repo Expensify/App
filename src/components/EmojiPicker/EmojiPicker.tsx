@@ -216,7 +216,6 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             shouldSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldUseNewModal
         >
             <FocusTrapForModal active={isEmojiPickerVisible}>
                 <View>
