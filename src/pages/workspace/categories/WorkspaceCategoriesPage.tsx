@@ -162,7 +162,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, []);
     const [inputValue, setInputValue, filteredCategoryList] = useSearchResults(categoryList, filterCategory, sortCategories);
 
-    useAutoTurnSelectionModeOffWhenHasNoActiveOption(filteredCategoryList);
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
     const sections = useMemo(() => [{data: filteredCategoryList, isDisabled: false}], [filteredCategoryList]);
 
@@ -467,6 +467,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             turnOnSelectionModeOnLongPress={isSmallScreenWidth}
                             onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
                             sections={sections}
+                            selectedItemKeys={selectedCategories}
                             onCheckboxPress={toggleCategory}
                             onSelectRow={navigateToCategorySettings}
                             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
