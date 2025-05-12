@@ -54,7 +54,6 @@ import type {
     TransactionViolation,
     UserWallet,
 } from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
@@ -7679,7 +7678,7 @@ function hasReportErrorsOtherThanFailedReceipt(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
-    const allReportErrors = getReportAttributes(report.reportID, reportAttributes).reportErrors;
+    const allReportErrors = getReportAttributes(report.reportID, reportAttributes)?.reportErrors ?? {};
     const transactionReportActions = getAllReportActions(report.reportID);
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, transactionReportActions, undefined);
     let doesTransactionThreadReportHasViolations = false;
@@ -10710,7 +10709,7 @@ function getReportAttributes(reportID: string | undefined, reportAttributes?: Re
     const attributes = reportAttributes ?? reportAttributesDerivedValue;
 
     if (!reportID || !attributes?.[reportID]) {
-        return {} as ReportAttributes;
+        return;
     }
     return attributes[reportID];
 }

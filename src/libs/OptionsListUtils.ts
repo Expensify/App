@@ -902,7 +902,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         result.shouldShowSubscript = shouldReportShowSubscript(report);
         result.isPolicyExpenseChat = reportUtilsIsPolicyExpenseChat(report);
         result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
-        result.allReportErrors = getReportAttributes(report.reportID).reportErrors;
+        result.allReportErrors = getReportAttributes(report.reportID)?.reportErrors ?? {};
         result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : undefined;
         result.ownerAccountID = report.ownerAccountID;
