@@ -1565,6 +1565,7 @@ describe('DebugUtils', () => {
                         },
                         undefined,
                         true,
+                        {},
                         true,
                     ) ?? {};
                 expect(reason).toBe(undefined);
