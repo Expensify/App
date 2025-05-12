@@ -21,7 +21,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {clearCustomStatus, clearDraftCustomStatus, updateCustomStatus, updateDraftCustomStatus} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,6 +42,12 @@ function StatusPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const formRef = useRef<FormRef>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>>();
+
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
+    const hasVacationDelegate = !!vacationDelegate?.delegate;
+    const vacationDelegatePersonalDetails = getPersonalDetailByEmail(vacationDelegate?.delegate ?? '');
+    const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
+
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const currentUserStatusText = currentUserPersonalDetails?.status?.text ?? '';
     const currentUserClearAfter = currentUserPersonalDetails?.status?.clearAfter ?? '';
@@ -230,6 +238,32 @@ function StatusPage() {
                             iconFill={theme.danger}
                             wrapperStyle={[styles.pl2]}
                         />
+                    )}
+                </View>
+                <View style={[styles.mb2, styles.mt6]}>
+                    <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>
+                    {hasVacationDelegate && <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{translate('statusPage.vacationDelegate')}</Text>}
+                    {hasVacationDelegate ? (
+                        <MenuItem
+                            title={vacationDelegatePersonalDetails?.displayName ?? formattedDelegateLogin}
+                            description={formattedDelegateLogin}
+                            avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                            icon={vacationDelegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                            iconType={CONST.ICON_TYPE_AVATAR}
+                            numberOfLinesDescription={1}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
+                            containerStyle={styles.pr2}
+                        />
+                    ) : (
+                        <View style={[styles.mt1]}>
+                            <MenuItem
+                                description={translate('statusPage.vacationDelegate')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
+                                containerStyle={styles.pr2}
+                            />
+                        </View>
                     )}
                 </View>
             </FormProvider>
