@@ -201,7 +201,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase());
         return rateText.includes(normalizedSearchInput);
     }, []);
-    const sortRates = useCallback((rates: PolicyOption[]) => lodashSortBy(rates, 'destination', localeCompare) as PolicyOption[], []);
+    const sortRates = useCallback((rates: PolicyOption[]) => lodashSortBy(rates, 'text', localeCompare) as PolicyOption[], []);
     const [inputValue, setInputValue, filteredSubRatesList] = useSearchResults(subRatesList, filterRate, sortRates);
 
     const toggleSubRate = (subRate: PolicyOption) => {

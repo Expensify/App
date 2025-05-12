@@ -164,8 +164,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
-    const sections = useMemo(() => [{data: filteredCategoryList, isDisabled: false}], [filteredCategoryList]);
-
     const toggleCategory = useCallback(
         (category: PolicyOption) => {
             setSelectedCategories((prev) => {
@@ -466,7 +464,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             canSelectMultiple={canSelectMultiple}
                             turnOnSelectionModeOnLongPress={isSmallScreenWidth}
                             onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
-                            sections={sections}
+                            sections={[{data: filteredCategoryList, isDisabled: false}]}
                             selectedItemKeys={selectedCategories}
                             onCheckboxPress={toggleCategory}
                             onSelectRow={navigateToCategorySettings}
