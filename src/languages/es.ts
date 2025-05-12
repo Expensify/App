@@ -591,6 +591,11 @@ const translations = {
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Solamente puedes suber ${fileLimit} archivos a la vez.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo supera los ${maxUploadSizeInMB} MB. Por favor, vuelve a intentarlo.`,
     },
+    dropzone: {
+        addAttachments: 'Añadir archivos adjuntos',
+        scanReceipts: 'Escanear recibos',
+        replaceReceipt: 'Reemplazar recibo',
+    },
     filePicker: {
         fileError: 'Error de archivo',
         errorWhileSelectingFile: 'An error occurred while selecting an file. Please try again.',

@@ -815,6 +815,7 @@ const CONST = {
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
+        NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
