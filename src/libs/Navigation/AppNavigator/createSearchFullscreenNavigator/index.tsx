@@ -18,6 +18,8 @@ function useCustomEffects(props: CustomEffectsHookProps) {
     usePreserveNavigatorState(props.state, props.parentRoute);
 }
 
+// This is a custom state hook that is used to render the last two routes in the stack.
+// We do this to improve the performance of the search results screen.
 function useCustomState({state}: CustomStateHookProps) {
     const routesToRender = [...state.routes.slice(-2)];
     return {...state, routes: routesToRender, index: routesToRender.length - 1};
