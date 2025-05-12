@@ -45,7 +45,7 @@ function SplitListItem<TItem extends ListItem>({
             isFocused={isFocused}
             containerStyle={[
                 styles.mh4,
-                styles.mv2,
+                styles.mv1,
                 styles.reportPreviewBoxHoverBorder,
                 styles.br2,
                 splitItem.isTransactionLinked && StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG),
