@@ -21,7 +21,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {clearCustomStatus, clearDraftCustomStatus, updateCustomStatus, updateDraftCustomStatus} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,6 +42,12 @@ function StatusPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const formRef = useRef<FormRef>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>>();
+
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
+    const hasVacationDelegate = !!vacationDelegate?.delegate;
+    const vacationDelegatePersonalDetails = getPersonalDetailByEmail(vacationDelegate?.delegate ?? '');
+    const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
+
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const currentUserStatusText = currentUserPersonalDetails?.status?.text ?? '';
     const currentUserClearAfter = currentUserPersonalDetails?.status?.clearAfter ?? '';
@@ -234,22 +242,29 @@ function StatusPage() {
                 </View>
                 <View style={[styles.mb2, styles.mt6]}>
                     <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>
-                    <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{translate('statusPage.vacationDelegate')}</Text>
-                    <MenuItem
-                        title={translate('statusPage.vacationDelegate')}
-                        description="desc"
-                        shouldShowRightIcon
-                        onPress={() => {}}
-                        containerStyle={styles.pr2}
-                    />
-                    {/* title: personalDetail?.displayName ?? formattedEmail,
-                                            description: personalDetail?.displayName ? formattedEmail : '',
-                                            badgeText: translate('delegate.role', {role}),
-                                            avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                                            icon: personalDetail?.avatar ?? FallbackAvatar,
-                                            iconType: CONST.ICON_TYPE_AVATAR,
-                                            numberOfLinesDescription: 1,
-                                            wrapperStyle: [styles.sectionMenuItemTopDescription], */}
+                    {hasVacationDelegate && <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{translate('statusPage.vacationDelegate')}</Text>}
+                    {hasVacationDelegate ? (
+                        <MenuItem
+                            title={vacationDelegatePersonalDetails?.displayName ?? formattedDelegateLogin}
+                            description={formattedDelegateLogin}
+                            avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                            icon={vacationDelegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                            iconType={CONST.ICON_TYPE_AVATAR}
+                            numberOfLinesDescription={1}
+                            shouldShowRightIcon
+                            onPress={() => {}}
+                            containerStyle={styles.pr2}
+                        />
+                    ) : (
+                        <View style={[styles.mt1]}>
+                            <MenuItem
+                                description={translate('statusPage.vacationDelegate')}
+                                shouldShowRightIcon
+                                onPress={() => {}}
+                                containerStyle={styles.pr2}
+                            />
+                        </View>
+                    )}
                 </View>
             </FormProvider>
         </ScreenWrapper>
