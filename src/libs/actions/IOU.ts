@@ -10903,10 +10903,10 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const splits: SplitTransactionSplitsParam =
         splitExpenses.map((split) => ({
             amount: split.amount ?? 0,
-            category: split.category,
-            tag: split.tags?.[0],
+            category: split.category ?? '',
+            tag: split.tags?.[0] ?? '',
             created: split.created ?? '',
-            merchant: draftTransaction?.merchant,
+            merchant: draftTransaction?.merchant ?? '',
             transactionID: split.transactionID,
             comments: {
                 comment: split.description,
@@ -10966,6 +10966,8 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             split.transactionThreadReportID = transactionThreadReportID;
             split.createdReportActionIDForThread = createdReportActionIDForThread;
             split.splitReportActionID = createdChatReportActionID;
+            split.created = DateUtils.extractDate(split.created);
+            split.nameValuePairs = split.comments;
         }
 
         optimisticData.push(...(onyxData.optimisticData ?? []));
@@ -11010,8 +11012,16 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         },
     });
 
+    const splitApiParams = {} as Record<string, string | number>;
+    splits.forEach((split, i) => {
+        Object.entries(split).forEach(([key, value]) => {
+            const formattedValue = value !== null && typeof value === 'object' ? JSON.stringify(value) : value;
+            splitApiParams[`splits[${i}][${key}]`] = formattedValue;
+        });
+    });
+
     const parameters: SplitTransactionParams = {
-        splits: JSON.stringify(splits),
+        ...splitApiParams,
         isReverseSplitOperation: false,
         transactionID: originalTransactionID,
     };

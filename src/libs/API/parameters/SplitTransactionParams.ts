@@ -7,6 +7,9 @@ type SplitTransactionSplitsParam = Array<{
     comments?: {
         comment?: string;
     };
+    nameValuePairs?: {
+        comment?: string;
+    };
     splitReportActionID?: string;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
@@ -14,8 +17,8 @@ type SplitTransactionSplitsParam = Array<{
 
 type SplitTransactionParams = {
     transactionID: string;
-    splits: string;
     isReverseSplitOperation: boolean;
+    [key: string]: string | boolean;
 };
 
 export type {SplitTransactionParams, SplitTransactionSplitsParam};

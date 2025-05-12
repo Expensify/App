@@ -50,7 +50,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     }
 
     const reportTransaction = reportTransactions.at(0);
-    if (isPending(reportTransaction)) {
+    if (isPending(reportTransaction) || !!reportTransaction?.errors) {
         return false;
     }
 
