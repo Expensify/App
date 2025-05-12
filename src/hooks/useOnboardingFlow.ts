@@ -98,10 +98,10 @@ function useOnboardingFlowRouter() {
         dismissedProductTraining?.migratedUserWelcomeModal,
         onboardingValues,
         dismissedProductTraining,
+        account?.isFromPublicDomain,
     ]);
 
     return {isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues), isHybridAppOnboardingCompleted};
 }
 
 export default useOnboardingFlowRouter;
-
