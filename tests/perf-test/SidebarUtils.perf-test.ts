@@ -83,14 +83,13 @@ describe('SidebarUtils', () => {
         await measureFunction(() =>
             SidebarUtils.getOptionData({
                 report,
-                reportAttributes: {},
+                reportAttributes: undefined,
                 reportNameValuePairs,
                 reportActions,
                 personalDetails,
                 preferredLocale,
                 policy,
                 parentReportAction,
-                hasViolations: false,
                 oneTransactionThreadReport: undefined,
             }),
         );

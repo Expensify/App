@@ -93,18 +93,15 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         }
 
         setOptions((prevOptions) => {
-            const changedReportEntries = Object.values(changedReports);
-            if (changedReportEntries.length === 0) {
+            const changedReportKeys = Object.keys(changedReports);
+            if (changedReportKeys.length === 0) {
                 return prevOptions;
             }
 
             const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
-            changedReportEntries.forEach((report) => {
-                if (!report) {
-                    return;
-                }
-
-                const reportID = report?.reportID;
+            changedReportKeys.forEach((reportKey) => {
+                const report = changedReports[reportKey];
+                const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
                 const {reportOption} = processReport(report, personalDetails);
 
                 if (reportOption) {
