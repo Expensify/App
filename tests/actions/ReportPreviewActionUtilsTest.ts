@@ -58,7 +58,7 @@ describe('getReportPreviewAction', () => {
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
-    it('isAddExpenseAction should return true for report preview with no transactions', async () => {
+    it('getReportPreviewAction should return ADD_EXPENSE action for report preview with no transactions', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
