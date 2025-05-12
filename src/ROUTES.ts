@@ -687,8 +687,8 @@ const ROUTES = {
             getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_EDIT_REPORT: {
-        route: ':action/report/:reportID/edit',
-        getRoute: (action: IOUAction, reportID: string, backTo = '') => getUrlWithBackToParam(`${action as string}/report/${reportID}`, backTo),
+        route: ':action/:iouType/report/:reportID/edit',
+        getRoute: (action: IOUAction, iouType: IOUType, reportID: string, backTo = '') => getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit`, backTo),
     },
     SETTINGS_TAGS_ROOT: {
         route: 'settings/:policyID/tags',
