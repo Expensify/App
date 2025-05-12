@@ -1,8 +1,9 @@
-import type {LayoutChangeEvent, ListRenderItem, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
-import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type { LayoutChangeEvent, ListRenderItem, StyleProp, ViewStyle } from 'react-native';
+import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
+import type { TransactionPreviewStyleType } from '@components/ReportActionItem/TransactionPreview/types';
+import type { ContextMenuAnchor } from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import type { PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations } from '@src/types/onyx';
+
 
 type TransactionPreviewStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
@@ -81,8 +82,11 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
         /** MoneyRequestReportPreview's current width */
         currentWidth: number;
 
-        /** Callback passed to onLayout  */
-        onLayout: (e: LayoutChangeEvent) => void;
+        /** Callback passed to Carousel's onLayout  */
+        onCarouselLayout: (e: LayoutChangeEvent) => void;
+
+        /** Callback passed to Component wrapper view's onLayout */
+        onWrapperLayout: (e: LayoutChangeEvent) => void;
 
         /** Callback to render a transaction preview item */
         renderTransactionItem: ListRenderItem<Transaction>;

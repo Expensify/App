@@ -59,9 +59,10 @@ function MoneyRequestReportPreview({
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
     const [currentWidth, setCurrentWidth] = useState(256);
+    const [currentWrapperWidth, setCurrentWrapperWidth] = useState(256);
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, transactions.length === 1),
-        [StyleUtils, currentWidth, shouldUseNarrowLayout, transactions.length],
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, currentWrapperWidth, transactions.length === 1),
+        [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
     );
 
     const shouldShowIOUData = useMemo(() => {
@@ -127,8 +128,11 @@ function MoneyRequestReportPreview({
             lastTransactionViolations={lastTransactionViolations}
             isDelegateAccessRestricted={isDelegateAccessRestricted}
             renderTransactionItem={renderItem}
-            onLayout={(e: LayoutChangeEvent) => {
+            onCarouselLayout={(e: LayoutChangeEvent) => {
                 setCurrentWidth(e.nativeEvent.layout.width ?? 255);
+            }}
+            onWrapperLayout={(e: LayoutChangeEvent) => {
+                setCurrentWrapperWidth(e.nativeEvent.layout.width ?? 255);
             }}
             currentWidth={currentWidth}
             reportPreviewStyles={reportPreviewStyles}

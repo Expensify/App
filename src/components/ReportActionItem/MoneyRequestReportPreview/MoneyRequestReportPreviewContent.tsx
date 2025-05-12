@@ -104,7 +104,8 @@ function MoneyRequestReportPreviewContent({
     lastTransactionViolations,
     isDelegateAccessRestricted,
     renderTransactionItem,
-    onLayout,
+    onCarouselLayout,
+    onWrapperLayout,
     currentWidth,
     reportPreviewStyles,
     shouldDisplayContextMenu = true,
@@ -575,14 +576,17 @@ function MoneyRequestReportPreviewContent({
     };
 
     return (
-        <View onLayout={onLayout}>
+        <View onLayout={onWrapperLayout}>
             <OfflineWithFeedback
                 pendingAction={iouReport?.pendingFields?.preview}
                 shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
                 needsOffscreenAlphaCompositing
                 style={styles.mt1}
             >
-                <View style={[styles.chatItemMessage, containerStyles]}>
+                <View
+                    style={[styles.chatItemMessage, containerStyles]}
+                    onLayout={onCarouselLayout}
+                >
                     <PressableWithoutFeedback
                         onPress={onPress}
                         onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
