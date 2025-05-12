@@ -1,5 +1,7 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
+import type {FileObject} from '@components/AttachmentModal';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -36,6 +38,8 @@ import {
     queueExportSearchItemsToCSV,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
+import {resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
+import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -44,8 +48,9 @@ import {generateReportID} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
-import {startMoneyRequest} from '@userActions/IOU';
+import {navigateToParticipantPage, setMoneyRequestReceipt, startMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -72,6 +77,11 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
+    // TODO: to be refactored
+    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
+    const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
+    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
     const {q, name} = route.params;
 
@@ -94,6 +104,17 @@ function SearchPage({route}: SearchPageProps) {
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+
+    // TODO: to be refactored
+    /**
+     * Sets the upload receipt error modal content when an invalid receipt is uploaded
+     */
+    const setUploadReceiptError = (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => {
+        setIsAttachmentInvalid(isInvalid);
+        setAttachmentInvalidReasonTitle(title);
+        setAttachmentValidReason(reason);
+        setPdfFile(null);
+    };
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || !status || !hash) {
@@ -200,14 +221,24 @@ function SearchPage({route}: SearchPageProps) {
                         const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, lastPaymentMethods);
 
                         if (!lastPolicyPaymentMethod) {
-                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
+                            Navigation.navigate(
+                                ROUTES.SEARCH_REPORT.getRoute({
+                                    reportID: item.reportID,
+                                    backTo: activeRoute,
+                                }),
+                            );
                             return;
                         }
 
                         const hasPolicyVBBA = hasVBBA(itemPolicyID);
 
                         if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !hasPolicyVBBA) {
-                            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
+                            Navigation.navigate(
+                                ROUTES.SEARCH_REPORT.getRoute({
+                                    reportID: item.reportID,
+                                    backTo: activeRoute,
+                                }),
+                            );
                             return;
                         }
                     }
@@ -343,11 +374,34 @@ function SearchPage({route}: SearchPageProps) {
     };
 
     const initScanRequest = (e: DragEvent) => {
-        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN);
         const file = e?.dataTransfer?.files[0];
         if (file) {
             file.uri = URL.createObjectURL(file);
-            console.log(file.uri);
+            validateReceipt(file, setUploadReceiptError).then((isFileValid) => {
+                if (!isFileValid) {
+                    return;
+                }
+
+                // If we have a pdf file and if it is not validated then set the pdf file for validation and return
+                if (Str.isPDF(file.name ?? '')) {
+                    setPdfFile(file);
+                    return;
+                }
+
+                // With the image size > 24MB, we use manipulateAsync to resize the image.
+                // It takes a long time so we should display a loading indicator while the resize image progresses.
+                if (Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                    // setIsLoadingReceipt(true);
+                }
+                resizeImageIfNeeded(file).then((resizedFile) => {
+                    // setIsLoadingReceipt(false);
+                    // Store the receipt on the transaction object in Onyx
+                    const source = URL.createObjectURL(resizedFile as Blob);
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, resizedFile.name || '', true);
+                    startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN);
+                });
+            });
         }
     };
 
