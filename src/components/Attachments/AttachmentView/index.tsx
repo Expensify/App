@@ -154,6 +154,12 @@ function AttachmentView({
         });
     }, [file]);
 
+    useEffect(() => {
+        const isImageSource = typeof source !== 'function' && !!checkIsFileImage(source, file?.name);
+        const isErrorInImage = imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function');
+        onAttachmentError?.(source, isErrorInImage && isImageSource);
+    }, [fallbackSource, file?.name, imageError, onAttachmentError, source]);
+
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image
     if (typeof source === 'function' || (maybeIcon && typeof source === 'number')) {
@@ -246,7 +252,6 @@ function AttachmentView({
 
     if (isFileImage) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
-            onAttachmentError?.(source);
             return (
                 <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
@@ -298,7 +303,6 @@ function AttachmentView({
                             if (isOffline) {
                                 return;
                             }
-                            onAttachmentError?.(source);
 
                             setImageError(true);
                         }}

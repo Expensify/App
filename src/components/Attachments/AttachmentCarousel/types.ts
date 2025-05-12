@@ -36,7 +36,7 @@ type AttachmentCarouselProps = {
     attachmentLink?: string;
 
     /** Callback for attachment errors */
-    onAttachmentError?: (source: AttachmentSource) => void;
+    onAttachmentError?: (source: AttachmentSource, state?: boolean) => void;
 };
 
 export type {AttachmentCarouselProps, UpdatePageProps};

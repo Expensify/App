@@ -25,14 +25,14 @@ function convertSourceToString(source: AttachmentSource) {
 function useAttachmentErrors() {
     const [attachmentErrors, setAttachmentErrors] = useState<Record<string, boolean>>({});
 
-    const setAttachmentError = useCallback((key: AttachmentSource) => {
+    const setAttachmentError = useCallback((key: AttachmentSource, state = true) => {
         const url = convertSourceToString(key);
         if (!url) {
             return;
         }
         setAttachmentErrors((prevState) => ({
             ...prevState,
-            [url]: true,
+            [url]: state,
         }));
     }, []);
 
