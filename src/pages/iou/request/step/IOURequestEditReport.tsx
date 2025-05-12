@@ -33,7 +33,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             changeTransactionsReport(selectedTransactionsID, item.value);
             setSelectedTransactionsID([]);
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.value));
+        Navigation.dismissModalWithReport({reportID: item.value});
     };
 
     return (
