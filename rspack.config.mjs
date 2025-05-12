@@ -46,15 +46,6 @@ export default (env) => ({
             },
         ],
     },
-    ignoreWarnings: [
-        /^@react-native-masked-view/,
-        /^react-native-worklets-core$/,
-        /^@shopify\/react-native-skia$/,
-        /^react-native-reanimated\/src\/reanimated2\/core$/,
-    ],
-    plugins: [
-        new Repack.RepackPlugin(),
-        new ReanimatedPlugin(),
-        new ExpoModulesPlugin(),
-    ],
+    ignoreWarnings: [/^@react-native-masked-view/, /^react-native-worklets-core$/, /^@shopify\/react-native-skia$/, /^react-native-reanimated\/src\/reanimated2\/core$/],
+    plugins: [new Repack.RepackPlugin(), new ReanimatedPlugin(), new ExpoModulesPlugin()],
 });
