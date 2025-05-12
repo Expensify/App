@@ -2078,7 +2078,7 @@ function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): 
 }
 
 /**
- * If the report is a thread and has a chat type set, it is a workspace chat.
+ * If the report is a thread and has a chat type set, it is a expense chat.
  */
 function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
     const chatType = getChatType(report);
@@ -3512,7 +3512,7 @@ function getPolicyExpenseChatName({
         policyExpenseChatRole = policyItem.role || 'user';
     }
 
-    // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
+    // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old expense chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
@@ -7513,7 +7513,7 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | u
  * Should we display a RBR on the LHN on this report due to violations?
  */
 function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
-    // We only show the RBR in the highest level, which is the workspace chat
+    // We only show the RBR in the highest level, which is the expense chat
     if (!report || !isPolicyExpenseChat(report)) {
         return false;
     }
@@ -8151,7 +8151,7 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     }
 
     // User can submit expenses in any IOU report, unless paid, but the user can only submit expenses in an expense report
-    // which is tied to their workspace chat.
+    // which is tied to their expense chat.
     if (isMoneyRequestReport(report)) {
         const canAddTransactions = canAddTransaction(report);
         return isReportInGroupPolicy(report) ? isOwnPolicyExpenseChat && canAddTransactions : canAddTransactions;
@@ -8185,7 +8185,7 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  *     - DMs
  *     - chat/policy rooms with more than 1 participant
  *     - groups chats with 2 and more participants
- *     - corporate workspace chats
+ *     - corporate expense chats
  * - Track expense option should show for:
  *    - Self DMs
  *    - own policy expense chats
@@ -8247,7 +8247,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Expense option
     // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Expense option.
-    // Your own workspace chats will have the split expense option.
+    // Your own expense chats will have the split expense option.
     if (
         (isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
         (isDM(report) && otherParticipants.length > 0) ||
@@ -8399,7 +8399,7 @@ function getWhisperDisplayNames(participantAccountIDs?: number[]): string | unde
 }
 
 /**
- * Show subscript on workspace chats / threads and expense requests
+ * Show subscript on expense chats / threads and expense requests
  */
 function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
     // This will get removed as part of https://github.com/Expensify/App/issues/59961

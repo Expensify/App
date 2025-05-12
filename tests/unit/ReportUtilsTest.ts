@@ -333,7 +333,7 @@ describe('ReportUtils', () => {
 
     describe('getWorkspaceIcon', () => {
         it('should not use cached icon when avatar is updated', () => {
-            // Given a new workspace and a workspace chat with undefined `policyAvatar`
+            // Given a new workspace and a expense chat with undefined `policyAvatar`
             const workspace = LHNTestUtils.getFakePolicy('1', 'ws');
             const workspaceChat = LHNTestUtils.getFakeReport();
             workspaceChat.policyID = workspace.id;
@@ -2031,7 +2031,7 @@ describe('ReportUtils', () => {
     });
 
     describe('canEditWriteCapability', () => {
-        it('should return false for workspace chat', () => {
+        it('should return false for expense chat', () => {
             const workspaceChat: Report = {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,

@@ -5624,7 +5624,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string 
  *      {email: 'user3', amount: 100, iouReportID: '200', chatReportID: '210', transactionID: '220', reportActionID: '230'}
  *  ]
  * @param amount - always in the smallest unit of the currency
- * @param existingSplitChatReportID - the report ID where the split expense happens, could be a group chat or a workspace chat
+ * @param existingSplitChatReportID - the report ID where the split expense happens, could be a group chat or a expense chat
  */
 function createSplitsAndOnyxData({
     participants,
@@ -5883,7 +5883,7 @@ function createSplitsAndOnyxData({
 
         // If this is a split between two people only and the function
         // wasn't provided with an existing group chat report id
-        // or, if the split is being made from the workspace chat, then the oneOnOneChatReport is the same as the splitChatReport
+        // or, if the split is being made from the expense chat, then the oneOnOneChatReport is the same as the splitChatReport
         // in this case existingSplitChatReport will belong to the policy expense chat and we won't be
         // entering code that creates optimistic personal details
         if ((!hasMultipleParticipants && !existingSplitChatReportID) || isOwnPolicyExpenseChat || isOneOnOneChat(splitChatReport)) {
@@ -6103,7 +6103,7 @@ type SplitBillActionsParams = {
 
 /**
  * @param amount - always in smallest currency unit
- * @param existingSplitChatReportID - Either a group DM or a workspace chat
+ * @param existingSplitChatReportID - Either a group DM or a expense chat
  */
 function splitBill({
     participants,
@@ -6252,7 +6252,7 @@ function splitBillAndOpenReport({
 /** Used exclusively for starting a split expense request that contains a receipt, the split request will be completed once the receipt is scanned
  *  or user enters details manually.
  *
- * @param existingSplitChatReportID - Either a group DM or a workspace chat
+ * @param existingSplitChatReportID - Either a group DM or a expense chat
  */
 function startSplitBill({
     participants,
@@ -6480,7 +6480,7 @@ function startSplitBill({
             return;
         }
 
-        // When splitting with a workspace chat, we only need to supply the policyID and the workspace reportID as it's needed so we can update the report preview
+        // When splitting with a expense chat, we only need to supply the policyID and the workspace reportID as it's needed so we can update the report preview
         if (participant.isOwnPolicyExpenseChat) {
             splits.push({
                 policyID: participant.policyID,
@@ -6704,7 +6704,7 @@ function completeSplitBill(
         let oneOnOneChatReport: OnyxEntry<OnyxTypes.Report>;
         let isNewOneOnOneChatReport = false;
         if (isPolicyExpenseChat) {
-            // The workspace chat reportID is saved in the splits array when starting a split expense with a workspace
+            // The expense chat reportID is saved in the splits array when starting a split expense with a workspace
             oneOnOneChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`];
         } else {
             const existingChatReport = getChatByParticipants(participant.accountID ? [participant.accountID, sessionAccountID] : []);
