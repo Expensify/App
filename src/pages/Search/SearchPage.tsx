@@ -14,6 +14,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
+import PDFThumbnail from '@components/PDFThumbnail';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -40,6 +41,7 @@ import {
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import {resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
+import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -48,7 +50,7 @@ import {generateReportID} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
-import {setMoneyRequestReceipt, startMoneyRequest} from '@userActions/IOU';
+import {initMoneyRequest, setMoneyRequestReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -115,6 +117,16 @@ function SearchPage({route}: SearchPageProps) {
         setAttachmentInvalidReasonTitle(title);
         setAttachmentValidReason(reason);
         setPdfFile(null);
+    };
+
+    const getConfirmModalPrompt = () => {
+        if (!attachmentInvalidReason) {
+            return '';
+        }
+        if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
+            return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+        }
+        return translate(attachmentInvalidReason);
     };
 
     const headerButtonsOptions = useMemo(() => {
@@ -374,35 +386,45 @@ function SearchPage({route}: SearchPageProps) {
         });
     };
 
+    const hideReceiptModal = () => {
+        setIsAttachmentInvalid(false);
+    };
+
+    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
+        validateReceipt(originalFile, setUploadReceiptError).then((isFileValid) => {
+            if (!isFileValid) {
+                return;
+            }
+
+            // If we have a pdf file and if it is not validated then set the pdf file for validation and return
+            if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
+                setPdfFile(originalFile);
+                return;
+            }
+
+            // With the image size > 24MB, we use manipulateAsync to resize the image.
+            // It takes a long time so we should display a loading indicator while the resize image progresses.
+            if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                setIsLoadingReceipt(true);
+            }
+            resizeImageIfNeeded(originalFile).then((resizedFile) => {
+                // setIsLoadingReceipt(false);
+                // Store the receipt on the transaction object in Onyx
+                const source = URL.createObjectURL(resizedFile as Blob);
+                const newReportID = generateReportID();
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, resizedFile.name || '', true);
+                initMoneyRequest(newReportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
+                navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
+            });
+        });
+    };
+
     const initScanRequest = (e: DragEvent) => {
         const file = e?.dataTransfer?.files[0];
         if (file) {
             file.uri = URL.createObjectURL(file);
-            validateReceipt(file, setUploadReceiptError).then((isFileValid) => {
-                if (!isFileValid) {
-                    return;
-                }
-
-                // If we have a pdf file and if it is not validated then set the pdf file for validation and return
-                if (Str.isPDF(file.name ?? '')) {
-                    setPdfFile(file);
-                    return;
-                }
-
-                // With the image size > 24MB, we use manipulateAsync to resize the image.
-                // It takes a long time so we should display a loading indicator while the resize image progresses.
-                if (Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                    setIsLoadingReceipt(true);
-                }
-                resizeImageIfNeeded(file).then((resizedFile) => {
-                    // setIsLoadingReceipt(false);
-                    // Store the receipt on the transaction object in Onyx
-                    const source = URL.createObjectURL(resizedFile as Blob);
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, resizedFile.name || '', true);
-                    startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN);
-                });
-            });
+            setReceiptAndNavigate(file);
         }
     };
 
@@ -433,6 +455,23 @@ function SearchPage({route}: SearchPageProps) {
 
     const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
+
+    const PDFThumbnailView = pdfFile ? (
+        <PDFThumbnail
+            style={styles.invisiblePDF}
+            previewSourceURL={pdfFile.uri ?? ''}
+            onLoadSuccess={() => {
+                setPdfFile(null);
+                setReceiptAndNavigate(pdfFile, true);
+            }}
+            onPassword={() => {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
+            }}
+            onLoadError={() => {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+            }}
+        />
+    ) : null;
 
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
@@ -544,6 +583,7 @@ function SearchPage({route}: SearchPageProps) {
                         >
                             {isLoadingReceipt && <FullScreenLoadingIndicator />}
                             <DragAndDropProvider isDisabled={queryJSON.type !== CONST.REPORT.TYPE.EXPENSE}>
+                                {PDFThumbnailView}
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
@@ -568,6 +608,15 @@ function SearchPage({route}: SearchPageProps) {
                                 />
                             </DragAndDropProvider>
                         </ScreenWrapper>
+                        <ConfirmModal
+                            title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                            onConfirm={hideReceiptModal}
+                            onCancel={hideReceiptModal}
+                            isVisible={isAttachmentInvalid}
+                            prompt={getConfirmModalPrompt()}
+                            confirmText={translate('common.close')}
+                            shouldShowCancelButton={false}
+                        />
                     </View>
                 )}
                 <ConfirmModal
