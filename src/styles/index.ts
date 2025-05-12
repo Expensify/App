@@ -120,6 +120,15 @@ const link = (theme: ThemeColors) =>
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
     } satisfies ViewStyle & MixedStyleDeclaration);
 
+const emailLink = (theme: ThemeColors) =>
+    ({
+        color: theme.link,
+        textDecorationColor: theme.link,
+        // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
+        fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+        fontWeight: FontUtils.fontWeight.bold,
+    } satisfies ViewStyle & MixedStyleDeclaration);
+
 const baseCodeTagStyles = (theme: ThemeColors) =>
     ({
         borderWidth: 1,
@@ -336,6 +345,8 @@ const styles = (theme: ThemeColors) =>
 
         link: link(theme),
 
+        emailLink: emailLink(theme),
+
         linkMuted: {
             color: theme.textSupporting,
             textDecorationColor: theme.textSupporting,
@@ -372,6 +383,20 @@ const styles = (theme: ThemeColors) =>
 
         textAlignLeft: {
             textAlign: 'left',
+        },
+
+        textWithMiddleEllipsisContainer: {
+            width: '100%',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            display: 'flex',
+            flexDirection: 'row',
+        },
+
+        textWithMiddleEllipsisText: {
+            overflow: 'hidden',
+            textOverflow: 'clip',
+            whiteSpace: 'nowrap',
         },
 
         verticalAlignTopText: {
@@ -592,13 +617,13 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number, sidebarWidth: number) => ({
+        topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
             // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
             // On natives we can use absolute positioning.
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             opacity: shouldDisplayTopLevelNavigationTabBar ? 1 : 0,
             pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
-            width: shouldUseNarrowLayout ? '100%' : sidebarWidth,
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
             paddingBottom: bottomSafeAreaOffset,
 
             // There is a missing border right on the wide layout
@@ -621,14 +646,7 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        leftNavigationTabBarPosition: {
-            height: '100%',
-            width: variables.navigationTabBarSize,
-            position: 'fixed',
-            left: 0,
-        },
-
-        leftNavigationTabBar: {
+        leftNavigationTabBarContainer: {
             height: '100%',
             width: variables.navigationTabBarSize,
             position: 'fixed',
@@ -636,6 +654,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderRightColor: theme.border,
+            backgroundColor: theme.appBG,
         },
 
         leftNavigationTabBarItem: {
@@ -839,6 +858,10 @@ const styles = (theme: ThemeColors) =>
 
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
+        },
+
+        hoveredComponentBG2: {
+            backgroundColor: 'black',
         },
 
         activeComponentBG: {
@@ -1660,18 +1683,11 @@ const styles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-        },
-
-        searchSidebarWithLHB: {
-            width: variables.sideBarWithLHBWidth,
-            height: '100%',
-            justifyContent: 'space-between',
-            borderRightWidth: 1,
-            borderColor: theme.border,
+            marginLeft: variables.navigationTabBarSize,
         },
 
         searchSidebar: {
-            width: variables.sideBarWidth,
+            width: variables.sideBarWithLHBWidth,
             height: '100%',
             justifyContent: 'space-between',
             borderRightWidth: 1,
@@ -1860,6 +1876,27 @@ const styles = (theme: ThemeColors) =>
                 overflow: 'hidden',
             } satisfies ViewStyle),
 
+        TestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
+            flex: 1,
+            justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+            alignItems: 'center',
+        }),
+
+        TestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
+            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+            const defaultHeight = shouldUseNarrowLayout ? '78%' : '75%';
+            const height = isAuthenticated ? defaultHeight : '55%';
+
+            return {
+                width: shouldUseNarrowLayout ? '100%' : '91%',
+                height,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderBottomRightRadius: borderBottomRadius,
+                borderBottomLeftRadius: borderBottomRadius,
+                overflow: 'hidden',
+            };
+        },
+
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
@@ -1894,15 +1931,7 @@ const styles = (theme: ThemeColors) =>
             ({
                 horizontal: 18,
                 // Menu should be displayed 12px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
-                vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 12),
-            } satisfies AnchorPosition),
-
-        createLHBMenuPositionSidebar: (windowHeight: number) =>
-            ({
-                horizontal: 18,
-                // Menu should be displayed 12px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
+                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (12px)
                 vertical: windowHeight - (variables.fabBottom + variables.componentSizeNormal + 12),
             } satisfies AnchorPosition),
 
@@ -1913,14 +1942,6 @@ const styles = (theme: ThemeColors) =>
             } satisfies AnchorPosition),
 
         createMenuPositionReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
-            ({
-                // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
-                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWidth : variables.sideBarWidth) + 18,
-                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
-            } satisfies AnchorPosition),
-
-        // @TODO: When canUseLeftHandBar beta is no longer needed, rename it to createMenuPositionReportActionCompose and remove the above function
-        createMenuPositionReportActionComposeWhenLhbIsVisible: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
             ({
                 // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
                 horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWithLHBWidth : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) + 18,
@@ -2711,6 +2732,14 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
 
+        reportSearchHeaderBar: {
+            overflow: 'hidden',
+            justifyContent: 'center',
+            display: 'flex',
+            width: '100%',
+            height: 52,
+        },
+
         searchResultsHeaderBar: {
             display: 'flex',
             height: variables.contentHeaderDesktopHeight,
@@ -2720,9 +2749,9 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 12,
         },
 
-        headerBarDesktopHeight: (canUseLeftHandBar: boolean | undefined) => ({
-            height: canUseLeftHandBar ? variables.contentHeaderHeight : variables.contentHeaderDesktopHeight,
-        }),
+        headerBarHeight: {
+            height: variables.contentHeaderHeight,
+        },
 
         imageViewContainer: {
             width: '100%',
@@ -3005,8 +3034,7 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 88,
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
-        rootNavigatorContainerWithLHBStyles: (isSmallScreenWidth: boolean) =>
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
             ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1} satisfies ViewStyle),
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
 
@@ -5109,7 +5137,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         walletRedDotSectionText: {
-            color: theme.darkSupportingText,
+            color: theme.textSupporting,
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightNormal,
         },
@@ -5445,6 +5473,17 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
+        emptyStateMoneyRequestPreviewReport: {
+            borderWidth: 1,
+            borderColor: theme.border,
+            height: 168,
+            width: '100%',
+            boxSizing: 'border-box',
+            ...borders.br4,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+        },
+
         pendingStateCardIllustration: {
             width: 233,
             height: 162,
@@ -5670,6 +5709,12 @@ const styles = (theme: ThemeColors) =>
             right: 0,
         },
 
+        getSearchBarStyle: (shouldUseNarrowLayout: boolean) => ({
+            maxWidth: shouldUseNarrowLayout ? '100%' : 300,
+            marginHorizontal: 20,
+            marginBottom: 20,
+        }),
+
         earlyDiscountButton: {
             flexGrow: 1,
             flexShrink: 1,
@@ -5700,8 +5745,19 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
+        unreportedExpenseCreateExpenseButton: {
+            ...flex.alignSelfStart,
+        },
+
         testDriveBannerGap: {
             height: CONST.DESKTOP_HEADER_PADDING * 2,
+        },
+
+        twoColumnLayoutCol: {
+            flexGrow: 1,
+            flexShrink: 1,
+            // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
+            flexBasis: '35%',
         },
     } satisfies Styles);
 
