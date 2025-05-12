@@ -1871,6 +1871,10 @@ function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
     return translateLocal('roomChangeLog.clearRoomDescription');
 }
 
+function getRetractedMessage(): string {
+    return translateLocal('iou.retracted');
+}
+
 function isPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE);
 }
@@ -2520,6 +2524,7 @@ export {
     getWorkspaceReportFieldDeleteMessage,
     getReportActions,
     getLeaveRoomMessage,
+    getRetractedMessage,
 };
 
 export type {LastVisibleMessage};
