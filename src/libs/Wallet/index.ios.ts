@@ -1,6 +1,7 @@
 import {addCardToAppleWallet, checkWalletAvailability, getCardStatusByIdentifier, getCardStatusBySuffix} from '@expensify/react-native-wallet';
 import type {IOSCardData} from '@expensify/react-native-wallet/lib/typescript/src/NativeWallet';
 import {Alert} from 'react-native';
+import {openWalletPage} from '@libs/actions/PaymentMethods';
 import {issuerEncryptPayloadCallback} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
@@ -21,9 +22,14 @@ function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescripti
     } as IOSCardData;
 
     addCardToAppleWallet(data, issuerEncryptPayloadCallback)
-        .then(() => {
+        .then((status) => {
             Log.info('Card added to wallet');
-            onFinished?.();
+            if (status === 'success') {
+                Log.info('Card added to wallet');
+                openWalletPage();
+            } else {
+                onFinished?.();
+            }
         })
         .catch((e) => {
             Log.warn(`handleAddCardToWallet error: ${e}`);

@@ -27,7 +27,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
 
     useEffect(() => {
         checkIfCardIsInWallet();
-    }, [checkIfCardIsInWallet]);
+    }, [checkIfCardIsInWallet, card]);
 
     useEffect(() => {
         checkIfWalletIsAvailable()
