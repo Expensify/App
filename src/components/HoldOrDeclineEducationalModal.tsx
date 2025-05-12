@@ -45,7 +45,7 @@ const menuSections: SectionMenuItem[] = [
         descriptionKey: 'iou.decline.holdExpenseDescription',
     },
     {
-        icon: Illustrations.RealtimeReport,
+        icon: Illustrations.ThumbsDown,
         titlePrefixTranslationKey: 'iou.decline.declineExpenseTitlePrefix',
         titleTranslationKey: 'iou.decline.declineExpenseTitle',
         descriptionKey: 'iou.decline.declineExpenseDescription',
@@ -77,7 +77,7 @@ function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducat
             title={title}
             description={translate('iou.decline.educationalText')}
             confirmText={translate('common.buttonConfirm')}
-            image={Illustrations.CardHoldVsDecline}
+            image={Illustrations.ModalHoldOrDecline}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
             illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}

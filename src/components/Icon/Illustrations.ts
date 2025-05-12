@@ -14,7 +14,7 @@ import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/ca
 import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
 import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-brex-large.svg';
 import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/card-capital_one-large.svg';
-import CardHoldVsDecline from '@assets/images/product-illustrations/card-hold-vs-decline.svg';
+import ModalHoldOrDecline from '@assets/images/product-illustrations/modal-hold-or-decline.svg';
 import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
 import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
 import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
@@ -144,6 +144,7 @@ import SubscriptionPPU from '@assets/images/simple-illustrations/simple-illustra
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
+import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration__thumbsdown.svg';
 import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.svg';
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
@@ -313,5 +314,6 @@ export {
     Flash,
     ExpensifyMobileApp,
     ReportReceipt,
-    CardHoldVsDecline
+    ModalHoldOrDecline,
+    ThumbsDown
 };
