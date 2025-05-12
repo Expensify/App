@@ -27,6 +27,10 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
+function canUseMultiLevelTags(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.MULTI_LEVEL_TAGS) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -91,4 +95,5 @@ export default {
     canUseGlobalReimbursementsOnND,
     canUsePrivateDomainOnboarding,
     canUseCallScheduling,
+    canUseMultiLevelTags,
 };
