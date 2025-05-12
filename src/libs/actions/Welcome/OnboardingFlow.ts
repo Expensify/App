@@ -95,4 +95,3 @@ function clearInitialPath() {
 }
 
 export {getOnboardingInitialPath, startOnboardingFlow, clearInitialPath};
-
