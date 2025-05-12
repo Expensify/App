@@ -1098,6 +1098,8 @@ function PureReportActionItem({
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPTSCANFAILED)) {
+            children = <ReportActionItemBasicMessage message={translate('receipt.scanFailed')} />;
         } else if (isRenamedAction(action)) {
             const message = getRenamedAction(action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;

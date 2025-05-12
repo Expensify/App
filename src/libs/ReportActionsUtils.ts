@@ -1536,6 +1536,10 @@ function getLeaveRoomMessage() {
     return translateLocal('report.actions.type.leftTheChat');
 }
 
+function getReceiptScanFailedMessage() {
+    return translateLocal('receipt.scanFailed');
+}
+
 function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
     const html = getUpdateRoomDescriptionMessage(reportAction);
     return {
@@ -2519,6 +2523,7 @@ export {
     getWorkspaceReportFieldDeleteMessage,
     getReportActions,
     getLeaveRoomMessage,
+    getReceiptScanFailedMessage,
 };
 
 export type {LastVisibleMessage};
