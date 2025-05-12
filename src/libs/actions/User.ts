@@ -1394,28 +1394,21 @@ function lockAccount() {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: false,
+                isLoading: false
             },
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {isLoading: false},
-        },
-    ];
     const params: LockAccountParams = {
         accountID: currentUserAccountID,
     };
 
-    API.write(WRITE_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, finallyData});
 }
 
 export {
