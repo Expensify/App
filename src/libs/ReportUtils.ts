@@ -1620,7 +1620,7 @@ function getBankAccountRoute(report: OnyxEntry<Report>): Route {
         return ROUTES.WORKSPACE_INVOICES.getRoute(report?.invoiceReceiver?.policyID);
     }
 
-    return ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
+    return ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route;
 }
 
 /**
