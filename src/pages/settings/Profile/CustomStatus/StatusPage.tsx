@@ -252,7 +252,7 @@ function StatusPage() {
                             iconType={CONST.ICON_TYPE_AVATAR}
                             numberOfLinesDescription={1}
                             shouldShowRightIcon
-                            onPress={() => {}}
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
                             containerStyle={styles.pr2}
                         />
                     ) : (
@@ -260,7 +260,7 @@ function StatusPage() {
                             <MenuItem
                                 description={translate('statusPage.vacationDelegate')}
                                 shouldShowRightIcon
-                                onPress={() => {}}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
                                 containerStyle={styles.pr2}
                             />
                         </View>
