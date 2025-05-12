@@ -190,7 +190,6 @@ import type {
     UnreportedTransactionParams,
     UnshareParams,
     UntilTimeParams,
-    UpdatedCustomFieldParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
@@ -2923,9 +2922,6 @@ const translations = {
             reimburse: 'Reimbursements',
             categories: 'Categories',
             tags: 'Tags',
-            customField1: 'Custom field 1',
-            customField2: 'Custom field 2',
-            customFieldHint: 'Add custom coding that applies to all spend from this member.',
             reportFields: 'Report fields',
             reportTitle: 'Report title',
             reportField: 'Report field',
@@ -5457,20 +5453,6 @@ const translations = {
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
-                updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
-                    if (!newValue) {
-                        return `removed ${email}'s custom field 1 (previously "${previousValue}")`;
-                    }
-
-                    return !previousValue ? `added "${newValue}" to ${email}’s custom field 1` : `changed ${email}’s custom field 1 to "${newValue}" (previously "${previousValue}")`;
-                },
-                updatedCustomField2: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
-                    if (!newValue) {
-                        return `removed ${email}'s custom field 2 (previously "${previousValue}")`;
-                    }
-
-                    return !previousValue ? `added "${newValue}" to ${email}’s custom field 2` : `changed ${email}’s custom field 2 to "${newValue}" (previously "${previousValue}")`;
-                },
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} left the workspace`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
