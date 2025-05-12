@@ -162,13 +162,7 @@ function AddressSearch(
 
         // Make sure that the order of keys remains such that the country is always set above the state.
         // Refer to https://github.com/Expensify/App/issues/15633 for more information.
-        const {
-            country: countryFallbackLongName = '',
-            state: stateAutoCompleteFallback = '',
-            city: cityAutocompleteFallback = '',
-            street: streetAutocompleteFallback = '',
-            streetNumber: streetNumberAutocompleteFallback = '',
-        } = getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
+        const {country: countryFallbackLongName = '', state: stateAutoCompleteFallback = '', city: cityAutocompleteFallback = ''} = getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
 
         const countryFallback = Object.keys(CONST.ALL_COUNTRIES).find((country) => country === countryFallbackLongName);
 
@@ -176,7 +170,7 @@ function AddressSearch(
         const country = countryPrimary || countryFallback || '';
 
         const values = {
-            street: `${streetNumber || streetNumberAutocompleteFallback} ${streetName || streetAutocompleteFallback}`.trim(),
+            street: `${streetNumber} ${streetName}`.trim(),
             name: details.name ?? '',
             // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
             street2: subpremise,
