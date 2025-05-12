@@ -1,56 +1,19 @@
 import React from 'react';
 import {View} from 'react-native';
-import Checkbox from '@components/Checkbox';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useOnyx} from 'react-native-onyx';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {handleActionButtonPress} from '@libs/actions/Search';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import ActionCell from './ActionCell';
-import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
-import TransactionListItem from './TransactionListItem';
+import ReportListItemHeader from './ReportListItemHeader';
 import TransactionListItemRow from './TransactionListItemRow';
-
-type CellProps = {
-    // eslint-disable-next-line react/no-unused-prop-types
-    showTooltip: boolean;
-    // eslint-disable-next-line react/no-unused-prop-types
-    isLargeScreenWidth: boolean;
-};
-
-type ReportCellProps = {
-    reportItem: ReportListItemType;
-} & CellProps;
-
-function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
-    const styles = useThemeStyles();
-
-    let total = reportItem?.total ?? 0;
-
-    // Only invert non-zero values otherwise we'll end up with -0.00
-    if (total) {
-        total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE || reportItem?.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
-    }
-
-    return (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={convertToDisplayString(total, reportItem?.currency)}
-            style={[styles.optionDisplayName, styles.textNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
-        />
-    );
-}
 
 function ReportListItem<TItem extends ListItem>({
     item,
@@ -65,12 +28,13 @@ function ReportListItem<TItem extends ListItem>({
     shouldSyncFocus,
 }: ReportListItemProps<TItem>) {
     const reportItem = item as unknown as ReportListItemType;
-
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useResponsiveLayout();
-    const StyleUtils = useStyleUtils();
-    const {currentSearchHash} = useSearchContext();
+    const {translate} = useLocalize();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
+    const isEmptyReport = reportItem.transactions.length === 0;
+    const isDisabledOrEmpty = isEmptyReport || isDisabled;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -78,10 +42,6 @@ function ReportListItem<TItem extends ListItem>({
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
-
-    if (reportItem.transactions.length === 0) {
-        return;
-    }
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
@@ -94,10 +54,6 @@ function ReportListItem<TItem extends ListItem>({
         styles.mh0,
     ];
 
-    const handleOnButtonPress = () => {
-        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
-    };
-
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
 
@@ -106,34 +62,6 @@ function ReportListItem<TItem extends ListItem>({
 
     if (!reportItem?.reportName && reportItem.transactions.length > 1) {
         return null;
-    }
-
-    const participantFrom = reportItem.from;
-    const participantTo = reportItem.to;
-
-    // These values should come as part of the item via SearchUIUtils.getSections() but ReportListItem is not yet 100% handled
-    // This will be simplified in future once sorting of ReportListItem is done
-    const participantFromDisplayName = participantFrom?.displayName ?? participantFrom?.login ?? '';
-    const participantToDisplayName = participantTo?.displayName ?? participantTo?.login ?? '';
-
-    if (reportItem.transactions.length === 1) {
-        const transactionItem = reportItem.transactions.at(0);
-
-        return (
-            <TransactionListItem
-                item={transactionItem as unknown as TItem}
-                isFocused={isFocused}
-                showTooltip={showTooltip}
-                isDisabled={isDisabled}
-                canSelectMultiple={canSelectMultiple}
-                onCheckboxPress={() => onCheckboxPress?.(transactionItem as unknown as TItem)}
-                onSelectRow={(_item) => onSelectRow(_item, true)}
-                onFocus={onFocus}
-                onLongPressRow={onLongPressRow}
-                shouldSyncFocus={shouldSyncFocus}
-                isLoading={reportItem.isActionLoading}
-            />
-        );
     }
 
     return (
@@ -156,76 +84,46 @@ function ReportListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
-            <View style={styles.flex1}>
-                {!isLargeScreenWidth && (
-                    <ExpenseItemHeaderNarrow
-                        participantFrom={participantFrom}
-                        participantFromDisplayName={participantFromDisplayName}
-                        participantTo={participantTo}
-                        participantToDisplayName={participantToDisplayName}
-                        action={reportItem.action}
-                        onButtonPress={handleOnButtonPress}
-                        containerStyle={[styles.ph3, styles.pt1half, styles.mb1half]}
-                        isLoading={reportItem.isActionLoading}
-                    />
-                )}
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph3, styles.pv1half]}>
-                    <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween, styles.mnh40]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
-                            {!!canSelectMultiple && (
-                                <Checkbox
-                                    onPress={() => onCheckboxPress?.(item)}
-                                    isChecked={item.isSelected}
-                                    isIndeterminate={reportItem?.transactions?.some((transaction) => transaction.isSelected) && !item.isSelected}
-                                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
-                                    disabled={!!isDisabled || item.isDisabledCheckbox}
-                                    accessibilityLabel={item.text ?? ''}
-                                    shouldStopMouseDownPropagation
-                                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, !isLargeScreenWidth && styles.mr3]}
-                                />
-                            )}
-                            <View style={[styles.flexShrink1, isLargeScreenWidth && styles.ph4]}>
-                                <Text style={[styles.reportListItemTitle]}>{reportItem?.reportName}</Text>
-                            </View>
-                        </View>
-                        <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
-                            <TotalCell
-                                showTooltip={showTooltip}
-                                isLargeScreenWidth={isLargeScreenWidth}
-                                reportItem={reportItem}
-                            />
-                        </View>
+            <View style={[styles.flex1]}>
+                <ReportListItemHeader
+                    report={reportItem}
+                    policy={policy}
+                    item={item}
+                    onSelectRow={onSelectRow}
+                    onCheckboxPress={onCheckboxPress}
+                    isDisabled={isDisabledOrEmpty}
+                    canSelectMultiple={canSelectMultiple}
+                />
+                {isEmptyReport ? (
+                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
+                        <Text
+                            style={[styles.textLabelSupporting]}
+                            numberOfLines={1}
+                        >
+                            {translate('search.moneyRequestReport.emptyStateTitle')}
+                        </Text>
                     </View>
-                    {isLargeScreenWidth && (
-                        <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
-                            <ActionCell
-                                action={reportItem.action}
-                                goToItem={handleOnButtonPress}
-                                isSelected={item.isSelected}
-                                isLoading={reportItem.isActionLoading}
-                            />
-                        </View>
-                    )}
-                </View>
-                {reportItem.transactions.map((transaction) => (
-                    <TransactionListItemRow
-                        key={transaction.transactionID}
-                        parentAction={reportItem.action}
-                        item={transaction}
-                        showTooltip={showTooltip}
-                        onButtonPress={() => {
-                            openReportInRHP(transaction);
-                        }}
-                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                        showItemHeaderOnNarrowLayout={false}
-                        containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
-                        isChildListItem
-                        isDisabled={!!isDisabled}
-                        canSelectMultiple={!!canSelectMultiple}
-                        isButtonSelected={transaction.isSelected}
-                        shouldShowTransactionCheckbox
-                    />
-                ))}
+                ) : (
+                    reportItem.transactions.map((transaction) => (
+                        <TransactionListItemRow
+                            key={transaction.transactionID}
+                            parentAction={reportItem.action}
+                            item={transaction}
+                            showTooltip={showTooltip}
+                            onButtonPress={() => {
+                                openReportInRHP(transaction);
+                            }}
+                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                            showItemHeaderOnNarrowLayout={false}
+                            containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
+                            isChildListItem
+                            isDisabled={!!isDisabled}
+                            canSelectMultiple={!!canSelectMultiple}
+                            isButtonSelected={transaction.isSelected}
+                            shouldShowTransactionCheckbox
+                        />
+                    ))
+                )}
             </View>
         </BaseListItem>
     );

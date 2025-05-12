@@ -27,17 +27,16 @@ Onyx.connect({
     },
 });
 
-let reportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
+let reportAttributes: ReportAttributesDerivedValue['reports'];
 Onyx.connect({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
         if (!value) {
             return;
         }
-        reportAttributes = value?.reports;
+        reportAttributes = value.reports;
     },
 });
-
 /**
  * @param altReportActions Replaces (local) allReportActions used within (local) function getWorkspacesBrickRoads
  * @returns BrickRoad for the policy passed as a param and optionally actionsByReport (if passed)
