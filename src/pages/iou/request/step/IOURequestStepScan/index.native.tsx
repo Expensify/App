@@ -277,7 +277,7 @@ function IOURequestStepScan({
                     );
             }
         },
-        [iouType, reportID, transactionID],
+        [backToReport, iouType, reportID, transactionID],
     );
 
     const createTransaction = useCallback(
