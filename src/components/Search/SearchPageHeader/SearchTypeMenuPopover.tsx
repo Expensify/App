@@ -140,7 +140,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
 
     const popoverMenuItems = useMemo(() => {
         return typeMenuSections
-            .map((section, index) => {
+            .map((section, sectionIndex) => {
                 const sectionItems: PopoverMenuItem[] = [
                     {
                         text: translate(section.translationPath),
@@ -150,10 +150,9 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                 ];
 
                 section.menuItems.forEach((item, itemIndex) => {
-                    const flattenedIndex = index * section.menuItems.length + itemIndex;
-                    let isSelected = false;
-
-                    isSelected = flattenedIndex === activeItemIndex;
+                    const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
+                    const flattenedIndex = previousItemCount + itemIndex;
+                    const isSelected = flattenedIndex === activeItemIndex;
 
                     sectionItems.push({
                         text: translate(item.translationPath),
