@@ -517,12 +517,10 @@ function filterInactiveCards(cards: CardList | undefined): CardList {
 
 function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards, cardFeeds?: CardFeeds): CardList {
     const cards = {};
-    const domainIDs = Object.values(cardFeeds?.settings?.companyCards ?? {})
-        .map((feed) => feed?.domainID)
-        .filter((domainID): domainID is number => !!domainID);
+    const domainFeeds = Object.entries(cardFeeds?.settings?.companyCards ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
     for (const [key, values] of Object.entries(allCardList ?? {})) {
         const isWorkspaceAccountCards = key.includes(workspaceAccountID.toString());
-        const isDomainCards = domainIDs?.some((domainID) => key.includes(domainID.toString()));
+        const isDomainCards = domainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
         if ((isWorkspaceAccountCards || isDomainCards) && values) {
             const {cardList, ...rest} = values;
             const filteredCards = filterInactiveCards(rest);
