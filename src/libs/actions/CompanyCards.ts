@@ -158,6 +158,7 @@ function setWorkspaceCompanyCardFeedName(policyID: string, domainOrWorkspaceAcco
     const parameters = {
         authToken,
         policyID,
+        domainAccountID: domainOrWorkspaceAccountID,
         bankName,
         userDefinedName,
     };
