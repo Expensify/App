@@ -285,7 +285,7 @@ function IOURequestStepConfirmation({
         });
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [transactions, requestType, defaultCategory, policy?.id]);
+    }, [transactionIDs, requestType, defaultCategory, policy?.id]);
 
     /**
      * Sets the upload receipt error modal content when an invalid receipt is uploaded
