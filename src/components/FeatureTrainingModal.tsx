@@ -409,7 +409,7 @@ function FeatureTrainingModal({
                         buttonText={confirmText}
                         enabledWhenOffline={canConfirmWhileOffline}
                     />
-                    {!canConfirmWhileOffline && <OfflineIndicator addBottomSafeAreaPadding />}
+                    {!canConfirmWhileOffline && <OfflineIndicator />}
                 </View>
             </Wrapper>
         </Modal>
