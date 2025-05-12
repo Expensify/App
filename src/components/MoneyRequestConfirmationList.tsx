@@ -335,7 +335,7 @@ function MoneyRequestConfirmationList({
         ? ''
         : convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
     const formattedAmountPerAttendee =
-        isDistanceRequestWithPendingRoute || isScanRequest
+        isDistanceRequestWithPendingRoute || isScanRequest || isPerDiemRequest
             ? ''
             : convertToDisplayString(
                   (shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount) / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1),

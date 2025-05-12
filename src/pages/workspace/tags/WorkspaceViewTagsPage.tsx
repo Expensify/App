@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -152,6 +152,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         [filteredTagList],
     );
 
+    const sections = useMemo(() => [{data: filteredTagList, isDisabled: false}], [filteredTagList]);
+
     if (!currentPolicyTag) {
         return <NotFoundPage />;
     }
@@ -191,9 +193,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const deleteTags = () => {
-        setSelectedTags([]);
         deletePolicyTags(policyID, selectedTags);
         setIsDeleteTagsConfirmModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedTags([]);
+        });
     };
 
     const isLoading = !isOffline && policyTags === undefined;
@@ -372,7 +377,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                        sections={[{data: filteredTagList, isDisabled: false}]}
+                        sections={sections}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
                         onSelectAll={toggleAllTags}
