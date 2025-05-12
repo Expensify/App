@@ -12,7 +12,6 @@ type ActionableItem = {
     text: string;
     isMediumSized?: boolean;
     shouldUseLocalization?: boolean;
-    isDisabled?: boolean;
 };
 
 type ActionableItemButtonsProps = {
@@ -35,7 +34,6 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                     small={!item.isMediumSized}
                     medium={item.isMediumSized}
                     success={item.isPrimary}
-                    isDisabled={item.isDisabled}
                 />
             ))}
         </View>
