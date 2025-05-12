@@ -610,13 +610,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             if (!transaction?.transactionID || !report?.reportID) {
                                 return;
                             }
-
-                            // This is a part of Split expense feature which will be completed in next PRs
-                            // if (isSplitTransaction(transaction)) {
-                            //     initSplitExpense(transaction, report.reportID ?? String(CONST.DEFAULT_NUMBER_ID), true);
-                            //     return;
-                            // }
-
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, '', getReportRHPActiveRoute()),
                             );

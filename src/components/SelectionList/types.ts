@@ -399,17 +399,17 @@ type SplitListItemType = ListItem &
         /** ID of split expense */
         transactionID: string;
 
-        /** Original amount before split */
-        originalAmount: number;
-
         /** Currency symbol */
         currencySymbol: string;
 
-        /** Function for updating amount */
-        onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
+        /** Original amount before split */
+        originalAmount: number;
 
         /** Indicates whether a split was opened through this transaction */
         isTransactionLinked: boolean;
+
+        /** Function for updating amount */
+        onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
     };
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;

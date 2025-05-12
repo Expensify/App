@@ -10749,7 +10749,7 @@ function getSearchOnyxUpdate({participant, transaction}: GetSearchOnyxUpdatePara
 }
 
 /**
- * Initialize split expense info
+ * Create a draft transaction to set up split expense details for the split expense flow
  */
 function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportID: string, isOpenCreatedSplit?: boolean) {
     if (!transaction) {
@@ -10841,7 +10841,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
 }
 
 /**
- * Add new split expense field
+ * Append a new split expense entry to the draft transaction’s splitExpenses array
  */
 function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
     if (!transaction || !draftTransaction) {
@@ -10865,9 +10865,6 @@ function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, dra
     });
 }
 
-/**
- * Update split expense ammount
- */
 function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number) {
     if (!draftTransaction?.transactionID || !currentItemTransactionID) {
         return;
@@ -10890,10 +10887,7 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
     });
 }
 
-/**
- * Complete split expense process
- */
-function completeSplitTransaction(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, hash: number) {
+function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, hash: number) {
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
@@ -11121,6 +11115,6 @@ export {
     initSplitExpense,
     addSplitExpenseField,
     updateSplitExpenseAmountField,
-    completeSplitTransaction,
+    saveSplitTransactions,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};

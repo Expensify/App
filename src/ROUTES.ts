@@ -569,7 +569,7 @@ const ROUTES = {
         route: 'r/:reportID/split-expense/:transactionID/:splitTransactionID?',
         getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitTransactionID?: string, backTo?: string) => {
             if (!reportID || !originalTransactionID) {
-                Log.warn('Invalid reportID or transactionID is used to build the SPLIT_EXPENSE route');
+                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE route`);
             }
             return getUrlWithBackToParam(`r/${reportID}/split-expense/${originalTransactionID}${splitTransactionID ? `/${splitTransactionID}` : ''}`, backTo);
         },

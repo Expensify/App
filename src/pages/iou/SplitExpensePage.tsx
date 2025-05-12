@@ -14,7 +14,7 @@ import type {SectionListDataType, SplitListItemType} from '@components/Selection
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addSplitExpenseField, completeSplitTransaction, updateSplitExpenseAmountField} from '@libs/actions/IOU';
+import {addSplitExpenseField, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -75,7 +75,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        completeSplitTransaction(draftTransaction, currentSearchHash);
+        saveSplitTransactions(draftTransaction, currentSearchHash);
     }, [currentSearchHash, draftTransaction, sumOfSplitExpenses, transactionDetails?.amount, transactionDetails?.currency, translate]);
 
     const onSplitExpenseAmountChange = useCallback(
