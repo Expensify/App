@@ -19,7 +19,7 @@ Removing a member from a workspace prevents them from submitting reports to or a
    - Go to **Settings > Workspaces > [Workspace Name] > Members > Approval Mode**.
    - Change the "**Submit reports to**" field to remove them as an approver.
 
-![image of members table in a workspace]({{site.url}}/assets/images/ExpensifyHelp_RemovingMembers.png){:width="100%"}
+![image of members table in a workspace]({{site.url}}/docs/assets/images/UpdatedRemovingMembers1.png{:width="100%"}
 
 ---
 
