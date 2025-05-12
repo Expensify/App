@@ -73,24 +73,23 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         openCardDetailsPage(Number(cardID));
     }, [cardID]);
 
-    useEffect(
-        () => () => {
-            if (!isDeleted) {
-                return;
-            }
+    useEffect(() => {
+        if (!isDeleted) {
+            return;
+        }
+        Navigation.goBack();
+        return () => {
             deactivateCardAction(defaultFundID, card);
-        },
-        [card, defaultFundID, isDeleted],
-    );
+        };
+    }, [isDeleted, defaultFundID, card]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
 
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
 
     const deactivateCard = () => {
-        setIsDeactivateModalVisible(false);
         setIsDeleted(true);
-        Navigation.goBack();
+        setIsDeactivateModalVisible(false);
     };
 
     if (!card && !isLoadingOnyxValue(cardsListResult)) {
