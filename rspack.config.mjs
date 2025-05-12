@@ -45,6 +45,11 @@ export default (env) => ({
             },
         ],
     },
-    ignoreWarnings: [/^@react-native-masked-view/, /^react-native-worklets-core$/, /^@shopify\/react-native-skia$/, /^react-native-reanimated\/src\/reanimated2\/core$/],
+    ignoreWarnings: [
+        /Module not found: Can't resolve '@react-native-masked-view\/masked-view'/,
+        /Module not found: Can't resolve 'react-native-worklets-core'/,
+        /Module not found: Can't resolve '@shopify\/react-native-skia'/,
+        /Module not found: Can't resolve 'react-native-reanimated\/src\/reanimated2\/core'/,
+    ],
     plugins: [new Repack.RepackPlugin(), new ReanimatedPlugin(), new ExpoModulesPlugin()],
 });
