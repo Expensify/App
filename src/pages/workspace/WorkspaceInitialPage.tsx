@@ -347,6 +347,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         singleExecution,
         waitForNavigate,
         allFeedsCards,
+        cardsDomainIDs,
         workspaceAccountID,
     ]);
 
