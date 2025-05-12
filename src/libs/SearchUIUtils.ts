@@ -138,10 +138,16 @@ function getTransactionItemCommonFormattedProperties(
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
 
-    const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(from));
+    const fromName = getDisplayNameOrDefault(from);
+    const formattedFrom = formatPhoneNumber(fromName);
+
+    let toName = getDisplayNameOrDefault(to, '', false);
+    if (!toName && to?.accountID) {
+        toName = getDisplayNameOrDefault(getPersonalDetailsForAccountID(to?.accountID));
+    }
     // Sometimes the search data personal detail for the 'to' account might not hold neither the display name nor the login
     // so for those cases we fallback to the display name of the personal detail data from onyx.
-    const formattedTo = formatPhoneNumber(getDisplayNameOrDefault(to, '', false) || getDisplayNameOrDefault(getPersonalDetailsForAccountID(to?.accountID)));
+    const formattedTo = formatPhoneNumber(toName);
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem, policy as OnyxTypes.Policy);
@@ -499,7 +505,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const transaction = isTransaction ? data[key] : undefined;
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (transaction?.errors ?? report?.errors) {
+    if (transaction?.errors || report?.errors) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
@@ -530,8 +536,8 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     }
 
     const invoiceReceiverPolicy =
-        isInvoiceReport(report) && report.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
-            ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`]
+        isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
+            ? data[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`]
             : undefined;
 
     const chatReport = getChatReport(data, report);
