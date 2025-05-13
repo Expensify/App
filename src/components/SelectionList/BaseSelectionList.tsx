@@ -141,6 +141,7 @@ function BaseSelectionList<TItem extends ListItem>(
         fixedNumItemsForLoader,
         loaderSpeed,
         errorText,
+        shouldUseDefaultRightHandSideCheckmark,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -573,6 +574,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         shouldAnimateInHighlight: isItemHighlighted,
                         ...item,
                     }}
+                    shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
                     isFocused={isItemFocused}
                     isDisabled={isDisabled}

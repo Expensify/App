@@ -5211,6 +5211,15 @@ const styles = (theme: ThemeColors) =>
             flexBasis: '35%',
             marginTop: 12,
         },
+        onboardingAccountingItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            paddingHorizontal: 16,
+            paddingVertical: 20,
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: '35%',
+        },
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
