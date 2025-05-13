@@ -13,6 +13,7 @@ import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRout
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -235,6 +236,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const [isOnboardingLoading] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: (value) => !!value?.isLoading});
+    const prevIsOnboardingLoading = usePrevious(isOnboardingLoading);
     const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
     const navigation = useNavigation();
 
@@ -255,13 +258,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     const shouldRenderOnboardingExclusively = useMemo(() => {
         return (
-            getPlatform() !== CONST.PLATFORM.DESKTOP &&
             !CONFIG.IS_HYBRID_APP &&
             Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+            getPlatform() !== CONST.PLATFORM.DESKTOP &&
+            onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
             isOnboardingCompleted === true &&
-            onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO
+            (!!isOnboardingLoading || prevIsOnboardingLoading)
         );
-    }, [onboardingCompanySize, isOnboardingCompleted]);
+    }, [onboardingCompanySize, isOnboardingCompleted, isOnboardingLoading, prevIsOnboardingLoading]);
 
     useEffect(() => {
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
