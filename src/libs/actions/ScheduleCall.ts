@@ -6,6 +6,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, ScheduleCallDraft} from '@src/types/onyx';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {CalendlyCall} from '@src/types/onyx/ReportNameValuePairs';
 import {openExternalLink} from './Link';
 
@@ -67,10 +68,10 @@ function clearBookingDraft() {
     Onyx.set(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, null);
 }
 
-function confirmBooking(data: Required<ScheduleCallDraft>, currentUser: PersonalDetails) {
+function confirmBooking(data: Required<ScheduleCallDraft>, currentUser: PersonalDetails, timezone?: SelectedTimezone) {
     const scheduleURL = `${data.guide.scheduleURL}?name=${encodeURIComponent(currentUser.displayName ?? '')}&email=${encodeURIComponent(
         currentUser?.login ?? '',
-    )}&utm_source=newDot&utm_medium=report&utm_content=${data.reportID}`;
+    )}&utm_source=newDot&utm_medium=report&utm_content=${data.reportID}&timezone=${timezone}`;
 
     openExternalLink(scheduleURL);
     clearBookingDraft();

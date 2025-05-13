@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
-import {addMinutes, compareDesc, format, isPast, parseISO} from 'date-fns';
+import {addMinutes, compareDesc, isPast, parseISO} from 'date-fns';
+import {formatInTimeZone} from 'date-fns-tz';
 import React, {memo, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -81,7 +82,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
-import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TalkToSalesButton from './TalkToSalesButton';
 
@@ -224,7 +224,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldShowGuideBookingButtonInEarlyDiscountBanner = shouldShowGuideBooking && shouldShowEarlyDiscountBanner && !isDismissedDiscountBanner;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
+    const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
 
     const guideBookingButton = useMemo(() => {
         const activeScheduledCall = reportNameValuePairs?.calendlyCalls
@@ -252,17 +252,20 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 />
             );
         }
+
         const menuItems: Array<DropdownOption<string>> = [
             {
-                text: `${format(new Date(activeScheduledCall.eventTime), CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${format(
-                    new Date(activeScheduledCall.eventTime),
+                text: `${formatInTimeZone(activeScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${formatInTimeZone(
+                    activeScheduledCall.eventTime,
+                    userTimezone,
                     CONST.DATE.MONTH_DAY_YEAR_FORMAT,
                 )}`,
                 value: activeScheduledCall.eventTime,
-                description: `${DateUtils.formatToLocalTime(activeScheduledCall.eventTime)} - ${DateUtils.formatToLocalTime(
+                description: `${formatInTimeZone(activeScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${formatInTimeZone(
                     addMinutes(activeScheduledCall.eventTime, 30),
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                )} ${DateUtils.getZoneAbbreviation(new Date(activeScheduledCall.eventTime), timezone.selected!)}`,
+                    userTimezone,
+                    CONST.DATE.LOCAL_TIME_FORMAT,
+                )} ${DateUtils.getZoneAbbreviation(new Date(activeScheduledCall.eventTime), userTimezone)}`,
                 descriptionTextStyle: styles.themeTextColor,
                 icon: Illustrations.HeadSet,
                 iconWidth: 40,
@@ -311,7 +314,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         styles.ph5,
         styles.pv5,
         styles.themeTextColor,
-        timezone.selected,
+        userTimezone,
         translate,
     ]);
 
