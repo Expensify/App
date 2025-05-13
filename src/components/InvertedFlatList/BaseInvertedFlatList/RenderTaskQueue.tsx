@@ -1,8 +1,12 @@
 const RENDER_DELAY = 500;
 
-type RenderInfo = {
-    distanceFromStart: number;
-};
+type RenderInfo =
+    | {
+          distanceFromStart: number;
+      }
+    | {
+          distanceFromEnd: number;
+      };
 
 class RenderTaskQueue {
     private renderInfos: RenderInfo[] = [];
