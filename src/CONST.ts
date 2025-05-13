@@ -1206,6 +1206,7 @@ const CONST = {
             DELETE: 'delete',
             ADD_EXPENSE: 'addExpense',
             REOPEN: 'reopen',
+            MOVE_EXPENSE: 'moveExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',

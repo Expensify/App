@@ -37,7 +37,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 changeTransactionsReport([transaction.transactionID], item.value);
             }
         }
-        Navigation.goBack(backTo);
+        Navigation.dismissModalWithReport({reportID: item.value});
     };
 
     return (

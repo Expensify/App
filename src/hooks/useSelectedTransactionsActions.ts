@@ -9,7 +9,9 @@ import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMon
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
+    canEditFieldOfMoneyRequest,
     canHoldUnholdReportAction,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
@@ -155,15 +157,25 @@ function useSelectedTransactionsActions({
             },
         });
 
-        options.push({
-            text: 'Move Expenses',
-            icon: Expensicons.DocumentMerge,
-            value: MOVE,
-            onSelected: () => {
-                const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID);
-                Navigation.navigate(route);
-            },
+        const canAllExpensesBeMoved = selectedTransactions.every((transaction) => {
+            const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+
+            const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
+            return canMoveExpense;
         });
+
+        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
+        if (canAllExpensesBeMoved && canUserPerformWriteAction) {
+            options.push({
+                text: translate('iou.moveExpenses', {count: selectedTransactionsID.length}),
+                icon: Expensicons.DocumentMerge,
+                value: MOVE,
+                onSelected: () => {
+                    const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID);
+                    Navigation.navigate(route);
+                },
+            });
+        }
 
         const canAllSelectedTransactionsBeRemoved = selectedTransactionsID.every((transactionID) => {
             const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transactionID);
