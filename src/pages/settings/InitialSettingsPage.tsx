@@ -112,6 +112,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const isScreenFocused = useIsAccountSettingsRouteActive(shouldUseNarrowLayout);
     const isWorkspacesTabSelected = focusedRouteName === SCREENS.SETTINGS.WORKSPACES;
+    const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
 
     const {
         renderProductTrainingTooltip: renderWorkspaceSettingsTooltip,
@@ -393,7 +394,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                     item.action();
                                 })}
                                 iconStyles={item.iconStyles}
-                                badgeText={item.badgeText ?? getWalletBalance(isPaymentItem)}
+                                badgeText={hasActivatedWallet ? item.badgeText ?? getWalletBalance(isPaymentItem) : undefined}
                                 badgeStyle={item.badgeStyle}
                                 fallbackIcon={item.fallbackIcon}
                                 brickRoadIndicator={item.brickRoadIndicator}
