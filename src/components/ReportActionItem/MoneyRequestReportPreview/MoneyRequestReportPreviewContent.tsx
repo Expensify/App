@@ -588,7 +588,7 @@ function MoneyRequestReportPreviewContent({
             style={styles.mt1}
         >
             <View
-                style={[styles.chatItemMessage, containerStyles]}
+                style={[styles.chatItemMessage, isReportDeleted && [styles.cursorDisabled, styles.pointerEventsAuto], containerStyles]}
                 onLayout={onLayout}
             >
                 <PressableWithoutFeedback
@@ -607,6 +607,7 @@ function MoneyRequestReportPreviewContent({
                         styles.justifyContentBetween,
                         StyleUtils.getBackgroundColorStyle(theme.cardBG),
                         shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
+                        isReportDeleted && styles.pointerEventsNone,
                     ]}
                     role={getButtonRole(true)}
                     isNested
