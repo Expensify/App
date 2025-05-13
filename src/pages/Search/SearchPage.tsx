@@ -79,7 +79,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
-    // TODO: to be refactored
+    // TODO: to be refactored in step 3
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
@@ -108,7 +108,7 @@ function SearchPage({route}: SearchPageProps) {
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
-    // TODO: to be refactored
+    // TODO: to be refactored in step 3
     /**
      * Sets the upload receipt error modal content when an invalid receipt is uploaded
      */
@@ -119,6 +119,7 @@ function SearchPage({route}: SearchPageProps) {
         setPdfFile(null);
     };
 
+    // TODO: to be refactored in step 3
     const getConfirmModalPrompt = () => {
         if (!attachmentInvalidReason) {
             return '';
@@ -386,10 +387,12 @@ function SearchPage({route}: SearchPageProps) {
         });
     };
 
+    // TODO: to be refactored in step 3
     const hideReceiptModal = () => {
         setIsAttachmentInvalid(false);
     };
 
+    // TODO: to be refactored in step 3
     const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
         validateReceipt(originalFile, setUploadReceiptError).then((isFileValid) => {
             if (!isFileValid) {
@@ -412,9 +415,11 @@ function SearchPage({route}: SearchPageProps) {
                 // Store the receipt on the transaction object in Onyx
                 const source = URL.createObjectURL(resizedFile as Blob);
                 const newReportID = generateReportID();
+                const query = buildCannedSearchQuery();
+                    Navigation.setParams({q: query});
+                initMoneyRequest(newReportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, resizedFile.name || '', true);
-                initMoneyRequest(newReportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
                 navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
             });
         });
@@ -456,6 +461,7 @@ function SearchPage({route}: SearchPageProps) {
     const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
 
+    // TODO: to be refactored in step 3
     const PDFThumbnailView = pdfFile ? (
         <PDFThumbnail
             style={styles.invisiblePDF}
@@ -582,7 +588,7 @@ function SearchPage({route}: SearchPageProps) {
                             offlineIndicatorStyle={styles.mtAuto}
                         >
                             {isLoadingReceipt && <FullScreenLoadingIndicator />}
-                            <DragAndDropProvider isDisabled={queryJSON.type !== CONST.REPORT.TYPE.EXPENSE}>
+                            <DragAndDropProvider>
                                 {PDFThumbnailView}
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
