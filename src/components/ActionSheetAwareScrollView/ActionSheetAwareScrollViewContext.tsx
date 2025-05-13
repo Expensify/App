@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import type {PropsWithChildren} from 'react';
 import React, {createContext, useMemo} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
-import type {ActionWithPayload, State} from '@hooks/useWorkletStateMachine';
+import type {ValueOf} from 'type-fest';
+import type {ActionWithPayload, State, StateMachine} from '@hooks/useWorkletStateMachine';
 import useWorkletStateMachine from '@hooks/useWorkletStateMachine';
 
 type MeasuredElements = {
@@ -57,7 +58,7 @@ const Actions = {
     POPOVER_ANY_ACTION: 'POPOVER_ANY_ACTION',
     HIDE_WITHOUT_ANIMATION: 'HIDE_WITHOUT_ANIMATION',
     END_TRANSITION: 'END_TRANSITION',
-};
+} as const;
 
 const States = {
     IDLE: 'idle',
@@ -69,9 +70,9 @@ const States = {
     KEYBOARD_CLOSED_POPOVER: 'keyboardClosingPopover',
     POPOVER_MEASURED: 'popoverMeasured',
     MODAL_WITH_KEYBOARD_OPEN_DELETED: 'modalWithKeyboardOpenDeleted',
-};
+} as const;
 
-const STATE_MACHINE = {
+const STATE_MACHINE: StateMachine<ValueOf<typeof States>, ValueOf<typeof Actions>> = {
     [States.IDLE]: {
         [Actions.OPEN_POPOVER]: States.POPOVER_OPEN,
         [Actions.OPEN_KEYBOARD]: States.KEYBOARD_OPEN,
@@ -109,7 +110,7 @@ const STATE_MACHINE = {
 };
 
 function ActionSheetAwareScrollViewProvider(props: PropsWithChildren<unknown>) {
-    const {currentState, transition, transitionWorklet, reset} = useWorkletStateMachine<MeasuredElements>(STATE_MACHINE, {
+    const {currentState, transition, transitionWorklet, reset} = useWorkletStateMachine<typeof STATE_MACHINE, MeasuredElements>(STATE_MACHINE, {
         previous: {
             state: 'idle',
             payload: null,
