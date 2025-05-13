@@ -20,7 +20,7 @@ type Context = {
     resetStateMachine: () => void;
 };
 
-/** Holds all information that are needed to coordinate the state value for the action sheet state machine. */
+/** Holds all information that is needed to coordinate the state value for the action sheet state machine. */
 const currentActionSheetStateValue = {
     previous: {
         state: 'idle',

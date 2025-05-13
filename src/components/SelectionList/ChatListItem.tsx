@@ -27,7 +27,6 @@ function ChatListItem<TItem extends ListItem>({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
     const styles = useThemeStyles();
     const theme = useTheme();
-
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
