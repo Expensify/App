@@ -454,6 +454,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        if (report?.errorFields?.notFound && isOffline) {
+            return;
+        }
+
         const {moneyRequestReportActionID, transactionID, iouReportID} = route.params;
 
         // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
@@ -477,7 +481,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [reportMetadata.isOptimisticReport, route.params, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail, report, reportID, transactionThreadReport, transactionThreadReportID]);
+    }, [reportMetadata.isOptimisticReport, route.params, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail, report, reportID, transactionThreadReport, transactionThreadReportID, isOffline]);
 
     useEffect(() => {
         if (!reportID || !isFocused) {
