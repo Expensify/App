@@ -54,7 +54,6 @@ import type {
     TransactionViolation,
     UserWallet,
 } from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
@@ -10705,7 +10704,7 @@ function getReportAttributes(reportID: string | undefined, reportAttributes?: Re
     const attributes = reportAttributes ?? reportAttributesDerivedValue;
 
     if (!reportID || !attributes?.[reportID]) {
-        return {} as ReportAttributes;
+        return;
     }
     return attributes[reportID];
 }

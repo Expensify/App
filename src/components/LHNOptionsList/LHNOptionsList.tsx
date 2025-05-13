@@ -77,7 +77,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             if (hasReportErrors(itemFullReport, itemReportActions)) {
                 return true;
             }
-            const hasGBR = getReportAttributes(reportID, reportAttributes).requiresAttention;
+            const hasGBR = getReportAttributes(reportID, reportAttributes)?.requiresAttention;
             return hasGBR;
         });
     }, [isGBRorRBRTooltipDismissed, data, reports, reportActions, reportAttributes]);
