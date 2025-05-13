@@ -39,7 +39,7 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
     }
 };
 
-const getIouType = (action: QuickActionName | undefined) => {
+const getIOUType = (action: QuickActionName | undefined) => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
@@ -92,7 +92,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
 };
 
 const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Report | undefined, quickActionPolicy: Policy | undefined) => {
-    const iouType = getIouType(quickAction?.action);
+    const iouType = getIOUType(quickAction?.action);
     if (iouType) {
         return canCreateRequest(quickActionReport, quickActionPolicy, iouType);
     }
@@ -105,4 +105,4 @@ const isQuickActionAllowed = (quickAction: QuickAction, quickActionReport: Repor
     return true;
 };
 
-export {getQuickActionIcon, getQuickActionTitle, getIouType, isQuickActionAllowed};
+export {getQuickActionIcon, getQuickActionTitle, getIOUType, isQuickActionAllowed};
