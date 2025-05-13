@@ -585,7 +585,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       onSelected: () => {
                           openExternalLink(navatticURL);
                           setSelfTourViewed(isAnonymousUser());
-                          if (viewTourTaskReport && canActionTask) {
+                          // Even if the viewTourTaskReport doesn't exist in onyx we will still call completeTask without checking
+                          // canActionTheTask as we don't want to avoid completing the test drive task due to its unavailabilty
+                          // in onyx until we make the appropriate BE change to make viewTourTaskReport always available.
+                          if (viewTourTaskReportID && (!viewTourTaskReport || canActionTask)) {
                               completeTask(viewTourTaskReport);
                           }
                       },

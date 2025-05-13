@@ -161,7 +161,10 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();
-                                              if (viewTourTaskReport && canActionTheTask) {
+                                              // Even if the viewTourTaskReport doesn't exist in onyx we will still call completeTask without checking
+                                              // canActionTheTask as we don't want to avoid completing the test drive task due to its unavailabilty
+                                              // in onyx until we make the appropriate BE change to make viewTourTaskReport always available.
+                                              if (viewTourTaskReportID && (!viewTourTaskReport || canActionTheTask)) {
                                                   completeTask(viewTourTaskReport);
                                               }
                                           },
@@ -201,7 +204,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();
-                                              if (viewTourTaskReport && canActionTheTask) {
+                                              if (viewTourTaskReportID && (!viewTourTaskReport || canActionTheTask)) {
                                                   completeTask(viewTourTaskReport);
                                               }
                                           },
@@ -250,6 +253,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         shouldRedirectToExpensifyClassic,
         hasResults,
         viewTourTaskReport,
+        viewTourTaskReportID,
         canActionTheTask,
     ]);
 
