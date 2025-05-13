@@ -170,6 +170,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
                 iconWidth: variables.iconSizeNormal,
                 iconHeight: variables.iconSizeNormal,
                 shouldIconUseAutoWidthStyle: false,
+                shouldShowRightComponent: true,
                 hash: key,
             };
         });
