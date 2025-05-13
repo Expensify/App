@@ -46,7 +46,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         if (!currentCountry) {
             setHasError(true);
         } else {
-            if (addNewCard?.data.selectedBank !== currentCountry) {
+            if (addNewCard?.data.selectedCountry !== currentCountry) {
                 clearAddNewCardFlow();
             }
             setAddNewCompanyCardStepAndData({
