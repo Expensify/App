@@ -9,7 +9,6 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type Account from '@src/types/onyx/Account';
 import type Onboarding from '@src/types/onyx/Onboarding';
 
 let onboardingInitialPath = '';
@@ -35,23 +34,12 @@ Onyx.connect({
     },
 });
 
-let userAccount: Account;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-        userAccount = value;
-    },
-});
-
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
-function startOnboardingFlow(canUsePrivateDomainOnboarding?: boolean) {
+function startOnboardingFlow(canUsePrivateDomainOnboarding?: boolean, onboardingValuesParam?: Onboarding, isUserFromPublicDomain?: boolean) {
     const currentRoute = navigationRef.getCurrentRoute();
-    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(canUsePrivateDomainOnboarding), linkingConfig.config, false);
+    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(canUsePrivateDomainOnboarding, onboardingValuesParam, isUserFromPublicDomain), linkingConfig.config, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
@@ -63,13 +51,12 @@ function startOnboardingFlow(canUsePrivateDomainOnboarding?: boolean) {
     } as PartialState<NavigationState>);
 }
 
-function getOnboardingInitialPath(canUsePrivateDomainOnboarding = false): string {
+function getOnboardingInitialPath(canUsePrivateDomainOnboarding?: boolean, onboardingValuesParam?: Onboarding, isUserFromPublicDomain?: boolean, hasAccessiblePolicies?: boolean): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
-    const isUserFromPublicDomain = userAccount?.isFromPublicDomain;
-    const hasAccessiblePolicies = userAccount?.hasAccessibleDomainPolicies;
-    const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-    const isSmb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
-    const isIndividual = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
+    const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
+    const isVsb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    const isSmb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+    const isIndividual = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
 
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
@@ -82,7 +69,7 @@ function getOnboardingInitialPath(canUsePrivateDomainOnboarding = false): string
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }
-    if (isUserFromPublicDomain && !onboardingValues?.isMergeAccountStepCompleted) {
+    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
 

@@ -253,7 +253,7 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
     const isScrolledRef = useRef(false);
     const {shouldShowStatusBarLoading} = useSearchContext();
     const {hash} = queryJSON;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: false});
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true});
     const {isOffline} = useNetwork();
 
     const [isScreenFocused, setIsScreenFocused] = useState(false);
@@ -271,7 +271,7 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
         : queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.OUTSANDING_FILTER,
-        isScreenFocused && !isOutstandingStatusActive,
+        isScreenFocused && !isOutstandingStatusActive && queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE,
     );
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
