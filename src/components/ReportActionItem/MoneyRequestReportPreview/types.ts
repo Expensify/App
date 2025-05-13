@@ -14,7 +14,6 @@ type MoneyRequestReportPreviewStyleType = {
     contentContainerStyle: ViewStyle;
     transactionPreviewStyle: TransactionPreviewStyle;
     componentStyle: StyleProp<ViewStyle>;
-    expenseCountVisible: boolean;
 };
 
 type MoneyRequestReportPreviewProps = {

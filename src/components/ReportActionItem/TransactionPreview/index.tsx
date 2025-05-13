@@ -37,7 +37,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
         iouReportID,
         transactionID: transactionIDFromProps,
         onPreviewPressed,
-        reportPreviewAction,
         contextAction,
     } = props;
 
@@ -131,7 +130,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             sessionAccountID={sessionAccountID}
             walletTermsErrors={walletTerms?.errors}
             routeName={route.name}
-            reportPreviewAction={reportPreviewAction}
+            reportPreviewAction={props.reportPreviewAction}
         />
     );
 }
