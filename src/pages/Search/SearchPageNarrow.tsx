@@ -28,11 +28,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
+import {searchInServer} from '@userActions/Report';
+import {search} from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
-import {searchInServer} from '@userActions/Report';
-import {search} from '@userActions/Search';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
