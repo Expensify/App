@@ -25,7 +25,7 @@ def error(message) {
 
 def warnIfNotConfigured(reason) {
     warn("$reason")
-    warn("For setup instructions, refer to: https://github.com/Expensify/App/blob/main/README.md#using-patched-artifacts")
+    warn("For setup instructions, refer to: https://github.com/Expensify/App?tab=readme-ov-file#enabling-prebuilt-react-native-artifacts-on-android")
 }
 
 def getNewDotRootDir() {
