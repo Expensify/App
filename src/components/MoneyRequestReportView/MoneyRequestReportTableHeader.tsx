@@ -9,15 +9,13 @@ import type {TranslationPaths} from '@src/languages/types';
 
 type ShouldShowSearchColumnFn = (isIOUReport: boolean) => boolean;
 
-type MoneyReportShortableColumnName = Exclude<SortableColumnName, 'description' | 'taxAmount' | 'from' | 'to' | 'action'>;
-
 type ColumnConfig = {
-    columnName: MoneyReportShortableColumnName;
+    columnName: SortableColumnName;
     translationKey: TranslationPaths | undefined;
     isColumnSortable?: boolean;
 };
 
-const shouldShowColumnConfig: Record<MoneyReportShortableColumnName, ShouldShowSearchColumnFn> = {
+const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnFn> = {
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: () => true,
@@ -26,6 +24,15 @@ const shouldShowColumnConfig: Record<MoneyReportShortableColumnName, ShouldShowS
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: (isIOUReport) => !isIOUReport,
     [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.IN]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.FROM]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.TO]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.CREATED_BY]: () => false,
 };
 
 const columnConfig: ColumnConfig[] = [
@@ -80,7 +87,7 @@ function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColu
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
-            const shouldShowFun = shouldShowColumnConfig[columnName as MoneyReportShortableColumnName];
+            const shouldShowFun = shouldShowColumnConfig[columnName];
             if (!shouldShowFun) {
                 return false;
             }
