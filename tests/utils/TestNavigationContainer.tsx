@@ -34,6 +34,10 @@ function TestWorkspaceSplitNavigator() {
             parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
         >
             <WorkspaceSplit.Screen
+                name={SCREENS.WORKSPACE.INITIAL}
+                getComponent={getEmptyComponent}
+            />
+            <WorkspaceSplit.Screen
                 name={SCREENS.WORKSPACE.PROFILE}
                 getComponent={getEmptyComponent}
             />

@@ -20,6 +20,8 @@ jest.mock('@components/ConfirmedRoute.tsx');
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 
+const TEST_POLICY_ID = 'E81FCF5643E6F01A';
+
 describe('Pop to sidebar after resize from wide to narrow layout', () => {
     beforeEach(() => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
@@ -160,7 +162,7 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
             expect(lastSplitBeforeNavigate?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
             act(() => {
-                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('1'));
+                Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(TEST_POLICY_ID));
             });
 
             const lastSplitAfterNavigate = navigationRef.current?.getRootState().routes.at(-1);
@@ -175,6 +177,8 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
             const lastSplitAfterPopToSidebar = navigationRef.current?.getRootState().routes.at(-1);
             expect(lastSplitAfterPopToSidebar?.state?.index).toBe(0);
             expect(lastSplitAfterPopToSidebar?.state?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.INITIAL);
+            expect(lastSplitAfterNavigate)
         });
     });
 });
+
