@@ -343,7 +343,6 @@ function SearchList(
                     return Math.max(calculatedHeight, ITEM_HEIGHTS.HEADER, 1);
                 }
 
-                console.warn('SearchList: Unhandled item type in getItemHeight, returning estimated size.', item);
                 return estimatedItemSize;
             } catch (error) {
                 console.error('SearchList: Error calculating item height, returning estimated size.', error, item);
@@ -359,6 +358,7 @@ function SearchList(
             if (!layout) {
                 return;
             }
+            // eslint-disable-next-line no-param-reassign
             layout.size = height > 0 ? height : estimatedItemSize;
         },
         [getItemHeight, estimatedItemSize],
@@ -468,7 +468,6 @@ function SearchList(
                 removeClippedSubviews
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={onLayout}
-
             />
             <Modal
                 isVisible={isModalVisible}

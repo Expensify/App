@@ -2,11 +2,9 @@ import {Platform} from 'react-native';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 
-type PlatformHeights = {
-    [key: string]: number | undefined;
-};
+type PlatformHeights = Record<string, number | undefined>;
 
-export const ITEM_HEIGHTS = {
+const ITEM_HEIGHTS = {
     MOBILE: {
         TRANSACTION: variables.listItemHeightNormal + variables.optionRowListItemPadding,
         WITH_BUTTON: variables.listItemHeightNormal + 12 + variables.optionRowListItemPadding,
@@ -34,3 +32,4 @@ function getPlatformHeight(heights: PlatformHeights, fallbackHeight: number): nu
 }
 
 export default getPlatformHeight;
+export {ITEM_HEIGHTS};
