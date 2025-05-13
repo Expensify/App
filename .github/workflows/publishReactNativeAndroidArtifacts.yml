@@ -130,8 +130,8 @@ jobs:
           echo "Version: ${{ env.PATCHED_VERSION }}"
           echo "Commit hash: ${{ env.COMMIT_HASH }}"
           export ORG_GRADLE_PROJECT_reactNativeArchitectures="armeabi-v7a,arm64-v8a,x86,x86_64"
-          ./gradlew buildReactNativeArtifacts -x lint -x test -x check
-          ./gradlew publishReactNativeArtifacts
+          ./gradlew buildReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true -x lint -x test -x check
+          ./gradlew publishReactNativeArtifacts -PpatchedArtifacts.forceBuildFromSource=true
         env:
           GH_PUBLISH_ACTOR: ${{ github.actor }}
           GH_PUBLISH_TOKEN: ${{ github.token }}
