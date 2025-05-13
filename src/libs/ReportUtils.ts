@@ -2792,8 +2792,7 @@ function getParticipantsAccountIDsForDisplay(
 
 function getParticipantsList(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, isRoomMembersList = false, reportMetadata: OnyxEntry<ReportMetadata> = undefined): number[] {
     const isReportGroupChat = isGroupChat(report);
-    const isReportIOU = isIOUReport(report);
-    const shouldExcludeHiddenParticipants = !isReportGroupChat && !isReportIOU;
+    const shouldExcludeHiddenParticipants = !isReportGroupChat && !isMoneyRequestReport(report) && !isMoneyRequest(report);
     const chatParticipants = getParticipantsAccountIDsForDisplay(report, isRoomMembersList || shouldExcludeHiddenParticipants, false, false, reportMetadata);
 
     return chatParticipants.filter((accountID) => {
@@ -9728,7 +9727,7 @@ function prepareOnboardingOnyxData(
         return;
     }
 
-    const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
+    const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] : '';
     const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? 'Setup Specialist';
     const assignedGuidePersonalDetail = Object.values(allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === assignedGuideEmail);
     let assignedGuideAccountID: number;
@@ -10117,7 +10116,7 @@ function prepareOnboardingOnyxData(
             key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
             value: {
                 areConnectionsEnabled: true,
-                ...(requiresControlPlan.includes(userReportedIntegration)
+                ...(requiresControlPlan.includes(userReportedIntegration as AllConnectionName)
                     ? {
                           type: CONST.POLICY.TYPE.CORPORATE,
                       }
