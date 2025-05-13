@@ -48,7 +48,7 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
     return target.getBoundingClientRect();
 }
 
-function Tooltip({children, shouldHandleScroll = false, isFocused, ...props}: TooltipProps, ref: ForwardedRef<BoundsObserver>) {
+function Tooltip({children, shouldHandleScroll = false, isFocused = true, ...props}: TooltipProps, ref: ForwardedRef<BoundsObserver>) {
     const target = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
@@ -91,7 +91,7 @@ function Tooltip({children, shouldHandleScroll = false, isFocused, ...props}: To
     }
 
     // Skip the tooltip and return the children if navigation does not focus.
-    if (isFocused === false) {
+    if (!isFocused) {
         return children;
     }
 
