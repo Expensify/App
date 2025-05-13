@@ -79,14 +79,14 @@ function BottomDockedModal({
     );
 
     useEffect(() => {
-        if (getPlatform() === CONST.PLATFORM.WEB) {
+        if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
         } else {
             backHandlerListener.current = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressHandler);
         }
 
         return () => {
-            if (getPlatform() === CONST.PLATFORM.WEB) {
+            if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
                 document.body.removeEventListener('keyup', handleEscape, {capture: true});
             } else {
                 backHandlerListener.current?.remove();
@@ -132,9 +132,8 @@ function BottomDockedModal({
             width: deviceWidthProp ?? deviceWidth,
             height: deviceHeightProp ?? deviceHeight,
             backgroundColor: backdropColor,
-            ...(getPlatform() === CONST.PLATFORM.WEB ? {opacity: backdropOpacity} : {}),
         };
-    }, [deviceHeightProp, deviceWidthProp, deviceWidth, deviceHeight, backdropColor, backdropOpacity]);
+    }, [deviceHeightProp, deviceWidthProp, deviceWidth, deviceHeight, backdropColor]);
 
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
@@ -178,6 +177,7 @@ function BottomDockedModal({
             animationInTiming={animationInTiming}
             animationOutTiming={animationOutTiming}
             animationInDelay={animationInDelay}
+            backdropOpacity={backdropOpacity}
         />
     );
 

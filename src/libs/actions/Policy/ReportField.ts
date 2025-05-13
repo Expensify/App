@@ -171,6 +171,7 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
     const optimisticReportFieldDataForPolicy: Omit<OnyxValueWithOfflineFeedback<PolicyReportField>, 'value'> = {
         name,
         type,
+        target: 'expense',
         defaultValue: initialValue,
         values: listValues,
         disabledOptions: disabledListValues,

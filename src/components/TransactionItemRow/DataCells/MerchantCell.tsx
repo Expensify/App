@@ -15,7 +15,7 @@ function MerchantCell({transactionItem, shouldShowTooltip}: TransactionDataCellP
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={merchantToDisplay}
-            style={[styles.pre, styles.justifyContentCenter]}
+            style={[styles.pre, styles.justifyContentCenter, styles.flex1]}
         />
     );
 }

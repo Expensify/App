@@ -30,14 +30,15 @@ import {
     getMessageOfOldDotReportAction,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
-    getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogUpdateEmployee,
     getRemovedConnectionMessage,
     getRenamedAction,
+    getReopenedMessage,
     getReportActionMessageText,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
@@ -56,6 +57,7 @@ import {
     isCardIssuedAction,
     isCreatedTaskReportAction,
     isDeletedAction as isDeletedActionReportActionsUtils,
+    isMarkAsClosedAction,
     isMemberChangeAction,
     isMessageDeleted,
     isModifiedExpenseAction,
@@ -97,6 +99,7 @@ import {
     getReportPreviewMessage,
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
+    isExpenseReport,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
 } from '@libs/ReportUtils';
@@ -116,7 +119,7 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction, User} from '@src/types/onyx';
+import type {Account, Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
@@ -159,7 +162,7 @@ type ShouldShow = (args: {
     isProduction: boolean;
     moneyRequestAction: ReportAction | undefined;
     areHoldRequirementsMet: boolean;
-    user: OnyxEntry<User>;
+    account: OnyxEntry<Account>;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -550,9 +553,13 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionableTrackExpense(reportAction)) {
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);
                 } else if (isRenamedAction(reportAction)) {
-                    setClipboardMessage(getRenamedAction(reportAction));
-                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) {
-                    const {harvesting} = getOriginalMessage(reportAction) ?? {};
+                    setClipboardMessage(getRenamedAction(reportAction, isExpenseReport(report)));
+                } else if (
+                    isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
+                    isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
+                    isMarkAsClosedAction(reportAction)
+                ) {
+                    const harvesting = !isMarkAsClosedAction(reportAction) ? getOriginalMessage(reportAction)?.harvesting ?? false : false;
                     if (harvesting) {
                         setClipboardMessage(getReportAutomaticallySubmittedMessage(reportAction));
                     } else {
@@ -604,11 +611,13 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
                     setClipboardMessage(getPolicyChangeLogAddEmployeeMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
-                    setClipboardMessage(getPolicyChangeLogChangeRoleMessage(reportAction));
+                    setClipboardMessage(getPolicyChangeLogUpdateEmployee(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
                     setClipboardMessage(getPolicyChangeLogDeleteMemberMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
                     setClipboardMessage(getDeletedTransactionMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
+                    setClipboardMessage(getReopenedMessage());
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
                     const {label, errorMessage} = getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
                     setClipboardMessage(translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage}));
@@ -757,7 +766,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: true,
         textTranslateKey: 'debug.debug',
         icon: Expensicons.Bug,
-        shouldShow: ({type, user}) => [CONST.CONTEXT_MENU_TYPES.REPORT_ACTION, CONST.CONTEXT_MENU_TYPES.REPORT].some((value) => value === type) && !!user?.isDebugModeEnabled,
+        shouldShow: ({type, account}) => [CONST.CONTEXT_MENU_TYPES.REPORT_ACTION, CONST.CONTEXT_MENU_TYPES.REPORT].some((value) => value === type) && !!account?.isDebugModeEnabled,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (reportAction) {
                 Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, reportAction.reportActionID));

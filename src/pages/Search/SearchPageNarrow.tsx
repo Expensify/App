@@ -18,7 +18,6 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -26,7 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, isCannedSearchQuery, isCannedSearchQueryWithPolicyIDCheck} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,14 +38,13 @@ const ANIMATION_DURATION_IN_MS = 300;
 
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
-    policyID?: string;
     searchName?: string;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     currentSearchResults?: SearchResults;
     lastNonEmptySearchResults?: SearchResults;
 };
 
-function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions, currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, searchName, headerButtonsOptions, currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -55,7 +53,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
-    const {canUseLeftHandBar} = usePermissions();
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const {isOffline} = useNetwork();
 
@@ -101,17 +98,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    let isCannedQuery = false;
-
-    if (queryJSON) {
-        if (canUseLeftHandBar) {
-            isCannedQuery = isCannedSearchQueryWithPolicyIDCheck(queryJSON);
-        } else {
-            isCannedQuery = isCannedSearchQuery(queryJSON);
-        }
-    }
-
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && (!isCannedQuery || searchRouterListVisible);
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && ((!!queryJSON && !isCannedSearchQuery(queryJSON)) || searchRouterListVisible);
     const cancelSearchCallback = useCallback(() => {
         if (searchRouterListVisible) {
             setSearchRouterListVisible(false);
@@ -155,7 +142,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
                         <View style={[styles.zIndex10, styles.appBG]}>
                             <TopBar
                                 shouldShowLoadingBar={shouldShowLoadingState}
-                                activeWorkspaceID={policyID}
                                 breadcrumbLabel={translate('common.reports')}
                                 shouldDisplaySearch={false}
                                 cancelSearch={shouldDisplayCancelSearch ? cancelSearchCallback : undefined}

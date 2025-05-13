@@ -45,7 +45,7 @@ function AutoEmailLink({text, style}: AutoEmailLinkProps) {
                         // eslint-disable-next-line react/no-array-index-key
                         key={`email-${index}`}
                         href={`mailto:${email}`}
-                        style={styles.link}
+                        style={styles.emailLink}
                     >
                         {email}
                     </TextLink>,

@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -119,6 +120,8 @@ function IOURequestStartPage({
     const shouldShowPerDiemOption =
         iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
+    const {canUseMultiFilesDragAndDrop} = usePermissions();
+
     return (
         <AccessOrNotFoundWrapper
             reportID={reportID}
@@ -130,7 +133,7 @@ function IOURequestStartPage({
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMinHeight={canUseTouchScreen()}
-                headerGapStyles={isDraggingOver ? [styles.receiptDropHeaderGap] : []}
+                headerGapStyles={isDraggingOver ? [canUseMultiFilesDragAndDrop ? styles.dropWrapper : styles.receiptDropHeaderGap] : []}
                 testID={IOURequestStartPage.displayName}
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
@@ -176,6 +179,7 @@ function IOURequestStartPage({
                                             <IOURequestStepScan
                                                 route={route}
                                                 navigation={navigation}
+                                                isTooltipAllowed
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}

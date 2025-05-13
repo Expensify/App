@@ -3,7 +3,7 @@ import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMo
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
-import type {Attendee, Participant, Split} from './IOU';
+import type {Accountant, Attendee, Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type {Unit} from './Policy';
 import type RecentWaypoint from './RecentWaypoint';
@@ -18,7 +18,7 @@ type Waypoint = {
     /** The full address of the waypoint */
     address?: string;
 
-    /** The lattitude of the waypoint */
+    /** The latitude of the waypoint */
     lat?: number;
 
     /** The longitude of the waypoint */
@@ -375,6 +375,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The original transaction amount */
         amount: number;
+
+        /** Selected accountant */
+        accountant?: Accountant;
 
         /** The transaction tax amount */
         taxAmount?: number;
