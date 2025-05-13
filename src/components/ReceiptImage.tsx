@@ -92,6 +92,9 @@ type ReceiptImageProps = (
     /** Whether the receipt is a per diem request */
     isPerDiemRequest?: boolean;
 
+    /** Indicating whether the report is in preview */
+    isReportPreview?: boolean;
+
     /** The transaction data in search */
     transactionItem?: TransactionListItemType | Transaction;
 
@@ -120,6 +123,7 @@ function ReceiptImage({
     transactionItem,
     isPerDiemRequest,
     shouldUseFullHeight,
+    isReportPreview = false,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -169,6 +173,7 @@ function ReceiptImage({
     if (shouldUseThumbnailImage) {
         return (
             <ThumbnailImage
+                isReportPreview={isReportPreview}
                 previewSourceURL={source ?? ''}
                 style={[styles.w100, styles.h100]}
                 isAuthTokenRequired={isAuthTokenRequired ?? false}

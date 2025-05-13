@@ -61,6 +61,9 @@ type ReportActionItemImageProps = {
     /** whether or not this report is from review duplicates */
     isFromReviewDuplicates?: boolean;
 
+    /** Indicating whether the report is in preview */
+    isReportPreview?: boolean;
+
     /** Callback to be called on pressing the image */
     onPress?: () => void;
 
@@ -90,6 +93,7 @@ function ReportActionItemImage({
     isFromReviewDuplicates = false,
     onPress,
     shouldUseFullHeight,
+    isReportPreview = false,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -145,6 +149,7 @@ function ReportActionItemImage({
     }
 
     propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
+    propsObj.isReportPreview = isReportPreview;
 
     if (enablePreviewModal) {
         return (

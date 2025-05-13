@@ -178,6 +178,7 @@ function TransactionPreviewContent({
                         isHovered={isHovered || isScanning}
                         size={1}
                         shouldUseAspectRatio
+                        isReportPreview
                     />
                     {shouldShowSkeleton ? (
                         <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />

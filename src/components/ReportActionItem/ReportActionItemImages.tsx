@@ -29,6 +29,8 @@ type ReportActionItemImagesProps = {
     /** if the corresponding report action item is hovered */
     isHovered?: boolean;
 
+    isReportPreview?: boolean;
+
     /** Callback to be called on onPress */
     onPress?: () => void;
 
@@ -45,7 +47,7 @@ type ReportActionItemImagesProps = {
  * additional number when subtracted from size.
  */
 
-function ReportActionItemImages({images, size, total, isHovered = false, onPress, shouldUseAspectRatio = false}: ReportActionItemImagesProps) {
+function ReportActionItemImages({images, size, total, isHovered = false, onPress, shouldUseAspectRatio = false, isReportPreview = false}: ReportActionItemImagesProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -98,6 +100,7 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
                                     shouldMapHaveBorderRadius={false}
                                     onPress={onPress}
                                     shouldUseFullHeight={shouldUseAspectRatio}
+                                    isReportPreview={isReportPreview}
                                 />
                             </View>
                         </ImageBehaviorContextProvider>
