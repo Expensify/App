@@ -47,7 +47,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
             },
         },
-        [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: {
+        [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.FEATURE_TRAINING_ROOT]: {
                     path: ROUTES.TRACK_TRAINING_MODAL,
@@ -206,7 +206,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             },
                         },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
-                            path: ROUTES.SETTINGS_WALLET_DOMAINCARD.route,
+                            path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
@@ -246,7 +246,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
+                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
@@ -738,6 +738,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
+                            path: ROUTES.WORKSPACE_CUSTOM_FIELDS.route,
+                        },
                         [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: {
                             path: ROUTES.WORKSPACE_MEMBER_NEW_CARD.route,
                         },
@@ -772,31 +775,31 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_DEFAULT_TAX_RATE]: {
-                            path: ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.route,
+                            path: ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.route,
                             parse: {
                                 categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: {
-                            path: ROUTES.WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER.route,
+                            path: ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.route,
                             parse: {
                                 categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: {
-                            path: ROUTES.WORSKPACE_CATEGORY_DESCRIPTION_HINT.route,
+                            path: ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.route,
                             parse: {
                                 categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_APPROVER]: {
-                            path: ROUTES.WORSKPACE_CATEGORY_APPROVER.route,
+                            path: ROUTES.WORKSPACE_CATEGORY_APPROVER.route,
                             parse: {
                                 categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: {
-                            path: ROUTES.WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.route,
+                            path: ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.route,
                             parse: {
                                 categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
@@ -1203,10 +1206,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.DOMAIN_CARD]: {
                     screens: {
                         [SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL]: {
-                            path: ROUTES.SETTINGS_DOMAINCARD_DETAIL.route,
+                            path: ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.route,
                         },
                         [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: {
-                            path: ROUTES.SETTINGS_DOMAINCARD_REPORT_FRAUD.route,
+                            path: ROUTES.SETTINGS_DOMAIN_CARD_REPORT_FRAUD.route,
                         },
                     },
                 },
