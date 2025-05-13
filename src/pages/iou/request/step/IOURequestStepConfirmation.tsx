@@ -896,10 +896,7 @@ function IOURequestStepConfirmation({
     ) : null;
 
     const shouldShowThreeDotsButton =
-        requestType === CONST.IOU.REQUEST_TYPE.MANUAL &&
-        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) &&
-        !isMovingTransactionFromTrackExpense &&
-        !transaction?.receipt?.isTestDriveReceipt;
+        requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense;
 
     const shouldShowSmartScanFields =
         !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
