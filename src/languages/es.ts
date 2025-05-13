@@ -189,6 +189,7 @@ import type {
     UnreportedTransactionParams,
     UnshareParams,
     UntilTimeParams,
+    UpdatedCustomFieldParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
@@ -589,6 +590,11 @@ const translations = {
         attachmentImageTooLarge: 'Esta imagen es demasiado grande para obtener una vista previa antes de subirla.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Solamente puedes suber ${fileLimit} archivos a la vez.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo supera los ${maxUploadSizeInMB} MB. Por favor, vuelve a intentarlo.`,
+    },
+    dropzone: {
+        addAttachments: 'Añadir archivos adjuntos',
+        scanReceipts: 'Escanear recibos',
+        replaceReceipt: 'Reemplazar recibo',
     },
     filePicker: {
         fileError: 'Error de archivo',
@@ -1120,6 +1126,11 @@ const translations = {
         heldExpense: 'retuvo este gasto',
         unheldExpense: 'desbloqueó este gasto',
         explainHold: 'Explica la razón para retener esta solicitud.',
+        undoClose: 'Deshacer cierre',
+        reopened: 'reabrir',
+        reopenReport: 'Reabrir informe',
+        reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
+            `Este informe ya ha sido exportado a ${connectionName}. Cambiarlo puede provocar discrepancias en los datos. ¿Estás seguro de que deseas reabrir este informe?`,
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para retener.',
         expenseWasPutOnHold: 'Este gasto está retenido',
@@ -2003,8 +2014,7 @@ const translations = {
     onboarding: {
         welcome: '¡Bienvenido!',
         welcomeSignOffTitle: '¡Es un placer conocerte!',
-        welcomeSignOffTitleManageTeam:
-            'Podemos explorar más características como flujos de trabajo de aprobación y reglas cuando hayas avanzado en estos pasos, ya que son requisitos previos.',
+        welcomeSignOffTitleManageTeam: 'Una vez que termines las tareas anteriores, podemos explorar más funcionalidades como flujos de aprobación y reglas.',
         explanationModal: {
             title: 'Bienvenido a Expensify',
             description: 'Una aplicación para gestionar en un chat todos los gastos de tu empresa y personales. Inténtalo y dinos qué te parece. ¡Hay mucho más por venir!',
@@ -2936,6 +2946,9 @@ const translations = {
             reimburse: 'Reembolsos',
             categories: 'Categorías',
             tags: 'Etiquetas',
+            customField1: 'Campo personalizado 1',
+            customField2: 'Campo personalizado 2',
+            customFieldHint: 'Añade una codificación personalizada que se aplique a todos los gastos de este miembro.',
             reportFields: 'Campos de informe',
             reportTitle: 'El título del informe.',
             taxes: 'Impuestos',
@@ -5185,12 +5198,12 @@ const translations = {
                 joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} y ${submittersNames.at(-1)}`;
             }
             return {
-                one: `te eliminó del flujo de trabajo de aprobaciones y del chat del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
-                other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
+                one: `te eliminó del flujo de trabajo de aprobaciones y del chat de gastos de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
+                other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats de gastos de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
             };
         },
         demotedFromWorkspace: ({policyName, oldRole}: DemotedFromWorkspaceParams) =>
-            `cambió tu rol en ${policyName} de ${oldRole} a miembro. Te eliminamos de todos los chats del espacio de trabajo, excepto el suyo.`,
+            `cambió tu rol en ${policyName} de ${oldRole} a miembro. Te eliminamos de todos los chats de gastos, excepto el suyo.`,
         updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `actualizó la moneda predeterminada a ${newCurrency} (previamente ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
             `actualizó la frecuencia de generación automática de informes a "${newFrequency}" (previamente "${oldFrequency}")`,
@@ -5498,6 +5511,24 @@ const translations = {
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
+                updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                    if (!newValue) {
+                        return `eliminó el campo personalizado 1 de ${email} (previamente "${previousValue}")`;
+                    }
+
+                    return !previousValue
+                        ? `añadió "${newValue}" al campo personalizado 1 de ${email}`
+                        : `cambió el campo personalizado 1 de ${email} a "${newValue}" (previamente "${previousValue}")`;
+                },
+                updatedCustomField2: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                    if (!newValue) {
+                        return `eliminó el campo personalizado 2 de ${email} (previamente "${previousValue}")`;
+                    }
+
+                    return !previousValue
+                        ? `añadió "${newValue}" al campo personalizado 2 de ${email}`
+                        : `cambió el campo personalizado 2 de ${email} a "${newValue}" (previamente "${previousValue}")`;
+                },
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} salió del espacio de trabajo`,
                 removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -6754,7 +6785,7 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGbr: {
+        conciergeLHNGBR: {
             part1: '¡Comienza',
             part2: ' aquí!',
         },
@@ -6778,7 +6809,7 @@ const translations = {
             part3: '\ny más.',
             part4: ' ¡Pruébalo!',
         },
-        gbrRbrChat: {
+        GBRRBRChat: {
             part1: 'Verás 🟢 en ',
             part2: 'las acciones a realizar',
             part3: '\ny 🔴 en ',

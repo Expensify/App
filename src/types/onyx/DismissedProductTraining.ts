@@ -39,7 +39,7 @@ type DismissedProductTraining = {
     // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
     // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
     /**
-     * When user dismisses the conciergeLHNGbr product training tooltip, we store the timestamp here.
+     * When user dismisses the conciergeLHNGBR product training tooltip, we store the timestamp here.
      */
     [CONCIERGE_LHN_GBR]: DismissedProductTrainingElement;
 
@@ -99,7 +99,7 @@ type DismissedProductTraining = {
     [ACCOUNT_SWITCHER]: DismissedProductTrainingElement;
 
     /**
-     * When user dismisses the chatGbrRbr product training tooltip, we store the timestamp here.
+     * When user dismisses the chatGBRRBR product training tooltip, we store the timestamp here.
      */
     [GBR_RBR_CHAT]: DismissedProductTrainingElement;
 

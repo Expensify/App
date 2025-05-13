@@ -190,6 +190,7 @@ import type {
     UnreportedTransactionParams,
     UnshareParams,
     UntilTimeParams,
+    UpdatedCustomFieldParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
@@ -594,6 +595,11 @@ const translations = {
         attachmentImageTooLarge: 'This image is too large to preview before uploading.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `You can only upload up to ${fileLimit} files at a time.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Files exceeds ${maxUploadSizeInMB} MB. Please try again.`,
+    },
+    dropzone: {
+        addAttachments: 'Add attachments',
+        scanReceipts: 'Scan receipts',
+        replaceReceipt: 'Replace receipt',
     },
     filePicker: {
         fileError: 'File error',
@@ -1124,6 +1130,11 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
         addUnreportedExpenseConfirm: 'Add to report',
         explainHold: "Explain why you're holding this expense.",
+        undoClose: 'Undo close',
+        reopened: 'reopened',
+        reopenReport: 'Reopen report',
+        reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
+            `This report has already been exported to ${connectionName}. Changing it may lead to data discrepancies. Are you sure you want to reopen this report?`,
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
         expenseWasPutOnHold: 'Expense was put on hold',
@@ -2001,7 +2012,7 @@ const translations = {
     },
     onboarding: {
         welcome: 'Welcome!',
-        welcomeSignOffTitleManageTeam: 'We can explore more features such as approval workflows and rules when you have progressed on these steps as these are pre-requisites.',
+        welcomeSignOffTitleManageTeam: 'Once you finish the tasks above, we can explore more functionality like approval workflows and rules!',
         welcomeSignOffTitle: "It's great to meet you!",
         explanationModal: {
             title: 'Welcome to Expensify',
@@ -2912,6 +2923,9 @@ const translations = {
             reimburse: 'Reimbursements',
             categories: 'Categories',
             tags: 'Tags',
+            customField1: 'Custom field 1',
+            customField2: 'Custom field 2',
+            customFieldHint: 'Add custom coding that applies to all spend from this member.',
             reportFields: 'Report fields',
             reportTitle: 'Report title',
             reportField: 'Report field',
@@ -5131,12 +5145,12 @@ const translations = {
                 joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')} and ${submittersNames.at(-1)}`;
             }
             return {
-                one: `removed you from ${joinedNames}'s approval workflow and workspace chat. Previously submitted reports will remain available for approval in your Inbox.`,
-                other: `removed you from ${joinedNames}'s approval workflows and workspace chats. Previously submitted reports will remain available for approval in your Inbox.`,
+                one: `removed you from ${joinedNames}'s approval workflow and expense chat. Previously submitted reports will remain available for approval in your Inbox.`,
+                other: `removed you from ${joinedNames}'s approval workflows and expense chats. Previously submitted reports will remain available for approval in your Inbox.`,
             };
         },
         demotedFromWorkspace: ({policyName, oldRole}: DemotedFromWorkspaceParams) =>
-            `updated your role in ${policyName} from ${oldRole} to user. You have been removed from all submitter workspace chats except for you own.`,
+            `updated your role in ${policyName} from ${oldRole} to user. You have been removed from all submitter expense chats except for you own.`,
         updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `updated the default currency to ${newCurrency} (previously ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
             `updated the auto-reporting frequency to "${newFrequency}" (previously "${oldFrequency}")`,
@@ -5443,6 +5457,20 @@ const translations = {
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
+                updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                    if (!newValue) {
+                        return `removed ${email}'s custom field 1 (previously "${previousValue}")`;
+                    }
+
+                    return !previousValue ? `added "${newValue}" to ${email}’s custom field 1` : `changed ${email}’s custom field 1 to "${newValue}" (previously "${previousValue}")`;
+                },
+                updatedCustomField2: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
+                    if (!newValue) {
+                        return `removed ${email}'s custom field 2 (previously "${previousValue}")`;
+                    }
+
+                    return !previousValue ? `added "${newValue}" to ${email}’s custom field 2` : `changed ${email}’s custom field 2 to "${newValue}" (previously "${previousValue}")`;
+                },
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} left the workspace`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -6232,7 +6260,7 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGbr: {
+        conciergeLHNGBR: {
             part1: 'Get started',
             part2: ' here!',
         },
@@ -6256,7 +6284,7 @@ const translations = {
             part3: '\nand more.',
             part4: ' Try it out!',
         },
-        gbrRbrChat: {
+        GBRRBRChat: {
             part1: 'You’ll see 🟢 on ',
             part2: 'actions to take',
             part3: ',\nand 🔴 on ',
