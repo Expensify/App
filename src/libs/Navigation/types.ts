@@ -1821,10 +1821,6 @@ type TestDriveDemoNavigatorParamList = {
     [SCREENS.TEST_DRIVE_DEMO.ROOT]: undefined;
 };
 
-type TestToolsModalModalNavigatorParamList = {
-    [SCREENS.TEST_TOOLS_MODAL.ROOT]: undefined;
-};
-
 type SharedScreensParamList = {
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
@@ -1863,7 +1859,6 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<ConsoleNavigatorParamList>;
-    [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
 };
 
 type AuthScreensParamList = SharedScreensParamList & {
@@ -1922,7 +1917,6 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
-    [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
 };
 
 type SearchReportParamList = {
@@ -2126,5 +2120,4 @@ export type {
     WorkspaceScreenName,
     SettingsTabScreenName,
     TestDriveDemoNavigatorParamList,
-    TestToolsModalModalNavigatorParamList,
 };
