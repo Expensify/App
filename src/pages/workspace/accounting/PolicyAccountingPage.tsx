@@ -31,7 +31,7 @@ import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
-import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import {getFundIdFromSettingsKey, isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import {
     areSettingsInErrorFields,
@@ -90,6 +90,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const newConnectionName = params?.newConnectionName;
     const integrationToDisconnect = params?.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
+    const policyID = policy?.id;
+    const [domainFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
+        selector: (cardSetting) => {
+            const matchingKey = Object.entries(cardSetting ?? {}).find(
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                ([key, settings]) => settings?.preferredPolicy && settings.preferredPolicy === policyID && !key.includes(workspaceAccountID.toString()),
+            );
+
+            return getFundIdFromSettingsKey(matchingKey?.[0] ?? '');
+        },
+    });
 
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
@@ -100,7 +111,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
 
-    const policyID = policy?.id;
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
     const successfulDate = getIntegrationLastSuccessfulDate(
         connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined,
@@ -114,7 +124,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
-    const shouldShowCardReconciliationOption = isExpensifyCardFullySetUp(policy, cardSettings);
+    const shouldShowCardReconciliationOption = isExpensifyCardFullySetUp(policy, cardSettings) || domainFundID;
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
