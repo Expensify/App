@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -186,6 +187,7 @@ function PolicyDistanceRatesPage({
     }, []);
     const sortRates = useCallback((rates: RateForList[]) => rates.sort((a, b) => (a.rate ?? 0) - (b.rate ?? 0)), []);
     const [inputValue, setInputValue, filteredDistanceRatesList] = useSearchResults(distanceRatesList, filterRate, sortRates);
+    const sections = useMemo(() => [{data: filteredDistanceRatesList, key: 'distanceRatesList'}], [filteredDistanceRatesList]);
 
     const addRate = () => {
         Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
@@ -237,8 +239,11 @@ function PolicyDistanceRatesPage({
         }
 
         deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates);
-        setSelectedDistanceRates([]);
         setIsDeleteModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedDistanceRates([]);
+        });
     };
 
     const toggleRate = (rate: RateForList) => {
@@ -380,40 +385,45 @@ function PolicyDistanceRatesPage({
                     {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.ph5]}>{headerButtons}</View>}
-                {Object.values(customUnitRates).length > 0 && getHeaderText()}
-                {Object.values(customUnitRates).length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        label={translate('workspace.distanceRates.findRate')}
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        shouldShowEmptyState={filteredDistanceRatesList.length === 0}
-                    />
-                )}
-                {isLoading && (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
-                        color={theme.spinner}
-                    />
-                )}
-                {Object.values(customUnitRates).length > 0 && (
-                    <SelectionListWithModal
-                        addBottomSafeAreaPadding
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
-                        onTurnOnSelectionMode={(item) => item && toggleRate(item)}
-                        sections={[{data: filteredDistanceRatesList, isDisabled: false}]}
-                        onCheckboxPress={toggleRate}
-                        onSelectRow={openRateDetails}
-                        onSelectAll={toggleAllRates}
-                        onDismissError={dismissError}
-                        ListItem={TableListItem}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        customListHeader={getCustomListHeader()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        showScrollIndicator={false}
-                    />
-                )}
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                >
+                    {Object.values(customUnitRates).length > 0 && getHeaderText()}
+                    {isLoading && (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                            color={theme.spinner}
+                        />
+                    )}
+                    {Object.values(customUnitRates).length > CONST.SEARCH_ITEM_LIMIT && (
+                        <SearchBar
+                            label={translate('workspace.distanceRates.findRate')}
+                            inputValue={inputValue}
+                            onChangeText={setInputValue}
+                            shouldShowEmptyState={filteredDistanceRatesList.length === 0}
+                        />
+                    )}
+                    {Object.values(customUnitRates).length > 0 && (
+                        <SelectionListWithModal
+                            addBottomSafeAreaPadding
+                            canSelectMultiple={canSelectMultiple}
+                            turnOnSelectionModeOnLongPress
+                            onTurnOnSelectionMode={(item) => item && toggleRate(item)}
+                            sections={sections}
+                            onCheckboxPress={toggleRate}
+                            onSelectRow={openRateDetails}
+                            onSelectAll={toggleAllRates}
+                            onDismissError={dismissError}
+                            ListItem={TableListItem}
+                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                            customListHeader={getCustomListHeader()}
+                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            showScrollIndicator={false}
+                        />
+                    )}
+                </ScrollView>
                 <ConfirmModal
                     onConfirm={() => setIsWarningModalVisible(false)}
                     onCancel={() => setIsWarningModalVisible(false)}
