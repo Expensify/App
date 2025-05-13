@@ -20,7 +20,7 @@ Tracking an expense in Expensify is simple and can be done in just a few steps. 
 
 ## Where to Find Tracked Expenses
 
-Once the expense is created, it will appear in your **Workspace Chat** in the left-hand navigation. Within the workspace chat, you can take the following further actions on the expense at any time:
+Once the expense is created, it will appear in your **Expense Chat** in the left-hand navigation. Within the expense chat, you can take the following further actions on the expense at any time:
 
 - **Submit it to someone** – Send the expense for approval or processing.
 - **Categorize it** – Assign the expense to a category for better organization.
