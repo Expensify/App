@@ -31,7 +31,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const htmlAttribAccountID = tnode.attributes.accountid;
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const htmlAttributeAccountID = tnode.attributes.accountid;
 
     let accountID: number;
