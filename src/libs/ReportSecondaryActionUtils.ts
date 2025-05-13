@@ -12,6 +12,7 @@ import {
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
+    isInstantSubmitEnabled,
     isPrefferedExporter,
     isSubmitAndClose as isSubmitAndCloseUtils,
 } from './PolicyUtils';
@@ -351,7 +352,9 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[]): bool
 function isRetractAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isSubmitAndClose = isSubmitAndCloseUtils(policy);
-    if (!isExpenseReport || isSubmitAndClose) {
+    const isInstantSubmit = isInstantSubmitEnabled(policy);
+
+    if (!isExpenseReport || isSubmitAndClose || isInstantSubmit) {
         return false;
     }
 
