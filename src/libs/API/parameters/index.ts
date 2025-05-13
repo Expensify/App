@@ -142,6 +142,7 @@ export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCatego
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
+export type {default as UpdatePolicyMembersCustomFieldsParams} from './UpdatePolicyMembersCustomFieldsParams';
 export type {default as CreateTaskParams} from './CreateTaskParams';
 export type {default as CancelTaskParams} from './CancelTaskParams';
 export type {default as EditTaskAssigneeParams} from './EditTaskAssigneeParams';
@@ -299,7 +300,6 @@ export type {default as SetPolicyPreventMemberCreatedTitleParams} from './SetPol
 export type {default as SetPolicyAutoReimbursementLimitParams} from './SetPolicyAutoReimbursementLimit';
 export type {default as EnablePolicyAutoReimbursementLimitParams} from './EnablePolicyAutoReimbursementLimit';
 export type {default as EnablePolicyAutoApprovalOptionsParams} from './EnablePolicyAutoApprovalOptions';
-export type {default as EnablePolicyDefaultReportTitleParams} from './EnablePolicyDefaultReportTitle';
 export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExpenseMaxAmountNoReceipt';
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
@@ -394,3 +394,4 @@ export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuide
 export type {default as GetEmphemeralTokenParams} from './GetEmphemeralTokenParams';
 export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
+export type {default as ReopenReportParams} from './ReopenReportParams';

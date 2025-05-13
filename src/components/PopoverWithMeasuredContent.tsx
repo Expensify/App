@@ -65,7 +65,7 @@ function PopoverWithMeasuredContent({
     shouldHandleNavigationBack = false,
     shouldEnableNewFocusManagement,
     shouldMeasureAnchorPositionFromTop = false,
-    shouldUseNewModal = false,
+    shouldUseNewModal = true,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();

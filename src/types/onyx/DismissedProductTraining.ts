@@ -74,7 +74,7 @@ type DismissedProductTraining = {
     [SCAN_TEST_TOOLTIP_MANAGER]: DismissedProductTrainingElement;
 
     /**
-     * When user dismisses the test manager on confirmantion page product training tooltip, we store the timestamp here.
+     * When user dismisses the test manager on confirmation page product training tooltip, we store the timestamp here.
      */
     [SCAN_TEST_CONFIRMATION]: DismissedProductTrainingElement;
 
