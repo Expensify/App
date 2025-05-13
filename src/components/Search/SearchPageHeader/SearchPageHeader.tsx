@@ -1,13 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
+import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
@@ -29,7 +27,6 @@ type SearchPageHeaderProps = {
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
 function SearchPageHeader({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, headerButtonsOptions}: SearchPageHeaderProps) {
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
@@ -46,15 +43,8 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, hideSearchRouterL
     }, []);
 
     const InputRightComponent = useMemo(() => {
-        return (
-            <Button
-                large
-                innerStyles={[styles.searchAutocompleteInputResults, styles.borderNone, styles.bgTransparent]}
-                icon={Expensicons.Clear}
-                onPress={clearFilters}
-            />
-        );
-    }, [clearFilters, styles.bgTransparent, styles.borderNone, styles.searchAutocompleteInputResults]);
+        return <TextInputClearButton onPressButton={clearFilters} />;
+    }, [clearFilters]);
 
     if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
         return (
