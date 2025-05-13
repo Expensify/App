@@ -127,7 +127,7 @@ function FirstHeaderRow<TItem extends ListItem>({
                     />
                 </View>
             </View>
-            <View style={[styles.flexShrink0]}>
+            <View style={[styles.flexShrink0, styles.mr3]}>
                 <TotalCell
                     showTooltip
                     isLargeScreenWidth={false}
@@ -135,7 +135,7 @@ function FirstHeaderRow<TItem extends ListItem>({
                 />
             </View>
             {showAction && (
-                <View style={[styles.pl4, styles.ml2, {width: 84}]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         action={reportItem.action}
                         goToItem={handleOnButtonPress}
