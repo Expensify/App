@@ -2,6 +2,7 @@
 
 /* eslint-disable no-continue */
 import {Str} from 'expensify-common';
+import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -42,7 +43,7 @@ import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import Performance from './Performance';
 import Permissions from './Permissions';
-import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {canSendInvoiceFromWorkspace, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
 import {
@@ -54,6 +55,7 @@ import {
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
     getSortedReportActions,
@@ -222,7 +224,7 @@ type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
-    recentAttendees?: Attendee[];
+    recentAttendees?: Option[];
     excludeHiddenThreads?: boolean;
     excludeHiddenChatRoom?: boolean;
     canShowManagerMcTest?: boolean;
@@ -801,7 +803,11 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getUpgradeWorkspaceMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         lastMessageTextFromReport = getDowngradeWorkspaceMessage();
-    } else if (isActionableAddPaymentCard(lastReportAction) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
+    } else if (
+        isActionableAddPaymentCard(lastReportAction) ||
+        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) ||
+        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED)
+    ) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
@@ -813,6 +819,8 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
         lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
+        lastMessageTextFromReport = getReopenedMessage();
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
@@ -1490,7 +1498,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             continue;
         }
 
-        // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
+        // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to expense chats only.
         if (!includeP2P && !isPolicyExpenseChat) {
             continue;
         }
@@ -1876,11 +1884,24 @@ function getAttendeeOptions(
     includeInvoiceRooms = false,
     action: IOUAction | undefined = undefined,
 ) {
+    const personalDetailList = keyBy(
+        personalDetails.map(({item}) => item),
+        'accountID',
+    );
+    const filteredRecentAttendees = recentAttendees
+        .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
+        .map((attendee) => ({
+            ...attendee,
+            login: attendee.email ?? attendee.displayName,
+            ...getPersonalDetailByEmail(attendee.email),
+        }))
+        .map((attendee) => getParticipantsOption(attendee, personalDetailList as never));
+
     return getValidOptions(
         {reports, personalDetails},
         {
             betas,
-            selectedOptions: attendees,
+            selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats,
             includeRecentReports: false,
@@ -1889,7 +1910,7 @@ function getAttendeeOptions(
             includeSelfDM: false,
             includeInvoiceRooms,
             action,
-            recentAttendees,
+            recentAttendees: filteredRecentAttendees,
         },
     );
 }

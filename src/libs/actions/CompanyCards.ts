@@ -744,8 +744,9 @@ function openPolicyCompanyCardsPage(policyID: string, workspaceAccountID: number
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE, params, {optimisticData, successData, failureData});
 }
 
-function openPolicyCompanyCardsFeed(policyID: string, feed: CompanyCardFeed) {
+function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, feed: CompanyCardFeed) {
     const parameters: OpenPolicyCompanyCardsFeedParams = {
+        domainAccountID,
         policyID,
         feed,
     };

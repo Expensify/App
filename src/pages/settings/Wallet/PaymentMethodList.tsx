@@ -288,7 +288,7 @@ function PaymentMethodList({
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     title: isTravelCard ? translate('cardPage.expensifyTravelCard') : card?.nameValuePairs?.cardTitle || card.bank,
                     description: isTravelCard ? translate('cardPage.expensifyTravelCard') : cardDescription,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard && !isTravelCard,
                     shouldShowRightIcon: true,
@@ -380,7 +380,7 @@ function PaymentMethodList({
 
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
             return;
         }
         onPress();

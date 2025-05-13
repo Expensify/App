@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SelectionList from '@components/SelectionList';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -76,6 +77,9 @@ type SearchAutocompleteListProps = {
 
     /** Callback to highlight (e.g. scroll to) the first matched item in the list. */
     onHighlightFirstItem?: () => void;
+
+    /** Ref for textInput */
+    textInputRef?: React.RefObject<AnimatedTextInputRef>;
 };
 
 const defaultListOptions = {
@@ -134,8 +138,9 @@ function SearchAutocompleteList(
         onListItemPress,
         setTextQuery,
         updateAutocompleteSubstitutions,
-        shouldSubscribeToArrowKeyEvents,
+        shouldSubscribeToArrowKeyEvents = true,
         onHighlightFirstItem,
+        textInputRef,
     }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -163,7 +168,28 @@ function SearchAutocompleteList(
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
     const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
-    const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
+
+    const statusAutocompleteList = useMemo(() => {
+        const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
+        const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+        const currentType = typeFilter?.value;
+
+        switch (currentType) {
+            case CONST.SEARCH.DATA_TYPES.EXPENSE:
+                return Object.values(CONST.SEARCH.STATUS.EXPENSE);
+            case CONST.SEARCH.DATA_TYPES.INVOICE:
+                return Object.values(CONST.SEARCH.STATUS.INVOICE);
+            case CONST.SEARCH.DATA_TYPES.CHAT:
+                return Object.values(CONST.SEARCH.STATUS.CHAT);
+            case CONST.SEARCH.DATA_TYPES.TRIP:
+                return Object.values(CONST.SEARCH.STATUS.TRIP);
+            case CONST.SEARCH.DATA_TYPES.TASK:
+                return Object.values(CONST.SEARCH.STATUS.TASK);
+            default:
+                return Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.TASK});
+        }
+    }, [autocompleteQueryValue]);
+
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
     const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
 
@@ -306,28 +332,21 @@ function SearchAutocompleteList(
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
+                const filterKey = autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY ? CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CREATED_BY : autocompleteKey;
+
                 const filteredParticipants = getParticipantsAutocompleteList()
                     .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                     .slice(0, 10);
 
                 return filteredParticipants.map((participant) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FROM,
+                    filterKey,
                     text: participant.name,
                     autocompleteID: participant.accountID,
-                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                }));
-            }
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO: {
-                const filteredParticipants = getParticipantsAutocompleteList()
-                    .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
-                    .slice(0, 10);
-
-                return filteredParticipants.map((participant) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO,
-                    text: participant.name,
-                    autocompleteID: participant.accountID,
-                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                    mapKey: autocompleteKey,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
@@ -583,6 +602,9 @@ function SearchAutocompleteList(
                 onLayout={() => {
                     setPerformanceTimersEnd();
                     setIsInitialRender(false);
+                    if (!!textInputRef?.current && ref && 'current' in ref) {
+                        ref.current?.updateExternalTextInputFocus?.(textInputRef.current.isFocused());
+                    }
                 }}
                 showScrollIndicator={!shouldUseNarrowLayout}
                 sectionTitleStyles={styles.mhn2}

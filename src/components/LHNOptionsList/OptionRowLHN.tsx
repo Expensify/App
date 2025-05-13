@@ -38,7 +38,6 @@ import {
     isPolicyExpenseChat,
     isSystemChat,
     isThread,
-    requiresAttentionFromCurrentUser,
 } from '@libs/ReportUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
@@ -140,8 +139,7 @@ function OptionRowLHN({
         return null;
     }
 
-    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
+    const brickRoadIndicator = optionItem.brickRoadIndicator;
     const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
@@ -337,7 +335,7 @@ function OptionRowLHN({
                                                 <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                             </View>
                                         ) : null}
-                                        {hasBrickError && (
+                                        {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                                 <Icon
                                                     testID="RBR Icon"
@@ -352,7 +350,7 @@ function OptionRowLHN({
                                     style={[styles.flexRow, styles.alignItemsCenter]}
                                     accessible={false}
                                 >
-                                    {shouldShowGreenDotIndicator && (
+                                    {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
                                         <View style={styles.ml2}>
                                             <Icon
                                                 testID="GBR Icon"
@@ -373,7 +371,7 @@ function OptionRowLHN({
                                             />
                                         </View>
                                     )}
-                                    {!shouldShowGreenDotIndicator && !hasBrickError && !!optionItem.isPinned && (
+                                    {!brickRoadIndicator && !!optionItem.isPinned && (
                                         <View
                                             style={styles.ml2}
                                             accessibilityLabel={translate('sidebarScreen.chatPinned')}

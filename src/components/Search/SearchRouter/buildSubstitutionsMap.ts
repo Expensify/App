@@ -65,7 +65,9 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE
         ) {
             const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeedNamesWithType, policies);
 

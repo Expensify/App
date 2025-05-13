@@ -18,7 +18,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
 import {openReport} from '@userActions/Report';
@@ -62,13 +61,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     useEffect(() => {
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined, true);
     }, [reportIDFromRoute]);
-
-    const queryJSON = useMemo(() => {
-        const backTo = route.params.backTo ?? '';
-        const queryString = backTo.split('?').at(1) ?? '';
-        const q = new URLSearchParams(queryString).get('q') ?? '';
-        return buildSearchQueryJSON(q);
-    }, [route.params.backTo]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
@@ -137,8 +129,9 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     breadcrumbLabel={translate('common.reports')}
                                     shouldDisplaySearch={false}
                                     shouldShowLoadingBar={false}
+                                    shouldDisplayHelpButton={false}
                                 />
-                                <SearchTypeMenu queryJSON={queryJSON} />
+                                <SearchTypeMenu queryJSON={undefined} />
                             </View>
                             <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
                         </View>

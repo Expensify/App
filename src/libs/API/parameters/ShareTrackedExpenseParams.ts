@@ -31,6 +31,7 @@ type ShareTrackedExpenseParams = {
     description?: string;
     accountantEmail: string;
     policyName?: string;
+    attendees?: string;
 };
 
 export default ShareTrackedExpenseParams;

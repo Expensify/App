@@ -17,9 +17,14 @@ import type {DerivedValueContext} from './types';
  */
 function init() {
     for (const [key, {compute, dependencies}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {
+        let areAllConnectionsSet = false;
+        let connectionsEstablishedCount = 0;
+        const totalConnections = dependencies.length;
+        const connectionInitializedFlags = new Array(totalConnections).fill(false);
+
         // Create an array to hold the current values for each dependency.
         // We cast its type to match the tuple expected by config.compute.
-        let dependencyValues = new Array(dependencies.length) as Parameters<typeof compute>[0];
+        let dependencyValues = new Array(totalConnections) as Parameters<typeof compute>[0];
 
         OnyxUtils.get(key).then((storedDerivedValue) => {
             let derivedValue = storedDerivedValue;
@@ -27,8 +32,13 @@ function init() {
                 Log.info(`Derived value for ${key} restored from disk`);
             } else {
                 OnyxUtils.tupleGet(dependencies).then((values) => {
+                    const initialContext: DerivedValueContext<typeof key, typeof dependencies> = {
+                        currentValue: derivedValue,
+                        sourceValues: undefined,
+                        areAllConnectionsSet: false,
+                    };
                     // @ts-expect-error TypeScript can't confirm the shape of tupleGet's return value matches the compute function's parameters
-                    derivedValue = compute(values, {currentValue: derivedValue});
+                    derivedValue = compute(dependencyValues, initialContext);
                     dependencyValues = values;
                     Onyx.set(key, derivedValue ?? null);
                 });
@@ -37,11 +47,29 @@ function init() {
             const setDependencyValue = <Index extends number>(i: Index, value: Parameters<typeof compute>[0][Index]) => {
                 dependencyValues[i] = value;
             };
+            const checkAndMarkConnectionInitialized = (index: number) => {
+                if (connectionInitializedFlags.at(index)) {
+                    return;
+                }
 
-            const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown) => {
+                connectionInitializedFlags[index] = true;
+                connectionsEstablishedCount++;
+                if (connectionsEstablishedCount === totalConnections) {
+                    areAllConnectionsSet = true;
+                    Log.info(`[OnyxDerived] All connections initialized for key: ${key}`);
+                }
+            };
+
+            const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
+                // If this recompute was triggered by a connection callback, check if it initializes the connection
+                if (triggeredByIndex !== undefined) {
+                    checkAndMarkConnectionInitialized(triggeredByIndex);
+                }
+
                 const context: DerivedValueContext<typeof key, typeof dependencies> = {
                     currentValue: derivedValue,
                     sourceValues: undefined,
+                    areAllConnectionsSet,
                 };
 
                 // If we got a source key and value, add it to the sourceValues object
@@ -58,16 +86,17 @@ function init() {
             };
 
             for (let i = 0; i < dependencies.length; i++) {
-                // eslint-disable-next-line rulesdir/prefer-at
-                const dependencyOnyxKey = dependencies[i];
+                const dependencyIndex = i;
+                const dependencyOnyxKey = dependencies[dependencyIndex];
+
                 if (OnyxUtils.isCollectionKey(dependencyOnyxKey)) {
                     Onyx.connect({
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
                         callback: (value, collectionKey, sourceValue) => {
                             Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
-                            setDependencyValue(i, value as Parameters<typeof compute>[0][typeof i]);
-                            recomputeDerivedValue(dependencyOnyxKey, sourceValue);
+                            setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
+                            recomputeDerivedValue(dependencyOnyxKey, sourceValue, dependencyIndex);
                         },
                     });
                 } else {
@@ -75,8 +104,9 @@ function init() {
                         key: dependencyOnyxKey,
                         callback: (value) => {
                             Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
-                            setDependencyValue(i, value as Parameters<typeof compute>[0][typeof i]);
-                            recomputeDerivedValue(dependencyOnyxKey);
+                            setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
+                            // if the dependency is not a collection, pass the entire value as the source value
+                            recomputeDerivedValue(dependencyOnyxKey, value, dependencyIndex);
                         },
                     });
                 }
