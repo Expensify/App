@@ -13,7 +13,7 @@ import ROUTES from '@src/ROUTES';
 
 function LockAccountPage() {
     const {translate} = useLocalize();
-    const [isWarningModalVisible, setWarningModalVisible] = useState(false);
+    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -26,7 +26,7 @@ function LockAccountPage() {
             style={styles.mt6}
             pressOnEnter
             onPress={() => {
-                setWarningModalVisible(true);
+                setIsConfirmModalVisible(true);
             }}
         />
     );
@@ -54,11 +54,11 @@ function LockAccountPage() {
                 title={translate('lockAccountPage.lockAccount')}
                 onConfirm={() => {
                     lockAccount();
-                    setWarningModalVisible(false);
+                    setIsConfirmModalVisible(false);
                     Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT);
                 }}
-                onCancel={() => setWarningModalVisible(false)}
-                isVisible={isWarningModalVisible}
+                onCancel={() => setIsConfirmModalVisible(false)}
+                isVisible={isConfirmModalVisible}
                 prompt={translate('lockAccountPage.warning')}
                 confirmText={translate('lockAccountPage.lockAccount')}
                 cancelText={translate('common.cancel')}
