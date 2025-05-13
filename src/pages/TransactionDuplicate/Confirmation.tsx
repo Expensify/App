@@ -15,6 +15,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,6 +25,7 @@ import variables from '@styles/variables';
 import * as IOU from '@src/libs/actions/IOU';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
+import {generateReportID} from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {getTransactionID} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,16 +37,17 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 function Confirmation() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {canUseTableReportView} = usePermissions();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
+    const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: true});
     const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID);
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID);
     const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
-    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`);
+    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: true});
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`, {canBeMissing: true});
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
@@ -53,24 +56,32 @@ function Confirmation() {
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const mergeDuplicates = useCallback(() => {
+        const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
+
         if (!reportAction?.childReportID) {
-            return;
+            transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
         }
+
         IOU.mergeDuplicates(transactionsMergeParams);
-        if (!reportAction?.childReportID) {
+        if (canUseTableReportView) {
+            Navigation.dismissModal();
             return;
         }
-        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
-    }, [reportAction?.childReportID, transactionsMergeParams]);
+        Navigation.dismissModalWithReport({reportID: transactionThreadReportID});
+    }, [reportAction?.childReportID, transactionsMergeParams, canUseTableReportView]);
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
+        if (canUseTableReportView) {
+            Navigation.dismissModal();
+            return;
+        }
         if (!reportAction?.childReportID) {
             Navigation.dismissModal();
             return;
         }
         Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
-    }, [transactionsMergeParams, reportAction?.childReportID]);
+    }, [transactionsMergeParams, reportAction?.childReportID, canUseTableReportView]);
 
     const contextValue = useMemo(
         () => ({

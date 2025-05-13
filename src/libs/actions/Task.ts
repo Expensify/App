@@ -1276,8 +1276,8 @@ function clearTaskErrors(reportID: string | undefined) {
 
 function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected): OnyxData {
     const taskReportID = introSelected?.[taskName];
-    if (taskReportID) {
-        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+    const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+    if (taskReportID && canActionTask(taskReport, currentUserAccountID)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
                 return completeTask(taskReport);
