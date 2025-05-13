@@ -200,7 +200,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         };
 
         return defaultMenu;
-    }, [loginList, privatePersonalDetails, styles.accountSettingsSectionContainer, walletBrickRoadIndicator]);
+    }, [loginList, privatePersonalDetails, styles.accountSettingsSectionContainer, walletBrickRoadIndicator, hasActivatedWallet, userWallet?.currentBalance]);
 
     const navigateToWorkspacesSettings = useCallback(() => {
         hideWorkspaceSettingsTooltip();
@@ -420,19 +420,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 </View>
             );
         },
-        [
-            styles.pb4,
-            styles.mh3,
-            styles.sectionTitle,
-            styles.sectionMenuItem,
-            translate,
-            userWallet?.currentBalance,
-            focusedRouteName,
-            isExecuting,
-            singleExecution,
-            styles.productTrainingTooltipWrapper,
-            hasActivatedWallet,
-        ],
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, focusedRouteName, isExecuting, singleExecution, styles.productTrainingTooltipWrapper],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
