@@ -19,6 +19,7 @@ type PushNotificationData = ReportActionPushNotificationData | TransactionPushNo
 
 type BasePushNotificationData = {
     title: string;
+    subtitle: string;
     type: ValueOf<typeof NotificationType>;
     onyxData?: OnyxServerUpdate[];
     lastUpdateID?: number;
@@ -29,13 +30,11 @@ type BasePushNotificationData = {
 type ReportActionPushNotificationData = BasePushNotificationData & {
     reportID: number;
     reportActionID: string;
-    roomName?: string;
 };
 
 type TransactionPushNotificationData = BasePushNotificationData & {
-    transactionID: number;
     reportID: number;
-    roomName?: string;
+    transactionID: number;
 };
 
 /**

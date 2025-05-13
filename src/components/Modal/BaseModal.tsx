@@ -253,7 +253,7 @@ function BaseModal(
         <ModalContext.Provider value={modalContextValue}>
             <View
                 // this is a workaround for modal not being visible on the new arch in some cases
-                // it's necessary to have a non-collapseable view as a parent of the modal to prevent
+                // it's necessary to have a non-collapsible view as a parent of the modal to prevent
                 // a conflict between RN core and Reanimated shadow tree operations
                 // position absolute is needed to prevent the view from interfering with flex layout
                 collapsable={false}

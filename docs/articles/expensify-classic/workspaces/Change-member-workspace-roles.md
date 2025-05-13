@@ -1,7 +1,7 @@
 ---
 title: Update workspace member roles
 description: Learn how to update a member's role and permissions in a workspace.
-keywords: workspace roles, permissions, workspace admin, approval settings
+keywords: [Expensify Classic, workspace roles, permissions, workspace admin, approval settings]
 ---
 <div id="expensify-classic" markdown="1">
 
@@ -27,7 +27,7 @@ Workspace admins may need to update a member's role to adjust their permissions,
 
 To change the roles and permissions for members of your workspace:
 1. Go to **Settings > Workspaces > [Workspace Name] > Members**.
-2. Click the **Settings** icon next to the desired member.
+2. Click the **Settings** icon next to the member.
 3. Select a new role for the member.
 4. Click **Save**.
 
@@ -35,7 +35,7 @@ To change the roles and permissions for members of your workspace:
 
 # Advanced Approval
 
-If your workspace uses **Advanced Approvals**, you can select an **Approves to** option. This determines who must approve the member's reports:
+If your workspace uses **Advanced Approvals**, you can configure an approver in the **Approves to** section:
 1. Go to **Settings > Workspaces > [Workspace Name] > Members**.
 2. Click the **Settings** icon next to the desired member.
 3. Select a new role for the member.
@@ -43,5 +43,13 @@ If your workspace uses **Advanced Approvals**, you can select an **Approves to**
 5. Click **Save**.
 
 **Note:** If no one is selected in the **Approves To** field, then any **Auditor** or **Workspace Admin** can approve that member’s reports. Ensure approval chains are properly configured to avoid delays in report processing.
+
+---
+
+# FAQ
+
+## How can I tell if my workspace is using an Advanced Approval workflow? 
+
+You can check the approval workflow for your workspace under **Settings > Workspaces > [Workspace Name] > Workflows**.
 
 </div>

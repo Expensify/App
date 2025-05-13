@@ -25,7 +25,6 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -80,10 +79,6 @@ function BaseTextInput(
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    // For iOS, we don't need to measure the text input because it already has auto grow behavior
-    // See TextInputMeasurement.ios.tsx for more details
-    const isExternalAutoGrowMeasurement = getPlatform() !== CONST.PLATFORM.IOS && autoGrow;
-
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
@@ -253,7 +248,7 @@ function BaseTextInput(
         styles.textInputContainer,
         textInputContainerStyles,
         !!contentWidth && StyleUtils.getWidthStyle(textInputWidth),
-        isExternalAutoGrowMeasurement && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace),
+        autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
@@ -273,8 +268,8 @@ function BaseTextInput(
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
-                    // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
-                    // or if multiline is not supplied we calculate the textinput height, using onLayout.
+                    // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
+                    // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
                     accessibilityLabel={label}
                     style={[
@@ -322,6 +317,9 @@ function BaseTextInput(
                                 <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
                                     <Text
                                         onLayout={(event) => {
+                                            if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
+                                                return;
+                                            }
                                             setPrefixCharacterPadding(event?.nativeEvent?.layout.width);
                                             setIsPrefixCharacterPaddingCalculated(true);
                                         }}
@@ -352,8 +350,8 @@ function BaseTextInput(
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
-                                    !autoGrow && styles.flex1,
-                                    !autoGrow && styles.w100,
+                                    styles.flex1,
+                                    styles.w100,
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
                                     inputPaddingLeft,

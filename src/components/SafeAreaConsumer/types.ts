@@ -15,5 +15,3 @@ type SafeAreaConsumerProps = {
 };
 
 export default SafeAreaConsumerProps;
-
-export type {SafeAreaChildrenProps};

@@ -52,10 +52,7 @@ type ScreenWrapperProps = {
     children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
 
     /** Content to display under the offline indicator */
-    extraContent?: ReactNode;
-
-    /** Additional styles for extra content */
-    extraContentStyles?: StyleProp<ViewStyle>;
+    bottomContent?: ReactNode;
 
     /** A unique ID to find the screen wrapper in tests */
     testID: string;
@@ -175,12 +172,11 @@ function ScreenWrapper(
         shouldShowOfflineIndicatorInWideScreen = false,
         shouldUseCachedViewportHeight = false,
         focusTrapSettings,
-        extraContent,
-        extraContentStyles,
+        bottomContent,
         enableEdgeToEdgeBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPaddingProp,
         shouldMobileOfflineIndicatorStickToBottom: shouldMobileOfflineIndicatorStickToBottomProp,
         shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
-        isOfflineIndicatorTranslucent: isOfflineIndicatorTranslucentProp,
+        isOfflineIndicatorTranslucent = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -201,7 +197,7 @@ function ScreenWrapper(
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {initialURL} = useContext(InitialURLContext);
 
-    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
 
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPaddingProp !== undefined;
@@ -210,7 +206,6 @@ function ScreenWrapper(
     // We enable all of these flags by default, if we are using edge-to-edge mode.
     const shouldMobileOfflineIndicatorStickToBottom = shouldMobileOfflineIndicatorStickToBottomProp ?? isUsingEdgeToEdgeMode;
     const shouldKeyboardOffsetBottomSafeAreaPadding = shouldKeyboardOffsetBottomSafeAreaPaddingProp ?? isUsingEdgeToEdgeMode;
-    const isOfflineIndicatorTranslucent = isOfflineIndicatorTranslucentProp ?? isUsingEdgeToEdgeMode;
 
     // We disable legacy bottom safe area padding handling, if we are using edge-to-edge mode.
     const includeSafeAreaPaddingBottom = isUsingEdgeToEdgeMode ? false : includeSafeAreaPaddingBottomProp;
@@ -337,9 +332,9 @@ function ScreenWrapper(
         return {paddingTop};
     }, [isUsingEdgeToEdgeMode, ignoreInsetsConsumption, includePaddingTop, paddingTop, unmodifiedPaddings.top]);
 
-    const showExtraContent = isUsingEdgeToEdgeMode ? !!extraContent : true;
-    const edgeToEdgeExtraContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
-    const legacyExtraContentStyle: StyleProp<ViewStyle> = useMemo(() => {
+    const showBottomContent = isUsingEdgeToEdgeMode ? !!bottomContent : true;
+    const edgeToEdgeBottomContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+    const legacyBottomContentStyle: StyleProp<ViewStyle> = useMemo(() => {
         const shouldUseUnmodifiedPaddings = includeSafeAreaPaddingBottom && ignoreInsetsConsumption;
         if (shouldUseUnmodifiedPaddings) {
             return {
@@ -353,25 +348,25 @@ function ScreenWrapper(
         };
     }, [ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, unmodifiedPaddings.bottom]);
 
-    const extraContentStyle = useMemo(
-        () => [isUsingEdgeToEdgeMode ? edgeToEdgeExtraContentStyle : legacyExtraContentStyle, extraContentStyles],
-        [isUsingEdgeToEdgeMode, edgeToEdgeExtraContentStyle, legacyExtraContentStyle, extraContentStyles],
+    const bottomContentStyle = useMemo(
+        () => (isUsingEdgeToEdgeMode ? edgeToEdgeBottomContentStyle : legacyBottomContentStyle),
+        [isUsingEdgeToEdgeMode, edgeToEdgeBottomContentStyle, legacyBottomContentStyle],
     );
 
     /**
      * This style applies the background color of the mobile offline indicator.
      * When there is not bottom content, and the device either has soft keys or is offline,
      * the background style is applied.
-     * By default, the background color of the mobile offline indicator is translucent.
-     * If `isOfflineIndicatorTranslucent` is set to true, an opaque background color is applied.
+     * By default, the background color of the mobile offline indicator is opaque.
+     * If `isOfflineIndicatorTranslucent` is set to true, a translucent background color is applied.
      */
     const mobileOfflineIndicatorBackgroundStyle = useMemo(() => {
-        const showOfflineIndicatorBackground = !extraContent && (isSoftKeyNavigation || isOffline);
+        const showOfflineIndicatorBackground = !bottomContent && isOffline;
         if (!showOfflineIndicatorBackground) {
             return undefined;
         }
-        return isOfflineIndicatorTranslucent ? styles.navigationBarBG : styles.appBG;
-    }, [extraContent, isOffline, isOfflineIndicatorTranslucent, isSoftKeyNavigation, styles.appBG, styles.navigationBarBG]);
+        return isOfflineIndicatorTranslucent ? styles.translucentNavigationBarBG : styles.appBG;
+    }, [bottomContent, isOffline, isOfflineIndicatorTranslucent, styles.appBG, styles.translucentNavigationBarBG]);
 
     /** In edge-to-edge mode, we always want to apply the bottom safe area padding to the mobile offline indicator. */
     const hasMobileOfflineIndicatorBottomSafeAreaPadding = isUsingEdgeToEdgeMode ? enableEdgeToEdgeBottomSafeAreaPadding : !includeSafeAreaPaddingBottom;
@@ -390,7 +385,7 @@ function ScreenWrapper(
     });
 
     /** If there is no bottom content, the mobile offline indicator will stick to the bottom of the screen by default. */
-    const displayStickyMobileOfflineIndicator = shouldMobileOfflineIndicatorStickToBottom && !extraContent;
+    const displayStickyMobileOfflineIndicator = shouldMobileOfflineIndicatorStickToBottom && !bottomContent;
 
     /**
      * This style includes all styles applied to the container of the mobile offline indicator.
@@ -480,7 +475,7 @@ function ScreenWrapper(
                                     <>
                                         <OfflineIndicator
                                             style={[styles.pl5, offlineIndicatorStyle]}
-                                            addBottomSafeAreaPadding={isUsingEdgeToEdgeMode ? !extraContent : true}
+                                            addBottomSafeAreaPadding={isUsingEdgeToEdgeMode ? !bottomContent : true}
                                         />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
@@ -490,7 +485,7 @@ function ScreenWrapper(
                         </PickerAvoidingView>
                     </KeyboardAvoidingView>
                 </View>
-                {showExtraContent && <View style={extraContentStyle}>{extraContent}</View>}
+                {showBottomContent && <View style={bottomContentStyle}>{bottomContent}</View>}
             </View>
         </FocusTrapForScreens>
     );

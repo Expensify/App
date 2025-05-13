@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     AssignCompanyCardParams,
+    OpenPolicyAddCardFeedPageParams,
     OpenPolicyCompanyCardsFeedParams,
     OpenPolicyExpensifyCardsPageParams,
     RequestFeedSetupParams,
@@ -743,8 +744,9 @@ function openPolicyCompanyCardsPage(policyID: string, workspaceAccountID: number
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE, params, {optimisticData, successData, failureData});
 }
 
-function openPolicyCompanyCardsFeed(policyID: string, feed: CompanyCardFeed) {
+function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, feed: CompanyCardFeed) {
     const parameters: OpenPolicyCompanyCardsFeedParams = {
+        domainAccountID,
         policyID,
         feed,
     };
@@ -791,6 +793,18 @@ function openAssignFeedCardPage(policyID: string, feed: CompanyCardFeed, workspa
     API.read(READ_COMMANDS.OPEN_ASSIGN_FEED_CARD_PAGE, parameters, {optimisticData, successData, failureData});
 }
 
+function openPolicyAddCardFeedPage(policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+
+    const parameters: OpenPolicyAddCardFeedPageParams = {
+        policyID,
+    };
+
+    API.write(WRITE_COMMANDS.OPEN_POLICY_ADD_CARD_FEED_PAGE, parameters);
+}
+
 export {
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
@@ -809,5 +823,6 @@ export {
     setAssignCardStepAndData,
     clearAssignCardStepAndData,
     openAssignFeedCardPage,
+    openPolicyAddCardFeedPage,
     setTransactionStartDate,
 };

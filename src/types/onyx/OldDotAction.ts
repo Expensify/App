@@ -13,33 +13,6 @@ import type {
 /**
  *
  */
-type OldDotOriginalMessageActionName =
-    | 'CHANGEFIELD'
-    | 'CHANGEPOLICY'
-    | 'CHANGETYPE'
-    | 'DELEGATESUBMIT'
-    | 'EXPORTCSV'
-    | 'EXPORTINTEGRATION'
-    | 'INTEGRATIONSMESSAGE'
-    | 'MANAGERATTACHRECEIPT'
-    | 'MANAGERDETACHRECEIPT'
-    | 'MARKEDREIMBURSED'
-    | 'MARKREIMBURSEDFROMINTEGRATION'
-    | 'OUTDATEDBANKACCOUNT'
-    | 'REIMBURSEMENTACHBOUNCE'
-    | 'REIMBURSEMENTACHCANCELED'
-    | 'REIMBURSEMENTACCOUNTCHANGED'
-    | 'REIMBURSEMENTDELAYED'
-    | 'SELECTEDFORRANDOMAUDIT'
-    | 'SHARE'
-    | 'STRIPEPAID'
-    | 'TAKECONTROL'
-    | 'UNAPPROVED'
-    | 'UNSHARE';
-
-/**
- *
- */
 type OriginalMessageChangeField = {
     /**
      *
@@ -427,25 +400,4 @@ type OldDotLegacyAction = {
 type OldDotAction = ValueOf<OldDotOriginalMessageMap>;
 
 export default OldDotAction;
-export type {
-    OriginalMessageChangeField,
-    OldDotOriginalMessageActionName,
-    OriginalMessageDelegateSubmit,
-    OriginalMessageExportedToCSV,
-    OriginalMessageExportedToIntegration,
-    OriginalMessageIntegrationsMessage,
-    OriginalMessageManagerAttachReceipt,
-    OriginalMessageManagerDetachReceipt,
-    OriginalMessageMarkReimbursedFromIntegration,
-    OriginalMessageOutdatedBankAccount,
-    OriginalMessageReimbursementACHBounce,
-    OriginalMessageReimbursementACHCancelled,
-    OriginalMessageReimbursementAccountChanged,
-    OriginalMessageReimbursementDelayed,
-    OriginalMessageSelectedForRandomAudit,
-    OriginalMessageShare,
-    OriginalMessageUnshare,
-    OriginalMessageTakeControl,
-    OldDotOriginalMessageMap,
-    OldDotLegacyAction,
-};
+export type {OldDotLegacyAction, OldDotOriginalMessageMap, OriginalMessageExportedToIntegration};

@@ -16,11 +16,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
+import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isIOUReport, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUData, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
@@ -48,6 +49,7 @@ function TransactionPreviewContent({
     walletTermsErrors,
     reportPreviewAction,
     shouldHideOnDelete = true,
+    shouldShowIOUData,
 }: TransactionPreviewContentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -107,13 +109,15 @@ function TransactionPreviewContent({
     const displayAmountText = getTranslatedText(previewText.displayAmountText);
     const displayDeleteAmountText = getTranslatedText(previewText.displayDeleteAmountText);
 
-    const iouData = getIOUData(managerID, ownerAccountID, personalDetails);
+    const iouData = shouldShowIOUData
+        ? getIOUData(managerID, ownerAccountID, isIOUReport(iouReport) || reportPreviewAction?.childType === CONST.REPORT.TYPE.IOU, personalDetails, requestAmount ?? 0)
+        : undefined;
     const {from, to} = iouData ?? {from: null, to: null};
-    const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
     const shouldShowIOUHeader = !!from && !!to;
-    const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = hasReceiptTransactionUtils(transaction);
     const isApproved = isReportApproved({report: iouReport});
@@ -168,15 +172,13 @@ function TransactionPreviewContent({
                 shouldHideOnDelete={shouldHideOnDelete}
             >
                 <View style={[(isScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius]]}>
-                    {!isDeleted && (
-                        <ReportActionItemImages
-                            images={receiptImages}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            isHovered={isHovered || isScanning}
-                            size={1}
-                            shouldUseAspectRatio
-                        />
-                    )}
+                    <ReportActionItemImages
+                        images={receiptImages}
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        isHovered={isHovered || isScanning}
+                        size={1}
+                        shouldUseAspectRatio
+                    />
                     {shouldShowSkeleton ? (
                         <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
                     ) : (
@@ -198,7 +200,7 @@ function TransactionPreviewContent({
                                 )}
                                 <View style={previewTextViewGap}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16, previewTextMargin]}>{previewHeaderText}</Text>
+                                        <Text style={[isDeleted && styles.lineThrough, styles.textLabelSupporting, styles.flex1, styles.lh16, previewTextMargin]}>{previewHeaderText}</Text>
                                         {isBillSplit && (
                                             <View style={styles.moneyRequestPreviewBoxAvatar}>
                                                 <MultipleAvatars
@@ -252,7 +254,7 @@ function TransactionPreviewContent({
                                         </View>
                                         <View style={[styles.flexRow, styles.justifyContentEnd]}>
                                             {!!splitShare && (
-                                                <Text style={[styles.textLabel, styles.colorMuted, styles.amountSplitPadding]}>
+                                                <Text style={[isDeleted && styles.lineThrough, styles.textLabel, styles.colorMuted, styles.amountSplitPadding]}>
                                                     {translate('iou.yourSplit', {amount: convertToDisplayString(splitShare, requestCurrency)})}
                                                 </Text>
                                             )}
@@ -279,7 +281,7 @@ function TransactionPreviewContent({
                                                     />
                                                     <Text
                                                         numberOfLines={1}
-                                                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
+                                                        style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
                                                         {category}
                                                     </Text>
@@ -295,7 +297,7 @@ function TransactionPreviewContent({
                                                     />
                                                     <Text
                                                         numberOfLines={1}
-                                                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
+                                                        style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
                                                         {getCleanedTagName(tag)}
                                                     </Text>
@@ -314,7 +316,7 @@ function TransactionPreviewContent({
                                         />
                                         <Text
                                             numberOfLines={1}
-                                            style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}]}
+                                            style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}]}
                                         >
                                             {RBRMessage}
                                         </Text>

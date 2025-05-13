@@ -20,15 +20,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
-import type {Attributes, CustomUnit, Rate} from '@src/types/onyx/Policy';
+import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-type NewCustomUnit = {
-    customUnitID: string;
-    name: string;
-    attributes: Attributes;
-    rates: Rate;
-};
 
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
@@ -772,5 +765,3 @@ export {
     updateDistanceTaxClaimableValue,
     updateDistanceTaxRate,
 };
-
-export type {NewCustomUnit};

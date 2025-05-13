@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import * as TransactionUtils from './TransactionUtils';
+import {transformedTaxRates} from './TransactionUtils';
 
 type TaxRatesOption = {
     text?: string;
@@ -68,7 +68,7 @@ function getTaxRatesSection({
 }): TaxSection[] {
     const policyRatesSections = [];
 
-    const taxes = TransactionUtils.transformedTaxRates(policy, transaction);
+    const taxes = transformedTaxRates(policy, transaction);
 
     const sortedTaxRates = sortTaxRates(taxes);
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.modifiedName);
@@ -144,4 +144,4 @@ function getTaxRatesSection({
 }
 
 export {getTaxRatesSection, sortTaxRates, getTaxRatesOptions};
-export type {TaxRatesOption, Tax, TaxSection};
+export type {TaxRatesOption, Tax};

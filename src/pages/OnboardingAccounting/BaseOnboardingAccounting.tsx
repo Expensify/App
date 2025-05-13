@@ -215,6 +215,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     // We need to wait the policy is created before navigating out the onboarding flow
                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                         navigateAfterOnboarding(
+                            onboardingPurposeSelected,
                             isSmallScreenWidth,
                             canUseDefaultRooms,
                             policyID,
@@ -235,7 +236,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             testID="BaseOnboardingAccounting"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
@@ -258,6 +258,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 footerContent={footerContent}
                 shouldShowTooltips={false}
                 listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
+                includeSafeAreaPaddingBottom={false}
             />
         </ScreenWrapper>
     );

@@ -14,6 +14,7 @@ type MoneyRequestReportPreviewStyleType = {
     contentContainerStyle: ViewStyle;
     transactionPreviewStyle: TransactionPreviewStyle;
     componentStyle: StyleProp<ViewStyle>;
+    expenseCountVisible: boolean;
 };
 
 type MoneyRequestReportPreviewProps = {
@@ -76,6 +77,9 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
     Omit<MoneyRequestReportPreviewProps, 'policyID'> & {
         /** Extra styles passed used by MoneyRequestReportPreviewContent */
         reportPreviewStyles: MoneyRequestReportPreviewStyleType;
+
+        /** MoneyRequestReportPreview's current width */
+        currentWidth: number;
 
         /** Callback passed to onLayout  */
         onLayout: (e: LayoutChangeEvent) => void;

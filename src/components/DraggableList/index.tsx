@@ -8,7 +8,7 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
 import useThemeStyles from '@hooks/useThemeStyles';
 import SortableItem from './SortableItem';
-import type {DraggableListProps} from './types';
+import type DraggableListProps from './types';
 
 const minimumActivationDistance = 5; // pointer must move at least this much before starting to drag
 

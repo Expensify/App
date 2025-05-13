@@ -42,7 +42,7 @@ type ContextMenuItemProps = {
     /** Whether the width should be limited */
     shouldLimitWidth?: boolean;
 
-    /** Styles to apply to ManuItem wrapper */
+    /** Styles to apply to MenuItem wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
 
     shouldPreventDefaultFocusOnPress?: boolean;

@@ -1,9 +1,14 @@
 ---
 title: Configure QuickBooks Desktop
 description: Learn how to configure QuickBooks Desktop with Expensify, including export, import, and advanced settings.
+keywords: [Expensify Classic, QuickBooks Desktop, QBD, QuickBooks Desktop coding]
 ---
 
+<div id="expensify-classic" markdown="1">
+
 Our QuickBooks Desktop integration automates the import and export process between Expensify and QuickBooks Desktop.
+
+---
 
 # Step 1: Configure Export Settings
 The following steps determine how data is exported from Expensify to QuickBooks Desktop.
@@ -12,12 +17,12 @@ The following steps determine how data is exported from Expensify to QuickBooks 
 
 1. In Expensify, hover over **Settings** and click **Workspaces**.
 2. Select the Workspace you want to connect to QuickBooks Desktop.
-3. Click the **Connections** tab.
+3. Click the **Accounting** tab.
 4. Click **Export** under the QuickBooks Desktop connection.
 5. Review the following export settings:
    - **Preferred Exporter**: The designated user in QuickBooks Desktop who receives error notifications and export prompts.
    - **Date**: Choose whether to use the report’s submitted date, exported date, or last expense date.
-   - **Unique Reference Numbers**: Enable to generate a unique reference number for each transaction.
+   - **Unique Reference Numbers**: Enable the generation of a unique reference number for each transaction.
    - **Reimbursable Expenses**:
      - **Vendor Bill (recommended)**: Creates a single itemized vendor bill per Expensify report.
      - **Check**: Creates a single itemized check per Expensify report.
@@ -26,6 +31,8 @@ The following steps determine how data is exported from Expensify to QuickBooks 
      - **Credit Card**: Each expense appears as a separate transaction with a matching post date. Ensure the merchant exists in QuickBooks for accurate payee mapping.
      - **Check**: Creates an itemized check for each report.
      - **Vendor Bill**: Creates a vendor bill associated with the report submitter.
+
+---
 
 # Step 2: Configure Coding/Import Settings
 These settings determine how data is imported from QuickBooks Desktop into Expensify.
@@ -39,6 +46,8 @@ These settings determine how data is imported from QuickBooks Desktop into Expen
    - **Customers/Projects**: Optional import as tags for expense coding.
    - **Locations**: Optional import as tags for expense coding.
 
+---
+
 # Step 3: Configure Advanced Settings
 These settings help manage auto-sync and employee invitation preferences.
 
@@ -47,21 +56,19 @@ These settings help manage auto-sync and employee invitation preferences.
 1. Click **Advanced** under the QuickBooks Desktop connection.
 2. **Enable or Disable Auto-Sync**: When enabled, changes are automatically synced between Expensify and QuickBooks Desktop.
 
-{% include info.html %}
-Auto-Sync queues updates to be added to your QuickBooks Company File the next time both QuickBooks Desktop and QuickBooks Web Connector are open.
-{% include end-info.html %}
+**Note:** Auto-Sync queues updates to be added to your QuickBooks Company File the next time both QuickBooks Desktop and QuickBooks Web Connector are open.
+
+---
 
 # FAQ
 
 ## How do I manually sync QuickBooks Desktop if Auto-Sync is disabled?
 1. In Expensify, go to **Settings** > **Workspaces**.
 2. Click the Workspace connected to QuickBooks Desktop.
-3. Click the **Connections** tab.
+3. Click the **Accounting** tab.
 4. Click **Sync Now** under QuickBooks Desktop.
 
-{% include info.html %}
-We recommend manually syncing at least once a week or after making changes in QuickBooks Desktop that impact report exports.
-{% include end-info.html %}
+**Note:** We recommend manually syncing at least once a week or after making changes in QuickBooks Desktop that impact report exports.
 
 ## Can I use Expensify and QuickBooks Desktop at the same time while syncing?
 We recommend waiting for the sync to complete before using either platform, as performance may be affected.
@@ -90,6 +97,8 @@ To export expenses to a specific QuickBooks account:
 
 ## How does multi-currency work with QuickBooks Desktop?
 
-- **Vendor Bills and Checks**: The vendor and account currencies must match but do not need to be in the home currency.
+- **Vendor Bills and Checks**: The vendor and account currencies must match, but do not need to be in the home currency.
 - **Credit Card**: If a matching vendor is not found, the expense exports to the "Credit Card Misc." vendor. Foreign currency transactions are converted 1:1.
 - **Journal Entries**: Multi-currency exports fail unless the account, vendor, and home currency match.
+
+</div>
