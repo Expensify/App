@@ -50,7 +50,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 clearAddNewCardFlow();
             }
             setAddNewCompanyCardStepAndData({
-                step: CONST.COMPANY_CARDS.STEP.SELECT_BANK,
+                step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE,
                 data: {
                     selectedCountry: currentCountry,
                 },

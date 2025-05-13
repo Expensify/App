@@ -10,6 +10,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -21,6 +22,8 @@ function SelectFeedType() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
+    const {canUsePlaidCompanyCards} = usePermissions();
+    const isCountrySupportPlaid = addNewCard?.data?.selectedCountry ? CONST.PLAID_INCLUDED_COUNTRIES.includes(addNewCard.data.selectedCountry) : false;
 
     const submit = () => {
         if (!typeSelected) {
@@ -34,18 +37,24 @@ function SelectFeedType() {
     };
 
     useEffect(() => {
-        setTypeSelected(addNewCard?.data.selectedFeedType);
-    }, [addNewCard?.data.selectedFeedType]);
+        if (addNewCard?.data.selectedFeedType) {
+            setTypeSelected(addNewCard?.data.selectedFeedType);
+            return;
+        }
+        if (isCountrySupportPlaid) {
+            setTypeSelected(CONST.COMPANY_CARDS.FEED_TYPE.DIRECT);
+        }
+    }, [addNewCard?.data.selectedFeedType, isCountrySupportPlaid]);
 
     const handleBackButtonPress = () => {
-        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+        setAddNewCompanyCardStepAndData({step: canUsePlaidCompanyCards ? CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY : CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
     const data = [
         {
             value: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
             text: translate('workspace.companyCards.commercialFeed'),
-            alternateText: translate('workspace.companyCards.addNewCard.commercialFeedDetails'),
+            alternateText: translate(canUsePlaidCompanyCards ? 'workspace.companyCards.addNewCard.commercialFeedPlaidDetails' : 'workspace.companyCards.addNewCard.commercialFeedDetails'),
             keyForList: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
             isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
         },
@@ -57,6 +66,19 @@ function SelectFeedType() {
             isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT,
         },
     ];
+
+    const getFinalData = () => {
+        if (!canUsePlaidCompanyCards) {
+            return data;
+        }
+        if (isCountrySupportPlaid) {
+            return data.reverse();
+        }
+
+        return data.slice(0, 1);
+    };
+
+    const finalData = getFinalData();
 
     return (
         <ScreenWrapper
@@ -82,11 +104,11 @@ function SelectFeedType() {
                     setTypeSelected(value);
                     setHasError(false);
                 }}
-                sections={[{data}]}
+                sections={[{data: finalData}]}
                 shouldSingleExecuteRowSelect
                 isAlternateTextMultilineSupported
                 alternateTextNumberOfLines={3}
-                initiallyFocusedOptionKey={addNewCard?.data.selectedFeedType}
+                initiallyFocusedOptionKey={typeSelected}
                 shouldUpdateFocusedIndex
                 showConfirmButton
                 confirmButtonText={translate('common.next')}

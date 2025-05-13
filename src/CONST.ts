@@ -4077,6 +4077,7 @@ const CONST = {
     },
 
     PLAID_EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP'] as string[],
+    PLAID_INCLUDED_COUNTRIES: ['US', 'CA', 'GB', 'AT', 'BE', 'DK', 'EE', 'FI', 'FR', 'DE', 'IE', 'IT', 'LV', 'LT', 'NL', 'NO', 'PL', 'PT', 'ES', 'SE'] as string[],
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
     // https://github.com/Expensify/App/issues/14958#issuecomment-1456026810

@@ -65,7 +65,7 @@ function SelectBankStep() {
             return;
         }
         if (canUsePlaidCompanyCards) {
-            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
         } else {
             Navigation.goBack();
         }

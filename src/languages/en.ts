@@ -3786,6 +3786,7 @@ const translations = {
                     linkText: 'options.',
                 },
                 commercialFeedDetails: 'Requires setup with your bank. This is typically used by larger companies and is often the best option if you qualify.',
+                commercialFeedPlaidDetails: `Requires setup with your bank, but we'll guide you. This is typically limited to larger companies.`,
                 directFeedDetails: 'The simplest approach. Connect right away using your master credentials. This method is most common.',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
