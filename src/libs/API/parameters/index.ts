@@ -395,3 +395,4 @@ export type {default as CreateAppleDigitalWalletParams} from './CreateAppleDigit
 export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
+export type {default as ReopenReportParams} from './ReopenReportParams';
