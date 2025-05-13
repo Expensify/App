@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import Performance from '@libs/Performance';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,6 +10,7 @@ import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import Navigation from './Navigation/Navigation';
+import Performance from './Performance';
 import {getReportTransactions} from './ReportUtils';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
 
