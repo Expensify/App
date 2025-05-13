@@ -10,8 +10,8 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import type {PlatformStackRouteProp} from './Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from './Navigation/types';
-import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
-import {isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isSettled} from './ReportUtils';
+import {getOriginalMessage, getReportAction, getReportActions, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
+import {hasActionsWithErrors, hasReportViolations, isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isReportOwner, isSettled} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
@@ -135,6 +135,24 @@ function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, 
     return isTooLong || hasViolationsAndHold || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
 }
 
+/**
+ * Extracts unique error messages from report actions. If no report or actions are found,
+ * it returns an empty array. It identifies the latest error in each action and filters out duplicates to
+ * ensure only unique error messages are returned.
+ */
+function getUniqueActionErrors(report: OnyxEntry<OnyxTypes.Report>) {
+    const reportActions = Object.values(report ? getReportActions(report) ?? {} : {});
+
+    const reportErrors = reportActions.map((reportAction) => {
+        const errors = reportAction.errors ?? {};
+        const key = Object.keys(errors).sort().reverse().at(0) ?? '';
+        const error = errors[key];
+        return typeof error === 'string' ? error : '';
+    });
+
+    return [...new Set(reportErrors)].filter((err) => err.length);
+}
+
 function getTransactionPreviewTextAndTranslationPaths({
     iouReport,
     transaction,
@@ -167,6 +185,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
     const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction?.transactionID, violations, true) && isPaidGroupPolicy(iouReport);
+    const hasActionWithErrors = hasActionsWithErrors(iouReport?.reportID);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
 
@@ -195,6 +214,11 @@ function getTransactionPreviewTextAndTranslationPaths({
         } else if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
+    }
+
+    if (RBRMessage === undefined && hasActionWithErrors) {
+        const actionsWithErrors = getUniqueActionErrors(iouReport);
+        RBRMessage = actionsWithErrors.length > 1 ? {translationPath: 'violations.reviewRequired'} : {text: actionsWithErrors.at(0)};
     }
 
     RBRMessage ??= {text: ''};
@@ -307,7 +331,8 @@ function createTransactionPreviewConditionals({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const hasAnyViolations = hasViolationsOfTypeNotice || hasWarningTypeViolation(transaction?.transactionID, violations, true) || hasViolation(transaction, violations, true);
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
-    const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold;
+    const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionsWithErrors(iouReport?.reportID);
+    const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors;
 
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = areThereDuplicates;
@@ -345,5 +370,6 @@ export {
     createTransactionPreviewConditionals,
     getOriginalTransactionIfBillIsSplit,
     getViolationTranslatePath,
+    getUniqueActionErrors,
 };
 export type {TranslationPathOrText};
