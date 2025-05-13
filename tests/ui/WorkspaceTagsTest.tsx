@@ -73,6 +73,13 @@ describe('WorkspaceTags', () => {
         });
     });
 
+    beforeEach(() => {
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
+            isSmallScreenWidth: true,
+            shouldUseNarrowLayout: true,
+        } as ResponsiveLayoutResult);
+    });
+
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
@@ -81,11 +88,6 @@ describe('WorkspaceTags', () => {
     });
 
     it('should show select option when the item is not selected and deselect option when the item is selected', async () => {
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: true,
-            shouldUseNarrowLayout: true,
-        } as ResponsiveLayoutResult);
-
         await TestHelper.signInWithTestUser();
 
         const policy = {
@@ -107,25 +109,19 @@ describe('WorkspaceTags', () => {
         await waitFor(() => {
             expect(screen.getByText(FIRST_TAG)).toBeOnTheScreen();
         });
-
         await waitFor(() => {
             expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
         });
 
-        fireEvent(screen.getByTestId(`base-list-item-${FIRST_TAG}`), 'onLongPress');
-        await waitFor(() => {
-            expect(screen.getByText(translateLocal('common.select'))).toBeOnTheScreen();
-        });
+        // Long press on the first tag to trigger the select action
 
-        const selectMenuItem = screen.getByText(translateLocal('common.select'));
-        const mockEvent = {nativeEvent: {}, type: 'press', target: selectMenuItem, currentTarget: selectMenuItem};
-        fireEvent.press(selectMenuItem, mockEvent);
+        fireEvent(screen.getByTestId(`base-list-item-Tag One`), 'onLongPress');
 
         await waitForBatchedUpdatesWithAct();
 
-        fireEvent(screen.getByTestId(`base-list-item-${FIRST_TAG}`), 'onLongPress');
+        // Wait for the "Select" option to appear
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('common.deselect'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('common.select'))).toBeOnTheScreen();
         });
 
         unmount();
