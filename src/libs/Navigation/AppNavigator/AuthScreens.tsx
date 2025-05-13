@@ -656,7 +656,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     component={TestDriveDemoNavigator}
                 />
                 <RootStack.Screen
-                    name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
+                    name={NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={FeatureTrainingModalNavigator}
                     listeners={modalScreenListeners}
