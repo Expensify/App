@@ -13,7 +13,7 @@ import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 
-// We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ingored.
+// We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
 const HOLD = 'HOLD';
 const UNHOLD = 'UNHOLD';
 
@@ -69,22 +69,24 @@ function useSelectedTransactionsActions({
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
         const selectedTransactions = selectedTransactionsID.map((transactionID) => getTransaction(transactionID)).filter((t) => !!t);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-        let canHoldTransactions = isMoneyRequestReport && !isReportReimbursed;
-        let canUnholdTransactions = isMoneyRequestReport;
+        let canHoldTransactions = selectedTransactions.length > 0 && isMoneyRequestReport && !isReportReimbursed;
+        let canUnholdTransactions = selectedTransactions.length > 0 && isMoneyRequestReport;
 
         selectedTransactions.forEach((selectedTransaction) => {
+            if (!canHoldTransactions && !canHoldTransactions) {
+                return;
+            }
+
             if (!selectedTransaction?.transactionID) {
                 canHoldTransactions = false;
                 canUnholdTransactions = false;
-                return true;
+                return;
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, selectedTransaction.transactionID);
             const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(iouReportAction);
 
             canHoldTransactions = canHoldTransactions && canHoldRequest;
             canUnholdTransactions = canUnholdTransactions && canUnholdRequest;
-
-            return !(canHoldTransactions || canUnholdTransactions);
         });
 
         if (canHoldTransactions) {

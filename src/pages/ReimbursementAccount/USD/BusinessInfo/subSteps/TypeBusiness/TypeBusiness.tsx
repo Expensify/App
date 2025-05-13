@@ -50,7 +50,7 @@ function TypeBusiness({onNext, isEditing}: SubStepProps) {
             submitButtonStyles={[styles.ph5, styles.mb0]}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('businessInfoStep.selectYourCompanysType')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('businessInfoStep.selectYourCompanyType')}</Text>
             <InputWrapper
                 InputComponent={BusinessTypePicker}
                 inputID={COMPANY_INCORPORATION_TYPE_KEY}
