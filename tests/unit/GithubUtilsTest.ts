@@ -127,7 +127,6 @@ describe('GithubUtils', () => {
             number: 29,
             deployBlockers: [],
             internalQAPRList: [],
-            isTimingDashboardChecked: false,
             isFirebaseChecked: false,
             isGHStatusChecked: false,
         };
