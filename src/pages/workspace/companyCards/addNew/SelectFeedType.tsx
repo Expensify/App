@@ -23,7 +23,7 @@ function SelectFeedType() {
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
     const {canUsePlaidCompanyCards} = usePermissions();
-    const isCountrySupportPlaid = addNewCard?.data?.selectedCountry ? CONST.PLAID_INCLUDED_COUNTRIES.includes(addNewCard.data.selectedCountry) : false;
+    const isCountrySupportPlaid = addNewCard?.data?.selectedCountry ? CONST.PLAID_SUPPORT_COUNTRIES.includes(addNewCard.data.selectedCountry) : false;
 
     const submit = () => {
         if (!typeSelected) {
