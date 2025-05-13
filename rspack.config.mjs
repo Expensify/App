@@ -38,6 +38,29 @@ export default (env) => ({
         },
         rules: [
             ...Repack.getJsTransformRules({swc: {lazyImports: true}}),
+            {
+                test: /\.(js|jsx|ts|tsx)$/,
+                use: [
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            babelrc: false,
+                            configFile: path.resolve(__dirname, './babel.config.js'),
+                            plugins: ['babel-plugin-syntax-hermes-parser', ['@babel/plugin-syntax-typescript', false], '@react-native/babel-plugin-codegen'],
+                            overrides: [
+                                {
+                                    test: /\.ts$/,
+                                    plugins: [['@babel/plugin-syntax-typescript', {isTSX: false, allowNamespaces: true}]],
+                                },
+                                {
+                                    test: /\.tsx$/,
+                                    plugins: [['@babel/plugin-syntax-typescript', {isTSX: true, allowNamespaces: true}]],
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
             ...Repack.getAssetTransformRules(),
             {
                 test: /\.lottie$/,

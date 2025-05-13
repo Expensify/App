@@ -53,19 +53,23 @@ const webpack = {
 };
 
 const metro = {
-    presets: [require('@react-native/babel-preset')],
+    // presets: [require('@react-native/babel-preset')],
     plugins: [
         ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
 
-        // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
-        // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
-        '@babel/plugin-transform-flow-strip-types',
+        // // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
+        // // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
+        // '@babel/plugin-transform-flow-strip-types',
 
-        ['@babel/plugin-proposal-class-properties', {loose: true}],
-        ['@babel/plugin-proposal-private-methods', {loose: true}],
-        ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
-        // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
-        'react-native-reanimated/plugin',
+        // ['@babel/plugin-proposal-class-properties', {loose: true}],
+        // ['@babel/plugin-proposal-private-methods', {loose: true}],
+        // ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
+        // // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
+        // 'react-native-reanimated/plugin',
+
+        // 'babel-plugin-syntax-hermes-parser',
+        // ['@babel/plugin-syntax-typescript', false],
+        // '@react-native/babel-plugin-codegen',
 
         /* Fullstory */
         '@fullstory/react-native',
@@ -77,43 +81,43 @@ const metro = {
         ],
 
         // Import alias for native devices
-        [
-            'module-resolver',
-            {
-                extensions: [
-                    '.native.js',
-                    '.native.jsx',
-                    '.native.ts',
-                    '.native.tsx',
-                    '.js',
-                    '.jsx',
-                    '.ts',
-                    '.tsx',
-                    '.ios.js',
-                    '.ios.jsx',
-                    '.ios.ts',
-                    '.ios.tsx',
-                    '.android.js',
-                    '.android.jsx',
-                    '.android.ts',
-                    '.android.tx',
-                ],
-                alias: {
-                    '@assets': './assets',
-                    '@components': './src/components',
-                    '@hooks': './src/hooks',
-                    '@libs': './src/libs',
-                    '@navigation': './src/libs/Navigation',
-                    '@pages': './src/pages',
-                    '@styles': './src/styles',
-                    // This path is provide alias for files like `ONYXKEYS` and `CONST`.
-                    '@src': './src',
-                    '@userActions': './src/libs/actions',
-                    '@desktop': './desktop',
-                    '@github': './.github',
-                },
-            },
-        ],
+        // [
+        //     'module-resolver',
+        //     {
+        //         extensions: [
+        //             '.native.js',
+        //             '.native.jsx',
+        //             '.native.ts',
+        //             '.native.tsx',
+        //             '.js',
+        //             '.jsx',
+        //             '.ts',
+        //             '.tsx',
+        //             '.ios.js',
+        //             '.ios.jsx',
+        //             '.ios.ts',
+        //             '.ios.tsx',
+        //             '.android.js',
+        //             '.android.jsx',
+        //             '.android.ts',
+        //             '.android.tx',
+        //         ],
+        //         alias: {
+        //             '@assets': './assets',
+        //             '@components': './src/components',
+        //             '@hooks': './src/hooks',
+        //             '@libs': './src/libs',
+        //             '@navigation': './src/libs/Navigation',
+        //             '@pages': './src/pages',
+        //             '@styles': './src/styles',
+        //             // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+        //             '@src': './src',
+        //             '@userActions': './src/libs/actions',
+        //             '@desktop': './desktop',
+        //             '@github': './.github',
+        //         },
+        //     },
+        // ],
     ],
     env: {
         production: {
@@ -159,5 +163,5 @@ module.exports = (api) => {
     const runningIn = api.caller((args = {}) => args.name);
     console.debug('  - running in: ', runningIn);
 
-    return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
+    return ['metro', 'babel-jest', 'babel-loader'].includes(runningIn) ? metro : webpack;
 };
