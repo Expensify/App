@@ -1977,7 +1977,10 @@ const ROUTES = {
         route: 'workspace/confirmation',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
     },
-    MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',
+    MIGRATED_USER_WELCOME_MODAL: {
+        route: 'onboarding/migrated-user-welcome',
+        getRoute: (isFromRoot?: boolean) => getUrlWithBackToParam(`onboarding/migrated-user-welcome?${isFromRoot ? 'isFromRoot=true' : ''}`, undefined, false),
+    },
 
     TEST_TOOLS_MODAL: 'test-tools',
 

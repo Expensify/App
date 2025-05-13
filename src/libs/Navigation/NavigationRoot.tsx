@@ -1,6 +1,7 @@
 import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import type {NavigationState} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -107,7 +108,11 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const initialState = useMemo(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
-        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL) && lastVisitedPath && isOnboardingCompleted && authenticated) {
+        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && lastVisitedPath && isOnboardingCompleted && authenticated) {
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true));
+            });
+
             return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
         }
 

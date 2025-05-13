@@ -49,7 +49,7 @@ function useOnboardingFlowRouter() {
                 const defaultCannedQuery = buildCannedSearchQuery();
                 const query = defaultCannedQuery;
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
-                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
+                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
                 return;
             }
 
