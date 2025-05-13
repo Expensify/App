@@ -79,6 +79,7 @@ import {
     isDefaultRoom as isDefaultRoomUtil,
     isExpenseReport as isExpenseReportUtil,
     isExported,
+    isFinancialReportsForBusinesses as isFinancialReportsForBusinessesUtil,
     isGroupChat as isGroupChatUtil,
     isHiddenForCurrentUser,
     isInvoiceReport as isInvoiceReportUtil,
@@ -172,7 +173,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
 
-    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${report?.reportID}`, {canBeMissing: true}) ?? null;
+    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${report?.reportID}`, {canBeMissing: true}) ?? null;
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`, {canBeMissing: true});
     const isDownloadingPDF = download?.isDownloading ?? false;
 
@@ -226,6 +227,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const isMoneyRequestReport = useMemo(() => isMoneyRequestReportUtil(report), [report]);
     const isMoneyRequest = useMemo(() => isMoneyRequestUtil(report), [report]);
     const isInvoiceReport = useMemo(() => isInvoiceReportUtil(report), [report]);
+    const isFinancialReportsForBusinesses = useMemo(() => isFinancialReportsForBusinessesUtil(report), [report]);
     const isInvoiceRoom = useMemo(() => isInvoiceRoomUtil(report), [report]);
     const isTaskReport = useMemo(() => isTaskReportUtil(report), [report]);
     const isSelfDM = useMemo(() => isSelfDMUtil(report), [report]);
@@ -375,9 +377,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             setIsUnapproveModalVisible(true);
             return;
         }
-        Navigation.dismissModal();
+        Navigation.goBack(backTo);
         unapproveExpenseReport(moneyRequestReport);
-    }, [isMoneyRequestExported, moneyRequestReport, isDelegateAccessRestricted]);
+    }, [isDelegateAccessRestricted, isMoneyRequestExported, backTo, moneyRequestReport]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
@@ -1073,22 +1075,24 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         />
                     )}
 
-                    <FixedFooter style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.pt5]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                            <TextWithCopy
-                                copyValue={base62ReportID}
-                                style={styles.textMicroSupporting}
-                            >
-                                {`${translate('common.reportID')}: ${base62ReportID}`}
-                            </TextWithCopy>
-                            <TextWithCopy
-                                copyValue={report.reportID}
-                                style={styles.textMicroSupporting}
-                            >
-                                {`${translate('common.longID')}: ${report.reportID}`}
-                            </TextWithCopy>
-                        </View>
-                    </FixedFooter>
+                    {isFinancialReportsForBusinesses && (
+                        <FixedFooter style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.pt5]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                                <TextWithCopy
+                                    copyValue={base62ReportID}
+                                    style={styles.textMicroSupporting}
+                                >
+                                    {`${translate('common.reportID')}: ${base62ReportID}`}
+                                </TextWithCopy>
+                                <TextWithCopy
+                                    copyValue={report.reportID}
+                                    style={styles.textMicroSupporting}
+                                >
+                                    {`${translate('common.longID')}: ${report.reportID}`}
+                                </TextWithCopy>
+                            </View>
+                        </FixedFooter>
+                    )}
                 </ScrollView>
                 <ConfirmModal
                     danger
@@ -1144,7 +1148,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     confirmText={translate('iou.unapproveReport')}
                     onConfirm={() => {
                         setIsUnapproveModalVisible(false);
-                        Navigation.dismissModal();
+                        Navigation.goBack(backTo);
                         unapproveExpenseReport(moneyRequestReport);
                     }}
                     cancelText={translate('common.cancel')}
@@ -1174,6 +1178,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     isVisible={isPDFModalVisible}
                     type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
                     innerContainerStyle={styles.pv0}
+                    shouldUseNewModal
                 >
                     <View style={[styles.m5]}>
                         <View>

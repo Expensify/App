@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -242,8 +243,11 @@ function WorkspaceTaxesPage({
             return;
         }
         deletePolicyTaxes(policy, selectedTaxesIDs);
-        setSelectedTaxesIDs([]);
         setIsDeleteModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedTaxesIDs([]);
+        });
     }, [policy, selectedTaxesIDs]);
 
     const toggleTaxes = useCallback(
@@ -335,25 +339,6 @@ function WorkspaceTaxesPage({
         />
     );
 
-    const getHeaderText = () => (
-        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            {!hasSyncError && isConnectionVerified ? (
-                <Text>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
-                    <TextLink
-                        style={[styles.textNormal, styles.link]}
-                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                    >
-                        {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                    </TextLink>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                </Text>
-            ) : (
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
-            )}
-        </View>
-    );
-
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     return (
@@ -385,39 +370,59 @@ function WorkspaceTaxesPage({
                     {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
-
-                {getHeaderText()}
-                {taxesList.length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        label={translate('workspace.taxes.findTaxRate')}
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        shouldShowEmptyState={filteredTaxesList.length === 0}
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                >
+                    <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        {!hasSyncError && isConnectionVerified ? (
+                            <Text>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
+                                <TextLink
+                                    style={[styles.textNormal, styles.link]}
+                                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                                >
+                                    {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                                </TextLink>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                            </Text>
+                        ) : (
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
+                        )}
+                    </View>
+                    {isLoading && (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                            color={theme.spinner}
+                        />
+                    )}
+                    {taxesList.length > CONST.SEARCH_ITEM_LIMIT && (
+                        <SearchBar
+                            label={translate('workspace.taxes.findTaxRate')}
+                            inputValue={inputValue}
+                            onChangeText={setInputValue}
+                            shouldShowEmptyState={filteredTaxesList.length === 0}
+                        />
+                    )}
+                    <SelectionListWithModal
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress
+                        onTurnOnSelectionMode={(item) => item && toggleTax(item)}
+                        sections={[{data: filteredTaxesList, isDisabled: false}]}
+                        selectedItemKeys={selectedTaxesIDs}
+                        onCheckboxPress={toggleTax}
+                        onSelectRow={navigateToEditTaxRate}
+                        onSelectAll={toggleAllTaxes}
+                        ListItem={TableListItem}
+                        customListHeader={getCustomListHeader()}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
+                        showScrollIndicator={false}
+                        addBottomSafeAreaPadding
                     />
-                )}
-                {isLoading && (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
-                        color={theme.spinner}
-                    />
-                )}
-                <SelectionListWithModal
-                    canSelectMultiple={canSelectMultiple}
-                    turnOnSelectionModeOnLongPress
-                    onTurnOnSelectionMode={(item) => item && toggleTax(item)}
-                    sections={[{data: filteredTaxesList, isDisabled: false}]}
-                    onCheckboxPress={toggleTax}
-                    onSelectRow={navigateToEditTaxRate}
-                    onSelectAll={toggleAllTaxes}
-                    ListItem={TableListItem}
-                    customListHeader={getCustomListHeader()}
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                    onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
-                    showScrollIndicator={false}
-                    addBottomSafeAreaPadding
-                />
+                </ScrollView>
                 <ConfirmModal
                     title={translate('workspace.taxes.actions.delete')}
                     isVisible={isDeleteModalVisible}

@@ -341,7 +341,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
                 shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
-                shouldUseNewModal
             >
                 <BaseReportActionContextMenu
                     isVisible={isPopoverVisible}
