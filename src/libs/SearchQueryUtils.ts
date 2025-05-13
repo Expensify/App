@@ -43,7 +43,6 @@ const operatorToCharMap = {
 /**
  * A mapping object that maps filter names from the internal codebase format to user-friendly names.
  */
-// cspell:disable
 const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER, UserFriendlyKey> = {
     type: 'type',
     status: 'status',
@@ -63,6 +62,7 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     taxRate: 'tax-rate',
     cardID: 'card',
     feed: 'feed',
+    // cspell:disable-next-line
     reportID: 'reportid',
     keyword: 'keyword',
     in: 'in',
@@ -78,7 +78,6 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     billable: 'billable',
     reimbursable: 'reimbursable',
 };
-// cspell:enable
 /**
  * @private
  * Returns string value wrapped in quotes "", if the value contains space or &nbsp; (no-breaking space).
