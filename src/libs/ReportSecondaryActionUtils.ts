@@ -429,7 +429,7 @@ function getSecondaryReportActions(
     if (canUseRetractNewDot && isRetractAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
     }
-    
+
     if (canUseRetractNewDot && isReopenAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }

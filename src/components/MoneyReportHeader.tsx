@@ -67,8 +67,8 @@ import {
     getNextApproverAccountID,
     payInvoice,
     payMoneyRequest,
-    retractReport,
     reopenReport,
+    retractReport,
     startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
@@ -661,7 +661,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             onSelected: () => {
                 retractReport(moneyRequestReport);
-            }
+            },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
             text: translate('iou.undoClose'),
