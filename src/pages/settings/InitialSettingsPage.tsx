@@ -182,6 +182,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     screenName: SCREENS.SETTINGS.WALLET.ROOT,
                     brickRoadIndicator: walletBrickRoadIndicator,
                     action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
+                    badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
                 },
                 {
                     translationKey: 'common.preferences',
@@ -344,12 +345,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      */
     const getMenuItemsSection = useCallback(
         (menuItemsData: Menu) => {
-            /**
-             * @param isPaymentItem whether the item being rendered is the payments menu item
-             * @returns the user's wallet balance
-             */
-            const getWalletBalance = (isPaymentItem: boolean): string | undefined => (isPaymentItem ? convertToDisplayString(userWallet?.currentBalance) : undefined);
-
             const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
                 if (!Navigation.getActiveRoute().includes(ROUTES.SETTINGS)) {
                     return;
@@ -379,7 +374,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
                     {menuItemsData.items.map((item) => {
                         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-                        const isPaymentItem = item.translationKey === 'common.wallet';
                         const isFocused = focusedRouteName ? focusedRouteName === item.screenName : false;
 
                         return (
@@ -394,7 +388,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                     item.action();
                                 })}
                                 iconStyles={item.iconStyles}
-                                badgeText={hasActivatedWallet ? item.badgeText ?? getWalletBalance(isPaymentItem) : undefined}
+                                badgeText={item.badgeText}
                                 badgeStyle={item.badgeStyle}
                                 fallbackIcon={item.fallbackIcon}
                                 brickRoadIndicator={item.brickRoadIndicator}
