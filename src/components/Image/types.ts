@@ -60,4 +60,4 @@ type ImageOwnProps = BaseImageProps & {
 
 type ImageProps = ImageOwnProps;
 
-export type {BaseImageProps, ImageOwnProps, ImageProps, ExpoImageSource, ImageOnLoadEvent, ImageObjectPosition};
+export type {BaseImageProps, ImageProps, ImageOnLoadEvent, ImageObjectPosition};

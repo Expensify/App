@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -25,8 +24,8 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const theme = useTheme();
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards, canBeMissing: true});
 
     const fetchExpensifyCards = useCallback(() => {
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
@@ -34,13 +33,15 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
 
-    useFocusEffect(fetchExpensifyCards);
+    useEffect(() => {
+        fetchExpensifyCards();
+    }, [fetchExpensifyCards]);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);
 
     const renderContent = () => {
-        if (!!isLoading && !paymentBankAccountID && !defaultFundID) {
+        if (!!isLoading && !paymentBankAccountID) {
             return (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -49,7 +50,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                 />
             );
         }
-        if (!!paymentBankAccountID || defaultFundID) {
+        if (paymentBankAccountID) {
             return (
                 <WorkspaceExpensifyCardListPage
                     cardsList={cardsList}

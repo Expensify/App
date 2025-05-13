@@ -52,20 +52,6 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
                 errors: null,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${card?.fundID}_${CONST.EXPENSIFY_CARD.BANK}`,
-            value: {
-                [cardID]: null,
-            },
-        },
     ];
 
     const successData: OnyxUpdate[] = [
@@ -84,26 +70,6 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
             key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
             value: {
                 isLoading: false,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    ...card,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${card?.fundID}_${CONST.EXPENSIFY_CARD.BANK}`,
-            value: {
-                [cardID]: {
-                    ...card,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                },
             },
         },
     ];
@@ -133,6 +99,13 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
             value: {
                 isLoading: true,
                 errors: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: null,
             },
         },
     ];
@@ -758,7 +731,7 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
     });
 }
 
-function issueExpensifyCard(policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
+function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
     if (!data) {
         return;
     }
@@ -800,12 +773,12 @@ function issueExpensifyCard(policyID: string | undefined, feedCountry: string, v
     ];
 
     const parameters = {
-        policyID,
         assigneeEmail,
         limit,
         limitType,
         cardTitle,
         validateCode,
+        domainAccountID,
     };
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
@@ -821,12 +794,10 @@ function issueExpensifyCard(policyID: string | undefined, feedCountry: string, v
         return;
     }
 
-    const domainAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
-
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(
         WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,
-        {...parameters, domainAccountID},
+        {...parameters, policyID},
         {
             optimisticData,
             successData,

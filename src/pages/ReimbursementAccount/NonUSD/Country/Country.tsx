@@ -4,7 +4,9 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import Confirmation from './subSteps/Confirmation';
 
 type CountryProps = {
@@ -43,6 +45,7 @@ function Country({onBackButtonPress, onSubmit, policyID}: CountryProps) {
     } = useSubStep<CountryStepProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
             goToTheLastStep();
             return;

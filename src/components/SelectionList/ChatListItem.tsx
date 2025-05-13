@@ -22,9 +22,13 @@ function ChatListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    policies,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const reportID = Number(reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        canBeMissing: true,
+    });
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -87,6 +91,8 @@ function ChatListItem<TItem extends ListItem>({
                         CONST.REPORT.ACTIONS.TYPE.FORWARDED,
                     ].some((type) => type === reportActionItem.actionName)
                 }
+                policies={policies}
+                shouldShowBorder
             />
         </BaseListItem>
     );

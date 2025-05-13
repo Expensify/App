@@ -22,6 +22,8 @@ const darkTheme = {
     textSupporting: colors.productDark800,
     text: colors.productDark900,
     textColorfulBackground: colors.ivory,
+    textReceiptDropZone: colors.green700,
+    textAttachmentDropZone: colors.blue700,
     syntax: colors.productDark800,
     link: colors.blue300,
     linkHover: colors.blue100,
@@ -68,7 +70,12 @@ const darkTheme = {
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.productDark200,
     dropUIBG: 'rgba(6,27,9,0.92)',
+    dropWrapperBG: 'rgba(26, 61, 50, 0.72)',
     fileDropUIBG: 'rgba(3, 212, 124, 0.84)',
+    attachmentDropUIBG: 'rgba(90, 176, 255, 0.9)',
+    attachmentDropBorderColor: colors.blue100,
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.9)',
+    receiptDropBorderColor: colors.green100,
     checkBox: colors.green400,
     imageCropBackgroundColor: colors.productDark700,
     fallbackIconColor: colors.green700,
@@ -154,7 +161,7 @@ const darkTheme = {
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
     navigationBarButtonsStyle: CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT,
-    navigationBarBackgroundColor: `${colors.productDark100}CD`, // CD is 80% opacity (80% of 0xFF)
+    translucentNavigationBarBackgroundColor: `${colors.productDark100}CD`, // CD is 80% opacity (80% of 0xFF)
     colorScheme: CONST.COLOR_SCHEME.DARK,
 } satisfies ThemeColors;
 

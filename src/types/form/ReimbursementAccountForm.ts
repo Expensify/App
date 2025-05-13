@@ -109,6 +109,7 @@ const INPUT_IDS = {
             BANK_COUNTRY: 'bankCountry',
             BANK_CURRENCY: 'bankCurrency',
             COMPANY_NAME: 'companyName',
+            COMPANY_WEBSITE: 'websiteUrl',
             COMPANY_STREET: 'companyStreetAddress',
             COMPANY_CITY: 'companyCity',
             COMPANY_STATE: 'companyState',
@@ -299,6 +300,9 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Company name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
 
+    /** Company website */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_WEBSITE]: string;
+
     /** Company street */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STREET]: string;
 
@@ -431,7 +435,6 @@ export type {
     SignerInfoStepProps,
     ACHContractStepProps,
     ReimbursementAccountProps,
-    NonUSDReimbursementAccountAdditionalProps,
     InputID,
 };
 export default INPUT_IDS;

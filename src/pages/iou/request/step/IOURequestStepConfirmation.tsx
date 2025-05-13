@@ -6,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import DropZoneUI from '@components/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -18,6 +19,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import DateUtils from '@libs/DateUtils';
@@ -30,7 +32,7 @@ import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction'
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
@@ -84,19 +86,20 @@ function IOURequestStepConfirmation({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
 
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`);
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, reportReal)}`);
-    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, reportReal)}`);
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, reportDraft)}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, reportReal)}`);
-    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`, {canBeMissing: true});
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, reportReal)}`, {canBeMissing: true});
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, reportReal)}`, {canBeMissing: true});
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${getIOURequestPolicyID(transaction, reportDraft)}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, reportReal)}`, {canBeMissing: true});
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
 
     /*
      * We want to use a report from the transaction if it exists
      * Also if the report was submitted and delayed submittion is on, then we should use an initial report
      */
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
-    const shouldUseTransactionReport = transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled);
+    const shouldUseTransactionReport =
+        transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id);
     const report = shouldUseTransactionReport ? transactionReport : reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
     const isDraftPolicy = policy === policyDraft;
@@ -120,7 +123,7 @@ function IOURequestStepConfirmation({
     const requestType = getRequestType(transaction);
     const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
-    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
+    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
@@ -152,6 +155,9 @@ function IOURequestStepConfirmation({
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile && !isTestTransaction;
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
+
+    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
+    const {canUseMultiFilesDragAndDrop} = usePermissions();
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -469,6 +475,7 @@ function IOURequestStepConfirmation({
                     tag: transaction.tag,
                     customUnit: transaction.comment?.customUnit,
                     billable: transaction.billable,
+                    attendees: transaction.comment?.attendees,
                 },
             });
         },
@@ -516,6 +523,10 @@ function IOURequestStepConfirmation({
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
                     customUnitRateID,
+                    attendees: transaction.comment?.attendees,
+                },
+                accountantParams: {
+                    accountant: transaction.accountant,
                 },
             });
         },
@@ -566,6 +577,7 @@ function IOURequestStepConfirmation({
                     splitShares: transaction.splitShares,
                     validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true),
                     billable: transaction.billable,
+                    attendees: transaction.comment?.attendees,
                 },
             });
         },
@@ -884,7 +896,7 @@ function IOURequestStepConfirmation({
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
-            headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
+            headerGapStyles={isDraggingOver ? [canUseMultiFilesDragAndDrop ? styles.dropWrapper : styles.isDraggingOver] : []}
         >
             <DragAndDropProvider
                 setIsDraggingOver={setIsDraggingOver}
@@ -906,15 +918,33 @@ function IOURequestStepConfirmation({
                     />
                     {(isLoading || isLoadingReceipt) && <FullScreenLoadingIndicator />}
                     {PDFThumbnailView}
-                    <ReceiptDropUI
-                        onDrop={(e) => {
-                            const file = e?.dataTransfer?.files[0];
-                            if (file) {
-                                file.uri = URL.createObjectURL(file);
-                                setReceiptOnDrop(file);
-                            }
-                        }}
-                    />
+                    {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
+                    {canUseMultiFilesDragAndDrop ? (
+                        <DropZoneUI
+                            onDrop={(e) => {
+                                const file = e?.dataTransfer?.files[0];
+                                if (file) {
+                                    file.uri = URL.createObjectURL(file);
+                                    setReceiptOnDrop(file);
+                                }
+                            }}
+                            icon={Expensicons.ReplaceReceipt}
+                            dropStyles={styles.receiptDropOverlay}
+                            dropTitle={translate('dropzone.replaceReceipt')}
+                            dropTextStyles={styles.receiptDropText}
+                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
+                        />
+                    ) : (
+                        <ReceiptDropUI
+                            onDrop={(e) => {
+                                const file = e?.dataTransfer?.files[0];
+                                if (file) {
+                                    file.uri = URL.createObjectURL(file);
+                                    setReceiptOnDrop(file);
+                                }
+                            }}
+                        />
+                    )}
                     <ConfirmModal
                         title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                         onConfirm={hideReceiptModal}

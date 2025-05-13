@@ -379,7 +379,7 @@ const generateSelectedCards = (
     return [...new Set([...selectedCards, ...(cards ?? [])])];
 };
 
-export type {CardFilterItem, ItemsGroupedBySelection, CardFeedNamesWithType};
+export type {CardFilterItem, CardFeedNamesWithType};
 export {
     buildCardsData,
     getCardFeedNamesWithType,

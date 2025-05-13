@@ -1,10 +1,9 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
@@ -13,8 +12,8 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {PaymentData} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -22,7 +21,6 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,13 +31,14 @@ import {
     exportSearchItemsToCSV,
     getLastPolicyPaymentMethod,
     payMoneyRequestOnSearch,
+    queueExportSearchItemsToCSV,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasVBBA} from '@libs/PolicyUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -61,25 +60,21 @@ function SearchPage({route}: SearchPageProps) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType} = useSearchContext();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
-    const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
-    const {canUseLeftHandBar} = usePermissions();
+    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
+    const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
+    const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
 
     const {q, name} = route.params;
 
-    const {queryJSON, policyID} = useMemo(() => {
-        const parsedQuery = buildSearchQueryJSON(q);
-        const extractedPolicyID = parsedQuery && getPolicyIDFromSearchQuery(parsedQuery);
+    const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
 
-        return {queryJSON: parsedQuery, policyID: extractedPolicyID};
-    }, [q]);
-
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`);
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
     useEffect(() => {
@@ -103,6 +98,42 @@ function SearchPage({route}: SearchPageProps) {
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
+
+        const downloadButtonOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: Expensicons.Download,
+            text: translate('common.download'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                if (isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+
+                if (isExportMode) {
+                    setIsDownloadExportModalVisible(true);
+                    return;
+                }
+
+                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                exportSearchItemsToCSV(
+                    {
+                        query: status,
+                        jsonQuery: JSON.stringify(queryJSON),
+                        reportIDList,
+                        transactionIDList: selectedTransactionsKeys,
+                        policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
+                    },
+                    () => {
+                        setIsDownloadErrorModalVisible(true);
+                    },
+                );
+            },
+        };
+
+        if (isExportMode) {
+            return [downloadButtonOption];
+        }
 
         const shouldShowApproveOption =
             !isOffline &&
@@ -196,32 +227,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        options.push({
-            icon: Expensicons.Download,
-            text: translate('common.download'),
-            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
-            shouldCloseModalOnSelect: true,
-            onSelected: () => {
-                if (isOffline) {
-                    setIsOfflineModalVisible(true);
-                    return;
-                }
-
-                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                exportSearchItemsToCSV(
-                    {
-                        query: status,
-                        jsonQuery: JSON.stringify(queryJSON),
-                        reportIDList,
-                        transactionIDList: selectedTransactionsKeys,
-                        policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
-                    },
-                    () => {
-                        setIsDownloadErrorModalVisible(true);
-                    },
-                );
-            },
-        });
+        options.push(downloadButtonOption);
 
         const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
@@ -269,6 +275,7 @@ function SearchPage({route}: SearchPageProps) {
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 shouldCloseModalOnSelect: true,
+                shouldPreserveSelectionAfterHideModal: true,
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
@@ -300,15 +307,16 @@ function SearchPage({route}: SearchPageProps) {
         return options;
     }, [
         selectedTransactionsKeys,
+        status,
+        hash,
         selectedTransactions,
+        translate,
+        isExportMode,
         isOffline,
         selectedReports,
-        translate,
-        hash,
-        lastPaymentMethods,
-        status,
         queryJSON,
         activeWorkspaceID,
+        lastPaymentMethods,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
@@ -329,6 +337,24 @@ function SearchPage({route}: SearchPageProps) {
             clearSelectedTransactions();
         });
     };
+
+    const createExportAll = useCallback(() => {
+        if (selectedTransactionsKeys.length === 0 || !status || !hash) {
+            return [];
+        }
+
+        setIsDownloadExportModalVisible(false);
+        const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+        queueExportSearchItemsToCSV({
+            query: status,
+            jsonQuery: JSON.stringify(queryJSON),
+            reportIDList,
+            transactionIDList: selectedTransactionsKeys,
+            policyIDs: activeWorkspaceID ? [activeWorkspaceID] : [''],
+        });
+        setExportMode(false);
+        clearSelectedTransactions();
+    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, activeWorkspaceID, setExportMode, clearSelectedTransactions]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
@@ -364,7 +390,6 @@ function SearchPage({route}: SearchPageProps) {
             <>
                 <SearchPageNarrow
                     queryJSON={queryJSON}
-                    policyID={policyID}
                     searchName={searchName}
                     headerButtonsOptions={headerButtonsOptions}
                     lastNonEmptySearchResults={lastNonEmptySearchResults}
@@ -412,7 +437,7 @@ function SearchPage({route}: SearchPageProps) {
         <ScreenWrapper
             testID={Search.displayName}
             shouldEnableMaxHeight
-            headerGapStyles={[styles.searchHeaderGap, canUseLeftHandBar && styles.h0]}
+            headerGapStyles={[styles.searchHeaderGap, styles.h0]}
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
@@ -421,14 +446,12 @@ function SearchPage({route}: SearchPageProps) {
                 shouldShowLink={false}
             >
                 {!!queryJSON && (
-                    <View style={[styles.searchSplitContainer, canUseLeftHandBar && {marginLeft: variables.navigationTabBarSize}]}>
-                        <View style={canUseLeftHandBar ? styles.searchSidebarWithLHB : styles.searchSidebar}>
+                    <View style={styles.searchSplitContainer}>
+                        <View style={styles.searchSidebar}>
                             {queryJSON ? (
                                 <View style={styles.flex1}>
-                                    <HeaderGap />
                                     <TopBar
                                         shouldShowLoadingBar={shouldShowLoadingState}
-                                        activeWorkspaceID={policyID}
                                         breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
                                         shouldDisplayHelpButton={false}
@@ -479,6 +502,17 @@ function SearchPage({route}: SearchPageProps) {
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
+                />
+                <ConfirmModal
+                    isVisible={isDownloadExportModalVisible}
+                    onConfirm={createExportAll}
+                    onCancel={() => {
+                        setIsDownloadExportModalVisible(false);
+                    }}
+                    title={translate('search.exportSearchResults.title')}
+                    prompt={translate('search.exportSearchResults.description')}
+                    confirmText={translate('search.exportSearchResults.title')}
+                    cancelText={translate('common.cancel')}
                 />
                 <DecisionModal
                     title={translate('common.youAppearToBeOffline')}

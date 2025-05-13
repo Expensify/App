@@ -16,6 +16,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -72,9 +73,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: true});
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
@@ -295,7 +296,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     source={details.avatar}
                                     avatarID={accountID}
                                     type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.XLARGE}
+                                    size={CONST.AVATAR_SIZE.X_LARGE}
                                     fallbackIcon={fallbackIcon}
                                 />
                             </OfflineWithFeedback>
@@ -350,6 +351,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 shouldShowRightIcon
                                 onPress={openRoleSelectionModal}
                             />
+                            <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.common.customField1')}
+                                    title={member?.employeeUserID}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1'))}
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.common.customField2')}
+                                    title={member?.employeePayrollID}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2'))}
+                                />
+                            </OfflineWithFeedback>
                             <MenuItem
                                 style={styles.mb5}
                                 title={translate('common.profile')}

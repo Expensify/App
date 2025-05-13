@@ -19,6 +19,7 @@ import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import StringUtils from './StringUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -65,14 +66,6 @@ function isExpensifyCard(cardID?: number) {
 
 /**
  * @param cardID
- * @returns boolean if the cardID is in the cardList from ONYX. Includes Expensify Cards.
- */
-function isCorporateCard(cardID: number) {
-    return !!allCards[cardID];
-}
-
-/**
- * @param cardID
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
 function getCardDescription(cardID?: number, cards: CardList = allCards) {
@@ -88,12 +81,23 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
     return cardDescriptor ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
-function isCard(item: Card | Record<string, string>): item is Card {
-    return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
+/**
+ * @param transactionCardName
+ * @param cardID
+ * @param cards
+ * @returns company card name
+ */
+function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards?: CardList) {
+    if (!cardID || isExpensifyCard(cardID) || !cards?.[cardID]) {
+        return transactionCardName;
+    }
+    const card = cards[cardID];
+
+    return card.cardName;
 }
 
-function isCardIssued(card: Card) {
-    return !!card?.nameValuePairs?.isVirtual || card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+function isCard(item: Card | Record<string, string>): item is Card {
+    return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
 }
 
 function isCardHiddenFromSearch(card: Card) {
@@ -228,24 +232,6 @@ function lastFourNumbersFromCardName(cardName: string | undefined): string {
     return match[1];
 }
 
-/**
- * Finds physical card in a list of cards
- *
- * @returns a physical card object (or undefined if none is found)
- */
-function findPhysicalCard(cards: Card[]) {
-    return cards.find((card) => !card?.nameValuePairs?.isVirtual);
-}
-
-/**
- * Checks if any of the cards in the list have detected fraud
- *
- * @param cardList - collection of assigned cards
- */
-function hasDetectedFraud(cardList: Record<string, Card>): boolean {
-    return Object.values(cardList).some((card) => card.fraud !== CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE);
-}
-
 function getMCardNumberString(cardNumber: string): string {
     return cardNumber.replace(/\s/g, '');
 }
@@ -270,17 +256,33 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
 }
 
-function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
+function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, policyMembersAccountIDs: number[]): Card[] {
     const {cardList, ...cards} = cardsList ?? {};
-    return Object.values(cards).sort((cardA: Card, cardB: Card) => {
+    return Object.values(cards).filter((card: Card) => card.accountID && policyMembersAccountIDs.includes(card.accountID));
+}
+
+function sortCardsByCardholderName(cards: Card[], personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
+    return cards.sort((cardA: Card, cardB: Card) => {
         const userA = cardA.accountID ? personalDetails?.[cardA.accountID] ?? {} : {};
         const userB = cardB.accountID ? personalDetails?.[cardB.accountID] ?? {} : {};
-
         const aName = getDisplayNameOrDefault(userA);
         const bName = getDisplayNameOrDefault(userB);
-
         return localeCompare(aName, bName);
     });
+}
+
+function filterCardsByPersonalDetails(card: Card, searchQuery: string, personalDetails?: PersonalDetailsList) {
+    const normalizedSearchQuery = StringUtils.normalize(searchQuery.toLowerCase());
+    const cardTitle = StringUtils.normalize(card.nameValuePairs?.cardTitle?.toLowerCase() ?? '');
+    const lastFourPAN = StringUtils.normalize(card?.lastFourPAN?.toLowerCase() ?? '');
+    const accountLogin = StringUtils.normalize(personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login?.toLowerCase() ?? '');
+    const accountName = StringUtils.normalize(personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName?.toLowerCase() ?? '');
+    return (
+        cardTitle.includes(normalizedSearchQuery) ||
+        lastFourPAN.includes(normalizedSearchQuery) ||
+        accountLogin.includes(normalizedSearchQuery) ||
+        accountName.includes(normalizedSearchQuery)
+    );
 }
 
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, illustrations: IllustrationsType): IconAsset {
@@ -610,7 +612,6 @@ function getFundIdFromSettingsKey(key: string) {
 
 export {
     isExpensifyCard,
-    isCorporateCard,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,
@@ -618,8 +619,6 @@ export {
     maskCard,
     maskCardNumber,
     getCardDescription,
-    findPhysicalCard,
-    hasDetectedFraud,
     getMCardNumberString,
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
@@ -641,7 +640,6 @@ export {
     mergeCardListWithWorkspaceFeeds,
     isCard,
     getAllCardsForWorkspace,
-    isCardIssued,
     isCardHiddenFromSearch,
     getFeedType,
     flatAllCardsList,
@@ -653,4 +651,7 @@ export {
     isExpensifyCardFullySetUp,
     filterInactiveCards,
     getFundIdFromSettingsKey,
+    getCardsByCardholderName,
+    filterCardsByPersonalDetails,
+    getCompanyCardDescription,
 };

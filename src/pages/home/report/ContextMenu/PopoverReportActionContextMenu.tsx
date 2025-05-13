@@ -35,13 +35,13 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
 
 function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<ReportActionContextMenu>) {
     const {translate} = useLocalize();
-    const reportIDRef = useRef<string | undefined>();
-    const typeRef = useRef<ContextMenuType>();
+    const reportIDRef = useRef<string | undefined>(undefined);
+    const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
-    const reportActionIDRef = useRef<string | undefined>();
-    const originalReportIDRef = useRef<string | undefined>();
+    const reportActionIDRef = useRef<string | undefined>(undefined);
+    const originalReportIDRef = useRef<string | undefined>(undefined);
     const selectionRef = useRef('');
-    const reportActionDraftMessageRef = useRef<string>();
+    const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -67,7 +67,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
     const [isThreadReportParentAction, setIsThreadReportParentAction] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
-    const [shoudSwitchPositionIfOverflow, setShoudSwitchPositionIfOverflow] = useState(false);
+    const [shouldSwitchPositionIfOverflow, setShoudSwitchPositionIfOverflow] = useState(false);
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -346,8 +346,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 withoutOverlay
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
-                shoudSwitchPositionIfOverflow={shoudSwitchPositionIfOverflow}
-                shouldUseNewModal
+                shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             >
                 <BaseReportActionContextMenu
                     isVisible={isPopoverVisible}

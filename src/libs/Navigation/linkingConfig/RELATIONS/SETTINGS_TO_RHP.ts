@@ -2,7 +2,7 @@ import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 
 // This file is used to define relation between settings split navigator's central screens and RHP screens.
-const CENTRAL_PANE_TO_RHP_MAPPING: Partial<Record<keyof SettingsSplitNavigatorParamList, string[]>> = {
+const SETTINGS_TO_RHP: Partial<Record<keyof SettingsSplitNavigatorParamList, string[]>> = {
     [SCREENS.SETTINGS.PROFILE.ROOT]: [
         SCREENS.SETTINGS.PROFILE.DISPLAY_NAME,
         SCREENS.SETTINGS.PROFILE.CONTACT_METHODS,
@@ -52,6 +52,9 @@ const CENTRAL_PANE_TO_RHP_MAPPING: Partial<Record<keyof SettingsSplitNavigatorPa
         SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE,
         SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE,
         SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM,
+        SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS,
+        SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE,
+        SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT,
     ],
     [SCREENS.SETTINGS.ABOUT]: [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS],
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: [SCREENS.I_KNOW_A_TEACHER, SCREENS.INTRO_SCHOOL_PRINCIPAL, SCREENS.I_AM_A_TEACHER],
@@ -67,4 +70,4 @@ const CENTRAL_PANE_TO_RHP_MAPPING: Partial<Record<keyof SettingsSplitNavigatorPa
     ],
 };
 
-export default CENTRAL_PANE_TO_RHP_MAPPING;
+export default SETTINGS_TO_RHP;

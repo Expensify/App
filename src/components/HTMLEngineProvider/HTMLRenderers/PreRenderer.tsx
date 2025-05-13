@@ -67,7 +67,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                         }}
                         shouldUseHapticsOnLongPress
                         role={CONST.ROLE.PRESENTATION}
-                        accessibilityLabel={translate('accessibilityHints.prestyledText')}
+                        accessibilityLabel={translate('accessibilityHints.preStyledText')}
                     >
                         <View>
                             <Text style={{fontSize}}>

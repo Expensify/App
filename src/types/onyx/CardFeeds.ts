@@ -128,8 +128,6 @@ export type {
     AddNewCardFeedStep,
     AddNewCompanyCardFeed,
     AddNewCardFeedData,
-    CardFeedData,
-    CustomCardFeedData,
     CompanyCardFeed,
     DirectCardFeedData,
     CardFeedProvider,

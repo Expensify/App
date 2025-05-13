@@ -80,6 +80,7 @@ function BaseModal(
         shouldPreventScrollOnFocus = false,
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+        canBeClosedByOtherModal = true,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -137,7 +138,9 @@ function BaseModal(
         if (isVisible) {
             willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-            removeOnCloseListener = setCloseModal(onClose);
+            if (canBeClosedByOtherModal) {
+                removeOnCloseListener = setCloseModal(onClose);
+            }
         }
 
         return () => {
@@ -146,7 +149,7 @@ function BaseModal(
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type]);
+    }, [isVisible, wasVisible, onClose, type, canBeClosedByOtherModal]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
@@ -250,7 +253,7 @@ function BaseModal(
         <ModalContext.Provider value={modalContextValue}>
             <View
                 // this is a workaround for modal not being visible on the new arch in some cases
-                // it's necessary to have a non-collapseable view as a parent of the modal to prevent
+                // it's necessary to have a non-collapsible view as a parent of the modal to prevent
                 // a conflict between RN core and Reanimated shadow tree operations
                 // position absolute is needed to prevent the view from interfering with flex layout
                 collapsable={false}
@@ -306,7 +309,7 @@ function BaseModal(
                             shouldPreventScroll={shouldPreventScrollOnFocus}
                         >
                             <View
-                                style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
+                                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
                                 ref={ref}
                             >
                                 <ColorSchemeWrapper>{children}</ColorSchemeWrapper>

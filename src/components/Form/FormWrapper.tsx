@@ -38,6 +38,9 @@ type FormWrapperProps = ChildrenProps &
         /** Callback to submit the form */
         onSubmit: () => void;
 
+        /** should render the extra button above submit button */
+        shouldRenderFooterAboveSubmit?: boolean;
+
         /** Whether the form is loading */
         isLoading?: boolean;
 
@@ -76,6 +79,7 @@ function FormWrapper({
     shouldHideFixErrorsAlert = false,
     disablePressOnEnter = false,
     isSubmitDisabled = false,
+    shouldRenderFooterAboveSubmit = false,
     isLoading = false,
     shouldScrollToEnd = false,
     addBottomSafeAreaPadding,
@@ -87,7 +91,7 @@ function FormWrapper({
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
 
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
+    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
 
     const errorMessage = useMemo(() => (formState ? getLatestErrorMessage(formState) : undefined), [formState]);
 
@@ -124,7 +128,7 @@ function FormWrapper({
 
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
     // we expect that the user wants to use the new edge-to-edge mode.
-    // In this case, we want to get and apply the padding unconditionnally.
+    // In this case, we want to get and apply the padding unconditionally.
     const isUsingEdgeToEdgeMode = addBottomSafeAreaPadding !== undefined || shouldSubmitButtonStickToBottomProp !== undefined;
     const shouldSubmitButtonStickToBottom = shouldSubmitButtonStickToBottomProp ?? false;
     const {paddingBottom} = useSafeAreaPaddings(isUsingEdgeToEdgeMode);
@@ -168,6 +172,7 @@ function FormWrapper({
                     isSubmitActionDangerous={isSubmitActionDangerous}
                     disablePressOnEnter={disablePressOnEnter}
                     enterKeyEventListenerPriority={1}
+                    shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                     shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
                 />
             ),
@@ -196,6 +201,7 @@ function FormWrapper({
             submitButtonStylesWithBottomSafeAreaPadding,
             submitButtonText,
             submitFlexEnabled,
+            shouldRenderFooterAboveSubmit,
         ],
     );
 

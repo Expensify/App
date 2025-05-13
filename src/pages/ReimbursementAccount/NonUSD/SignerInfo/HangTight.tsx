@@ -36,7 +36,7 @@ function HangTight({tempSubmit}: {tempSubmit: () => void}) {
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3, styles.mt5]}>{translate('signerInfoStep.hangTight')}</Text>
                 <Text style={[styles.mutedTextLabel, styles.mh5]}>{translate('signerInfoStep.weAreWaiting')}</Text>
             </View>
-            <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
+            <View style={[styles.ph5, styles.flexGrow1, styles.justifyContentEnd]}>
                 <Button
                     success
                     style={[styles.w100]}

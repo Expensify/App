@@ -62,6 +62,9 @@ type PopoverMenuItem = MenuItemProps & {
 
     key?: string;
 
+    /** Whether to keep the modal open after clicking on the menu item */
+    shouldKeepModalOpen?: boolean;
+
     /** Test identifier used to find elements in unit and e2e tests */
     testID?: string;
 };
@@ -204,7 +207,7 @@ function PopoverMenu({
     shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
-    shouldUseNewModal,
+    shouldUseNewModal = true,
     shouldAvoidSafariException = false,
     testID,
 }: PopoverMenuProps) {

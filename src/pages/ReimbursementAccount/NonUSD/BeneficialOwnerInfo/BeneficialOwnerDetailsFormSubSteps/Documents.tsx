@@ -25,11 +25,11 @@ const {PROOF_OF_OWNERSHIP, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, COUNTRY, P
 function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
     const proofOfOwnershipInputID = `${PREFIX}_${ownerBeingModifiedID}_${PROOF_OF_OWNERSHIP}` as const;
     const copyOfIDInputID = `${PREFIX}_${ownerBeingModifiedID}_${COPY_OF_ID}` as const;
@@ -131,7 +131,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfBeneficialOwnerDescription')}</Text>
                     {(isDocumentNeededStatus.isCopyOfIDNeeded || isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && (
-                        <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />
+                        <View style={[styles.sectionDividerLine, styles.mv6]} />
                     )}
                 </View>
             )}
@@ -158,7 +158,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         inputID={copyOfIDInputID}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
-                    {(isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
+                    {(isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && <View style={[styles.sectionDividerLine, styles.mv6]} />}
                 </View>
             )}
 
@@ -184,7 +184,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         inputID={addressProofInputID}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
-                    {isDocumentNeededStatus.isCodiceFiscaleNeeded && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
+                    {isDocumentNeededStatus.isCodiceFiscaleNeeded && <View style={[styles.sectionDividerLine, styles.mv6]} />}
                 </View>
             )}
 

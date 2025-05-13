@@ -114,10 +114,15 @@ platforms:
         icon: /assets/images/shield.svg
         description: Configure rules, settings, and limits for your company’s spending.
       
-      - href: expenses-and-payments
-        title: Expenses & Payments
-        icon: /assets/images/money-into-wallet.svg
+      - href: reports-and-expenses
+        title: Reports & Expenses
+        icon: /assets/images/envelope-receipt.svg
         description: Learn more about expense tracking and submission.
+
+      - href: wallet-and-payments
+        title: Wallet & Payments
+        icon: /assets/images/money-into-wallet.svg
+        description: Send and receive payments.
 
       - href: connect-credit-cards
         title: Connect Credit Cards

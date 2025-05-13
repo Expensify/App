@@ -148,7 +148,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                         },
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.USER,
+                            key: ONYXKEYS.ACCOUNT,
                             value: {
                                 isUsingExpensifyCard: false,
                             },

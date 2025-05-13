@@ -259,7 +259,6 @@ PODS:
   - hermes-engine (0.77.1):
     - hermes-engine/Pre-built (= 0.77.1)
   - hermes-engine/Pre-built (0.77.1)
-  - JitsiWebRTC (124.0.2)
   - libavif/core (0.11.1)
   - libavif/libdav1d (0.11.1):
     - libavif/core
@@ -1714,7 +1713,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-document-picker (9.3.1):
+  - react-native-document-picker (10.1.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2099,9 +2098,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-webrtc (124.0.5):
-    - JitsiWebRTC (~> 124.0.0)
-    - React-Core
   - react-native-webview (13.13.1):
     - DoubleConversion
     - glog
@@ -2536,7 +2532,7 @@ PODS:
     - Yoga
   - RNFS (2.20.0):
     - React-Core
-  - RNGestureHandler (2.22.0):
+  - RNGestureHandler (2.25.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2991,7 +2987,7 @@ DEPENDENCIES:
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - "react-native-cameraroll (from `../node_modules/@react-native-camera-roll/camera-roll`)"
   - react-native-config (from `../node_modules/react-native-config`)
-  - react-native-document-picker (from `../node_modules/react-native-document-picker`)
+  - "react-native-document-picker (from `../node_modules/@react-native-documents/picker`)"
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
@@ -3007,7 +3003,6 @@ DEPENDENCIES:
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - "react-native-wallet (from `../node_modules/@expensify/react-native-wallet`)"
-  - react-native-webrtc (from `../node_modules/react-native-webrtc`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -3087,7 +3082,6 @@ SPEC REPOS:
     - GTMAppAuth
     - GTMSessionFetcher
     - GzipSwift
-    - JitsiWebRTC
     - libavif
     - libdav1d
     - libwebp
@@ -3227,7 +3221,7 @@ EXTERNAL SOURCES:
   react-native-config:
     :path: "../node_modules/react-native-config"
   react-native-document-picker:
-    :path: "../node_modules/react-native-document-picker"
+    :path: "../node_modules/@react-native-documents/picker"
   react-native-geolocation:
     :path: "../node_modules/@react-native-community/geolocation"
   react-native-image-picker:
@@ -3258,8 +3252,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-view-shot"
   react-native-wallet:
     :path: "../node_modules/@expensify/react-native-wallet"
-  react-native-webrtc:
-    :path: "../node_modules/react-native-webrtc"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
   React-nativeconfig:
@@ -3381,8 +3373,8 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
-  DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
+  boost: d7090b1a93a9798c029277a8288114f2948f471c
+  DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXAV: 57ea461614a714b8b8fcc72c6fbc298b8f1ec78b
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
   expensify-react-native-background-task: f180077e77a41952128fdc2c83ce1d980994d125
@@ -3407,7 +3399,7 @@ SPEC CHECKSUMS:
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: c8a10b2358c0d33c57be84d16e4c440b0434b33d
   fullstory_react-native: 5132c9dfa5e1ea4ec42679a708af782d4c4ec4bc
-  glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
+  glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
@@ -3416,7 +3408,6 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: ccc24d29d650ea725d582a9a53d57cd417fbdb53
-  JitsiWebRTC: b47805ab5668be38e7ee60e2258f49badfe8e1d0
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
@@ -3469,7 +3460,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: d65692a2acce17b7a836805114828142a3634033
   react-native-cameraroll: 78710a5d35b0c6f41899a193e714564d8fd648b0
   react-native-config: 5b9e180ca7beb5748ba473b257bb9a7d10e2a957
-  react-native-document-picker: da64a39fd71a84a9d3f7f58c8b0623c393e9991c
+  react-native-document-picker: 5cb1c6615796389f4f1b7fe2e4f103e38e4d6398
   react-native-geolocation: cd91e4fd914de585933c836fd71f6bdb3c97a410
   react-native-image-picker: 9e419813377d42566b0168121ab9483614488db5
   react-native-key-command: 96c9dfb09bc89ecd1d58348c0d3ed84d0255648b
@@ -3527,7 +3518,7 @@ SPEC CHECKSUMS:
   RNFBPerf: 389914cda4000fe0d996a752532a591132cbf3f9
   RNFlashList: cb8f8b4dbf724147e86a373e7ac78c602cbfebcc
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
-  RNGestureHandler: 4e7defe5095e936424173fc75f0bf2af5bba8e23
+  RNGestureHandler: 66e593addd8952725107cfaa4f5e3378e946b541
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLiveMarkdown: e3f49ff5a70a7fb5ba515a390cae767e5e999ac9
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
@@ -3549,6 +3540,6 @@ SPEC CHECKSUMS:
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: 1fd059161b449018342943b095a6d4e69bcaa719
 
-PODFILE CHECKSUM: 7c82525cf111fba4b673ad07e55f2994ea241a32
+PODFILE CHECKSUM: 3742d104d6ece80a980e5052f676b69f97405c55
 
 COCOAPODS: 1.15.2
