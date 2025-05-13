@@ -1456,7 +1456,7 @@ const translations = {
             lossOfUnsubmittedData: `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for `,
             enterMagicCode: `To continue, please enter the magic code sent to `,
             errors: {
-                incorrect2fa: 'Incorrect two-factor authentication code. Please try again.',
+                incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
                 fallback: 'Something went wrong. Please try again later.',
             },
         },
