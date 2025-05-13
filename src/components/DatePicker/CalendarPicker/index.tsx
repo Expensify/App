@@ -8,12 +8,11 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
 import ArrowIcon from './ArrowIcon';
+import Day from './Day';
 import generateMonthMatrix from './generateMonthMatrix';
 import type CalendarPickerListItem from './types';
 import YearPickerModal from './YearPickerModal';
@@ -27,6 +26,12 @@ type CalendarPickerProps = {
 
     /** A maximum date (earliest) allowed to select */
     maxDate?: Date;
+
+    /** Restrict selection to only specific dates */
+    selectedableDates?: string[];
+
+    /** Day component to render for dates */
+    DayComponent?: typeof Day;
 
     /** A function called when the date is selected */
     onSelected?: (selectedDate: string) => void;
@@ -49,12 +54,13 @@ function CalendarPicker({
     minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
     maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onSelected,
+    DayComponent = Day,
+    selectedableDates,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {preferredLocale, translate} = useLocalize();
     const pressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
@@ -251,7 +257,8 @@ function CalendarPicker({
                             const currentDate = new Date(currentYearView, currentMonthView, day);
                             const isBeforeMinDate = currentDate < startOfDay(new Date(minDate));
                             const isAfterMaxDate = currentDate > startOfDay(new Date(maxDate));
-                            const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
+                            const isSelectable = selectedableDates ? selectedableDates?.some((date) => isSameDay(parseISO(date), currentDate)) : true;
+                            const isDisabled = !day || isBeforeMinDate || isAfterMaxDate || !isSelectable;
                             const isSelected = !!day && isSameDay(parseISO(value.toString()), new Date(currentYearView, currentMonthView, day));
                             const handleOnPress = () => {
                                 if (!day || isDisabled) {
@@ -273,15 +280,14 @@ function CalendarPicker({
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 >
                                     {({hovered, pressed}) => (
-                                        <View
-                                            style={[
-                                                themeStyles.calendarDayContainer,
-                                                isSelected ? themeStyles.buttonDefaultBG : {},
-                                                !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
-                                            ]}
+                                        <DayComponent
+                                            selected={isSelected}
+                                            disabled={isDisabled}
+                                            hovered={hovered}
+                                            pressed={pressed}
                                         >
-                                            <Text style={isDisabled ? themeStyles.buttonOpacityDisabled : {}}>{day}</Text>
-                                        </View>
+                                            {day}
+                                        </DayComponent>
                                     )}
                                 </PressableWithoutFeedback>
                             );

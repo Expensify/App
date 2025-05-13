@@ -5,6 +5,7 @@ import DecisionModal from '@components/DecisionModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -75,6 +76,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
     const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
 
+    const defaultFundID = useDefaultFundID(policyID);
+
     useEffect(() => {
         fetchCompanyCards();
     }, [fetchCompanyCards]);
@@ -84,8 +87,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             return;
         }
 
-        openPolicyCompanyCardsFeed(policyID, selectedFeed);
-    }, [selectedFeed, isLoading, policyID, isPending]);
+        openPolicyCompanyCardsFeed(defaultFundID, policyID, selectedFeed);
+    }, [selectedFeed, isLoading, policyID, isPending, defaultFundID]);
 
     const handleAssignCard = () => {
         if (isActingAsDelegate) {

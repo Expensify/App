@@ -68,18 +68,21 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
+        canBeMissing: false,
+    });
     const [transaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${
             isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID
         }`,
+        {canBeMissing: true},
     );
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: false});
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -89,7 +92,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const reportID = report?.reportID;
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
-    const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
 
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
@@ -248,7 +250,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 }
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter={shouldDisplaySearchRouter}
+                shouldDisplaySearchRouter={!isReportInRHP}
+                shouldDisplayHelpButton={!isReportInRHP}
                 onBackButtonPress={onBackButtonPress}
                 shouldEnableDetailPageNavigation
             >

@@ -153,6 +153,9 @@ function ExpensifyCardPage({
     const hasDetectedIndividualFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
     const currentPhysicalCard = physicalCards?.find((card) => String(card?.cardID) === cardID);
 
+    // Cards that are already activated and working (OPEN) and cards shipped but not activated yet can be reported as missing or damaged
+    const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
+
     const formattedAvailableSpendAmount = convertToDisplayString(cardsToShow?.at(0)?.availableSpend);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
 
@@ -306,27 +309,22 @@ function ExpensifyCardPage({
                                     )}
                                 </>
                             ))}
-                        {physicalCards.map((card) => {
-                            if (card.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
-                                return null;
-                            }
-                            return (
-                                <>
-                                    <MenuItemWithTopDescription
-                                        description={translate('cardPage.physicalCardNumber')}
-                                        title={maskCard(card?.lastFourPAN)}
-                                        interactive={false}
-                                        titleStyle={styles.walletCardNumber}
-                                    />
-                                    <MenuItem
-                                        title={translate('reportCardLostOrDamaged.report')}
-                                        icon={Expensicons.Flag}
-                                        shouldShowRightIcon
-                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(card.cardID)))}
-                                    />
-                                </>
-                            );
-                        })}
+                        {shouldShowReportLostCardButton && (
+                            <>
+                                <MenuItemWithTopDescription
+                                    description={translate('cardPage.physicalCardNumber')}
+                                    title={maskCard(currentPhysicalCard?.lastFourPAN)}
+                                    interactive={false}
+                                    titleStyle={styles.walletCardNumber}
+                                />
+                                <MenuItem
+                                    title={translate('reportCardLostOrDamaged.report')}
+                                    icon={Expensicons.Flag}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)))}
+                                />
+                            </>
+                        )}
                         <MenuItem
                             icon={Expensicons.MoneySearch}
                             title={translate('workspace.common.viewTransactions')}

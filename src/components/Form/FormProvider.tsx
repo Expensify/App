@@ -136,7 +136,7 @@ function FormProvider(
                         return;
                     }
                     const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-                    const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
+                    const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX);
 
                     // Return early if there are no HTML characters
                     if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {

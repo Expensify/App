@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -211,7 +211,7 @@ function AttachmentModal({
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const [file, setFile] = useState<FileObject | undefined>(
@@ -245,7 +245,7 @@ function AttachmentModal({
     );
 
     /**
-     * If our attachment is a PDF, return the unswipeablge Modal type.
+     * If our attachment is a PDF, return the unswipeable Modal type.
      */
     const getModalType = useCallback(
         (sourceURL: string, fileObject: FileObject) =>
@@ -487,15 +487,11 @@ function AttachmentModal({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isReceiptAttachment, transaction, file, sourceState, iouType]);
 
-    // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
-    // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
-    let headerTitleNew = headerTitle;
+    const headerTitleNew = headerTitle ?? translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
+    const shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     let shouldShowDownloadButton = false;
-    let shouldShowThreeDotsButton = false;
     if (!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) {
-        headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
-        shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
     const context = useMemo(
         () => ({
@@ -536,15 +532,17 @@ function AttachmentModal({
                     }
 
                     if (isReplaceReceipt.current) {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                iouAction ?? CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                draftTransactionID ?? transaction?.transactionID,
-                                report?.reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
-                        );
+                        InteractionManager.runAfterInteractions(() => {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                    iouAction ?? CONST.IOU.ACTION.EDIT,
+                                    iouType,
+                                    draftTransactionID ?? transaction?.transactionID,
+                                    report?.reportID,
+                                    Navigation.getActiveRoute(),
+                                ),
+                            );
+                        });
                     }
                 }}
                 propagateSwipe

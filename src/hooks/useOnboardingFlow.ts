@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
@@ -18,11 +18,11 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
  */
 function useOnboardingFlowRouter() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
-    const [isOnboardingCompleted, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasCompletedGuidedSetupFlowSelector,
+    const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         canBeMissing: true,
     });
-    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
+    const startedOnboardingFlowRef = useRef(false);
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
         canBeMissing: true,
     });
@@ -38,7 +38,7 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
+            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotMetadata, dismissedProductTrainingMetadata)) {
                 return;
             }
 
@@ -57,6 +57,8 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
+            const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues);
+
             if (CONFIG.IS_HYBRID_APP) {
                 // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
                 if (isSingleNewDotEntry) {
@@ -70,31 +72,33 @@ function useOnboardingFlowRouter() {
 
                 // But if the hybrid app onboarding is completed, but NewDot onboarding is not completed, we start NewDot onboarding flow
                 // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
-                if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false) {
-                    startOnboardingFlow();
+                if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
+                    startedOnboardingFlowRef.current = true;
+                    startOnboardingFlow(undefined, onboardingValues);
                 }
             }
 
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
-            if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false) {
-                startOnboardingFlow();
+            if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
+                startedOnboardingFlowRef.current = true;
+                startOnboardingFlow(undefined, onboardingValues);
             }
         });
     }, [
         isLoadingApp,
-        isOnboardingCompleted,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,
-        tryNewDotdMetadata,
+        tryNewDotMetadata,
         isSingleNewDotEntryMetadata,
         isSingleNewDotEntry,
         hasBeenAddedToNudgeMigration,
         dismissedProductTrainingMetadata,
         dismissedProductTraining?.migratedUserWelcomeModal,
+        onboardingValues,
         dismissedProductTraining,
     ]);
 
-    return {isOnboardingCompleted, isHybridAppOnboardingCompleted};
+    return {isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues), isHybridAppOnboardingCompleted};
 }
 
 export default useOnboardingFlowRouter;

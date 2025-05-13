@@ -20,12 +20,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import {getExpensifyCardFromReportAction} from '@libs/CardMessageUtils';
-import {getLinkedTransactionID, getOneTransactionThreadReportID, getReportAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportActions, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     getSourceIDFromReportAction,
     isArchivedNonExpenseReport,
     isArchivedNonExpenseReportWithID,
+    isIOUReport,
     isInvoiceReport as ReportUtilsIsInvoiceReport,
     isMoneyRequest as ReportUtilsIsMoneyRequest,
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
@@ -138,16 +139,16 @@ function BaseReportActionContextMenu({
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
     const threedotRef = useRef<View>(null);
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         canBeMissing: true,
         canEvict: false,
     });
     const transactionID = getLinkedTransactionID(reportActionID, reportID);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: false});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
 
@@ -163,7 +164,7 @@ function BaseReportActionContextMenu({
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {canBeMissing: true});
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`, {canBeMissing: true});
-    const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
+    const childReportActions = childReport ? getReportActions(childReport) : undefined;
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
 
     const transactionThreadReportID = useMemo(
@@ -178,24 +179,29 @@ function BaseReportActionContextMenu({
 
     const requestParentReportAction = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
-            if (!paginatedReportActions || !transactionThreadReport?.parentReportActionID) {
+            if (!paginatedReportActions) {
                 return undefined;
             }
-            return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
+            if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
+                return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+            }
+            return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID);
         }
-        return parentReportAction;
-    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID]);
+        return reportAction;
+    }, [childReportActions, transactionThreadReportID, reportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID]);
 
-    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : reportAction;
 
     const [childReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.reportID}`, {canBeMissing: true});
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID ?? (isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.IOUReportID)}`, {
+        canBeMissing: true,
+    });
 
     const isMoneyRequest = useMemo(() => ReportUtilsIsMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtilsIsTrackExpenseReport(childReport);
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
-    const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
+    const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView || isIOUReport(parentReport);
 
     const areHoldRequirementsMet =
         !isInvoiceReport &&
@@ -222,7 +228,7 @@ function BaseReportActionContextMenu({
                 isProduction,
                 moneyRequestAction,
                 areHoldRequirementsMet,
-                user,
+                account,
             }),
     );
 

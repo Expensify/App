@@ -20,6 +20,9 @@ type IntroSelected = {
 
     /** Company size selected during onboarding */
     companySize?: string;
+
+    /** Task reportID for 'setupCategories' type */
+    setupCategories?: string;
 };
 
 export default IntroSelected;

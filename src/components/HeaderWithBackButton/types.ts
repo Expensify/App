@@ -73,10 +73,10 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should show a pin button */
     shouldShowPinButton?: boolean;
 
-    /** Whether we should show a more options (threedots) button */
+    /** Whether we should show a more options (three dots) button */
     shouldShowThreeDotsButton?: boolean;
 
-    /** Whether we should disable threedots button */
+    /** Whether we should disable three dots button */
     shouldDisableThreeDotsButton?: boolean;
 
     /** Whether we should set modal visibility when three dot menu opens */

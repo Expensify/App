@@ -100,7 +100,7 @@ Onyx.connect({
 
 let preservedShouldUseStagingServer: boolean | undefined;
 Onyx.connect({
-    key: ONYXKEYS.USER,
+    key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         preservedShouldUseStagingServer = value?.shouldUseStagingServer;
     },
@@ -260,18 +260,19 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
                 value: true,
             },
         ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.HAS_LOADED_APP,
-                value: true,
-            },
-        ],
+        successData: [],
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: false,
+            },
+        ],
+        queueFlushedData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.HAS_LOADED_APP,
+                value: true,
             },
         ],
     };
@@ -617,7 +618,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             }
 
             if (shouldUseStagingServer) {
-                Onyx.set(ONYXKEYS.USER, {shouldUseStagingServer});
+                Onyx.set(ONYXKEYS.ACCOUNT, {shouldUseStagingServer});
             }
         })
         .then(() => {

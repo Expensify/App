@@ -83,10 +83,10 @@ function openPersonalBankAccountSetupView(exitReportID?: string, policyID?: stri
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {source});
         }
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
+        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(Navigation.getActiveRoute()));
     });
 }
 
@@ -428,6 +428,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
                 value: {
                     isLoading: false,
                     isCreateCorpayBankAccount: false,
+                    errors: null,
                     isSuccess: true,
                 },
             },
@@ -440,7 +441,6 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
                     isLoading: false,
                     isCreateCorpayBankAccount: false,
                     isSuccess: false,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         ],

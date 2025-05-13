@@ -52,7 +52,7 @@ function Image({source: propsSource, isAuthTokenRequired = false, onLoad, object
     /**
      * trying to figure out if the current session is expired or fresh from a necessary reauthentication
      */
-    const previousSessionAge = useRef<number | undefined>();
+    const previousSessionAge = useRef<number | undefined>(undefined);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const validSessionAge: number | undefined = useMemo(() => {
         // Authentication is required only for certain types of images (attachments and receipts),

@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportNameValuePairs, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
@@ -29,15 +30,16 @@ import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
-    getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogEmployeeLeftMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogUpdateEmployee,
     getRemovedConnectionMessage,
     getRenamedAction,
+    getReopenedMessage,
     getReportAction,
     getReportActionMessageText,
     getSortedReportActions,
@@ -76,6 +78,7 @@ import {
     getPolicyName,
     getReportDescription,
     getReportName,
+    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
@@ -86,7 +89,6 @@ import {
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
-    isArchivedReportWithID,
     isChatRoom,
     isChatThread,
     isConciergeChatReport,
@@ -241,7 +243,7 @@ function getOrderedReportIDs(
             isSystemChat ||
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
-            (!isInFocusMode && isArchivedReportWithID(report.reportID)) ||
+            (!isInFocusMode && isArchivedReport(reportNameValuePairs)) ||
             requiresAttentionFromCurrentUser(report, parentReportAction);
         if (isHidden && !shouldOverrideHidden) {
             return;
@@ -345,12 +347,13 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     reportActions: OnyxEntry<ReportActions>,
     hasViolations: boolean,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
+    isReportArchived = false,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
     const errors = getAllReportErrors(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
 
-    if (isArchivedReportWithID(report.reportID)) {
+    if (isReportArchived) {
         return null;
     }
 
@@ -394,8 +397,14 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     return null;
 }
 
-function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, transactionViolations?: OnyxCollection<TransactionViolation[]>) {
-    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations);
+function shouldShowRedBrickRoad(
+    report: Report,
+    reportActions: OnyxEntry<ReportActions>,
+    hasViolations: boolean,
+    transactionViolations?: OnyxCollection<TransactionViolation[]>,
+    isReportArchived = false,
+) {
+    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isReportArchived);
 }
 
 /**
@@ -403,6 +412,7 @@ function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportA
  */
 function getOptionData({
     report,
+    reportAttributes,
     oneTransactionThreadReport,
     reportNameValuePairs,
     reportActions,
@@ -410,9 +420,7 @@ function getOptionData({
     preferredLocale,
     policy,
     parentReportAction,
-    hasViolations,
     lastMessageTextFromReport: lastMessageTextFromReportProp,
-    transactionViolations,
     invoiceReceiverPolicy,
 }: {
     report: OnyxEntry<Report>;
@@ -423,10 +431,9 @@ function getOptionData({
     preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
-    hasViolations: boolean;
     lastMessageTextFromReport?: string;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
-    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    reportAttributes: OnyxEntry<ReportAttributes>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -466,6 +473,7 @@ function getOptionData({
         isAllowedToComment: true,
         isDeletedParentAction: false,
         isConciergeChat: false,
+        shouldShowGreenDot: false,
     };
 
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
@@ -485,7 +493,7 @@ function getOptionData({
     result.isMoneyRequestReport = isMoneyRequestReport(report);
     result.shouldShowSubscript = shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
-    result.brickRoadIndicator = shouldShowRedBrickRoad(report, reportActions, hasViolations, transactionViolations) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
@@ -512,8 +520,10 @@ function getOptionData({
     result.hasParentAccess = report.hasParentAccess;
     result.isConciergeChat = isConciergeChatReport(report);
     result.participants = report.participants;
+    result.shouldShowGreenDot = result.brickRoadIndicator !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && requiresAttentionFromCurrentUser(report, parentReportAction);
 
-    const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || isExpenseReport(report);
+    const isExpense = isExpenseReport(report);
+    const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || isExpense;
     const subtitle = getChatRoomSubtitle(report);
 
     const login = Str.removeSMSDomain(personalDetail?.login ?? '');
@@ -559,7 +569,7 @@ function getOptionData({
         const prefix = getReportSubtitlePrefix(report);
 
         if (isRenamedAction(lastAction)) {
-            result.alternateText = getRenamedAction(lastAction, lastActorDisplayName);
+            result.alternateText = getRenamedAction(lastAction, isExpense, lastActorDisplayName);
         } else if (isTaskAction(lastAction)) {
             result.alternateText = formatReportLastMessageText(getTaskReportActionMessage(lastAction).text);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM) {
@@ -646,13 +656,15 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogAddEmployeeMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
-            result.alternateText = getPolicyChangeLogChangeRoleMessage(lastAction);
+            result.alternateText = getPolicyChangeLogUpdateEmployee(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogDeleteMemberMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
             result.alternateText = getRemovedConnectionMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
+            result.alternateText = getReopenedMessage();
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
@@ -679,7 +691,6 @@ function getOptionData({
 
     if (isJoinRequestInAdminRoom(report)) {
         result.isUnread = true;
-        result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
     if (!hasMultipleParticipants) {
@@ -780,7 +791,11 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         return welcomeMessage;
     }
 
-    if (isArchivedReportWithID(report?.reportID)) {
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
+    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+
+    if (isArchivedReport(reportNameValuePairs)) {
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (isDomainRoom(report)) {

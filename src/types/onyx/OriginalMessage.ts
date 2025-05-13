@@ -38,7 +38,7 @@ type OriginalMessageIOU = {
     /** ID of the expense report */
     expenseReportID?: string;
 
-    /** How much was transactioned */
+    /** How much was transaction */
     amount: number;
 
     /** Was the action created automatically, not by a human */
@@ -47,7 +47,7 @@ type OriginalMessageIOU = {
     /** Optional comment */
     comment?: string;
 
-    /** Currency of the transactioned money */
+    /** Currency of the transaction money */
     currency: string;
 
     /** When was the `IOU` last modified */
@@ -168,6 +168,12 @@ type OriginalMessageClosed = {
 
     /** Name of the invoice receiver's policy */
     receiverPolicyName?: string;
+
+    /** If the expense report was mark as closed, then this is the report amount */
+    amount?: number;
+
+    /** If the expense report was mark as closed, then this is the report currency */
+    currency?: string;
 };
 
 /** Model of `renamed` report action, created when chat rooms get renamed */
@@ -346,14 +352,17 @@ type OriginalMessagePolicyChangeLog = {
     /** value -- returned when updating "Auto-approve compliant reports" */
     value?: boolean;
 
-    /** New desciption */
+    /** New description */
     newDescription?: string;
 
-    /** Old desciption */
+    /** Old description */
     oldDescription?: string;
 
     /** Report field type */
     fieldType?: string;
+
+    /** Custom field type  */
+    field?: string;
 
     /** Report field name */
     fieldName?: string;
@@ -536,7 +545,7 @@ type OriginalMessageReimbursementDequeued = {
     currency: string;
 };
 
-/** Model of `CHANGEPOLICY` report action */
+/** Model of CHANGE_POLICY report action */
 type OriginalMessageChangePolicy = {
     /** ID of the old policy */
     fromPolicy: string | undefined;
@@ -551,7 +560,7 @@ type OriginalMessageUnreportedTransaction = {
     fromReportID: string;
 };
 
-/** Model of `MOVEDTRANSACTION` report action */
+/** Model of MOVED_TRANSACTION report action */
 type OriginalMessageMovedTransaction = {
     /** ID of the new report */
     toReportID: string;
@@ -697,7 +706,7 @@ type OriginalMessageDemotedFromWorkspace = {
 type OriginalMessageAddPaymentCard = Record<string, never>;
 
 /**
- * Original message for INTEGRATIONSYNCFAILED actions
+ * Original message for INTEGRATION_SYNC_FAILED actions
  */
 type OriginalMessageIntegrationSyncFailed = {
     /** The user friendly connection name */
@@ -804,7 +813,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: never;
     [CONST.REPORT.ACTIONS.TYPE.UNSHARE]: never;
     [CONST.REPORT.ACTIONS.TYPE.UPDATE_GROUP_CHAT_MEMBER_ROLE]: never;
-    [CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW]: OriginalMessageTripRoomPreview;
+    [CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW]: OriginalMessageTripRoomPreview;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS]: never;
@@ -820,6 +829,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
+    [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
     } & {

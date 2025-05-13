@@ -15,6 +15,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
+import DropZoneUI from '@components/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -27,6 +28,7 @@ import TextLink from '@components/TextLink';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -84,6 +86,7 @@ function IOURequestStepScan({
     },
     transaction,
     currentUserPersonalDetails,
+    isTooltipAllowed = false,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -127,6 +130,9 @@ function IOURequestStepScan({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
+
+    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
+    const {canUseMultiFilesDragAndDrop} = usePermissions();
 
     const platform = getPlatform(true);
 
@@ -355,7 +361,17 @@ function IOURequestStepScan({
                 if (!managerMcTestParticipant.reportID && report?.reportID) {
                     reportIDParam = generateReportID();
                 }
-                setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, reportID: reportIDParam, selected: true}], true).then(() => {
+                setMoneyRequestParticipants(
+                    transactionID,
+                    [
+                        {
+                            ...managerMcTestParticipant,
+                            reportID: reportIDParam,
+                            selected: true,
+                        },
+                    ],
+                    true,
+                ).then(() => {
                     navigateToConfirmationPage(true, reportIDParam);
                 });
                 return;
@@ -604,7 +620,7 @@ function IOURequestStepScan({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive && !isUserInvitedToWorkspace(),
+        isTooltipAllowed && !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive && !isUserInvitedToWorkspace(),
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
@@ -772,7 +788,10 @@ function IOURequestStepScan({
                     <NavigationAwareCamera
                         onUserMedia={setupCameraPermissionsAndCapabilities}
                         onUserMediaError={() => setCameraPermissionState('denied')}
-                        style={{...styles.videoContainer, display: cameraPermissionState !== 'granted' ? 'none' : 'block'}}
+                        style={{
+                            ...styles.videoContainer,
+                            display: cameraPermissionState !== 'granted' ? 'none' : 'block',
+                        }}
                         ref={cameraRef}
                         screenshotFormat="image/png"
                         videoConstraints={videoConstraints}
@@ -917,20 +936,38 @@ function IOURequestStepScan({
                             wrapperStyle={styles.productTrainingTooltipWrapper}
                             shiftVertical={-elementTop}
                         >
-                            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                                 {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                             </View>
                         </EducationalTooltip>
-                        <ReceiptDropUI
-                            onDrop={(e) => {
-                                const file = e?.dataTransfer?.files[0];
-                                if (file) {
-                                    file.uri = URL.createObjectURL(file);
-                                    setReceiptAndNavigate(file);
-                                }
-                            }}
-                            receiptImageTopPosition={receiptImageTopPosition}
-                        />
+                        {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
+                        {canUseMultiFilesDragAndDrop ? (
+                            <DropZoneUI
+                                onDrop={(e) => {
+                                    const file = e?.dataTransfer?.files[0];
+                                    if (file) {
+                                        file.uri = URL.createObjectURL(file);
+                                        setReceiptAndNavigate(file);
+                                    }
+                                }}
+                                icon={Expensicons.SmartScan}
+                                dropStyles={styles.receiptDropOverlay}
+                                dropTitle={translate('dropzone.scanReceipts')}
+                                dropTextStyles={styles.receiptDropText}
+                                dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
+                            />
+                        ) : (
+                            <ReceiptDropUI
+                                onDrop={(e) => {
+                                    const file = e?.dataTransfer?.files[0];
+                                    if (file) {
+                                        file.uri = URL.createObjectURL(file);
+                                        setReceiptAndNavigate(file);
+                                    }
+                                }}
+                                receiptImageTopPosition={receiptImageTopPosition}
+                            />
+                        )}
                         <ConfirmModal
                             title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                             onConfirm={hideReceiptModal}

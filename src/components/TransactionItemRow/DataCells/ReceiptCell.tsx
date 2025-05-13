@@ -21,7 +21,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
 
     let source = transactionItem?.receipt?.source ?? '';
 
-    if (source) {
+    if (source && typeof source === 'string') {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
         const isReceiptPDF = Str.isPDF(filename);

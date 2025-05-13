@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -102,6 +103,12 @@ type OptionRowLHNDataProps = {
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** The report attributes for the report */
+    reportAttributes: OnyxEntry<ReportAttributes>;
+
+    /** Whether to show the educational tooltip for the GBR or RBR */
+    shouldShowRBRorGBRTooltip: boolean;
 };
 
 type OptionRowLHNProps = {
@@ -127,6 +134,9 @@ type OptionRowLHNProps = {
     hasDraftComment: boolean;
 
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Whether to show the educational tooltip on the GBR or RBR */
+    shouldShowRBRorGBRTooltip: boolean;
 };
 
 type RenderItemProps = {item: string};

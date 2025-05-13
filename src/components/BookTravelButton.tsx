@@ -3,7 +3,6 @@ import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
 import React, {useCallback, useContext, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -37,7 +36,7 @@ type BookTravelButtonProps = {
 };
 
 const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
-    // Remove the previous provision session infromation if any is cached.
+    // Remove the previous provision session information if any is cached.
     cleanupTravelProvisioningSession();
     if (isUserValidated) {
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
@@ -51,17 +50,19 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
-    const isUserValidated = useAccountValidation();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isUserValidated = account?.validated ?? false;
+    const primaryLogin = account?.primaryLogin ?? '';
 
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: false});
-    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin, canBeMissing: false});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
-    const {isBlockedFromSpotnanaTravel} = usePermissions();
+    const {isBlockedFromSpotnanaTravel, isTravelVerified} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
+    const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
@@ -71,6 +72,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
     const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: false});
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
+    const hideVerificationModal = () => setVerificationModalVisibility(false);
 
     const bookATrip = useCallback(() => {
         setErrorMessage('');
@@ -133,6 +135,8 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
                 });
         } else if (isPolicyProvisioned) {
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
+        } else if (!isTravelVerified) {
+            setVerificationModalVisibility(true);
         }
         // Determine the domain to associate with the workspace during provisioning in Spotnana.
         // - If all admins share the same private domain, the workspace is tied to it automatically.
@@ -162,6 +166,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
         setRootStatusBarEnabled,
         isUserValidated,
         groupPaidPolicies.length,
+        isTravelVerified,
     ]);
 
     return (
@@ -198,6 +203,20 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
                 imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
                 isVisible={isPreventionModalVisible}
                 prompt={translate('travel.blockedFeatureModal.message')}
+                promptStyles={styles.mb2}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+            />
+            <ConfirmModal
+                title={translate('travel.verifyCompany.title')}
+                titleStyles={styles.textHeadlineH1}
+                titleContainerStyles={styles.mb2}
+                onConfirm={hideVerificationModal}
+                onCancel={hideVerificationModal}
+                image={RocketDude}
+                imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
+                isVisible={isVerificationModalVisible}
+                prompt={translate('travel.verifyCompany.message')}
                 promptStyles={styles.mb2}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}

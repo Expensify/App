@@ -23,6 +23,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction} from './Report';
 
@@ -85,6 +86,12 @@ Onyx.connect({
     callback: (value) => {
         allReports = value;
     },
+});
+
+let introSelected: OnyxEntry<OnyxTypes.IntroSelected> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (val) => (introSelected = val),
 });
 
 /**
@@ -370,11 +377,11 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 /**
  * Complete a task
  */
-function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string) {
+function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string): OnyxData {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
     if (!taskReportID) {
-        return;
+        return {};
     }
 
     const message = `marked as complete`;
@@ -455,6 +462,7 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromActio
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
+    return {optimisticData, successData, failureData};
 }
 
 /**
@@ -1266,6 +1274,19 @@ function clearTaskErrors(reportID: string | undefined) {
     });
 }
 
+function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected): OnyxData {
+    const taskReportID = introSelected?.[taskName];
+    const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+    if (taskReportID && canActionTask(taskReport, currentUserAccountID)) {
+        if (taskReport) {
+            if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
+                return completeTask(taskReport);
+            }
+        }
+    }
+
+    return {};
+}
 function completeTestDriveTask() {
     const onboardingReport = ReportUtils.getChatUsedForOnboarding();
     if (!onboardingReport) {
@@ -1312,5 +1333,6 @@ export {
     setNewOptimisticAssignee,
     getNavigationUrlOnTaskDelete,
     canActionTask,
+    getFinishOnboardingTaskOnyxData,
     completeTestDriveTask,
 };

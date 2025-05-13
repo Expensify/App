@@ -296,7 +296,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     source={details.avatar}
                                     avatarID={accountID}
                                     type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.XLARGE}
+                                    size={CONST.AVATAR_SIZE.X_LARGE}
                                     fallbackIcon={fallbackIcon}
                                 />
                             </OfflineWithFeedback>
@@ -351,6 +351,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 shouldShowRightIcon
                                 onPress={openRoleSelectionModal}
                             />
+                            <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.common.customField1')}
+                                    title={member?.employeeUserID}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1'))}
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
+                                <MenuItemWithTopDescription
+                                    description={translate('workspace.common.customField2')}
+                                    title={member?.employeePayrollID}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2'))}
+                                />
+                            </OfflineWithFeedback>
                             <MenuItem
                                 style={styles.mb5}
                                 title={translate('common.profile')}

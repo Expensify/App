@@ -15,6 +15,7 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
 const FILTER_KEYS = {
     TYPE: 'type',
     STATUS: 'status',
+    GROUP_BY: 'groupBy',
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
     SUBMITTED_AFTER: 'submittedAfter',
@@ -58,6 +59,7 @@ type SearchAdvancedFiltersForm = Form<
     {
         [FILTER_KEYS.TYPE]: string;
         [FILTER_KEYS.STATUS]: string;
+        [FILTER_KEYS.GROUP_BY]: string;
         [FILTER_KEYS.DATE_AFTER]: string;
         [FILTER_KEYS.DATE_BEFORE]: string;
         [FILTER_KEYS.SUBMITTED_AFTER]: string;
