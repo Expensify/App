@@ -621,8 +621,8 @@ Updated rules for managing members across all types of chats in New Expensify.
 - **Nobody can leave or be removed from something they were automatically added to. For example:**
 
     - DM members can't leave or be removed from their DMs
-    - Members can't leave or be removed from their own workspace chats
-    - Admins can't leave or be removed from workspace chats
+    - Members can't leave or be removed from their own expense chats
+    - Admins can't leave or be removed from expense chats
     - Members can't leave or be removed from the #announce room
     - Admins can't leave or be removed from #admins
     - Domain members can't leave or be removed from their domain chat
@@ -691,7 +691,7 @@ Updated rules for managing members across all types of chats in New Expensify.
         - Everyone can be removed/can leave from the room including creator
         - Guests are not able to remove anyone from the room
 
-    4. #### Workspace chats
+    4. #### Expense chats
         |                    | Admin | Member(default) | Member(invited) |
         | :----------------: | :---: | :-------------: | :-------------: |
         |     **Invite**     |   ✅   |        ✅        |        ❌        |
@@ -699,10 +699,10 @@ Updated rules for managing members across all types of chats in New Expensify.
         |     **Leave**      |   ❌   |        ❌        |        ✅        |
         | **Can be removed** |   ❌   |        ❌        |        ✅        |
 
-        - Admins are not able to leave/be removed from the workspace chat
-        - Default members(automatically invited) are not able to leave/be removed from the workspace chat
-        - Invited members(invited by members) are not able to invite or remove from the workspace chat
-        - Invited members(invited by members) are able to leave the workspace chat
+        - Admins are not able to leave/be removed from the expense chat
+        - Default members(automatically invited) are not able to leave/be removed from the expense chat
+        - Invited members(invited by members) are not able to invite or remove from the expense chat
+        - Invited members(invited by members) are able to leave the expense chat
         - Default members and admins are able to remove invited members
 
 3. ### Domain chat
