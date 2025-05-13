@@ -13,7 +13,6 @@ import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createPolicyTax, getNextTaxCode, getTaxValueWithPercentage, validateTaxName, validateTaxValue} from '@libs/actions/TaxRate';
-import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -121,8 +120,7 @@ function WorkspaceCreateTaxPage({
                                     extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
                                     autoGrowExtraSpace={variables.w80}
                                     autoGrowMarginSide="left"
-                                    // Currently, autoGrow is only supported on Android. Therefore, we need to check the platform before applying flex styles to avoid layout issues on other platforms.
-                                    style={[styles.iouAmountTextInput, styles.textAlignRight, getPlatform() === CONST.PLATFORM.ANDROID && styles.flex1]}
+                                    style={[styles.iouAmountTextInput, styles.textAlignRight]}
                                 />
                             </View>
                         </FormProvider>
