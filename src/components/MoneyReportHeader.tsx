@@ -519,7 +519,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, canUseRetractNewDot);
     }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, canUseRetractNewDot]);
-
+    console.log('secondaryActions', secondaryActions);
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
