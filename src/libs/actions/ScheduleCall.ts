@@ -84,7 +84,7 @@ function getEventIDFromURI(eventURI: string) {
 }
 
 function rescheduleBooking(call: CalendlyCall) {
-    const rescheduleURL = `https://icalendly.com/reschedulings/${getEventIDFromURI(call.eventURI)}`;
+    const rescheduleURL = `https://calendly.com/reschedulings/${getEventIDFromURI(call.eventURI)}`;
     openExternalLink(rescheduleURL);
 }
 
