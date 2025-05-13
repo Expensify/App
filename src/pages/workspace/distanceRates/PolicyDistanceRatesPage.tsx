@@ -187,7 +187,6 @@ function PolicyDistanceRatesPage({
     }, []);
     const sortRates = useCallback((rates: RateForList[]) => rates.sort((a, b) => (a.rate ?? 0) - (b.rate ?? 0)), []);
     const [inputValue, setInputValue, filteredDistanceRatesList] = useSearchResults(distanceRatesList, filterRate, sortRates);
-    const sections = useMemo(() => [{data: filteredDistanceRatesList, key: 'distanceRatesList'}], [filteredDistanceRatesList]);
 
     const addRate = () => {
         Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
@@ -408,7 +407,8 @@ function PolicyDistanceRatesPage({
                             canSelectMultiple={canSelectMultiple}
                             turnOnSelectionModeOnLongPress
                             onTurnOnSelectionMode={(item) => item && toggleRate(item)}
-                            sections={sections}
+                            sections={[{data: filteredDistanceRatesList, isDisabled: false}]}
+                            selectedItemKeys={selectedDistanceRates}
                             onCheckboxPress={toggleRate}
                             onSelectRow={openRateDetails}
                             onSelectAll={toggleAllRates}

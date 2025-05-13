@@ -199,7 +199,6 @@ function WorkspaceTaxesPage({
         });
     }, []);
     const [inputValue, setInputValue, filteredTaxesList] = useSearchResults(taxesList, filterTax, sortTaxes);
-    const sections = useMemo(() => [{data: filteredTaxesList, isDisabled: false}], [filteredTaxesList]);
 
     const isLoading = !isOffline && taxesList === undefined;
 
@@ -407,7 +406,8 @@ function WorkspaceTaxesPage({
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleTax(item)}
-                        sections={sections}
+                        sections={[{data: filteredTaxesList, isDisabled: false}]}
+                        selectedItemKeys={selectedTaxesIDs}
                         onCheckboxPress={toggleTax}
                         onSelectRow={navigateToEditTaxRate}
                         onSelectAll={toggleAllTaxes}
