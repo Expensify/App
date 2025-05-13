@@ -907,9 +907,6 @@ Onyx.connect({
             module.triggerUnreadUpdate();
         });
 
-        // Each time a new report is added we will check to see if the user should be switched
-        autoSwitchToFocusMode();
-
         if (!value) {
             return;
         }
