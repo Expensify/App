@@ -76,8 +76,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
-    const [isCannotDisableLastCategoryModalVisible, setIsCannotDisableLastCategoryModalVisible] = useState(false);
-    const [isCannotDeleteLastEnabledCategoryModalVisible, setIsCannotDeleteLastEnabledCategoryModalVisible] = useState(false);
+    const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
     const {environmentURL} = useEnvironment();
     const policyId = route.params.policyID;
     const backTo = route.params?.backTo;
@@ -148,7 +147,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         accessibilityLabel={translate('workspace.categories.enableCategory')}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
-                                setIsCannotDisableLastCategoryModalVisible(true);
+                                setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
                                 return;
                             }
                             updateWorkspaceCategoryEnabled(newValue, value.name);
@@ -249,7 +248,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
-                            setIsCannotDeleteLastEnabledCategoryModalVisible(true);
+                            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
                             return;
                         }
 
@@ -275,7 +274,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
-                            setIsCannotDisableLastCategoryModalVisible(true);
+                            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
                             return;
                         }
                         setSelectedCategories({});
@@ -516,24 +515,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     )}
                 </ScrollView>
                 <ConfirmModal
-                    isVisible={isCannotDisableLastCategoryModalVisible}
-                    onConfirm={() => setIsCannotDisableLastCategoryModalVisible(false)}
-                    onCancel={() => setIsCannotDisableLastCategoryModalVisible(false)}
-                    title={translate('workspace.categories.cannotDisableAllCategories.title')}
-                    prompt={translate('workspace.categories.cannotDisableAllCategories.description')}
+                    isVisible={isCannotDeleteOrDisableLastCategoryModalVisible}
+                    onConfirm={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
+                    onCancel={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
+                    title={translate('workspace.categories.cannotDeleteOrDisableAllCategories.title')}
+                    prompt={translate('workspace.categories.cannotDeleteOrDisableAllCategories.description')}
                     confirmText={translate('common.buttonConfirm')}
                     shouldShowCancelButton={false}
                 />
-                <ConfirmModal
-                    isVisible={isCannotDeleteLastEnabledCategoryModalVisible}
-                    onConfirm={() => setIsCannotDeleteLastEnabledCategoryModalVisible(false)}
-                    onCancel={() => setIsCannotDeleteLastEnabledCategoryModalVisible(false)}
-                    title={translate('workspace.categories.cannotDeleteLastEnabledCategory.title')}
-                    prompt={translate('workspace.categories.cannotDeleteLastEnabledCategory.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
-
                 <ConfirmModal
                     isVisible={isOfflineModalVisible}
                     onConfirm={() => setIsOfflineModalVisible(false)}

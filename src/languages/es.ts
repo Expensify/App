@@ -4006,13 +4006,9 @@ const translations = {
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
             importCategories: 'Importar categorías',
-            cannotDisableAllCategories: {
-                title: 'No se pueden deshabilitar todas las categorías',
-                description: `No puedes deshabilitar todas las categorías cuando se requieren en el espacio de trabajo.`,
-            },
-            cannotDeleteLastEnabledCategory: {
-                title: 'No se puede eliminar la última categoría habilitada',
-                description: 'No puedes eliminar la última categoría habilitada cuando se requieren categorías en el espacio de trabajo.',
+            cannotDeleteOrDisableAllCategories: {
+                title: 'No se pueden eliminar ni deshabilitar todas las categorías',
+                description: `Debe quedar al menos una categoría habilitada porque tu espacio de trabajo requiere categorías.`,
             },
         },
         moreFeatures: {
@@ -4262,17 +4258,13 @@ const translations = {
             importTags: 'Importar categorías',
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
-            cannotDisableAllTags: {
-                title: 'No se pueden desactivar todas las etiquetas',
-                description: `No puedes desactivar todas las etiquetas cuando se requieren en el espacio de trabajo.`,
-            },
-            cannotDeleteLastEnabledTag: {
-                title: 'No se puede eliminar la última etiqueta habilitada',
-                description: 'No puedes eliminar la última etiqueta habilitada cuando se requieren etiquetas en el espacio de trabajo.',
+            cannotDeleteOrDisableAllTags: {
+                title: 'No se pueden eliminar ni deshabilitar todas las etiquetas',
+                description: `Debe quedar al menos una etiqueta habilitada porque tu espacio de trabajo requiere etiquetas.`,
             },
             cannotMakeAllTagsOptional: {
-                title: 'No se pueden hacer todas las etiquetas opcionales',
-                description: 'No puedes hacer que todas las etiquetas sean opcionales cuando son requeridas en el espacio de trabajo.',
+                title: 'No se pueden hacer opcionales todas las etiquetas',
+                description: `Debe haber al menos una etiqueta obligatoria porque la configuración de tu espacio de trabajo requiere etiquetas.`,
             },
         },
         taxes: {

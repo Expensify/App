@@ -56,8 +56,7 @@ function CategorySettingsPage({
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
-    const [isCannotDisableLastCategoryModalVisible, setIsCannotDisableLastCategoryModalVisible] = useState(false);
-    const [isCannotDeleteLastTagModalVisible, setIsCannotDeleteLastTagModalVisible] = useState(false);
+    const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [policyCategory]);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = !!backTo;
@@ -118,7 +117,7 @@ function CategorySettingsPage({
 
     const updateWorkspaceCategoryEnabled = (value: boolean) => {
         if (shouldPreventDisableOrDelete) {
-            setIsCannotDisableLastCategoryModalVisible(true);
+            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
             return;
         }
         setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
@@ -166,20 +165,11 @@ function CategorySettingsPage({
                     danger
                 />
                 <ConfirmModal
-                    isVisible={isCannotDisableLastCategoryModalVisible}
-                    onConfirm={() => setIsCannotDisableLastCategoryModalVisible(false)}
-                    onCancel={() => setIsCannotDisableLastCategoryModalVisible(false)}
-                    title={translate('workspace.categories.cannotDisableAllCategories.title')}
-                    prompt={translate('workspace.categories.cannotDisableAllCategories.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
-                <ConfirmModal
-                    isVisible={isCannotDeleteLastTagModalVisible}
-                    onConfirm={() => setIsCannotDeleteLastTagModalVisible(false)}
-                    onCancel={() => setIsCannotDeleteLastTagModalVisible(false)}
-                    title={translate('workspace.categories.cannotDeleteLastEnabledCategory.title')}
-                    prompt={translate('workspace.categories.cannotDeleteLastEnabledCategory.description')}
+                    isVisible={isCannotDeleteOrDisableLastCategoryModalVisible}
+                    onConfirm={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
+                    onCancel={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
+                    title={translate('workspace.categories.cannotDeleteOrDisableAllCategories.title')}
+                    prompt={translate('workspace.categories.cannotDeleteOrDisableAllCategories.description')}
                     confirmText={translate('common.buttonConfirm')}
                     shouldShowCancelButton={false}
                 />
@@ -358,7 +348,7 @@ function CategorySettingsPage({
                             title={translate('common.delete')}
                             onPress={() => {
                                 if (shouldPreventDisableOrDelete) {
-                                    setIsCannotDeleteLastTagModalVisible(true);
+                                    setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
                                     return;
                                 }
                                 setDeleteCategoryConfirmModalVisible(true);

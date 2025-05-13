@@ -3964,13 +3964,9 @@ const translations = {
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again',
             importCategories: 'Import categories',
-            cannotDisableAllCategories: {
-                title: 'Cannot disable all categories',
-                description: `You can't disable all categories when categories are requied on the workspace.`,
-            },
-            cannotDeleteLastEnabledCategory: {
-                title: 'Cannot delete last enabled category',
-                description: `You can't delete last enabled category when categories are required on the workspace.`,
+            cannotDeleteOrDisableAllCategories: {
+                title: 'Cannot delete or disable all categories',
+                description: `At least one category must remain enabled because your workspace requires categories.`,
             },
         },
         moreFeatures: {
@@ -4217,17 +4213,13 @@ const translations = {
             importTags: 'Import tags',
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
-            cannotDisableAllTags: {
-                title: 'Cannot disable all tags',
-                description: `You can't disable all tags when tags are requied on the workspace.`,
-            },
-            cannotDeleteLastEnabledTag: {
-                title: 'Cannot delete last enabled tag',
-                description: `You can't delete last enabled tag when tags are required on the workspace.`,
+            cannotDeleteOrDisableAllTags: {
+                title: 'Cannot delete or disable all tags',
+                description: `At least one tag must remain enabled because your workspace requires tags.`,
             },
             cannotMakeAllTagsOptional: {
                 title: 'Cannot make all tags optional',
-                description: `You can't make all tags optional when tags are required on the workspace.`,
+                description: `At least one tag must remain required because your workspace settings require tags.`,
             },
         },
         taxes: {

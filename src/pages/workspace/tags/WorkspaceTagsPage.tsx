@@ -79,9 +79,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
-    const [isCannotDisableLastTagModalVisible, setIsCannotDisableLastTagModalVisible] = useState(false);
+    const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const [isCannotMakeLastTagOptionalModalVisible, setIsCannotMakeLastTagOptionalModalVisible] = useState(false);
-    const [isCannotDeleteLastEnabledTagModalVisible, setIsCannotDeleteLastEnabledTagModalVisible] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
@@ -194,7 +193,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 };
             });
         }
-      
+
         return Object.values(policyTagLists?.at(0)?.tags ?? {}).map((tag) => ({
             value: tag.name,
             text: getCleanedTagName(tag.name),
@@ -211,7 +210,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     accessibilityLabel={translate('workspace.tags.enableTag')}
                     onToggle={(newValue: boolean) => {
                         if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
-                            setIsCannotDisableLastTagModalVisible(true);
+                            setIsCannotDeleteOrDisableLastTagModalVisible(true);
                             return;
                         }
                         updateWorkspaceTagEnabled(newValue, tag.name);
@@ -332,7 +331,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
-                        setIsCannotDeleteLastEnabledTagModalVisible(true);
+                        setIsCannotDeleteOrDisableLastTagModalVisible(true);
                         return;
                     }
 
@@ -368,7 +367,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
-                        setIsCannotDisableLastTagModalVisible(true);
+                        setIsCannotDeleteOrDisableLastTagModalVisible(true);
                         return;
                     }
                     setSelectedTags({});
@@ -560,7 +559,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             </ScrollView>
                         )}
                     </ScrollView>
-
                 </ScreenWrapper>
             </AccessOrNotFoundWrapper>
             <ConfirmModal
@@ -592,33 +590,24 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 cancelText={translate('common.cancel')}
                 danger
             />
-                        <ConfirmModal
-                    isVisible={isCannotDisableLastTagModalVisible}
-                    onConfirm={() => setIsCannotDisableLastTagModalVisible(false)}
-                    onCancel={() => setIsCannotDisableLastTagModalVisible(false)}
-                    title={translate('workspace.tags.cannotDisableAllTags.title')}
-                    prompt={translate('workspace.tags.cannotDisableAllTags.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
-                <ConfirmModal
-                    isVisible={isCannotDeleteLastEnabledTagModalVisible}
-                    onConfirm={() => setIsCannotDeleteLastEnabledTagModalVisible(false)}
-                    onCancel={() => setIsCannotDeleteLastEnabledTagModalVisible(false)}
-                    title={translate('workspace.tags.cannotDeleteLastEnabledTag.title')}
-                    prompt={translate('workspace.tags.cannotDeleteLastEnabledTag.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
-                <ConfirmModal
-                    isVisible={isCannotMakeLastTagOptionalModalVisible}
-                    onConfirm={() => setIsCannotMakeLastTagOptionalModalVisible(false)}
-                    onCancel={() => setIsCannotMakeLastTagOptionalModalVisible(false)}
-                    title={translate('workspace.tags.cannotMakeAllTagsOptional.title')}
-                    prompt={translate('workspace.tags.cannotMakeAllTagsOptional.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
+            <ConfirmModal
+                isVisible={isCannotDeleteOrDisableLastTagModalVisible}
+                onConfirm={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
+                onCancel={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
+                title={translate('workspace.tags.cannotDeleteOrDisableAllTags.title')}
+                prompt={translate('workspace.tags.cannotDeleteOrDisableAllTags.description')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+            />
+            <ConfirmModal
+                isVisible={isCannotMakeLastTagOptionalModalVisible}
+                onConfirm={() => setIsCannotMakeLastTagOptionalModalVisible(false)}
+                onCancel={() => setIsCannotMakeLastTagOptionalModalVisible(false)}
+                title={translate('workspace.tags.cannotMakeAllTagsOptional.title')}
+                prompt={translate('workspace.tags.cannotMakeAllTagsOptional.description')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+            />
         </>
     );
 }

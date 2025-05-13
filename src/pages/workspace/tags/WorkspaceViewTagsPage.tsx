@@ -75,7 +75,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = !!backTo;
     const [isCannotMakeAllTagsOptionalModalVisible, setIsCannotMakeAllTagsOptionalModalVisible] = useState(false);
-    const [isCannotDisableLastTagModalVisible, setIsCannotDisableLastTagModalVisible] = useState(false);
+    const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -127,14 +127,14 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         isOn={tag.enabled}
                         disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                         accessibilityLabel={translate('workspace.tags.enableTag')}
-                         onToggle={(newValue: boolean) => {
-                                if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])) {
-                                    setIsCannotDisableLastTagModalVisible(true);
-                                    return;
-                                }
-                                updateWorkspaceTagEnabled(newValue, tag.name);
-                            }}
-                            showLockIcon={isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])}
+                        onToggle={(newValue: boolean) => {
+                            if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])) {
+                                setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                                return;
+                            }
+                            updateWorkspaceTagEnabled(newValue, tag.name);
+                        }}
+                        showLockIcon={isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])}
                     />
                 ),
             })),
@@ -258,7 +258,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, selectedTagsObject)) {
-                        setIsCannotDisableLastTagModalVisible(true);
+                        setIsCannotDeleteOrDisableLastTagModalVisible(true);
                         return;
                     }
                     setSelectedTags({});
@@ -415,11 +415,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     />
                 )}
                 <ConfirmModal
-                    isVisible={isCannotDisableLastTagModalVisible}
-                    onConfirm={() => setIsCannotDisableLastTagModalVisible(false)}
-                    onCancel={() => setIsCannotDisableLastTagModalVisible(false)}
-                    title={translate('workspace.tags.cannotDisableAllTags.title')}
-                    prompt={translate('workspace.tags.cannotDisableAllTags.description')}
+                    isVisible={isCannotDeleteOrDisableLastTagModalVisible}
+                    onConfirm={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
+                    onCancel={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
+                    title={translate('workspace.tags.cannotDeleteOrDisableAllTags.title')}
+                    prompt={translate('workspace.tags.cannotDeleteOrDisableAllTags.description')}
                     confirmText={translate('common.buttonConfirm')}
                     shouldShowCancelButton={false}
                 />
