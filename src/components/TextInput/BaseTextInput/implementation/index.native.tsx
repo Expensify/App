@@ -260,7 +260,7 @@ function BaseTextInput(
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
-        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth),
+        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + styles.textInputContainer.padding * 2),
         autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
