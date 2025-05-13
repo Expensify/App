@@ -2982,7 +2982,7 @@ function getSendInvoiceInformation(
     }
     const optimisticTransaction = buildOptimisticTransaction({
         transactionParams: {
-            amount,
+            amount: amount * -1,
             currency,
             reportID: optimisticInvoiceReport.reportID,
             comment: trimmedComment,

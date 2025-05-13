@@ -5513,7 +5513,7 @@ function buildOptimisticInvoiceReport(
         reportName: `${receiverName} owes ${formattedTotal}`,
         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        total,
+        total: total * -1,
         participants: {
             [receiverAccountID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
