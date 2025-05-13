@@ -200,10 +200,11 @@ function IOURequestStepAmount({
             if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                        playSound(SOUNDS.DONE);
                         sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                         return;
                     }
-
+                    playSound(SOUNDS.DONE);
                     sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
                     return;
                 }
