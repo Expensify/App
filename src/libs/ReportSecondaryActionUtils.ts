@@ -349,6 +349,25 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     return isReportOpen || isProcessingReport;
 }
 
+function isReopenAction(report: Report, policy?: Policy): boolean {
+    const isExpenseReport = isExpenseReportUtils(report);
+    if (!isExpenseReport) {
+        return false;
+    }
+
+    const isClosedReport = isClosedReportUtils(report);
+    if (!isClosedReport) {
+        return false;
+    }
+
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    if (!isAdmin) {
+        return false;
+    }
+
+    return true;
+}
+
 function getSecondaryReportActions(
     report: Report,
     reportTransactions: Transaction[],
@@ -356,6 +375,7 @@ function getSecondaryReportActions(
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
+    canUseRetractNewDot?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -385,6 +405,10 @@ function getSecondaryReportActions(
 
     if (isMarkAsExportedAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
+    }
+
+    if (canUseRetractNewDot && isReopenAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }
 
     if (isHoldAction(report, reportTransactions, reportActions)) {
