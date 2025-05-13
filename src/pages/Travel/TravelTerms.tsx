@@ -91,7 +91,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
                         <Text style={styles.headerAnonymousFooter}>{`${translate('travel.termsAndConditions.title')}`}</Text>
                         <Text style={styles.mt4}>
                             {`${translate('travel.termsAndConditions.subtitle')}`}
-                            <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.termsconditions')}.`}</TextLink>
+                            <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.termsAndConditions')}.`}</TextLink>
                         </Text>
                         <CheckboxWithLabel
                             style={styles.mt6}

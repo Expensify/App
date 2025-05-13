@@ -416,6 +416,8 @@ type AddEmployeeParams = {email: string; role: string};
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
 
+type UpdatedCustomFieldParams = {email: string; previousValue: string; newValue: string};
+
 type LeftWorkspaceParams = {nameOrEmail: string};
 
 type RemoveMemberParams = {email: string; role: string};
@@ -591,7 +593,7 @@ type InvalidValueParams = {
     expectedValues: string;
 };
 
-type ImportTagsSuccessfullDescriptionParams = {
+type ImportTagsSuccessfulDescriptionParams = {
     tags: number;
 };
 
@@ -599,12 +601,12 @@ type ImportedTagsMessageParams = {
     columnCounts: number;
 };
 
-type ImportMembersSuccessfullDescriptionParams = {
+type ImportMembersSuccessfulDescriptionParams = {
     added: number;
     updated: number;
 };
 
-type ImportPerDiemRatesSuccessfullDescriptionParams = {
+type ImportPerDiemRatesSuccessfulDescriptionParams = {
     rates: number;
 };
 
@@ -708,9 +710,9 @@ export type {
     SplitExpenseSubtitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     AuthenticationErrorParams,
-    ImportMembersSuccessfullDescriptionParams,
+    ImportMembersSuccessfulDescriptionParams,
     ImportedTagsMessageParams,
-    ImportTagsSuccessfullDescriptionParams,
+    ImportTagsSuccessfulDescriptionParams,
     MissingPropertyParams,
     InvalidPropertyParams,
     InvalidValueParams,
@@ -905,6 +907,7 @@ export type {
     IntegrationSyncFailedParams,
     AddEmployeeParams,
     UpdateRoleParams,
+    UpdatedCustomFieldParams,
     LeftWorkspaceParams,
     RemoveMemberParams,
     DateParams,
@@ -919,7 +922,7 @@ export type {
     ImportedTypesParams,
     WorkspaceYouMayJoin,
     WorkspaceMemberList,
-    ImportPerDiemRatesSuccessfullDescriptionParams,
+    ImportPerDiemRatesSuccessfulDescriptionParams,
     CurrencyCodeParams,
     WorkspaceLockedPlanTypeParams,
     CompanyNameParams,
