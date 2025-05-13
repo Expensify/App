@@ -87,7 +87,7 @@ function SplitListItem<TItem extends ListItem>({
                     {isBottomVisible && (
                         <View style={[styles.splitItemBottomContent]}>
                             {!!splitItem.category && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pr1, styles.flexShrink1]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pr1, styles.flexShrink1, !!splitItem.tags?.at(0) && styles.mw50]}>
                                     <Icon
                                         src={Folder}
                                         height={variables.iconSizeExtraSmall}
@@ -103,7 +103,7 @@ function SplitListItem<TItem extends ListItem>({
                                 </View>
                             )}
                             {!!splitItem.tags?.at(0) && (
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pl1]}>
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pl1, !!splitItem.category && styles.mw50]}>
                                     <Icon
                                         src={Tag}
                                         height={variables.iconSizeExtraSmall}
