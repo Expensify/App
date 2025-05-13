@@ -65,6 +65,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         onSwipeDown,
         pagerRef,
         isScrollEnabled,
+        externalGestureHandler,
     } = useMemo(() => {
         if (attachmentCarouselPagerContext === null) {
             return {
@@ -78,6 +79,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                 onScaleChanged: () => {},
                 onSwipeDown: () => {},
                 pagerRef: undefined,
+                externalGestureHandler: undefined,
             };
         }
 
@@ -224,6 +226,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                                 onTap={onTap}
                                 onScaleChanged={scaleChange}
                                 onSwipeDown={onSwipeDown}
+                                externalGestureHandler={externalGestureHandler}
                             >
                                 <Image
                                     source={{uri}}

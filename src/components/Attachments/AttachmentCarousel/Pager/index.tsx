@@ -81,6 +81,8 @@ function AttachmentCarouselPager(
 
     const extractItemKey = useCallback((item: Attachment, index: number) => `attachmentID-${item.attachmentID}-${index}`, []);
 
+    const nativeGestureHandler = Gesture.Native();
+
     const contextValue = useMemo(
         () => ({
             pagerItems,
@@ -91,8 +93,9 @@ function AttachmentCarouselPager(
             onTap: handleTap,
             onSwipeDown: onClose,
             onScaleChanged: handleScaleChange,
+            externalGestureHandler: nativeGestureHandler,
         }),
-        [pagerItems, activePageIndex, isPagerScrolling, isScrollEnabled, handleTap, onClose, handleScaleChange],
+        [pagerItems, activePageIndex, isPagerScrolling, isScrollEnabled, handleTap, onClose, handleScaleChange, nativeGestureHandler],
     );
 
     const animatedProps = useAnimatedProps(() => ({
@@ -126,11 +129,9 @@ function AttachmentCarouselPager(
         </View>
     ));
 
-    const gestureHandler = Gesture.Native();
-
     return (
         <AttachmentCarouselPagerContext.Provider value={contextValue}>
-            <GestureDetector gesture={gestureHandler}>
+            <GestureDetector gesture={nativeGestureHandler}>
                 <AnimatedPagerView
                     pageMargin={40}
                     offscreenPageLimit={1}

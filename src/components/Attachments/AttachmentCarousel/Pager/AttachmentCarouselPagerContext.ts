@@ -44,6 +44,9 @@ type AttachmentCarouselPagerContextValue = {
 
     /** Function to call after a swipe down event */
     onSwipeDown: () => void;
+
+    /** In case we need a gesture that should work simultaneously with panning in MultiGestureCanvas */
+    externalGestureHandler?: GestureType;
 };
 
 const AttachmentCarouselPagerContext = createContext<AttachmentCarouselPagerContextValue | null>(null);
