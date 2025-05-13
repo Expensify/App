@@ -1036,7 +1036,7 @@ function downloadTagsCSV(policyID: string, onDownloadFailed: () => void) {
 }
 
 function downloadMultiLevelIndependentTagsCSV(policyID: string, onDownloadFailed: () => void) {
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS, {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV, {
         policyID,
     });
     const fileName = 'MultiLevelTags.csv';
@@ -1046,7 +1046,7 @@ function downloadMultiLevelIndependentTagsCSV(policyID: string, onDownloadFailed
         formData.append(key, String(value));
     });
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function getPolicyTagsData(policyID: string | undefined) {
