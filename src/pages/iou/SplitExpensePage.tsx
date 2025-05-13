@@ -24,6 +24,7 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
+import {isCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -50,6 +51,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + Math.abs(Number(item.amount)), 0), [draftTransaction]);
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
+    const isPerDiem = isPerDiemRequest(transaction);
+    const isCard = isCardTransaction(transaction);
+
     useEffect(() => {
         setErrorMessage(null);
     }, [sumOfSplitExpenses]);
@@ -64,7 +68,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
             return;
         }
-        if (sumOfSplitExpenses < Math.abs(Number(transactionDetails?.amount))) {
+        if (sumOfSplitExpenses < Math.abs(Number(transactionDetails?.amount)) && (isPerDiem || isCard)) {
             const difference = Math.abs(Number(transactionDetails?.amount)) - sumOfSplitExpenses;
             setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
             return;
@@ -76,7 +80,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         saveSplitTransactions(draftTransaction, currentSearchHash);
-    }, [currentSearchHash, draftTransaction, sumOfSplitExpenses, transactionDetails?.amount, transactionDetails?.currency, translate]);
+    }, [currentSearchHash, draftTransaction, isCard, isPerDiem, sumOfSplitExpenses, transactionDetails?.amount, transactionDetails?.currency, translate]);
 
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {
