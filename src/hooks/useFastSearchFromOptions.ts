@@ -84,7 +84,7 @@ function useFastSearchFromOptions(
     }, [options]);
 
     const findInSearchTree = useCallback(
-        (searchInput: string) => {
+        (searchInput: string): AllOrSelectiveOptions => {
             if (!fastSearch) {
                 return emptyResult;
             }
