@@ -481,7 +481,18 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [reportMetadata.isOptimisticReport, route.params, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail, report, reportID, transactionThreadReport, transactionThreadReportID, isOffline]);
+    }, [
+        reportMetadata.isOptimisticReport,
+        route.params,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
+        currentUserEmail,
+        report,
+        reportID,
+        transactionThreadReport,
+        transactionThreadReportID,
+        isOffline,
+    ]);
 
     useEffect(() => {
         if (!reportID || !isFocused) {
