@@ -194,6 +194,12 @@ type ACHDataReimbursementAccount = Omit<ACHData, 'subStep' | 'currentStep'> & {
 
     /** Optional subStep we would like the user to start back on */
     subStep?: ReimbursementAccountSubStep;
+
+    /** The reportActionID of the ACH request message in the Concierge chat.
+     *  That message asks the user to provide additional information to validate the bank account.
+     *  The ID is used to link to this exact message when the user clicks the link in the bank account flow to finish in chat
+     * */
+    ACHRequestReportActionID: string;
 };
 
 /** Model of reimbursement account data */
