@@ -146,6 +146,7 @@ import {
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
+import playSound, {SOUNDS} from '@libs/Sound';
 import {addTrailingForwardSlash} from '@libs/Url';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -796,12 +797,18 @@ function addActions(reportID: string, text = '', file?: FileObject) {
 }
 
 /** Add an attachment and optional comment. */
-function addAttachment(reportID: string, file: FileObject, text = '') {
+function addAttachment(reportID: string, file: FileObject, text = '', shouldPlaySound?: boolean) {
+    if (shouldPlaySound) {
+        playSound(SOUNDS.DONE);
+    }
     addActions(reportID, text, file);
 }
 
 /** Add a single comment to a report */
-function addComment(reportID: string, text: string) {
+function addComment(reportID: string, text: string, shouldPlaySound?: boolean) {
+    if (shouldPlaySound) {
+        playSound(SOUNDS.DONE);
+    }
     // If we are resolving a Concierge Category Options action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
     // This is because we need it to be associated with the transaction thread and not the expense report.
     if (isExpenseReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])) {

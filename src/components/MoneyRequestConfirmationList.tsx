@@ -166,9 +166,6 @@ type MoneyRequestConfirmationListProps = {
     /** The action to take */
     action?: IOUAction;
 
-    /** Should play sound on confirmation */
-    shouldPlaySound?: boolean;
-
     /** Whether the expense is confirmed or not */
     isConfirmed?: boolean;
 
@@ -219,7 +216,6 @@ function MoneyRequestConfirmationList({
     reportActionID,
     action = CONST.IOU.ACTION.CREATE,
     shouldDisplayReceipt = false,
-    shouldPlaySound = true,
     isConfirmed,
     isConfirming,
     onPDFLoadError,
@@ -888,9 +884,6 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                if (shouldPlaySound) {
-                    playSound(SOUNDS.DONE);
-                }
                 onConfirm?.(selectedParticipants);
             } else {
                 if (!paymentMethod) {
@@ -921,7 +914,6 @@ function MoneyRequestConfirmationList({
             isDistanceRequestWithPendingRoute,
             iouAmount,
             onConfirm,
-            shouldPlaySound,
             transactionID,
             reportID,
             policy,

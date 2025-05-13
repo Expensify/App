@@ -340,6 +340,8 @@ function createTaskAndNavigate(
         assigneeChatCreatedReportActionID: assigneeChatReportOnyxData?.optimisticChatCreatedReportAction?.reportActionID,
     };
 
+    playSound(SOUNDS.DONE);
+
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     if (!isCreatedUsingMarkdown) {

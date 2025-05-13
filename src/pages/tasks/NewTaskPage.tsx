@@ -21,7 +21,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips, isAllowedToComment} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -93,7 +92,6 @@ function NewTaskPage({route}: NewTaskPageProps) {
             return;
         }
 
-        playSound(SOUNDS.DONE);
         createTaskAndNavigate(parentReport?.reportID, task.title, task?.description ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport, parentReport?.policyID);
     };
 
