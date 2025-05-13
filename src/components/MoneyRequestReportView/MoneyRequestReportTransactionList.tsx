@@ -25,14 +25,17 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {generateReportID, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
@@ -72,6 +75,8 @@ type SortedTransactions = {
     sortOrder: SortOrder;
 };
 
+type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+
 const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key);
 
 const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColumnName) => {
@@ -84,7 +89,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
 
@@ -151,19 +155,27 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransaction.transactionID);
-            const reportIDToNavigate = iouAction?.childReportID;
-            if (!reportIDToNavigate) {
-                return;
-            }
+            const reportIDToNavigate = iouAction?.childReportID ?? generateReportID();
 
-            const backTo = Navigation.getActiveRoute();
+            const backTo = Navigation.getActiveRoute() as Route;
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigating between transactions
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs);
 
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
+            const routeParams = {
+                reportID: reportIDToNavigate,
+                backTo,
+            } as ReportScreenNavigationProps;
+
+            if (!iouAction?.childReportID) {
+                routeParams.moneyRequestReportActionID = iouAction?.reportActionID;
+                routeParams.transactionID = activeTransaction.transactionID;
+                routeParams.iouReportID = activeTransaction.reportID;
+            }
+
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
         },
         [reportActions, sortedTransactions],
     );
@@ -178,12 +190,12 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const listHorizontalPadding = styles.ph5;
     return !isEmpty(transactions) ? (
         <>
-            {!displayNarrowVersion && (
-                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, StyleUtils.getPaddingBottom(6), styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <View style={[styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
+            {!shouldUseNarrowLayout && (
+                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, StyleUtils.getPaddingBottom(6), styles.alignItemsCenter]}>
+                    <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
-                                if (selectedTransactionsID.length === transactions.length) {
+                                if (selectedTransactionsID.length !== 0) {
                                     setSelectedTransactionsID([]);
                                 } else {
                                     setSelectedTransactionsID(transactions.map((t) => t.transactionID));
@@ -193,20 +205,23 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
                             isChecked={selectedTransactionsID.length === transactions.length}
                         />
+                        {isMediumScreenWidth && <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>}
                     </View>
-                    <MoneyRequestReportTableHeader
-                        shouldShowSorting
-                        sortBy={sortBy}
-                        sortOrder={sortOrder}
-                        dateColumnSize={dateColumnSize}
-                        onSortPress={(selectedSortBy, selectedSortOrder) => {
-                            if (!isSortableColumnName(selectedSortBy)) {
-                                return;
-                            }
+                    {!isMediumScreenWidth && (
+                        <MoneyRequestReportTableHeader
+                            shouldShowSorting
+                            sortBy={sortBy}
+                            sortOrder={sortOrder}
+                            dateColumnSize={dateColumnSize}
+                            onSortPress={(selectedSortBy, selectedSortOrder) => {
+                                if (!isSortableColumnName(selectedSortBy)) {
+                                    return;
+                                }
 
-                            setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
-                        }}
-                    />
+                                setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
+                            }}
+                        />
+                    )}
                 </View>
             )}
             <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
@@ -236,7 +251,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             style={[pressableStyle]}
                             onMouseLeave={handleMouseLeave}
                             onLongPress={() => {
-                                if (!displayNarrowVersion) {
+                                if (!shouldUseNarrowLayout) {
                                     return;
                                 }
                                 if (selectionMode?.isEnabled) {
@@ -252,7 +267,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 isSelected={isTransactionSelected(transaction.transactionID)}
                                 dateColumnSize={dateColumnSize}
                                 shouldShowTooltip
-                                shouldUseNarrowLayout={displayNarrowVersion}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
+                                shouldShowCheckbox={!!selectionMode?.isEnabled || isMediumScreenWidth}
                                 shouldShowChatBubbleComponent
                                 onCheckboxPress={toggleTransaction}
                             />

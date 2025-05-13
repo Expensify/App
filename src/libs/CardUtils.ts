@@ -19,6 +19,7 @@ import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import StringUtils from './StringUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -255,19 +256,33 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
 }
 
-function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, personalDetails: OnyxEntry<PersonalDetailsList>, policyMembersAccountIDs: number[]): Card[] {
+function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, policyMembersAccountIDs: number[]): Card[] {
     const {cardList, ...cards} = cardsList ?? {};
-    return Object.values(cards)
-        .filter((card: Card) => card.accountID && policyMembersAccountIDs.includes(card.accountID))
-        .sort((cardA: Card, cardB: Card) => {
-            const userA = cardA.accountID ? personalDetails?.[cardA.accountID] ?? {} : {};
-            const userB = cardB.accountID ? personalDetails?.[cardB.accountID] ?? {} : {};
+    return Object.values(cards).filter((card: Card) => card.accountID && policyMembersAccountIDs.includes(card.accountID));
+}
 
-            const aName = getDisplayNameOrDefault(userA);
-            const bName = getDisplayNameOrDefault(userB);
+function sortCardsByCardholderName(cards: Card[], personalDetails: OnyxEntry<PersonalDetailsList>): Card[] {
+    return cards.sort((cardA: Card, cardB: Card) => {
+        const userA = cardA.accountID ? personalDetails?.[cardA.accountID] ?? {} : {};
+        const userB = cardB.accountID ? personalDetails?.[cardB.accountID] ?? {} : {};
+        const aName = getDisplayNameOrDefault(userA);
+        const bName = getDisplayNameOrDefault(userB);
+        return localeCompare(aName, bName);
+    });
+}
 
-            return localeCompare(aName, bName);
-        });
+function filterCardsByPersonalDetails(card: Card, searchQuery: string, personalDetails?: PersonalDetailsList) {
+    const normalizedSearchQuery = StringUtils.normalize(searchQuery.toLowerCase());
+    const cardTitle = StringUtils.normalize(card.nameValuePairs?.cardTitle?.toLowerCase() ?? '');
+    const lastFourPAN = StringUtils.normalize(card?.lastFourPAN?.toLowerCase() ?? '');
+    const accountLogin = StringUtils.normalize(personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login?.toLowerCase() ?? '');
+    const accountName = StringUtils.normalize(personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName?.toLowerCase() ?? '');
+    return (
+        cardTitle.includes(normalizedSearchQuery) ||
+        lastFourPAN.includes(normalizedSearchQuery) ||
+        accountLogin.includes(normalizedSearchQuery) ||
+        accountName.includes(normalizedSearchQuery)
+    );
 }
 
 function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, illustrations: IllustrationsType): IconAsset {
@@ -636,5 +651,7 @@ export {
     isExpensifyCardFullySetUp,
     filterInactiveCards,
     getFundIdFromSettingsKey,
+    getCardsByCardholderName,
+    filterCardsByPersonalDetails,
     getCompanyCardDescription,
 };

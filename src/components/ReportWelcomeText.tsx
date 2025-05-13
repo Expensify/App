@@ -79,12 +79,10 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         .join(', ');
     const reportName = getReportName(report);
     const shouldShowUsePlusButtonText =
-        (moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
-            moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
-            moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
-            moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)) &&
-        !isPolicyExpenseChat &&
-        !isAdminRoom;
+        moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
+        moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
+        moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
+        moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
     const navigateToReport = () => {
         if (!report?.reportID) {
@@ -191,6 +189,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 {isSelfDM && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>
+                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
                     </Text>
                 )}
                 {isSystemChat && (
@@ -222,10 +221,10 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                 {index < displayNamesWithTooltips.length - 2 && <Text>, </Text>}
                             </Text>
                         ))}
+                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
+                        {isConciergeChatReport(report) && <Text>{translate('reportActionsView.askConcierge')}</Text>}
                     </Text>
                 )}
-                {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
-                {isConciergeChatReport(report) && <Text>{translate('reportActionsView.askConcierge')}</Text>}
             </View>
         </>
     );

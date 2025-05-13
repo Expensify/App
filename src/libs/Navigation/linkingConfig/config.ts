@@ -101,6 +101,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
+        [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
+                    path: ROUTES.TEST_TOOLS_MODAL,
+                    exact: true,
+                },
+            },
+        },
+
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
             // Don't set the initialRouteName, because when the user continues from the last visited onboarding page,
             // the onboarding purpose page will be briefly visible.
@@ -1502,6 +1511,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: ROUTES.MISSING_PERSONAL_DETAILS,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: {
+                    screens: {
+                        [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: ROUTES.ADD_UNREPORTED_EXPENSE.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.DEBUG]: {
                     screens: {
                         [SCREENS.DEBUG.REPORT]: {
@@ -1587,6 +1601,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                     exact: true,
                                 },
                             },
+                        },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: {
+                    screens: {
+                        [SCREENS.SCHEDULE_CALL.BOOK]: {
+                            path: ROUTES.SCHEDULE_CALL_BOOK.route,
+                        },
+                        [SCREENS.SCHEDULE_CALL.CONFIRMATION]: {
+                            path: ROUTES.SCHEDULE_CALL_CONFIRMATON.route,
                         },
                     },
                 },

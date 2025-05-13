@@ -350,6 +350,9 @@ type MenuItemBaseProps = {
     /** Callback to fire when the education tooltip is pressed */
     onEducationTooltipPress?: () => void;
 
+    /** Whether the tooltip should hide on scroll */
+    shouldHideOnScroll?: boolean;
+
     shouldShowLoadingSpinnerIcon?: boolean;
 
     /** Should selected item be marked with checkmark */
@@ -474,6 +477,7 @@ function MenuItem(
         onBlur,
         avatarID,
         shouldRenderTooltip = false,
+        shouldHideOnScroll = false,
         tooltipAnchorAlignment,
         tooltipWrapperStyle = {},
         tooltipShiftHorizontal = 0,
@@ -639,6 +643,7 @@ function MenuItem(
                 shiftVertical={tooltipShiftVertical}
                 shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                 onTooltipPress={onEducationTooltipPress}
+                shouldHideOnScroll={shouldHideOnScroll}
             >
                 <View>
                     <Hoverable>

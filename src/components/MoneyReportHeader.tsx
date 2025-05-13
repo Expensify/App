@@ -125,7 +125,8 @@ type MoneyReportHeaderProps = {
 function MoneyReportHeader({policy, report: moneyRequestReport, transactionThreadReportID, reportActions, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
     const route = useRoute();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
@@ -509,8 +510,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy, reportActions);
-    }, [moneyRequestReport, policy, transactions, violations, reportActions]);
+        return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions);
+    }, [moneyRequestReport, policy, transactions, violations, reportNameValuePairs, reportActions]);
 
     const secondaryActionsImplemenation: Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
@@ -597,6 +598,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 }
                 exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
             },
+            additionalIconStyles: styles.integrationIcon,
+            displayInDefaultIconColor: true,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED]: {
             text: translate('workspace.common.markAsExported'),
@@ -711,7 +714,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
             >
-                {!shouldUseNarrowLayout && (
+                {!shouldDisplayNarrowVersion && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
                         {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
@@ -724,7 +727,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 isSplitButton={false}
                             />
                         )}
-                        {shouldShowSelectedTransactionsButton && !shouldUseNarrowLayout && (
+                        {shouldShowSelectedTransactionsButton && (
                             <View>
                                 <ButtonWithDropdownMenu
                                     onPress={() => null}
@@ -738,10 +741,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     </View>
                 )}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && (
+            {shouldDisplayNarrowVersion && !shouldShowSelectedTransactionsButton && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    {!!primaryAction && !shouldShowSelectedTransactionsButton && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
-                    {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
+                    {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
+                    {!!applicableSecondaryActions.length && (
                         <ButtonWithDropdownMenu
                             success={false}
                             onPress={() => {}}
@@ -756,8 +759,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             )}
             {isMoreContentShown && (
                 <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>
-                    <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
-                        {shouldShowSelectedTransactionsButton && shouldUseNarrowLayout && (
+                    {shouldShowSelectedTransactionsButton && shouldDisplayNarrowVersion && (
+                        <View style={[styles.dFlex, styles.w100, styles.pb3]}>
                             <ButtonWithDropdownMenu
                                 onPress={() => null}
                                 options={selectedTransactionsOptions}
@@ -766,8 +769,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 shouldAlwaysShowDropdownMenu
                                 wrapperStyle={styles.w100}
                             />
-                        )}
-                    </View>
+                        </View>
+                    )}
                     {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
                     {!!statusBarProps && (
                         <MoneyRequestHeaderStatusBar
