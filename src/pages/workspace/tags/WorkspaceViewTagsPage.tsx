@@ -138,7 +138,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     />
                 ),
             })),
-        [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled],
+        [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, currentPolicyTag],
     );
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
