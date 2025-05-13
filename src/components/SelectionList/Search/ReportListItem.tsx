@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ReportListItemHeader from './ReportListItemHeader';
+import TransactionListItemRow from './TransactionListItemRow';
 
 function ReportListItem<TItem extends ListItem>({
     item,
@@ -113,32 +114,22 @@ function ReportListItem<TItem extends ListItem>({
                 ) : (
                     reportItem.transactions.map((transaction) => (
                         <View>
-                            {/* <TransactionListItemRow */}
-                            {/*     key={transaction.transactionID} */}
-                            {/*     parentAction={reportItem.action} */}
-                            {/*     item={transaction} */}
-                            {/*     showTooltip={showTooltip} */}
-                            {/*     onButtonPress={() => { */}
-                            {/*         openReportInRHP(transaction); */}
-                            {/*     }} */}
-                            {/*     onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)} */}
-                            {/*     showItemHeaderOnNarrowLayout={false} */}
-                            {/*     containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]} */}
-                            {/*     isChildListItem */}
-                            {/*     isDisabled={!!isDisabled} */}
-                            {/*     canSelectMultiple={!!canSelectMultiple} */}
-                            {/*     isButtonSelected={transaction.isSelected} */}
-                            {/*     shouldShowTransactionCheckbox */}
-                            {/* /> */}
-                            <TransactionItemRow
-                                transactionItem={transaction}
-                                shouldUseNarrowLayout={false}
-                                isSelected={!!transaction.isSelected}
-                                shouldShowTooltip={false}
-                                dateColumnSize={dateColumnSize}
+                            <TransactionListItemRow
+                                key={transaction.transactionID}
+                                parentAction={reportItem.action}
+                                item={transaction}
+                                showTooltip={showTooltip}
+                                onButtonPress={() => {
+                                    openReportInRHP(transaction);
+                                }}
                                 onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                shouldShowCheckbox={!!canSelectMultiple}
-                                shouldShowActionCell
+                                showItemHeaderOnNarrowLayout={false}
+                                containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
+                                isChildListItem
+                                isDisabled={!!isDisabled}
+                                canSelectMultiple={!!canSelectMultiple}
+                                isButtonSelected={transaction.isSelected}
+                                shouldShowTransactionCheckbox
                             />
                         </View>
                     ))

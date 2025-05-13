@@ -59,9 +59,9 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
 
-    handleOnButtonPress: () => void;
+    handleOnButtonPress?: () => void;
 
-    showAction: boolean;
+    showAction?: boolean;
 };
 
 type ReportCellProps = {
@@ -133,7 +133,7 @@ function FirstHeaderRow<TItem extends ListItem>({
                 />
             </View>
             {showAction && (
-                <View style={[styles.pl3, {width: 84}]}>
+                <View style={[styles.pl4, styles.ml2, {width: 84}]}>
                     <ActionCell
                         action={reportItem.action}
                         goToItem={handleOnButtonPress}
@@ -209,7 +209,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
                 showAction
-                onButtonPress={handleOnButtonPress}
+                handleOnButtonPress={handleOnButtonPress}
             />
             <View style={[styles.mr3, styles.ml3, styles.pv2]}>
                 <View style={[styles.borderBottom]} />
