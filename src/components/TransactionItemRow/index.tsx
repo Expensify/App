@@ -8,11 +8,10 @@ import DateCell from '@components/SelectionList/Search/DateCell';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useHover from '@hooks/useHover';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCreated as getTransactionCreated} from '@libs/TransactionUtils';
+import {getMerchant, getCreated as getTransactionCreated, isPartialMerchant} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CategoryCell from './DataCells/CategoryCell';
@@ -30,8 +29,8 @@ function TransactionItemRow({
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
-    shouldShowChatBubbleComponent = false,
     onCheckboxPress,
+    shouldShowCheckbox = false,
     scrollToNewTransaction,
 }: {
     transactionItem: TransactionWithOptionalHighlight;
@@ -39,8 +38,8 @@ function TransactionItemRow({
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
-    shouldShowChatBubbleComponent?: boolean;
     onCheckboxPress: (transactionID: string) => void;
+    shouldShowCheckbox: boolean;
     scrollToNewTransaction?: ((offset: number) => void) | undefined;
 }) {
     const styles = useThemeStyles();
@@ -60,7 +59,6 @@ function TransactionItemRow({
         backgroundColor: theme.highlightBG,
     });
 
-    const {selectionMode} = useMobileSelectionMode();
     const {hovered, bind: bindHover} = useHover();
     const bgActiveStyles = useMemo(() => {
         if (isSelected) {
@@ -71,6 +69,9 @@ function TransactionItemRow({
             return styles.hoveredComponentBG;
         }
     }, [hovered, isSelected, styles.activeComponentBG, styles.hoveredComponentBG]);
+
+    const merchantName = getMerchant(transactionItem);
+    const isMerchantEmpty = isPartialMerchant(merchantName);
 
     useEffect(() => {
         if (!transactionItem.shouldBeHighlighted || !scrollToNewTransaction) {
@@ -90,10 +91,10 @@ function TransactionItemRow({
         >
             {shouldUseNarrowLayout ? (
                 <Animated.View style={[animatedHighlightStyle]}>
-                    <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3, bgActiveStyles]}>
-                        <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
-                            {!!selectionMode?.isEnabled && (
-                                <View style={[styles.mr2, styles.justifyContentCenter]}>
+                    <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, bgActiveStyles]}>
+                        <View style={[styles.flexRow]}>
+                            {shouldShowCheckbox && (
+                                <View style={[styles.mr3, styles.justifyContentCenter]}>
                                     <Checkbox
                                         onPress={() => {
                                             onCheckboxPress(transactionItem.transactionID);
@@ -122,25 +123,36 @@ function TransactionItemRow({
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
+                                    {isMerchantEmpty && (
+                                        <View style={[styles.mlAuto]}>
+                                            <TotalCell
+                                                transactionItem={transactionItem}
+                                                shouldShowTooltip={shouldShowTooltip}
+                                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                            />
+                                        </View>
+                                    )}
                                 </View>
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                                    <MerchantCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    />
-                                    <TotalCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    />
-                                </View>
+                                {!isMerchantEmpty && (
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                        <MerchantCell
+                                            transactionItem={transactionItem}
+                                            shouldShowTooltip={shouldShowTooltip}
+                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                        />
+                                        <TotalCell
+                                            transactionItem={transactionItem}
+                                            shouldShowTooltip={shouldShowTooltip}
+                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                        />
+                                    </View>
+                                )}
                             </View>
                         </View>
-                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.mb3]}>
-                            <View style={[styles.flexColumn, styles.gap2]}>
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                            <View style={[styles.flexColumn]}>
                                 {hasCategoryOrTag && (
-                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt3]}>
                                         <CategoryCell
                                             transactionItem={transactionItem}
                                             shouldShowTooltip={shouldShowTooltip}
@@ -153,9 +165,15 @@ function TransactionItemRow({
                                         />
                                     </View>
                                 )}
-                                <TransactionItemRowRBR transaction={transactionItem} />
+                                <TransactionItemRowRBR
+                                    transaction={transactionItem}
+                                    containerStyles={[styles.mt3]}
+                                />
                             </View>
-                            {shouldShowChatBubbleComponent && <ChatBubbleCell transaction={transactionItem} />}
+                            <ChatBubbleCell
+                                transaction={transactionItem}
+                                containerStyles={[styles.mt3]}
+                            />
                         </View>
                     </View>
                 </Animated.View>
@@ -214,7 +232,7 @@ function TransactionItemRow({
                                 />
                             </View>
                             <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>
-                                {shouldShowChatBubbleComponent && <ChatBubbleCell transaction={transactionItem} />}
+                                <ChatBubbleCell transaction={transactionItem} />
                             </View>
                             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
                                 <TotalCell

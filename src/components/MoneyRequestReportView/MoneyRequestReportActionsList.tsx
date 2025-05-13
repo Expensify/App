@@ -454,7 +454,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
 
     return (
         <View
-            style={[styles.flex1, styles.pv4]}
+            style={[styles.flex1]}
             ref={wrapperViewRef}
         >
             {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
@@ -467,13 +467,13 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                         shouldAlwaysShowDropdownMenu
                         wrapperStyle={[styles.w100, styles.ph5]}
                     />
-                    <View style={[styles.searchListHeaderContainerStyle, styles.pt6, styles.ph8, styles.pb3]}>
+                    <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8]}>
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={selectedTransactionsID.length === transactions.length}
                             isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
                             onPress={() => {
-                                if (selectedTransactionsID.length === transactions.length) {
+                                if (selectedTransactionsID.length !== 0) {
                                     setSelectedTransactionsID([]);
                                 } else {
                                     setSelectedTransactionsID(transactions.map((t) => t.transactionID));
@@ -510,7 +510,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                     />
                 </>
             )}
-            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, styles.pb4]}>
+            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, styles.pv4]}>
                 <FloatingMessageCounter
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
