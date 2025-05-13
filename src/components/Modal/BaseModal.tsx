@@ -29,11 +29,10 @@ import type BaseModalProps from './types';
 
 type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
-    shouldUseNewModal: boolean;
 };
 
-function ModalComponent({type, shouldUseNewModal, ...props}: ModalComponentProps) {
-    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && shouldUseNewModal) {
+function ModalComponent({type, ...props}: ModalComponentProps) {
+    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED) {
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <BottomDockedModal {...(props as ModalProps)} />;
     }
@@ -68,7 +67,6 @@ function BaseModal(
         avoidKeyboard = false,
         children,
         shouldUseCustomBackdrop = false,
-        shouldUseNewModal = false,
         onBackdropPress,
         modalId,
         shouldEnableNewFocusManagement = false,
@@ -297,7 +295,6 @@ function BaseModal(
                     avoidKeyboard={avoidKeyboard}
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                     type={type}
-                    shouldUseNewModal={shouldUseNewModal}
                 >
                     <ModalContent
                         onModalWillShow={saveFocusState}
