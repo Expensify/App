@@ -6232,7 +6232,7 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGbr: {
+        conciergeLHNGBR: {
             part1: 'Get started',
             part2: ' here!',
         },
@@ -6256,7 +6256,7 @@ const translations = {
             part3: '\nand more.',
             part4: ' Try it out!',
         },
-        gbrRbrChat: {
+        GBRRBRChat: {
             part1: 'You’ll see 🟢 on ',
             part2: 'actions to take',
             part3: ',\nand 🔴 on ',
