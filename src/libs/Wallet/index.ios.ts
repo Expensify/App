@@ -1,5 +1,5 @@
 import {addCardToAppleWallet, checkWalletAvailability, getCardStatusByIdentifier, getCardStatusBySuffix} from '@expensify/react-native-wallet';
-import type {IOSCardData} from '@expensify/react-native-wallet';
+import type {IOSCardData, TokenizationStatus} from '@expensify/react-native-wallet';
 import {issuerEncryptPayloadCallback} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
@@ -9,7 +9,7 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
 
-function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescription: string): Promise<void> {
+function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescription: string): Promise<TokenizationStatus> {
     const data = {
         network: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
         lastDigits: card.lastFourPAN,
