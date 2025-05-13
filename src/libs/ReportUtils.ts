@@ -158,6 +158,7 @@ import {
     getReportActionMessage as getReportActionMessageReportUtils,
     getReportActionMessageText,
     getReportActionText,
+    getRetractedMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
@@ -4722,7 +4723,7 @@ function getReportNameInternal({
         return getRejectedReportMessage();
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
-        return getRetractedReportMessage();
+        return getRetractedMessage();
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
         return getReopenedMessage();
@@ -5771,10 +5772,6 @@ function getIOUForwardedMessage(
 
 function getRejectedReportMessage() {
     return translateLocal('iou.rejectedThisReport');
-}
-
-function getRetractedReportMessage() {
-    return translateLocal('iou.retracted');
 }
 
 function getUpgradeWorkspaceMessage() {
