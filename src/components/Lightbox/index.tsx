@@ -12,7 +12,7 @@ import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
 const cachedImageDimensions = new Map<string, ContentSize | undefined>();
@@ -203,7 +203,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         [onScaleChangedContext, onScaleChangedProp],
     );
 
-    const isLocalFile = FileUtils.isLocalFile(uri);
+    const isALocalFile = isLocalFile(uri);
 
     return (
         <View
@@ -267,13 +267,13 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                     )}
 
                     {/* Show activity indicator while the lightbox is still loading the image. */}
-                    {isLoading && (!isOffline || isLocalFile) && (
+                    {isLoading && (!isOffline || isALocalFile) && (
                         <ActivityIndicator
                             size="large"
                             style={StyleSheet.absoluteFill}
                         />
                     )}
-                    {isLoading && !isLocalFile && <AttachmentOfflineIndicator />}
+                    {isLoading && !isALocalFile && <AttachmentOfflineIndicator />}
                 </>
             )}
         </View>
