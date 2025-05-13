@@ -352,6 +352,8 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[]): bool
 function isRetractAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isSubmitAndClose = isSubmitAndCloseUtils(policy);
+
+    // This should be removed after we change how instant submit works
     const isInstantSubmit = isInstantSubmitEnabled(policy);
 
     if (!isExpenseReport || isSubmitAndClose || isInstantSubmit) {
