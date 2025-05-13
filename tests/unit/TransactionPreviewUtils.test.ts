@@ -60,7 +60,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, iouReport: undefined, transaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.text).toEqual('');
-            expect(result.previewHeaderText).toContainEqual({text: ''});
+            expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.cash'});
             expect(result.displayAmountText.text).toEqual('$0.00');
         });
 
