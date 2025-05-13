@@ -346,7 +346,7 @@ function MoneyRequestReportPreviewContent({
     const [currentVisibleItems, setCurrentVisibleItems] = useState([0]);
     const [footerWidth, setFooterWidth] = useState(0);
     // optimisticIndex - value for index we are scrolling to with an arrow button or undefined after scroll is completed
-    // value ensures that disabled state is applied instantly and not overriden by onViewableItemsChanged when scrolling
+    // value ensures that disabled state is applied instantly and not overridden by onViewableItemsChanged when scrolling
     // undefined makes arrow buttons react on currentIndex changes when scrolling manually
     const [optimisticIndex, setOptimisticIndex] = useState<number | undefined>(undefined);
     const carouselRef = useRef<FlatList<Transaction> | null>(null);
@@ -409,7 +409,7 @@ function MoneyRequestReportPreviewContent({
     };
 
     // The button should expand up to transaction width
-    const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
+    const buttonMaxWidth = !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewStyle.width >= 303 ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
 
     const approvedOrSettledIcon = (iouSettled || isApproved) && (
         <ImageSVG
@@ -460,6 +460,8 @@ function MoneyRequestReportPreviewContent({
         }
         return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived, reportActions);
     }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions]);
+
+    const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
@@ -575,182 +577,182 @@ function MoneyRequestReportPreviewContent({
     };
 
     return (
-        <OfflineWithFeedback
-            pendingAction={iouReport?.pendingFields?.preview}
-            shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
-            needsOffscreenAlphaCompositing
-            style={styles.mt1}
-        >
-            <View
-                style={[styles.chatItemMessage, containerStyles]}
-                onLayout={onLayout}
+        <View onLayout={onLayout}>
+            <OfflineWithFeedback
+                pendingAction={iouReport?.pendingFields?.preview}
+                shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
+                needsOffscreenAlphaCompositing
+                style={styles.mt1}
             >
-                <PressableWithoutFeedback
-                    onPress={onPress}
-                    onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
-                    onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => {
-                        if (!shouldDisplayContextMenu) {
-                            return;
-                        }
-                        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
-                    }}
-                    shouldUseHapticsOnLongPress
-                    style={[
-                        styles.flexRow,
-                        styles.justifyContentBetween,
-                        StyleUtils.getBackgroundColorStyle(theme.cardBG),
-                        shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
-                    ]}
-                    role={getButtonRole(true)}
-                    isNested
-                    accessibilityLabel={translate('iou.viewDetails')}
-                >
-                    <View
+                <View style={[styles.chatItemMessage, isReportDeleted && [styles.cursorDisabled, styles.pointerEventsAuto], containerStyles]}>
+                    <PressableWithoutFeedback
+                        onPress={onPress}
+                        onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                        onPressOut={() => ControlSelection.unblock()}
+                        onLongPress={(event) => {
+                            if (!shouldDisplayContextMenu) {
+                                return;
+                            }
+                            showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                        }}
+                        shouldUseHapticsOnLongPress
                         style={[
+                            styles.flexRow,
+                            styles.justifyContentBetween,
                             StyleUtils.getBackgroundColorStyle(theme.cardBG),
-                            styles.reportContainerBorderRadius,
-                            styles.w100,
-                            (isHovered || isScanning || isWhisper) && styles.reportPreviewBoxHoverBorder,
+                            shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
+                            isReportDeleted && styles.pointerEventsNone,
                         ]}
+                        role={getButtonRole(true)}
+                        isNested
+                        accessibilityLabel={translate('iou.viewDetails')}
                     >
-                        <View style={[reportPreviewStyles.wrapperStyle]}>
-                            <View style={[reportPreviewStyles.contentContainerStyle]}>
-                                <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
-                                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3, StyleUtils.getMinimumHeight(variables.h28)]}>
-                                        <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
-                                            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
-                                                <Text
-                                                    onLayout={onTextLayoutChange}
-                                                    style={[styles.lh20]}
-                                                    numberOfLines={3}
-                                                >
-                                                    {FixIconPadding}
+                        <View
+                            style={[
+                                StyleUtils.getBackgroundColorStyle(theme.cardBG),
+                                styles.reportContainerBorderRadius,
+                                styles.w100,
+                                (isHovered || isScanning || isWhisper) && styles.reportPreviewBoxHoverBorder,
+                            ]}
+                        >
+                            <View style={[reportPreviewStyles.wrapperStyle]}>
+                                <View style={[reportPreviewStyles.contentContainerStyle]}>
+                                    <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
+                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3, StyleUtils.getMinimumHeight(variables.h28)]}>
+                                            <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
+                                                <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
                                                     <Text
-                                                        style={[styles.headerText]}
-                                                        testID="MoneyRequestReportPreview-reportName"
+                                                        onLayout={onTextLayoutChange}
+                                                        style={[styles.lh20]}
+                                                        numberOfLines={3}
                                                     >
-                                                        {getPreviewName()}
+                                                        {FixIconPadding}
+                                                        <Text
+                                                            style={[styles.headerText]}
+                                                            testID="MoneyRequestReportPreview-reportName"
+                                                        >
+                                                            {getPreviewName()}
+                                                        </Text>
+                                                        {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledIcon}</>}
                                                     </Text>
-                                                    {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledIcon}</>}
-                                                </Text>
-                                                {doesReportNameOverflow && (
-                                                    <View style={[styles.mtn0Half, (transactions.length < 3 || shouldUseNarrowLayout) && styles.alignSelfStart]}>
-                                                        {approvedOrSettledIcon}
-                                                    </View>
-                                                )}
-                                            </Animated.View>
-                                        </View>
-                                        {!shouldUseNarrowLayout && transactions.length > 2 && (
-                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                                <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{supportText}</Text>
-                                                <PressableWithFeedback
-                                                    accessibilityRole="button"
-                                                    accessible
-                                                    accessibilityLabel="button"
-                                                    style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
-                                                    onPress={() => handleChange(currentIndex - 1)}
-                                                    disabled={optimisticIndex !== undefined ? optimisticIndex === 0 : currentIndex === 0 && currentVisibleItems.at(0) === 0}
-                                                    disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
-                                                >
-                                                    <Icon
-                                                        src={Expensicons.BackArrow}
-                                                        small
-                                                        fill={theme.icon}
-                                                        isButtonIcon
-                                                    />
-                                                </PressableWithFeedback>
-                                                <PressableWithFeedback
-                                                    accessibilityRole="button"
-                                                    accessible
-                                                    accessibilityLabel="button"
-                                                    style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
-                                                    onPress={() => handleChange(currentIndex + 1)}
-                                                    disabled={
-                                                        optimisticIndex
-                                                            ? optimisticIndex + visibleItemsOnEndCount >= carouselTransactions.length
-                                                            : currentVisibleItems.at(-1) === carouselTransactions.length - 1
-                                                    }
-                                                    disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
-                                                >
-                                                    <Icon
-                                                        src={Expensicons.ArrowRight}
-                                                        small
-                                                        fill={theme.icon}
-                                                        isButtonIcon
-                                                    />
-                                                </PressableWithFeedback>
+                                                    {doesReportNameOverflow && (
+                                                        <View style={[styles.mtn0Half, (transactions.length < 3 || shouldUseNarrowLayout) && styles.alignSelfStart]}>
+                                                            {approvedOrSettledIcon}
+                                                        </View>
+                                                    )}
+                                                </Animated.View>
                                             </View>
-                                        )}
+                                            {!shouldUseNarrowLayout && transactions.length > 2 && (
+                                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                                    <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{supportText}</Text>
+                                                    <PressableWithFeedback
+                                                        accessibilityRole="button"
+                                                        accessible
+                                                        accessibilityLabel="button"
+                                                        style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
+                                                        onPress={() => handleChange(currentIndex - 1)}
+                                                        disabled={optimisticIndex !== undefined ? optimisticIndex === 0 : currentIndex === 0 && currentVisibleItems.at(0) === 0}
+                                                        disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
+                                                    >
+                                                        <Icon
+                                                            src={Expensicons.BackArrow}
+                                                            small
+                                                            fill={theme.icon}
+                                                            isButtonIcon
+                                                        />
+                                                    </PressableWithFeedback>
+                                                    <PressableWithFeedback
+                                                        accessibilityRole="button"
+                                                        accessible
+                                                        accessibilityLabel="button"
+                                                        style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
+                                                        onPress={() => handleChange(currentIndex + 1)}
+                                                        disabled={
+                                                            optimisticIndex
+                                                                ? optimisticIndex + visibleItemsOnEndCount >= carouselTransactions.length
+                                                                : currentVisibleItems.at(-1) === carouselTransactions.length - 1
+                                                        }
+                                                        disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
+                                                    >
+                                                        <Icon
+                                                            src={Expensicons.ArrowRight}
+                                                            small
+                                                            fill={theme.icon}
+                                                            isButtonIcon
+                                                        />
+                                                    </PressableWithFeedback>
+                                                </View>
+                                            )}
+                                        </View>
                                     </View>
-                                </View>
-                                <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
-                                    <FlatList
-                                        snapToAlignment="start"
-                                        decelerationRate="fast"
-                                        snapToInterval={reportPreviewStyles.transactionPreviewStyle.width + styles.gap2.gap}
-                                        horizontal
-                                        data={carouselTransactions}
-                                        ref={carouselRef}
-                                        nestedScrollEnabled
-                                        bounces={false}
-                                        keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewStyle.width}`}
-                                        contentContainerStyle={[styles.gap2]}
-                                        style={reportPreviewStyles.flatListStyle}
-                                        showsHorizontalScrollIndicator={false}
-                                        renderItem={renderFlatlistItem}
-                                        onViewableItemsChanged={onViewableItemsChanged}
-                                        viewabilityConfig={viewabilityConfig}
-                                        ListFooterComponent={<View style={styles.pl2} />}
-                                        ListHeaderComponent={<View style={styles.pr2} />}
-                                    />
-                                    {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview emptyReportPreviewAction={emptyReportPreviewActions[emptyReportPreviewAction]} />}
-                                </View>
-                                {shouldUseNarrowLayout && transactions.length > 1 && (
-                                    <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
-                                        {carouselTransactions.map((item, index) => (
-                                            <PressableWithFeedback
-                                                accessibilityRole="button"
-                                                accessible
-                                                accessibilityLabel="button"
-                                                style={[styles.reportPreviewCarouselDots, {backgroundColor: index === currentIndex ? theme.icon : theme.buttonDefaultBG}]}
-                                                onPress={() => handleChange(index)}
-                                            />
-                                        ))}
+                                    <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
+                                        <FlatList
+                                            snapToAlignment="start"
+                                            decelerationRate="fast"
+                                            snapToInterval={reportPreviewStyles.transactionPreviewStyle.width + styles.gap2.gap}
+                                            horizontal
+                                            data={carouselTransactions}
+                                            ref={carouselRef}
+                                            nestedScrollEnabled
+                                            bounces={false}
+                                            keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewStyle.width}`}
+                                            contentContainerStyle={[styles.gap2]}
+                                            style={reportPreviewStyles.flatListStyle}
+                                            showsHorizontalScrollIndicator={false}
+                                            renderItem={renderFlatlistItem}
+                                            onViewableItemsChanged={onViewableItemsChanged}
+                                            viewabilityConfig={viewabilityConfig}
+                                            ListFooterComponent={<View style={styles.pl2} />}
+                                            ListHeaderComponent={<View style={styles.pr2} />}
+                                        />
+                                        {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview emptyReportPreviewAction={emptyReportPreviewActions[emptyReportPreviewAction]} />}
                                     </View>
-                                )}
-                                {/* height is needed to avoid flickering on animation */}
-                                {!shouldShowEmptyPlaceholder && <View style={[buttonMaxWidth, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>}
+                                    {shouldUseNarrowLayout && transactions.length > 1 && (
+                                        <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
+                                            {carouselTransactions.map((item, index) => (
+                                                <PressableWithFeedback
+                                                    accessibilityRole="button"
+                                                    accessible
+                                                    accessibilityLabel="button"
+                                                    style={[styles.reportPreviewCarouselDots, {backgroundColor: index === currentIndex ? theme.icon : theme.buttonDefaultBG}]}
+                                                    onPress={() => handleChange(index)}
+                                                />
+                                            ))}
+                                        </View>
+                                    )}
+                                    {/* height is needed to avoid flickering on animation */}
+                                    {!shouldShowEmptyPlaceholder && <View style={[buttonMaxWidth, {height: variables.h40}]}>{reportPreviewActions[reportPreviewAction]}</View>}
+                                </View>
                             </View>
                         </View>
-                    </View>
-                </PressableWithoutFeedback>
-            </View>
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
-            {isHoldMenuVisible && !!iouReport && !!requestType && (
-                <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    requestType={requestType}
-                    fullAmount={fullAmount}
-                    onClose={() => setIsHoldMenuVisible(false)}
-                    isVisible={isHoldMenuVisible}
-                    paymentType={paymentType}
-                    chatReport={chatReport}
-                    moneyRequestReport={iouReport}
-                    transactionCount={numberOfRequests}
-                    startAnimation={() => {
-                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                            startApprovedAnimation();
-                        } else {
-                            startAnimation();
-                        }
-                    }}
+                    </PressableWithoutFeedback>
+                </View>
+                <DelegateNoAccessModal
+                    isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                    onClose={() => setIsNoDelegateAccessMenuVisible(false)}
                 />
-            )}
-        </OfflineWithFeedback>
+                {isHoldMenuVisible && !!iouReport && !!requestType && (
+                    <ProcessMoneyReportHoldMenu
+                        nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                        requestType={requestType}
+                        fullAmount={fullAmount}
+                        onClose={() => setIsHoldMenuVisible(false)}
+                        isVisible={isHoldMenuVisible}
+                        paymentType={paymentType}
+                        chatReport={chatReport}
+                        moneyRequestReport={iouReport}
+                        transactionCount={numberOfRequests}
+                        startAnimation={() => {
+                            if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+                                startApprovedAnimation();
+                            } else {
+                                startAnimation();
+                            }
+                        }}
+                    />
+                )}
+            </OfflineWithFeedback>
+        </View>
     );
 }
 
