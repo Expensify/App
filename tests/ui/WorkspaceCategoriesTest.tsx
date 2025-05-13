@@ -252,7 +252,7 @@ describe('WorkspaceCategories', () => {
 
         // After clicking disable categories dropdown menu item, verify the blocking modal appears
         await waitFor(() => {
-            const blockingPrompt = translateLocal('workspace.categories.cannotDisableAllCategories.title');
+            const blockingPrompt = translateLocal('workspace.categories.cannotDeleteOrDisableAllCategories.title');
             expect(screen.getByText(blockingPrompt)).toBeOnTheScreen();
         });
 

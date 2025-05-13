@@ -178,7 +178,7 @@ describe('WorkspaceTags', () => {
         fireEvent.press(disableMenuItem, mockEvent);
 
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('workspace.tags.cannotDisableAllTags.title'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('workspace.tags.cannotDeleteOrDisableAllTags.title'))).toBeOnTheScreen();
         });
 
         unmount();
