@@ -62,10 +62,6 @@ const expenseHeaders: SearchColumnConfig[] = [
         translationKey: 'common.description',
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
-        translationKey: 'common.from',
-    },
-    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TO,
         translationKey: 'common.to',
     },

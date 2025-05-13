@@ -4,7 +4,9 @@ import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import type {TableColumnSize} from '@components/Search/types';
+import ActionCell from '@components/SelectionList/Search/ActionCell';
 import DateCell from '@components/SelectionList/Search/DateCell';
+import UserInfoCell from '@components/SelectionList/Search/UserInfoCell';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useHover from '@hooks/useHover';
@@ -32,6 +34,8 @@ function TransactionItemRow({
     shouldShowChatBubbleComponent = false,
     onCheckboxPress,
     shouldShowCheckbox = false,
+    shouldShowActionCell = false,
+    reportAction = '',
 }: {
     transactionItem: TransactionWithOptionalHighlight;
     shouldUseNarrowLayout: boolean;
@@ -41,6 +45,8 @@ function TransactionItemRow({
     shouldShowChatBubbleComponent?: boolean;
     onCheckboxPress: (transactionID: string) => void;
     shouldShowCheckbox: boolean;
+    shouldShowActionCell?: boolean;
+    reportAction?: string;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -200,6 +206,15 @@ function TransactionItemRow({
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                             </View>
+                            {!!transactionItem.from && (
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                                    <UserInfoCell
+                                        accountID={transactionItem.from.accountID}
+                                        avatar={transactionItem.from.avatar}
+                                        displayName={transactionItem.from.displayName ?? ''}
+                                    />
+                                </View>
+                            )}
                             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
                                 <CategoryCell
                                     transactionItem={transactionItem}
@@ -217,12 +232,26 @@ function TransactionItemRow({
                             <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>
                                 {shouldShowChatBubbleComponent && <ChatBubbleCell transaction={transactionItem} />}
                             </View>
-                            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
-                                <TotalCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                />
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                                    <TotalCell
+                                        transactionItem={transactionItem}
+                                        shouldShowTooltip={shouldShowTooltip}
+                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    />
+                                </View>
+                                {shouldShowActionCell && (
+                                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                                        <ActionCell
+                                            action={transactionItem.action}
+                                            isSelected={isSelected}
+                                            isChildListItem
+                                            parentAction={reportAction}
+                                            goToItem={() => {}}
+                                            isLoading={false}
+                                        />
+                                    </View>
+                                )}
                             </View>
                         </View>
                         <TransactionItemRowRBR transaction={transactionItem} />

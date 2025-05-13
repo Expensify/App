@@ -58,6 +58,10 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
+
+    handleOnButtonPress: () => void;
+
+    showAction: boolean;
 };
 
 type ReportCellProps = {
@@ -84,7 +88,16 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
     );
 }
 
-function FirstHeaderRow<TItem extends ListItem>({policy, report: moneyRequestReport, item, onCheckboxPress, isDisabled, canSelectMultiple}: FirstRowReportHeaderProps<TItem>) {
+function FirstHeaderRow<TItem extends ListItem>({
+    policy,
+    report: moneyRequestReport,
+    item,
+    onCheckboxPress,
+    isDisabled,
+    canSelectMultiple,
+    handleOnButtonPress = () => {},
+    showAction = false,
+}: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const reportItem = item as unknown as ReportListItemType;
@@ -112,13 +125,23 @@ function FirstHeaderRow<TItem extends ListItem>({policy, report: moneyRequestRep
                     />
                 </View>
             </View>
-            <View style={[styles.justifyContentEnd, styles.flexShrink0]}>
+            <View style={[styles.flexShrink0]}>
                 <TotalCell
                     showTooltip
                     isLargeScreenWidth={false}
                     reportItem={reportItem}
                 />
             </View>
+            {showAction && (
+                <View style={[styles.pl3, {width: 84}]}>
+                    <ActionCell
+                        action={reportItem.action}
+                        goToItem={handleOnButtonPress}
+                        isSelected={item.isSelected}
+                        isLoading={reportItem.isActionLoading}
+                    />
+                </View>
+            )}
         </View>
     );
 }
@@ -185,6 +208,8 @@ function ReportListItemHeader<TItem extends ListItem>({
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
+                showAction
+                onButtonPress={handleOnButtonPress}
             />
             <View style={[styles.mr3, styles.ml3, styles.pv2]}>
                 <View style={[styles.borderBottom]} />

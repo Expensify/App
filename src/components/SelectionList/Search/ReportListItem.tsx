@@ -1,19 +1,21 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ReportListItemHeader from './ReportListItemHeader';
-import TransactionListItemRow from './TransactionListItemRow';
 
 function ReportListItem<TItem extends ListItem>({
     item,
@@ -53,6 +55,11 @@ function ReportListItem<TItem extends ListItem>({
         item.isSelected && styles.activeComponentBG,
         styles.mh0,
     ];
+
+    const dateColumnSize = useMemo(() => {
+        const shouldShowYearForSomeTransaction = reportItem.transactions.some((transaction) => shouldShowTransactionYear(transaction));
+        return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    }, [reportItem.transactions]);
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
@@ -105,23 +112,35 @@ function ReportListItem<TItem extends ListItem>({
                     </View>
                 ) : (
                     reportItem.transactions.map((transaction) => (
-                        <TransactionListItemRow
-                            key={transaction.transactionID}
-                            parentAction={reportItem.action}
-                            item={transaction}
-                            showTooltip={showTooltip}
-                            onButtonPress={() => {
-                                openReportInRHP(transaction);
-                            }}
-                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                            showItemHeaderOnNarrowLayout={false}
-                            containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
-                            isChildListItem
-                            isDisabled={!!isDisabled}
-                            canSelectMultiple={!!canSelectMultiple}
-                            isButtonSelected={transaction.isSelected}
-                            shouldShowTransactionCheckbox
-                        />
+                        <View>
+                            {/* <TransactionListItemRow */}
+                            {/*     key={transaction.transactionID} */}
+                            {/*     parentAction={reportItem.action} */}
+                            {/*     item={transaction} */}
+                            {/*     showTooltip={showTooltip} */}
+                            {/*     onButtonPress={() => { */}
+                            {/*         openReportInRHP(transaction); */}
+                            {/*     }} */}
+                            {/*     onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)} */}
+                            {/*     showItemHeaderOnNarrowLayout={false} */}
+                            {/*     containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]} */}
+                            {/*     isChildListItem */}
+                            {/*     isDisabled={!!isDisabled} */}
+                            {/*     canSelectMultiple={!!canSelectMultiple} */}
+                            {/*     isButtonSelected={transaction.isSelected} */}
+                            {/*     shouldShowTransactionCheckbox */}
+                            {/* /> */}
+                            <TransactionItemRow
+                                transactionItem={transaction}
+                                shouldUseNarrowLayout={false}
+                                isSelected={!!transaction.isSelected}
+                                shouldShowTooltip={false}
+                                dateColumnSize={dateColumnSize}
+                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                shouldShowCheckbox={!!canSelectMultiple}
+                                shouldShowActionCell
+                            />
+                        </View>
                     ))
                 )}
             </View>
