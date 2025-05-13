@@ -4375,7 +4375,9 @@ const translations = {
                 `No puedes eliminar a ${memberName} de este espacio de trabajo. Por favor, establece un nuevo reembolsador en Flujos de trabajo > Realizar o rastrear pagos, luego intenta nuevamente.`,
 
             removeMemberPromptForExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `Si eliminas a ${memberName} de este espacio de trabajo, lo reemplazaremos como el exportador preferido con ${workspaceOwner}, el propietario del espacio de trabajo. Puedes cambiar el exportador preferido en Contabilidad > Exportar.`,
+                `Si eliminas a ${memberName} de este espacio de trabajo, lo reemplazaremos como el exportador preferido con ${workspaceOwner}, el propietario del espacio de trabajo.`,
+            removeMemberPromptForTechnicalContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `If you remove ${memberName} from this workspace, we'll replace them as the technical contact with ${workspaceOwner}, the workspace owner.`,
         },
         accounting: {
             settings: 'configuración',

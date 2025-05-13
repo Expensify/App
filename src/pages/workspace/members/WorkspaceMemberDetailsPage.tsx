@@ -133,6 +133,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const confirmModalPrompt = useMemo(() => {
         const isApprover = isApproverUserAction(policy, accountID);
+        const isTechnicalContact = policy?.technicalContact === details?.login;
+
+        if (isTechnicalContact) {
+            return translate('workspace.people.removeMemberPromptForTechnicalContact', {
+                memberName: displayName,
+                workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
         if (isUserExporter) {
             return translate('workspace.people.removeMemberPromptForExporter', {
                 memberName: displayName,
@@ -155,7 +164,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             memberName: displayName,
             ownerName: policyOwnerDisplayName,
         });
-    }, [policy, accountID, isUserExporter, translate, displayName, policyOwnerDisplayName]);
+    }, [policy, accountID, details?.login, isUserExporter, translate, displayName, policyOwnerDisplayName]);
 
     const roleItems: ListItemType[] = useMemo(
         () => [

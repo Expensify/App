@@ -4326,7 +4326,9 @@ const translations = {
             removeMemberPromptForReimburser: ({memberName}: {memberName: string}) =>
                 `You can't remove ${memberName} from this workspace. Please set a new reimburser in Workflows > Make or track payments, then try again.`,
             removeMemberPromptForExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `If you remove ${memberName} from this workspace, we'll replace them as the preferred exporter with ${workspaceOwner}, the workspace owner. You can change the preferred exporter in Accounting > Export.`,
+                `If you remove ${memberName} from this workspace, we'll replace them as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
+            removeMemberPromptForTechnicalContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `If you remove ${memberName} from this workspace, we'll replace them as the technical contact with ${workspaceOwner}, the workspace owner.`,
         },
         card: {
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
