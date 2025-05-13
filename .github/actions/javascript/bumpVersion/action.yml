@@ -1,9 +1,6 @@
-name: 'Bump npm version'
-description: 'Increase the application version (JS and native), based on git tags'
+name: Bump npm version
+description: Increase the application version (JS and native), based on git tags
 inputs:
-    GITHUB_TOKEN:
-        description: Auth token for New Expensify Github
-        required: true
     SEMVER_LEVEL:
         description: Semantic Versioning Level
         required: true
@@ -11,5 +8,5 @@ outputs:
     NEW_VERSION:
         description: The new semver version of the application, updated in the JS and native layers.
 runs:
-    using: 'node20'
-    main: './index.js'
+    using: node20
+    main: ./index.js

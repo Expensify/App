@@ -1,7 +1,11 @@
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
-import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
+import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths, getUniqueActionErrors, getViolationTranslatePath} from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
+import * as ReportUtils from '@src/libs/ReportUtils';
+import type {Report, ReportActions} from '@src/types/onyx';
+import {iouReportR14932 as mockedReport} from '../../__mocks__/reportData/reports';
 
 const basicProps = {
     iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
@@ -56,7 +60,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, iouReport: undefined, transaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.text).toEqual('');
-            expect(result.previewHeaderText).toContainEqual({text: ''});
+            expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.cash'});
             expect(result.displayAmountText.text).toEqual('$0.00');
         });
 
@@ -117,6 +121,18 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.canceled'});
+        });
+
+        it('should include "Approved" in the preview when the report is approved, regardless of whether RBR is shown', () => {
+            const functionArgs = {
+                ...basicProps,
+                iouReport: {...basicProps.iouReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                shouldShowRBR: true,
+            };
+            jest.spyOn(ReportUtils, 'isPaidGroupPolicyExpenseReport').mockReturnValue(true);
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+
+            expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.approved'});
         });
     });
 
@@ -201,6 +217,92 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, transactionDetails: {comment: 'A valid comment', merchant: ''}};
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowDescription).toBeTruthy();
+        });
+    });
+
+    describe('getViolationTranslatePath', () => {
+        const message = 'Message';
+        const reviewRequired = {translationPath: 'violations.reviewRequired'};
+        const longMessage = 'x'.repeat(CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW + 1);
+
+        const mockViolations = (count: number) =>
+            [
+                {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                {name: CONST.VIOLATIONS.CUSTOM_RULES, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+            ].slice(0, count);
+
+        test('returns translationPath when there is at least one violation and transaction is on hold', () => {
+            expect(getViolationTranslatePath(mockViolations(1), false, message, true)).toEqual(reviewRequired);
+        });
+
+        test('returns translationPath if violation message is too long', () => {
+            expect(getViolationTranslatePath(mockViolations(1), false, longMessage, false)).toEqual(reviewRequired);
+        });
+
+        test('returns translationPath when there are multiple violations', () => {
+            expect(getViolationTranslatePath(mockViolations(2), false, message, false)).toEqual(reviewRequired);
+        });
+
+        test('returns translationPath when there is at least one violation and there are field errors', () => {
+            expect(getViolationTranslatePath(mockViolations(1), true, message, false)).toEqual(reviewRequired);
+        });
+
+        test('returns text when there are no violations, no hold, no field errors, and message is short', () => {
+            expect(getViolationTranslatePath(mockViolations(0), false, message, false)).toEqual({text: message});
+        });
+
+        test('returns translationPath when there are no violations but message is too long', () => {
+            expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false)).toEqual(reviewRequired);
+        });
+    });
+
+    describe('getUniqueActionErrors', () => {
+        test('returns an empty array if there is no report or it is empty', () => {
+            expect(getUniqueActionErrors(undefined)).toEqual([]);
+            expect(getUniqueActionErrors({} as Report)).toEqual([]);
+        });
+
+        test('returns an empty array if there are no actions in the report', () => {
+            jest.spyOn(ReportActionUtils, 'getReportActions').mockReturnValue({});
+            expect(getUniqueActionErrors(mockedReport)).toEqual([]);
+        });
+
+        test('returns unique error messages from report actions', () => {
+            const actions = {
+                /* eslint-disable @typescript-eslint/naming-convention */
+                1: {errors: {a: 'Error A', b: 'Error B'}},
+                2: {errors: {c: 'Error C', a: 'Error A2'}},
+                3: {errors: {a: 'Error A', d: 'Error D'}},
+                /* eslint-enable @typescript-eslint/naming-convention */
+            } as unknown as ReportActions;
+            jest.spyOn(ReportActionUtils, 'getReportActions').mockReturnValue(actions);
+
+            const expectedErrors = ['Error B', 'Error C', 'Error D'];
+            expect(getUniqueActionErrors(mockedReport).sort()).toEqual(expectedErrors.sort());
+        });
+
+        test('returns the latest error message if multiple errors exist under a single action', () => {
+            const actions = {
+                /* eslint-disable @typescript-eslint/naming-convention */
+                1: {errors: {z: 'Error Z2', a: 'Error A', f: 'Error Z'}},
+                /* eslint-enable @typescript-eslint/naming-convention */
+            } as unknown as ReportActions;
+            jest.spyOn(ReportActionUtils, 'getReportActions').mockReturnValue(actions);
+
+            expect(getUniqueActionErrors(mockedReport)).toEqual(['Error Z2']);
+        });
+
+        test('filters out non-string error messages', () => {
+            const actions = {
+                /* eslint-disable @typescript-eslint/naming-convention */
+                1: {errors: {a: 404, b: 'Error B'}},
+                2: {errors: {c: null, d: 'Error D'}},
+                /* eslint-enable @typescript-eslint/naming-convention */
+            } as unknown as ReportActions;
+            jest.spyOn(ReportActionUtils, 'getReportActions').mockReturnValue(actions);
+
+            expect(getUniqueActionErrors(mockedReport)).toEqual(['Error B', 'Error D']);
         });
     });
 });

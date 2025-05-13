@@ -101,6 +101,13 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
                 errors: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: null,
+            },
+        },
     ];
 
     const successData: OnyxUpdate[] = [
@@ -790,7 +797,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(
         WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,
-        {...parameters},
+        {...parameters, policyID},
         {
             optimisticData,
             successData,

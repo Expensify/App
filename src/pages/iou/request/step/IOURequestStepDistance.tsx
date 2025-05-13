@@ -345,6 +345,7 @@ function IOURequestStepDistance({
                             billable: false,
                             validWaypoints: getValidWaypoints(waypoints, true),
                             customUnitRateID,
+                            attendees: transaction?.comment?.attendees,
                         },
                     });
                     return;
@@ -368,6 +369,7 @@ function IOURequestStepDistance({
                         validWaypoints: getValidWaypoints(waypoints, true),
                         customUnitRateID: DistanceRequestUtils.getCustomUnitRateID(report.reportID),
                         splitShares: transaction?.splitShares,
+                        attendees: transaction?.comment?.attendees,
                     },
                 });
                 return;
@@ -572,7 +574,7 @@ function IOURequestStepDistance({
                         allowBubble
                         pressOnEnter
                         large
-                        style={[styles.w100, styles.mb5, styles.ph4, styles.flexShrink0]}
+                        style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
                         onPress={submitWaypoints}
                         text={buttonText}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}

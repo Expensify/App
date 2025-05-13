@@ -20,6 +20,8 @@
 * [Security](#Security)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
+* [Onyx derived values](#onyx-derived-values)
+* [canBeMissing onyx param](#canbemissing-onyx-param)
 
 #### Additional Reading
 * [API Details](contributingGuides/API.md)
@@ -414,14 +416,14 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 By default, Onyx will not evict anything from storage and will presume all keys are "unsafe" to remove unless explicitly told otherwise.
 
 **To flag a key as safe for removal:**
-- Add the key to the `safeEvictionKeys` option in `Onyx.init(options)`
+- Add the key to the `evictableKeys` option in `Onyx.init(options)`
 - Implement `canEvict` in the Onyx config for each component subscribing to a key
 - The key will only be deleted when all subscribers return `true` for `canEvict`
 
 e.g.
 ```js
 Onyx.init({
-    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+    evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
 });
 ```
 
@@ -619,8 +621,8 @@ Updated rules for managing members across all types of chats in New Expensify.
 - **Nobody can leave or be removed from something they were automatically added to. For example:**
 
     - DM members can't leave or be removed from their DMs
-    - Members can't leave or be removed from their own workspace chats
-    - Admins can't leave or be removed from workspace chats
+    - Members can't leave or be removed from their own expense chats
+    - Admins can't leave or be removed from expense chats
     - Members can't leave or be removed from the #announce room
     - Admins can't leave or be removed from #admins
     - Domain members can't leave or be removed from their domain chat
@@ -689,7 +691,7 @@ Updated rules for managing members across all types of chats in New Expensify.
         - Everyone can be removed/can leave from the room including creator
         - Guests are not able to remove anyone from the room
 
-    4. #### Workspace chats
+    4. #### Expense chats
         |                    | Admin | Member(default) | Member(invited) |
         | :----------------: | :---: | :-------------: | :-------------: |
         |     **Invite**     |   ✅   |        ✅        |        ❌        |
@@ -697,10 +699,10 @@ Updated rules for managing members across all types of chats in New Expensify.
         |     **Leave**      |   ❌   |        ❌        |        ✅        |
         | **Can be removed** |   ❌   |        ❌        |        ✅        |
 
-        - Admins are not able to leave/be removed from the workspace chat
-        - Default members(automatically invited) are not able to leave/be removed from the workspace chat
-        - Invited members(invited by members) are not able to invite or remove from the workspace chat
-        - Invited members(invited by members) are able to leave the workspace chat
+        - Admins are not able to leave/be removed from the expense chat
+        - Default members(automatically invited) are not able to leave/be removed from the expense chat
+        - Invited members(invited by members) are not able to invite or remove from the expense chat
+        - Invited members(invited by members) are able to leave the expense chat
         - Default members and admins are able to remove invited members
 
 3. ### Domain chat
@@ -941,3 +943,26 @@ Onyx derived values are special Onyx keys which contain values derived from othe
 3. **Document derived values**
    - Explain the purpose and dependencies
    - Document any special cases or performance considerations
+
+# canBeMissing onyx param
+
+Context https://expensify.slack.com/archives/C03TQ48KC/p1741208342513379
+
+## What is this param and lint error for?
+
+The idea of the param is to indicate if the component connecting to onyx expects the data to be there (and thus does not need to handle the case when it is not) or not (and thus has to handle the case when it is not).
+
+It was added because in some places we are assuming some data will be there, but actually we never load it, which leads to hard to debug bugs.
+
+The linter error is there till we add the param to all callers, once that happens we can make the param mandatory and remove the linter.
+
+
+## How do I determine if the param should be false or true?
+
+The main things to look at for the `canBeMissing` param are:
+- Where/who loads the data? If the data is always ensured to be loaded before this component renders, then `canBeMissing` would be set to `false`. So any data that is always returned by `OpenApp` used in a component where we have a user (so not in the homepage for example) will have `canBeMissing` set to `false`
+- Will the user always have data? Maybe we always try to load a piece of data, but the data can be missing/empty, in this case `canBeMissing` would be set to `false`
+- If neither of above, then the param should probably be `true`, but additionally we need to make sure that the code using the data manages correctly the fact that the data might be missing
+
+
+
