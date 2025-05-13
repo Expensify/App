@@ -17,6 +17,8 @@ import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType} from '@components/Search/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
+import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
@@ -25,6 +27,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type ChatListItem from './ChatListItem';
@@ -351,6 +354,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Styles applied for the title container of the list item */
     titleContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -369,6 +375,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldDisplayRBR?: boolean;
     /** Test ID of the component. Used to locate this view in end-to-end tests. */
     testID?: string;
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -381,6 +389,8 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** The React element that will be shown as a footer */
     FooterComponent?: ReactElement;
 };
+
+type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
@@ -420,7 +430,9 @@ type ValidListItem =
     | typeof ChatListItem
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
-    | typeof TravelDomainListItem;
+    | typeof TravelDomainListItem
+    | typeof UnreportedExpenseListItem
+    | typeof SpendCategorySelectorListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -727,6 +739,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Error text to display */
     errorText?: string;
+
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -774,6 +789,7 @@ export type {
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
     ListItem,
+    ListItemProps,
     ListItemFocusEventHandler,
     RadioListItemProps,
     ReportListItemProps,
@@ -787,6 +803,7 @@ export type {
     TaskListItemProps,
     TransactionListItemProps,
     TransactionListItemType,
+    TransactionSelectionListItem,
     UserListItemProps,
     ReportActionListItemType,
     ChatListItemProps,

@@ -93,7 +93,6 @@ const policy420A: Policy = {
     },
     areRulesEnabled: false,
     eReceipts: true,
-    shouldShowCustomReportTitleOption: false,
     shouldShowAutoApprovalOptions: false,
     shouldShowAutoReimbursementLimitOption: false,
     maxExpenseAmountNoReceipt: 100000,
