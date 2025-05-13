@@ -28,6 +28,10 @@ def warnIfNotConfigured(reason) {
     warn("For setup instructions, refer to: https://github.com/Expensify/App/blob/main/README.md#using-patched-artifacts")
 }
 
+def getNewDotRootDir() {
+    return "${rootDir}/${hasProperty('newDotRoot') ? getProperty('newDotRoot') : "/.."}"
+}
+
 def runCommand(command) {
     def process = command.execute()
     process.waitFor(10, TimeUnit.SECONDS)
@@ -68,14 +72,13 @@ def getCredentials() {
             githubToken: getGithubToken(),
         ]
     } catch (Exception e) {
-        println(e)
         warnIfNotConfigured("Failed to get Github credentials. This might be due to an expired token or not being logged in.")
         return null
     }
 }
 
 def getReactNativeVersion() {
-    def packageJsonPath = "${rootDir}/${hasProperty('newDotRoot') ? getProperty('newDotRoot') : "/.."}/package.json"
+    def packageJsonPath = "${getNewDotRootDir()}/package.json"
     def packageJson = file(packageJsonPath)
     return new JsonSlurper().parse(packageJson).dependencies.'react-native'
 }
@@ -95,17 +98,22 @@ def getPomFile(version, packageName, githubToken) {
     )
 }
 
-def hasDiff(commitHash) {
-    // TODO: First, we need to fall back to artifacts identified by the hash of the patch contents.
-    return false
+def getLocalPatchesHash() {
+    def newDotRootDir = getNewDotRootDir()
+    def computePatchesScript = "${getNewDotRootDir()}/scripts/compute-patches-hash.sh"
+    def arguments = hasProperty('newDotRoot') ? ["${newDotRootDir}/patches", "${newDotRootDir}/Mobile-Expensify/patches"] : ["${newDotRootDir}/patches"]
+    def localPatchesHash = runCommand([computePatchesScript] + arguments).output.trim()
+
+    return localPatchesHash
 }
 
 def findMatchingArtifactsVersion(packageName, githubToken) {
     try {
+        def localPatchesHash = getLocalPatchesHash()
         def candidates = getArtifactsCandidates(packageName)
         for (candidate in candidates) {
-            def commitHash = getPomFile(candidate, packageName, githubToken).properties.commitHash.text()
-            if (!hasDiff(commitHash)) {
+            def patchesHashFromPomFile = getPomFile(candidate, packageName, githubToken).properties.patchesHash.text().trim()
+            if (patchesHashFromPomFile == localPatchesHash) {
                 return candidate
             }
         }
