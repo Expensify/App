@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -10,6 +10,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
@@ -21,6 +22,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -38,6 +40,7 @@ import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getCleanedTagName, getTagListName, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -65,7 +68,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
     const {selectionMode} = useMobileSelectionMode();
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
@@ -108,39 +111,48 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     const tagList = useMemo<TagListItem[]>(
         () =>
-            Object.values(currentPolicyTag?.tags ?? {})
-                .sort((tagA, tagB) => localeCompare(tagA.name, tagB.name))
-                .map((tag) => ({
-                    value: tag.name,
-                    text: getCleanedTagName(tag.name),
-                    keyForList: tag.name,
-                    isSelected: selectedTags.includes(tag.name) && canSelectMultiple,
-                    pendingAction: tag.pendingAction,
-                    errors: tag.errors ?? undefined,
-                    enabled: tag.enabled,
-                    isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    rightElement: (
-                        <Switch
-                            isOn={tag.enabled}
-                            disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                            accessibilityLabel={translate('workspace.tags.enableTag')}
-                            onToggle={(newValue: boolean) => updateWorkspaceTagEnabled(newValue, tag.name)}
-                        />
-                    ),
-                })),
+            Object.values(currentPolicyTag?.tags ?? {}).map((tag) => ({
+                value: tag.name,
+                text: getCleanedTagName(tag.name),
+                keyForList: tag.name,
+                isSelected: selectedTags.includes(tag.name) && canSelectMultiple,
+                pendingAction: tag.pendingAction,
+                errors: tag.errors ?? undefined,
+                enabled: tag.enabled,
+                isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                rightElement: (
+                    <Switch
+                        isOn={tag.enabled}
+                        disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                        accessibilityLabel={translate('workspace.tags.enableTag')}
+                        onToggle={(newValue: boolean) => updateWorkspaceTagEnabled(newValue, tag.name)}
+                    />
+                ),
+            })),
         [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled],
     );
+
+    const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
+        const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
+        const tagValue = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
+        const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase() ?? '');
+        return tagText.includes(normalizedSearchInput) || tagValue.includes(normalizedSearchInput);
+    }, []);
+    const sortTags = useCallback((tags: TagListItem[]) => tags.sort((tagA, tagB) => localeCompare(tagA.value, tagB.value)), []);
+    const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
 
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
 
     const tagListKeyedByName = useMemo(
         () =>
-            tagList.reduce<Record<string, TagListItem>>((acc, tag) => {
+            filteredTagList.reduce<Record<string, TagListItem>>((acc, tag) => {
                 acc[tag.value] = tag;
                 return acc;
             }, {}),
-        [tagList],
+        [filteredTagList],
     );
+
+    const sections = useMemo(() => [{data: filteredTagList, isDisabled: false}], [filteredTagList]);
 
     if (!currentPolicyTag) {
         return <NotFoundPage />;
@@ -156,7 +168,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const toggleAllTags = () => {
-        const availableTags = tagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const availableTags = filteredTagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const anySelected = availableTags.some((tag) => selectedTags.includes(tag.value));
 
         setSelectedTags(anySelected ? [] : availableTags.map((tag) => tag.value));
@@ -181,9 +193,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const deleteTags = () => {
-        setSelectedTags([]);
         deletePolicyTags(policyID, selectedTags);
         setIsDeleteTagsConfirmModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedTags([]);
+        });
     };
 
     const isLoading = !isOffline && policyTags === undefined;
@@ -349,12 +364,20 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length > 0 && !isLoading && (
+                {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
+                    <SearchBar
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        label={translate('workspace.tags.findTag')}
+                        shouldShowEmptyState={filteredTagList.length === 0 && !isLoading}
+                    />
+                )}
+                {filteredTagList.length > 0 && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                        sections={[{data: tagList, isDisabled: false}]}
+                        sections={sections}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
                         onSelectAll={toggleAllTags}
