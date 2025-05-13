@@ -1570,7 +1570,7 @@ describe('DebugUtils', () => {
                     ) ?? {};
                 expect(reason).toBe(undefined);
             });
-            it('returns correct reason when there are reports on the workspace chat with violations', async () => {
+            it('returns correct reason when there are reports on the expense chat with violations', async () => {
                 const report: Report = {
                     reportID: '0',
                     type: CONST.REPORT.TYPE.CHAT,
