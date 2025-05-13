@@ -80,6 +80,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
+
+    /** Invoked on mount and layout changes */
+    onLayout?: () => void;
 };
 
 const AnimatedFlashList = Animated.createAnimatedComponent<FlashListProps<SearchListItem>>(FlashList);
@@ -106,6 +109,7 @@ function SearchList(
         shouldGroupByReports,
         onViewableItemsChanged,
         estimatedItemSize = ITEM_HEIGHTS.MOBILE.STANDARD,
+        onLayout,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -463,6 +467,8 @@ function SearchList(
                 extraData={focusedIndex}
                 removeClippedSubviews
                 onViewableItemsChanged={onViewableItemsChanged}
+                onLayout={onLayout}
+
             />
             <Modal
                 isVisible={isModalVisible}
