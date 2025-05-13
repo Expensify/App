@@ -298,7 +298,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport, startAnimation],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, isInvoice, moneyRequestReport, startAnimation],
     );
 
     const confirmApproval = () => {

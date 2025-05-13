@@ -158,6 +158,10 @@ function useSelectedTransactionsActions({
         });
 
         const canAllExpensesBeMoved = selectedTransactions.every((transaction) => {
+            // typescript is failing without this check
+            if (!transaction) {
+                return false;
+            }
             const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
 
             const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
