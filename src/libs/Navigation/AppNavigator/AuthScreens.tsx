@@ -14,7 +14,7 @@ import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
+import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {connect} from '@libs/actions/Delegate';
@@ -503,7 +503,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     return (
         <ComposeProviders
-            components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, SidebarOrderedReportIDsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}
+            components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}
         >
             <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
@@ -656,7 +656,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     component={TestDriveDemoNavigator}
                 />
                 <RootStack.Screen
-                    name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
+                    name={NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={FeatureTrainingModalNavigator}
                     listeners={modalScreenListeners}
