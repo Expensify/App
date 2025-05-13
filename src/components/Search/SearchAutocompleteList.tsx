@@ -57,7 +57,7 @@ type SearchAutocompleteListProps = {
     autocompleteQueryValue: string;
 
     /** Callback to trigger search action * */
-    handleSearch?: (value: string) => void;
+    handleSearch: (value: string) => void;
 
     /** An optional item to always display on the top of the router list  */
     searchQueryItem?: SearchQueryItem;

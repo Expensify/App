@@ -14,7 +14,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -31,6 +31,8 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
+import {searchInServer} from '@userActions/Report';
+import {search} from '@userActions/Search';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -106,6 +108,14 @@ function SearchPageNarrow({queryJSON, searchName, headerButtonsOptions, currentS
         }
         Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     }, [searchRouterListVisible]);
+
+    const handleSearchAction = useCallback((value: SearchParams | string) => {
+        if (typeof value === 'string') {
+            searchInServer(value);
+        } else {
+            search(value);
+        }
+    }, []);
 
     if (!queryJSON) {
         return (
@@ -203,6 +213,7 @@ function SearchPageNarrow({queryJSON, searchName, headerButtonsOptions, currentS
                             queryJSON={queryJSON}
                             onSearchListScroll={scrollHandler}
                             contentContainerStyle={!selectionMode?.isEnabled ? styles.searchListContentContainerStyles : undefined}
+                            handleSearch={handleSearchAction}
                         />
                     </View>
                 )}

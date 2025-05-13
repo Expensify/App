@@ -22,7 +22,6 @@ import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
-import {parseForAutocomplete} from './SearchAutocompleteUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
@@ -837,16 +836,9 @@ function getCurrentSearchQueryJSON() {
  * @returns The query without filters (core search terms only)
  */
 function getQueryWithoutFilters(searchQuery: string) {
-    const parsedQuery = parseForAutocomplete(searchQuery);
-    const lastFilter = parsedQuery?.ranges.at(-1);
-
-    if (!lastFilter) {
-        return searchQuery.trim();
-    }
-
     const queryJSON = buildSearchQueryJSON(searchQuery);
     if (!queryJSON) {
-        return searchQuery.trim();
+        return '';
     }
 
     const keywordFilter = queryJSON.flatFilters.find((filter) => filter.key === 'keyword');
