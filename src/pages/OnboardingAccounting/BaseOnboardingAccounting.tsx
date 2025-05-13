@@ -223,14 +223,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         });
 
         const isSupportedIntegration = supportedIntegrationsInNewDot.includes(userReportedIntegration) || userReportedIntegration === null;
-        const isLargeCompanySize = onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.SMALL;
-
-        if (!isSupportedIntegration || (isLargeCompanySize && getPlatform() !== CONST.PLATFORM.DESKTOP)) {
+        const shouldRedirectToOldDot = getPlatform() !== CONST.PLATFORM.DESKTOP && (!isSupportedIntegration || onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO);
+        if (shouldRedirectToOldDot) {
             if (CONFIG.IS_HYBRID_APP) {
                 return;
             }
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
         }
+
         // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
         InteractionManager.runAfterInteractions(() => {
             setOnboardingAdminsChatReportID();
