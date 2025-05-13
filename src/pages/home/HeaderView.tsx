@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import {addMinutes, compareDesc, isPast, parseISO} from 'date-fns';
 import {formatInTimeZone} from 'date-fns-tz';
+import groupBy from 'lodash-es/groupBy';
 import React, {memo, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -227,12 +228,20 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
 
     const guideBookingButton = useMemo(() => {
-        const activeScheduledCall = reportNameValuePairs?.calendlyCalls
-            ?.reverse()
-            .sort((callA, callB) => compareDesc(parseISO(callA.eventTime), parseISO(callB.eventTime)))
-            .find((call) => !isPast(parseISO(call.eventTime)));
+        // Filter Old calls.
+        const scheduledCalls = reportNameValuePairs?.calendlyCalls?.filter((call) => !isPast(parseISO(call.eventTime)));
 
-        if (!activeScheduledCall || activeScheduledCall.status === CONST.SCHEDULE_CALL_STATUS.CANCELLED) {
+        const callsMap = groupBy(scheduledCalls, 'eventURI');
+
+        // Group the calls and exclude cancelled calls
+        const activeScheduledCall = Object.keys(callsMap)
+            .filter((callId) => !callsMap[callId].some((call) => call.status === CONST.SCHEDULE_CALL_STATUS.CANCELLED))
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            .map((callId) => callsMap[callId].at(0)!)
+            .sort((callA, callB) => compareDesc(parseISO(callA.eventTime), parseISO(callB.eventTime)))
+            .at(0);
+
+        if (!activeScheduledCall) {
             return (
                 <Button
                     success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
@@ -270,7 +279,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 icon: Illustrations.HeadSet,
                 iconWidth: 40,
                 iconHeight: 40,
-                wrapperStyle: [styles.mb4, styles.ph5, styles.pv5, styles.borderBottom],
+                wrapperStyle: [styles.mb4, styles.pl4, styles.pr5, styles.pt3, styles.pb5, styles.borderBottom],
                 interactive: false,
             },
             {
@@ -302,20 +311,22 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             />
         );
     }, [
-        report?.reportID,
         reportNameValuePairs?.calendlyCalls,
+        userTimezone,
+        styles.themeTextColor,
+        styles.mb4,
+        styles.pl4,
+        styles.pr5,
+        styles.pt3,
+        styles.pb5,
+        styles.borderBottom,
+        styles.flexGrow1,
+        styles.earlyDiscountButton,
+        styles.mw100,
+        translate,
         shouldShowGuideBookingButtonInEarlyDiscountBanner,
         shouldUseNarrowLayout,
-        styles.borderBottom,
-        styles.earlyDiscountButton,
-        styles.flexGrow1,
-        styles.mb4,
-        styles.mw100,
-        styles.ph5,
-        styles.pv5,
-        styles.themeTextColor,
-        userTimezone,
-        translate,
+        report?.reportID,
     ]);
 
     const talkToSalesButton = (
