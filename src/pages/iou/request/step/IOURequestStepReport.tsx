@@ -12,7 +12,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {findSelfDMReportID, getOutstandingReportsForUser} from '@libs/ReportUtils';
+import {findSelfDMReportID, getOutstandingReportsForUser, getPolicyName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -75,6 +75,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
                 return {
                     ...matchingOption,
+                    alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
                     value: report.reportID,
                     isSelected: isTransactionReportCorrect ? report.reportID === transaction?.reportID : expenseReports.at(0)?.reportID === report.reportID,
                 };
