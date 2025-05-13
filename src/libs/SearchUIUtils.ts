@@ -141,12 +141,13 @@ function getTransactionItemCommonFormattedProperties(
     const fromName = getDisplayNameOrDefault(from);
     const formattedFrom = formatPhoneNumber(fromName);
 
+    // Sometimes the search data personal detail for the 'to' account might not hold neither the display name nor the login
+    // so for those cases we fallback to the display name of the personal detail data from onyx.
     let toName = getDisplayNameOrDefault(to, '', false);
     if (!toName && to?.accountID) {
         toName = getDisplayNameOrDefault(getPersonalDetailsForAccountID(to?.accountID));
     }
-    // Sometimes the search data personal detail for the 'to' account might not hold neither the display name nor the login
-    // so for those cases we fallback to the display name of the personal detail data from onyx.
+
     const formattedTo = formatPhoneNumber(toName);
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
@@ -375,8 +376,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             modifiedCurrency: transactionItem.modifiedCurrency,
             merchant: transactionItem.merchant,
             modifiedMerchant: transactionItem.modifiedMerchant,
-            receipt: transactionItem.receipt,
-            tag: transactionItem.tag,
             comment: transactionItem.comment,
             category: transactionItem.category,
             transactionType: transactionItem.transactionType,
@@ -384,19 +383,12 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             policyID: transactionItem.policyID,
             parentTransactionID: transactionItem.parentTransactionID,
             hasEReceipt: transactionItem.hasEReceipt,
-            description: transactionItem.description,
             accountID: transactionItem.accountID,
             managerID: transactionItem.managerID,
-            taxAmount: transactionItem.taxAmount,
             reportID: transactionItem.reportID,
             transactionThreadReportID: transactionItem.transactionThreadReportID,
-            mccGroup: transactionItem.mccGroup,
-            modifiedMCCGroup: transactionItem.modifiedMCCGroup,
-            moneyRequestReportActionID: transactionItem.moneyRequestReportActionID,
             isFromOneTransactionReport: transactionItem.isFromOneTransactionReport,
-            isActionLoading: transactionItem.isActionLoading,
-            errors: transactionItem.errors,
-            pendingAction: transactionItem.pendingAction,
+            tag: transactionItem.tag,
         };
 
         transactionsSections.push(transactionSection);
@@ -407,9 +399,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 /**
  * @private
  * Retrieves all transactions associated with a specific report ID from the search data.
- * @param data - The search results data containing transactions
- * @param reportID - The ID of the report to find transactions for
- * @returns Array of transactions belonging to the specified report
+
  */
 function getTransactionsForReport(data: OnyxTypes.SearchResults['data'], reportID: string): SearchTransaction[] {
     return Object.entries(data)
@@ -420,8 +410,6 @@ function getTransactionsForReport(data: OnyxTypes.SearchResults['data'], reportI
 /**
  * @private
  * Extracts all transaction violations from the search data.
- * @param data - The search results data containing violations
- * @returns Object containing transaction violations indexed by their keys
  */
 function getViolations(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.TransactionViolation[]> {
     return Object.fromEntries(Object.entries(data).filter(([key]) => isViolationEntry(key))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
@@ -430,9 +418,6 @@ function getViolations(data: OnyxTypes.SearchResults['data']): OnyxCollection<On
 /**
  * @private
  * Retrieves a report from the search data based on the provided key.
- * @param data - The search results data containing reports
- * @param key - The key to look up the report (can be a transaction or report key)
- * @returns The report object if found, undefined otherwise
  */
 function getReportFromKey(data: OnyxTypes.SearchResults['data'], key: string): OnyxTypes.Report | undefined {
     if (isTransactionEntry(key)) {
@@ -448,9 +433,6 @@ function getReportFromKey(data: OnyxTypes.SearchResults['data'], key: string): O
 /**
  * @private
  * Retrieves the chat report associated with a given report.
- * @param data - The search results data containing reports
- * @param report - The report to find the associated chat report for
- * @returns The chat report object if found, empty object otherwise
  */
 function getChatReport(data: OnyxTypes.SearchResults['data'], report: OnyxTypes.Report) {
     return data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
@@ -458,10 +440,23 @@ function getChatReport(data: OnyxTypes.SearchResults['data'], report: OnyxTypes.
 
 /**
  * @private
+ * Retrieves the policy associated with a given report.
+ */
+function getPolicyFromKey(data: OnyxTypes.SearchResults['data'], report: OnyxTypes.Report) {
+    return data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
+}
+
+/**
+ * @private
+ * Retrieves the report name-value pairs associated with a given report.
+ */
+function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], report: OnyxTypes.Report) {
+    return data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`] ?? undefined;
+}
+
+/**
+ * @private
  * Determines the permission flags for a user reviewing a report.
- * @param report - The report being reviewed
- * @param policy - The policy associated with the report
- * @returns Object containing flags indicating if the user is a submitter, admin, or approver
  */
 function getReviewerPermissionFlags(
     report: OnyxTypes.Report,
@@ -522,7 +517,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     }
     // Get violations - optimize by using a Map for faster lookups
     const allViolations = getViolations(data);
-    const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
+    const policy = getPolicyFromKey(data, report) as OnyxTypes.Policy;
     const {isSubmitter, isAdmin, isApprover} = getReviewerPermissionFlags(report, policy);
 
     // Only check for violations if we need to (when user has permission to review)
@@ -541,7 +536,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
             : undefined;
 
     const chatReport = getChatReport(data, report);
-    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`];
+    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
     const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
 
     if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
@@ -556,7 +551,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
-    const reportNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+    const reportNVP = getReportNameValuePairsFromKey(data, report);
     const isArchived = isArchivedReport(reportNVP);
 
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
