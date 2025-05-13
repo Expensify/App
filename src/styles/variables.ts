@@ -294,6 +294,8 @@ export default {
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
 
+    scrollToNewTransactionOffset: 200,
+
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
 

@@ -44,6 +44,7 @@ import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostF
 import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
 import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
 import shouldDisplayNewMarkerOnReportAction from '@pages/home/report/shouldDisplayNewMarkerOnReportAction';
+import variables from '@styles/variables';
 import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,6 +77,9 @@ type MoneyRequestReportListProps = {
     /** List of transactions belonging to this report */
     transactions: OnyxTypes.Transaction[];
 
+    /** List of transactions that arrived when the report was open */
+    newTransactions: OnyxTypes.Transaction[];
+
     /** If the report has newer actions to load */
     hasNewerActions: boolean;
 
@@ -90,7 +94,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function MoneyRequestReportActionsList({report, policy, reportActions = [], transactions = [], hasNewerActions, hasOlderActions}: MoneyRequestReportListProps) {
+function MoneyRequestReportActionsList({report, policy, reportActions = [], transactions = [], newTransactions, hasNewerActions, hasOlderActions}: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {preferredLocale} = useLocalize();
@@ -441,7 +445,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                 if (pageY > 0 && pageY < height) {
                     return;
                 }
-                reportScrollManager.scrollToOffset(scrollingVerticalTopOffset.current + pageY - 300);
+                reportScrollManager.scrollToOffset(scrollingVerticalTopOffset.current + pageY - variables.scrollToNewTransactionOffset);
             });
         },
         [reportScrollManager],
@@ -545,6 +549,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                                 <MoneyRequestReportTransactionList
                                     report={report}
                                     transactions={transactions}
+                                    newTransactions={newTransactions}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}
                                     scrollToNewTransaction={scrollToNewTransaction}

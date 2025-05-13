@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
@@ -16,7 +16,6 @@ import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import {useMouseContext} from '@hooks/useMouseContext';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,6 +46,9 @@ type MoneyRequestReportTransactionListProps = {
 
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
+
+    /** Report that these transactions belong to */
+    newTransactions: OnyxTypes.Transaction[];
 
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
@@ -87,14 +89,13 @@ const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColu
     return key === CONST.SEARCH.TABLE_COLUMNS.DATE ? dateKey : key;
 };
 
-function MoneyRequestReportTransactionList({report, transactions, reportActions, hasComments, scrollToNewTransaction}: MoneyRequestReportTransactionListProps) {
+function MoneyRequestReportTransactionList({report, transactions, newTransactions, reportActions, hasComments, scrollToNewTransaction}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
-    const isFirstRender = useRef(true);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
@@ -118,8 +119,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         }, [setSelectedTransactionsID]),
     );
 
-    const prevTransactions = usePrevious(transactions);
-
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
         e.stopPropagation();
@@ -132,16 +131,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     });
 
     const {sortBy, sortOrder} = sortConfig;
-
-    const newTransactions = useMemo(() => {
-        if (isFirstRender.current) {
-            return [];
-        }
-        return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
-        // Depending only on transactions is enough because prevTransactions is a helper object.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactions]);
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions]
@@ -181,13 +170,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         },
         [reportActions, sortedTransactions],
     );
-
-    useEffect(() => {
-        if (!isFirstRender.current) {
-            return;
-        }
-        isFirstRender.current = false;
-    }, []);
 
     const dateColumnSize = useMemo(() => {
         const shouldShowYearForSomeTransaction = transactions.some((transaction) => shouldShowTransactionYear(transaction));
@@ -279,7 +261,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
                                 shouldShowCheckbox={!!selectionMode?.isEnabled || isMediumScreenWidth}
                                 onCheckboxPress={toggleTransaction}
-                                scrollToNewTransaction={transaction.transactionID === newTransactions.at(0)?.transactionID ? scrollToNewTransaction : undefined}
+                                scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                             />
                         </PressableWithFeedback>
                     );
