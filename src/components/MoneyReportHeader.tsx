@@ -529,9 +529,22 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 navigateToDetailsPage(moneyRequestReport, Navigation.getReportRHPActiveRoute());
             },
         },
-        [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD]: {
-            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD,
-            text: translate('common.download'),
+        [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV]: {
+            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+            text: translate('common.downloadAsCSV'),
+            icon: Expensicons.Download,
+            onSelected: () => {
+                if (!moneyRequestReport) {
+                    return;
+                }
+                exportReportToCSV({reportID: moneyRequestReport.reportID, transactionIDList: transactionIDs}, () => {
+                    setDownloadErrorModalVisible(true);
+                });
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
+            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
+            text: translate('common.downloadAsPDF'),
             icon: Expensicons.Download,
             onSelected: () => {
                 if (!moneyRequestReport) {
