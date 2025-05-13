@@ -437,6 +437,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             isExecuting,
             singleExecution,
             styles.productTrainingTooltipWrapper,
+            hasActivatedWallet,
         ],
     );
 

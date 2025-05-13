@@ -482,13 +482,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     titleStyles={styles.accountSettingsSectionTitle}
                                 >
                                     <>
-                                        {shouldShowLoadingSpinner ? (
+                                        {shouldShowLoadingSpinner && (
                                             <ActivityIndicator
                                                 color={theme.spinner}
                                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                                 style={[styles.mt7, styles.mb5]}
                                             />
-                                        ) : hasActivatedWallet ? (
+                                        )}
+                                        {!shouldShowLoadingSpinner && hasActivatedWallet && (
                                             <OfflineWithFeedback
                                                 pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
                                                 errors={walletTerms?.errors}
@@ -505,7 +506,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                     copyValue={convertToDisplayString(userWallet?.currentBalance ?? 0)}
                                                 />
                                             </OfflineWithFeedback>
-                                        ) : null}
+                                        )}
 
                                         <KYCWall
                                             onSuccessfulKYC={(_iouPaymentType?: PaymentMethodType, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
