@@ -34,7 +34,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openExternalLink} from '@libs/actions/Link';
 import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -224,7 +223,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const shouldShowGuideBookingButtonInEarlyDiscountBanner = shouldShowGuideBooking && shouldShowEarlyDiscountBanner && !isDismissedDiscountBanner;
 
-    const {canUseCallScheduling} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
 
@@ -240,10 +238,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                     success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
                     text={translate('getAssistancePage.scheduleACall')}
                     onPress={() => {
-                        if (!canUseCallScheduling) {
-                            openExternalLink(account?.guideDetails?.calendarLink ?? '');
-                            return;
-                        }
                         if (!report?.reportID) {
                             return;
                         }
@@ -305,8 +299,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             />
         );
     }, [
-        account?.guideDetails?.calendarLink,
-        canUseCallScheduling,
         report?.reportID,
         reportNameValuePairs?.calendlyCalls,
         shouldShowGuideBookingButtonInEarlyDiscountBanner,
