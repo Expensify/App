@@ -1,7 +1,5 @@
 import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusByIdentifier, getSecureWalletInfo} from '@expensify/react-native-wallet';
 import type {AndroidCardData, AndroidWalletData, CardStatus, TokenizationStatus} from '@expensify/react-native-wallet';
-import {Alert} from 'react-native';
-import {openWalletPage} from '@libs/actions/PaymentMethods';
 import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
@@ -11,34 +9,14 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
 
-function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescription: string, onFinished?: () => void) {
-    checkIfWalletIsAvailable().then((response) => {
+function handleAddCardToWallet(card: Card, cardHolderName: string): Promise<TokenizationStatus> {
+    return checkIfWalletIsAvailable().then((response) => {
         if (!response) {
-            onFinished?.();
-            return;
+            throw new Error('Wallet not available');
         }
-        getSecureWalletInfo()
-            .then((walletData: AndroidWalletData) => {
-                createDigitalGoogleWallet({cardHolderName, ...walletData})
-                    .then((cardData: AndroidCardData) => {
-                        addCardToGoogleWallet(cardData)
-                            .then((status: TokenizationStatus) => {
-                                if (status === 'success') {
-                                    Log.info('Card added to wallet');
-                                    openWalletPage();
-                                } else {
-                                    onFinished?.();
-                                }
-                            })
-                            .catch((error) => {
-                                Log.warn(`addCardToGoogleWallet error: ${error}`);
-                                Alert.alert('Failed to add card to wallet', 'Please try again later.');
-                            });
-                    })
-
-                    .catch((error) => Log.warn(`createDigitalWallet error: ${error}`));
-            })
-            .catch((error) => Log.warn(`getSecureWalletInfo error: ${error}`));
+        return getSecureWalletInfo().then((walletData: AndroidWalletData) =>
+            createDigitalGoogleWallet({cardHolderName, ...walletData}).then((cardData: AndroidCardData) => addCardToGoogleWallet(cardData)),
+        );
     });
 }
 
