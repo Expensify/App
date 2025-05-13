@@ -557,6 +557,8 @@ const translations = {
         comments: 'Comments',
         sharedIn: 'Shared in',
         unreported: 'Unreported',
+        getTheApp: 'Get the app',
+        scanReceiptsOnTheGo: 'Scan receipts on the go',
     },
     supportalNoAccess: {
         title: 'Not so fast',

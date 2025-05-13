@@ -548,6 +548,8 @@ const translations = {
         comments: 'Comentarios',
         sharedIn: 'Compartido en',
         unreported: 'No reportado',
+        getTheApp: 'Descarga la app',
+        scanReceiptsOnTheGo: 'Escanea recibos sobre la marcha',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

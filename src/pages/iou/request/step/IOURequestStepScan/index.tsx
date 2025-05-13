@@ -19,6 +19,7 @@ import DropZoneUI from '@components/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ExpensifyMobileApp} from '@components/Icon/Illustrations';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -53,6 +54,7 @@ import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 import variables from '@styles/variables';
 import {
     getMoneyRequestParticipantsFromReport,
@@ -967,6 +969,24 @@ function IOURequestStepScan({
                                 }}
                                 receiptImageTopPosition={receiptImageTopPosition}
                             />
+                        )}
+                        {platform === CONST.PLATFORM.DESKTOP && (
+                            <View style={[styles.ph2, styles.mb2, styles.stickToBottom]}>
+                                <BillingBanner
+                                    icon={ExpensifyMobileApp}
+                                    title={translate('common.getTheApp')}
+                                    subtitle={translate('common.scanReceiptsOnTheGo')}
+                                    subtitleStyle={[styles.mt1, styles.mutedTextLabel]}
+                                    style={[styles.borderRadiusComponentLarge, styles.hoveredComponentBG]}
+                                    rightComponent={
+                                        <Button
+                                            success
+                                            text={translate('common.download')}
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)}
+                                        />
+                                    }
+                                />
+                            </View>
                         )}
                         <ConfirmModal
                             title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
