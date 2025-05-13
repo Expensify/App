@@ -263,7 +263,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             getPlatform() !== CONST.PLATFORM.DESKTOP &&
             onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
             isOnboardingCompleted === true &&
-            (!!isOnboardingLoading || prevIsOnboardingLoading)
+            (!!isOnboardingLoading || !!prevIsOnboardingLoading)
         );
     }, [onboardingCompanySize, isOnboardingCompleted, isOnboardingLoading, prevIsOnboardingLoading]);
 
