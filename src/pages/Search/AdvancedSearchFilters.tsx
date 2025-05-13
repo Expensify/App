@@ -656,6 +656,10 @@ function AdvancedSearchFilters() {
         },
     ];
 
+    sections.forEach((section) => {
+        section.items.sort((a, b) => localeCompare(a.description, b.description));
+    });
+
     return (
         <>
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
