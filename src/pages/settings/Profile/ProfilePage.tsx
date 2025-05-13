@@ -158,7 +158,7 @@ function ProfilePage() {
                         return;
                     }
                     Navigation.goBack(route.params?.backTo);
-                }} // sprawdzenie zmiennej i handlowanie shouldpoptotop
+                }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 icon={Illustrations.Profile}

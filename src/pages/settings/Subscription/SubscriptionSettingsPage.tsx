@@ -55,7 +55,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                         return;
                     }
                     Navigation.goBack(backTo);
-                }} // tu sprawdzic globalna zmienna i powrot na backto shouldpoptotop
+                }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 icon={Illustrations.CreditCardsNew}

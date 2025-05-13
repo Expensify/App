@@ -57,7 +57,7 @@ function SaveTheWorldPage() {
                 title={translate('sidebarScreen.saveTheWorld')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={() => Navigation.popToSidebar()} // shouldpoptotop
+                onBackButtonPress={() => Navigation.popToSidebar()}
                 icon={Illustrations.TeachersUnite}
                 shouldUseHeadlineHeader
             />

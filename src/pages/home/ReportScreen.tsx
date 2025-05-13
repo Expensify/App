@@ -343,9 +343,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.goBack(backTo as Route);
             return;
         }
-        // Navigation.goBack(undefined, {shouldPopToTop: true});
         if (Navigation.getShouldPopToSidebar()) {
-            // need further investigation whether we can just pop to sidebar
             Navigation.popToSidebar();
             return;
         }
@@ -618,7 +616,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
                 Navigation.isNavigationReady().then(() => {
-                    Navigation.popToSidebar(); // shouldpoptotop
+                    Navigation.popToSidebar();
                 });
             }
             if (prevReport?.parentReportID) {

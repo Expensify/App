@@ -34,11 +34,9 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
             Navigation.isNavigationReady().then(() => {
                 if (Navigation.getShouldPopToSidebar()) {
                     Navigation.popToSidebar();
-                    return;
+                } else {
+                    Navigation.goBack();
                 }
-                Navigation.goBack();
-                // Navigation.goBack(undefined, {shouldPopToTop: true});
-                // Navigation.popToSidebar(); // shouldpoptotop
                 Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
             });
             return;
