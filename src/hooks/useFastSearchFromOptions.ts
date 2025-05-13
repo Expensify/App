@@ -1,8 +1,8 @@
 import deburr from 'lodash/deburr';
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import FastSearch from '@libs/FastSearch';
-import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
+import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 
@@ -13,8 +13,8 @@ type Options = {
 };
 
 const emptyResult = {
-    personalDetails: [] as OptionData[],
-    recentReports: [] as OptionData[],
+    personalDetails: [],
+    recentReports: [],
 };
 
 // You can either use this to search within report and personal details options
@@ -83,8 +83,8 @@ function useFastSearchFromOptions(
         };
     }, [options]);
 
-    const findInSearchTree = useMemo(() => {
-        function search(searchInput: string): AllOrSelectiveOptions {
+    const findInSearchTree = useCallback(
+        (searchInput: string) => {
             if (!fastSearch) {
                 return emptyResult;
             }
@@ -127,10 +127,9 @@ function useFastSearchFromOptions(
                 personalDetails,
                 recentReports,
             };
-        }
-
-        return search;
-    }, [includeUserToInvite, options, fastSearch]);
+        },
+        [includeUserToInvite, options, fastSearch],
+    );
 
     return findInSearchTree;
 }
