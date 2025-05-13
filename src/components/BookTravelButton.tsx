@@ -60,7 +60,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {isBlockedFromSpotnanaTravel, isTravelVerified} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
-    const [isVerificationModalVisible, setVerificationModalVisiblity] = useState(false);
+    const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
@@ -70,7 +70,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
     const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
-    const hideVerificationModal = () => setVerificationModalVisiblity(false);
+    const hideVerificationModal = () => setVerificationModalVisibility(false);
 
     const bookATrip = useCallback(() => {
         setErrorMessage('');
@@ -133,7 +133,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
         } else if (isPolicyProvisioned) {
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
         } else if (!isTravelVerified) {
-            setVerificationModalVisiblity(true);
+            setVerificationModalVisibility(true);
         }
         // Determine the domain to associate with the workspace during provisioning in Spotnana.
         // - If all admins share the same private domain, the workspace is tied to it automatically.
