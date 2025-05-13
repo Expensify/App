@@ -59,8 +59,10 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
 
+    /** Function for the action button */
     handleOnButtonPress?: () => void;
 
+    /** Whether the action button should be displayed */
     showAction?: boolean;
 };
 

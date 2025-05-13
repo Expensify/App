@@ -59,12 +59,6 @@ type MoneyRequestReportTransactionListProps = {
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     /** Whether the transaction should be highlighted, when it is added to the report */
     shouldBeHighlighted?: boolean;
-
-    /** The personal details of the user requesting money */
-    from?: SearchPersonalDetails;
-
-    /** The action that can be performed for the transaction */
-    action?: SearchTransactionAction;
 };
 
 const sortableColumnNames = [

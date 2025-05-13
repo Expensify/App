@@ -4,9 +4,7 @@ import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import type {TableColumnSize} from '@components/Search/types';
-import ActionCell from '@components/SelectionList/Search/ActionCell';
 import DateCell from '@components/SelectionList/Search/DateCell';
-import UserInfoCell from '@components/SelectionList/Search/UserInfoCell';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useHover from '@hooks/useHover';
@@ -31,22 +29,16 @@ function TransactionItemRow({
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
-    shouldShowChatBubbleComponent = false,
     onCheckboxPress,
     shouldShowCheckbox = false,
-    shouldShowActionCell = false,
-    reportAction = '',
 }: {
     transactionItem: TransactionWithOptionalHighlight;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
-    shouldShowChatBubbleComponent?: boolean;
     onCheckboxPress: (transactionID: string) => void;
     shouldShowCheckbox: boolean;
-    shouldShowActionCell?: boolean;
-    reportAction?: string;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -86,8 +78,8 @@ function TransactionItemRow({
         >
             {shouldUseNarrowLayout ? (
                 <Animated.View style={[animatedHighlightStyle]}>
-                    <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3, bgActiveStyles]}>
-                        <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
+                    <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, bgActiveStyles]}>
+                        <View style={[styles.flexRow]}>
                             {shouldShowCheckbox && (
                                 <View style={[styles.mr3, styles.justifyContentCenter]}>
                                     <Checkbox
@@ -144,10 +136,10 @@ function TransactionItemRow({
                                 )}
                             </View>
                         </View>
-                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.mb3]}>
-                            <View style={[styles.flexColumn, styles.gap2]}>
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                            <View style={[styles.flexColumn]}>
                                 {hasCategoryOrTag && (
-                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt3]}>
                                         <CategoryCell
                                             transactionItem={transactionItem}
                                             shouldShowTooltip={shouldShowTooltip}
@@ -160,9 +152,15 @@ function TransactionItemRow({
                                         />
                                     </View>
                                 )}
-                                <TransactionItemRowRBR transaction={transactionItem} />
+                                <TransactionItemRowRBR
+                                    transaction={transactionItem}
+                                    containerStyles={[styles.mt3]}
+                                />
                             </View>
-                            {shouldShowChatBubbleComponent && <ChatBubbleCell transaction={transactionItem} />}
+                            <ChatBubbleCell
+                                transaction={transactionItem}
+                                containerStyles={[styles.mt3]}
+                            />
                         </View>
                     </View>
                 </Animated.View>
@@ -206,15 +204,6 @@ function TransactionItemRow({
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                             </View>
-                            {!!transactionItem.from && (
-                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
-                                    <UserInfoCell
-                                        accountID={transactionItem.from.accountID}
-                                        avatar={transactionItem.from.avatar}
-                                        displayName={transactionItem.from.displayName ?? ''}
-                                    />
-                                </View>
-                            )}
                             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
                                 <CategoryCell
                                     transactionItem={transactionItem}
@@ -230,28 +219,14 @@ function TransactionItemRow({
                                 />
                             </View>
                             <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>
-                                {shouldShowChatBubbleComponent && <ChatBubbleCell transaction={transactionItem} />}
+                                <ChatBubbleCell transaction={transactionItem} />
                             </View>
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
-                                    <TotalCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    />
-                                </View>
-                                {shouldShowActionCell && (
-                                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                                        <ActionCell
-                                            action={transactionItem.action}
-                                            isSelected={isSelected}
-                                            isChildListItem
-                                            parentAction={reportAction}
-                                            goToItem={() => {}}
-                                            isLoading={false}
-                                        />
-                                    </View>
-                                )}
+                            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                                <TotalCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
                             </View>
                         </View>
                         <TransactionItemRowRBR transaction={transactionItem} />
