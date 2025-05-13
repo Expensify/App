@@ -77,6 +77,9 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
 
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
+
+    /** Invoked on mount and layout changes */
+    onLayout?: () => void;
 };
 
 const onScrollToIndexFailed = () => {};
@@ -101,6 +104,7 @@ function SearchList(
         queryJSONHash,
         shouldGroupByReports,
         onViewableItemsChanged,
+        onLayout,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -393,12 +397,14 @@ function SearchList(
                 removeClippedSubviews
                 onViewableItemsChanged={onViewableItemsChanged}
                 onScrollToIndexFailed={onScrollToIndexFailed}
+                onLayout={onLayout}
             />
             <Modal
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={() => setIsModalVisible(false)}
                 shouldPreventScrollOnFocus
+                shouldUseNewModal
             >
                 <MenuItem
                     title={translate('common.select')}
