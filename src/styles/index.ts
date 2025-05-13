@@ -1623,6 +1623,12 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        travelArrowCenter: {
+            width: variables.iconSizeSmall + 8,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         signInPageGradient: {
             height: '100%',
             width: 540,
