@@ -93,8 +93,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const filterCategories = useCallback((category: PolicyCategory | undefined) => !!category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, []);
 
     const [selectedCategories, setSelectedCategories] = useFilteredSelection(policyCategories, filterCategories);
-
-    const {canUseLeftHandBar} = usePermissions();
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
     const fetchCategories = useCallback(() => {
@@ -238,7 +236,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
-        const selectedCategoriesObject = selectedCategoriesArray.map((key) => policyCategories?.[key]);
+        const selectedCategoriesObject = selectedCategories.map((key) => policyCategories?.[key]);
 
         if (isSmallScreenWidth ? canSelectMultiple : selectedCategories.length > 0) {
             if (!isThereAnyAccountingConnection) {
@@ -277,7 +275,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
                             return;
                         }
-                        setSelectedCategories({});
+                        setSelectedCategories([]);
                         setWorkspaceCategoryEnabled(policyId, categoriesToDisable);
                     },
                 });

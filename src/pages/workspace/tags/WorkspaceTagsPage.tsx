@@ -298,7 +298,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const getHeaderButtons = () => {
         const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-        const selectedTagsObject = selectedTagsArray.map((key) => policyTagLists.at(0)?.tags?.[key]);
+        const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
 
         if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTags.length === 0) {
             return (
@@ -370,7 +370,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         setIsCannotDeleteOrDisableLastTagModalVisible(true);
                         return;
                     }
-                    setSelectedTags({});
+                    setSelectedTags([]);
                     setWorkspaceTagEnabled(policyID, tagsToDisable, 0);
                 },
             });
@@ -398,7 +398,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 customText={translate('workspace.common.selected', {count: selectedTags.length})}
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                isDisabled={!selectedTagsArray.length}
+                isDisabled={!selectedTags.length}
                 testID={`${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`}
             />
         );

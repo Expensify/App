@@ -251,7 +251,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         }
 
         if (enabledTagCount > 0) {
-            const selectedTagsObject = selectedTagsArray.map((key) => currentPolicyTag?.tags[key]);
+            const selectedTagsObject = selectedTags.map((key) => currentPolicyTag?.tags[key]);
             options.push({
                 icon: Expensicons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
@@ -261,7 +261,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         setIsCannotDeleteOrDisableLastTagModalVisible(true);
                         return;
                     }
-                    setSelectedTags({});
+                    setSelectedTags([]);
                     setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight);
                 },
             });
