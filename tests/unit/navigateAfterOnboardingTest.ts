@@ -70,12 +70,12 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 
-    it('should not navigate to LHN if onboardingAdminsChatReportID is not provided on larger screens', () => {
+    it('should not navigate to the admin room report if onboardingAdminsChatReportID is not provided on larger screens', () => {
         navigateAfterOnboarding(false, true, undefined, undefined);
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(undefined));
     });
 
-    it('should not navigate to LHN if it is a concierge chat on small screens', async () => {
+    it('should not navigate to last accessed report if it is a concierge chat on small screens', async () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const lastAccessedReport = {
             reportID: REPORT_ID,
@@ -94,7 +94,7 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
-    it('should navigate to LHN if it is onboarding expense chat on small screens', () => {
+    it('should not navigate to last accessed report if it is onboarding expense chat on small screens', () => {
         const lastAccessedReport = {reportID: REPORT_ID, policyID: ONBOARDING_POLICY_ID};
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
