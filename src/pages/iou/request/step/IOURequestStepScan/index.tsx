@@ -970,7 +970,7 @@ function IOURequestStepScan({
                                 receiptImageTopPosition={receiptImageTopPosition}
                             />
                         )}
-                        {platform === CONST.PLATFORM.DESKTOP && (
+                        {platform !== CONST.PLATFORM.MOBILEWEB && !isMobile() && (
                             <View style={[styles.ph2, styles.mb2, styles.stickToBottom]}>
                                 <BillingBanner
                                     icon={ExpensifyMobileApp}
