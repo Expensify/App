@@ -216,6 +216,7 @@ const SCREENS = {
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
         SPLIT_EXPENSE: 'Split_Expense',
+        SPLIT_EXPENSE_EDIT: 'Split_Expense_Edit',
         ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
         SCHEDULE_CALL: 'ScheduleCall',
     },

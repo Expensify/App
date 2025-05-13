@@ -66,15 +66,15 @@ function IOURequestStepDescription({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput(true);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-    const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
-    const isTransactionDraft = shouldUseTransactionDraft(action);
+    const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && action === CONST.IOU.ACTION.EDIT;
+    const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
 
     const currentDescriptionInMarkdown = useMemo(() => {
         if (!isTransactionDraft) {
-            return Parser.htmlToMarkdown(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '');
+            return Parser.htmlToMarkdown(isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '');
         }
-        return isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
-    }, [isTransactionDraft, isEditingSplitBill, splitDraftTransaction, transaction?.comment?.comment]);
+        return isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
+    }, [isTransactionDraft, isEditingSplit, splitDraftTransaction, transaction?.comment?.comment]);
 
     const descriptionRef = useRef(currentDescriptionInMarkdown);
     const isSavedRef = useRef(false);
@@ -122,7 +122,7 @@ function IOURequestStepDescription({
         }
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-        if (isEditingSplitBill) {
+        if (isEditingSplit) {
             setDraftSplitTransaction(transaction?.transactionID, {comment: newComment});
             navigateBack();
             return;
@@ -139,9 +139,10 @@ function IOURequestStepDescription({
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
-    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
+    const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
+    const canEditSplit = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction));
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplit : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) && !isSplitExpense;
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
     const getDescriptionHint = () => {
         return transaction?.category && policyCategories ? policyCategories[transaction?.category]?.commentHint ?? '' : '';

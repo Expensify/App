@@ -14,7 +14,7 @@ import type {SectionListDataType, SplitListItemType} from '@components/Selection
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addSplitExpenseField, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
+import {addSplitExpenseField, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,8 +43,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
     const {currentSearchHash} = useSearchContext();
 
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
@@ -186,7 +186,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <SelectionList
-                        onSelectRow={() => {}}
+                        onSelectRow={(item) => {
+                            initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, reportID);
+                        }}
                         headerContent={headerContent}
                         sections={sections}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}

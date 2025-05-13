@@ -702,11 +702,17 @@ type SplitExpenseSubtitleParams = {
     merchant: string;
 };
 
+type SplitExpenseEditTitleParams = {
+    amount: string;
+    merchant: string;
+};
+
 type TotalAmountGreaterOrLessThanOriginalParams = {
     amount: string;
 };
 
 export type {
+    SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     AuthenticationErrorParams,

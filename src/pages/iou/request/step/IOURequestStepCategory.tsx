@@ -69,8 +69,8 @@ function IOURequestStepCategory({
     const theme = useTheme();
     const {translate} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
-    const currentTransaction = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && action === CONST.IOU.ACTION.EDIT;
+    const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionCategory = getTransactionDetails(currentTransaction)?.category;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -83,9 +83,10 @@ function IOURequestStepCategory({
         (!!transactionCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction));
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) && !isSplitExpense;
 
     const fetchData = () => {
         if ((!!policy && !!policyCategories) || !report?.policyID) {
@@ -115,7 +116,7 @@ function IOURequestStepCategory({
 
         if (transaction) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-            if (isEditingSplitBill) {
+            if (isEditingSplit) {
                 setDraftSplitTransaction(transaction.transactionID, {category: updatedCategory}, policy);
                 navigateBack();
                 return;

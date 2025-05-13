@@ -11013,12 +11013,12 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
                 splitExpenses: relatedTransactions.map((currentTransaction) => {
                     const currentTransactionDetails = getTransactionDetails(currentTransaction);
                     return {
-                        transactionID: currentTransaction?.transactionID,
+                        transactionID: currentTransaction?.transactionID ?? '',
                         amount: currentTransactionDetails?.amount ?? 0,
                         description: currentTransactionDetails?.comment,
                         category: currentTransactionDetails?.category,
                         tags: currentTransactionDetails?.tag ? [currentTransactionDetails?.tag] : [],
-                        created: currentTransaction?.created,
+                        created: currentTransaction?.created ?? '',
                     };
                 }),
                 amount: Number(transactionDetails?.amount),
@@ -11078,6 +11078,40 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction?.transactionID}`, draftTransaction);
 
     Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID ?? String(CONST.DEFAULT_NUMBER_ID), transaction.transactionID, undefined, Navigation.getActiveRouteWithoutParams()));
+}
+
+/**
+ * Create a draft transaction to set up split expense details for edit split details
+ */
+function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitTransactionID: string, reportID: string) {
+    if (!draftTransaction || !splitTransactionID) {
+        return;
+    }
+    const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
+    const originalTransaction = getTransaction(originalTransactionID);
+    const splitTransactionData = draftTransaction?.comment?.splitExpenses?.find((item) => item.transactionID === splitTransactionID);
+
+    const transactionDetails = getTransactionDetails(originalTransaction);
+
+    const editDraftTransaction = buildOptimisticTransaction({
+        existingTransactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+        transactionParams: {
+            amount: Number(splitTransactionData?.amount),
+            currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
+            comment: splitTransactionData?.description,
+            tag: splitTransactionData?.tags?.at(0),
+            merchant: transactionDetails?.merchant ?? '',
+            participants: draftTransaction?.participants,
+            attendees: transactionDetails?.attendees as Attendee[],
+            reportID,
+            created: splitTransactionData?.created ?? '',
+            category: splitTransactionData?.category ?? '',
+        },
+    });
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, editDraftTransaction);
+
+    Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, originalTransactionID, splitTransactionData?.transactionID, Navigation.getActiveRouteWithoutParams()));
 }
 
 /**
@@ -11367,5 +11401,6 @@ export {
     addSplitExpenseField,
     updateSplitExpenseAmountField,
     saveSplitTransactions,
+    initDraftSplitExpenseDataForEdit,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};

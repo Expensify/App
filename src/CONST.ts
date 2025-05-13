@@ -2727,6 +2727,7 @@ const CONST = {
             SEND: 'send',
             PAY: 'pay',
             SPLIT: 'split',
+            SPLIT_EXPENSE: 'split_expense',
             REQUEST: 'request',
             INVOICE: 'invoice',
             SUBMIT: 'submit',

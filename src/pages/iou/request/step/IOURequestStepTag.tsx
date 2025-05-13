@@ -59,8 +59,9 @@ function IOURequestStepTag({
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
-    const isEditingSplitBill = isEditing && isSplitBill;
-    const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
+    const isEditingSplit = (isSplitBill || isSplitExpense) && isEditing;
+    const currentTransaction = isEditingSplit && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionTag = getTag(currentTransaction);
     const tag = getTag(currentTransaction, tagListIndex);
     const reportAction = reportActions?.[report?.parentReportActionID ?? reportActionID] ?? null;
@@ -71,7 +72,7 @@ function IOURequestStepTag({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        !isReportInGroupPolicy(report) || (isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)));
+        !isReportInGroupPolicy(report) || (isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) && !isSplitExpense);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -81,7 +82,7 @@ function IOURequestStepTag({
         const isSelectedTag = selectedTag.searchText === tag;
         const searchText = selectedTag.searchText ?? '';
         const updatedTag = insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : searchText, tagListIndex);
-        if (isEditingSplitBill) {
+        if (isEditingSplit) {
             setDraftSplitTransaction(transactionID, {tag: updatedTag});
             navigateBack();
             return;

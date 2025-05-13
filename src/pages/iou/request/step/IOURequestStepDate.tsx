@@ -59,13 +59,15 @@ function IOURequestStepDate({
     });
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-    const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
-    const currentCreated = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
-    const canEditingSplitBill = isEditingSplitBill && session && reportAction && session.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
+    const isEditingSplit = (isSplitBill || isSplitExpense) && isEditing;
+    const currentCreated = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
+    const canEditingSplitBill = isEditingSplit && session && reportAction && session.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     const canEditMoneyRequest = isEditing && canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || (isEditing && !canEditMoneyRequest && !canEditingSplitBill);
+    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || (isEditing && !canEditMoneyRequest && !canEditingSplitBill && !isSplitExpense);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -81,7 +83,7 @@ function IOURequestStepDate({
         }
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-        if (isEditingSplitBill) {
+        if (isEditingSplit) {
             setDraftSplitTransaction(transactionID, {created: newCreated});
             navigateBack();
             return;

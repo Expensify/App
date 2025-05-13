@@ -127,10 +127,10 @@ type Split = {
 /** Model for one portion of a shared expense */
 type SplitExpense = {
     /** Unique identifier of this split expense */
-    transactionID?: string;
+    transactionID: string;
 
     /** Amount allocated to this split */
-    amount?: number;
+    amount: number;
 
     /** Description of this split */
     description?: string;
@@ -142,7 +142,7 @@ type SplitExpense = {
     tags?: string[];
 
     /** Timestamp when this split was created */
-    created?: string;
+    created: string;
 };
 
 /** Model of IOU request */

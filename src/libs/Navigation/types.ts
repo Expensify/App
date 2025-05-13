@@ -1602,6 +1602,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
     [SCREENS.RIGHT_MODAL.SPLIT_EXPENSE]: NavigatorScreenParams<SplitExpenseParamList>;
+    [SCREENS.RIGHT_MODAL.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
 };
@@ -1983,6 +1984,12 @@ type SplitExpenseParamList = {
         transactionID: string;
         backTo?: Routes;
         splitTransactionID?: string;
+    };
+    [SCREENS.RIGHT_MODAL.SPLIT_EXPENSE_EDIT]: {
+        reportID: string;
+        transactionID: string;
+        splitTransactionID: string;
+        backTo?: Routes;
     };
 };
 
