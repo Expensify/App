@@ -27,7 +27,7 @@ import INPUT_IDS from '@src/types/form/NewTaskForm';
 type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
 
 function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
-    const [task] = useOnyx(ONYXKEYS.TASK);
+    const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [taskTitle, setTaskTitle] = useState(task?.title ?? '');
