@@ -29,7 +29,7 @@ IS_HYBRID_APP_REPO=$(scripts/is-hybrid-app.sh)
 # See if we should force standalone NewDot build
 NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
 
- if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
+if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     # Set HybridApp-specific arguments
     IOS_MODE="Debug"
     ANDROID_MODE="Debug"
