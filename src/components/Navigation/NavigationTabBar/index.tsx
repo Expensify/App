@@ -38,6 +38,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
 type NavigationTabBarProps = {
@@ -59,7 +60,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     });
 
     const reports = useMemo(() => {
-        return orderedReportIDs.map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
+        return orderedReportIDs.map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).filter(Boolean) as Report[];
     }, [allReports, orderedReportIDs]);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
