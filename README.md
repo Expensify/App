@@ -89,7 +89,7 @@ If you want to run the app on an actual physical iOS device, please follow the i
 
 By default, `react-native` is built from source when building the Android app. However, you can enable prebuilt artifacts to speed up the build process:
 
-   - Open `android/gradle.properties` or `Mobile-Expensify/Android/gradle.properties` for HybridApp
+   - Open `android/gradle.properties` (for Standalone NewDot) or `Mobile-Expensify/Android/gradle.properties` (for HybridApp)
    - Set `patchedArtifacts.forceBuildFromSource=false`
 
 #### Configuring GitHub CLI
