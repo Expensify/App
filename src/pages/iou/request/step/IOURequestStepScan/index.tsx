@@ -897,16 +897,6 @@ function IOURequestStepScan({
                         <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                             {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                         </View>
-                        <ReceiptDropUI
-                            onDrop={(e) => {
-                                const file = e?.dataTransfer?.files[0];
-                                if (file) {
-                                    file.uri = URL.createObjectURL(file);
-                                    setReceiptAndNavigate(file);
-                                }
-                            }}
-                            receiptImageTopPosition={receiptImageTopPosition}
-                        />
                         {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
                         {canUseMultiFilesDragAndDrop ? (
                             <DropZoneUI
