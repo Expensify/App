@@ -182,6 +182,9 @@ import Shield from '@assets/images/shield.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
 import GoogleLogo from '@assets/images/signIn/google-logo.svg';
 import AdvancedApprovalsSquare from '@assets/images/simple-illustrations/advanced-approvals-icon-square.svg';
+import MessageInABottle from '@assets/images/simple-illustrations/simple-illustration__messageinabottle.svg';
+import ReplaceReceipt from '@assets/images/simple-illustrations/simple-illustration__replace-receipt.svg';
+import SmartScan from '@assets/images/simple-illustrations/simple-illustration__smartscan.svg';
 import Facebook from '@assets/images/social-facebook.svg';
 import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
@@ -338,6 +341,7 @@ export {
     Menu,
     Meter,
     Megaphone,
+    MessageInABottle,
     MoneyBag,
     MoneyCircle,
     MoneySearch,
@@ -371,11 +375,13 @@ export {
     ReceiptSlash,
     RemoveMembers,
     ReceiptSearch,
+    ReplaceReceipt,
     Rotate,
     RotateLeft,
     Scan,
     Send,
     Shield,
+    SmartScan,
     Stopwatch,
     Suitcase,
     Sync,
