@@ -525,7 +525,7 @@ function subscribeToReportTypingEvents(reportID: string) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, normalizedTypingStatus);
 
         // Regular user typing indicators: time out after 1.5s of inactivity.
-        // Concierge (AgentZero-initiated): use a longer 8s timeout. Server sends a single event for Concierge, not a stream, so client holds the indicator longer.
+        // Concierge (AgentZero-initiated): use a longer 10s timeout. AgentZero sends a single typing event for Concierge, not a stream, so client holds the indicator longer.
         const isCurrentlyTyping = normalizedTypingStatus[accountIDOrLogin];
         if (isCurrentlyTyping) {
             // While the accountIDOrLogin could be 'Concierge' from OldDot, we only want the longer timeout for events queued from AgentZero (which will only send the accountID)
