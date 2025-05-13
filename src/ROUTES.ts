@@ -7,6 +7,7 @@ import Log from './libs/Log';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
+import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
 // This is a file containing constants for all the routes we want to be able to go to
@@ -82,12 +83,14 @@ const ROUTES = {
             backTo,
             moneyRequestReportActionID,
             transactionID,
+            iouReportID,
         }: {
             reportID: string | undefined;
             reportActionID?: string;
             backTo?: string;
             moneyRequestReportActionID?: string;
             transactionID?: string;
+            iouReportID?: string;
         }) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
@@ -102,6 +105,10 @@ const ROUTES = {
             }
             if (moneyRequestReportActionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+            }
+
+            if (iouReportID) {
+                queryParams.push(`iouReportID=${iouReportID}`);
             }
 
             const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
@@ -240,11 +247,11 @@ const ROUTES = {
         getRoute: (backTo?: string, forwardTo?: string) =>
             getUrlWithBackToParam(forwardTo ? `settings/wallet/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/wallet/verify', backTo),
     },
-    SETTINGS_WALLET_DOMAINCARD: {
+    SETTINGS_WALLET_DOMAIN_CARD: {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
     },
-    SETTINGS_DOMAINCARD_DETAIL: {
+    SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
     },
@@ -256,12 +263,15 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud-confirm',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud-confirm` as const,
     },
-    SETTINGS_DOMAINCARD_REPORT_FRAUD: {
+    SETTINGS_DOMAIN_CARD_REPORT_FRAUD: {
         route: 'settings/card/:cardID/report-virtual-fraud',
         getRoute: (cardID: string) => `settings/card/${cardID}/report-virtual-fraud` as const,
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
-    SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
+    SETTINGS_ADD_BANK_ACCOUNT: {
+        route: 'settings/wallet/add-bank-account',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/wallet/add-bank-account', backTo),
+    },
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
@@ -302,7 +312,10 @@ const ROUTES = {
     },
     SETTINGS_CONTACT_METHOD_DETAILS: {
         route: 'settings/profile/contact-methods/:contactMethod/details',
-        getRoute: (contactMethod: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details`, backTo),
+        getRoute: (contactMethod: string, backTo?: string, shouldSkipInitialValidation?: boolean) => {
+            const encodedMethod = encodeURIComponent(contactMethod);
+            return getUrlWithBackToParam(`settings/profile/contact-methods/${encodedMethod}/details${shouldSkipInitialValidation ? `?shouldSkipInitialValidation=true` : ``}`, backTo);
+        },
     },
     SETTINGS_NEW_CONTACT_METHOD: {
         route: 'settings/profile/contact-methods/new',
@@ -369,10 +382,19 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string, backTo?: string) => {
+        getRoute: (
+            reportID: string | undefined,
+            reportActionID?: string,
+            referrer?: string,
+            moneyRequestReportActionID?: string,
+            transactionID?: string,
+            backTo?: string,
+            iouReportID?: string,
+        ) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
             }
+
             const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
 
             const queryParams: string[] = [];
@@ -384,6 +406,10 @@ const ROUTES = {
             if (moneyRequestReportActionID && transactionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
                 queryParams.push(`transactionID=${transactionID}`);
+            }
+
+            if (iouReportID) {
+                queryParams.push(`iouReportID=${iouReportID}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
@@ -567,10 +593,15 @@ const ROUTES = {
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?/:searchHash?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string, searchHash?: number) => {
-            const route = searchHash
-                ? (`${type as string}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}&reportID=${reportID}` as const)
-                : (`${type as string}/edit/reason/${transactionID}/?backTo=${backTo}&reportID=${reportID}` as const);
+        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string | undefined, backTo: string, searchHash?: number) => {
+            let route = searchHash
+                ? (`${type as string}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}` as const)
+                : (`${type as string}/edit/reason/${transactionID}/?backTo=${backTo}` as const);
+
+            if (reportID) {
+                route = `${route}&reportID=${reportID}` as const;
+            }
+
             return route;
         },
     },
@@ -1414,23 +1445,23 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/category/:categoryName/gl-code',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/gl-code` as const,
     },
-    WORSKPACE_CATEGORY_DEFAULT_TAX_RATE: {
+    WORKSPACE_CATEGORY_DEFAULT_TAX_RATE: {
         route: 'settings/workspaces/:policyID/category/:categoryName/tax-rate',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/tax-rate` as const,
     },
-    WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
+    WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
         route: 'settings/workspaces/:policyID/category/:categoryName/flag-amounts',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/flag-amounts` as const,
     },
-    WORSKPACE_CATEGORY_DESCRIPTION_HINT: {
+    WORKSPACE_CATEGORY_DESCRIPTION_HINT: {
         route: 'settings/workspaces/:policyID/category/:categoryName/description-hint',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/description-hint` as const,
     },
-    WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
+    WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
         route: 'settings/workspaces/:policyID/category/:categoryName/require-receipts-over',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
     },
-    WORSKPACE_CATEGORY_APPROVER: {
+    WORKSPACE_CATEGORY_APPROVER: {
         route: 'settings/workspaces/:policyID/category/:categoryName/approver',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/approver` as const,
     },
@@ -1520,6 +1551,10 @@ const ROUTES = {
     WORKSPACE_MEMBER_DETAILS: {
         route: 'settings/workspaces/:policyID/members/:accountID',
         getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}` as const,
+    },
+    WORKSPACE_CUSTOM_FIELDS: {
+        route: 'settings/workspaces/:policyID/members/:accountID/:customFieldType',
+        getRoute: (policyID: string, accountID: number, customFieldType: CustomFieldType) => `/settings/workspaces/${policyID}/members/${accountID}/${customFieldType}` as const,
     },
     WORKSPACE_MEMBER_NEW_CARD: {
         route: 'settings/workspaces/:policyID/members/:accountID/new-card',

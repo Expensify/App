@@ -21,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 
-// We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ingored.
+// We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
 const HOLD = 'HOLD';
 const UNHOLD = 'UNHOLD';
 const MOVE = 'MOVE';
