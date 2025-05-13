@@ -79,14 +79,24 @@ function useOnboardingFlowRouter() {
                 // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
                 if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                     startedOnboardingFlowRef.current = true;
-                    startOnboardingFlow(canUsePrivateDomainOnboarding, onboardingValues, account?.isFromPublicDomain);
+                    startOnboardingFlow({
+                        canUsePrivateDomainOnboarding,
+                        onboardingValuesParam: onboardingValues,
+                        isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                        hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                    });
                 }
             }
 
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
             if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                 startedOnboardingFlowRef.current = true;
-                startOnboardingFlow(canUsePrivateDomainOnboarding, onboardingValues, account?.isFromPublicDomain);
+                startOnboardingFlow({
+                    canUsePrivateDomainOnboarding,
+                    onboardingValuesParam: onboardingValues,
+                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                });
             }
         });
     }, [
@@ -103,6 +113,7 @@ function useOnboardingFlowRouter() {
         dismissedProductTraining,
         canUsePrivateDomainOnboarding,
         account?.isFromPublicDomain,
+        account?.hasAccessibleDomainPolicies,
     ]);
 
     return {isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues), isHybridAppOnboardingCompleted};

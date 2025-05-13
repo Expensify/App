@@ -34,12 +34,19 @@ Onyx.connect({
     },
 });
 
+type GetOnboardingInitialPathParamsType = {
+    isUserFromPublicDomain: boolean;
+    hasAccessiblePolicies: boolean;
+    onboardingValuesParam?: Onboarding;
+    canUsePrivateDomainOnboarding?: boolean;
+};
+
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
-function startOnboardingFlow(canUsePrivateDomainOnboarding?: boolean, onboardingValuesParam?: Onboarding, isUserFromPublicDomain?: boolean) {
+function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPathParamsType) {
     const currentRoute = navigationRef.getCurrentRoute();
-    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(canUsePrivateDomainOnboarding, onboardingValuesParam, isUserFromPublicDomain), linkingConfig.config, false);
+    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(startOnboardingFlowParams), linkingConfig.config, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
@@ -51,7 +58,8 @@ function startOnboardingFlow(canUsePrivateDomainOnboarding?: boolean, onboarding
     } as PartialState<NavigationState>);
 }
 
-function getOnboardingInitialPath(canUsePrivateDomainOnboarding?: boolean, onboardingValuesParam?: Onboarding, isUserFromPublicDomain?: boolean, hasAccessiblePolicies?: boolean): string {
+function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingInitialPathParamsType): string {
+    const {isUserFromPublicDomain, hasAccessiblePolicies, onboardingValuesParam, canUsePrivateDomainOnboarding} = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
     const isVsb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;

@@ -128,7 +128,14 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
         if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
-            return getAdaptedStateFromPath(getOnboardingInitialPath(canUsePrivateDomainOnboarding), linkingConfig.config);
+            return getAdaptedStateFromPath(
+                getOnboardingInitialPath({
+                    canUsePrivateDomainOnboarding,
+                    isUserFromPublicDomain: !!account.isFromPublicDomain,
+                    hasAccessiblePolicies: !!account.hasAccessibleDomainPolicies,
+                }),
+                linkingConfig.config,
+            );
         }
 
         // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
