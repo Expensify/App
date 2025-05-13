@@ -101,6 +101,13 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
                 errors: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
+            value: {
+                validateCodeSent: null,
+            },
+        },
     ];
 
     const successData: OnyxUpdate[] = [
