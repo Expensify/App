@@ -84,6 +84,42 @@ If you want to run the app on an actual physical iOS device, please follow the i
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
+### Enabling prebuilt `react-native` artifacts on Android
+#### Disabling build from source
+
+By default, `react-native` is built from source when building the Android app. However, you can enable prebuilt artifacts to speed up the build process:
+
+   - Open `android/gradle.properties` or `Mobile-Expensify/Android/gradle.properties` for HybridApp
+   - Set `patchedArtifacts.forceBuildFromSource=false`
+
+#### Configuring GitHub CLI
+
+To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
+
+1. Install GitHub CLI by following the instructions from [cli.github.com](https://cli.github.com/)
+
+2. Create a GitHub Personal Access Token:
+   - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
+   - Click "Generate new token (classic)"
+   - Select the following scopes:
+     - `repo`
+     - `read:org`
+     - `gist`
+     - `read:packages`
+   - Copy the generated token
+
+3. Login to GitHub CLI:
+   ```bash
+   echo "YOUR_TOKEN" | gh auth login --with-token
+   ```
+4. Verify the login was successful:
+   ```bash
+   gh auth status
+   ```
+   You should see a message confirming you are authenticated with your GitHub account.
+
+After completing these steps, you should be able to build Android apps with prebuilt `react-native` artifacts.
+
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
