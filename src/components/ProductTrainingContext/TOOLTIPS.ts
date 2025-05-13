@@ -42,8 +42,8 @@ type TooltipData = {
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     [CONCIERGE_LHN_GBR]: {
         content: [
-            {text: 'productTrainingTooltip.conciergeLHNGbr.part1', isBold: false},
-            {text: 'productTrainingTooltip.conciergeLHNGbr.part2', isBold: true},
+            {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
+            {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCIERGE_LHN_GBR, isDismissedUsingCloseButton),
         name: CONCIERGE_LHN_GBR,
