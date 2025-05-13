@@ -1,4 +1,3 @@
-import {Platform} from 'react-native';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 

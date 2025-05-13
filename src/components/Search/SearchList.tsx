@@ -364,6 +364,7 @@ function SearchList(
         [getItemHeight, estimatedItemSize],
     );
 
+    // eslint-disable-next-line react/no-unused-prop-types
     const renderItem = useCallback(
         ({item, index}: {item: SearchListItem; index: number}) => {
             const isItemFocused = focusedIndex === index;
