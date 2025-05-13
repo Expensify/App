@@ -1,6 +1,4 @@
 import {Str} from 'expensify-common';
-import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
-import {heicTo, isHeic} from 'heic-to';
 import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
 import type {TupleToUnion} from 'type-fest';
@@ -320,154 +318,6 @@ function isHighResolutionImage(resolution: {width: number; height: number} | nul
     return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
 }
 
-/**
- * Detects if a file is HEIC/HEIF format and converts it to JPEG if needed
- * @param file - The file to check and potentially convert
- * @param onSuccess - Callback when conversion succeeds or if no conversion needed
- * @param onError - Callback when conversion fails
- * @param onStart - Callback when conversion starts
- * @param onFinish - Callback when conversion finishes (success or error)
- */
-function convertHeicImage(
-    file: FileObject,
-    {
-        onSuccess = () => {},
-        onError = () => {},
-        onStart = () => {},
-        onFinish = () => {},
-    }: {
-        onSuccess?: (convertedFile: FileObject) => void;
-        onError?: (error: unknown, originalFile: FileObject) => void;
-        onStart?: () => void;
-        onFinish?: () => void;
-    } = {},
-): void {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const needsConversion = file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif');
-
-    if (!needsConversion || !file.uri || !file.type?.startsWith('image')) {
-        onSuccess(file);
-        return;
-    }
-
-    onStart();
-
-    if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
-        if (!file.uri) {
-            onError(new Error('File URI is undefined'), file);
-            onFinish();
-            return;
-        }
-
-        fetch(file.uri)
-            .then((response) => response.blob())
-            .then((blob) => {
-                const fileFromBlob = new File([blob], file.name ?? 'temp-file', {
-                    type: blob.type,
-                });
-
-                return isHeic(fileFromBlob).then((isHEIC) => {
-                    if (isHEIC || needsConversion) {
-                        return heicTo({
-                            blob,
-                            type: 'image/jpeg',
-                        })
-                            .then((convertedBlob) => {
-                                const fileName = file.name ? file.name.replace(/\.(heic|heif)$/i, '.jpg') : 'converted-image.jpg';
-                                const jpegFile = new File([convertedBlob], fileName, {type: 'image/jpeg'});
-                                jpegFile.uri = URL.createObjectURL(jpegFile);
-                                onSuccess(jpegFile);
-                            })
-                            .catch((err) => {
-                                console.error('Error converting image format to JPEG:', err);
-                                onError(err, file);
-                            })
-                            .finally(() => {
-                                onFinish();
-                            });
-                    }
-
-                    onSuccess(file);
-                    onFinish();
-                });
-            })
-            .catch((err) => {
-                console.error('Error processing the file:', err);
-                onError(err, file);
-                onFinish();
-            });
-        return;
-    }
-
-    if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
-        if (!file.uri) {
-            onError(new Error('File URI is undefined'), file);
-            onFinish();
-            return;
-        }
-
-        /**
-         * Helper function to convert HEIC/HEIF image to JPEG using ImageManipulator
-         * @param sourceUri - URI of the image to convert
-         * @param originalExtension - The original file extension pattern to replace
-         */
-        const convertImageWithManipulator = (sourceUri: string, originalExtension: RegExp) => {
-            ImageManipulator.manipulate(sourceUri)
-                .renderAsync()
-                .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-                .then((manipulationResult) => {
-                    const convertedFile = {
-                        uri: manipulationResult.uri,
-                        name: file.name?.replace(originalExtension, '.jpg') ?? 'converted-image.jpg',
-                        type: 'image/jpeg',
-                        size: file.size,
-                        width: manipulationResult.width,
-                        height: manipulationResult.height,
-                    };
-                    onSuccess(convertedFile);
-                })
-                .catch((err) => {
-                    console.error('Error converting HEIC/HEIF to JPEG:', err);
-                    onError(err, file);
-                })
-                .finally(() => {
-                    onFinish();
-                });
-        };
-
-        // Convertion based on extension
-        if (needsConversion) {
-            const fileUri = file.uri;
-            convertImageWithManipulator(fileUri, /\.(heic|heif)$/i);
-            return;
-        }
-
-        // If not detected by extension, check using file signatures
-        verifyFileFormat({fileUri: file.uri, formatSignatures: CONST.HEIC_SIGNATURES})
-            .then((isHEIC) => {
-                if (isHEIC) {
-                    const fileUri = file.uri;
-                    if (!fileUri) {
-                        onError(new Error('File URI is undefined'), file);
-                        onFinish();
-                        return;
-                    }
-                    convertImageWithManipulator(fileUri, /\.heic$/i);
-                    return;
-                }
-
-                onSuccess(file);
-            })
-            .catch((err) => {
-                console.error('Error processing the file:', err);
-                onError(err, file);
-            })
-            .finally(() => {
-                onFinish();
-            });
-    }
-}
-
 const getImageDimensionsAfterResize = (file: FileObject) =>
     ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
         const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
@@ -546,7 +396,6 @@ export {
     getFileResolution,
     isHighResolutionImage,
     verifyFileFormat,
-    convertHeicImage,
     getImageDimensionsAfterResize,
     resizeImageIfNeeded,
     createFile,
