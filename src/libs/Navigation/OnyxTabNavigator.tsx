@@ -49,7 +49,7 @@ type OnyxTabNavigatorProps = ChildrenProps & {
     disableSwipe?: boolean;
 
     /** Callback to handle the Pager's internal onPageSelected event callback */
-    onTabSelect?: (index: number) => void;
+    onTabSelect?: ({index}: {index: number}) => void;
 };
 
 // eslint-disable-next-line rulesdir/no-inline-named-export
@@ -73,6 +73,7 @@ function OnyxTabNavigator({
     screenListeners,
     shouldShowLabelWhenInactive = true,
     disableSwipe = false,
+    onTabSelect,
     ...rest
 }: OnyxTabNavigatorProps) {
     // Mapping of tab name to focus trap container element
@@ -135,6 +136,9 @@ function OnyxTabNavigator({
                         const state = event.data.state;
                         const index = state.index;
                         const routeNames = state.routeNames;
+                        // We focus the selected tab input on mount as well as when the tab selection
+                        // is changed via internal Pager onPageSelected (passed to the navigator)
+                        onTabSelect?.({index});
                         const newSelectedTab = routeNames.at(index);
                         if (selectedTab === newSelectedTab) {
                             return;

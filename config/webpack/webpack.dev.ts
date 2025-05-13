@@ -66,6 +66,18 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                 }),
                 new ReactRefreshWebpackPlugin({overlay: {sockProtocol: 'wss'}}),
             ],
+            // This prevents import errors coming from react-native-tab-view/lib/module/TabView.tsx
+            // where Pager is imported without the .js extension
+            module: {
+                rules: [
+                    {
+                        test: /\.m?js$/,
+                        resolve: {
+                            fullySpecified: false,
+                        },
+                    },
+                ],
+            },
             cache: {
                 type: 'filesystem',
                 name: environment.platform ?? 'default',
