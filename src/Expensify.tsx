@@ -214,6 +214,9 @@ function Expensify() {
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
+            if (CONFIG.IS_HYBRID_APP) {
+                return;
+            }
             Report.openReportFromDeepLink(state.url);
         });
 

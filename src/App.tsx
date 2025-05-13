@@ -4,6 +4,7 @@ import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import HybridAppSignIn from '@src/HybridAppSignIn';
 import '../wdyr';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
@@ -53,8 +54,6 @@ type AppProps = {
     url?: Route;
     /** Serialized configuration data required to initialize the React Native app (e.g. authentication details) */
     hybridAppSettings?: string;
-    /** A timestamp indicating when the initial properties were last updated, used to detect changes */
-    timestamp?: string;
 };
 
 LogBox.ignoreLogs([
@@ -70,18 +69,14 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({url, hybridAppSettings, timestamp}: AppProps) {
+function App({url, hybridAppSettings}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
     return (
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
-                <InitialURLContextProvider
-                    url={url}
-                    hybridAppSettings={hybridAppSettings}
-                    timestamp={timestamp}
-                >
+                <InitialURLContextProvider url={url}>
                     <GestureHandlerRootView style={fill}>
                         <ComposeProviders
                             components={[
@@ -118,6 +113,12 @@ function App({url, hybridAppSettings, timestamp}: AppProps) {
                             <CustomStatusBarAndBackground />
                             <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
                                 <ColorSchemeWrapper>
+                                    {CONFIG.IS_HYBRID_APP && (
+                                        <HybridAppSignIn
+                                            url={url}
+                                            hybridAppSettings={hybridAppSettings}
+                                        />
+                                    )}
                                     <Expensify />
                                 </ColorSchemeWrapper>
                             </ErrorBoundary>
