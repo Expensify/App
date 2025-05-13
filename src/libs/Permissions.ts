@@ -74,10 +74,6 @@ function canUsePrivateDomainOnboarding(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PRIVATE_DOMAIN_ONBOARDING) || canUseAllBetas(betas);
 }
 
-function canUseRetractNewDot(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.RETRACT_NEWDOT) || canUseAllBetas(betas);
-}
-
 function canUseCallScheduling() {
     return false;
 }
@@ -101,7 +97,6 @@ export default {
     canUseProhibitedExpenses,
     canUseInAppProvisioning,
     canUseGlobalReimbursementsOnND,
-    canUseRetractNewDot,
     canUsePrivateDomainOnboarding,
     canUseRetractNewDot,
     canUseCallScheduling,
