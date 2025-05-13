@@ -410,7 +410,7 @@ function PolicyDistanceRatesPage({
                             canSelectMultiple={canSelectMultiple}
                             turnOnSelectionModeOnLongPress
                             onTurnOnSelectionMode={(item) => item && toggleRate(item)}
-                            sections={[{data: filteredDistanceRatesList, key: 'distanceRatesList'}]}
+                            sections={[{data: filteredDistanceRatesList, isDisabled: false}]}
                             selectedItemKeys={selectedDistanceRates}
                             onCheckboxPress={toggleRate}
                             onSelectRow={openRateDetails}
