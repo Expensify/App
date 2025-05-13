@@ -354,13 +354,6 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
         return;
     }
 
-    // if (options?.shouldPopToTop) {
-    //     if (shouldPopToSidebar) {
-    //         popToSidebar();
-    //         return;
-    //     }
-    // }
-
     if (backToRoute) {
         goUp(backToRoute, options);
         return;
