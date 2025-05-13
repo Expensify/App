@@ -30,7 +30,7 @@ import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
-import {getEffectiveDisplayName, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+import {getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -2310,6 +2310,13 @@ function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card)
     return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED || missingDetails);
 }
 
+function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
+    const policy = getPolicy(getOriginalMessage(reportAction)?.policyID);
+    const userDetail = getPersonalDetailByEmail(getOriginalMessage(reportAction)?.email ?? '');
+    const userName = userDetail?.firstName ? `${userDetail.displayName} (${userDetail.login})` : userDetail?.login ?? getOriginalMessage(reportAction)?.email;
+    return translateLocal('workspace.inviteMessage.joinRequest', {user: userName ?? '', workspaceName: policy?.name ?? ''});
+}
+
 function getCardIssuedMessage({
     reportAction,
     shouldRenderHTML = false,
@@ -2527,6 +2534,7 @@ export {
     getReportActionsLength,
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
+    getJoinRequestMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     getWorkspaceCurrencyUpdateMessage,

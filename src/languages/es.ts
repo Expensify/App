@@ -4684,6 +4684,7 @@ const translations = {
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar.',
             genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo.',
+            joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `${user} solicitó unirse al espacio de trabajo ${workspaceName}`,
         },
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',

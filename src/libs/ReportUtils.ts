@@ -139,6 +139,7 @@ import {
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
+    getJoinRequestMessage,
     getLastClosedReportAction,
     getLastVisibleAction,
     getLastVisibleAction as getLastVisibleActionReportActionsUtils,
@@ -164,6 +165,7 @@ import {
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
@@ -4770,6 +4772,10 @@ function getReportNameInternal({
     }
     if (isUnapprovedAction(parentReportAction)) {
         return getIOUUnapprovedMessage(parentReportAction);
+    }
+
+    if (isActionableJoinRequest(parentReportAction)) {
+        return getJoinRequestMessage(parentReportAction);
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
