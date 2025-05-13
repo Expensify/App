@@ -202,9 +202,6 @@ type Account = {
         errors: OnyxCommon.Errors;
     };
 
-    /// All of the fields/attributes after this comment are currently being migrated from the User model into this Account model
-    /// Please do not use any of it until the list of action tasks in the table at https://github.com/Expensify/App/issues/59277#issuecomment-2818283478 is fully completed
-
     /** Whether or not the user is subscribed to news updates */
     isSubscribedToNewsletter?: boolean;
 
