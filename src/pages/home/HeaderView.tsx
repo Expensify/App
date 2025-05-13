@@ -173,7 +173,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         return true;
     };
 
-    const shouldShowGuideBooking = !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
+    const shouldShowGuideBooking = true || (!!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink);
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
@@ -230,10 +230,11 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const guideBookingButton = useMemo(() => {
         const activeScheduledCall = reportNameValuePairs?.calendlyCalls
-            ?.sort((callA, callB) => compareDesc(parseISO(callA.eventTime), parseISO(callB.eventTime)))
-            .find((call) => !isPast(parseISO(call.eventTime)) && call.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED);
+            ?.reverse()
+            .sort((callA, callB) => compareDesc(parseISO(callA.eventTime), parseISO(callB.eventTime)))
+            .find((call) => !isPast(parseISO(call.eventTime)));
 
-        if (!activeScheduledCall) {
+        if (!activeScheduledCall || activeScheduledCall.status === CONST.SCHEDULE_CALL_STATUS.CANCELLED) {
             return (
                 <Button
                     success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
