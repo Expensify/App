@@ -12,7 +12,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {PressableWithFeedback} from '@components/Pressable';
-import getPlatformHeight, {ITEM_HEIGHTS} from '@components/Search/getPlatformHeight';
+import getPlatformHeight, {ITEM_HEIGHTS} from './getPlatformHeight';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
@@ -364,8 +364,8 @@ function SearchList(
         [getItemHeight, estimatedItemSize],
     );
 
-    // eslint-disable-next-line react/no-unused-prop-types
     const renderItem = useCallback(
+        // eslint-disable-next-line react/no-unused-prop-types
         ({item, index}: {item: SearchListItem; index: number}) => {
             const isItemFocused = focusedIndex === index;
             const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
