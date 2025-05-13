@@ -364,6 +364,7 @@ function ReportFieldsListValuesPage({
                         turnOnSelectionModeOnLongPress={!hasAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
                         sections={sections}
+                        shouldUseDefaultRightHandSideCheckmark={false}
                         onCheckboxPress={toggleValue}
                         onSelectRow={openListValuePage}
                         onSelectAll={toggleAllValues}

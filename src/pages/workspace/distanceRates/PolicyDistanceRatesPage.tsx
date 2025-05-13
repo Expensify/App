@@ -408,6 +408,7 @@ function PolicyDistanceRatesPage({
                             turnOnSelectionModeOnLongPress
                             onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                             sections={[{data: filteredDistanceRatesList, isDisabled: false}]}
+                            shouldUseDefaultRightHandSideCheckmark={false}
                             selectedItemKeys={selectedDistanceRates}
                             onCheckboxPress={toggleRate}
                             onSelectRow={openRateDetails}
