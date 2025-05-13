@@ -410,6 +410,7 @@ function WorkspaceTaxesPage({
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleTax(item)}
                         sections={[{data: filteredTaxesList, isDisabled: false}]}
+                        shouldUseDefaultRightHandSideCheckmark={false}
                         selectedItemKeys={selectedTaxesIDs}
                         onCheckboxPress={toggleTax}
                         onSelectRow={navigateToEditTaxRate}

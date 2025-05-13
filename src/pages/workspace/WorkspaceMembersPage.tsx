@@ -798,6 +798,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                                 sections={[{data: filteredData, isDisabled: false}]}
                                 selectedItemKeys={selectedEmployees}
                                 ListItem={TableListItem}
+                                shouldUseDefaultRightHandSideCheckmark={false}
                                 turnOnSelectionModeOnLongPress={isPolicyAdmin}
                                 onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
                                 shouldUseUserSkeletonView
