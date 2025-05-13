@@ -416,7 +416,7 @@ function SearchPage({route}: SearchPageProps) {
                 const source = URL.createObjectURL(resizedFile as Blob);
                 const newReportID = generateReportID();
                 const query = buildCannedSearchQuery();
-                    Navigation.setParams({q: query});
+                Navigation.setParams({q: query});
                 initMoneyRequest(newReportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, resizedFile.name || '', true);
