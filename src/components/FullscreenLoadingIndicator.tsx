@@ -1,10 +1,10 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ActivityIndicatorProps, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-type FullScreenLoadingIndicatorIconSize = number | 'small' | 'large' | undefined;
+type FullScreenLoadingIndicatorIconSize = ActivityIndicatorProps['size'];
 
 type FullScreenLoadingIndicatorProps = {
     style?: StyleProp<ViewStyle>;

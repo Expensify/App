@@ -75,10 +75,10 @@ type ReceiptImageProps = (
     iconSize?: IconSize;
 
     /** The size of the loading indicator */
-    imageIconSize?: FullScreenLoadingIndicatorIconSize;
+    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
 
     /** The style of the loading indicator */
-    loadingStyle?: StyleProp<ViewStyle>;
+    loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
@@ -118,7 +118,7 @@ function ReceiptImage({
     style,
     fileExtension,
     iconSize,
-    imageIconSize,
+    loadingIconSize,
     fallbackIcon,
     fallbackIconSize,
     shouldUseInitialObjectPosition = false,
@@ -129,7 +129,7 @@ function ReceiptImage({
     transactionItem,
     isPerDiemRequest,
     shouldUseFullHeight,
-    loadingStyle,
+    loadingIndicatorStyles,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -197,8 +197,8 @@ function ReceiptImage({
             source={{uri: source}}
             style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
             isAuthTokenRequired={isAuthTokenRequired}
-            imageIconSize={imageIconSize}
-            loadingStyle={loadingStyle}
+            loadingIconSize={loadingIconSize}
+            loadingIndicatorStyles={loadingIndicatorStyles}
         />
     );
 }

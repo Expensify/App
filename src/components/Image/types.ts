@@ -37,10 +37,10 @@ type ImageOwnProps = BaseImageProps & {
     resizeMode?: ImageResizeMode;
 
     /** The size of the loading indicator */
-    imageIconSize?: FullScreenLoadingIndicatorIconSize;
+    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
 
     /** The style of the loading indicator */
-    loadingStyle?: StyleProp<ViewStyle>;
+    loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
     /** Event for when the image begins loading */
     onLoadStart?: () => void;

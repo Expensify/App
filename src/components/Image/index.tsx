@@ -14,8 +14,8 @@ function Image({
     onLoad,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
     style,
-    imageIconSize,
-    loadingStyle,
+    loadingIconSize,
+    loadingIndicatorStyles,
     ...forwardedProps
 }: ImageProps) {
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
@@ -141,8 +141,8 @@ function Image({
     if (source === undefined) {
         return (
             <FullScreenLoadingIndicator
-                iconSize={imageIconSize}
-                style={loadingStyle}
+                iconSize={loadingIconSize}
+                style={loadingIndicatorStyles}
             />
         );
     }
