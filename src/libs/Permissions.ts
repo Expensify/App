@@ -70,6 +70,14 @@ function canUsePrivateDomainOnboarding(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PRIVATE_DOMAIN_ONBOARDING) || canUseAllBetas(betas);
 }
 
+function canUseRetractNewDot(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.RETRACT_NEWDOT) || canUseAllBetas(betas);
+}
+
+function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -86,4 +94,6 @@ export default {
     canUseInAppProvisioning,
     canUseGlobalReimbursementsOnND,
     canUsePrivateDomainOnboarding,
+    canUseRetractNewDot,
+    canUseMultiFilesDragAndDrop,
 };
