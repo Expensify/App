@@ -37,7 +37,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';

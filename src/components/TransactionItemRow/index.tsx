@@ -29,6 +29,7 @@ function TransactionItemRow({
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
+    shouldShowChatBubbleComponent = false,
     onCheckboxPress,
     shouldShowCheckbox = false,
 }: {
@@ -37,6 +38,7 @@ function TransactionItemRow({
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
+    shouldShowChatBubbleComponent?: boolean;
     onCheckboxPress: (transactionID: string) => void;
     shouldShowCheckbox: boolean;
 }) {
@@ -78,8 +80,8 @@ function TransactionItemRow({
         >
             {shouldUseNarrowLayout ? (
                 <Animated.View style={[animatedHighlightStyle]}>
-                    <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, bgActiveStyles]}>
-                        <View style={[styles.flexRow]}>
+                    <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3, bgActiveStyles]}>
+                        <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
                             {shouldShowCheckbox && (
                                 <View style={[styles.mr3, styles.justifyContentCenter]}>
                                     <Checkbox
@@ -136,10 +138,10 @@ function TransactionItemRow({
                                 )}
                             </View>
                         </View>
-                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                            <View style={[styles.flexColumn]}>
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.mb3]}>
+                            <View style={[styles.flexColumn, styles.gap2]}>
                                 {hasCategoryOrTag && (
-                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt3]}>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                         <CategoryCell
                                             transactionItem={transactionItem}
                                             shouldShowTooltip={shouldShowTooltip}
@@ -152,15 +154,9 @@ function TransactionItemRow({
                                         />
                                     </View>
                                 )}
-                                <TransactionItemRowRBR
-                                    transaction={transactionItem}
-                                    containerStyles={[styles.mt3]}
-                                />
+                                <TransactionItemRowRBR transaction={transactionItem} />
                             </View>
-                            <ChatBubbleCell
-                                transaction={transactionItem}
-                                containerStyles={[styles.mt3]}
-                            />
+                            {shouldShowChatBubbleComponent && <ChatBubbleCell transaction={transactionItem} />}
                         </View>
                     </View>
                 </Animated.View>
@@ -219,7 +215,7 @@ function TransactionItemRow({
                                 />
                             </View>
                             <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>
-                                <ChatBubbleCell transaction={transactionItem} />
+                                {shouldShowChatBubbleComponent && <ChatBubbleCell transaction={transactionItem} />}
                             </View>
                             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
                                 <TotalCell
