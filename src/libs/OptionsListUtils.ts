@@ -580,7 +580,7 @@ function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDeta
         reportUtilsIsSelfDM(report) ||
         (isDM(report) && lastActorDetails.accountID !== currentUserAccountID) ||
         lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
-        lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW
+        (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDetails.accountID === CONST.ACCOUNT_ID.MANAGER_MCTEST)
     ) {
         return false;
     }
