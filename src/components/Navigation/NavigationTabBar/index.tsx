@@ -66,12 +66,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         hideProductTrainingTooltip: hideInboxTooltip,
     } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP, isTooltipAllowed && selectedTab !== NAVIGATION_TABS.HOME);
 
-    const {
-        renderProductTrainingTooltip: renderWorkspacesTooltip,
-        shouldShowProductTrainingTooltip: shouldShowWorkspacesTooltip,
-        hideProductTrainingTooltip: hideWorkspacesTooltip,
-    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACES_TAB, isTooltipAllowed && selectedTab !== NAVIGATION_TABS.WORKSPACES);
-
     const StyleUtils = useStyleUtils();
 
     // On a wide layout DebugTabView should be rendered only within the navigation tab bar displayed directly on screens.
@@ -137,7 +131,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
      * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
      */
     const showWorkspaces = useCallback(() => {
-        hideWorkspacesTooltip();
         const rootState = navigationRef.getRootState();
         const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
         if (!topmostFullScreenRoute) {
@@ -206,7 +199,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             // Otherwise we should simply open the workspace hub navigator.
             Navigation.navigate(ROUTES.WORKSPACE_HUB_INITIAL);
         });
-    }, [shouldUseNarrowLayout, hideWorkspacesTooltip]);
+    }, [shouldUseNarrowLayout]);
 
     if (!shouldUseNarrowLayout) {
         return (
@@ -304,52 +297,37 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 {translate('common.reports')}
                             </Text>
                         </PressableWithFeedback>
-                        <EducationalTooltip
-                            shouldRender={shouldShowWorkspacesTooltip}
-                            anchorAlignment={{
-                                horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                            }}
-                            shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarWorkspacesTooltipShiftHorizontal}
-                            renderTooltipContent={renderWorkspacesTooltip}
-                            wrapperStyle={styles.productTrainingTooltipWrapper}
-                            shouldHideOnNavigate={false}
-                            onTooltipPress={showWorkspaces}
+                        <PressableWithFeedback
+                            onPress={showWorkspaces}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('common.workspacesTabTitle')}
+                            style={styles.leftNavigationTabBarItem}
                         >
-                            <PressableWithFeedback
-                                onPress={showWorkspaces}
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('common.workspacesTabTitle')}
-                                style={styles.leftNavigationTabBarItem}
+                            <View>
+                                <Icon
+                                    src={Expensicons.Buildings}
+                                    fill={selectedTab === NAVIGATION_TABS.WORKSPACES ? theme.iconMenu : theme.icon}
+                                    width={variables.iconBottomBar}
+                                    height={variables.iconBottomBar}
+                                />
+                                {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
+                            </View>
+                            <Text
+                                style={[
+                                    styles.textSmall,
+                                    styles.textAlignCenter,
+                                    styles.mt1Half,
+                                    selectedTab === NAVIGATION_TABS.WORKSPACES ? styles.textBold : styles.textSupporting,
+                                    styles.navigationTabBarLabel,
+                                ]}
                             >
-                                <View>
-                                    <Icon
-                                        src={Expensicons.Buildings}
-                                        fill={selectedTab === NAVIGATION_TABS.WORKSPACES ? theme.iconMenu : theme.icon}
-                                        width={variables.iconBottomBar}
-                                        height={variables.iconBottomBar}
-                                    />
-                                    {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
-                                </View>
-                                <Text
-                                    style={[
-                                        styles.textSmall,
-                                        styles.textAlignCenter,
-                                        styles.mt1Half,
-                                        selectedTab === NAVIGATION_TABS.WORKSPACES ? styles.textBold : styles.textSupporting,
-                                        styles.navigationTabBarLabel,
-                                    ]}
-                                >
-                                    {translate('common.workspacesTabTitle')}
-                                </Text>
-                            </PressableWithFeedback>
-                        </EducationalTooltip>
+                                {translate('common.workspacesTabTitle')}
+                            </Text>
+                        </PressableWithFeedback>
                         <NavigationTabBarAvatar
                             style={styles.leftNavigationTabBarItem}
                             isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                             onPress={navigateToSettings}
-                            isWebOrDesktop={isWebOrDesktop}
-                            isTooltipAllowed={isTooltipAllowed}
                         />
                     </View>
                     <View style={styles.leftNavigationTabBarItem}>
@@ -443,53 +421,38 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                 <View style={[styles.flex1, styles.navigationTabBarItem]}>
                     <NavigationTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
                 </View>
-                <EducationalTooltip
-                    shouldRender={shouldShowWorkspacesTooltip}
-                    anchorAlignment={{
-                        horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                    }}
-                    shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarWorkspacesTooltipShiftHorizontal}
-                    renderTooltipContent={renderWorkspacesTooltip}
-                    wrapperStyle={styles.productTrainingTooltipWrapper}
-                    shouldHideOnNavigate={false}
-                    onTooltipPress={showWorkspaces}
+                <PressableWithFeedback
+                    onPress={showWorkspaces}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.workspacesTabTitle')}
+                    wrapperStyle={styles.flex1}
+                    style={styles.navigationTabBarItem}
                 >
-                    <PressableWithFeedback
-                        onPress={showWorkspaces}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('common.workspacesTabTitle')}
-                        wrapperStyle={styles.flex1}
-                        style={styles.navigationTabBarItem}
+                    <View>
+                        <Icon
+                            src={Expensicons.Buildings}
+                            fill={selectedTab === NAVIGATION_TABS.WORKSPACES ? theme.iconMenu : theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                        {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
+                    </View>
+                    <Text
+                        style={[
+                            styles.textSmall,
+                            styles.textAlignCenter,
+                            styles.mt1Half,
+                            selectedTab === NAVIGATION_TABS.WORKSPACES ? styles.textBold : styles.textSupporting,
+                            styles.navigationTabBarLabel,
+                        ]}
                     >
-                        <View>
-                            <Icon
-                                src={Expensicons.Buildings}
-                                fill={selectedTab === NAVIGATION_TABS.WORKSPACES ? theme.iconMenu : theme.icon}
-                                width={variables.iconBottomBar}
-                                height={variables.iconBottomBar}
-                            />
-                            {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
-                        </View>
-                        <Text
-                            style={[
-                                styles.textSmall,
-                                styles.textAlignCenter,
-                                styles.mt1Half,
-                                selectedTab === NAVIGATION_TABS.WORKSPACES ? styles.textBold : styles.textSupporting,
-                                styles.navigationTabBarLabel,
-                            ]}
-                        >
-                            {translate('common.workspacesTabTitle')}
-                        </Text>
-                    </PressableWithFeedback>
-                </EducationalTooltip>
+                        {translate('common.workspacesTabTitle')}
+                    </Text>
+                </PressableWithFeedback>
                 <NavigationTabBarAvatar
                     style={styles.navigationTabBarItem}
                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                     onPress={navigateToSettings}
-                    isWebOrDesktop={isWebOrDesktop}
-                    isTooltipAllowed={isTooltipAllowed}
                 />
             </View>
         </>

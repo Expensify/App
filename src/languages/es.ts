@@ -6849,14 +6849,6 @@ const translations = {
             part1: 'Filtra los gastos\nque ',
             part2: 'necesitan aprobación',
         },
-        settingsTab: {
-            part1: 'Explora ',
-            part2: 'la configuración de tu cuenta',
-        },
-        workspacesTab: {
-            part1: 'Explora ',
-            part2: 'la configuración\nde tu espacio de trabajo',
-        },
         workspacesSettings: {
             part1: 'Ver tus ',
             part2: 'espacios de trabajo',

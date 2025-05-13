@@ -7028,8 +7028,6 @@ const CONST = {
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
         OUTSANDING_FILTER: 'outstandingFilter',
-        SETTINGS_TAB: 'settingsTab',
-        WORKSPACES_TAB: 'workspacesTab',
         WORKSPACES_SETTINGS: 'workspacesSettings',
         GBR_RBR_CHAT: 'chatGBRRBR',
         ACCOUNT_SWITCHER: 'accountSwitcher',

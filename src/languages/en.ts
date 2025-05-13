@@ -6324,14 +6324,6 @@ const translations = {
             part1: 'Filter for expenses\nthat ',
             part2: 'need approval',
         },
-        settingsTab: {
-            part1: 'Explore your ',
-            part2: 'account settings',
-        },
-        workspacesTab: {
-            part1: 'Explore your ',
-            part2: 'workspace settings',
-        },
         workspacesSettings: {
             part1: 'View your ',
             part2: 'workspaces',
