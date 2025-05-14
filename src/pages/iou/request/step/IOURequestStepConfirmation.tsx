@@ -6,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import DropZoneUI from '@components/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -18,6 +19,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import DateUtils from '@libs/DateUtils';
@@ -76,7 +78,7 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route: {
-        params: {iouType, reportID, transactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute},
+        params: {iouType, reportID, transactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport},
     },
     transaction,
     isLoadingTransaction,
@@ -153,6 +155,9 @@ function IOURequestStepConfirmation({
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile && !isTestTransaction;
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
+
+    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
+    const {canUseMultiFilesDragAndDrop} = usePermissions();
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -423,20 +428,22 @@ function IOURequestStepConfirmation({
                     waypoints: Object.keys(transaction.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
                     customUnitRateID,
                 },
+                backToReport,
             });
         },
         [
-            report,
             transaction,
-            transactionTaxCode,
-            transactionTaxAmount,
+            report,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             policy,
             policyTags,
             policyCategories,
             action,
+            transactionTaxCode,
+            transactionTaxAmount,
             customUnitRateID,
+            backToReport,
         ],
     );
 
@@ -574,9 +581,23 @@ function IOURequestStepConfirmation({
                     billable: transaction.billable,
                     attendees: transaction.comment?.attendees,
                 },
+                backToReport,
             });
         },
-        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],
+        [
+            transaction,
+            report,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            iouType,
+            policy,
+            policyCategories,
+            policyTags,
+            transactionTaxCode,
+            transactionTaxAmount,
+            customUnitRateID,
+            backToReport,
+        ],
     );
 
     const createTransaction = useCallback(
@@ -891,7 +912,7 @@ function IOURequestStepConfirmation({
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
-            headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
+            headerGapStyles={isDraggingOver ? [canUseMultiFilesDragAndDrop ? styles.dropWrapper : styles.isDraggingOver] : []}
         >
             <DragAndDropProvider
                 setIsDraggingOver={setIsDraggingOver}
@@ -913,15 +934,33 @@ function IOURequestStepConfirmation({
                     />
                     {(isLoading || isLoadingReceipt) && <FullScreenLoadingIndicator />}
                     {PDFThumbnailView}
-                    <ReceiptDropUI
-                        onDrop={(e) => {
-                            const file = e?.dataTransfer?.files[0];
-                            if (file) {
-                                file.uri = URL.createObjectURL(file);
-                                setReceiptOnDrop(file);
-                            }
-                        }}
-                    />
+                    {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
+                    {canUseMultiFilesDragAndDrop ? (
+                        <DropZoneUI
+                            onDrop={(e) => {
+                                const file = e?.dataTransfer?.files[0];
+                                if (file) {
+                                    file.uri = URL.createObjectURL(file);
+                                    setReceiptOnDrop(file);
+                                }
+                            }}
+                            icon={Expensicons.ReplaceReceipt}
+                            dropStyles={styles.receiptDropOverlay}
+                            dropTitle={translate('dropzone.replaceReceipt')}
+                            dropTextStyles={styles.receiptDropText}
+                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
+                        />
+                    ) : (
+                        <ReceiptDropUI
+                            onDrop={(e) => {
+                                const file = e?.dataTransfer?.files[0];
+                                if (file) {
+                                    file.uri = URL.createObjectURL(file);
+                                    setReceiptOnDrop(file);
+                                }
+                            }}
+                        />
+                    )}
                     <ConfirmModal
                         title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                         onConfirm={hideReceiptModal}

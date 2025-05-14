@@ -9,7 +9,6 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type Account from '@src/types/onyx/Account';
 import type Onboarding from '@src/types/onyx/Onboarding';
 
 let onboardingInitialPath = '';
@@ -35,23 +34,12 @@ Onyx.connect({
     },
 });
 
-let userAccount: Account;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-        userAccount = value;
-    },
-});
-
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
-function startOnboardingFlow(isPrivateDomain?: boolean, onboardingValuesParam?: Onboarding) {
+function startOnboardingFlow(isPrivateDomain?: boolean, onboardingValuesParam?: Onboarding, isUserFromPublicDomain?: boolean) {
     const currentRoute = navigationRef.getCurrentRoute();
-    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain, onboardingValuesParam), linkingConfig.config, false);
+    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain, onboardingValuesParam, isUserFromPublicDomain), linkingConfig.config, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
@@ -63,9 +51,8 @@ function startOnboardingFlow(isPrivateDomain?: boolean, onboardingValuesParam?: 
     } as PartialState<NavigationState>);
 }
 
-function getOnboardingInitialPath(isPrivateDomain?: boolean, onboardingValuesParam?: Onboarding): string {
+function getOnboardingInitialPath(isPrivateDomain?: boolean, onboardingValuesParam?: Onboarding, isUserFromPublicDomain?: boolean): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
-    const isUserFromPublicDomain = userAccount?.isFromPublicDomain;
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
     const isVsb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
@@ -82,7 +69,7 @@ function getOnboardingInitialPath(isPrivateDomain?: boolean, onboardingValuesPar
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }
-    if (isUserFromPublicDomain && !currentOnboardingValues?.isMergeAccountStepCompleted) {
+    if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
     if (isVsb) {
