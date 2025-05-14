@@ -44,11 +44,16 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
+type SelectedOption = ListItem &
+    Omit<OptionData, 'reportID'> & {
+        reportID?: string;
+    };
+
 function useOptions() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<Array<ListItem & OptionData>>([]);
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
-    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: false});
+    const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const personalData = useCurrentUserPersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
@@ -146,7 +151,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
     useImperativeHandle(ref, () => ({
@@ -160,7 +165,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         const sectionsList: Section[] = [];
         let firstKey = '';
 
-        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails);
+        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions as OptionData[], recentReports, personalDetails);
         sectionsList.push(formatResults.section);
 
         if (!firstKey) {
@@ -206,12 +211,12 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         (option: ListItem & Partial<OptionData>) => {
             const isOptionInList = !!option.isSelected;
 
-            let newSelectedOptions;
+            let newSelectedOptions: SelectedOption[];
 
             if (isOptionInList) {
                 newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
             } else {
-                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? String(CONST.DEFAULT_NUMBER_ID)}];
+                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID}];
                 selectionListRef?.current?.scrollToIndex(0, true);
             }
 
@@ -304,7 +309,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         if (!personalData || !personalData.login || !personalData.accountID) {
             return;
         }
-        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({
+        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option) => ({
             login: option?.login,
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
         }));
@@ -317,7 +322,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
 
     const footerContent = useMemo(
         () =>
-            !isDismissed || selectedOptions.length ? (
+            (!isDismissed || selectedOptions.length > 0) && (
                 <>
                     <ReferralProgramCTA
                         referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
@@ -334,7 +339,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                         />
                     )}
                 </>
-            ) : null,
+            ),
         [createGroup, selectedOptions.length, styles.mb5, translate, isDismissed],
     );
 
@@ -343,6 +348,8 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
             enableEdgeToEdgeBottomSafeAreaPadding
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
+            disableOfflineIndicatorSafeAreaPadding
+            shouldShowOfflineIndicator={false}
             keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}

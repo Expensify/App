@@ -70,7 +70,7 @@ describe('getSecondaryAction', () => {
             transactionID: TRANSACTION_ID,
         } as unknown as Transaction;
 
-        const result = getSecondaryReportActions(report, [transaction], {}, policy);
+        const result = getSecondaryReportActions(report, [transaction], {}, policy, undefined, undefined, undefined, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
     });
 
