@@ -7,6 +7,9 @@ inputs:
     PR_NUMBER:
         description: "Pull request number"
         required: true
+    HYBRID_APP_PR_NUMBER:
+        description: "Pull request number for the hybrid app"
+        required: false
     GITHUB_TOKEN:
         description: "Github token for authentication"
         default: "${{ github.token }}"

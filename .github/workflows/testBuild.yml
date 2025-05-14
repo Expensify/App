@@ -464,6 +464,7 @@ jobs:
         uses: ./.github/actions/javascript/postTestBuildComment
         with:
           PR_NUMBER: ${{ inputs.PULL_REQUEST_NUMBER }}
+          HYBRID_APP_PR_NUMBER: ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}
           GITHUB_TOKEN: ${{ github.token }}
           ANDROID: ${{ needs.androidHybrid.result }}
           DESKTOP: ${{ needs.desktop.result }}
