@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -7,6 +8,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
 import EReceiptWithSizeCalculation from './EReceiptWithSizeCalculation';
+import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
@@ -72,6 +74,12 @@ type ReceiptImageProps = (
     /** number of images displayed in the same parent container */
     iconSize?: IconSize;
 
+    /** The size of the loading indicator */
+    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
+
+    /** The style of the loading indicator */
+    loadingIndicatorStyles?: StyleProp<ViewStyle>;
+
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
 
@@ -113,6 +121,7 @@ function ReceiptImage({
     style,
     fileExtension,
     iconSize,
+    loadingIconSize,
     fallbackIcon,
     fallbackIconSize,
     shouldUseInitialObjectPosition = false,
@@ -124,6 +133,7 @@ function ReceiptImage({
     isPerDiemRequest,
     shouldUseFullHeight,
     isReportPreview = false,
+    loadingIndicatorStyles,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -192,6 +202,8 @@ function ReceiptImage({
             source={{uri: source}}
             style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
             isAuthTokenRequired={isAuthTokenRequired}
+            loadingIconSize={loadingIconSize}
+            loadingIndicatorStyles={loadingIndicatorStyles}
         />
     );
 }
