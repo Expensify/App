@@ -127,6 +127,8 @@ function IOURequestStepScan({
     const isTabActive = useIsFocused();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+
+    console.log(isEditing);
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -940,9 +942,9 @@ function IOURequestStepScan({
                                         setReceiptAndNavigate(file);
                                     }
                                 }}
-                                icon={Expensicons.SmartScan}
+                                icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
                                 dropStyles={styles.receiptDropOverlay}
-                                dropTitle={translate('dropzone.scanReceipts')}
+                                dropTitle={isEditing ? translate('dropzone.replaceReceipt') : translate('dropzone.scanReceipts')}
                                 dropTextStyles={styles.receiptDropText}
                                 dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
                             />

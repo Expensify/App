@@ -79,6 +79,7 @@ function canUseCallScheduling() {
 }
 
 function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
+    return true;
     return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || canUseAllBetas(betas);
 }
 
