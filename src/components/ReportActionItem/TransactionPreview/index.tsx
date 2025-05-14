@@ -79,7 +79,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     const {originalTransaction, isBillSplit} = getOriginalTransactionIfBillIsSplit(transaction);
 
-    const IOUaction =
+    const iouAction =
         isBillSplit && originalTransaction
             ? getIOUActionForReportID(
                   originalTransaction.comment?.splits?.find((split) => !!split && !!split.chatReportID && split.accountID === sessionAccountID)?.chatReportID,
