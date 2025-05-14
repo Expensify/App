@@ -40,9 +40,7 @@ import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
-    getIOUActionForReportID,
     getOneTransactionThreadReportID,
-    getReportAction,
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
@@ -50,15 +48,11 @@ import {
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {
-    buildTransactionThread,
     canEditReportAction,
     canUserPerformWriteAction,
     findLastAccessedReport,
-    generateReportID,
     getParticipantsAccountIDsForDisplay,
     getReportOfflinePendingActionAndErrors,
-    getReportOrDraftReport,
-    getReportTransactions,
     isChatThread,
     isConciergeChatReport,
     isGroupChat,
@@ -304,7 +298,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         canBeMissing: false,
     });
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
@@ -454,30 +447,17 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        const {moneyRequestReportActionID, transactionID, iouReportID} = route.params;
+        const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
+        const transactionID: string | undefined = route.params?.transactionID;
 
         // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
-        if (transactionID && currentUserEmail && !report) {
-            const iouReport = getReportOrDraftReport(iouReportID);
-            const iouAction = getReportAction(iouReportID, moneyRequestReportActionID);
-            const optimisticTransactionThread = buildTransactionThread(iouAction, iouReport, undefined, reportIDFromRoute);
-            openReport(reportIDFromRoute, undefined, [currentUserEmail], optimisticTransactionThread, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
+        if (transactionID && currentUserEmail) {
+            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
             return;
         }
-
-        // If there is one transaction thread that has not yet been created, we should create it.
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && currentUserEmail) {
-            const optimisticTransactionThreadReportID = generateReportID();
-            const transactions = getReportTransactions(reportID);
-            const oneTransactionID = transactions.at(0)?.transactionID;
-            const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-            const optimisticTransactionThread = buildTransactionThread(iouAction, report, undefined, optimisticTransactionThreadReportID);
-            openReport(optimisticTransactionThreadReportID, undefined, [currentUserEmail], optimisticTransactionThread, iouAction?.reportActionID);
-        }
-
         openReport(reportIDFromRoute, reportActionIDFromRoute);
-    }, [reportMetadata.isOptimisticReport, route.params, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail, report, reportID, transactionThreadReport, transactionThreadReportID]);
+    }, [reportMetadata.isOptimisticReport, route.params?.moneyRequestReportActionID, route.params?.transactionID, reportIDFromRoute, reportActionIDFromRoute, currentUserEmail]);
 
     useEffect(() => {
         if (!reportID || !isFocused) {
@@ -543,7 +523,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // There should be only one openReport execution per page start or navigating
         fetchReport();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [route, isLinkedMessagePageReady, reportActionIDFromRoute, transactionThreadReportID]);
+    }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
 
     const prevReportActions = usePrevious(reportActions);
     useEffect(() => {
