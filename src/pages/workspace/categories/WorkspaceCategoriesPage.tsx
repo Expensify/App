@@ -465,6 +465,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             turnOnSelectionModeOnLongPress={isSmallScreenWidth}
                             onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
                             sections={[{data: filteredCategoryList, isDisabled: false}]}
+                            shouldUseDefaultRightHandSideCheckmark={false}
                             selectedItemKeys={selectedCategories}
                             onCheckboxPress={toggleCategory}
                             onSelectRow={navigateToCategorySettings}
