@@ -11,34 +11,28 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
 }
 
 function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescription: string, onFinished?: () => void) {
-    checkIfWalletIsAvailable().then((response) => {
-        if (!response) {
-            onFinished?.();
-            return;
-        }
-        getSecureWalletInfo()
-            .then((walletData: AndroidWalletData) => {
-                createDigitalGoogleWallet({cardHolderName, ...walletData})
-                    .then((cardData: AndroidCardData) => {
-                        addCardToGoogleWallet(cardData)
-                            .then((status: TokenizationStatus) => {
-                                if (status === 'success') {
-                                    Log.info('Card added to wallet');
-                                    openWalletPage();
-                                } else {
-                                    onFinished?.();
-                                }
-                            })
-                            .catch((error) => {
-                                Log.warn(`addCardToGoogleWallet error: ${error}`);
-                                Alert.alert('Failed to add card to wallet', 'Please try again later.');
-                            });
-                    })
+    getSecureWalletInfo()
+        .then((walletData: AndroidWalletData) => {
+            createDigitalGoogleWallet({cardHolderName, ...walletData})
+                .then((cardData: AndroidCardData) => {
+                    addCardToGoogleWallet(cardData)
+                        .then((status: TokenizationStatus) => {
+                            if (status === 'success') {
+                                Log.info('Card added to wallet');
+                                openWalletPage();
+                            } else {
+                                onFinished?.();
+                            }
+                        })
+                        .catch((error) => {
+                            Log.warn(`addCardToGoogleWallet error: ${error}`);
+                            Alert.alert('Failed to add card to wallet', 'Please try again later.');
+                        });
+                })
 
-                    .catch((error) => Log.warn(`createDigitalWallet error: ${error}`));
-            })
-            .catch((error) => Log.warn(`getSecureWalletInfo error: ${error}`));
-    });
+                .catch((error) => Log.warn(`createDigitalWallet error: ${error}`));
+        })
+        .catch((error) => Log.warn(`getSecureWalletInfo error: ${error}`));
 }
 
 function isCardInWallet(card: Card): Promise<boolean> {
