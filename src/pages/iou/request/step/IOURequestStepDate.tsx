@@ -67,7 +67,7 @@ function IOURequestStepDate({
     const canEditingSplitBill = isEditingSplit && session && reportAction && session.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     const canEditMoneyRequest = isEditing && canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || (isEditing && !canEditMoneyRequest && !canEditingSplitBill && !isSplitExpense);
+    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || (isEditing && !canEditMoneyRequest && !canEditingSplitBill && !(isSplitExpense && transaction));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

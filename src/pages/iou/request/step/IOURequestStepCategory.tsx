@@ -86,7 +86,7 @@ function IOURequestStepCategory({
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) && !isSplitExpense;
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) && !(isSplitExpense && transaction);
 
     const fetchData = () => {
         if ((!!policy && !!policyCategories) || !report?.policyID) {

@@ -142,7 +142,7 @@ function IOURequestStepDescription({
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
     const canEditSplit = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplit : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) && !isSplitExpense;
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplit : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) && !(isSplitExpense && transaction);
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
     const getDescriptionHint = () => {
         return transaction?.category && policyCategories ? policyCategories[transaction?.category]?.commentHint ?? '' : '';
