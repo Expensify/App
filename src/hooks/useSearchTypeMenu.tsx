@@ -95,7 +95,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
                 text: translate(item.translationPath),
                 onSelected: singleExecution(() => {
                     clearAllFilters();
-                    Navigation.navigate(item.getRoute(item.getRoute()));
+                    Navigation.navigate(item.getRoute());
                 }),
                 isSelected,
                 icon: item.icon,
