@@ -61,6 +61,7 @@ function SearchFiltersExportedPage() {
             <SearchFiltersExportedRootView
                 value={localDateValues}
                 setView={setView}
+                setValue={setDateValue}
                 applyChanges={applyChanges}
                 resetChanges={resetChanges}
             />

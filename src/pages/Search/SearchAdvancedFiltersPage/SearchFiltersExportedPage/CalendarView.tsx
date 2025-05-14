@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import Button from '@components/Button';
-import DatePicker from '@components/DatePicker';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 
 type CalendarViewProps = {
     view: SearchDateModifier;
@@ -17,9 +17,11 @@ type CalendarViewProps = {
 };
 
 function SearchFiltersExportedCalendarView({view, value, navigateBack, setValue}: CalendarViewProps) {
+    const initialValue = value === CONST.SEARCH.EXPORTED_DATE_PRESETS.NEVER ? null : value;
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [localDateValue, setLocalDateValue] = useState(value);
+    const [localDateValue, setLocalDateValue] = useState(initialValue);
 
     const lowerDateModifier = view.toLowerCase() as SearchDateModifierLower;
 

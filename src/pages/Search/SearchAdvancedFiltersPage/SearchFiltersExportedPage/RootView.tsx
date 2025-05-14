@@ -1,4 +1,3 @@
-import {format} from 'date-fns';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -7,7 +6,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,9 +19,10 @@ type RootViewProps = {
     applyChanges: () => void;
     resetChanges: () => void;
     setView: (view: SearchDateModifier) => void;
+    setValue: (key: SearchDateModifier, value: string | null) => void;
 };
 
-function SearchFiltersExportedRootView({value, applyChanges, resetChanges, setView}: RootViewProps) {
+function SearchFiltersExportedRootView({value, applyChanges, resetChanges, setView, setValue}: RootViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -34,25 +33,14 @@ function SearchFiltersExportedRootView({value, applyChanges, resetChanges, setVi
     const dateAfter = unformattedDateAfter ?? undefined;
     const dateBefore = unformattedDateBefore ?? undefined;
 
+    // We only want to show the date selected if there is a DATE
     const dateOn = useMemo(() => {
-        if (!unformattedDateOn) {
+        if (!unformattedDateOn || unformattedDateOn === CONST.SEARCH.EXPORTED_DATE_PRESETS.NEVER) {
             return undefined;
         }
 
-        if (unformattedDateOn === CONST.SEARCH.EXPORTED_DATE_PRESETS.NEVER) {
-            return CONST.SEARCH.EXPORTED_DATE_PRESETS.NEVER;
-        }
-
-        return format(unformattedDateOn, 'yyyy-MM-dd');
+        return unformattedDateOn;
     }, [unformattedDateOn]);
-
-    const datePresetList: ListItem[] = useMemo(() => {
-        return Object.values(CONST.SEARCH.EXPORTED_DATE_PRESETS).map((item) => ({
-            text: translate(`common.${item}`),
-            keyForList: item,
-            isSelected: item === dateOn,
-        }));
-    }, [translate, dateOn]);
 
     return (
         <ScreenWrapper
@@ -69,14 +57,14 @@ function SearchFiltersExportedRootView({value, applyChanges, resetChanges, setVi
                 }}
             />
 
-            {datePresetList.map((preset) => (
-                <SingleSelectListItem
-                    key={preset.keyForList}
-                    showTooltip
-                    item={preset}
-                    onSelectRow={() => {}}
-                />
-            ))}
+            <SingleSelectListItem
+                showTooltip
+                item={{
+                    text: translate(`common.never`),
+                    isSelected: unformattedDateOn === CONST.SEARCH.EXPORTED_DATE_PRESETS.NEVER,
+                }}
+                onSelectRow={() => setValue(CONST.SEARCH.DATE_MODIFIERS.ON, CONST.SEARCH.EXPORTED_DATE_PRESETS.NEVER)}
+            />
 
             <View>
                 <MenuItem
