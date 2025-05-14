@@ -302,7 +302,25 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 testID="scheduled-call-header-dropdown-menu-button"
             />
         );
-    }, [reportNameValuePairs?.calendlyCalls, userTimezone, styles.themeTextColor, styles.ml2, styles.mb4, styles.pl4, styles.pr5, styles.pt3, styles.pb5, styles.borderBottom, styles.flexGrow1, styles.earlyDiscountButton, styles.mw100, translate, shouldShowGuideBookingButtonInEarlyDiscountBanner, shouldUseNarrowLayout, report?.reportID]);
+    }, [
+        reportNameValuePairs?.calendlyCalls,
+        userTimezone,
+        styles.themeTextColor,
+        styles.ml2,
+        styles.mb4,
+        styles.pl4,
+        styles.pr5,
+        styles.pt3,
+        styles.pb5,
+        styles.borderBottom,
+        styles.flexGrow1,
+        styles.earlyDiscountButton,
+        styles.mw100,
+        translate,
+        shouldShowGuideBookingButtonInEarlyDiscountBanner,
+        shouldUseNarrowLayout,
+        report?.reportID,
+    ]);
 
     const talkToSalesButton = (
         <TalkToSalesButton
