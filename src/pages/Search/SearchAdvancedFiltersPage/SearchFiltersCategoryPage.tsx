@@ -18,7 +18,7 @@ function SearchFiltersCategoryPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const selectedCategoriesItems = searchAdvancedFiltersForm?.category?.map((category) => {
-        if (category === CONST.SEARCH.EMPTY_VALUE) {
+        if (category === CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
             return {name: translate('search.noCategory'), value: category};
         }
         return {name: category, value: category};
@@ -28,7 +28,7 @@ function SearchFiltersCategoryPage() {
     const singlePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
 
     const categoryItems = useMemo(() => {
-        const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.EMPTY_VALUE as string}];
+        const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
         if (!singlePolicyCategories) {
             const uniqueCategoryNames = new Set<string>();
             Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
