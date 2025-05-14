@@ -2055,7 +2055,7 @@ const translations = {
         },
         accounting: {
             title: '¿Utilizas algún software de contabilidad?',
-            none: 'Ninguno',
+            noneOfAbove: 'Ninguno de los anteriores',
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
@@ -4363,9 +4363,6 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
-            sap: 'SAP',
-            oracle: 'Oracle',
-            microsoftDynamics: 'Microsoft Dynamics',
             talkYourOnboardingSpecialist: 'Chatea con tu especialista asignado.',
             talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
             talkToConcierge: 'Chatear con Concierge.',
@@ -4394,7 +4391,7 @@ const translations = {
             import: 'Importar',
             export: 'Exportar',
             advanced: 'Avanzado',
-            other: 'Otro',
+            other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
             reinstall: 'Reinstalar el conector',
