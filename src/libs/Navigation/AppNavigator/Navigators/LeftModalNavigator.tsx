@@ -10,6 +10,7 @@ import type {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navi
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import {NarrowPaneContextProvider} from './NarrowPaneContext';
 import Overlay from './Overlay';
 
 type LeftModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.LEFT_MODAL_NAVIGATOR>;
@@ -24,25 +25,27 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
     const screenOptions = useSideModalStackScreenOptions('horizontal-inverted');
 
     return (
-        <NoDropZone>
-            {!shouldUseNarrowLayout && (
-                <Overlay
-                    isModalOnTheLeft
-                    onPress={navigation.goBack}
-                />
-            )}
-            <View style={styles.LHPNavigatorContainer(shouldUseNarrowLayout)}>
-                <Stack.Navigator
-                    screenOptions={screenOptions}
-                    id={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
-                >
-                    <Stack.Screen
-                        name={SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER}
-                        getComponent={loadWorkspaceSwitcherPage}
+        <NarrowPaneContextProvider>
+            <NoDropZone>
+                {!shouldUseNarrowLayout && (
+                    <Overlay
+                        isModalOnTheLeft
+                        onPress={navigation.goBack}
                     />
-                </Stack.Navigator>
-            </View>
-        </NoDropZone>
+                )}
+                <View style={styles.LHPNavigatorContainer(shouldUseNarrowLayout)}>
+                    <Stack.Navigator
+                        screenOptions={screenOptions}
+                        id={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
+                    >
+                        <Stack.Screen
+                            name={SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER}
+                            getComponent={loadWorkspaceSwitcherPage}
+                        />
+                    </Stack.Navigator>
+                </View>
+            </NoDropZone>
+        </NarrowPaneContextProvider>
     );
 }
 
