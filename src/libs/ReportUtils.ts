@@ -9768,7 +9768,20 @@ function prepareOnboardingOnyxData(
             if (['addAccountingIntegration', 'setupCategoriesAndTags'].includes(task.type) && !userReportedIntegration) {
                 return false;
             }
-
+            type SkipViewTourOnboardingChoices = 'newDotSubmit' | 'newDotSplitChat' | 'newDotPersonalSpend' | 'newDotEmployer';
+            if (
+                task.type === 'viewTour' &&
+                [
+                    CONST.ONBOARDING_CHOICES.EMPLOYER,
+                    CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                    CONST.ONBOARDING_CHOICES.SUBMIT,
+                    CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                    CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                ].includes(introSelected?.choice as SkipViewTourOnboardingChoices) &&
+                engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM
+            ) {
+                return false;
+            }
             return true;
         })
         .map((task, index) => {

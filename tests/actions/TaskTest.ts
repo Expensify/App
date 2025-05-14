@@ -122,7 +122,7 @@ describe('actions/Task', () => {
                 ...reportCollectionDataSet,
                 ...reportActionsCollectionDataSet,
                 [ONYXKEYS.NVP_INTRO_SELECTED]: {
-                    testDrive: testDriveTaskReport.reportID,
+                    viewTour: testDriveTaskReport.reportID,
                 },
             });
             await waitForBatchedUpdates();

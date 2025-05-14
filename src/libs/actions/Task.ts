@@ -1287,7 +1287,7 @@ function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected
     return {};
 }
 function completeTestDriveTask() {
-    getFinishOnboardingTaskOnyxData('testDrive');
+    getFinishOnboardingTaskOnyxData('viewTour');
 }
 
 export {
