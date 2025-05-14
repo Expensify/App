@@ -4677,7 +4677,7 @@ function getReportNameInternal({
     ) {
         const harvesting = !isMarkAsClosedAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.harvesting ?? false : false;
         if (harvesting) {
-            return Parser.htmlToText(translateLocal('iou.automaticallySubmitted'));
+            return translateLocal('iou.automaticallySubmitted');
         }
         return translateLocal('iou.submitted');
     }
@@ -4733,10 +4733,25 @@ function getReportNameInternal({
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
     }
 
+    if (isMoneyRequestAction(parentReportAction)) {
+        const originalMessage = getOriginalMessage(parentReportAction);
+        if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+            if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                return translateLocal('iou.paidElsewhereWithAmount', {payer: ''});
+            }
+            if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA || originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                if (originalMessage.automaticAction) {
+                    return translateLocal('iou.automaticallyPaidWithExpensify', {payer: ''});
+                }
+                return translateLocal('iou.paidWithExpensify', {payer: ''});
+            }
+        }
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
-            return Parser.htmlToText(translateLocal('iou.automaticallyApproved'));
+            return translateLocal('iou.automaticallyApproved');
         }
         return translateLocal('iou.approvedMessage');
     }

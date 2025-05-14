@@ -176,9 +176,9 @@ type AdminCanceledRequestParams = {manager: string; amount: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
-type PaidElsewhereParams = {payer?: string; amount: string};
+type PaidElsewhereParams = {payer?: string; amount?: string};
 
-type PaidWithExpensifyParams = {payer?: string; amount: string};
+type PaidWithExpensifyParams = {payer?: string; amount?: string};
 
 type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
