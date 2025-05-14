@@ -130,6 +130,7 @@ function SearchPage({route}: SearchPageProps) {
                         setIsDownloadErrorModalVisible(true);
                     },
                 );
+                clearSelectedTransactions();
             },
         };
 
@@ -161,6 +162,9 @@ function SearchPage({route}: SearchPageProps) {
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
                         : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
                     approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                    InteractionManager.runAfterInteractions(() => {
+                        clearSelectedTransactions();
+                    });
                 },
             });
         }
@@ -225,6 +229,9 @@ function SearchPage({route}: SearchPageProps) {
                     ) as PaymentData[];
 
                     payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+                    InteractionManager.runAfterInteractions(() => {
+                        clearSelectedTransactions();
+                    });
                 },
             });
         }
@@ -265,6 +272,9 @@ function SearchPage({route}: SearchPageProps) {
                     }
 
                     unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                    InteractionManager.runAfterInteractions(() => {
+                        clearSelectedTransactions();
+                    });
                 },
             });
         }
@@ -277,7 +287,6 @@ function SearchPage({route}: SearchPageProps) {
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 shouldCloseModalOnSelect: true,
-                shouldPreserveSelectionAfterHideModal: true,
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
@@ -318,6 +327,7 @@ function SearchPage({route}: SearchPageProps) {
         selectedReports,
         queryJSON,
         activeWorkspaceID,
+        clearSelectedTransactions,
         lastPaymentMethods,
         theme.icon,
         styles.colorMuted,

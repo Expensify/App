@@ -6,7 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, ReportListItemType, SearchListItem, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, SearchListItem, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -159,6 +159,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
+    const searchListRef = useRef<SelectionListHandle | null>(null);
+
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     const {canUseTableReportView} = usePermissions();
@@ -545,7 +547,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     return (
         <SearchScopeProvider isOnSearch>
             <SearchList
-                ref={handleSelectionListScroll(sortedSelectedData)}
+                ref={searchListRef}
                 data={sortedSelectedData}
                 ListItem={ListItem}
                 onSelectRow={openReport}
@@ -584,6 +586,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 }
                 queryJSONHash={hash}
                 onViewableItemsChanged={onViewableItemsChanged}
+                onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
             />
         </SearchScopeProvider>
     );

@@ -2064,7 +2064,7 @@ describe('actions/IOU', () => {
         });
 
         it('should update split chat report lastVisibleActionCreated to the report preview action', async () => {
-            // Given a workspace chat with no expenses
+            // Given a expense chat with no expenses
             const workspaceReportID = '1';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
 
@@ -2083,7 +2083,7 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            // Then the workspace chat lastVisibleActionCreated should be updated to the report preview action created
+            // Then the expense chat lastVisibleActionCreated should be updated to the report preview action created
             const reportPreviewAction = await new Promise<OnyxEntry<ReportAction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceReportID}`,
@@ -2808,7 +2808,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('a workspace chat with a cancelled payment', () => {
+    describe('a expense chat with a cancelled payment', () => {
         const amount = 10000;
         const comment = '💸💸💸💸';
         const merchant = 'NASDAQ';
@@ -3076,7 +3076,8 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(t).toBeFalsy();
+            expect(t).toBeTruthy();
+            expect(t?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
             // Given fetch operations are resumed
             mockFetch?.resume?.();
