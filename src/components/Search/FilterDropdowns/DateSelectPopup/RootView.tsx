@@ -20,13 +20,12 @@ type RootViewProps = {
 function RootView({value, applyChanges, resetChanges, setView}: RootViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const label = translate('common.date');
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
-            {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
+        <View style={[!shouldUseNarrowLayout && styles.pv4, styles.gap2]}>
+            {shouldUseNarrowLayout && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
             <View>
                 {Object.values(CONST.SEARCH.DATE_FILTERS).map((dateType) => {

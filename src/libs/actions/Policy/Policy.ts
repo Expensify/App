@@ -4312,37 +4312,6 @@ function getAdminPoliciesConnectedToNetSuite(): Policy[] {
     return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
 }
 
-function getApproverPolicies(): Policy[] {
-    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => {
-        if (!policy || !sessionEmail || policy.type === CONST.POLICY.TYPE.PERSONAL) {
-            return false;
-        }
-
-        const isPolicyApprover = policy.approver === sessionEmail;
-        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-            return employee.submitsTo === sessionEmail;
-        });
-
-        return isPolicyApprover || isSubmittedTo;
-    });
-}
-
-function getExporterPolicies(): Policy[] {
-    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => {
-        if (!policy || !sessionEmail) {
-            return false;
-        }
-
-        const isIntacctExporter = policy.connections?.intacct?.config?.export.exporter === sessionEmail;
-        const isNetSuiteExporter = policy.connections?.netsuite?.options.config?.exporter === sessionEmail;
-        const isQuickbooksDesktopExporter = policy.connections?.quickbooksDesktop?.config?.export.exporter === sessionEmail;
-        const isQuickbooksOnlineExporter = policy.connections?.quickbooksOnline?.config?.export.exporter === sessionEmail;
-        const isXeroExporter = policy.connections?.xero?.config?.export.exporter === sessionEmail;
-
-        return isIntacctExporter || isNetSuiteExporter || isQuickbooksDesktopExporter || isQuickbooksOnlineExporter || isXeroExporter;
-    });
-}
-
 /**
  * Call the API to set default report title pattern for the given policy
  * @param policyID - id of the policy to apply the naming pattern to
@@ -5282,8 +5251,6 @@ export {
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
     updateLastAccessedWorkspaceSwitcher,
-    getApproverPolicies,
-    getExporterPolicies,
     setIsForcedToChangeCurrency,
     setIsComingFromGlobalReimbursementsFlow,
 };

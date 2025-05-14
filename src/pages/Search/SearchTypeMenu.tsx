@@ -72,7 +72,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         return getCardFeedNamesWithType({workspaceCardFeeds, translate});
     }, [translate, workspaceCardFeeds]);
 
-    const typeMenuSections: SearchTypeMenuSection[] = useMemo(() => createTypeMenuSections(session), [session]);
+    const typeMenuSections: SearchTypeMenuSection[] = useMemo(() => createTypeMenuSections(session, allPolicies), [session, allPolicies]);
 
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
     const createSavedSearchMenuItem = useCallback(

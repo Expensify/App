@@ -32,7 +32,6 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
-import {getAdminPolicies, getApproverPolicies, getExporterPolicies} from './actions/Policy/Policy';
 import {createNewReport} from './actions/Report';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -42,7 +41,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getActivePolicy, getAllSharedPolicies, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
+import {getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
     getIcons,
@@ -882,7 +881,10 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSection[] {
+function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies: OnyxCollection<OnyxTypes.Policy> = {}): SearchTypeMenuSection[] {
+    const email = session?.email;
+
+    // Start building the sections by requiring the following sections to always be present
     const typeMenuSections: SearchTypeMenuSection[] = [
         {
             translationPath: 'common.explore',
@@ -918,13 +920,45 @@ function createTypeMenuSections(session?: OnyxTypes.Session): SearchTypeMenuSect
         },
     ];
 
+    // Begin adding conditional sections, based on the policies the user has access to
+    const showSubmitSuggestion = Object.values(policies).filter((p) => p?.type && p.type !== CONST.POLICY.TYPE.PERSONAL).length > 0;
+
+    const showApproveSuggestion =
+        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
+            if (!policy || !email || policy.type === CONST.POLICY.TYPE.PERSONAL) {
+                return false;
+            }
+
+            const isPolicyApprover = policy.approver === email;
+            const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
+                return employee.submitsTo === email;
+            });
+
+            return isPolicyApprover || isSubmittedTo;
+        }).length > 0;
+
+    const showPaySuggestion =
+        Object.values(policies).filter<OnyxTypes.Policy>(
+            (policy): policy is OnyxTypes.Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && policy.type !== CONST.POLICY.TYPE.PERSONAL,
+        ).length > 0;
+
+    const showExportSuggestion =
+        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
+            if (!policy || !email) {
+                return false;
+            }
+
+            const isIntacctExporter = policy.connections?.intacct?.config?.export?.exporter === email;
+            const isNetSuiteExporter = policy.connections?.netsuite?.options.config?.exporter === email;
+            const isQuickbooksDesktopExporter = policy.connections?.quickbooksDesktop?.config?.export?.exporter === email;
+            const isQuickbooksOnlineExporter = policy.connections?.quickbooksOnline?.config?.export?.exporter === email;
+            const isXeroExporter = policy.connections?.xero?.config?.export?.exporter === email;
+
+            return isIntacctExporter || isNetSuiteExporter || isQuickbooksDesktopExporter || isQuickbooksOnlineExporter || isXeroExporter;
+        }).length > 0;
+
     // We suggest specific filters for users based on their access in specific policies. Show the todo section
     // only if any of these items are available
-    const showSubmitSuggestion = getAllSharedPolicies().length > 0;
-    const showApproveSuggestion = getApproverPolicies().length > 0;
-    const showPaySuggestion = getAdminPolicies().length > 0;
-    const showExportSuggestion = getExporterPolicies().length > 0;
-
     const showTodoSection = showSubmitSuggestion || showApproveSuggestion || showPaySuggestion || showExportSuggestion;
 
     if (showTodoSection && session) {

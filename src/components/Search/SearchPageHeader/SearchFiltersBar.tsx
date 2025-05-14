@@ -157,20 +157,22 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         ({closeOverlay}: PopoverComponentProps) => {
             const value = typeOptions.find((option) => option.value === type) ?? null;
 
+            const onChange = (item: SingleSelectItem<SearchDataTypes> | null) => {
+                const hasTypeChanged = item?.value !== type;
+                const newType = item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+                // If the type has changed, reset the status so we dont have an invalid status selected
+                const newStatus = hasTypeChanged ? CONST.SEARCH.STATUS.EXPENSE.ALL : status;
+                const query = buildSearchQueryString({...queryJSON, type: newType, status: newStatus});
+                Navigation.setParams({q: query});
+            };
+
             return (
                 <SingleSelectPopup
                     label={translate('common.type')}
                     value={value}
                     items={typeOptions}
                     closeOverlay={closeOverlay}
-                    onChange={(item) => {
-                        const hasTypeChanged = item?.value !== type;
-                        const newType = item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-                        // If the type has changed, reset the status so we dont have an invalid status selected
-                        const newStatus = hasTypeChanged ? CONST.SEARCH.STATUS.EXPENSE.ALL : status;
-                        const query = buildSearchQueryString({...queryJSON, type: newType, status: newStatus});
-                        Navigation.setParams({q: query});
-                    }}
+                    onChange={onChange}
                 />
             );
         },
@@ -183,17 +185,19 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             const selected = Array.isArray(status) ? items.filter((option) => status.includes(option.value)) : items.find((option) => option.value === status) ?? [];
             const value = [selected].flat();
 
+            const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
+                const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
+                const query = buildSearchQueryString({...queryJSON, status: newStatus});
+                Navigation.setParams({q: query});
+            };
+
             return (
                 <MultiSelectPopup
                     label={translate('common.status')}
                     items={items}
                     value={value}
                     closeOverlay={closeOverlay}
-                    onChange={(selectedItems) => {
-                        const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
-                        const query = buildSearchQueryString({...queryJSON, status: newStatus});
-                        Navigation.setParams({q: query});
-                    }}
+                    onChange={onChange}
                 />
             );
         },
@@ -208,25 +212,27 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 on: filterFormValues.dateOn ?? null,
             };
 
+            const onChange = (selectedDates: DateSelectPopupValue) => {
+                const newFilterFormValues = {
+                    ...filterFormValues,
+                    ...queryJSON,
+                    dateAfter: selectedDates.after ?? undefined,
+                    dateBefore: selectedDates.before ?? undefined,
+                    dateOn: selectedDates.on ?? undefined,
+                };
+
+                const filterString = buildQueryStringFromFilterFormValues(newFilterFormValues);
+                const newJSON = buildSearchQueryJSON(filterString);
+                const queryString = buildSearchQueryString(newJSON);
+
+                Navigation.setParams({q: queryString});
+            };
+
             return (
                 <DateSelectPopup
                     closeOverlay={closeOverlay}
                     value={value}
-                    onChange={(selectedDates) => {
-                        const newFilterFormValues = {
-                            ...filterFormValues,
-                            ...queryJSON,
-                            dateAfter: selectedDates.after ?? undefined,
-                            dateBefore: selectedDates.before ?? undefined,
-                            dateOn: selectedDates.on ?? undefined,
-                        };
-
-                        const filterString = buildQueryStringFromFilterFormValues(newFilterFormValues);
-                        const newJSON = buildSearchQueryJSON(filterString);
-                        const queryString = buildSearchQueryString(newJSON);
-
-                        Navigation.setParams({q: queryString});
-                    }}
+                    onChange={onChange}
                 />
             );
         },

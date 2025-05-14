@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {CheckCircle} from '@components/Icon/Expensicons';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import RadioListItem from './RadioListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 
@@ -27,21 +28,12 @@ function SingleSelectListItem<TItem extends ListItem>({
     titleStyles,
 }: SingleSelectListItemProps<TItem>) {
     const theme = useTheme();
+    const styles = useThemeStyles();
     const isSelected = item.isSelected;
 
     const radioCheckboxComponent = useCallback(() => {
         if (!isSelected) {
-            return (
-                <View
-                    style={{
-                        height: 18,
-                        width: 18,
-                        borderWidth: 2,
-                        borderColor: theme.buttonHoveredBG,
-                        borderRadius: 999,
-                    }}
-                />
-            );
+            return <View style={styles.compactEmptyRadioButton} />;
         }
 
         return (
@@ -52,7 +44,7 @@ function SingleSelectListItem<TItem extends ListItem>({
                 height={20}
             />
         );
-    }, [isSelected, theme.buttonHoveredBG, theme.success]);
+    }, [isSelected, styles.compactEmptyRadioButton, theme.success]);
 
     return (
         <RadioListItem

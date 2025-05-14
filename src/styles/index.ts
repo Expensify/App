@@ -5813,6 +5813,14 @@ const styles = (theme: ThemeColors) =>
             // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
             flexBasis: '35%',
         },
+
+        compactEmptyRadioButton: {
+            height: 18,
+            width: 18,
+            borderWidth: 2,
+            borderColor: theme.buttonHoveredBG,
+            borderRadius: 999,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

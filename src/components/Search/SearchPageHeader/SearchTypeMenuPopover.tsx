@@ -77,7 +77,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
         }, 100);
     }, []);
 
-    const typeMenuSections = useMemo(() => createTypeMenuSections(session), [session]);
+    const typeMenuSections = useMemo(() => createTypeMenuSections(session, allPolicies), [allPolicies, session]);
 
     const activeItemIndex = useMemo(() => {
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
