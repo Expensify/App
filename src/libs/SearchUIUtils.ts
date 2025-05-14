@@ -939,7 +939,11 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
     const showPaySuggestion =
         Object.values(policies).filter<OnyxTypes.Policy>(
-            (policy): policy is OnyxTypes.Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && policy.type !== CONST.POLICY.TYPE.PERSONAL,
+            (policy): policy is OnyxTypes.Policy =>
+                !!policy &&
+                policy.role === CONST.POLICY.ROLE.ADMIN &&
+                policy.type !== CONST.POLICY.TYPE.PERSONAL &&
+                policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         ).length > 0;
 
     const showExportSuggestion =
@@ -1079,6 +1083,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                        to: [`${session.accountID}`],
                         status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.PAID, CONST.SEARCH.STATUS.EXPENSE.DONE],
                     });
                     return queryString;
