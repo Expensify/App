@@ -745,6 +745,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to scroll to the focused index */
     shouldScrollToFocusedIndex?: boolean;
 
+    /** Whether the layout is narrow */
+    isSmallScreenWidth?: boolean;
+
     /** Called when scrollable content view of the ScrollView changes */
     onContentSizeChange?: (w: number, h: number) => void;
 
