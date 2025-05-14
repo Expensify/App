@@ -482,13 +482,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     titleStyles={styles.accountSettingsSectionTitle}
                                 >
                                     <>
-                                        {shouldShowLoadingSpinner ? (
+                                        {shouldShowLoadingSpinner && (
                                             <ActivityIndicator
                                                 color={theme.spinner}
                                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                                 style={[styles.mt7, styles.mb5]}
                                             />
-                                        ) : (
+                                        )}
+                                        {!shouldShowLoadingSpinner && hasActivatedWallet && (
                                             <OfflineWithFeedback
                                                 pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
                                                 errors={walletTerms?.errors}
@@ -517,7 +518,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
                                             }}
                                             enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                            addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
+                                            addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route}
                                             addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                             source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                             shouldIncludeDebitCard={hasActivatedWallet}
