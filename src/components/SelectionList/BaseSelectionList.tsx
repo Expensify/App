@@ -129,6 +129,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldDebounceScrolling = false,
         shouldPreventActiveCellVirtualization = false,
         shouldScrollToFocusedIndex = true,
+        isSmallScreenWidth,
         onContentSizeChange,
         listItemTitleStyles,
         initialNumToRender = 12,
@@ -140,6 +141,7 @@ function BaseSelectionList<TItem extends ListItem>(
         fixedNumItemsForLoader,
         loaderSpeed,
         errorText,
+        shouldUseDefaultRightHandSideCheckmark,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -412,6 +414,11 @@ function BaseSelectionList<TItem extends ListItem>(
 
                 if (shouldShowTextInput) {
                     clearInputAfterSelect();
+                } else if (isSmallScreenWidth) {
+                    if (!item.isDisabledCheckbox) {
+                        onCheckboxPress?.(item);
+                    }
+                    return;
                 }
             }
 
@@ -437,6 +444,8 @@ function BaseSelectionList<TItem extends ListItem>(
             shouldPreventDefaultFocusOnSelectRow,
             isFocused,
             isScreenFocused,
+            isSmallScreenWidth,
+            onCheckboxPress,
         ],
     );
 
@@ -568,6 +577,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         shouldAnimateInHighlight: isItemHighlighted,
                         ...item,
                     }}
+                    shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
                     isFocused={isItemFocused}
                     isDisabled={isDisabled}
