@@ -104,7 +104,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                     ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
                                         CONST.IOU.ACTION.EDIT,
                                         CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                        1,
+                                        0,
                                         CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                                         reportID,
                                         Navigation.getActiveRoute(),
