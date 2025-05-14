@@ -11016,7 +11016,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
                 splitExpenses: relatedTransactions.map((currentTransaction) => {
                     const currentTransactionDetails = getTransactionDetails(currentTransaction);
                     return {
-                        transactionID: currentTransaction?.transactionID ?? '',
+                        transactionID: currentTransaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                         amount: currentTransactionDetails?.amount ?? 0,
                         description: currentTransactionDetails?.comment,
                         category: currentTransactionDetails?.category,

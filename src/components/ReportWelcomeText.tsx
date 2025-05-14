@@ -66,8 +66,12 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const policyName = getPolicyName({report});
 
     const filteredOptions = moneyRequestOptions.filter(
-        (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
-            item !== CONST.IOU.TYPE.INVOICE,
+        (
+            item,
+        ): item is Exclude<
+            IOUType,
+            typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE
+        > => item !== CONST.IOU.TYPE.INVOICE,
     );
     const additionalText = filteredOptions
         .map(

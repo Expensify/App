@@ -72,7 +72,8 @@ function IOURequestStepTag({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        !isReportInGroupPolicy(report) || (isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) && !(isSplitExpense && transaction) );
+        !isReportInGroupPolicy(report) ||
+        (isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) && !(isSplitExpense && transaction));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
