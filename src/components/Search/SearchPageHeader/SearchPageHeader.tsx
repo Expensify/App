@@ -28,7 +28,7 @@ type SearchPageHeaderProps = {
     hideSearchRouterList?: () => void;
     onSearchRouterFocus?: () => void;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
-    handleSearch?: (value: string) => void;
+    handleSearch: (value: string) => void;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;

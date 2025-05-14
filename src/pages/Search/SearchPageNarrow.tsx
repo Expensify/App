@@ -171,6 +171,7 @@ function SearchPageNarrow({queryJSON, searchName, headerButtonsOptions, currentS
                                             setSearchRouterListVisible(true);
                                         }}
                                         headerButtonsOptions={headerButtonsOptions}
+                                        handleSearch={handleSearchAction}
                                     />
                                 </View>
                                 <View style={[styles.appBG]}>
@@ -201,6 +202,7 @@ function SearchPageNarrow({queryJSON, searchName, headerButtonsOptions, currentS
                             queryJSON={queryJSON}
                             searchName={searchName}
                             headerButtonsOptions={headerButtonsOptions}
+                            handleSearch={handleSearchAction}
                         />
                     </>
                 )}

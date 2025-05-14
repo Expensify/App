@@ -56,7 +56,7 @@ type SearchProps = {
     contentContainerStyle?: StyleProp<ViewStyle>;
     currentSearchResults?: SearchResults;
     lastNonEmptySearchResults?: SearchResults;
-    handleSearch?: (value: SearchParams) => void;
+    handleSearch: (value: SearchParams) => void;
 };
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
@@ -199,10 +199,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     useEffect(() => {
         if (isOffline) {
-            return;
-        }
-
-        if (!handleSearch) {
             return;
         }
 

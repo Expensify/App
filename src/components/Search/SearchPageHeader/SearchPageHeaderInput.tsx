@@ -50,7 +50,7 @@ type SearchPageHeaderInputProps = {
     onSearchRouterFocus?: () => void;
     searchName?: string;
     inputRightComponent: React.ReactNode;
-    handleSearch?: (value: string) => void;
+    handleSearch: (value: string) => void;
 };
 
 function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, searchName, inputRightComponent, handleSearch}: SearchPageHeaderInputProps) {
@@ -141,7 +141,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const handleSearchAction = useCallback(
         (value: string) => {
             // Skip calling handleSearch on the initial mount
-            if (!hasMountedRef.current || !handleSearch) {
+            if (!hasMountedRef.current) {
                 return;
             }
             handleSearch(value);
