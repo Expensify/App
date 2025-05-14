@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ScreenWrapperChildrenProps} from '@components/ScreenWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import callOrReturn from '@src/types/utils/callOrReturn';
 
 type StepScreenWrapperProps = {
@@ -64,7 +64,7 @@ function StepScreenWrapper({
             includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
-            shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMaxHeight={canUseTouchScreen()}
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
         >
