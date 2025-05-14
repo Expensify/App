@@ -69,10 +69,6 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
     netsuite: 'NetSuite',
     intacct: 'Sage Intacct',
     quickbooksDesktop: 'QuickBooks Desktop',
-    sap: 'SAP',
-    oracle: 'Oracle',
-    microsoftDynamics: 'Microsoft Dynamics',
-    other: 'Other',
 };
 
 const connectionsVideoPaths = {
@@ -277,7 +273,7 @@ type OnboardingPurpose = ValueOf<typeof onboardingChoices>;
 
 type OnboardingCompanySize = ValueOf<typeof onboardingCompanySize>;
 
-type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | null;
+type OnboardingAccounting = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -1045,7 +1041,6 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
-    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
@@ -3021,10 +3016,6 @@ const CONST = {
                 financialForce: 'FinancialForce',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
-                sap: 'SAP',
-                oracle: 'Oracle',
-                microsoftDynamics: 'Microsoft Dynamics',
-                other: 'Other',
             },
             AUTH_HELP_LINKS: {
                 intacct:
