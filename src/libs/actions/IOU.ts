@@ -11119,10 +11119,10 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             amount: Number(originalTransaction?.amount) >= 0 ? Math.abs(Number(split.amount)) : -Math.abs(Number(split.amount)),
             category: split.category ?? '',
             tag: split.tags?.[0] ?? '',
-            created: split.created ?? '',
+            created: DateUtils.extractDate(split.created),
             merchant: draftTransaction?.merchant ?? '',
             transactionID: split.transactionID,
-            comments: {
+            comment: {
                 comment: split.description,
             },
         })) ?? [];
@@ -11180,8 +11180,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             split.transactionThreadReportID = transactionThreadReportID;
             split.createdReportActionIDForThread = createdReportActionIDForThread;
             split.splitReportActionID = iouAction.reportActionID;
-            split.created = DateUtils.extractDate(split.created);
-            split.nameValuePairs = split.comments;
         }
 
         optimisticData.push(...(onyxData.optimisticData ?? []));

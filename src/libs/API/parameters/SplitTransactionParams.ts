@@ -4,10 +4,7 @@ type SplitTransactionSplitsParam = Array<{
     tag?: string;
     created: string;
     merchant?: string;
-    comments?: {
-        comment?: string;
-    };
-    nameValuePairs?: {
+    comment?: {
         comment?: string;
     };
     splitReportActionID?: string;
