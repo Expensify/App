@@ -87,7 +87,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 changeTransactionsReport([transaction.transactionID], item.value);
             }
         }
-        Navigation.goBack(backTo);
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.dismissModal();
+        }
     };
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
