@@ -66,9 +66,6 @@ type ReportActionItemImageProps = {
 
     /** Whether the receipt empty state should extend to the full height of the container. */
     shouldUseFullHeight?: boolean;
-
-    /** Indicating whether the report is in preview */
-    isReportPreview?: boolean;
 };
 
 /**
@@ -93,7 +90,6 @@ function ReportActionItemImage({
     isFromReviewDuplicates = false,
     onPress,
     shouldUseFullHeight,
-    isReportPreview,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -148,11 +144,7 @@ function ReportActionItemImage({
         };
     }
 
-    propsObj = {
-        ...propsObj,
-        isPerDiemRequest: isPerDiemRequest(transaction),
-        thumbnailContainerStyles: isReportPreview ? [styles.thumbnailImageContainerHover] : undefined,
-    };
+    propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
 
     if (enablePreviewModal) {
         return (
@@ -179,6 +171,7 @@ function ReportActionItemImage({
         <ReceiptImage
             {...propsObj}
             shouldUseFullHeight={shouldUseFullHeight}
+            thumbnailContainerStyles={styles.thumbnailImageContainerHover}
         />
     );
 }

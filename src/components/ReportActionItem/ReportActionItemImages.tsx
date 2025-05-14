@@ -34,9 +34,6 @@ type ReportActionItemImagesProps = {
 
     /** Whether we should use aspect ratio to decide the height of receipt previews. */
     shouldUseAspectRatio?: boolean;
-
-    /** Indicating whether the report is in preview */
-    isReportPreview?: boolean;
 };
 
 /**
@@ -48,7 +45,7 @@ type ReportActionItemImagesProps = {
  * additional number when subtracted from size.
  */
 
-function ReportActionItemImages({images, size, total, isHovered = false, onPress, shouldUseAspectRatio = false, isReportPreview = false}: ReportActionItemImagesProps) {
+function ReportActionItemImages({images, size, total, isHovered = false, onPress, shouldUseAspectRatio = false}: ReportActionItemImagesProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -101,7 +98,6 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
                                     shouldMapHaveBorderRadius={false}
                                     onPress={onPress}
                                     shouldUseFullHeight={shouldUseAspectRatio}
-                                    isReportPreview={isReportPreview}
                                 />
                             </View>
                         </ImageBehaviorContextProvider>
