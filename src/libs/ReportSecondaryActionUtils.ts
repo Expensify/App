@@ -374,10 +374,11 @@ function getSecondaryReportActions(
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
     canUseRetractNewDot?: boolean,
+    canUseTableReportView?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    if (isAddExpenseAction(report, reportTransactions)) {
+    if (canUseTableReportView && isAddExpenseAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
