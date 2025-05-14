@@ -73,6 +73,13 @@ function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
         return `${label}: ${selectedItems}`;
     }, [label, value]);
 
+    const containerStyles = useMemo(() => {
+        if (isSmallScreenWidth) {
+            return styles.w100;
+        }
+        return {width: CONST.POPOVER_DROPDOWN_WIDTH};
+    }, [isSmallScreenWidth, styles]);
+
     return (
         <>
             {/* Dropdown Trigger */}
@@ -107,7 +114,8 @@ function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
                 // This must be false because we dont want the modal to close if we open the RHP for selections
                 // such as date years
                 shouldCloseWhenBrowserNavigationChanged={false}
-                innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH}}
+                outerStyle={containerStyles}
+                innerContainerStyle={containerStyles}
                 popoverDimensions={{
                     width: CONST.POPOVER_DROPDOWN_WIDTH,
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,

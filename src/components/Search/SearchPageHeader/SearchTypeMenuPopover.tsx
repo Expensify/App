@@ -183,13 +183,13 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
         if (savedSearchItems.length > 0) {
             items.push({
                 text: translate('search.savedSearchesMenuItemTitle'),
-                styles: [styles.textSupporting],
+                styles: [styles.textSupporting, styles.textLabel],
                 disabled: true,
             });
             items.push(...savedSearchItems);
         }
         return items;
-    }, [popoverMenuItems, savedSearchItems, styles.textSupporting, translate]);
+    }, [popoverMenuItems, savedSearchItems, styles.textLabel, styles.textSupporting, translate]);
 
     return (
         <>

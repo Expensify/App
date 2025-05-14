@@ -9,6 +9,7 @@ import UserSelectionListItem from '@components/SelectionList/Search/UserSelectio
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -35,6 +36,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {options} = useOptionsList();
+    const {windowHeight} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
 
     // Since accountIDs are passed as value, we need to "populate" them into OptionData
@@ -183,7 +185,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     );
 
     return (
-        <View style={[styles.mh65vh, styles.getUserSelectionListPopoverHeight(dataLength || 1)]}>
+        <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight)]}>
             <SelectionList
                 canSelectMultiple
                 shouldClearInputOnSelect={false}

@@ -3080,9 +3080,8 @@ const styles = (theme: ThemeColors) =>
 
         sectionTitle: {
             ...spacing.pt2,
-            ...spacing.pr3,
             ...spacing.pb4,
-            paddingLeft: 13,
+            ...spacing.ph2,
             fontSize: 13,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: 16,
@@ -5757,16 +5756,19 @@ const styles = (theme: ThemeColors) =>
             ...sizing.mh65vh,
         }),
 
-        getUserSelectionListPopoverHeight: (itemCount: number) => {
+        getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number) => {
             const SEARCHBAR_HEIGHT = 50;
             const SEARCHBAR_MARGIN = 14;
             const BUTTON_HEIGHT = 40;
             const PADDING = 32;
 
-            return {
-                height: itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_MARGIN + BUTTON_HEIGHT + PADDING,
-                ...sizing.mh65vh,
-            };
+            const listHeight = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_MARGIN + BUTTON_HEIGHT + PADDING;
+
+            // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
+            // the listHeight or 65% of the window height
+            const height = Math.min(listHeight, windowHeight * 0.65);
+
+            return {height};
         },
 
         earlyDiscountButton: {
