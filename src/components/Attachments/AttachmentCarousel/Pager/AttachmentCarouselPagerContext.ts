@@ -44,8 +44,12 @@ type AttachmentCarouselPagerContextValue = {
 
     /** Function to call after a swipe down event */
     onSwipeDown: () => void;
+
+    /** Callback for attachment errors */
+    onAttachmentError?: (source: AttachmentSource, state?: boolean) => void;
 };
 
 const AttachmentCarouselPagerContext = createContext<AttachmentCarouselPagerContextValue | null>(null);
 
 export default AttachmentCarouselPagerContext;
+export type {AttachmentCarouselPagerContextValue};
