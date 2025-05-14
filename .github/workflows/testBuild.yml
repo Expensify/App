@@ -448,7 +448,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     name: Post a GitHub comment with app download links for testing
-    needs: [prep, desktop, web, androidHybrid, iosHybrid]
+    needs: [prep, getOldDotPR, desktop, web, androidHybrid, iosHybrid]
     steps:
       - name: Checkout
         # v4
