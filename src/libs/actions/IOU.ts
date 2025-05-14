@@ -7131,7 +7131,6 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
                     html: '',
                     text: '',
                     isEdited: true,
-                    // We need this here to filter out deleted actions
                     isDeletedParentAction: shouldDeleteTransactionThread,
                 },
             ],
