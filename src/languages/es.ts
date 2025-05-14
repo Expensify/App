@@ -3819,12 +3819,14 @@ const translations = {
                 },
                 yourCardProvider: `¿Quién es su proveedor de tarjetas?`,
                 whoIsYourBankAccount: '¿Cuál es tu banco?',
+                whereIsYourBankLocated: '¿Dónde está ubicado tu banco?',
                 howDoYouWantToConnect: '¿Cómo deseas conectarte a tu banco?',
                 learnMoreAboutOptions: {
                     text: 'Obtén más información sobre estas ',
                     linkText: 'opciones.',
                 },
                 commercialFeedDetails: 'Requiere configuración con tu banco. Esto suele ser utilizado por empresas más grandes y a menudo es la mejor opción si calificas.',
+                commercialFeedPlaidDetails: 'Requiere configurarlo con tu banco, pero te guiaremos. Esto suele estar limitado a empresas más grandes.',
                 directFeedDetails: 'El enfoque más simple. Conéctate de inmediato usando tus credenciales maestras. Este método es el más común.',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Habilita tu feed ${provider}`,
@@ -3865,6 +3867,7 @@ const translations = {
                     pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar',
                     pleaseSelectBankAccount: 'Seleccione una cuenta bancaria antes de continuar',
                     pleaseSelectBank: 'Seleccione una bancaria antes de continuar',
+                    pleaseSelectCountry: 'Seleccione un país antes de continuar',
                     pleaseSelectFeedType: 'Seleccione un tipo de pienso antes de continuar',
                 },
             },

@@ -3781,12 +3781,14 @@ const translations = {
                 },
                 yourCardProvider: `Who's your card provider?`,
                 whoIsYourBankAccount: 'Who’s your bank?',
+                whereIsYourBankLocated: 'Where’s your bank located?',
                 howDoYouWantToConnect: 'How do you want to connect to your bank?',
                 learnMoreAboutOptions: {
                     text: 'Learn more about these ',
                     linkText: 'options.',
                 },
                 commercialFeedDetails: 'Requires setup with your bank. This is typically used by larger companies and is often the best option if you qualify.',
+                commercialFeedPlaidDetails: `Requires setup with your bank, but we'll guide you. This is typically limited to larger companies.`,
                 directFeedDetails: 'The simplest approach. Connect right away using your master credentials. This method is most common.',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
@@ -3826,6 +3828,7 @@ const translations = {
                     pleaseSelectProvider: 'Please select a card provider before continuing',
                     pleaseSelectBankAccount: 'Please select a bank account before continuing',
                     pleaseSelectBank: 'Please select a bank before continuing',
+                    pleaseSelectCountry: 'Please select a country before continuing',
                     pleaseSelectFeedType: 'Please select a feed type before continuing',
                 },
             },
