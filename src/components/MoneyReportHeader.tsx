@@ -573,7 +573,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
             text: translate('common.downloadAsPDF'),
-            icon: Expensicons.Download,
+            icon: Expensicons.Document,
             onSelected: () => {
                 if (!moneyRequestReport) {
                     return;
