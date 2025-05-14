@@ -208,7 +208,7 @@ function handlePushSearchPageAction(
     const currentParams = action.payload.params as RootNavigatorParamList[typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR];
     if (currentParams?.screen === SCREENS.SEARCH.ROOT) {
         const searchParams = currentParams?.params;
-        const queryJSON = SearchQueryUtils.buildSearchQueryJSON(searchParams.q);
+        const queryJSON = SearchQueryUtils.buildSearchQueryJSON(searchParams?.q);
         if (!queryJSON) {
             return null;
         }
