@@ -41,6 +41,7 @@ import {
     isChatUsedForOnboarding,
     isPayer,
     isReportOutstanding,
+    parseReportRouteParams,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
     shouldDisableThread,
@@ -2440,6 +2441,28 @@ describe('ReportUtils', () => {
         it('should return true if the report is a non-expense report and archived', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedChatReport?.reportID));
             expect(isArchivedNonExpenseReportWithID(archivedChatReport, isReportArchived.current)).toBe(true);
+        });
+    });
+
+    describe('parseReportRouteParams', () => {
+        const testReportID = '123456789';
+
+        it('should return empty reportID and isSubReportPageRoute as false if the route is not a report route', () => {
+            const result = parseReportRouteParams('/concierge');
+            expect(result.reportID).toBe('');
+            expect(result.isSubReportPageRoute).toBe(false);
+        });
+
+        it('should return isSubReportPageRoute as false if the route is a report screen route', () => {
+            const result = parseReportRouteParams(`r/${testReportID}/11111111`);
+            expect(result.reportID).toBe(testReportID);
+            expect(result.isSubReportPageRoute).toBe(false);
+        });
+
+        it('should return isSubReportPageRoute as true if the route is a sub report page route', () => {
+            const result = parseReportRouteParams(`r/${testReportID}/details`);
+            expect(result.reportID).toBe(testReportID);
+            expect(result.isSubReportPageRoute).toBe(true);
         });
     });
 
