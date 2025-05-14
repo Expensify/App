@@ -15,7 +15,7 @@ import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsAction
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {exportReportToCSV, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
+import {exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -162,6 +162,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
     const [isReopenWarningModalVisible, setIsReopenWarningModalVisible] = useState(false);
+    const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
 
@@ -512,6 +513,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     };
 
     const {canUseRetractNewDot} = usePermissions();
+
+    const beginPDFExport = useCallback(() => {
+        setIsPDFModalVisible(true);
+        exportReportToPDF({reportID: report.reportID});
+    }, [report]);
 
     const secondaryActions = useMemo(() => {
         if (!moneyRequestReport) {
