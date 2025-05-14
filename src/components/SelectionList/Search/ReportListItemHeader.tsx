@@ -63,7 +63,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     handleOnButtonPress?: () => void;
 
     /** Whether the action button should be displayed */
-    showAction?: boolean;
+    shouldShowAction?: boolean;
 };
 
 type ReportCellProps = {
@@ -98,7 +98,7 @@ function FirstHeaderRow<TItem extends ListItem>({
     isDisabled,
     canSelectMultiple,
     handleOnButtonPress = () => {},
-    showAction = false,
+    shouldShowAction = false,
 }: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -134,7 +134,7 @@ function FirstHeaderRow<TItem extends ListItem>({
                     reportItem={reportItem}
                 />
             </View>
-            {showAction && (
+            {shouldShowAction && (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         action={reportItem.action}
@@ -210,7 +210,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
-                showAction
+                shouldShowAction
                 handleOnButtonPress={handleOnButtonPress}
             />
             <View style={[styles.mr3, styles.ml3, styles.pv2]}>
