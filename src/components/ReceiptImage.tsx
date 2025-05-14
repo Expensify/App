@@ -103,9 +103,6 @@ type ReceiptImageProps = (
     /** Whether the receipt is a per diem request */
     isPerDiemRequest?: boolean;
 
-    /** Indicating whether the report is in preview */
-    isReportPreview?: boolean;
-
     /** The transaction data in search */
     transactionItem?: TransactionListItemType | Transaction;
 
