@@ -2899,7 +2899,7 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
 function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
-        Navigation.popToSidebar(); // it can break because of redirection to settings main
+        Navigation.popToSidebar();
     } else {
         Navigation.goBack();
     }
