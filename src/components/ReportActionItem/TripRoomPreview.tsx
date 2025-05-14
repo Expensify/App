@@ -84,16 +84,15 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
 
         titleComponent = (
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                <View style={[styles.flex1, styles.flexRow]}>
+                {/* StartName + Arrow with max 50% width */}
+                <View style={styles.tripReservationRow}>
                     <Text
-                        style={[styles.labelStrong]}
                         numberOfLines={2}
+                        style={[styles.labelStrong, styles.mr2]} // gap between startName and arrow
+                        ellipsizeMode="tail"
                     >
                         {startName}
                     </Text>
-                </View>
-
-                <View style={styles.travelArrowCenter}>
                     <Icon
                         src={Expensicons.ArrowRightLong}
                         width={variables.iconSizeSmall}
@@ -102,10 +101,12 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
                     />
                 </View>
 
-                <View style={[styles.flex1, styles.flexRow, styles.justifyContentEnd]}>
+                {/* EndName with marginLeft instead of spacer */}
+                <View style={[styles.flex1, styles.ml2]}>
                     <Text
-                        style={[styles.labelStrong, styles.textAlignRight]}
                         numberOfLines={2}
+                        style={[styles.labelStrong]}
+                        ellipsizeMode="tail"
                     >
                         {endName}
                     </Text>
