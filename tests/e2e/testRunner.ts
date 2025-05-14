@@ -62,6 +62,11 @@ if (args.includes('--config')) {
     setConfigPath(configPath);
 }
 
+let isInteractiveMode = false;
+if (args.includes('--interactive')) {
+    isInteractiveMode = true;
+}
+
 // Important: set app path only after correct config file has been loaded
 const mainAppPath = getArg('--mainAppPath') ?? config.MAIN_APP_PATH;
 const deltaAppPath = getArg('--deltaAppPath') ?? config.DELTA_APP_PATH;
@@ -231,9 +236,33 @@ const runTests = async (): Promise<void> => {
         );
         await promise;
 
+        // In interactive mode we don't kill the app until the user presses a key
+        if (isInteractiveMode) {
+            return;
+        }
+
         Logger.log('Killing', appPackage);
         await killApp('android', appPackage);
     }
+
+    // In interactive mode we wait for the user to press a key before continuing with the next run
+    const waitForKeyPressIfInteractive = () => {
+        if (!isInteractiveMode) {
+            return Promise.resolve();
+        }
+
+        return new Promise<void>((resolve) => {
+            // eslint-disable-next-line no-console
+            console.log('Press any key to continue with the next run...');
+            process.stdin.setRawMode(true);
+            process.stdin.resume();
+            process.stdin.once('data', () => {
+                process.stdin.setRawMode(false);
+                process.stdin.pause();
+                resolve();
+            });
+        });
+    };
 
     // Run the tests
     const tests = Object.keys(config.TESTS_CONFIG);
@@ -279,8 +308,12 @@ const runTests = async (): Promise<void> => {
             const iterations = 2;
             for (let i = 0; i < iterations; i++) {
                 try {
+                    await waitForKeyPressIfInteractive();
+
                     // Warmup the main app:
                     await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}. Iteration ${i + 1}/${iterations}`, config.BRANCH_MAIN);
+
+                    await waitForKeyPressIfInteractive();
 
                     // Warmup the delta app:
                     await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}. Iteration ${i + 1}/${iterations}`, config.BRANCH_DELTA);
@@ -338,8 +371,12 @@ const runTests = async (): Promise<void> => {
                 const mainIterationText = `[MAIN] ${iterationText}`;
                 const deltaIterationText = `[DELTA] ${iterationText}`;
                 try {
+                    await waitForKeyPressIfInteractive();
+
                     // Run the test on the main app:
                     await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, config.BRANCH_MAIN, launchArgs);
+
+                    await waitForKeyPressIfInteractive();
 
                     // Run the test on the delta app:
                     await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, config.BRANCH_DELTA, launchArgs);
@@ -347,6 +384,8 @@ const runTests = async (): Promise<void> => {
                     await onError(e as Error);
                 }
             }
+
+            await waitForKeyPressIfInteractive();
         } catch (exception) {
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             Logger.warn(`Test ${test?.name} can not be finished due to error: ${exception}`);
