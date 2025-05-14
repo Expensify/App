@@ -145,6 +145,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${moneyRequestReport?.reportID}`, {canBeMissing: true}) ?? null;
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`, {canBeMissing: true});
+    const isDownloadingPDF = download?.isDownloading ?? false;
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -1008,7 +1010,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         <Button
                             isLoading={isDownloadingPDF}
                             style={[styles.mt3, styles.noSelect]}
-                            onPress={() => downloadReportPDF(reportPDFFilename ?? '', reportName)}
+                            onPress={() => downloadReportPDF(reportPDFFilename ?? '', moneyRequestReport?.reportName ?? '')}
                             text={translate('common.download')}
                         />
                     )}
