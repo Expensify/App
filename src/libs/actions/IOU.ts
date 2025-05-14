@@ -11275,12 +11275,12 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
         const existingTransactionID = splitExpense.transactionID;
 
-        const {transactionThreadReportID, createdReportActionIDForThread, onyxData, createdChatReportActionID} = getMoneyRequestInformation({
+        const {transactionThreadReportID, createdReportActionIDForThread, onyxData, iouAction} = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
             policyParams,
             transactionParams,
-            moneyRequestReportID: NumberUtils.rand64(),
+            moneyRequestReportID: report?.reportID,
             existingTransactionID,
         });
 
@@ -11288,7 +11288,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         if (split) {
             split.transactionThreadReportID = transactionThreadReportID;
             split.createdReportActionIDForThread = createdReportActionIDForThread;
-            split.splitReportActionID = createdChatReportActionID;
+            split.splitReportActionID = iouAction.reportActionID;
             split.created = DateUtils.extractDate(split.created);
             split.nameValuePairs = split.comments;
         }
