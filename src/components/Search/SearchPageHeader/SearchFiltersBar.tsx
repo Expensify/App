@@ -57,16 +57,16 @@ const expenseStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
     {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
     {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
     {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
-    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
     {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
 ];
 
 const expenseReportStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
     {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
     {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
     {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
-    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
     {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
 ];
 
 const chatStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
