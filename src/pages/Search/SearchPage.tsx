@@ -27,6 +27,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -87,6 +88,8 @@ function SearchPage({route}: SearchPageProps) {
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const {q, name} = route.params;
+
+    const {canUseMultiFilesDragAndDrop} = usePermissions;
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
 
@@ -588,7 +591,7 @@ function SearchPage({route}: SearchPageProps) {
                             offlineIndicatorStyle={styles.mtAuto}
                         >
                             {isLoadingReceipt && <FullScreenLoadingIndicator />}
-                            <DragAndDropProvider>
+                            <DragAndDropProvider isDisabled={!canUseMultiFilesDragAndDrop}>
                                 {PDFThumbnailView}
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
