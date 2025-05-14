@@ -75,7 +75,7 @@ function initGithubAPIMocking() {
     // Mock various compareCommits responses with single mocked function
     jest.spyOn(GithubUtils, 'paginate').mockImplementation((method, p) => {
         if (method !== GithubUtils.octokit.repos.compareCommitsWithBasehead) {
-            throw new Error(`Paginate called for unmocked method ${method}`);
+            throw new Error(`Paginate called for unmocked method ${method.name}`);
         }
 
         const params = p as Parameters<typeof GithubUtils.octokit.repos.compareCommitsWithBasehead>[0];
