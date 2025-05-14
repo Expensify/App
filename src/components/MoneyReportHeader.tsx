@@ -83,8 +83,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import Header from "./Header";
-import Modal from "./Modal";
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -92,11 +90,13 @@ import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
 import DelegateNoAccessModal from './DelegateNoAccessModal';
+import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
+import Modal from './Modal';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
@@ -552,7 +552,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const {canUseRetractNewDot, canUseTableReportView} = usePermissions();
 
-    const beginPDFExport = (reportID :string)=> {
+    const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
         exportReportToPDF({reportID});
     };
