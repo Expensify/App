@@ -577,7 +577,7 @@ class GithubUtils {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
 
         try {
-            const {data: comparison} = await this.octokit.repos.compareCommitsWithBasehead({
+            const comparison = await this.paginate(this.octokit.repos.compareCommitsWithBasehead, {
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 basehead: `${fromTag}...${toTag}`,
