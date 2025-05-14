@@ -40,7 +40,6 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     const [currentCountry, setCurrentCountry] = useState<string | undefined>('');
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [hasError, setHasError] = useState(false);
-    const isEur = policy?.outputCurrency === CONST.CURRENCY.EUR;
 
     const submit = () => {
         if (!currentCountry) {
@@ -64,17 +63,19 @@ function SelectCountryStep({policyID}: CountryStepProps) {
             setCurrentCountry(addNewCard.data.selectedCountry);
             return;
         }
-        if (isEur) {
+        const selectedCurrency = policy?.outputCurrency ? currencyList?.[policy.outputCurrency] : null;
+        const countries = selectedCurrency?.countries;
+
+        if (policy?.outputCurrency === CONST.CURRENCY.EUR && countryByIp && countries?.includes(countryByIp)) {
             setCurrentCountry(countryByIp);
             return;
         }
-        const selectedCurrency = policy?.outputCurrency ? currencyList?.[policy.outputCurrency] : null;
-        const country = selectedCurrency?.countries?.[0];
+        const country = countries?.[0];
 
         if (country) {
             setCurrentCountry(country);
         }
-    }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, isEur, policy?.outputCurrency]);
+    }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, policy?.outputCurrency]);
 
     const handleBackButtonPress = () => {
         if (route?.params?.backTo) {
