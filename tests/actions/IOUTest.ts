@@ -5901,9 +5901,10 @@ describe('actions/IOU', () => {
                     },
                 });
             });
+            expect(updatedTransaction?.receipt?.source).toBe(source);
 
             // Then the snapshot should have the new receipt source
-            const updatedSearch = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
+            const updatedSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.SNAPSHOT,
                     waitForCollectionCallback: true,
@@ -5915,8 +5916,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(updatedTransaction?.receipt?.source).toBe(source);
-            expect(updatedSearch?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+            expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
         });
 
         it('should add receipt if it does not exist', async () => {
@@ -5963,9 +5963,10 @@ describe('actions/IOU', () => {
                     },
                 });
             });
+            expect(updatedTransaction?.receipt?.source).toBe(source);
 
             // Then the snapshot should have the new receipt source
-            const updatedSearch = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
+            const updatedSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.SNAPSHOT,
                     waitForCollectionCallback: true,
@@ -5977,8 +5978,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(updatedTransaction?.receipt?.source).toBe(source);
-            expect(updatedSearch?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+            expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
         });
     });
 });
