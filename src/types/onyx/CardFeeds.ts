@@ -137,6 +137,7 @@ export type {
     CompanyCardFeed,
     DirectCardFeedData,
     CardFeedProvider,
+    CardFeedData,
     CompanyFeeds,
     CompanyCardNicknames,
     CompanyCardFeedWithNumber,

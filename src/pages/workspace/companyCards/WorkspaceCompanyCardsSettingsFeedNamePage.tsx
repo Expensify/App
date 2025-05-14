@@ -46,7 +46,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const feedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds, selectedFeed);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed ? companyFeeds[selectedFeed] : undefined);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME>) => {

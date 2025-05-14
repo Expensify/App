@@ -61,7 +61,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
     const bankName = getBankName(selectedFeed);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds, selectedFeed);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeedData);
     const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
 

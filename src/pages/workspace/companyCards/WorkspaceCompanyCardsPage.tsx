@@ -69,7 +69,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(cards);
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCards, selectedFeed);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
     const fetchCompanyCards = useCallback(() => {
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
     }, [policyID, domainOrWorkspaceAccountID]);

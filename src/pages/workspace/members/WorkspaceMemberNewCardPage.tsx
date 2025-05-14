@@ -67,7 +67,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const memberName = personalDetails?.[accountID]?.firstName ? personalDetails?.[accountID]?.firstName : personalDetails?.[accountID]?.login;
     const companyFeeds = getCompanyFeeds(cardFeeds, false, true);
     const isFeedExpired = isSelectedFeedExpired((selectedFeed as CompanyCardFeed) ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed] : undefined);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds, selectedFeed as CompanyCardFeed);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[selectedFeed as CompanyCardFeed]);
 
     const [list] = useCardsList(policyID, selectedFeed as CompanyCardFeed);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed]);

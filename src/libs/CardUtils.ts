@@ -12,7 +12,7 @@ import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
-import type {CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CardFeedData, CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
@@ -405,14 +405,8 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     return customFeedName ?? formattedFeedName;
 }
 
-function getDomainOrWorkspaceAccountID(workspaceAccountID: number, companyFeeds: CompanyFeeds, selectedFeed: CompanyCardFeed | undefined): number {
-    const feedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
-
-    if (feedData?.domainID) {
-        return feedData.domainID;
-    }
-
-    return workspaceAccountID;
+function getDomainOrWorkspaceAccountID(workspaceAccountID: number, cardFeedData: CardFeedData | undefined): number {
+    return cardFeedData?.domainID ?? workspaceAccountID;
 }
 
 // We will simplify the logic below once we have #50450 #50451 implemented

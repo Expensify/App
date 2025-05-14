@@ -48,9 +48,10 @@ function WorkspaceCompanyCardsSettingsPage({
     const [cardsList] = useCardsList(policyID, selectedFeed);
     const feedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const liabilityType = selectedFeed && companyFeeds[selectedFeed]?.liabilityType;
+    const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
+    const liabilityType = selectedFeedData?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds, selectedFeed);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));

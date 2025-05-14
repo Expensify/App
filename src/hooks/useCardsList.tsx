@@ -10,7 +10,7 @@ const useCardsList = (policyID: string | undefined, selectedFeed: CompanyCardFee
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const companyCards = getCompanyFeeds(cardFeeds);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCards, selectedFeed);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed ? companyCards[selectedFeed] : undefined);
     const [cardsList, cardsListMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`, {
         selector: filterInactiveCards,
         canBeMissing: true,
