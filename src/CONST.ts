@@ -69,6 +69,10 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
     netsuite: 'NetSuite',
     intacct: 'Sage Intacct',
     quickbooksDesktop: 'QuickBooks Desktop',
+    sap: 'SAP',
+    oracle: 'Oracle',
+    microsoftDynamics: 'Microsoft Dynamics',
+    other: 'Other',
 };
 
 const connectionsVideoPaths = {
@@ -273,7 +277,7 @@ type OnboardingPurpose = ValueOf<typeof onboardingChoices>;
 
 type OnboardingCompanySize = ValueOf<typeof onboardingCompanySize>;
 
-type OnboardingAccounting = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
+type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -1225,6 +1229,7 @@ const CONST = {
         },
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
+            ADD_EXPENSE: 'addExpense',
             REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
@@ -1235,6 +1240,10 @@ const CONST = {
             HOLD: 'hold',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+        },
+        ADD_EXPENSE_OPTIONS: {
+            CREATE_NEW_EXPENSE: 'createNewExpense',
+            ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense',
         },
         ACTIONS: {
             LIMIT: 50,
@@ -3011,6 +3020,10 @@ const CONST = {
                 financialForce: 'FinancialForce',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
+                sap: 'SAP',
+                oracle: 'Oracle',
+                microsoftDynamics: 'Microsoft Dynamics',
+                other: 'Other',
             },
             AUTH_HELP_LINKS: {
                 intacct:

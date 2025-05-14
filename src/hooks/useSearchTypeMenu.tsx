@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -170,6 +170,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
                 iconWidth: variables.iconSizeNormal,
                 iconHeight: variables.iconSizeNormal,
                 shouldIconUseAutoWidthStyle: false,
+                shouldShowRightComponent: true,
                 hash: key,
             };
         });
