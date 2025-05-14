@@ -65,6 +65,7 @@ if (args.includes('--config')) {
 let isInteractiveMode = false;
 if (args.includes('--interactive')) {
     isInteractiveMode = true;
+    Logger.log('🎮 Running in interactive mode. Each test run will wait for a key press before continuing.');
 }
 
 // Important: set app path only after correct config file has been loaded
@@ -252,8 +253,7 @@ const runTests = async (): Promise<void> => {
         }
 
         return new Promise<void>((resolve) => {
-            // eslint-disable-next-line no-console
-            console.log('Press any key to continue with the next run...');
+            Logger.log('Press any key to continue with the next run...');
             process.stdin.setRawMode(true);
             process.stdin.resume();
             process.stdin.once('data', () => {
