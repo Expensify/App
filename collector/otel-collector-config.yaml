@@ -9,16 +9,6 @@ receivers:
             - https://dev.new.expensify.com:8082
           max_age: 7200
 
-processors:
-  batch:
-
-extensions:
-  health_check:
-  pprof:
-    endpoint: :1888
-  zpages:
-    endpoint: :55679
-
 exporters:
   prometheus:
     endpoint: 0.0.0.0:8889
@@ -29,18 +19,16 @@ exporters:
   debug:
     verbosity: detailed
 
-  zipkin:
-      endpoint: "http://zipkin-all-in-one:9411/api/v2/spans"
-      format: proto
+  otlp:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
 
 service:
-  extensions: [pprof, zpages, health_check]
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [debug, zipkin]
+      exporters: [debug, otlp]
     metrics:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [prometheus, debug]
+      exporters: [debug, prometheus]
