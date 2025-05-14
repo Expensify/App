@@ -628,27 +628,23 @@ describe('GithubUtils', () => {
 
     const commitHistoryData = {
         emptyResponse: {
-            data: {
-                commits: [],
-            },
+            commits: [],
         },
         singleCommit: {
-            data: {
-                commits: [
-                    {
-                        sha: 'abc123',
-                        commit: {
-                            message: 'Test commit message',
-                            author: {
-                                name: 'Test Author',
-                            },
-                        },
+            commits: [
+                {
+                    sha: 'abc123',
+                    commit: {
+                        message: 'Test commit message',
                         author: {
-                            login: 'testuser',
+                            name: 'Test Author',
                         },
                     },
-                ],
-            },
+                    author: {
+                        login: 'testuser',
+                    },
+                },
+            ],
         },
         expectedFormattedCommit: [
             {
