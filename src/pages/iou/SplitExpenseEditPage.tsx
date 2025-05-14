@@ -14,8 +14,9 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
+import {getPolicy} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,6 +41,9 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const splitExpensesList = draftTransactioWithSplitExpenses?.comment?.splitExpenses;
 
     const currentAmount = Number(transactionDetails?.amount) >= 0 ? Math.abs(Number(splitExpenseDraftTransactionDetails?.amount)) : Number(splitExpenseDraftTransactionDetails?.amount);
+
+    const report = getReportOrDraftReport(reportID);
+    const policy = getPolicy(report?.policyID);
 
     return (
         <ScreenWrapper testID={SplitExpenseEditPage.displayName}>
@@ -73,47 +77,51 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             titleStyle={styles.flex1}
                             numberOfLinesTitle={2}
                         />
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            key={translate('common.category')}
-                            description={translate('common.category')}
-                            title={splitExpenseDraftTransactionDetails?.category}
-                            numberOfLinesTitle={2}
-                            onPress={() => {
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                        reportID,
-                                        Navigation.getActiveRoute(),
-                                    ),
-                                );
-                            }}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                        />
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            key={translate('workspace.common.tags')}
-                            description={translate('workspace.common.tags')}
-                            title={splitExpenseDraftTransactionDetails?.tag}
-                            numberOfLinesTitle={2}
-                            onPress={() => {
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                        0,
-                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                        reportID,
-                                        Navigation.getActiveRoute(),
-                                    ),
-                                );
-                            }}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                        />
+                        {!!policy?.areCategoriesEnabled && (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                key={translate('common.category')}
+                                description={translate('common.category')}
+                                title={splitExpenseDraftTransactionDetails?.category}
+                                numberOfLinesTitle={2}
+                                onPress={() => {
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                            CONST.IOU.ACTION.EDIT,
+                                            CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                            reportID,
+                                            Navigation.getActiveRoute(),
+                                        ),
+                                    );
+                                }}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                            />
+                        )}
+                        {!!policy?.areTagsEnabled && (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                key={translate('workspace.common.tags')}
+                                description={translate('workspace.common.tags')}
+                                title={splitExpenseDraftTransactionDetails?.tag}
+                                numberOfLinesTitle={2}
+                                onPress={() => {
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                            CONST.IOU.ACTION.EDIT,
+                                            CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                            0,
+                                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                            reportID,
+                                            Navigation.getActiveRoute(),
+                                        ),
+                                    );
+                                }}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                            />
+                        )}
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
                             key={translate('common.date')}
