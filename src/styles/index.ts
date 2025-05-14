@@ -5567,6 +5567,13 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        tripReservationRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            maxWidth: '50%',
+            flexShrink: 1,
+        },
+
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
