@@ -261,6 +261,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         viewTourTaskReport,
         canModifyTheTask,
         canActionTheTask,
+        isSmallScreen,
     ]);
 
     return (
