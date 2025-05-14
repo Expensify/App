@@ -3,6 +3,7 @@ import {useMemo} from 'react';
 import FastSearch from '@libs/FastSearch';
 import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
+import StringUtils from '@libs/StringUtils';
 
 type AllOrSelectiveOptions = ReportAndPersonalDetailOptions | OptionsListType;
 
@@ -64,8 +65,10 @@ function useFastSearchFromOptions(
         ]);
 
         function search(searchInput: string): AllOrSelectiveOptions {
-            const searchWords = deburr(searchInput).split(' ').sort(); // asc sorted
-            const longestSearchWord = searchWords.at(searchWords.length - 1); // longest word is the last element
+            const deburredInput = deburr(searchInput);
+            const searchWords = deburredInput.split(/\s+/);
+            const searchWordsSorted = StringUtils.sortStringArrayByLength(searchWords);
+            const longestSearchWord = searchWordsSorted.at(searchWordsSorted.length - 1); // longest word is the last element
             if (!longestSearchWord) {
                 return emptyResult;
             }
@@ -76,8 +79,8 @@ function useFastSearchFromOptions(
             let [personalDetails, recentReports] = fastSearch.search(longestSearchWord);
 
             if (searchWords.length > 1) {
-                personalDetails = personalDetails.filter((pd) => isSearchStringMatch(searchInput, pd.text));
-                recentReports = recentReports.filter((rr) => isSearchStringMatch(searchInput, rr.text));
+                personalDetails = personalDetails.filter((pd) => isSearchStringMatch(deburredInput, deburr(pd.text)));
+                recentReports = recentReports.filter((rr) => isSearchStringMatch(deburredInput, deburr(rr.text)));
             }
 
             if (includeUserToInvite && 'currentUserOption' in options) {

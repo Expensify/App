@@ -4,14 +4,14 @@ import {Dimensions, useWindowDimensions} from 'react-native';
 import type {ResponsiveLayoutProperties} from '@components/VideoPlayerContexts/FullScreenContext';
 import {FullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import useDebouncedState from '@hooks/useDebouncedState';
-import * as Browser from '@libs/Browser';
+import {isMobile as isMobileBrowser, isMobileWebKit} from '@libs/Browser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type WindowDimensions from './types';
 
-const initalViewportHeight = window.visualViewport?.height ?? window.innerHeight;
-const tagNamesOpenKeyboard = ['INPUT', 'TEXTAREA'];
-const isMobile = Browser.isMobile();
+const initialViewportHeight = window.visualViewport?.height ?? window.innerHeight;
+const tagNamesOpenKeyboard = [CONST.ELEMENT_NAME.INPUT, CONST.ELEMENT_NAME.TEXTAREA] as string[];
+const isMobile = isMobileBrowser();
 
 /**
  * A wrapper around React Native's useWindowDimensions hook.
@@ -24,8 +24,8 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         unlockWindowDimensions: () => {},
     };
 
-    const isCachedViewportHeight = useCachedViewportHeight && Browser.isMobileWebKit();
-    const cachedViewportHeightWithKeyboardRef = useRef(initalViewportHeight);
+    const isCachedViewportHeight = useCachedViewportHeight && isMobileWebKit();
+    const cachedViewportHeightWithKeyboardRef = useRef(initialViewportHeight);
     const {width: windowWidth, height: windowHeight} = useWindowDimensions();
 
     // These are the same as the ones in useResponsiveLayout, but we need to redefine them here to avoid cyclic dependency.
@@ -36,8 +36,8 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
     const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
-    const lowerScreenDimmension = Math.min(windowWidth, windowHeight);
-    const isSmallScreen = lowerScreenDimmension <= variables.mobileResponsiveWidthBreakpoint;
+    const lowerScreenDimension = Math.min(windowWidth, windowHeight);
+    const isSmallScreen = lowerScreenDimension <= variables.mobileResponsiveWidthBreakpoint;
 
     const responsiveLayoutResults = {
         isSmallScreenWidth,
@@ -72,7 +72,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const handleFocusOut = useRef((event: FocusEvent) => {
         const targetElement = event.target as HTMLElement;
         if (tagNamesOpenKeyboard.includes(targetElement.tagName)) {
-            setCachedViewportHeight(initalViewportHeight);
+            setCachedViewportHeight(initialViewportHeight);
         }
     });
 
@@ -97,7 +97,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     }, [windowHeight, isCachedViewportHeight]);
 
     useEffect(() => {
-        if (!isCachedViewportHeight || !window.matchMedia('(orientation: portrait)').matches || windowHeight >= initalViewportHeight) {
+        if (!isCachedViewportHeight || !window.matchMedia('(orientation: portrait)').matches || windowHeight >= initialViewportHeight) {
             return;
         }
         cachedViewportHeightWithKeyboardRef.current = windowHeight;
@@ -123,7 +123,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         lockedWindowDimensionsRef.current.windowWidth !== windowWidth &&
         lockedWindowDimensionsRef.current.windowHeight !== windowHeight;
 
-    // if video is in fullscreen mode, lock the window dimensions since they can change and casue whole app to re-render
+    // if video is in fullscreen mode, lock the window dimensions since they can change and cause whole app to re-render
     if (!lockedWindowDimensionsRef.current || didScreenChangeOrientation) {
         lockWindowDimensions(windowDimensions);
         return windowDimensions;

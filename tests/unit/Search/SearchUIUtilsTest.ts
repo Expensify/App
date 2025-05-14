@@ -926,7 +926,7 @@ describe('SearchUIUtils', () => {
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
             const menuItems = SearchUIUtils.createTypeMenuItems(null, undefined);
-            expect(menuItems).toHaveLength(4);
+            expect(menuItems).toHaveLength(5);
             expect(menuItems).toStrictEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
@@ -945,6 +945,11 @@ describe('SearchUIUtils', () => {
                         icon: Expensicons.ChatBubbles,
                     }),
                     expect.objectContaining({
+                        translationPath: 'common.tasks',
+                        type: CONST.SEARCH.DATA_TYPES.TASK,
+                        icon: Expensicons.Task,
+                    }),
+                    expect.objectContaining({
                         translationPath: 'travel.trips',
                         type: CONST.SEARCH.DATA_TYPES.TRIP,
                         icon: Expensicons.Suitcase,
@@ -960,6 +965,7 @@ describe('SearchUIUtils', () => {
                 ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc'}),
                 ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc groupBy:reports'}),
                 ROUTES.SEARCH_ROOT.getRoute({query: 'type:chat status:all sortBy:date sortOrder:desc'}),
+                ROUTES.SEARCH_ROOT.getRoute({query: 'type:task status:all sortBy:date sortOrder:desc'}),
                 ROUTES.SEARCH_ROOT.getRoute({query: 'type:trip status:all sortBy:date sortOrder:desc'}),
             ];
 

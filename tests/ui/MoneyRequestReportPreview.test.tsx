@@ -19,19 +19,16 @@ import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {
-    action as mockAction,
-    chatReport as mockChatReport,
-    iouReport as mockIOUReport,
-    transaction as mockTransaction,
-    violations as mockViolations,
-} from '@src/stories/mockData/transactions';
 import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import {actionR14932 as mockAction} from '../../__mocks__/reportData/actions';
+import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
+import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
+import {violationsR14932 as mockViolations} from '../../__mocks__/reportData/violations';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const mockSecondTransactionID = `${mockTransaction.transactionID.substring(0, mockTransaction.transactionID.length - 1)}2`;
+const mockSecondTransactionID = `${mockTransaction.transactionID}2`;
 
 jest.mock('@react-navigation/native');
 

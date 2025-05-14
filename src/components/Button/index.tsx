@@ -39,6 +39,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Any additional styles to pass to the right icon container. */
     iconRightStyles?: StyleProp<ViewStyle>;
 
+    /** Any additional styles to pass to the icon wrapper container. */
+    iconWrapperStyles?: StyleProp<ViewStyle>;
+
     /** Small sized button */
     small?: boolean;
 
@@ -216,6 +219,7 @@ function Button(
         icon = null,
         iconStyles = [],
         iconRightStyles = [],
+        iconWrapperStyles = [],
         text = '',
 
         small = false,
@@ -317,7 +321,7 @@ function Button(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
-                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow]}>
+                <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {!!icon && (
                             <View style={[styles.mr2, !text && styles.mr0, iconStyles]}>

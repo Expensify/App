@@ -1,7 +1,7 @@
 import SCREENS from '@src/SCREENS';
 
 /**
- * Screens displayed in the BottomTab and CentralPane displayed side by side that should not have active
+ * Screens displayed in the NavigationTab and CentralPane displayed side by side that should not have active
  * focus trap when rendered on a wide screen to allow navigation between them using the keyboard
  */
 const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [

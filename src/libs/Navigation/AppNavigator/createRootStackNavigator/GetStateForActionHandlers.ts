@@ -1,14 +1,11 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import getPolicyIDFromState from '@libs/Navigation/helpers/getPolicyIDFromState';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, SwitchPolicyIdActionType} from './types';
 
@@ -17,8 +14,9 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     NAVIGATORS.LEFT_MODAL_NAVIGATOR,
     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
     NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
-    NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR,
+    NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR,
     NAVIGATORS.SHARE_MODAL_NAVIGATOR,
+    NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR,
     SCREENS.NOT_FOUND,
     SCREENS.ATTACHMENTS,
     SCREENS.TRANSACTION_RECEIPT,
@@ -28,14 +26,9 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     SCREENS.CONCIERGE,
 ];
 
-const workspaceSplitsWithoutEnteringAnimation = new Set();
-const reportsSplitsWithEnteringAnimation = new Set();
-
-let lastAccessedWorkspaceSwitcherID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_SWITCHER_ID,
-    callback: (value) => (lastAccessedWorkspaceSwitcherID = value),
-});
+const workspaceSplitsWithoutEnteringAnimation = new Set<string>();
+const reportsSplitsWithEnteringAnimation = new Set<string>();
+const settingsSplitWithEnteringAnimation = new Set<string>();
 
 /**
  * Handles the OPEN_WORKSPACE_SPLIT action.
@@ -157,35 +150,8 @@ function handlePushReportSplitAction(
     action: PushActionType,
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-    setActiveWorkspaceID: (workspaceID: string | undefined) => void,
 ) {
-    const haveParamsPolicyID = action.payload.params && 'policyID' in action.payload.params;
-    let policyID;
-
-    const policyIDFromState = getPolicyIDFromState(state as State<RootNavigatorParamList>);
-
-    if (haveParamsPolicyID) {
-        policyID = (action.payload.params as Record<string, string | undefined>)?.policyID;
-        setActiveWorkspaceID(policyID);
-    } else if (policyIDFromState) {
-        policyID = policyIDFromState;
-    } else {
-        policyID = lastAccessedWorkspaceSwitcherID;
-        setActiveWorkspaceID(policyID);
-    }
-
-    const modifiedAction = {
-        ...action,
-        payload: {
-            ...action.payload,
-            params: {
-                ...action.payload.params,
-                policyID,
-            },
-        },
-    };
-
-    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, modifiedAction, configOptions);
+    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
 
     if (!stateWithReportsSplitNavigator) {
         Log.hmmm('[handlePushReportAction] ReportsSplitNavigator has not been found in the navigation state.');
@@ -201,6 +167,30 @@ function handlePushReportSplitAction(
     }
 
     return stateWithReportsSplitNavigator;
+}
+
+function handlePushSettingsSplitAction(
+    state: StackNavigationState<ParamListBase>,
+    action: PushActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+) {
+    const stateWithSettingsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
+
+    if (!stateWithSettingsSplitNavigator) {
+        Log.hmmm('[handlePushSettingsAction] SettingsSplitNavigator has not been found in the navigation state.');
+        return null;
+    }
+
+    const lastFullScreenRoute = stateWithSettingsSplitNavigator.routes.at(-1);
+    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
+
+    // Transitioning to all central screens in settings should be animated
+    if (actionPayloadScreen !== SCREENS.SETTINGS.ROOT && lastFullScreenRoute?.key) {
+        settingsSplitWithEnteringAnimation.add(lastFullScreenRoute.key);
+    }
+
+    return stateWithSettingsSplitNavigator;
 }
 
 /**
@@ -309,14 +299,16 @@ function handleNavigatingToModalFromModal(
 }
 
 export {
-    handleOpenWorkspaceSplitAction,
     handleDismissModalAction,
+    handleNavigatingToModalFromModal,
+    handleOpenWorkspaceSplitAction,
     handlePushReportSplitAction,
     handlePushSearchPageAction,
+    handlePushSettingsSplitAction,
     handleReplaceReportsSplitNavigatorAction,
     handleSwitchPolicyIDAction,
     handleSwitchPolicyIDFromSearchAction,
-    handleNavigatingToModalFromModal,
-    workspaceSplitsWithoutEnteringAnimation,
     reportsSplitsWithEnteringAnimation,
+    settingsSplitWithEnteringAnimation,
+    workspaceSplitsWithoutEnteringAnimation,
 };

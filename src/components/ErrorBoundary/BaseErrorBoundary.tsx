@@ -5,7 +5,7 @@ import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
 import UpdateRequiredView from '@pages/ErrorPage/UpdateRequiredView';
 import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
-import type {BaseErrorBoundaryProps, LogError} from './types';
+import type {BaseErrorBoundaryProps} from './types';
 
 /**
  * This component captures an error in the child component tree and logs it to the server
@@ -36,5 +36,4 @@ function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseEr
 }
 
 BaseErrorBoundary.displayName = 'BaseErrorBoundary';
-export type {LogError, BaseErrorBoundaryProps};
 export default BaseErrorBoundary;

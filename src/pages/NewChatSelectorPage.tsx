@@ -41,8 +41,8 @@ function NewChatSelectorPage() {
 
     return (
         <ScreenWrapper
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight
             testID={NewChatSelectorPage.displayName}

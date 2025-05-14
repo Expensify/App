@@ -9,12 +9,16 @@ import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import {action, chatReport, iouReport, personalDetails, transaction, violations} from './mockData/transactions';
+import {actionR14932} from '../../__mocks__/reportData/actions';
+import personalDetails from '../../__mocks__/reportData/personalDetails';
+import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
+import {transactionR14932} from '../../__mocks__/reportData/transactions';
+import {violationsR14932} from '../../__mocks__/reportData/violations';
 
 const veryLongString = 'W'.repeat(1000);
 const veryBigNumber = Number('9'.repeat(12));
 const modifiedTransaction = ({category, tag, merchant = '', amount = 1000, hold = false}: {category?: string; tag?: string; merchant?: string; amount?: number; hold?: boolean}) => ({
-    ...transaction,
+    ...transactionR14932,
     category,
     tag,
     merchant,
@@ -23,8 +27,8 @@ const modifiedTransaction = ({category, tag, merchant = '', amount = 1000, hold 
         hold: hold ? 'true' : undefined,
     },
 });
-const iouReportWithModifiedType = (type: string) => ({...iouReport, type});
-const actionWithModifiedPendingAction = (pendingAction: PendingAction) => ({...action, pendingAction});
+const iouReportWithModifiedType = (type: string) => ({...iouReportR14932, type});
+const actionWithModifiedPendingAction = (pendingAction: PendingAction) => ({...actionR14932, pendingAction});
 
 const disabledProperties = [
     'onPreviewPressed',
@@ -58,7 +62,7 @@ const generateArgTypes = (mapping: Record<string, unknown>): InputType => ({
 /* eslint-disable @typescript-eslint/naming-convention */
 const transactionsMap = {
     'No Merchant': modifiedTransaction({}),
-    Food: modifiedTransaction({category: 'Food', tag: 'Yummm', merchant: 'Burgers'}),
+    Food: modifiedTransaction({category: 'Food', tag: 'Yum', merchant: 'Burgers'}),
     Grocery: modifiedTransaction({category: 'Shopping', tag: 'Tesco', merchant: 'Supermarket'}),
     Cars: modifiedTransaction({category: 'Porsche', tag: 'Car shop', merchant: 'Merchant'}),
     'Too Long': modifiedTransaction({category: veryLongString, tag: veryLongString, merchant: veryLongString, amount: veryBigNumber}),
@@ -66,19 +70,19 @@ const transactionsMap = {
 
 const violationsMap = {
     None: [],
-    Duplicate: [violations.at(0)],
-    'Missing Category': [violations.at(1)],
-    'Field Required': [violations.at(2)],
+    Duplicate: [violationsR14932.at(0)],
+    'Missing Category': [violationsR14932.at(1)],
+    'Field Required': [violationsR14932.at(2)],
 };
 
 const actionMap = {
     'Pending delete': actionWithModifiedPendingAction(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-    'No pending action': action,
+    'No pending action': actionR14932,
 };
 
 const iouReportMap = {
     IOU: iouReportWithModifiedType(CONST.REPORT.TYPE.IOU),
-    'Normal report': iouReport,
+    'Normal report': iouReportR14932,
 };
 /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -93,18 +97,16 @@ const story: Meta<typeof TransactionPreviewContent> = {
     title: 'Components/TransactionPreview',
     component: TransactionPreviewContent,
     args: {
-        action,
+        action: actionR14932,
         isWhisper: false,
         isHovered: false,
-        chatReport,
+        chatReport: chatReportR14932,
         personalDetails,
-        iouReport,
-        transaction,
+        iouReport: iouReportR14932,
+        transaction: transactionR14932,
         violations: [],
-        showContextMenu: () => undefined,
         offlineWithFeedbackOnClose(): void {},
         navigateToReviewFields: () => undefined,
-        onPreviewPressed: () => true,
         containerStyles: [],
         isBillSplit: false,
         areThereDuplicates: false,
@@ -112,7 +114,7 @@ const story: Meta<typeof TransactionPreviewContent> = {
         walletTermsErrors: undefined,
         routeName: SCREENS.TRANSACTION_DUPLICATE.REVIEW,
         shouldHideOnDelete: false,
-        wrapperStyle: {width: 256},
+        transactionPreviewWidth: 303,
     },
     argTypes: {
         ...disabledProperties,
@@ -145,7 +147,7 @@ const KeepButtonCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 const KeepButtonRBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 const KeepButtonSplitRBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 const DeletedKeepButtonSplitRBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
-const KeepButtonIOURBRCategoriesAndTag: TransactionPreviewStory = Template.bind({});
+const KeepButtonIOURbrCategoriesAndTag: TransactionPreviewStory = Template.bind({});
 
 const storiesTransactionData = {category: 'Grocery stores', tag: 'Food', merchant: 'Acme'};
 
@@ -166,7 +168,7 @@ KeepButtonCategoriesAndTag.args = {
 
 KeepButtonRBRCategoriesAndTag.args = {
     ...KeepButtonCategoriesAndTag.args,
-    violations,
+    violations: violationsR14932,
     transaction: modifiedTransaction({...storiesTransactionData, hold: true}),
 };
 
@@ -175,7 +177,7 @@ KeepButtonSplitRBRCategoriesAndTag.args = {
     isBillSplit: true,
 };
 
-KeepButtonIOURBRCategoriesAndTag.args = {
+KeepButtonIOURbrCategoriesAndTag.args = {
     ...KeepButtonRBRCategoriesAndTag.args,
     iouReport: iouReportWithModifiedType(CONST.REPORT.TYPE.IOU),
 };
@@ -192,7 +194,7 @@ export {
     CategoriesAndTag,
     KeepButtonCategoriesAndTag,
     KeepButtonRBRCategoriesAndTag,
-    KeepButtonIOURBRCategoriesAndTag,
+    KeepButtonIOURbrCategoriesAndTag,
     KeepButtonSplitRBRCategoriesAndTag,
     DeletedKeepButtonSplitRBRCategoriesAndTag,
 };

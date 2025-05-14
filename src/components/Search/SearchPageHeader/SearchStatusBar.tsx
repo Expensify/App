@@ -1,19 +1,23 @@
-import React, {useMemo, useRef} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
+import type {ScrollView as RNScrollView, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryJSON, TripSearchStatus} from '@components/Search/types';
+import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchGroupBy, SearchQueryJSON, TaskSearchStatus, TripSearchStatus} from '@components/Search/types';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -45,6 +49,45 @@ const expenseOptions: Array<{status: ExpenseSearchStatus; type: SearchDataTypes;
         status: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED,
         icon: Expensicons.DocumentSlash,
         text: 'common.unreported',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+        icon: Expensicons.Pencil,
+        text: 'common.drafts',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+        icon: Expensicons.Hourglass,
+        text: 'common.outstanding',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+        icon: Expensicons.ThumbsUp,
+        text: 'iou.approved',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.DONE,
+        icon: Expensicons.Checkbox,
+        text: 'iou.done',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.PAID,
+        icon: Expensicons.Checkmark,
+        text: 'iou.settledExpensify',
+    },
+];
+
+const expenseReportOptions: Array<{status: ExpenseSearchStatus; type: SearchDataTypes; icon: IconAsset; text: TranslationPaths}> = [
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        icon: Expensicons.All,
+        text: 'common.all',
     },
     {
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -159,7 +202,28 @@ const chatOptions: Array<{type: SearchDataTypes; status: ChatSearchStatus; icon:
     },
 ];
 
-function getOptions(type: SearchDataTypes) {
+const taskOptions: Array<{type: SearchDataTypes; status: TaskSearchStatus; icon: IconAsset; text: TranslationPaths}> = [
+    {
+        type: CONST.SEARCH.DATA_TYPES.TASK,
+        status: CONST.SEARCH.STATUS.TASK.ALL,
+        icon: Expensicons.All,
+        text: 'common.all',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.TASK,
+        status: CONST.SEARCH.STATUS.TASK.OUTSTANDING,
+        icon: Expensicons.Hourglass,
+        text: 'common.outstanding',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.TASK,
+        status: CONST.SEARCH.STATUS.TASK.COMPLETED,
+        icon: Expensicons.Checkbox,
+        text: 'search.filters.completed',
+    },
+];
+
+function getOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return invoiceOptions;
@@ -167,9 +231,11 @@ function getOptions(type: SearchDataTypes) {
             return tripOptions;
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return chatOptions;
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return taskOptions;
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
-            return expenseOptions;
+            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? expenseReportOptions : expenseOptions;
     }
 }
 
@@ -180,15 +246,36 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions} = useSearchContext();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
-    const options = getOptions(queryJSON.type);
+    const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption} = useSearchContext();
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
+    const options = getOptions(queryJSON.type, queryJSON.groupBy);
     const scrollRef = useRef<RNScrollView>(null);
     const isScrolledRef = useRef(false);
     const {shouldShowStatusBarLoading} = useSearchContext();
     const {hash} = queryJSON;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true});
     const {isOffline} = useNetwork();
+
+    const [isScreenFocused, setIsScreenFocused] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            setIsScreenFocused(true);
+            return () => {
+                setIsScreenFocused(false);
+            };
+        }, []),
+    );
+    const isOutstandingStatusActive = Array.isArray(queryJSON.status)
+        ? queryJSON.status.includes(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING)
+        : queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.OUTSANDING_FILTER,
+        isScreenFocused && !isOutstandingStatusActive && queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE,
+    );
+    // Controls the visibility of the educational tooltip based on user scrolling.
+    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
+    const triggerScrollEvent = useScrollEventEmitter();
 
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
@@ -203,31 +290,53 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
         return <SearchStatusSkeleton shouldAnimate />;
     }
 
+    const selectionButtonText = isExportMode ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
+
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchStatusBarContainer]}>
             {shouldShowSelectedDropdown ? (
-                <ButtonWithDropdownMenu
-                    onPress={() => null}
-                    shouldAlwaysShowDropdownMenu
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
-                    options={headerButtonsOptions}
-                    isSplitButton={false}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                    popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
-                />
+                <View style={styles.flexRow}>
+                    <ButtonWithDropdownMenu
+                        onPress={() => null}
+                        shouldAlwaysShowDropdownMenu
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        customText={selectionButtonText}
+                        options={headerButtonsOptions}
+                        isSplitButton={false}
+                        anchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                        }}
+                        popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
+                    />
+                    {!isExportMode && shouldShowExportModeOption && (
+                        <View style={[styles.button, styles.bgTransparent]}>
+                            <Button
+                                link
+                                shouldUseDefaultHover={false}
+                                innerStyles={[styles.p0, StyleUtils.getResetStyle<ViewStyle>(['height', 'minHeight'])]}
+                                onPress={() => setExportMode(true)}
+                                text={translate('search.exportAll.selectAllMatchingItems')}
+                            />
+                        </View>
+                    )}
+                </View>
             ) : (
                 <ScrollView
                     style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
                     ref={scrollRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}
+                    onScroll={() => {
+                        triggerScrollEvent();
+                    }}
                 >
                     {options.map((item, index) => {
+                        const isOutstanding = item.status === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
                         const onPress = singleExecution(() => {
+                            if (isOutstanding) {
+                                hideProductTrainingTooltip();
+                            }
                             onStatusChange?.();
                             const query = buildSearchQueryString({...queryJSON, status: item.status});
                             Navigation.setParams({q: query});
@@ -237,27 +346,41 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
                         const isLastItem = index === options.length - 1;
 
                         return (
-                            <Button
+                            <EducationalTooltip
                                 key={item.status}
-                                onLayout={(e) => {
-                                    if (!isActive || isScrolledRef.current || !('left' in e.nativeEvent.layout)) {
-                                        return;
-                                    }
-                                    isScrolledRef.current = true;
-                                    scrollRef.current?.scrollTo({x: (e.nativeEvent.layout.left as number) - styles.pl5.paddingLeft});
+                                shouldRender={isOutstanding && shouldShowProductTrainingTooltip}
+                                anchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                                 }}
-                                text={translate(item.text)}
-                                onPress={onPress}
-                                icon={item.icon}
-                                iconFill={isActive ? theme.success : undefined}
-                                iconHoverFill={theme.success}
-                                innerStyles={!isActive && styles.bgTransparent}
-                                hoverStyles={StyleUtils.getBackgroundColorStyle(!isActive ? theme.highlightBG : theme.border)}
-                                textStyles={!isActive && StyleUtils.getTextColorStyle(theme.textSupporting)}
-                                textHoverStyles={StyleUtils.getTextColorStyle(theme.text)}
-                                // We add padding to the first and last items so that they align with the header and table but can overflow outside the screen when scrolled.
-                                style={[isFirstItem && styles.pl5, isLastItem && styles.pr5]}
-                            />
+                                shiftHorizontal={0}
+                                renderTooltipContent={renderProductTrainingTooltip}
+                                wrapperStyle={styles.productTrainingTooltipWrapper}
+                                shouldHideOnScroll
+                                shouldHideOnNavigate={false}
+                                onTooltipPress={onPress}
+                            >
+                                <Button
+                                    onLayout={(e) => {
+                                        if (!isActive || isScrolledRef.current || !('left' in e.nativeEvent.layout)) {
+                                            return;
+                                        }
+                                        isScrolledRef.current = true;
+                                        scrollRef.current?.scrollTo({x: (e.nativeEvent.layout.left as number) - styles.pl5.paddingLeft});
+                                    }}
+                                    text={translate(item.text)}
+                                    onPress={onPress}
+                                    icon={item.icon}
+                                    iconFill={isActive ? theme.success : undefined}
+                                    iconHoverFill={theme.success}
+                                    innerStyles={!isActive && styles.bgTransparent}
+                                    hoverStyles={StyleUtils.getBackgroundColorStyle(!isActive ? theme.highlightBG : theme.border)}
+                                    textStyles={!isActive && StyleUtils.getTextColorStyle(theme.textSupporting)}
+                                    textHoverStyles={StyleUtils.getTextColorStyle(theme.text)}
+                                    // We add padding to the first and last items so that they align with the header and table but can overflow outside the screen when scrolled.
+                                    style={[isFirstItem && styles.pl5, isLastItem && styles.pr5]}
+                                />
+                            </EducationalTooltip>
                         );
                     })}
                 </ScrollView>

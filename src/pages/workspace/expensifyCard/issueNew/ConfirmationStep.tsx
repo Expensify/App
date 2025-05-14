@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,14 +37,13 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const validateError = getLatestErrorMessageField(issueNewCard);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
-    const validateCodeSent = validateCodeAction?.validateCodeSent;
+    const defaultFundID = useDefaultFundID(policyID);
 
     const submitButton = useRef<View>(null);
 
@@ -63,7 +63,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     }, [backTo, policyID, isSuccessful]);
 
     const submit = (validateCode: string) => {
-        issueExpensifyCard(policyID, CONST.COUNTRY.US, validateCode, data);
+        issueExpensifyCard(defaultFundID, policyID, CONST.COUNTRY.US, validateCode, data);
     };
 
     const errorMessage = getLatestErrorMessage(issueNewCard);
@@ -142,9 +142,9 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 <ValidateCodeActionModal
                     handleSubmitForm={submit}
                     isLoading={issueNewCard?.isLoading}
-                    sendValidateCode={() => requestValidateCodeAction()}
+                    sendValidateCode={requestValidateCodeAction}
+                    validateCodeActionErrorField="createAdminIssuedVirtualCard"
                     validateError={validateError}
-                    hasMagicCodeBeenSent={validateCodeSent}
                     clearError={() => clearIssueNewCardError(policyID)}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}

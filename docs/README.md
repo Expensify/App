@@ -153,7 +153,7 @@ You can now begin adding articles inside the subcategory `hr-integrations/`.
 
 ## Add content
 
-Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md) file into the correct subdirectory of `docs/articles`. For example, if the article belongs in the `Bank Accounts` hub for the platform `Expensify Classic`, then copy the template into `docs/articles/expensiyfy-classic/bank-accounts` directory.
+Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md) file into the correct subdirectory of `docs/articles`. For example, if the article belongs in the `Bank Accounts` hub for the platform `Expensify Classic`, then copy the template into `docs/articles/expensify-classic/bank-accounts` directory.
 
 Next, rename the copy with the name of the article title, i.e. `Connect-ANZ.md`. It is **important** that the article has `.md` extension (you can use dashes for spaces in the file name if it's needed). The dashes will be removed in the generated site page. 
 

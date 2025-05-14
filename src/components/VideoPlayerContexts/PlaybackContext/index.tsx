@@ -5,7 +5,7 @@ import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ProtectedCurrentRouteReportID} from './playbackContextReportIDUtils';
-import {findUrlInReportOrAncestorAttachments, getCurrentRouteReportID, NO_REPORT_ID, NO_REPORT_ID_IN_PARAMS, normalizeReportID} from './playbackContextReportIDUtils';
+import {findURLInReportOrAncestorAttachments, getCurrentRouteReportID, NO_REPORT_ID, NO_REPORT_ID_IN_PARAMS, normalizeReportID} from './playbackContextReportIDUtils';
 import type {OriginalParent, PlaybackContext, PlaybackContextValues} from './types';
 import usePlaybackContextVideoRefs from './usePlaybackContextVideoRefs';
 
@@ -39,7 +39,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             const isReportAChatThread = isChatThread(report);
             let reportIDtoSet;
             if (isReportAChatThread) {
-                reportIDtoSet = findUrlInReportOrAncestorAttachments(report, url) ?? NO_REPORT_ID;
+                reportIDtoSet = findURLInReportOrAncestorAttachments(report, url) ?? NO_REPORT_ID;
             } else {
                 reportIDtoSet = reportID;
             }

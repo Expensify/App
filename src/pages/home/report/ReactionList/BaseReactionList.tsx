@@ -60,8 +60,9 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
             hoverStyle={hoveredComponentBG}
             onSelectRow={() => {
                 onClose?.();
-
-                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+                });
             }}
             option={{
                 reportID: String(item.accountID),

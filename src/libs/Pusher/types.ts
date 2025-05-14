@@ -91,7 +91,6 @@ export type {
     UserIsTypingEvent,
     UserIsLeavingRoomEvent,
     PingPongEvent,
-    PusherEventMap,
     EventData,
     EventCallbackError,
     ChunkedDataEvents,

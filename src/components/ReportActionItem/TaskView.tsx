@@ -29,14 +29,17 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask as canActionTaskUtil, canModifyTask as canModifyTaskUtil, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type TaskViewProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
+
+    /** The task report action */
+    action: OnyxEntry<ReportAction>;
 };
 
-function TaskView({report}: TaskViewProps) {
+function TaskView({report, action}: TaskViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -66,13 +69,13 @@ function TaskView({report}: TaskViewProps) {
             anchor: null,
             report,
             reportNameValuePairs: undefined,
-            action: undefined,
+            action,
             transactionThreadReport: undefined,
             checkIfContextMenuActive: () => {},
             isDisabled: true,
             shouldDisplayContextMenu: false,
         }),
-        [report],
+        [report, action],
     );
 
     const attachmentContextValue = useMemo(() => ({type: CONST.ATTACHMENT_TYPE.ONBOARDING, accountID}), [accountID]);
