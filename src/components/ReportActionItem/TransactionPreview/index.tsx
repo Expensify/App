@@ -105,7 +105,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                 <TransactionPreviewContent
                     /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...props}
-                    action={IOUaction}
+                    action={iouAction}
                     isBillSplit={isBillSplit}
                     chatReport={chatReport}
                     personalDetails={personalDetails}
@@ -127,7 +127,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         <TransactionPreviewContent
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
-            action={IOUaction}
+            action={iouAction}
             isBillSplit={isBillSplit}
             chatReport={chatReport}
             personalDetails={personalDetails}
