@@ -60,9 +60,6 @@ type ThumbnailImageProps = {
     /** Whether the image is deleted */
     isDeleted?: boolean;
 
-    /** Indicating whether the report is in preview */
-    isReportPreview?: boolean;
-
     /** Callback fired when the image fails to load */
     onLoadFailure?: () => void;
 
@@ -91,7 +88,6 @@ function ThumbnailImage({
     isDeleted,
     onLoadFailure,
     onMeasure,
-    isReportPreview,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -148,12 +144,10 @@ function ThumbnailImage({
         );
     }
 
-    const thumbnailStyle = isReportPreview ? styles.thumbnailImageContainerHover : styles.thumbnailImageContainerHighlight;
-
     return (
-        <View style={[style, styles.overflowHidden]}>
+        <View style={[styles.thumbnailImageContainerHighlight, style, styles.overflowHidden]}>
             {!!isDeleted && <AttachmentDeletedIndicator containerStyles={[...sizeStyles]} />}
-            <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter, thumbnailStyle]}>
+            <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
                     altText={altText}

@@ -29,13 +29,14 @@ type ReportActionItemImagesProps = {
     /** if the corresponding report action item is hovered */
     isHovered?: boolean;
 
-    isReportPreview?: boolean;
-
     /** Callback to be called on onPress */
     onPress?: () => void;
 
     /** Whether we should use aspect ratio to decide the height of receipt previews. */
     shouldUseAspectRatio?: boolean;
+
+    /** Indicating whether the report is in preview */
+    isReportPreview?: boolean;
 };
 
 /**

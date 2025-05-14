@@ -80,6 +80,9 @@ type ReceiptImageProps = (
     /** The style of the loading indicator */
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
+    /** Styles applied to the thumbnail container */
+    thumbnailContainerStyles?: StyleProp<ViewStyle>;
+
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
 
@@ -132,8 +135,8 @@ function ReceiptImage({
     transactionItem,
     isPerDiemRequest,
     shouldUseFullHeight,
-    isReportPreview = false,
     loadingIndicatorStyles,
+    thumbnailContainerStyles,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -183,9 +186,8 @@ function ReceiptImage({
     if (shouldUseThumbnailImage) {
         return (
             <ThumbnailImage
-                isReportPreview={isReportPreview}
                 previewSourceURL={source ?? ''}
-                style={[styles.w100, styles.h100]}
+                style={[styles.w100, styles.h100, thumbnailContainerStyles]}
                 isAuthTokenRequired={isAuthTokenRequired ?? false}
                 shouldDynamicallyResize={false}
                 fallbackIcon={fallbackIcon}

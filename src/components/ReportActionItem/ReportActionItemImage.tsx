@@ -61,14 +61,14 @@ type ReportActionItemImageProps = {
     /** whether or not this report is from review duplicates */
     isFromReviewDuplicates?: boolean;
 
-    /** Indicating whether the report is in preview */
-    isReportPreview?: boolean;
-
     /** Callback to be called on pressing the image */
     onPress?: () => void;
 
     /** Whether the receipt empty state should extend to the full height of the container. */
     shouldUseFullHeight?: boolean;
+
+    /** Indicating whether the report is in preview */
+    isReportPreview?: boolean;
 };
 
 /**
@@ -93,7 +93,7 @@ function ReportActionItemImage({
     isFromReviewDuplicates = false,
     onPress,
     shouldUseFullHeight,
-    isReportPreview = false,
+    isReportPreview,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -148,8 +148,11 @@ function ReportActionItemImage({
         };
     }
 
-    propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
-    propsObj.isReportPreview = isReportPreview;
+    propsObj = {
+        ...propsObj,
+        isPerDiemRequest: isPerDiemRequest(transaction),
+        thumbnailContainerStyles: isReportPreview ? [styles.thumbnailImageContainerHover] : undefined,
+    };
 
     if (enablePreviewModal) {
         return (
