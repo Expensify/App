@@ -40,12 +40,12 @@ import {
     isArchivedNonExpenseReportWithID,
     isChatUsedForOnboarding,
     isPayer,
+    isReportOutstanding,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
     shouldDisableThread,
     shouldReportBeInOptionList,
     temporary_getMoneyRequestOptions,
-    isReportOutstanding,
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
