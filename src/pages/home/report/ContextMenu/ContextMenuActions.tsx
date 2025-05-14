@@ -26,6 +26,7 @@ import {
     getCardIssuedMessage,
     getExportIntegrationMessageHTML,
     getIOUReportIDFromReportActionPreview,
+    getJoinRequestMessage,
     getMemberChangeMessageFragment,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
@@ -51,6 +52,7 @@ import {
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    isActionableJoinRequest,
     isActionableMentionWhisper,
     isActionableTrackExpense,
     isActionOfType,
@@ -625,6 +627,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, card}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
                     setClipboardMessage(getRemovedConnectionMessage(reportAction));
+                } else if (isActionableJoinRequest(reportAction)) {
+                    const displayMessage = getJoinRequestMessage(reportAction);
+                    Clipboard.setString(displayMessage);
                 } else if (content) {
                     setClipboardMessage(
                         content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {

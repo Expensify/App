@@ -40,6 +40,7 @@ function BaseListItem<TItem extends ListItem>({
     hoverStyle,
     onLongPressRow,
     testID,
+    shouldUseDefaultRightHandSideCheckmark = true,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -125,7 +126,7 @@ function BaseListItem<TItem extends ListItem>({
                 >
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {!canSelectMultiple && !!item.isSelected && !rightHandSideComponent && (
+                    {!canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
