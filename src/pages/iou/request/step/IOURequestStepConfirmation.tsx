@@ -78,7 +78,7 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route: {
-        params: {iouType, reportID, transactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute},
+        params: {iouType, reportID, transactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport},
     },
     transaction,
     isLoadingTransaction,
@@ -439,6 +439,7 @@ function IOURequestStepConfirmation({
                     customUnitRateID,
                     isTestDrive: transaction?.receipt?.isTestDriveReceipt,
                 },
+                backToReport,
             });
         },
         [
@@ -453,6 +454,7 @@ function IOURequestStepConfirmation({
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
+            backToReport,
         ],
     );
 
@@ -590,9 +592,23 @@ function IOURequestStepConfirmation({
                     billable: transaction.billable,
                     attendees: transaction.comment?.attendees,
                 },
+                backToReport,
             });
         },
-        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],
+        [
+            transaction,
+            report,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            iouType,
+            policy,
+            policyCategories,
+            policyTags,
+            transactionTaxCode,
+            transactionTaxAmount,
+            customUnitRateID,
+            backToReport,
+        ],
     );
 
     const createTransaction = useCallback(

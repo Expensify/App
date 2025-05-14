@@ -103,6 +103,9 @@ type AddNewCardFeedData = {
 
     /** Name of the bank */
     bankName?: string;
+
+    /** Selected country */
+    selectedCountry?: string;
 };
 
 /** Issue new card flow steps */
