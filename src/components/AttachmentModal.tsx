@@ -556,6 +556,7 @@ function AttachmentModal({
                 <GestureHandlerRootView style={styles.flex1}>
                     {shouldUseNarrowLayout && <HeaderGap />}
                     <HeaderWithBackButton
+                        isAttachmentModal
                         title={headerTitleNew}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={shouldShowDownloadButton}

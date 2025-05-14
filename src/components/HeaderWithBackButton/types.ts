@@ -156,6 +156,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** The URL link associated with the attachment's subtitle, if available */
     subTitleLink?: string;
+
+    /** Whether the component is used in attachment modal */
+    isAttachmentModal?: boolean;
 };
 
 export type {ThreeDotsMenuItem};
