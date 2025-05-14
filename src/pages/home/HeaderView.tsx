@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
-import {addMinutes, compareDesc, isPast, parseISO} from 'date-fns';
+import {addMinutes, isPast} from 'date-fns';
 import {formatInTimeZone} from 'date-fns-tz';
-import groupBy from 'lodash-es/groupBy';
 import React, {memo, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -229,19 +228,10 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const guideBookingButton = useMemo(() => {
         // Filter Old calls.
-        const scheduledCalls = reportNameValuePairs?.calendlyCalls?.filter((call) => !isPast(parseISO(call.eventTime)));
+        const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
+        const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
 
-        const callsMap = groupBy(scheduledCalls, 'eventURI');
-
-        // Group the calls and exclude cancelled calls
-        const activeScheduledCall = Object.keys(callsMap)
-            .filter((callId) => !callsMap[callId].some((call) => call.status === CONST.SCHEDULE_CALL_STATUS.CANCELLED))
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            .map((callId) => callsMap[callId].at(0)!)
-            .sort((callA, callB) => compareDesc(parseISO(callA.eventTime), parseISO(callB.eventTime)))
-            .at(0);
-
-        if (!activeScheduledCall) {
+        if (!hasActiveScheduledCall) {
             return (
                 <Button
                     success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
@@ -264,17 +254,17 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
         const menuItems: Array<DropdownOption<string>> = [
             {
-                text: `${formatInTimeZone(activeScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${formatInTimeZone(
-                    activeScheduledCall.eventTime,
+                text: `${formatInTimeZone(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${formatInTimeZone(
+                    latestScheduledCall.eventTime,
                     userTimezone,
                     CONST.DATE.MONTH_DAY_YEAR_FORMAT,
                 )}`,
-                value: activeScheduledCall.eventTime,
-                description: `${formatInTimeZone(activeScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${formatInTimeZone(
-                    addMinutes(activeScheduledCall.eventTime, 30),
+                value: latestScheduledCall.eventTime,
+                description: `${formatInTimeZone(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${formatInTimeZone(
+                    addMinutes(latestScheduledCall.eventTime, 30),
                     userTimezone,
                     CONST.DATE.LOCAL_TIME_FORMAT,
-                )} ${DateUtils.getZoneAbbreviation(new Date(activeScheduledCall.eventTime), userTimezone)}`,
+                )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone)}`,
                 descriptionTextStyle: [styles.themeTextColor, styles.ml2],
                 icon: Illustrations.HeadSet,
                 iconWidth: 40,
@@ -286,13 +276,13 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             {
                 text: translate('common.reschedule'),
                 value: 'Reschedule',
-                onSelected: () => rescheduleBooking(activeScheduledCall),
+                onSelected: () => rescheduleBooking(latestScheduledCall),
                 icon: CalendarSolid,
             },
             {
                 text: translate('common.cancel'),
                 value: 'Cancel',
-                onSelected: () => cancelBooking(activeScheduledCall),
+                onSelected: () => cancelBooking(latestScheduledCall),
                 icon: Close,
             },
         ];
@@ -311,24 +301,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 testID="scheduled-call-header-dropdown-menu-button"
             />
         );
-    }, [
-        reportNameValuePairs?.calendlyCalls,
-        userTimezone,
-        styles.themeTextColor,
-        styles.mb4,
-        styles.pl4,
-        styles.pr5,
-        styles.pt3,
-        styles.pb5,
-        styles.borderBottom,
-        styles.flexGrow1,
-        styles.earlyDiscountButton,
-        styles.mw100,
-        translate,
-        shouldShowGuideBookingButtonInEarlyDiscountBanner,
-        shouldUseNarrowLayout,
-        report?.reportID,
-    ]);
+    }, [reportNameValuePairs?.calendlyCalls, userTimezone, styles.themeTextColor, styles.ml2, styles.mb4, styles.pl4, styles.pr5, styles.pt3, styles.pb5, styles.borderBottom, styles.flexGrow1, styles.earlyDiscountButton, styles.mw100, translate, shouldShowGuideBookingButtonInEarlyDiscountBanner, shouldUseNarrowLayout, report?.reportID]);
 
     const talkToSalesButton = (
         <TalkToSalesButton
