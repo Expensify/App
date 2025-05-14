@@ -10,7 +10,7 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import type {PlatformStackRouteProp} from './Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from './Navigation/types';
-import {getOriginalMessage, getReportAction, getReportActions, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
+import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
 import {hasActionsWithErrors, hasReportViolations, isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isReportOwner, isSettled} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -140,10 +140,8 @@ function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, 
  * it returns an empty array. It identifies the latest error in each action and filters out duplicates to
  * ensure only unique error messages are returned.
  */
-function getUniqueActionErrors(report: OnyxEntry<OnyxTypes.Report>) {
-    const reportActions = Object.values(report ? getReportActions(report) ?? {} : {});
-
-    const reportErrors = reportActions.map((reportAction) => {
+function getUniqueActionErrors(reportActions: OnyxTypes.ReportActions) {
+    const reportErrors = Object.values(reportActions).map((reportAction) => {
         const errors = reportAction.errors ?? {};
         const key = Object.keys(errors).sort().reverse().at(0) ?? '';
         const error = errors[key];
@@ -162,6 +160,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     isBillSplit,
     shouldShowRBR,
     violationMessage,
+    reportActions,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -171,6 +170,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     isBillSplit: boolean;
     shouldShowRBR: boolean;
     violationMessage?: string;
+    reportActions?: OnyxTypes.ReportActions;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -216,8 +216,8 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    if (RBRMessage === undefined && hasActionWithErrors) {
-        const actionsWithErrors = getUniqueActionErrors(iouReport);
+    if (RBRMessage === undefined && hasActionWithErrors && !!reportActions) {
+        const actionsWithErrors = getUniqueActionErrors(reportActions);
         RBRMessage = actionsWithErrors.length > 1 ? {translationPath: 'violations.reviewRequired'} : {text: actionsWithErrors.at(0)};
     }
 
