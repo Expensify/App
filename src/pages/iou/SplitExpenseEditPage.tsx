@@ -9,6 +9,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {removeSplitExpense, updateSplitExpense} from '@libs/actions/IOU';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -27,24 +28,27 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const {reportID, transactionID, backTo} = route.params;
+    const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
-    const splitDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitDraftTransaction) ?? {}, [splitDraftTransaction]);
+    const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
+    const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
 
-    const currentAmount = Number(transactionDetails?.amount) >= 0 ? Math.abs(Number(splitDraftTransactionDetails?.amount)) : Number(splitDraftTransactionDetails?.amount);
+    const [draftTransactioWithSplitExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
+    const splitExpensesList = draftTransactioWithSplitExpenses?.comment?.splitExpenses;
+
+    const currentAmount = Number(transactionDetails?.amount) >= 0 ? Math.abs(Number(splitExpenseDraftTransactionDetails?.amount)) : Number(splitExpenseDraftTransactionDetails?.amount);
 
     return (
         <ScreenWrapper testID={SplitExpenseEditPage.displayName}>
-            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitDraftTransaction)}>
+            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction)}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={translate('iou.splitExpenseEditTitle', {
-                            amount: convertToDisplayString(currentAmount, splitDraftTransactionDetails?.currency),
-                            merchant: splitDraftTransaction?.merchant ?? '',
+                            amount: convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency),
+                            merchant: splitExpenseDraftTransaction?.merchant ?? '',
                         })}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
@@ -53,7 +57,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             shouldShowRightIcon
                             key={translate('common.description')}
                             description={translate('common.description')}
-                            title={splitDraftTransactionDetails?.comment}
+                            title={splitExpenseDraftTransactionDetails?.comment}
                             onPress={() => {
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
@@ -73,7 +77,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             shouldShowRightIcon
                             key={translate('common.category')}
                             description={translate('common.category')}
-                            title={splitDraftTransactionDetails?.category}
+                            title={splitExpenseDraftTransactionDetails?.category}
                             numberOfLinesTitle={2}
                             onPress={() => {
                                 Navigation.navigate(
@@ -93,7 +97,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             shouldShowRightIcon
                             key={translate('workspace.common.tags')}
                             description={translate('workspace.common.tags')}
-                            title={splitDraftTransactionDetails?.tag}
+                            title={splitExpenseDraftTransactionDetails?.tag}
                             numberOfLinesTitle={2}
                             onPress={() => {
                                 Navigation.navigate(
@@ -114,7 +118,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             shouldShowRightIcon
                             key={translate('common.date')}
                             description={translate('common.date')}
-                            title={splitDraftTransactionDetails?.created}
+                            title={splitExpenseDraftTransactionDetails?.created}
                             numberOfLinesTitle={2}
                             onPress={() => {
                                 Navigation.navigate(
@@ -132,21 +136,29 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                         />
                     </View>
                     <FixedFooter style={styles.mtAuto}>
-                        <Button
-                            danger
-                            large
-                            style={[styles.w100, styles.mb4]}
-                            text={translate('iou.removeSplit')}
-                            onPress={() => {}}
-                            pressOnEnter
-                            enterKeyEventListenerPriority={1}
-                        />
+                        {Number(splitExpensesList?.length) > 2 && (
+                            <Button
+                                danger
+                                large
+                                style={[styles.w100, styles.mb4]}
+                                text={translate('iou.removeSplit')}
+                                onPress={() => {
+                                    removeSplitExpense(draftTransactioWithSplitExpenses, splitExpenseTransactionID);
+                                    Navigation.goBack(backTo);
+                                }}
+                                pressOnEnter
+                                enterKeyEventListenerPriority={1}
+                            />
+                        )}
                         <Button
                             success
                             large
                             style={[styles.w100]}
                             text={translate('common.save')}
-                            onPress={() => {}}
+                            onPress={() => {
+                                updateSplitExpense(splitExpenseDraftTransaction, splitExpenseTransactionID);
+                                Navigation.goBack(backTo);
+                            }}
                             pressOnEnter
                             enterKeyEventListenerPriority={1}
                         />

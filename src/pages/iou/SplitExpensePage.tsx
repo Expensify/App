@@ -36,7 +36,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const {reportID, transactionID, splitTransactionID, backTo} = route.params;
+    const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -118,7 +118,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                 currencySymbol,
                 onSplitExpenseAmountChange,
-                isTransactionLinked: splitTransactionID === item.transactionID,
+                isTransactionLinked: splitExpenseTransactionID === item.transactionID,
                 keyForList: item?.transactionID,
             }),
         );
@@ -126,7 +126,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
 
         return [newSections];
-    }, [transaction, draftTransaction, getTranslatedText, transactionDetails?.amount, currencySymbol, onSplitExpenseAmountChange, splitTransactionID]);
+    }, [transaction, draftTransaction, getTranslatedText, transactionDetails?.amount, currencySymbol, onSplitExpenseAmountChange, splitExpenseTransactionID]);
 
     const headerContent = useMemo(
         () => (
@@ -166,7 +166,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         );
     }, [onSaveSplitExpense, styles.mb2, styles.ph1, styles.w100, translate, errorMessage]);
 
-    const initiallyFocusedOptionKey = useMemo(() => sections.at(0)?.data.find((option) => option.transactionID === splitTransactionID)?.keyForList, [sections, splitTransactionID]);
+    const initiallyFocusedOptionKey = useMemo(
+        () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
+        [sections, splitExpenseTransactionID],
+    );
 
     return (
         <ScreenWrapper

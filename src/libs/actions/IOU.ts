@@ -11083,18 +11083,19 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
 /**
  * Create a draft transaction to set up split expense details for edit split details
  */
-function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitTransactionID: string, reportID: string) {
-    if (!draftTransaction || !splitTransactionID) {
+function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string, reportID: string) {
+    if (!draftTransaction || !splitExpenseTransactionID) {
         return;
     }
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
     const originalTransaction = getTransaction(originalTransactionID);
-    const splitTransactionData = draftTransaction?.comment?.splitExpenses?.find((item) => item.transactionID === splitTransactionID);
+    const splitTransactionData = draftTransaction?.comment?.splitExpenses?.find((item) => item.transactionID === splitExpenseTransactionID);
 
     const transactionDetails = getTransactionDetails(originalTransaction);
 
     const editDraftTransaction = buildOptimisticTransaction({
         existingTransactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+        originalTransactionID,
         transactionParams: {
             amount: Number(splitTransactionData?.amount),
             currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
@@ -11135,6 +11136,51 @@ function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, dra
                     created: DateUtils.getDBTime(),
                 },
             ],
+        },
+    });
+}
+
+function removeSplitExpense(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
+    if (!draftTransaction || !splitExpenseTransactionID) {
+        return;
+    }
+
+    const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
+
+    const splitExpenses = draftTransaction.comment?.splitExpenses?.filter((item) => item.transactionID !== splitExpenseTransactionID);
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
+        comment: {
+            splitExpenses,
+        },
+    });
+}
+
+function updateSplitExpense(splitExpenseDraftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
+    if (!splitExpenseDraftTransaction || !splitExpenseTransactionID) {
+        return;
+    }
+
+    const originalTransactionID = splitExpenseDraftTransaction?.comment?.originalTransactionID;
+
+    const draftTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`];
+
+    const splitExpenses = draftTransaction?.comment?.splitExpenses?.map((item) => {
+        if (item.transactionID === splitExpenseTransactionID) {
+            return {
+                ...item,
+                description: splitExpenseDraftTransaction?.comment?.comment,
+                category: splitExpenseDraftTransaction?.category,
+                tags: splitExpenseDraftTransaction?.tag ? [splitExpenseDraftTransaction?.tag] : [],
+                created: splitExpenseDraftTransaction?.created,
+            };
+        }
+        return item;
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
+        comment: {
+            splitExpenses,
         },
     });
 }
@@ -11402,5 +11448,7 @@ export {
     updateSplitExpenseAmountField,
     saveSplitTransactions,
     initDraftSplitExpenseDataForEdit,
+    removeSplitExpense,
+    updateSplitExpense,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};

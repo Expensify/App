@@ -1983,12 +1983,12 @@ type SplitExpenseParamList = {
         reportID: string;
         transactionID: string;
         backTo?: Routes;
-        splitTransactionID?: string;
+        splitExpenseTransactionID?: string;
     };
     [SCREENS.RIGHT_MODAL.SPLIT_EXPENSE_EDIT]: {
         reportID: string;
         transactionID: string;
-        splitTransactionID: string;
+        splitExpenseTransactionID: string;
         backTo?: Routes;
     };
 };
