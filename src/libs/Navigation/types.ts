@@ -2099,4 +2099,5 @@ export type {
     WorkspaceScreenName,
     SettingsTabScreenName,
     TestDriveDemoNavigatorParamList,
+    SetParamsAction,
 };
