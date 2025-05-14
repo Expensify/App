@@ -3836,7 +3836,7 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
     const isExpenseType = isExpenseReport(report);
     const isOpen = isOpenReport(report);
     const isSubmitted = isProcessingReport(report);
-
+    console.log('over here canEditReportPolicy', {isIOUType, isInvoiceType, isExpenseType, isOpen, isSubmitted, isAdmin, isManager, isSubmitter, isReportAuditor, isAwaitingFirstLevelApproval: isAwaitingFirstLevelApproval(report)});
     if (isIOUType) {
         return isOpen || isSubmitted;
     }
@@ -10488,7 +10488,6 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
  */
 function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, policies: OnyxCollection<Policy>): boolean {
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    console.log('isWorkspaceEligibleForReportChange', {isPaidGroupPolicy: isPaidGroupPolicyPolicyUtils(newPolicy), submitterEmail, isMember: isPolicyMember(submitterEmail, newPolicy?.id), isAdmin: isPolicyAdmin(newPolicy?.id, policies)});
     return isPaidGroupPolicyPolicyUtils(newPolicy) && (isPolicyMember(submitterEmail, newPolicy?.id) || isPolicyAdmin(newPolicy?.id, policies));
 }
 
