@@ -33,7 +33,7 @@ import {isReportActionListItemType, isReportListItemType, isTransactionListItemT
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import getPlatformHeight, {ITEM_HEIGHTS} from './getPlatformHeight';
+import {ITEM_HEIGHTS} from './itemHeights';
 
 type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem | typeof TaskListItem;
@@ -108,7 +108,7 @@ function SearchList(
         queryJSONHash,
         shouldGroupByReports,
         onViewableItemsChanged,
-        estimatedItemSize = ITEM_HEIGHTS.MOBILE.STANDARD,
+        estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         onLayout,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
@@ -129,7 +129,7 @@ function SearchList(
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {selectionMode} = useMobileSelectionMode();
@@ -312,25 +312,24 @@ function SearchList(
 
                 if (isTransaction || isReportAction) {
                     const itemAction = transactionListItem?.action;
+                    // VIEW is the only action type that should be compact
                     const isItemActionView = isTransaction && itemAction === CONST.SEARCH.ACTION_TYPES.VIEW;
 
-                    const mobileHeight = isItemActionView ? ITEM_HEIGHTS.MOBILE.STANDARD : ITEM_HEIGHTS.MOBILE.WITH_BUTTON;
-                    const webHeight = isItemActionView ? ITEM_HEIGHTS.WEB.STANDARD : ITEM_HEIGHTS.WEB.WITH_BUTTON;
-                    const compactOrWebHeight = isLargeScreenWidth ? ITEM_HEIGHTS.WEB.COMPACT : webHeight;
+                    // Determine which layout to use based on screen size and drawer state
+                    let heightConstants;
 
-                    const calculatedHeight = getPlatformHeight(
-                        {
-                            // Mobile platforms use mobileHeight
-                            [CONST.PLATFORM.IOS]: mobileHeight,
-                            [CONST.PLATFORM.ANDROID]: mobileHeight,
-                            [CONST.PLATFORM.MOBILEWEB]: mobileHeight,
-                            // Desktop/Web platforms use compact height on large screens, otherwise webHeight
-                            [CONST.PLATFORM.WEB]: compactOrWebHeight,
-                            [CONST.PLATFORM.DESKTOP]: compactOrWebHeight,
-                        },
-                        ITEM_HEIGHTS.MOBILE.STANDARD,
-                    );
-                    return calculatedHeight;
+                    if (shouldUseNarrowLayout) {
+                        // For narrow screens without drawer (mobile or collapsed desktop)
+                        heightConstants = isItemActionView ? ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD : ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.WITH_BUTTON;
+                    } else if (!isLargeScreenWidth) {
+                        // For narrow screens with drawer
+                        heightConstants = isItemActionView ? ITEM_HEIGHTS.NARROW_WITH_DRAWER.STANDARD : ITEM_HEIGHTS.NARROW_WITH_DRAWER.WITH_BUTTON;
+                    } else {
+                        // For wide screens (desktop)
+                        heightConstants = ITEM_HEIGHTS.WIDE.STANDARD;
+                    }
+
+                    return heightConstants;
                 }
 
                 if (isReportListItemType(reportListItem)) {
@@ -349,7 +348,7 @@ function SearchList(
                 return estimatedItemSize;
             }
         },
-        [isLargeScreenWidth, estimatedItemSize],
+        [isLargeScreenWidth, estimatedItemSize, shouldUseNarrowLayout],
     );
 
     const overrideItemLayout = useCallback(

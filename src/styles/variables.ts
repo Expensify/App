@@ -318,12 +318,18 @@ export default {
     w184: 184,
     w191: 191,
 
-    optionRowTransactionItemMobileHeight: 104,
-    optionRowMobileItemHeightWithButton: 104,
-    optionRowMobileItemHeight: 92,
-    optionRowWebItemHeightWithButton: 104,
-    optionRowWebItemHeight: 96,
-    optionRowWebItemHeightCompact: 64,
+    // Transaction item row heights based on layout types
+    // Wide screen (desktop) layout
+    optionRowWideItemHeight: 64,
+
+    // Narrow screen with drawer layout
+    optionRowNarrowWithDrawerItemHeight: 96,
+    optionRowNarrowWithDrawerItemHeightWithButton: 104,
+
+    // Narrow screen without drawer (mobile-like) layout
+    optionRowNarrowWithoutDrawerItemHeight: 92,
+    optionRowNarrowWithoutDrawerItemHeightWithButton: 104,
+
     optionRowListItemPadding: 8,
     optionRowSearchHeaderHeight: 54,
 } as const;
