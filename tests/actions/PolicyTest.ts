@@ -153,8 +153,8 @@ describe('actions/Policy', () => {
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
             });
 
-            // Following tasks are filtered in prepareOnboardingOnyxData: 'addAccountingIntegration' and 'setupCategoriesAndTags' (-2)
-            const expectedManageTeamDefaultTasksCount = CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length - 2;
+            // Following tasks are filtered in prepareOnboardingOnyxData: 'viewTour', 'addAccountingIntegration' and 'setupCategoriesAndTags' (-3)
+            const expectedManageTeamDefaultTasksCount = CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length - 3;
 
             // After filtering, two actions are added to the list =- signoff message (+1) and default create action (+1)
             const expectedReportActionsOfTypeCreatedCount = 1;

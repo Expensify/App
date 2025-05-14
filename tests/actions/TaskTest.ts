@@ -97,7 +97,7 @@ describe('actions/Task', () => {
     describe('completeTestDriveTask', () => {
         const accountID = 2;
         const conciergeChatReport: Report = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
-        const testDriveTaskReport: Report = LHNTestUtils.getFakeReport();
+        const testDriveTaskReport: Report = {...LHNTestUtils.getFakeReport(), ownerAccountID: accountID};
         const testDriveTaskAction: ReportAction = {
             ...LHNTestUtils.getFakeReportAction(),
             childType: CONST.REPORT.TYPE.TASK,
@@ -123,6 +123,9 @@ describe('actions/Task', () => {
                 ...reportActionsCollectionDataSet,
                 [ONYXKEYS.NVP_INTRO_SELECTED]: {
                     viewTour: testDriveTaskReport.reportID,
+                },
+                [ONYXKEYS.SESSION]: {
+                    accountID,
                 },
             });
             await waitForBatchedUpdates();
