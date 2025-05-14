@@ -33,7 +33,7 @@ import {isReportActionListItemType, isReportListItemType, isTransactionListItemT
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ITEM_HEIGHTS} from './itemHeights';
+import ITEM_HEIGHTS from './itemHeights';
 
 type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem | typeof TaskListItem;
