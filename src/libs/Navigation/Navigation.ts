@@ -78,7 +78,6 @@ let shouldPopToSidebar = false;
 
 /**
  * Inform the navigation that next time user presses UP we should pop all the state back to LHN.
- * TODO change content of comment
  */
 function setShouldPopToSidebar(shouldPopAllStateFlag: boolean) {
     shouldPopToSidebar = shouldPopAllStateFlag;
@@ -367,7 +366,7 @@ function popToSidebar() {
     const currentRoute = rootState?.routes.at(-1);
 
     if (!currentRoute) {
-        Log.hmmm("There's no current root in navigator");
+        Log.hmmm('[popToSidebar] Unable to pop to sidebar, no current root found in navigator');
         return;
     }
 

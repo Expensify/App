@@ -26,8 +26,8 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
         mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
     });
 
-    describe('After clicking a few tabs in settings screen', () => {
-        it('Should pop all visited tabs and get back to settings root screen', () => {
+    describe('After opening several screens in the settings tab', () => {
+        it('Should pop all visited screens and go back to the settings sidebar screen', () => {
             render(
                 <TestNavigationContainer
                     initialState={{
@@ -66,13 +66,14 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
                 Navigation.popToSidebar();
             });
 
+            // Then all screens should be popped of the stack and only settings root left
             const settingsSplitAfterPopToSidebar = navigationRef.current?.getRootState().routes.at(-1);
             expect(settingsSplitAfterPopToSidebar?.state?.index).toBe(0);
             expect(settingsSplitAfterPopToSidebar?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
         });
     });
 
-    describe('After navigating to settings tabs from chat through link', () => {
+    describe('After navigating to the central screen in the settings tab from the chat', () => {
         it('Should replace the route with LHN', () => {
             render(
                 <TestNavigationContainer
@@ -115,10 +116,12 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
             expect(lastSplitAfterNavigate?.state?.index).toBe(0);
             expect(lastSplitAfterNavigate?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
 
+            // When we pop to sidebar without LHN on top of stack
             act(() => {
                 Navigation.popToSidebar();
             });
 
+            // Then the top screen should be replaced with LHN
             const lastSplitAfterPopToSidebar = navigationRef.current?.getRootState().routes.at(-1);
             expect(lastSplitAfterPopToSidebar?.state?.index).toBe(0);
             expect(lastSplitAfterPopToSidebar?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);

@@ -335,16 +335,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.dismissModal();
             return;
         }
-        if (backTo) {
-            if (Navigation.getShouldPopToSidebar()) {
-                Navigation.popToSidebar();
-                return;
-            }
-            Navigation.goBack(backTo as Route);
-            return;
-        }
         if (Navigation.getShouldPopToSidebar()) {
             Navigation.popToSidebar();
+            return;
+        }
+        if (backTo) {
+            Navigation.goBack(backTo as Route);
             return;
         }
         Navigation.goBack();
