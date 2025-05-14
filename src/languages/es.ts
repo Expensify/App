@@ -1046,7 +1046,7 @@ const translations = {
             `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
-        paidElsewhereWithAmount: ({payer}: PaidElsewhereParams) => `${payer ? `${payer} ` : ''}pagó de otra forma`,
+        paidElsewhere: ({payer}: PaidElsewhereParams) => `${payer ? `${payer} ` : ''}pagó de otra forma`,
         paidWithExpensify: ({payer}: PaidWithExpensifyParams) => `${payer ? `${payer} ` : ''}pagó con Expensify`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams) =>
             `${payer ? `${payer} ` : ''}pagó con Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,

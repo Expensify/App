@@ -1050,7 +1050,7 @@ const translations = {
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
-        paidElsewhereWithAmount: ({payer}: PaidElsewhereParams) => `${payer ? `${payer} ` : ''}paid elsewhere`,
+        paidElsewhere: ({payer}: PaidElsewhereParams) => `${payer ? `${payer} ` : ''}paid elsewhere`,
         paidWithExpensify: ({payer}: PaidWithExpensifyParams) => `${payer ? `${payer} ` : ''}paid with Expensify`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams) =>
             `${payer ? `${payer} ` : ''}paid with Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
