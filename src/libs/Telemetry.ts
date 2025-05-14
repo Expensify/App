@@ -11,7 +11,7 @@ const sdk = openTelemetrySDK({
     session: {
       getSessionId: () => {
         const session = getSession();
-        return session?.authToken ? `${session.accountID}-${session.creationDate} : null;
+        return session?.authToken ? `${session.accountID}-${session.creationDate}` : null;
       }
     }
   }
