@@ -11225,7 +11225,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     const splits: SplitTransactionSplitsParam =
         splitExpenses.map((split) => ({
-            amount: split.amount ?? 0,
+            amount: Number(originalTransaction?.amount) >= 0 ? Math.abs(Number(split.amount)) : -Math.abs(Number(split.amount)),
             category: split.category ?? '',
             tag: split.tags?.[0] ?? '',
             created: split.created ?? '',
