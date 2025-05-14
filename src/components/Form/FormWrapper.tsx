@@ -83,7 +83,7 @@ function FormWrapper({
     isLoading = false,
     shouldScrollToEnd = false,
     addBottomSafeAreaPadding,
-    addOfflineIndicatorBottomSafeAreaPadding: addOfflineIndicatorBottomSafeAreaPaddingProp,
+    addOfflineIndicatorBottomSafeAreaPadding,
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
     shouldSubmitButtonBlendOpacity = false,
 }: FormWrapperProps) {
@@ -137,13 +137,13 @@ function FormWrapper({
     // If the paddingBottom is 0, it has already been applied to a parent component and we don't want to apply the padding again.
     const isLegacyBottomSafeAreaPaddingAlreadyApplied = paddingBottom === 0;
     const shouldApplyBottomSafeAreaPadding = addBottomSafeAreaPadding ?? !isLegacyBottomSafeAreaPaddingAlreadyApplied;
-    const addOfflineIndicatorBottomSafeAreaPadding = addOfflineIndicatorBottomSafeAreaPaddingProp ?? addBottomSafeAreaPadding === true;
 
     // We need to add bottom safe area padding to the submit button when we don't use a scroll view or
     // when the submit button is sticking to the bottom.
     const addSubmitButtonBottomSafeAreaPadding = addBottomSafeAreaPadding && (!shouldUseScrollView || shouldSubmitButtonStickToBottom);
     const submitButtonStylesWithBottomSafeAreaPadding = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: addSubmitButtonBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding,
         styleProperty: shouldSubmitButtonStickToBottom ? 'bottom' : 'paddingBottom',
         additionalPaddingBottom: shouldSubmitButtonStickToBottom ? styles.pb5.paddingBottom : 0,
         style: submitButtonStyles,
