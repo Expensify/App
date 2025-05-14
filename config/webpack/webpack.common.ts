@@ -231,13 +231,16 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 test: /\.lottie$/,
                 type: 'asset/resource',
             },
-            // This prevents import errors coming from react-native-tab-view/lib/module/TabView.tsx
-            // where Pager is imported without the .js extension
+            // This prevents import error coming from react-native-tab-view/lib/module/TabView.js
+            // where Pager is imported without extension
             {
-                test: /\.m?js$/,
+                test: /\.js$/,
                 resolve: {
                     fullySpecified: false,
                 },
+                include: [
+                    path.resolve(__dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js'),
+                ],
             },
         ],
     },
