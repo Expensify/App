@@ -144,11 +144,11 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
                     headerMedia: LottieAnimations.TripsEmptyState,
-                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
+                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(400, 256), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     children: tripViewChildren,
-                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
+                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.h100},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 if (!hasResults) {
@@ -247,6 +247,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         translate,
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
+        styles.h100,
         tripViewChildren,
         hasSeenTour,
         navatticURL,
