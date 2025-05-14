@@ -144,7 +144,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
                     headerMedia: LottieAnimations.TripsEmptyState,
-                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(400, 256), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
+                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle('100%', '100%'), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     children: tripViewChildren,
