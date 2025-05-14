@@ -139,6 +139,7 @@ import {
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
+    getJoinRequestMessage,
     getLastClosedReportAction,
     getLastVisibleAction,
     getLastVisibleAction as getLastVisibleActionReportActionsUtils,
@@ -164,6 +165,7 @@ import {
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
@@ -4772,6 +4774,10 @@ function getReportNameInternal({
         return getIOUUnapprovedMessage(parentReportAction);
     }
 
+    if (isActionableJoinRequest(parentReportAction)) {
+        return getJoinRequestMessage(parentReportAction);
+    }
+
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
         return translateLocal('parentReportAction.deletedTask');
     }
@@ -5513,7 +5519,7 @@ function buildOptimisticInvoiceReport(
         reportName: `${receiverName} owes ${formattedTotal}`,
         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        total,
+        total: total * -1,
         participants: {
             [receiverAccountID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
@@ -9501,7 +9507,7 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: stri
     if (isCategorizing) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
     } else {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, true));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, undefined, true));
     }
 }
 

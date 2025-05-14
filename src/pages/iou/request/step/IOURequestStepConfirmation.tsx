@@ -78,7 +78,7 @@ function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
     route: {
-        params: {iouType, reportID, transactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute},
+        params: {iouType, reportID, transactionID, action, participantsAutoAssigned: participantsAutoAssignedFromRoute, backToReport},
     },
     transaction,
     isLoadingTransaction,
@@ -428,20 +428,22 @@ function IOURequestStepConfirmation({
                     waypoints: Object.keys(transaction.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
                     customUnitRateID,
                 },
+                backToReport,
             });
         },
         [
-            report,
             transaction,
-            transactionTaxCode,
-            transactionTaxAmount,
+            report,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             policy,
             policyTags,
             policyCategories,
             action,
+            transactionTaxCode,
+            transactionTaxAmount,
             customUnitRateID,
+            backToReport,
         ],
     );
 
@@ -579,9 +581,23 @@ function IOURequestStepConfirmation({
                     billable: transaction.billable,
                     attendees: transaction.comment?.attendees,
                 },
+                backToReport,
             });
         },
-        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],
+        [
+            transaction,
+            report,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            iouType,
+            policy,
+            policyCategories,
+            policyTags,
+            transactionTaxCode,
+            transactionTaxAmount,
+            customUnitRateID,
+            backToReport,
+        ],
     );
 
     const createTransaction = useCallback(

@@ -1133,6 +1133,7 @@ const translations = {
         unholdExpense: 'Desbloquear gasto',
         moveUnreportedExpense: 'Mover gasto no reportado',
         addUnreportedExpense: 'Añadir gasto no reportado',
+        createNewExpense: 'Crear nuevo gasto',
         selectUnreportedExpense: 'Selecciona al menos un gasto para agregar al informe.',
         emptyStateUnreportedExpenseTitle: 'No hay gastos no reportados',
         emptyStateUnreportedExpenseSubtitle: 'Parece que no tienes gastos no reportados. Puedes crear uno a continuación.',
@@ -4696,6 +4697,7 @@ const translations = {
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar.',
             genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo.',
+            joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `${user} solicitó unirse al espacio de trabajo ${workspaceName}`,
         },
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',

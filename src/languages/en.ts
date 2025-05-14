@@ -1139,6 +1139,7 @@ const translations = {
         unheldExpense: 'unheld this expense',
         moveUnreportedExpense: 'Move unreported expense',
         addUnreportedExpense: 'Add unreported expense',
+        createNewExpense: 'Create new expense',
         selectUnreportedExpense: 'Select at least one expense to add to the report.',
         emptyStateUnreportedExpenseTitle: 'No unreported expenses',
         emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
@@ -4650,6 +4651,7 @@ const translations = {
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
             inviteNoMembersError: 'Please select at least one member to invite',
+            joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `${user} requested to join ${workspaceName}`,
         },
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',

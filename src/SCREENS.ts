@@ -672,10 +672,6 @@ const SCREENS = {
         ROOT: 'TestDrive_Demo_Root',
     },
 
-    TEST_TOOLS_MODAL: {
-        ROOT: 'TestToolsModal_Root',
-    },
-
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
     INTRO_SCHOOL_PRINCIPAL: 'Intro_School_Principal',
     I_AM_A_TEACHER: 'I_Am_A_Teacher',
