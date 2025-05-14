@@ -1,6 +1,7 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useState} from 'react';
-import {LayoutChangeEvent, type StyleProp, View, type ViewStyle} from 'react-native';
+import React, {useMemo, useState} from 'react';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -85,6 +86,19 @@ function MoneyRequestAction({
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const [previewWidth, setPreviewWidth] = useState(255);
+    const containerStyles = useMemo(
+        () => [
+            {
+                width: previewWidth,
+                maxWidth: previewWidth,
+            },
+            styles.cursorPointer,
+            isHovered ? styles.reportPreviewBoxHoverBorder : undefined,
+            style,
+            styles.borderNone,
+        ],
+        [isHovered, previewWidth, style, styles.borderNone, styles.cursorPointer, styles.reportPreviewBoxHoverBorder],
+    );
 
     const onMoneyRequestPreviewPressed = () => {
         if (contextMenuRef.current?.isContextMenuOpening) {
@@ -135,8 +149,7 @@ function MoneyRequestAction({
     const renderCondition = lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction);
     return renderCondition ? null : (
         <View
-            style={{width: '100%'}}
-            onLayout={() => (e: LayoutChangeEvent) => {
+            onLayout={(e: LayoutChangeEvent) => {
                 setPreviewWidth(e.nativeEvent.layout.width ?? 255);
             }}
         >
@@ -152,7 +165,7 @@ function MoneyRequestAction({
                 checkIfContextMenuActive={checkIfContextMenuActive}
                 shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
                 onPreviewPressed={onMoneyRequestPreviewPressed}
-                containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, style]}
+                containerStyles={containerStyles}
                 isHovered={isHovered}
                 isWhisper={isWhisper}
                 shouldDisplayContextMenu={shouldDisplayContextMenu}
