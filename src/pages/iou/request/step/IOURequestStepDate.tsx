@@ -67,8 +67,26 @@ function IOURequestStepDate({
     const currentCreated = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
     const canEditingSplitBill = isEditingSplit && session && reportAction && session.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     const canEditMoneyRequest = isEditing && canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.DATE);
+    const canEditSplitExpense = isSplitExpense && !!transaction;
+
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || (isEditing && !canEditMoneyRequest && !canEditingSplitBill && !(isSplitExpense && transaction));
+    let shouldShowNotFound = false;
+
+    if (!isValidMoneyRequestType(iouType)) {
+        shouldShowNotFound = true;
+    } else if (isEditing) {
+        if (!canEditMoneyRequest && !canEditingSplitBill) {
+            shouldShowNotFound = true;
+        } else if (!canEditSplitExpense) {
+            shouldShowNotFound = true;
+        } else {
+            shouldShowNotFound = false;
+        }
+    }
+    // Во всех остальных случаях — не показываем
+    else {
+        shouldShowNotFound = false;
+    }
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

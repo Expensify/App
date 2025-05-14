@@ -140,9 +140,24 @@ function IOURequestStepDescription({
 
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
-    const canEditSplit = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
+    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
+    const canEditSplitExpense = isSplitExpense && !!transaction;
+
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplit : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) && !(isSplitExpense && transaction);
+    let shouldShowNotFoundPage = false;
+
+    if (isEditing) {
+        if (isSplitBill) {
+            shouldShowNotFoundPage = !canEditSplitBill;
+        } else if (isSplitExpense) {
+            shouldShowNotFoundPage = !canEditSplitExpense;
+        } else {
+            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction);
+        }
+    } else {
+        shouldShowNotFoundPage = false;
+    }
+
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
     const getDescriptionHint = () => {
         return transaction?.category && policyCategories ? policyCategories[transaction?.category]?.commentHint ?? '' : '';

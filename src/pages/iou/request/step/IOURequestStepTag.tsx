@@ -66,14 +66,27 @@ function IOURequestStepTag({
     const tag = getTag(currentTransaction, tagListIndex);
     const reportAction = reportActions?.[report?.parentReportActionID ?? reportActionID] ?? null;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
+    const canEditSplitExpense = isSplitExpense && !!transaction;
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
     const shouldShowTag = transactionTag || hasEnabledTags(policyTagLists);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage =
-        !isReportInGroupPolicy(report) ||
-        (isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) && !(isSplitExpense && transaction));
+    let shouldShowNotFoundPage = false;
+
+    if (!isReportInGroupPolicy(report)) {
+        shouldShowNotFoundPage = true;
+    } else if (isEditing) {
+        if (isSplitBill) {
+            shouldShowNotFoundPage = !canEditSplitBill;
+        } else if (isSplitExpense) {
+            shouldShowNotFoundPage = !canEditSplitExpense;
+        } else {
+            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction);
+        }
+    } else {
+        shouldShowNotFoundPage = false;
+    }
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
