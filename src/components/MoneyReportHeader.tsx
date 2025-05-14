@@ -664,7 +664,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
                 if (Number(transactions?.length) !== 1) {
-                    return false;
+                    return;
                 }
 
                 const currentTransaction = transactions.at(0);

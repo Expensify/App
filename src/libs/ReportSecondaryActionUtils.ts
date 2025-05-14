@@ -65,11 +65,8 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
-    if (isSubmitter || isAdmin || isManager) {
-        return true;
-    }
 
-    return false;
+    return isSubmitter || isAdmin || isManager;
 }
 
 function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs): boolean {
