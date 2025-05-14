@@ -51,6 +51,7 @@ const iOSQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x1
 const webQRCode = `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`;
 
 const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
+Built from App PR Expensify/App#12 and Mobile-Expensify PR Expensify/Mobile-Expensify#13.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | Android :robot::arrows_counterclockwise:  | iOS :apple::arrows_counterclockwise: |
@@ -66,6 +67,7 @@ const message = `:test_tube::test_tube: Use the links below to test this adhoc b
 `;
 
 const onlyAndroidMessage = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
+Built from App PR Expensify/App#12.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | Android :robot::arrows_counterclockwise:  | iOS :apple::arrows_counterclockwise: |
@@ -91,7 +93,7 @@ describe('Post test build comments action tests', () => {
     test('Test GH action', async () => {
         when(core.getInput).calledWith('REPO', {required: true}).mockReturnValue(CONST.APP_REPO);
         when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('12');
-        when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
+        when(core.getInput).calledWith('HYBRIDAPP_PULL_REQUEST_NUMBER', {required: false}).mockReturnValue('13');
         when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('success');
