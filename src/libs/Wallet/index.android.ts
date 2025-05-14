@@ -26,7 +26,7 @@ function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescripti
                         })
                         .catch((error) => {
                             Log.warn(`addCardToGoogleWallet error: ${error}`);
-                            Alert.alert('Failed to add card to wallet', 'Please try again later.');
+                            Alert.alert('Failed to add card to wallet.', 'Please try again later.');
                         });
                 })
 
