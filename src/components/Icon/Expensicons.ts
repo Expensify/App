@@ -118,11 +118,15 @@ import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
+import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
+import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
+import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
@@ -182,6 +186,9 @@ import Shield from '@assets/images/shield.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
 import GoogleLogo from '@assets/images/signIn/google-logo.svg';
 import AdvancedApprovalsSquare from '@assets/images/simple-illustrations/advanced-approvals-icon-square.svg';
+import MessageInABottle from '@assets/images/simple-illustrations/simple-illustration__messageinabottle.svg';
+import ReplaceReceipt from '@assets/images/simple-illustrations/simple-illustration__replace-receipt.svg';
+import SmartScan from '@assets/images/simple-illustrations/simple-illustration__smartscan.svg';
 import Facebook from '@assets/images/social-facebook.svg';
 import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
@@ -274,6 +281,7 @@ export {
     CreditCard,
     CreditCardHourglass,
     CreditCardExclamation,
+    CircleSlash,
     DeletedRoomAvatar,
     Document,
     DocumentSlash,
@@ -338,6 +346,7 @@ export {
     Menu,
     Meter,
     Megaphone,
+    MessageInABottle,
     MoneyBag,
     MoneyCircle,
     MoneySearch,
@@ -371,11 +380,13 @@ export {
     ReceiptSlash,
     RemoveMembers,
     ReceiptSearch,
+    ReplaceReceipt,
     Rotate,
     RotateLeft,
     Scan,
     Send,
     Shield,
+    SmartScan,
     Stopwatch,
     Suitcase,
     Sync,
@@ -423,6 +434,9 @@ export {
     NetSuiteSquare,
     XeroCircle,
     QBOCircle,
+    MicrosoftDynamicsSquare,
+    OracleSquare,
+    SapSquare,
     Filters,
     CalendarSolid,
     Filter,
