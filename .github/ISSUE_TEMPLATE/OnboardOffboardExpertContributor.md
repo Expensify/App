@@ -21,7 +21,7 @@ labels: Daily, Task, Access Change
 
 - Full Name: 
 - GitHub handle:
-- Email:
+- Email:     bla bla bla
 - Slack post in your team channel with this request for visibility: 
 - Team (check your team):
     - [ ] Callstack
