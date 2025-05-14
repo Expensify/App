@@ -14,7 +14,7 @@ import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {useSidebarOrderedReportIDs} from '@hooks/useSidebarOrderedReportIDs';
+import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,13 +51,9 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {orderedReportIDs} = useSidebarOrderedReportIDs();
+    const {orderedReports} = useSidebarOrderedReports();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]),
-        canBeMissing: true,
-    });
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
     const platform = getPlatform();
@@ -73,10 +69,10 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const shouldRenderDebugTabViewOnWideLayout = !!account?.isDebugModeEnabled && !isTopLevelBar;
 
     useEffect(() => {
-        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, reports));
-        // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
-        // That's why reportActions is added as a dependency here
-    }, [activeWorkspaceID, reports, reportActions]);
+        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, orderedReports));
+        // We need to get a new brick road state when report attributes are updated, otherwise we'll be showing an outdated brick road.
+        // That's why reportAttributes is added as a dependency here
+    }, [activeWorkspaceID, orderedReports, reportAttributes]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.HOME) {

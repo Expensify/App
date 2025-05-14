@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import isEqual from 'lodash/isEqual';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -33,9 +34,12 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const navigation = useNavigation();
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
+        const isNavigating = !navigation.isFocused();
+
         const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
         const transactionsIDs = Object.keys(transactions ?? {});
 
@@ -46,12 +50,18 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             .map((actions) => Object.keys(actions ?? {}))
             .flat();
 
-        if (searchTriggeredRef.current) {
+        if (searchTriggeredRef.current || isNavigating) {
             return;
         }
+
         const hasTransactionsIDsChange = !isEqual(transactionsIDs, previousTransactionsIDs);
         const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
 
+        // NOTE: This if statement should NOT assume report actions can only change
+        // in one type, i.e.: isChat && hasReportActionsIDsChange
+        // because they can also change in other types such as CONST.SEARCH.DATA_TYPES.EXPENSE.
+        // Assuming they can only change in one type leads to issues such as
+        // https://github.com/Expensify/App/issues/57605
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
@@ -73,7 +83,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         return () => {
             searchTriggeredRef.current = false;
         };
-    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat]);
+    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, navigation]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
@@ -143,7 +153,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
      * Callback to handle scrolling to the new search result.
      */
     const handleSelectionListScroll = useCallback(
-        (data: SearchListItem[]) => (ref: SelectionListHandle | null) => {
+        (data: SearchListItem[], ref: SelectionListHandle | null) => {
             // Early return if there's no ref, new transaction wasn't brought in by this hook
             // or there's no new search result key
             if (!ref || !triggeredByHookRef.current || newSearchResultKey === null) {
