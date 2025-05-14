@@ -1732,7 +1732,7 @@ const translations = {
             copyCardNumber: 'Copy card number',
             updateAddress: 'Update address',
         },
-        cardAlreadyInWallet: 'Card is already in wallet',
+        cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Added to ${platform} Wallet`,
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,

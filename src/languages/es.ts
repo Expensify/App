@@ -1730,7 +1730,7 @@ const translations = {
             copyCardNumber: 'Copiar número de la tarjeta',
             updateAddress: 'Actualizar dirección',
         },
-        cardAlreadyInWallet: 'La tarjeta ya está en la billetera',
+        cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Añadida a ${platform} Wallet`,
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
         validateCardTitle: 'Asegurémonos de que eres tú',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
