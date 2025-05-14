@@ -238,9 +238,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 resolve: {
                     fullySpecified: false,
                 },
-                include: [
-                    path.resolve(__dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js'),
-                ],
+                include: [path.resolve(__dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js')],
             },
         ],
     },

@@ -75,9 +75,7 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                         resolve: {
                             fullySpecified: false,
                         },
-                        include: [
-                            path.resolve(__dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js'),
-                        ],
+                        include: [path.resolve(__dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js')],
                     },
                 ],
             },
