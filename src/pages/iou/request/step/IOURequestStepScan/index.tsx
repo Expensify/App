@@ -128,7 +128,6 @@ function IOURequestStepScan({
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
-    console.log(isEditing);
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
