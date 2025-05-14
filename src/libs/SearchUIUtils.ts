@@ -145,6 +145,10 @@ type SearchTypeMenuItem = {
     getSearchQuery: (policyID?: string) => SearchQueryString;
 };
 
+type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
+
+type SearchDateModifierLower = Lowercase<SearchDateModifier>;
+
 /**
  * @private
  *
@@ -1152,4 +1156,4 @@ export {
     compareValues,
     isSearchDataLoaded,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower};

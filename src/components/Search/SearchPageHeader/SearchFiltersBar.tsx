@@ -207,18 +207,18 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const datePickerComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const value: DateSelectPopupValue = {
-                after: filterFormValues.dateAfter ?? null,
-                before: filterFormValues.dateBefore ?? null,
-                on: filterFormValues.dateOn ?? null,
+                [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.dateAfter ?? null,
+                [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.dateBefore ?? null,
+                [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.dateOn ?? null,
             };
 
             const onChange = (selectedDates: DateSelectPopupValue) => {
                 const newFilterFormValues = {
                     ...filterFormValues,
                     ...queryJSON,
-                    dateAfter: selectedDates.after ?? undefined,
-                    dateBefore: selectedDates.before ?? undefined,
-                    dateOn: selectedDates.on ?? undefined,
+                    dateAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? undefined,
+                    dateBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? undefined,
+                    dateOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON] ?? undefined,
                 };
 
                 const filterString = buildQueryStringFromFilterFormValues(newFilterFormValues);

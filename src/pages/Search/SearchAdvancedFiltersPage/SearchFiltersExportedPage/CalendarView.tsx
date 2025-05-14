@@ -1,8 +1,10 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
+import DatePicker from '@components/DatePicker';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
@@ -14,7 +16,7 @@ type CalendarViewProps = {
     setValue: (key: SearchDateModifier, value: string | null) => void;
 };
 
-function CalendarView({view, value, navigateBack, setValue}: CalendarViewProps) {
+function SearchFiltersExportedCalendarView({view, value, navigateBack, setValue}: CalendarViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [localDateValue, setLocalDateValue] = useState(value);
@@ -26,17 +28,21 @@ function CalendarView({view, value, navigateBack, setValue}: CalendarViewProps) 
         navigateBack();
     };
 
-    const saveChanges = () => {
+    const applyChanges = () => {
         setValue(view, localDateValue);
         navigateBack();
     };
 
     return (
-        <View style={[styles.pv4]}>
+        <ScreenWrapper
+            testID={SearchFiltersExportedCalendarView.displayName}
+            shouldShowOfflineIndicatorInWideScreen
+            offlineIndicatorStyle={styles.mtAuto}
+            includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
-                shouldDisplayHelpButton={false}
-                style={[styles.h10, styles.pb3]}
-                subtitle={translate(`common.${lowerDateModifier}`)}
+                title={translate(`common.${lowerDateModifier}`)}
                 onBackButtonPress={navigateBack}
             />
 
@@ -45,24 +51,26 @@ function CalendarView({view, value, navigateBack, setValue}: CalendarViewProps) 
                 onSelected={setLocalDateValue}
             />
 
-            <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pt2]}>
+            <FixedFooter style={styles.mtAuto}>
                 <Button
-                    medium
-                    style={[styles.flex1]}
+                    large
+                    style={[styles.mt4]}
                     text={translate('common.reset')}
                     onPress={resetChanges}
                 />
                 <Button
+                    large
                     success
-                    medium
-                    style={[styles.flex1]}
+                    pressOnEnter
+                    style={[styles.mt4]}
                     text={translate('common.save')}
-                    onPress={saveChanges}
+                    onPress={applyChanges}
                 />
-            </View>
-        </View>
+            </FixedFooter>
+        </ScreenWrapper>
     );
 }
 
-CalendarView.displayName = 'CalendarView';
-export default CalendarView;
+SearchFiltersExportedCalendarView.displayName = 'SearchFiltersExportedCalendarView';
+
+export default SearchFiltersExportedCalendarView;

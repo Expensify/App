@@ -561,6 +561,7 @@ const translations = {
         before: 'Antes',
         after: 'Después',
         general: 'General',
+        never: 'Nunca',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

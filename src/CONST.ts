@@ -6647,6 +6647,9 @@ const CONST = {
             AFTER: 'After',
             ON: 'On',
         },
+        EXPORTED_DATE_PRESETS: {
+            NEVER: 'never',
+        },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,
             ONYXKEYS.COLLECTION.POLICY,
@@ -6656,11 +6659,6 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
-        DATE_FILTERS: {
-            BEFORE: 'before',
-            AFTER: 'after',
-            ON: 'on',
-        },
     },
 
     EXPENSE: {

@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {DateSelectPopupValue} from '.';
 
@@ -14,13 +14,14 @@ type RootViewProps = {
     value: DateSelectPopupValue;
     applyChanges: () => void;
     resetChanges: () => void;
-    setView: (view: ValueOf<typeof CONST.SEARCH.DATE_FILTERS>) => void;
+    setView: (view: SearchDateModifier) => void;
 };
 
 function RootView({value, applyChanges, resetChanges, setView}: RootViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+
     const label = translate('common.date');
 
     return (
@@ -28,15 +29,16 @@ function RootView({value, applyChanges, resetChanges, setView}: RootViewProps) {
             {shouldUseNarrowLayout && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
             <View>
-                {Object.values(CONST.SEARCH.DATE_FILTERS).map((dateType) => {
+                {Object.values(CONST.SEARCH.DATE_MODIFIERS).map((dateType) => {
                     const dateValue = value[dateType];
                     const description = dateValue ?? undefined;
+                    const lowerDateModifier = dateType.toLowerCase() as SearchDateModifierLower;
 
                     return (
                         <MenuItem
                             key={dateType}
                             shouldShowRightIcon
-                            title={translate(`common.${dateType}`)}
+                            title={translate(`common.${lowerDateModifier}`)}
                             description={description}
                             onPress={() => setView(dateType)}
                         />

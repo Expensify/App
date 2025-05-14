@@ -570,6 +570,7 @@ const translations = {
         before: 'Before',
         after: 'After',
         general: 'General',
+        never: 'Never',
     },
     supportalNoAccess: {
         title: 'Not so fast',

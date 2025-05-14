@@ -1,10 +1,9 @@
 import React, {useCallback, useState} from 'react';
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CalendarView from './CalendarView';
 import RootView from './RootView';
 
-type DateSelectPopupValue = Record<ValueOf<typeof CONST.SEARCH.DATE_FILTERS>, string | null>;
+type DateSelectPopupValue = Record<SearchDateModifier, string | null>;
 
 type DateSelectPopupProps = {
     /** The current value of the date */
@@ -19,9 +18,9 @@ type DateSelectPopupProps = {
 
 function DateSelectPopup({value, closeOverlay, onChange}: DateSelectPopupProps) {
     const [localDateValues, setLocalDateValues] = useState(value);
-    const [view, setView] = useState<ValueOf<typeof CONST.SEARCH.DATE_FILTERS> | null>(null);
+    const [view, setView] = useState<SearchDateModifier | null>(null);
 
-    const setDateValue = (key: ValueOf<typeof CONST.SEARCH.DATE_FILTERS>, dateValue: string | null) => {
+    const setDateValue = (key: SearchDateModifier, dateValue: string | null) => {
         setLocalDateValues((currentValue) => {
             return {
                 ...currentValue,
