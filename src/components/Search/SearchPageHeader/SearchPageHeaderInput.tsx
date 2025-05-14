@@ -84,8 +84,13 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [isAutocompleteListVisible, setIsAutocompleteListVisible] = useState(false);
     const listRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
+    const hasMountedRef = useRef(false);
     const isFocused = useIsFocused();
     const {registerSearchPageInput} = useSearchRouterContext();
+
+    useEffect(() => {
+        hasMountedRef.current = true;
+    }, []);
 
     // useEffect for blurring TextInput when we cancel SearchRouter interaction on narrow layout
     useEffect(() => {
@@ -135,14 +140,14 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
 
     const handleSearchAction = useCallback(
         (value: string) => {
-            if (!handleSearch) {
+            // Skip calling handleSearch on the initial mount
+            if (!hasMountedRef.current || !handleSearch) {
                 return;
             }
             handleSearch(value);
         },
         [handleSearch],
     );
-
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
             const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
