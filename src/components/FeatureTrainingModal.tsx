@@ -137,7 +137,7 @@ function FeatureTrainingModal({
     illustrationAspectRatio: illustrationAspectRatioProp,
     image,
     contentFitImage,
-    width = variables.featureTrainingModalWidth,
+    width = variables.onboardingModalWidth,
     title = '',
     description = '',
     secondaryDescription = '',
