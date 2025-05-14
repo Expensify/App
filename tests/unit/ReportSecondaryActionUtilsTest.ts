@@ -46,7 +46,7 @@ describe('getSecondaryAction', () => {
         const report = {} as unknown as Report;
         const policy = {} as unknown as Policy;
 
-        const result = [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
+        const result = [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV, CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
         expect(getSecondaryReportActions(report, [], {}, policy)).toEqual(result);
     });
 
