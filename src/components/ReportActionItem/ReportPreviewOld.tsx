@@ -263,7 +263,7 @@ function ReportPreviewOld({
     const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, violations, isIouReportArchived);
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
-    // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
+    // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
 
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
@@ -503,7 +503,7 @@ function ReportPreviewOld({
         }
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
     const buttonType = getIOUReportPreviewButtonType({

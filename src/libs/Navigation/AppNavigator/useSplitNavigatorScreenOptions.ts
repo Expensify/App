@@ -40,7 +40,7 @@ const useSplitNavigatorScreenOptions = () => {
 
                     // We need to shift the sidebar to not be covered by the StackNavigator so it can be clickable.
                     marginLeft: shouldUseNarrowLayout ? 0 : -(variables.sideBarWithLHBWidth + variables.navigationTabBarSize),
-                    paddingLeft: variables.navigationTabBarSize,
+                    paddingLeft: shouldUseNarrowLayout ? 0 : variables.navigationTabBarSize,
                     ...(shouldUseNarrowLayout ? {} : themeStyles.borderRight),
                 },
             },

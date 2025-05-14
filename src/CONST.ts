@@ -69,6 +69,10 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
     netsuite: 'NetSuite',
     intacct: 'Sage Intacct',
     quickbooksDesktop: 'QuickBooks Desktop',
+    sap: 'SAP',
+    oracle: 'Oracle',
+    microsoftDynamics: 'Microsoft Dynamics',
+    other: 'Other',
 };
 
 const connectionsVideoPaths = {
@@ -273,7 +277,7 @@ type OnboardingPurpose = ValueOf<typeof onboardingChoices>;
 
 type OnboardingCompanySize = ValueOf<typeof onboardingCompanySize>;
 
-type OnboardingAccounting = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
+type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -376,6 +380,7 @@ const CONST = {
     TASK_TITLE_DISABLED_RULES: ['image'],
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
+    CUSTOM_FIELD_KEYS: {customField1: 'employeeUserID', customField2: 'employeePayrollID'},
     ANDROID_PACKAGE_NAME,
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
@@ -812,8 +817,10 @@ const CONST = {
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
+        RETRACT_NEWDOT: 'retractNewDot',
         PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
+        NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1037,6 +1044,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
@@ -1090,12 +1098,12 @@ const CONST = {
         vcf: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-a-visa-commercial-feed',
         gl1025: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-an-american-express-corporate-feed',
     },
-    COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-visa-commercial-feed',
-    COMPANY_CARDS_AMEX_COMMERICAL_CARD_HELP:
+    COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-visa-commercial-feed',
+    COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP:
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-an-american-express-corporate-feed',
     COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
-    CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
+    CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
@@ -1103,7 +1111,6 @@ const CONST = {
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
-    REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1202,6 +1209,7 @@ const CONST = {
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             ADD_EXPENSE: 'addExpense',
+            REOPEN: 'reopen',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1220,6 +1228,7 @@ const CONST = {
         },
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
+            ADD_EXPENSE: 'addExpense',
             REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
@@ -1230,6 +1239,10 @@ const CONST = {
             HOLD: 'hold',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+        },
+        ADD_EXPENSE_OPTIONS: {
+            CREATE_NEW_EXPENSE: 'createNewExpense',
+            ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense',
         },
         ACTIONS: {
             LIMIT: 50,
@@ -1290,6 +1303,7 @@ const CONST = {
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
                 DEMOTED_FROM_WORKSPACE: 'DEMOTEDFROMWORKSPACE',
                 RENAMED: 'RENAMED',
+                REOPENED: 'REOPENED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
                 SHARE: 'SHARE', // OldDot Action
@@ -1301,7 +1315,7 @@ const CONST = {
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
-                TRIPPREVIEW: 'TRIPPREVIEW',
+                TRIP_PREVIEW: 'TRIPPREVIEW',
                 UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
@@ -1366,6 +1380,7 @@ const CONST = {
                     UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
                     UPDATE_DESCRIPTION: 'POLICYCHANGELOG_UPDATE_DESCRIPTION',
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
+                    UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
                     UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
@@ -2895,7 +2910,7 @@ const CONST = {
             OPTIONAL: 'submitAndClose',
             BASIC: 'submitAndApprove',
             ADVANCED: 'advanced',
-            DYNAMICEXTERNAL: 'dynamictExternal',
+            DYNAMICEXTERNAL: 'dynamicExternal',
             SMARTREPORT: 'smartReport',
             BILLCOM: 'billcom',
         },
@@ -3004,6 +3019,10 @@ const CONST = {
                 financialForce: 'FinancialForce',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
+                sap: 'SAP',
+                oracle: 'Oracle',
+                microsoftDynamics: 'Microsoft Dynamics',
+                other: 'Other',
             },
             AUTH_HELP_LINKS: {
                 intacct:
@@ -6720,6 +6739,11 @@ const CONST = {
                 description: 'workspace.upgrade.reportFields.description' as const,
                 icon: 'Pencil',
             },
+            policyPreventMemberChangingTitle: {
+                id: 'policyPreventMemberChangingTitle' as const,
+                alias: 'policy-prevent-member-changing-title',
+                name: undefined,
+            },
             categories: {
                 id: 'categories' as const,
                 alias: 'categories',
@@ -7061,11 +7085,6 @@ const CONST = {
         ONBOARDING_TASK_NAME: getTestDriveTaskName(),
         EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
         EMBEDDED_DEMO_IFRAME_TITLE: 'Test Drive',
-    },
-
-    ONBOARDING_HELP: {
-        TALK_TO_SALES: 'talkToSales',
-        REGISTER_FOR_WEBINAR: 'registerForWebinar',
     },
 } as const;
 

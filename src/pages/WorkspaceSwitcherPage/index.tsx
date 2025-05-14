@@ -29,12 +29,12 @@ function WorkspaceSwitcherPage() {
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(reports, policies, reportActions), [reports, policies, reportActions]);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(reports, policies), [reports, policies]);
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(reports, reportActions), [reports, reportActions]);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
