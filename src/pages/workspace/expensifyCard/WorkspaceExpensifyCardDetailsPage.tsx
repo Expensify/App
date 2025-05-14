@@ -19,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {close} from '@libs/actions/Modal';
 import {filterInactiveCards, getTranslationKeyForLimitType, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -77,7 +78,9 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         if (!isDeleted) {
             return;
         }
-        Navigation.goBack();
+        close(() => {
+            Navigation.goBack();
+        });
         return () => {
             deactivateCardAction(defaultFundID, card);
         };
@@ -89,7 +92,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     const deactivateCard = () => {
         setIsDeleted(true);
-        setIsDeactivateModalVisible(false);
     };
 
     if (!card && !isLoadingOnyxValue(cardsListResult)) {
