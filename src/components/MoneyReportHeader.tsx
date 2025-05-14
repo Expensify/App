@@ -39,10 +39,10 @@ import {
     hasUpdatedTotal,
     isAllowedToApproveExpenseReport,
     isExported as isExportedUtils,
-    isInvoiceReport,
+    isInvoiceReport as isInvoiceReportUtil,
     isProcessingReport,
     isReportOwner,
-    isTrackExpenseReport,
+    isTrackExpenseReport as isTrackExpenseReportUtil,
     navigateToDetailsPage,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
@@ -208,19 +208,19 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [moneyRequestReport, chatReport, policy, transaction],
     );
 
-    const isInvoice = isInvoiceReport(moneyRequestReport);
-    const isTrackExpense = isTrackExpenseReport(moneyRequestReport);
+    const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
+    const isTrackExpenseReport = isTrackExpenseReportUtil(moneyRequestReport);
 
     const iouType = useMemo(() => {
-        if (isTrackExpense) {
+        if (isTrackExpenseReport) {
             return CONST.IOU.TYPE.TRACK;
         }
-        if (isInvoice) {
+        if (isInvoiceReport) {
             return CONST.IOU.TYPE.INVOICE;
         }
 
         return CONST.IOU.TYPE.SUBMIT;
-    }, [isTrackExpense, isInvoice]);
+    }, [isTrackExpenseReport, isInvoiceReport]);
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
@@ -290,7 +290,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 setIsNoDelegateAccessMenuVisible(true);
             } else if (isAnyTransactionOnHold) {
                 setIsHoldMenuVisible(true);
-            } else if (isInvoice) {
+            } else if (isInvoiceReport) {
                 startAnimation();
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, methodID, paymentMethod);
             } else {
@@ -298,7 +298,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, isInvoice, moneyRequestReport, startAnimation],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, isInvoiceReport, moneyRequestReport, startAnimation],
     );
 
     const confirmApproval = () => {

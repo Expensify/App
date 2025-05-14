@@ -157,8 +157,7 @@ function useSelectedTransactionsActions({
             },
         });
 
-        const canAllExpensesBeMoved = selectedTransactions.every((transaction) => {
-            // typescript is failing without this check
+        const canSelectedExpensesBeMoved = selectedTransactions.every((transaction) => {
             if (!transaction) {
                 return false;
             }
@@ -169,7 +168,7 @@ function useSelectedTransactionsActions({
         });
 
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
-        if (canAllExpensesBeMoved && canUserPerformWriteAction) {
+        if (canSelectedExpensesBeMoved && canUserPerformWriteAction) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionsID.length}),
                 icon: Expensicons.DocumentMerge,
