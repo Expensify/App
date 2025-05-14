@@ -509,13 +509,22 @@ function filterInactiveCards(cards: CardList | undefined): CardList {
     return filterObject(cards ?? {}, (key, card) => !closedStates.includes(card.state));
 }
 
-function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards, cardFeeds?: CardFeeds): CardList {
+function getAllCardsForWorkspace(
+    workspaceAccountID: number,
+    allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards,
+    cardFeeds?: CardFeeds,
+    expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
+): CardList {
     const cards = {};
-    const domainFeeds = Object.entries(cardFeeds?.settings?.companyCards ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
+    const companyCardsDomainFeeds = Object.entries(cardFeeds?.settings?.companyCards ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
+    const expensifyCardsDomainIDs = Object.keys(expensifyCardSettings ?? {})
+        .map((key) => key.split('_').at(-1))
+        .filter((id): id is string => !!id);
     for (const [key, values] of Object.entries(allCardList ?? {})) {
         const isWorkspaceAccountCards = key.includes(workspaceAccountID.toString());
-        const isDomainCards = domainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
-        if ((isWorkspaceAccountCards || isDomainCards) && values) {
+        const isCompanyDomainCards = companyCardsDomainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
+        const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
+        if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
             const {cardList, ...rest} = values;
             const filteredCards = filterInactiveCards(rest);
             Object.assign(cards, filteredCards);
