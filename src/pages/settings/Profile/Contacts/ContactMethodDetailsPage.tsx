@@ -212,6 +212,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const hasMagicCodeBeenSent = !!loginData.validateCodeSent;
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
+    const shouldSkipInitialValidation = route.params?.shouldSkipInitialValidation === 'true';
 
     const getDeleteConfirmationModal = () => (
         <ConfirmModal
@@ -347,6 +348,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}
                         descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                         forwardedRef={validateCodeFormRef}
+                        shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />
                 )}
 

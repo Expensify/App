@@ -6,6 +6,7 @@ import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListI
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,6 +32,7 @@ function ReportListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {canUseTableReportView} = usePermissions();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
     const isEmptyReport = reportItem.transactions.length === 0;
@@ -61,6 +63,10 @@ function ReportListItem<TItem extends ListItem>({
     };
 
     if (!reportItem?.reportName && reportItem.transactions.length > 1) {
+        return null;
+    }
+
+    if (isEmptyReport && !canUseTableReportView) {
         return null;
     }
 
