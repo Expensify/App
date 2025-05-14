@@ -35,7 +35,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -114,9 +113,7 @@ import {
 import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
-    downloadReportPDF,
     exportReportToCSV,
-    exportReportToPDF,
     getReportPrivateNote,
     hasErrorInPrivateNotes,
     leaveGroupChat,
@@ -164,7 +161,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {canUseTableReportView} = usePermissions();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
