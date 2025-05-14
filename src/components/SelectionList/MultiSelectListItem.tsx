@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import Checkbox from '@components/Checkbox';
+import useThemeStyles from '@hooks/useThemeStyles';
 import RadioListItem from './RadioListItem';
 import type {ListItem, MultiSelectListItemProps} from './types';
 
@@ -23,6 +24,7 @@ function MultiSelectListItem<TItem extends ListItem>({
     wrapperStyle,
     titleStyles,
 }: MultiSelectListItemProps<TItem>) {
+    const styles = useThemeStyles();
     const isSelected = item.isSelected;
 
     const checkboxComponent = useCallback(() => {
@@ -50,7 +52,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={wrapperStyle}
+            wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
             titleStyles={titleStyles}
         />
     );

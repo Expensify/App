@@ -377,11 +377,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     <Button
                         link
                         small
+                        shouldUseDefaultHover={false}
                         text={translate('search.filtersHeader')}
-                        textStyles={[styles.textMicroBold]}
                         iconFill={theme.link}
                         iconHoverFill={theme.linkHover}
                         icon={Expensicons.Filter}
+                        textStyles={[styles.textMicroBold]}
                         onPress={openAdvancedFilters}
                     />
                 </ScrollView>

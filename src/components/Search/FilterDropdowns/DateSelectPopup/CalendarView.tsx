@@ -33,6 +33,7 @@ function CalendarView({view, value, navigateBack, setValue}: CalendarViewProps) 
     return (
         <View style={[styles.pv4]}>
             <HeaderWithBackButton
+                shouldDisplayHelpButton={false}
                 style={[styles.h10, styles.pb3]}
                 subtitle={translate(`common.${view}`)}
                 onBackButtonPress={navigateBack}

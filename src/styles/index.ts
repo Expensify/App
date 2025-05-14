@@ -2108,7 +2108,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         optionRowCompact: {
-            height: variables.optionRowHeightCompact,
+            minHeight: variables.optionRowHeightCompact,
             paddingTop: 12,
             paddingBottom: 12,
         },
@@ -5753,7 +5753,7 @@ const styles = (theme: ThemeColors) =>
         }),
 
         getSelectionListPopoverHeight: (itemCount: number) => ({
-            height: itemCount * variables.listItemHeightNormal,
+            height: itemCount * variables.optionRowHeightCompact,
             ...sizing.mh65vh,
         }),
 

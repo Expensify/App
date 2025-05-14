@@ -86,7 +86,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
         const recentReportList = filteredOptionsList.recentReports.map((report) => ({
             ...report,
-            isSelected: selectedOptions.some((selectedOption) => selectedOption.reportID === report.reportID),
+            isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === report.accountID),
         }));
 
         const currentUserOption = filteredOptionsList.currentUserOption

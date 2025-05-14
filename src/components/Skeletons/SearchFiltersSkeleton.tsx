@@ -48,10 +48,8 @@ function SearchFiltersSkeleton({shouldAnimate = true}: SearchFiltersSkeletonProp
                         <Rect
                             // eslint-disable-next-line react/no-array-index-key
                             key={index}
-                            x={10 + index * 90}
+                            x={12 + index * 90}
                             y={10}
-                            rx={4}
-                            ry={4}
                             width={60}
                             height={8}
                         />
