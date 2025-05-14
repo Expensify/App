@@ -100,6 +100,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
             return getFundIdFromSettingsKey(matchingKey?.[0] ?? '');
         },
+        canBeMissing: true,
     });
 
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);

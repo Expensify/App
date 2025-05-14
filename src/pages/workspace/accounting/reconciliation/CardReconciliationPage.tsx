@@ -9,7 +9,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
-import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import {getFundIdFromSettingsKey, isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -41,10 +41,21 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const bankAccountTitle = bankAccountList?.[paymentBankAccountID]?.title ?? '';
 
     const policyID = policy?.id;
+    const [domainFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
+        selector: (cardSetting) => {
+            const matchingKey = Object.entries(cardSetting ?? {}).find(
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                ([key, settings]) => settings?.preferredPolicy && settings.preferredPolicy === policyID && !key.includes(workspaceAccountID.toString()),
+            );
+
+            return getFundIdFromSettingsKey(matchingKey?.[0] ?? '');
+        },
+        canBeMissing: true,
+    });
     const {connection} = route.params;
     const connectionName = getConnectionNameFromRouteParam(connection) as ConnectionName;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
-    const shouldShow = isExpensifyCardFullySetUp(policy, cardSettings);
+    const shouldShow = isExpensifyCardFullySetUp(policy, cardSettings) || domainFundID;
 
     const handleToggleContinuousReconciliation = (value: boolean) => {
         toggleContinuousReconciliation(workspaceAccountID, value, connectionName, currentConnectionName);
