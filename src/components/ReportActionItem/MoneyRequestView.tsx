@@ -205,8 +205,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const canEditDistanceRate = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
     const canEditReport = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
 
-    // A flag for verifying that the current report is a sub-report of a workspace chat
-    // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
+    // A flag for verifying that the current report is a sub-report of a expense chat
+    // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
 
     const policyTagLists = useMemo(() => getTagLists(policyTagList), [policyTagList]);
