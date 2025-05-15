@@ -1,8 +1,5 @@
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import Icon from '@components/Icon';
-import {CheckCircle} from '@components/Icon/Expensicons';
-import useTheme from '@hooks/useTheme';
+import Checkbox from '@components/Checkbox';
 import useThemeStyles from '@hooks/useThemeStyles';
 import RadioListItem from './RadioListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
@@ -27,24 +24,19 @@ function SingleSelectListItem<TItem extends ListItem>({
     wrapperStyle,
     titleStyles,
 }: SingleSelectListItemProps<TItem>) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const isSelected = item.isSelected;
 
     const radioCheckboxComponent = useCallback(() => {
-        if (!isSelected) {
-            return <View style={styles.compactEmptyRadioButton} />;
-        }
-
         return (
-            <Icon
-                src={CheckCircle}
-                fill={theme.success}
-                width={20}
-                height={20}
+            <Checkbox
+                containerStyle={{borderRadius: 999}}
+                accessibilityLabel="SingleSelectListItem"
+                isChecked={isSelected}
+                onPress={() => onSelectRow(item)}
             />
         );
-    }, [isSelected, styles.compactEmptyRadioButton, theme.success]);
+    }, [isSelected, item, onSelectRow]);
 
     return (
         <RadioListItem

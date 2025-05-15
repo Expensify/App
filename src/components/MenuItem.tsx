@@ -507,6 +507,7 @@ function MenuItem(
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const fallbackAvatarSize = isCompact ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
     const firstRightIcon = floatRightAvatars.at(0);
+
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,

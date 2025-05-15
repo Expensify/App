@@ -143,6 +143,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
             .map((section, sectionIndex) => {
                 const sectionItems: PopoverMenuItem[] = [
                     {
+                        shouldShowBasicTitle: true,
                         text: translate(section.translationPath),
                         style: [styles.textSupporting],
                         disabled: true,

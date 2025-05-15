@@ -195,7 +195,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             <View style={[styles.pb4, styles.mh3, styles.gap4]}>
                 {typeMenuSections.map((section, sectionIndex) => (
                     <View key={section.translationPath}>
-                        <Text style={[styles.sectionTitle, styles.pb2]}>{translate(section.translationPath)}</Text>
+                        <Text style={styles.sectionTitle}>{translate(section.translationPath)}</Text>
 
                         {section.menuItems.map((item, itemIndex) => {
                             const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);

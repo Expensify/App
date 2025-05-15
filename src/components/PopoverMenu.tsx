@@ -285,6 +285,7 @@ function PopoverMenu({
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
         const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, ...menuItemProps} = item;
+
         return (
             <OfflineWithFeedback
                 // eslint-disable-next-line react/no-array-index-key

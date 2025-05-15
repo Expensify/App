@@ -39,8 +39,6 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [selectedItem, setSelectedItem] = useState(value);
 
-    const initiallyFocusedOptionKey = selectedItem?.value;
-
     const listData: ListItem[] = useMemo(() => {
         return items.map((item) => ({
             text: translate(item.translation),
@@ -72,7 +70,6 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
 
             <View style={[styles.getSelectionListPopoverHeight(items.length)]}>
                 <SelectionList
-                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                     shouldSingleExecuteRowSelect
                     sections={[{data: listData}]}
                     ListItem={SingleSelectListItem}
