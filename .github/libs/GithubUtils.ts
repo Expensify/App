@@ -22,6 +22,7 @@ type ListForRepoResult = RestEndpointMethodTypes['issues']['listForRepo']['respo
 type OctokitIssueItem = OctokitComponents['schemas']['issue'];
 
 type ListForRepoMethod = RestEndpointMethods['issues']['listForRepo'];
+type Commit = OctokitComponents['schemas']['commit'];
 
 type CommitType = {
     commit: string;
@@ -577,14 +578,24 @@ class GithubUtils {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
 
         try {
-            const comparison = await this.paginate(this.octokit.repos.compareCommitsWithBasehead, {
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                basehead: `${fromTag}...${toTag}`,
-            });
+            const allCommits: Commit[] = [];
+            let page = 1;
+            let totalCommits = 0;
+
+            do {
+                const {data: comparison} = await this.octokit.repos.compareCommitsWithBasehead({
+                    owner: CONST.GITHUB_OWNER,
+                    repo: CONST.APP_REPO,
+                    basehead: `${fromTag}...${toTag}`,
+                    page: page++,
+                });
+
+                allCommits.push(...comparison.commits);
+                totalCommits = comparison.total_commits;
+            } while (allCommits.length < totalCommits && page < 20);
 
             // Map API response to our CommitType format
-            return comparison.commits.map((commit) => ({
+            return allCommits.map((commit) => ({
                 commit: commit.sha,
                 subject: commit.commit.message,
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
