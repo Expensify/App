@@ -157,7 +157,7 @@ function ScheduleCallPage() {
                                     value={scheduleCallDraft?.date}
                                     minDate={minDate}
                                     maxDate={maxDate}
-                                    selectedableDates={Object.keys(timeSlotDateMap)}
+                                    selectableDates={Object.keys(timeSlotDateMap)}
                                     DayComponent={AvailableBookingDay}
                                     onSelected={loadTimeSlotsAndSaveDate}
                                 />
@@ -198,7 +198,7 @@ function ScheduleCallPage() {
                                                     },
                                                     reportID,
                                                 });
-                                                Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATON.getRoute(reportID));
+                                                Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATION.getRoute(reportID));
                                             }}
                                             shouldEnableHapticFeedback
                                             style={styles.twoColumnLayoutCol}

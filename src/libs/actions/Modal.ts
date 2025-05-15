@@ -75,7 +75,7 @@ function setModalVisibility(isVisible: boolean, type: ModalType | null = null) {
 }
 
 /**
- * Allows other parts of the app to set whether modals should be dismissable using the Escape key
+ * Allows other parts of the app to set whether modals should be dismissible using the Escape key
  */
 function setDisableDismissOnEscape(disableDismissOnEscape: boolean) {
     Onyx.merge(ONYXKEYS.MODAL, {disableDismissOnEscape});

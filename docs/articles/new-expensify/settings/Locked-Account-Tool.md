@@ -65,7 +65,7 @@ The **Lock Account** button is located at `Settings > Security > Lock Account`.
 
 ## Unlocking an account
 
-This button is not reversible without the assistance of an Expensify team member. Once the account is locked, a member of the Expensify team will work with you to take the necessary steps to secure your account and remove any unauthorised access. Only once these steps are taken will the account be unlocked. 
+This button is not reversible without the assistance of an Expensify team member. Once the account is locked, a member of the Expensify team will work with you to take the necessary steps to secure your account and remove any unauthorized access. Only once these steps are taken will the account be unlocked. 
 
 ---
 

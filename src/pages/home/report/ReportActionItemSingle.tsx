@@ -70,7 +70,7 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** If the action is being hovered */
     isHovered?: boolean;
 
-    /** If the action is being actived */
+    /** If the action is active */
     isActive?: boolean;
 
     /** Policies */

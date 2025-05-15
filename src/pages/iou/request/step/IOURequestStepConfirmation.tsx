@@ -95,7 +95,7 @@ function IOURequestStepConfirmation({
 
     /*
      * We want to use a report from the transaction if it exists
-     * Also if the report was submitted and delayed submittion is on, then we should use an initial report
+     * Also if the report was submitted and delayed submission is on, then we should use an initial report
      */
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
     const shouldUseTransactionReport =
@@ -373,9 +373,9 @@ function IOURequestStepConfirmation({
             const receipt: Receipt = file;
             if (transaction?.receipt?.isTestReceipt) {
                 receipt.isTestReceipt = true;
-                receipt.state = CONST.IOU.RECEIPT_STATE.SCANCOMPLETE;
+                receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
             } else {
-                receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+                receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
             }
 
             setReceiptFile(receipt);

@@ -80,7 +80,7 @@ function getDisplayNameOrDefault(
         displayName = displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     }
 
-    // If the displayName is not set by the user, the backend sets the diplayName same as the login so
+    // If the displayName is not set by the user, the backend sets the displayName same as the login so
     // we need to remove the sms domain from the displayName if it is an sms login.
     if (Str.isSMSLogin(login)) {
         if (displayName === login) {

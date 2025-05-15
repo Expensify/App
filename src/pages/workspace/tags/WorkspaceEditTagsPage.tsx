@@ -15,7 +15,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getCleanedTagName, getTagListName} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {renamePolicyTaglist} from '@userActions/Policy/Tag';
+import {renamePolicyTagList} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,7 +28,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const taglistName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
+    const tagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const {inputCallbackRef} = useAutoFocusInput();
     const backTo = route.params.backTo;
     const isQuickSettingsFlow = !!backTo;
@@ -55,14 +55,14 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
         [isQuickSettingsFlow, backTo, route.params.policyID],
     );
 
-    const updateTaglistName = useCallback(
+    const updateTagListName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
-            if (values[INPUT_IDS.POLICY_TAGS_NAME] !== taglistName) {
-                renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
+            if (values[INPUT_IDS.POLICY_TAGS_NAME] !== tagListName) {
+                renamePolicyTagList(route.params.policyID, {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
             }
             goBackToTagsSettings();
         },
-        [taglistName, goBackToTagsSettings, route.params.policyID, route.params.orderWeight, policyTags],
+        [tagListName, goBackToTagsSettings, route.params.policyID, route.params.orderWeight, policyTags],
     );
 
     return (
@@ -83,7 +83,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM}
-                    onSubmit={updateTaglistName}
+                    onSubmit={updateTagListName}
                     validate={validateTagName}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
@@ -96,7 +96,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                             inputID={INPUT_IDS.POLICY_TAGS_NAME}
                             label={translate(`workspace.tags.customTagName`)}
                             accessibilityLabel={translate(`workspace.tags.customTagName`)}
-                            defaultValue={getCleanedTagName(taglistName)}
+                            defaultValue={getCleanedTagName(tagListName)}
                             role={CONST.ROLE.PRESENTATION}
                             ref={inputCallbackRef}
                         />

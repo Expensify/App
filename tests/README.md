@@ -20,7 +20,7 @@
 When unit testing an interface with Jest/performance testing with Reassure you might need to work with collections of data. These often get tricky to generate and maintain. To help with this we have a few helper methods located in `tests/utils/collections/`.
 
 - `createCollection()` - Creates a collection of data (`Record<string, T>`) with a given number of items (default=500). This is useful for eg. testing the performance of a component with a large number of items. You can use it to populate Onyx.
-- `createRandom*()` - like `createRandomPolicy`, these functions are responsible for generating a randomised object of the given type. You can use them as your defaults when calling `createCollection()` or as standalone utilities.
+- `createRandom*()` - like `createRandomPolicy`, these functions are responsible for generating a randomized object of the given type. You can use them as your defaults when calling `createCollection()` or as standalone utilities.
 
 Basic example:
 ```ts
