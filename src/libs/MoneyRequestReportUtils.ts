@@ -98,8 +98,6 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
  * @param flags - An object containing boolean flags indicating button visibility options.
  * @param flags.shouldShowSubmitButton - Flag indicating if the submit button should be shown.
  * @param flags.shouldShowExportIntegrationButton - Flag indicating if the export integration button should be shown.
- * @param flags.shouldShowRBR - Flag indicating if the RBR button should be shown.
- * @param flags.shouldShowSettlementButton - Flag indicating if the settlement button should be shown.
  * @param flags.shouldShowPayButton - Flag indicating if the pay button should be shown.
  * @param flags.shouldShowApproveButton - Flag indicating if the approve button should be shown.
  * @returns - Returns the type of button that should be displayed based on the input flags.
@@ -108,9 +106,7 @@ const getIOUReportPreviewButtonType = ({
     shouldShowSubmitButton,
     shouldShowExportIntegrationButton,
     shouldShowApproveButton,
-    shouldShowSettlementButton,
     shouldShowPayButton,
-    shouldShowRBR,
 }: {
     shouldShowSubmitButton: boolean;
     shouldShowExportIntegrationButton: boolean;
@@ -119,23 +115,16 @@ const getIOUReportPreviewButtonType = ({
     shouldShowPayButton: boolean;
     shouldShowApproveButton: boolean;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> => {
-    const shouldShowSettlementWithoutRBR = shouldShowSettlementButton && !shouldShowRBR;
-    const shouldShowSettlementOrRBR = shouldShowSettlementButton || shouldShowRBR;
-    const shouldShowSettlementOrExport = shouldShowSettlementButton || shouldShowExportIntegrationButton;
-
-    if (shouldShowSettlementWithoutRBR && shouldShowPayButton) {
+    if (shouldShowPayButton) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (shouldShowSettlementWithoutRBR && shouldShowApproveButton) {
+
+    if (shouldShowApproveButton) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
 
-    if (!shouldShowSettlementOrRBR && shouldShowExportIntegrationButton) {
+    if (shouldShowExportIntegrationButton) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
-    }
-
-    if (shouldShowRBR && !shouldShowSubmitButton && shouldShowSettlementOrExport) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 
     if (shouldShowSubmitButton) {
