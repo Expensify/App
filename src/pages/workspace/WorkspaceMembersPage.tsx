@@ -50,7 +50,6 @@ import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWo
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatPhoneNumber as formatPhoneNumberUtil} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -704,8 +703,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
-    const sections = useMemo(() => [{data: filteredData, isDisabled: false}], [filteredData]);
-
     return (
         <WorkspacePageWithSections
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
@@ -726,7 +723,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                     turnOffMobileSelectionMode();
                     return;
                 }
-                goBackFromWorkspaceCentralScreen(policyID);
+                Navigation.popToSidebar();
             }}
         >
             {() => (
@@ -774,7 +771,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
                     >
-                        {shouldUseNarrowLayout && filteredData.length > 0 && <View style={[styles.pr5]}>{getHeaderContent()}</View>}
+                        {shouldUseNarrowLayout && data.length > 0 && <View style={[styles.pr5]}>{getHeaderContent()}</View>}
                         {!shouldUseNarrowLayout && (
                             <>
                                 {!!headerMessage && (
@@ -797,8 +794,10 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             <SelectionListWithModal
                                 ref={selectionListRef}
                                 canSelectMultiple={canSelectMultiple}
-                                sections={sections}
+                                sections={[{data: filteredData, isDisabled: false}]}
+                                selectedItemKeys={selectedEmployees}
                                 ListItem={TableListItem}
+                                shouldUseDefaultRightHandSideCheckmark={false}
                                 turnOnSelectionModeOnLongPress={isPolicyAdmin}
                                 onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
                                 shouldUseUserSkeletonView

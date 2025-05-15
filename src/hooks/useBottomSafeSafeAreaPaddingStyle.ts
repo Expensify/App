@@ -1,6 +1,7 @@
-import {useMemo} from 'react';
+import {useContext, useMemo} from 'react';
 import {StyleSheet} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import CONST from '@src/CONST';
 import useNetwork from './useNetwork';
 import useSafeAreaPaddings from './useSafeAreaPaddings';
@@ -29,11 +30,16 @@ type UseBottomSafeAreaPaddingStyleParams = {
  * @param params - The parameters for the hook.
  * @returns The style with bottom safe area padding applied.
  */
-function useBottomSafeSafeAreaPaddingStyle(params?: UseBottomSafeAreaPaddingStyleParams) {
+function useBottomSafeSafeAreaPaddingStyle({
+    addBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+    style,
+    styleProperty = 'paddingBottom',
+    additionalPaddingBottom = 0,
+}: UseBottomSafeAreaPaddingStyleParams = {}) {
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const {isOffline} = useNetwork();
-
-    const {addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style, styleProperty = 'paddingBottom', additionalPaddingBottom = 0} = params ?? {};
+    const {addSafeAreaPadding: isOfflineIndicatorSafeAreaPaddingEnabled} = useContext(ScreenWrapperOfflineIndicatorContext);
 
     return useMemo<StyleProp<ViewStyle>>(() => {
         let totalPaddingBottom: number | string = additionalPaddingBottom;
@@ -43,7 +49,7 @@ function useBottomSafeSafeAreaPaddingStyle(params?: UseBottomSafeAreaPaddingStyl
             totalPaddingBottom += safeAreaPaddingBottom;
         }
 
-        if (addOfflineIndicatorBottomSafeAreaPadding && isOffline) {
+        if (addOfflineIndicatorBottomSafeAreaPadding && isOffline && isOfflineIndicatorSafeAreaPaddingEnabled) {
             totalPaddingBottom += CONST.OFFLINE_INDICATOR_HEIGHT;
         }
 
@@ -71,7 +77,16 @@ function useBottomSafeSafeAreaPaddingStyle(params?: UseBottomSafeAreaPaddingStyl
 
         // If no style is provided, return the padding as an object
         return {paddingBottom: totalPaddingBottom};
-    }, [additionalPaddingBottom, addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, isOffline, style, safeAreaPaddingBottom, styleProperty]);
+    }, [
+        additionalPaddingBottom,
+        addBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding,
+        isOffline,
+        isOfflineIndicatorSafeAreaPaddingEnabled,
+        style,
+        safeAreaPaddingBottom,
+        styleProperty,
+    ]);
 }
 
 export default useBottomSafeSafeAreaPaddingStyle;
