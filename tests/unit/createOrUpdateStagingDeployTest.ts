@@ -61,7 +61,9 @@ beforeAll(() => {
                 list: jest.fn().mockResolvedValue([]),
             },
         },
-        paginate: jest.fn().mockImplementation((objectMethod: () => Promise<{data: unknown}>) => objectMethod().then(({data}) => data)),
+        paginate: jest
+            .fn()
+            .mockImplementation((objectMethod: (args: Record<string, unknown>) => Promise<{data: unknown}>, args: Record<string, unknown>) => objectMethod(args).then(({data}) => data)),
     } as unknown as InternalOctokit;
     GithubUtils.internalOctokit = moctokit;
 
@@ -189,7 +191,7 @@ describe('createOrUpdateStagingDeploy', () => {
             return [];
         });
 
-        mockListIssues.mockImplementation((args: Arguments) => {
+        mockListIssues.mockImplementation(async (args: Arguments) => {
             if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
                 return {data: [closedStagingDeployCash]};
             }
@@ -286,7 +288,7 @@ describe('createOrUpdateStagingDeploy', () => {
                 return [];
             });
 
-            mockListIssues.mockImplementation((args: Arguments) => {
+            mockListIssues.mockImplementation(async (args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
                     return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
                 }
@@ -363,7 +365,7 @@ describe('createOrUpdateStagingDeploy', () => {
                 }
                 return [];
             });
-            mockListIssues.mockImplementation((args: Arguments) => {
+            mockListIssues.mockImplementation(async (args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
                     return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
                 }
@@ -492,7 +494,7 @@ describe('createOrUpdateStagingDeploy', () => {
         const previousChecklistForFiltering = {number: 29, state: 'closed', labels: [LABELS.STAGING_DEPLOY_CASH]};
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        mockListIssues.mockImplementation((_args: Arguments) => {
+        mockListIssues.mockImplementation(async (_args: Arguments) => {
             return {data: [openChecklistForFiltering, previousChecklistForFiltering]};
         });
 
