@@ -48,7 +48,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
-    const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + Math.abs(Number(item.amount)), 0), [draftTransaction]);
+    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+    const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + Math.abs(item.amount ?? 0), 0), [draftTransaction]);
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     const isPerDiem = isPerDiemRequest(transaction);
@@ -63,13 +64,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     }, [draftTransaction, transaction]);
 
     const onSaveSplitExpense = useCallback(() => {
-        if (sumOfSplitExpenses > Math.abs(Number(transactionDetails?.amount))) {
-            const difference = sumOfSplitExpenses - Math.abs(Number(transactionDetails?.amount));
+        if (sumOfSplitExpenses > Math.abs(transactionDetailsAmount)) {
+            const difference = sumOfSplitExpenses - Math.abs(transactionDetailsAmount);
             setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
             return;
         }
-        if (sumOfSplitExpenses < Math.abs(Number(transactionDetails?.amount)) && (isPerDiem || isCard)) {
-            const difference = Math.abs(Number(transactionDetails?.amount)) - sumOfSplitExpenses;
+        if (sumOfSplitExpenses < Math.abs(transactionDetailsAmount) && (isPerDiem || isCard)) {
+            const difference = Math.abs(transactionDetailsAmount) - sumOfSplitExpenses;
             setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
             return;
         }
@@ -80,7 +81,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         saveSplitTransactions(draftTransaction, currentSearchHash);
-    }, [currentSearchHash, draftTransaction, isCard, isPerDiem, sumOfSplitExpenses, transactionDetails?.amount, transactionDetails?.currency, translate]);
+    }, [currentSearchHash, draftTransaction, isCard, isPerDiem, sumOfSplitExpenses, transactionDetailsAmount, transactionDetails?.currency, translate]);
 
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {
@@ -111,8 +112,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             (item): SplitListItemType => ({
                 ...item,
                 headerText,
-                originalAmount: Number(transactionDetails?.amount),
-                amount: Number(transactionDetails?.amount) >= 0 ? Math.abs(Number(item.amount)) : Number(item.amount),
+                originalAmount: transactionDetailsAmount,
+                amount: transactionDetailsAmount >= 0 ? Math.abs(Number(item.amount)) : Number(item.amount),
                 merchant: draftTransaction?.merchant ?? '',
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
@@ -126,7 +127,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
 
         return [newSections];
-    }, [transaction, draftTransaction, getTranslatedText, transactionDetails?.amount, currencySymbol, onSplitExpenseAmountChange, splitExpenseTransactionID]);
+    }, [transaction, draftTransaction, getTranslatedText, transactionDetailsAmount, currencySymbol, onSplitExpenseAmountChange, splitExpenseTransactionID]);
 
     const headerContent = useMemo(
         () => (
@@ -183,7 +184,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     <HeaderWithBackButton
                         title={translate('iou.split')}
                         subtitle={translate('iou.splitExpenseSubtitle', {
-                            amount: convertToDisplayString(transactionDetails?.amount, transactionDetails?.currency),
+                            amount: convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency),
                             merchant: draftTransaction?.merchant ?? '',
                         })}
                         onBackButtonPress={() => Navigation.goBack(backTo)}

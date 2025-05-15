@@ -84,8 +84,6 @@ function IOURequestStepTag({
         } else {
             shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction);
         }
-    } else {
-        shouldShowNotFoundPage = false;
     }
 
     const navigateBack = () => {

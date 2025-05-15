@@ -36,11 +36,12 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
 
     const [draftTransactioWithSplitExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
     const splitExpensesList = draftTransactioWithSplitExpenses?.comment?.splitExpenses;
 
-    const currentAmount = Number(transactionDetails?.amount) >= 0 ? Math.abs(Number(splitExpenseDraftTransactionDetails?.amount)) : Number(splitExpenseDraftTransactionDetails?.amount);
+    const currentAmount = transactionDetailsAmount >= 0 ? Math.abs(Number(splitExpenseDraftTransactionDetails?.amount)) : Number(splitExpenseDraftTransactionDetails?.amount);
 
     const report = getReportOrDraftReport(reportID);
     const policy = getPolicy(report?.policyID);

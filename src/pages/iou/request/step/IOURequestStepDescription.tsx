@@ -154,8 +154,6 @@ function IOURequestStepDescription({
         } else {
             shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction);
         }
-    } else {
-        shouldShowNotFoundPage = false;
     }
 
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;

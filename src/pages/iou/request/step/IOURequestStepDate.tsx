@@ -83,10 +83,6 @@ function IOURequestStepDate({
             shouldShowNotFound = false;
         }
     }
-    // Во всех остальных случаях — не показываем
-    else {
-        shouldShowNotFound = false;
-    }
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

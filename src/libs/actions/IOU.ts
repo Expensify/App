@@ -10915,7 +10915,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
                         created: currentTransaction?.created ?? '',
                     };
                 }),
-                amount: Number(transactionDetails?.amount),
+                amount: transactionDetails?.amount ?? 0,
                 currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
                 merchant: transactionDetails?.merchant ?? '',
                 participants: transaction?.participants,
@@ -10938,6 +10938,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
     }
 
     const transactionDetails = getTransactionDetails(transaction);
+    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
 
     const draftTransaction = buildOptimisticTransaction({
         originalTransactionID: transaction.transactionID,
@@ -10945,7 +10946,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
             splitExpenses: [
                 {
                     transactionID: NumberUtils.rand64(),
-                    amount: Number(transactionDetails?.amount) / 2,
+                    amount: transactionDetailsAmount / 2,
                     description: transactionDetails?.comment,
                     category: transactionDetails?.category,
                     tags: transaction?.tag ? [transaction?.tag] : [],
@@ -10953,14 +10954,14 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
                 },
                 {
                     transactionID: NumberUtils.rand64(),
-                    amount: Number(transactionDetails?.amount) / 2,
+                    amount: transactionDetailsAmount / 2,
                     description: transaction?.comment?.comment,
                     category: transaction?.category,
                     tags: transaction?.tag ? [transaction?.tag] : [],
                     created: DateUtils.getDBTime(),
                 },
             ],
-            amount: Number(transactionDetails?.amount),
+            amount: transactionDetailsAmount,
             currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
             merchant: transactionDetails?.merchant ?? '',
             participants: transaction?.participants,
@@ -11116,7 +11117,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     const splits: SplitTransactionSplitsParam =
         splitExpenses.map((split) => ({
-            amount: Number(originalTransaction?.amount) >= 0 ? Math.abs(Number(split.amount)) : -Math.abs(Number(split.amount)),
+            amount: Number(originalTransaction?.amount) >= 0 ? Math.abs(split.amount ?? 0) : -Math.abs(split.amount ?? 0),
             category: split.category ?? '',
             tag: split.tags?.[0] ?? '',
             created: DateUtils.extractDate(split.created),

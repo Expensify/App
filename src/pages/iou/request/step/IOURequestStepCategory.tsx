@@ -98,8 +98,6 @@ function IOURequestStepCategory({
         } else {
             shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction);
         }
-    } else {
-        shouldShowNotFoundPage = false;
     }
 
     const fetchData = () => {
