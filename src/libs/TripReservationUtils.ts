@@ -32,6 +32,7 @@ function getReservationsFromTripTransactions(transactions: Transaction[]): Reser
                     reservationIndex,
                 })) ?? [],
         )
+        .filter((item) => item.reservation.type !== CONST.RESERVATION_TYPE.ANCILLARY)
         .sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
 }
 

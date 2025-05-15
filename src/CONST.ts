@@ -6412,6 +6412,7 @@ const CONST = {
         HOTEL: 'hotel',
         FLIGHT: 'flight',
         TRAIN: 'train',
+        ANCILLARY: 'ancillary',
     },
 
     RESERVATION_ADDRESS_TEST_ID: 'ReservationAddress',
