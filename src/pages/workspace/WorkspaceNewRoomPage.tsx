@@ -130,10 +130,12 @@ function WorkspaceNewRoomPage() {
     };
 
     useEffect(() => {
-        if (isFocused) {
-            setShouldEnableValidation(false);
-            clearNewRoomFormError().then(() => setShouldEnableValidation(true));
+        if (!isFocused) {
+            return;
         }
+        
+        setShouldEnableValidation(false);
+        clearNewRoomFormError().then(() => setShouldEnableValidation(true));
     }, [isFocused]);
 
     useEffect(() => {
@@ -164,8 +166,10 @@ function WorkspaceNewRoomPage() {
      */
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>): OnyxCommon.Errors => {
-            if (!shouldEnableValidation) return {};
-            
+            if (!shouldEnableValidation) {
+                return {};
+            }
+
             const errors: {policyID?: string; roomName?: string} = {};
 
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
