@@ -31,7 +31,7 @@ import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
-import {getFundIdFromSettingsKey, isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import {
     areSettingsInErrorFields,
@@ -68,9 +68,7 @@ type RouteParams = {
 };
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: true});
     const [conciergeChatReportID] = useOnyx(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID, {canBeMissing: true});
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -91,18 +89,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const integrationToDisconnect = params?.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
     const policyID = policy?.id;
-    const [domainFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
-        selector: (cardSetting) => {
-            const matchingKey = Object.entries(cardSetting ?? {}).find(
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                ([key, settings]) => settings?.preferredPolicy && settings.preferredPolicy === policyID && !key.includes(workspaceAccountID.toString()),
-            );
-
-            return getFundIdFromSettingsKey(matchingKey?.[0] ?? '');
+    const [allCardSettings] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
+        selector: (cardSettings) => {
+            return Object.values(cardSettings ?? {}).filter((settings) => settings?.preferredPolicy && settings.preferredPolicy === policyID);
         },
         canBeMissing: true,
     });
-
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
@@ -125,8 +117,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
-    const shouldShowCardReconciliationOption = isExpensifyCardFullySetUp(policy, cardSettings) || domainFundID;
-
+    console.log('allCardSettings', allCardSettings);
+    const shouldShowCardReconciliationOption = allCardSettings?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
             ...(shouldShowReinstallConnectorMenuItem
