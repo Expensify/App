@@ -19,7 +19,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     hasExportError as hasExportErrorUtil,
-    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
+    hasOnlyHeldExpenses,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -270,7 +270,7 @@ function getReportPrimaryAction(
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
-    const isPayActionWithAllExpensesHeld = isPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpensesReportUtils(report?.reportID);
+    const isPayActionWithAllExpensesHeld = isPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID);
 
     if (isAddExpenseAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
