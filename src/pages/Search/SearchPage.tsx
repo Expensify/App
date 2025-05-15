@@ -4,11 +4,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -24,7 +20,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -39,7 +34,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasVBBA} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,7 +41,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
-import SearchTypeMenu from './SearchTypeMenu';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -373,9 +366,6 @@ function SearchPage({route}: SearchPageProps) {
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
 
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
-    const shouldShowLoadingState = !isOffline && !isDataLoaded;
-
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
     // 2. On unmount: Stops video when leaving this screen
@@ -456,50 +446,27 @@ function SearchPage({route}: SearchPageProps) {
                 shouldShowLink={false}
             >
                 {!!queryJSON && (
-                    <View style={styles.searchSplitContainer}>
-                        <View style={styles.searchSidebar}>
-                            {queryJSON ? (
-                                <View style={styles.flex1}>
-                                    <TopBar
-                                        shouldShowLoadingBar={shouldShowLoadingState}
-                                        breadcrumbLabel={translate('common.reports')}
-                                        shouldDisplaySearch={false}
-                                        shouldDisplayHelpButton={false}
-                                    />
-                                    <SearchTypeMenu queryJSON={queryJSON} />
-                                </View>
-                            ) : (
-                                <HeaderWithBackButton
-                                    title={translate('common.selectMultiple')}
-                                    onBackButtonPress={() => {
-                                        clearSelectedTransactions();
-                                        turnOffMobileSelectionMode();
-                                    }}
-                                />
-                            )}
-                            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
-                        </View>
-                        <ScreenWrapper
-                            testID={Search.displayName}
-                            shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
-                            offlineIndicatorStyle={styles.mtAuto}
-                        >
-                            <SearchPageHeader
-                                queryJSON={queryJSON}
-                                headerButtonsOptions={headerButtonsOptions}
-                            />
-                            <SearchStatusBar
-                                queryJSON={queryJSON}
-                                headerButtonsOptions={headerButtonsOptions}
-                            />
-                            <Search
-                                key={queryJSON.hash}
-                                queryJSON={queryJSON}
-                                currentSearchResults={currentSearchResults}
-                                lastNonEmptySearchResults={lastNonEmptySearchResults}
-                            />
-                        </ScreenWrapper>
-                    </View>
+                    <ScreenWrapper
+                        testID={Search.displayName}
+                        shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
+                        offlineIndicatorStyle={styles.mtAuto}
+                        style={styles.searchSplitContainer}
+                    >
+                        <SearchPageHeader
+                            queryJSON={queryJSON}
+                            headerButtonsOptions={headerButtonsOptions}
+                        />
+                        <SearchStatusBar
+                            queryJSON={queryJSON}
+                            headerButtonsOptions={headerButtonsOptions}
+                        />
+                        <Search
+                            key={queryJSON.hash}
+                            queryJSON={queryJSON}
+                            currentSearchResults={currentSearchResults}
+                            lastNonEmptySearchResults={lastNonEmptySearchResults}
+                        />
+                    </ScreenWrapper>
                 )}
                 <ConfirmModal
                     isVisible={isDeleteExpensesConfirmModalVisible}

@@ -1,0 +1,72 @@
+import type {ParamListBase} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import {useSearchContext} from '@components/Search/SearchContext';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
+import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import SearchTypeMenu from '@pages/Search/SearchTypeMenu';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+import type {SearchResults} from '@src/types/onyx';
+import NavigationTabBar from './NavigationTabBar';
+import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
+import TopBar from './TopBar';
+
+type SearchSidebarProps = {
+    state: PlatformStackNavigationState<ParamListBase>;
+};
+
+function SearchSidebar({state}: SearchSidebarProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    const route = state.routes.at(-1);
+    const {q} = route?.params ?? {}; // here too
+    const {lastSearchType, setLastSearchType} = useSearchContext();
+
+    const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]); // this q still needs ot be changed
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
+
+    useEffect(() => {
+        if (!currentSearchResults?.search?.type) {
+            return;
+        }
+
+        setLastSearchType(currentSearchResults.search.type);
+        if (currentSearchResults.data) {
+            setLastNonEmptySearchResults(currentSearchResults);
+        }
+    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
+
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
+    const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !isDataLoaded;
+
+    return !shouldUseNarrowLayout ? (
+        <View style={styles.searchSidebar}>
+            <View style={styles.flex1}>
+                <TopBar
+                    shouldShowLoadingBar={shouldShowLoadingState}
+                    breadcrumbLabel={translate('common.reports')}
+                    shouldDisplaySearch={false}
+                    shouldDisplayHelpButton={false}
+                />
+                <SearchTypeMenu queryJSON={queryJSON} />
+            </View>
+            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
+        </View>
+    ) : (
+        <View />
+    );
+}
+SearchSidebar.displayName = 'SearchSidebar';
+export default SearchSidebar;
