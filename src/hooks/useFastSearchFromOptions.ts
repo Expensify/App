@@ -1,8 +1,9 @@
 import deburr from 'lodash/deburr';
-import {useMemo} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import FastSearch from '@libs/FastSearch';
-import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
+import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 
 type AllOrSelectiveOptions = ReportAndPersonalDetailOptions | OptionsListType;
@@ -34,8 +35,10 @@ function useFastSearchFromOptions(
     options: ReportAndPersonalDetailOptions | OptionsListType,
     {includeUserToInvite}: Options = {includeUserToInvite: false},
 ): (searchInput: string) => AllOrSelectiveOptions {
-    const findInSearchTree = useMemo(() => {
-        const fastSearch = FastSearch.createFastSearch([
+    const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
+
+    useEffect(() => {
+        const newFastSearch = FastSearch.createFastSearch([
             {
                 data: options.personalDetails,
                 toSearchableString: (option) => {
@@ -63,8 +66,16 @@ function useFastSearchFromOptions(
                 },
             },
         ]);
+        setFastSearch(newFastSearch);
 
-        function search(searchInput: string): AllOrSelectiveOptions {
+        return () => newFastSearch.dispose();
+    }, [options]);
+
+    const findInSearchTree = useCallback(
+        (searchInput: string): AllOrSelectiveOptions => {
+            if (!fastSearch) {
+                return emptyResult;
+            }
             const deburredInput = deburr(searchInput);
             const searchWords = deburredInput.split(/\s+/);
             const searchWordsSorted = StringUtils.sortStringArrayByLength(searchWords);
@@ -104,10 +115,9 @@ function useFastSearchFromOptions(
                 personalDetails,
                 recentReports,
             };
-        }
-
-        return search;
-    }, [includeUserToInvite, options]);
+        },
+        [includeUserToInvite, options, fastSearch],
+    );
 
     return findInSearchTree;
 }
