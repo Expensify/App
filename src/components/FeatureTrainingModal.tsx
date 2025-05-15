@@ -23,7 +23,6 @@ import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
 import type DotLottieAnimation from './LottieAnimations/types';
 import Modal from './Modal';
-import SafeAreaConsumer from './SafeAreaConsumer';
 import Text from './Text';
 import VideoPlayer from './VideoPlayer';
 
@@ -311,74 +310,70 @@ function FeatureTrainingModal({
     useLayoutEffect(parseFSAttributes, []);
 
     return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) => (
-                <Modal
-                    isVisible={isModalVisible}
-                    type={onboardingIsMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                    onClose={closeModal}
-                    innerContainerStyle={{
-                        boxShadow: 'none',
-                        paddingBottom: 20,
-                        paddingTop: onboardingIsMediumOrLargerScreenWidth ? undefined : MODAL_PADDING,
-                        ...(onboardingIsMediumOrLargerScreenWidth
-                            ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
-                              // To make it take as little space as possible.
-                              {
-                                  flex: undefined,
-                                  width: 'auto',
-                              }
-                            : {}),
-                        ...modalInnerContainerStyle,
-                    }}
-                    shouldUseNewModal
-                >
-                    <View
-                        style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), safeAreaPaddingBottomStyle]}
-                        fsClass={CONST.FULL_STORY.UNMASK}
-                        testID={CONST.FULL_STORY.UNMASK}
-                    >
-                        <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
-                            {renderIllustration()}
+        <Modal
+            isVisible={isModalVisible}
+            type={onboardingIsMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+            onClose={closeModal}
+            innerContainerStyle={{
+                boxShadow: 'none',
+                paddingBottom: 20,
+                paddingTop: onboardingIsMediumOrLargerScreenWidth ? undefined : MODAL_PADDING,
+                ...(onboardingIsMediumOrLargerScreenWidth
+                    ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
+                      // To make it take as little space as possible.
+                      {
+                          flex: undefined,
+                          width: 'auto',
+                      }
+                    : {}),
+                ...modalInnerContainerStyle,
+            }}
+            shouldUseNewModal
+        >
+            <View
+                style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
+                fsClass={CONST.FULL_STORY.UNMASK}
+                testID={CONST.FULL_STORY.UNMASK}
+            >
+                <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
+                    {renderIllustration()}
+                </View>
+                <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
+                    {!!title && !!description && (
+                        <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentInnerContainerStyles]}>
+                            {typeof title === 'string' ? <Text style={[styles.textHeadlineH1]}>{title}</Text> : title}
+                            <Text style={styles.textSupporting}>{description}</Text>
+                            {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
+                            {children}
                         </View>
-                        <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
-                            {!!title && !!description && (
-                                <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentInnerContainerStyles]}>
-                                    {typeof title === 'string' ? <Text style={[styles.textHeadlineH1]}>{title}</Text> : title}
-                                    <Text style={styles.textSupporting}>{description}</Text>
-                                    {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
-                                    {children}
-                                </View>
-                            )}
-                            {shouldShowDismissModalOption && (
-                                <CheckboxWithLabel
-                                    label={translate('featureTraining.doNotShowAgain')}
-                                    accessibilityLabel={translate('featureTraining.doNotShowAgain')}
-                                    style={[styles.mb5]}
-                                    isChecked={!willShowAgain}
-                                    onInputChange={toggleWillShowAgain}
-                                />
-                            )}
-                            {!!helpText && (
-                                <Button
-                                    large
-                                    style={[styles.mb3]}
-                                    onPress={onHelp}
-                                    text={helpText}
-                                />
-                            )}
-                            <Button
-                                large
-                                success
-                                pressOnEnter
-                                onPress={closeAndConfirmModal}
-                                text={confirmText}
-                            />
-                        </View>
-                    </View>
-                </Modal>
-            )}
-        </SafeAreaConsumer>
+                    )}
+                    {shouldShowDismissModalOption && (
+                        <CheckboxWithLabel
+                            label={translate('featureTraining.doNotShowAgain')}
+                            accessibilityLabel={translate('featureTraining.doNotShowAgain')}
+                            style={[styles.mb5]}
+                            isChecked={!willShowAgain}
+                            onInputChange={toggleWillShowAgain}
+                        />
+                    )}
+                    {!!helpText && (
+                        <Button
+                            large
+                            style={[styles.mb3]}
+                            onPress={onHelp}
+                            text={helpText}
+                        />
+                    )}
+                    <Button
+                        large
+                        success
+                        pressOnEnter
+                        onPress={closeAndConfirmModal}
+                        text={confirmText}
+                    />
+                </View>
+            </View>
+        </Modal>
     );
 }
 

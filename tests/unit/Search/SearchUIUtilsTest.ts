@@ -24,6 +24,7 @@ const policyID = 'A1B2C3';
 const reportID = '123456789';
 const reportID2 = '11111';
 const reportID3 = '99999';
+const reportID4 = '6155022250251839';
 const transactionID = '1';
 const transactionID2 = '2';
 const transactionID3 = '3';
@@ -196,6 +197,14 @@ const searchResults: OnyxTypes.SearchResults = {
             total: 4400,
             type: 'iou',
             unheldTotal: 4400,
+        },
+        [`report_${reportID4}`]: {
+            accountID: adminAccountID,
+            reportID: reportID4,
+            chatReportID: '',
+            chatType: 'policyExpenseChat',
+            created: '2025-03-05 16:34:27',
+            type: 'chat',
         },
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
@@ -926,7 +935,7 @@ describe('SearchUIUtils', () => {
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
             const menuItems = SearchUIUtils.createTypeMenuItems(null, undefined);
-            expect(menuItems).toHaveLength(4);
+            expect(menuItems).toHaveLength(5);
             expect(menuItems).toStrictEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
@@ -945,6 +954,11 @@ describe('SearchUIUtils', () => {
                         icon: Expensicons.ChatBubbles,
                     }),
                     expect.objectContaining({
+                        translationPath: 'common.tasks',
+                        type: CONST.SEARCH.DATA_TYPES.TASK,
+                        icon: Expensicons.Task,
+                    }),
+                    expect.objectContaining({
                         translationPath: 'travel.trips',
                         type: CONST.SEARCH.DATA_TYPES.TRIP,
                         icon: Expensicons.Suitcase,
@@ -960,6 +974,7 @@ describe('SearchUIUtils', () => {
                 ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc'}),
                 ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc groupBy:reports'}),
                 ROUTES.SEARCH_ROOT.getRoute({query: 'type:chat status:all sortBy:date sortOrder:desc'}),
+                ROUTES.SEARCH_ROOT.getRoute({query: 'type:task status:all sortBy:date sortOrder:desc'}),
                 ROUTES.SEARCH_ROOT.getRoute({query: 'type:trip status:all sortBy:date sortOrder:desc'}),
             ];
 

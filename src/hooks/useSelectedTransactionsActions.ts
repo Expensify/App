@@ -1,7 +1,8 @@
-import {useMemo} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
 import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -12,15 +13,55 @@ import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 
-// We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ingored.
+// We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
 const HOLD = 'HOLD';
 const UNHOLD = 'UNHOLD';
 
-function useSelectedTransactionsActions({report, reportActions, session, onExportFailed}: {report?: Report; reportActions: ReportAction[]; session?: Session; onExportFailed?: () => void}) {
+function useSelectedTransactionsActions({
+    report,
+    reportActions,
+    allTransactionsLength,
+    session,
+    onExportFailed,
+}: {
+    report?: Report;
+    reportActions: ReportAction[];
+    allTransactionsLength: number;
+    session?: Session;
+    onExportFailed?: () => void;
+}) {
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
     const {translate} = useLocalize();
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
-    return useMemo(() => {
+    const handleDeleteTransactions = useCallback(() => {
+        const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
+
+        const transactionsWithActions = selectedTransactionsID.map((transactionID) => ({
+            transactionID,
+            action: iouActions.find((action) => {
+                const IOUTransactionID = (getOriginalMessage(action) as OriginalMessageIOU)?.IOUTransactionID;
+                return transactionID === IOUTransactionID;
+            }),
+        }));
+
+        transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
+        setSelectedTransactionsID([]);
+        if (allTransactionsLength - transactionsWithActions.length <= 1) {
+            turnOffMobileSelectionMode();
+        }
+        setIsDeleteModalVisible(false);
+    }, [allTransactionsLength, reportActions, selectedTransactionsID, setSelectedTransactionsID]);
+
+    const showDeleteModal = useCallback(() => {
+        setIsDeleteModalVisible(true);
+    }, []);
+
+    const hideDeleteModal = useCallback(() => {
+        setIsDeleteModalVisible(false);
+    }, []);
+
+    const computedOptions = useMemo(() => {
         if (!selectedTransactionsID.length) {
             return [];
         }
@@ -28,22 +69,24 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
         const selectedTransactions = selectedTransactionsID.map((transactionID) => getTransaction(transactionID)).filter((t) => !!t);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-        let canHoldTransactions = isMoneyRequestReport && !isReportReimbursed;
-        let canUnholdTransactions = isMoneyRequestReport;
+        let canHoldTransactions = selectedTransactions.length > 0 && isMoneyRequestReport && !isReportReimbursed;
+        let canUnholdTransactions = selectedTransactions.length > 0 && isMoneyRequestReport;
 
         selectedTransactions.forEach((selectedTransaction) => {
+            if (!canHoldTransactions && !canHoldTransactions) {
+                return;
+            }
+
             if (!selectedTransaction?.transactionID) {
                 canHoldTransactions = false;
                 canUnholdTransactions = false;
-                return true;
+                return;
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, selectedTransaction.transactionID);
             const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(iouReportAction);
 
             canHoldTransactions = canHoldTransactions && canHoldRequest;
             canUnholdTransactions = canUnholdTransactions && canUnholdRequest;
-
-            return !(canHoldTransactions || canUnholdTransactions);
         });
 
         if (canHoldTransactions) {
@@ -79,8 +122,8 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
         }
 
         options.push({
-            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD,
-            text: translate('common.download'),
+            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+            text: translate('common.downloadAsCSV'),
             icon: Expensicons.Download,
             onSelected: () => {
                 if (!report) {
@@ -109,25 +152,19 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
                 text: translate('common.delete'),
                 icon: Expensicons.Trashcan,
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
-                onSelected: () => {
-                    const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
-
-                    const transactionsWithActions = selectedTransactions.map((t) => ({
-                        transactionID: t?.transactionID,
-                        action: iouActions.find((action) => {
-                            const IOUTransactionID = (getOriginalMessage(action) as OriginalMessageIOU)?.IOUTransactionID;
-
-                            return t?.transactionID === IOUTransactionID;
-                        }),
-                    }));
-
-                    transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
-                    setSelectedTransactionsID([]);
-                },
+                onSelected: showDeleteModal,
             });
         }
         return options;
-    }, [onExportFailed, report, reportActions, selectedTransactionsID, session?.accountID, setSelectedTransactionsID, translate]);
+    }, [onExportFailed, report, reportActions, selectedTransactionsID, session?.accountID, setSelectedTransactionsID, translate, showDeleteModal]);
+
+    return {
+        options: computedOptions,
+        handleDeleteTransactions,
+        isDeleteModalVisible,
+        showDeleteModal,
+        hideDeleteModal,
+    };
 }
 
 export default useSelectedTransactionsActions;

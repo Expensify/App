@@ -12,6 +12,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -37,7 +38,6 @@ import {
     isPolicyExpenseChat,
     isSystemChat,
     isThread,
-    requiresAttentionFromCurrentUser,
 } from '@libs/ReportUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
@@ -49,7 +49,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
-function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
+function OptionRowLHN({
+    reportID,
+    isFocused = false,
+    onSelectRow = () => {},
+    optionItem,
+    viewMode = 'default',
+    style,
+    onLayout = () => {},
+    hasDraftComment,
+    shouldShowRBRorGBRTooltip,
+}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -57,10 +67,10 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID}`);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
     const session = useSession();
     const shouldShowWorkspaceChatTooltip = isPolicyExpenseChat(report) && !isThread(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
@@ -69,16 +79,26 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
-    const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
-        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
-        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        const tooltip = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
-        const shouldShowTooltips = shouldShowWorkspaceChatTooltip || shouldShowGetStartedTooltip;
+    const {tooltipToRender, shouldShowTooltip, shouldTooltipBeLeftAligned} = useMemo(() => {
+        let tooltip: ProductTrainingTooltipName;
+        if (shouldShowRBRorGBRTooltip) {
+            tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GBR_RBR_CHAT;
+        } else if (shouldShowWorkspaceChatTooltip) {
+            tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
+        } else {
+            // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+            // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
+            tooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR;
+        }
+        const shouldShowTooltips = shouldShowRBRorGBRTooltip || shouldShowWorkspaceChatTooltip || shouldShowGetStartedTooltip;
         const shouldTooltipBeVisible = shouldUseNarrowLayout ? isScreenFocused && isReportsSplitNavigatorLast : isReportsSplitNavigatorLast && !isFullscreenVisible;
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return {tooltipToRender: tooltip, shouldShowTooltip: shouldShowTooltips && shouldTooltipBeVisible};
-    }, [shouldShowGetStartedTooltip, shouldShowWorkspaceChatTooltip, isScreenFocused, shouldUseNarrowLayout, isReportsSplitNavigatorLast, isFullscreenVisible]);
+        return {
+            tooltipToRender: tooltip,
+            shouldShowTooltip: shouldShowTooltips && shouldTooltipBeVisible,
+            shouldTooltipBeLeftAligned: shouldShowWorkspaceChatTooltip && !shouldShowRBRorGBRTooltip && !shouldShowGetStartedTooltip,
+        };
+    }, [shouldShowRBRorGBRTooltip, shouldShowGetStartedTooltip, shouldShowWorkspaceChatTooltip, isScreenFocused, shouldUseNarrowLayout, isReportsSplitNavigatorLast, isFullscreenVisible]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
 
@@ -119,8 +139,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         return null;
     }
 
-    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
+    const brickRoadIndicator = optionItem.brickRoadIndicator;
     const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
@@ -195,11 +214,11 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 shouldRender={shouldShowProductTrainingTooltip}
                 renderTooltipContent={renderProductTrainingTooltip}
                 anchorAlignment={{
-                    horizontal: shouldShowWorkspaceChatTooltip ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    horizontal: shouldTooltipBeLeftAligned ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
-                shiftHorizontal={shouldShowWorkspaceChatTooltip ? variables.workspaceLHNTooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
-                shiftVertical={shouldShowWorkspaceChatTooltip ? 0 : variables.gbrTooltipShiftVertical}
+                shiftHorizontal={shouldTooltipBeLeftAligned ? variables.workspaceLHNTooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
+                shiftVertical={shouldTooltipBeLeftAligned ? 0 : variables.gbrTooltipShiftVertical}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 onTooltipPress={onOptionPress}
                 shouldHideOnScroll
@@ -316,7 +335,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                             </View>
                                         ) : null}
-                                        {hasBrickError && (
+                                        {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                                 <Icon
                                                     testID="RBR Icon"
@@ -331,7 +350,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                     style={[styles.flexRow, styles.alignItemsCenter]}
                                     accessible={false}
                                 >
-                                    {shouldShowGreenDotIndicator && (
+                                    {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
                                         <View style={styles.ml2}>
                                             <Icon
                                                 testID="GBR Icon"
@@ -352,7 +371,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                             />
                                         </View>
                                     )}
-                                    {!shouldShowGreenDotIndicator && !hasBrickError && !!optionItem.isPinned && (
+                                    {!brickRoadIndicator && !!optionItem.isPinned && (
                                         <View
                                             style={styles.ml2}
                                             accessibilityLabel={translate('sidebarScreen.chatPinned')}

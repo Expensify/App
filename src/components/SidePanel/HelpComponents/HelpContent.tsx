@@ -1,15 +1,14 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-// Importing from the react-native-gesture-handler package instead of the `components/ScrollView` to fix scroll issue:
-// https://github.com/react-native-modal/react-native-modal/issues/236
 import {ScrollView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
+// Importing from the react-native-gesture-handler package instead of the `components/ScrollView` to fix scroll issue:
+// https://github.com/react-native-modal/react-native-modal/issues/236
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getHelpContent from '@components/SidePanel/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,7 +31,6 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const {isProduction} = useEnvironment();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
     const [expandedIndex, setExpandedIndex] = useState(0);
-    const {canUseLeftHandBar} = usePermissions();
 
     const {params, routeName} = useRootNavigationState(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
@@ -44,15 +42,15 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         };
     });
 
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`, {canBeMissing: true});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || CONST.DEFAULT_NUMBER_ID}`);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID || CONST.DEFAULT_NUMBER_ID}`, {
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {
         canEvict: false,
+        canBeMissing: true,
     });
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const linkedTransactionID = useMemo(() => (isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined), [parentReportAction]);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, {canBeMissing: true});
 
     const route = useMemo(() => {
         const path = normalizedConfigs[routeName]?.path;
@@ -86,7 +84,6 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
             <HeaderGap />
             <HeaderWithBackButton
                 title={translate('common.help')}
-                style={styles.headerBarDesktopHeight(canUseLeftHandBar)}
                 onBackButtonPress={() => closeSidePanel(false)}
                 onCloseButtonPress={() => closeSidePanel(false)}
                 shouldShowBackButton={!isExtraLargeScreenWidth}
@@ -96,6 +93,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
             <ScrollView
                 style={[styles.ph5, styles.pb5]}
                 userSelect="auto"
+                scrollIndicatorInsets={{right: Number.MIN_VALUE}}
             >
                 {getHelpContent(styles, route, isProduction, expandedIndex, setExpandedIndex)}
             </ScrollView>

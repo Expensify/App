@@ -4,8 +4,9 @@ import {View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import callOrReturn from '@src/types/utils/callOrReturn';
 
 type StepScreenDragAndDropWrapperProps = {
@@ -33,6 +34,9 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
 
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
+    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
+    const {canUseMultiFilesDragAndDrop} = usePermissions();
+
     if (!shouldShowWrapper) {
         return callOrReturn(children, false);
     }
@@ -43,8 +47,8 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
             shouldEnableKeyboardAvoidingView={false}
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
-            shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
-            headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
+            shouldEnableMaxHeight={canUseTouchScreen()}
+            headerGapStyles={isDraggingOver ? [canUseMultiFilesDragAndDrop ? styles.dropWrapper : styles.isDraggingOver] : []}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>

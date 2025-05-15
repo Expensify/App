@@ -4,7 +4,6 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import {hasReportViolations, isReportOwner, isSettled, shouldDisplayViolationsRBRInLHN} from '@src/libs/ReportUtils';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -39,11 +38,6 @@ function OptionRowLHNData({
     const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
 
     const optionItemRef = useRef<OptionData | undefined>(undefined);
-
-    const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(fullReport, transactionViolations);
-    const isReportSettled = isSettled(fullReport);
-    const shouldDisplayReportViolations = !isReportSettled && isReportOwner(fullReport) && hasReportViolations(reportID);
-
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
@@ -56,9 +50,7 @@ function OptionRowLHNData({
             preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            hasViolations: !!shouldDisplayViolations || shouldDisplayReportViolations,
             lastMessageTextFromReport,
-            transactionViolations,
             invoiceReceiverPolicy,
         });
         // eslint-disable-next-line react-compiler/react-compiler
@@ -76,7 +68,8 @@ function OptionRowLHNData({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
         fullReport,
-        reportAttributes,
+        reportAttributes?.brickRoadStatus,
+        reportAttributes?.reportName,
         oneTransactionThreadReport,
         reportNameValuePairs,
         lastReportActionTransaction,
@@ -87,11 +80,10 @@ function OptionRowLHNData({
         parentReportAction,
         iouReportReportActions,
         transaction,
-        transactionViolations,
         receiptTransactions,
         invoiceReceiverPolicy,
-        shouldDisplayReportViolations,
         lastMessageTextFromReport,
+        reportAttributes,
     ]);
 
     return (
