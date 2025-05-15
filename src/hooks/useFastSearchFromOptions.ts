@@ -1,5 +1,5 @@
 import deburr from 'lodash/deburr';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import FastSearch from '@libs/FastSearch';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
 import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
@@ -36,14 +36,8 @@ function useFastSearchFromOptions(
     {includeUserToInvite}: Options = {includeUserToInvite: false},
 ): (searchInput: string) => AllOrSelectiveOptions {
     const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
-    const previousFastSearchRef = useRef<ReturnType<typeof FastSearch.createFastSearch> | null>(null);
 
     useEffect(() => {
-        if (previousFastSearchRef.current) {
-            previousFastSearchRef.current.dispose();
-            previousFastSearchRef.current = null;
-        }
-
         const newFastSearch = FastSearch.createFastSearch([
             {
                 data: options.personalDetails,
@@ -73,14 +67,8 @@ function useFastSearchFromOptions(
             },
         ]);
         setFastSearch(newFastSearch);
-        previousFastSearchRef.current = newFastSearch;
-        return () => {
-            if (!previousFastSearchRef.current) {
-                return;
-            }
-            previousFastSearchRef.current.dispose();
-            previousFastSearchRef.current = null;
-        };
+
+        return () => newFastSearch.dispose();
     }, [options]);
 
     const findInSearchTree = useCallback(
