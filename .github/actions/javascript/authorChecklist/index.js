@@ -16038,10 +16038,11 @@ class GithubUtils {
     static async getCommitHistoryBetweenTags(fromTag, toTag) {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
         try {
-            const comparison = await this.paginate(this.octokit.repos.compareCommitsWithBasehead, {
+            const { data: comparison } = await this.octokit.repos.compareCommits({
                 owner: CONST_1.default.GITHUB_OWNER,
                 repo: CONST_1.default.APP_REPO,
-                basehead: `${fromTag}...${toTag}`,
+                base: fromTag,
+                head: toTag,
             });
             // Map API response to our CommitType format
             return comparison.commits.map((commit) => ({
@@ -16053,7 +16054,7 @@ class GithubUtils {
         }
         catch (error) {
             if (error instanceof request_error_1.RequestError && error.status === 404) {
-                console.error(`❓Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡`);
+                console.error(`❓❓ Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`);
             }
             // Re-throw the error after logging
             throw error;
