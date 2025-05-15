@@ -529,6 +529,12 @@ function buildFilterFormValuesFromQuery(
             filtersForm[beforeKey] = filterList.find((filter) => filter.operator === 'lt' && isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[beforeKey];
             filtersForm[afterKey] = filterList.find((filter) => filter.operator === 'gt' && isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[afterKey];
             filtersForm[onKey] = filterList.find((filter) => filter.operator === 'eq' && isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[onKey];
+
+            // When using 'exported', we use the 'on' filter to set the value to either a date, or 'never'
+            if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED) {
+                const on = filterList.find((filter) => filter.operator === 'eq' && (isValidDate(filter.value.toString()) || filter.value.toString() === CONST.SEARCH.NEVER));
+                filtersForm[onKey] = on?.value.toString() ?? filtersForm[onKey];
+            }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
             // backend amount is an integer and is 2 digits longer than frontend amount
