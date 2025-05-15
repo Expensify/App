@@ -400,7 +400,12 @@ const validateReceiptFile = (file: FileObject) => {
     return '';
 };
 
-const getFileValidationErrorText = (validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>) => {
+const getFileValidationErrorText = (
+    validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>,
+): {
+    title: TranslationPaths;
+    reason: TranslationPaths;
+} => {
     switch (validationError) {
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {title: 'attachmentPicker.wrongFileType', reason: 'attachmentPicker.notAllowedExtension'};
@@ -408,6 +413,8 @@ const getFileValidationErrorText = (validationError: ValueOf<typeof CONST.FILE_V
             return {title: 'attachmentPicker.attachmentTooLarge', reason: 'attachmentPicker.sizeExceededWithLimit'};
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
             return {title: 'attachmentPicker.attachmentTooSmall', reason: 'attachmentPicker.sizeNotMet'};
+        case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
+            return {title: 'attachmentPicker.attachmentError', reason: 'attachmentPicker.folderNotAllowedMessage'};
         case CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED:
             return {
                 title: 'attachmentPicker.attachmentError',
@@ -443,5 +450,7 @@ export {
     resizeImageIfNeeded,
     createFile,
     validateReceipt,
-    isValidReceiptExtension
+    validateReceiptFile,
+    isValidReceiptExtension,
+    getFileValidationErrorText,
 };

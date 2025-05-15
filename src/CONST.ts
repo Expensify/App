@@ -2062,6 +2062,7 @@ const CONST = {
         FILE_TOO_LARGE: 'fileTooLarge',
         FILE_TOO_SMALL: 'fileTooSmall',
         FILE_CORRUPTED: 'fileCorrupted',
+        FOLDER_NOT_ALLOWED: 'folderNotAllowed'
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',

@@ -14,7 +14,12 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
-import {cleanFileName, getFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {
+    cleanFileName,
+    getFileName, getFileValidationErrorText,
+    validateImageForCorruption,
+    validateReceiptFile,
+} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
@@ -23,7 +28,6 @@ import variables from '@styles/variables';
 import {detachReceipt} from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -194,11 +198,9 @@ function AttachmentModal({
     const styles = useThemeStyles();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+    const [attachmentError, setAttachmentError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | undefined>(undefined);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequiredState, setIsAuthTokenRequiredState] = useState(isAuthTokenRequired);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
-    const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<TranslationPaths | null>(null);
     const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
@@ -208,7 +210,7 @@ function AttachmentModal({
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nope = useSharedValue(false);
-    const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
+    const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && attachmentError);
     const iouType = useMemo(() => iouTypeProp ?? (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction, iouTypeProp]);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -309,7 +311,7 @@ function AttachmentModal({
      * Close the confirm modals.
      */
     const closeConfirmModal = useCallback(() => {
-        setIsAttachmentInvalid(false);
+        setAttachmentError(undefined);
         setIsDeleteReceiptConfirmModalVisible(false);
     }, []);
 
@@ -326,26 +328,15 @@ function AttachmentModal({
         (fileObject: FileObject) =>
             validateImageForCorruption(fileObject)
                 .then(() => {
-                    if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                        setIsAttachmentInvalid(true);
-                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
-                        setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
+                    const fileError = validateReceiptFile(fileObject);
+                    if (fileError) {
+                        setAttachmentError(fileError);
                         return false;
                     }
-
-                    if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                        setIsAttachmentInvalid(true);
-                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
-                        setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
-                        return false;
-                    }
-
                     return true;
                 })
                 .catch(() => {
-                    setIsAttachmentInvalid(true);
-                    setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-                    setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                    setAttachmentError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED);
                     return false;
                 }),
         [],
@@ -353,9 +344,7 @@ function AttachmentModal({
 
     const isDirectoryCheck = useCallback((data: FileObject) => {
         if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
-            setIsAttachmentInvalid(true);
-            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-            setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');
+            setAttachmentError(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
             return false;
         }
         return true;
@@ -541,9 +530,7 @@ function AttachmentModal({
                     setShouldLoadAttachment(false);
                     clearAttachmentErrors();
                     if (isPDFLoadError.current) {
-                        setIsAttachmentInvalid(true);
-                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-                        setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                        setAttachmentError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED)
                         return;
                     }
 
@@ -690,11 +677,11 @@ function AttachmentModal({
             </Modal>
             {!isReceiptAttachment && (
                 <ConfirmModal
-                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                    title={attachmentError ? translate(getFileValidationErrorText(attachmentError).title) : ''}
                     onConfirm={closeConfirmModal}
                     onCancel={closeConfirmModal}
-                    isVisible={isAttachmentInvalid}
-                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                    isVisible={!!attachmentError}
+                    prompt={attachmentError ? translate(getFileValidationErrorText(attachmentError).reason) : ''}
                     confirmText={translate('common.close')}
                     shouldShowCancelButton={false}
                     onModalHide={() => {
