@@ -3739,12 +3739,6 @@ function getTransactionDetails(
     }
     const report = getReportOrDraftReport(transaction?.reportID);
 
-    console.log('getTransactionDetails', {
-        transaction,
-        report,
-        allowNegativeAmount,
-    });
-
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
         amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), undefined, allowNegativeAmount),
