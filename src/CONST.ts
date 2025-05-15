@@ -5098,7 +5098,7 @@ const CONST = {
         },
     },
     DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
-    STRIPE_GBP_AUTH_STATUSES: {
+    STRIPE_SCA_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
