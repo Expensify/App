@@ -127,7 +127,7 @@ function FirstHeaderRow<TItem extends ListItem>({
                     />
                 </View>
             </View>
-            <View style={[styles.flexShrink0, styles.mr3]}>
+            <View style={[styles.flexShrink0, shouldShowAction && styles.mr3]}>
                 <TotalCell
                     showTooltip
                     isLargeScreenWidth={false}
