@@ -559,7 +559,7 @@ const translations = {
         unreported: 'Unreported',
         general: 'General',
         getTheApp: 'Get the app',
-        scanReceiptsOnTheGo: 'Scan receipts on the go',
+        scanReceiptsOnTheGo: 'Scan receipts from your phone',
     },
     supportalNoAccess: {
         title: 'Not so fast',

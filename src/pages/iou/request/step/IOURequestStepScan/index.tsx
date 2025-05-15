@@ -984,6 +984,7 @@ function IOURequestStepScan({
                                     style={[styles.borderRadiusComponentLarge, styles.hoveredComponentBG]}
                                     rightComponent={
                                         <Button
+                                            small
                                             success
                                             text={translate('common.download')}
                                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)}
