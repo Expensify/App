@@ -169,7 +169,7 @@ function ReportListItemHeader<TItem extends ListItem>({
         handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
     };
     return shouldUseNarrowLayout ? (
-        <View>
+        <View style={styles.flex1}>
             <FirstHeaderRow
                 item={item}
                 report={moneyRequestReport}
@@ -202,7 +202,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             </View>
         </View>
     ) : (
-        <View>
+        <View style={styles.flex1}>
             <FirstHeaderRow
                 item={item}
                 report={moneyRequestReport}
@@ -213,9 +213,6 @@ function ReportListItemHeader<TItem extends ListItem>({
                 shouldShowAction
                 handleOnButtonPress={handleOnButtonPress}
             />
-            <View style={[styles.mr3, styles.ml3, styles.pv2]}>
-                <View style={[styles.borderBottom]} />
-            </View>
         </View>
     );
 }

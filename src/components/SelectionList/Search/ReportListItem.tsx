@@ -104,15 +104,24 @@ function ReportListItem<TItem extends ListItem>({
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
             <View style={[styles.flex1]}>
-                <ReportListItemHeader
-                    report={reportItem}
-                    policy={policy}
-                    item={item}
-                    onSelectRow={onSelectRow}
-                    onCheckboxPress={onCheckboxPress}
-                    isDisabled={isDisabledOrEmpty}
-                    canSelectMultiple={canSelectMultiple}
-                />
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter]}>
+                    <ReportListItemHeader
+                        report={reportItem}
+                        policy={policy}
+                        item={item}
+                        onSelectRow={onSelectRow}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        canSelectMultiple={canSelectMultiple}
+                    />
+                    <IconButton
+                        fill={theme.icon}
+                        src={src}
+                        onPress={() => setIsExpanded(!isExpanded)}
+                        style={[styles.p0, styles.pr3]}
+                        hoverStyle={[styles.bgTransparent]}
+                    />
+                </View>
                 {isEmptyReport ? (
                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
                         <Text
@@ -124,14 +133,7 @@ function ReportListItem<TItem extends ListItem>({
                     </View>
                 ) : (
                     <>
-                        <IconButton
-                            fill={theme.icon}
-                            src={src}
-                            onPress={() => setIsExpanded(!isExpanded)}
-                            style={[styles.p0]}
-                            hoverStyle={[styles.bgTransparent]}
-                        />
-                        {isExpanded && <View style={[styles.threadDividerLine, styles.mb2]} />}
+                        {isExpanded && <View style={[styles.threadDividerLine, styles.mv2, styles.mr2]} />}
                         <Collapsible isOpened={isExpanded}>
                             <View>
                                 {reportItem.transactions.map((transaction) => (
