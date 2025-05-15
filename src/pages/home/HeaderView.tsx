@@ -172,7 +172,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         return true;
     };
 
-    const shouldShowGuideBooking = !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
+    const shouldShowGuideBooking = true || !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
@@ -270,7 +270,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 icon: Illustrations.HeadSet,
                 iconWidth: 40,
                 iconHeight: 40,
-                wrapperStyle: [styles.mb4, styles.pl4, styles.pr5, styles.pt3, styles.pb5, styles.borderBottom],
+                wrapperStyle: [styles.mb3, styles.pl4, styles.pr5, styles.pt3, styles.pb6, styles.borderBottom],
                 interactive: false,
                 titleStyle: styles.ml2,
             },
