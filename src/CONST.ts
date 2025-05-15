@@ -1208,6 +1208,7 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SPLIT: 'split',
             REOPEN: 'reopen',
+            MOVE_EXPENSE: 'moveExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
