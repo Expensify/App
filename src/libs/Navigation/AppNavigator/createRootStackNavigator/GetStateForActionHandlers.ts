@@ -32,9 +32,9 @@ const settingsSplitWithEnteringAnimation = new Set<string>();
 
 /**
  * Handles the OPEN_WORKSPACE_SPLIT action.
- * If the user is on other tab than settings and the workspace split is "remembered", this action will be called after pressing the settings tab.
- * It will push the settings split navigator first and then push the workspace split navigator.
- * This allows the user to swipe back on the iOS to the settings split navigator underneath.
+ * If the user is on other tab than workspaces and the workspace split is "remembered", this action will be called after pressing the settings tab.
+ * It will push the workspace hub split navigator first and then push the workspace split navigator.
+ * This allows the user to swipe back on the iOS to the workspace hub split navigator underneath.
  */
 function handleOpenWorkspaceSplitAction(
     state: StackNavigationState<ParamListBase>,
@@ -42,8 +42,8 @@ function handleOpenWorkspaceSplitAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const actionToPushSettingsSplitNavigator = StackActions.push(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, {
-        screen: SCREENS.SETTINGS.WORKSPACES,
+    const actionToPushWorkspaceHubSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR, {
+        screen: SCREENS.WORKSPACE_HUB.WORKSPACES,
     });
 
     const actionToPushWorkspaceSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
@@ -53,14 +53,14 @@ function handleOpenWorkspaceSplitAction(
         },
     });
 
-    const stateWithSettingsSplitNavigator = stackRouter.getStateForAction(state, actionToPushSettingsSplitNavigator, configOptions);
+    const stateWithWorkspaceHubSplitNavigator = stackRouter.getStateForAction(state, actionToPushWorkspaceHubSplitNavigator, configOptions);
 
-    if (!stateWithSettingsSplitNavigator) {
+    if (!stateWithWorkspaceHubSplitNavigator) {
         Log.hmmm('[handleOpenWorkspaceSplitAction] SettingsSplitNavigator has not been found in the navigation state.');
         return null;
     }
 
-    const rehydratedStateWithSettingsSplitNavigator = stackRouter.getRehydratedState(stateWithSettingsSplitNavigator, configOptions);
+    const rehydratedStateWithSettingsSplitNavigator = stackRouter.getRehydratedState(stateWithWorkspaceHubSplitNavigator, configOptions);
     const stateWithWorkspaceSplitNavigator = stackRouter.getStateForAction(rehydratedStateWithSettingsSplitNavigator, actionToPushWorkspaceSplitNavigator, configOptions);
 
     if (!stateWithWorkspaceSplitNavigator) {
