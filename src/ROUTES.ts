@@ -973,6 +973,7 @@ const ROUTES = {
             return `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const;
         },
     },
+    WORKSPACE_HUB_INITIAL: 'settings/workspace-menu',
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
         getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite`, backTo)}` as const,
