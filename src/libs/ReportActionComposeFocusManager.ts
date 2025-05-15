@@ -83,6 +83,10 @@ function isEditFocused(): boolean {
     return !!editComposerRef.current?.isFocused();
 }
 
+/**
+ * This will prevent the composer's text input from focusing the next time it becomes the
+ * first responder in the UIResponder chain. (iOS only, no-op on Android)
+ */
 function preventFocusOnFirstResponderOnce() {
     composerRef.current?.preventFocusOnFirstResponderOnce();
 }
