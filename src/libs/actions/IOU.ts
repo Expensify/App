@@ -11035,7 +11035,7 @@ function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, dra
     });
 }
 
-function removeSplitExpense(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
+function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
     }
@@ -11051,7 +11051,7 @@ function removeSplitExpense(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, 
     });
 }
 
-function updateSplitExpense(splitExpenseDraftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
+function updateSplitExpenseField(splitExpenseDraftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
     if (!splitExpenseDraftTransaction || !splitExpenseTransactionID) {
         return;
     }
@@ -11341,7 +11341,7 @@ export {
     updateSplitExpenseAmountField,
     saveSplitTransactions,
     initDraftSplitExpenseDataForEdit,
-    removeSplitExpense,
-    updateSplitExpense,
+    removeSplitExpenseField,
+    updateSplitExpenseField,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};

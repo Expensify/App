@@ -9,7 +9,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {removeSplitExpense, updateSplitExpense} from '@libs/actions/IOU';
+import {removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -152,7 +152,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 style={[styles.w100, styles.mb4]}
                                 text={translate('iou.removeSplit')}
                                 onPress={() => {
-                                    removeSplitExpense(draftTransactioWithSplitExpenses, splitExpenseTransactionID);
+                                    removeSplitExpenseField(draftTransactioWithSplitExpenses, splitExpenseTransactionID);
                                     Navigation.goBack(backTo);
                                 }}
                                 pressOnEnter
@@ -165,7 +165,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.w100]}
                             text={translate('common.save')}
                             onPress={() => {
-                                updateSplitExpense(splitExpenseDraftTransaction, splitExpenseTransactionID);
+                                updateSplitExpenseField(splitExpenseDraftTransaction, splitExpenseTransactionID);
                                 Navigation.goBack(backTo);
                             }}
                             pressOnEnter
