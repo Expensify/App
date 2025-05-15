@@ -1,4 +1,5 @@
 import {useCallback, useMemo, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
 import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
@@ -16,11 +17,11 @@ import {
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
-import {getTransaction} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OriginalMessageIOU, Report, ReportAction, Session} from '@src/types/onyx';
+import type {OriginalMessageIOU, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
@@ -42,6 +43,19 @@ function useSelectedTransactionsActions({
     onExportFailed?: () => void;
 }) {
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const selectedTransactions = useMemo(
+        () =>
+            selectedTransactionsID.reduce((acc, transactionID) => {
+                const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                if (transaction) {
+                    acc.push(transaction);
+                }
+                return acc;
+            }, [] as Transaction[]),
+        [allTransactions, selectedTransactionsID],
+    );
+
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const isTrackExpenseThread = isTrackExpenseReport(report);
@@ -88,7 +102,6 @@ function useSelectedTransactionsActions({
         }
         const options = [];
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
-        const selectedTransactions = selectedTransactionsID.map((transactionID) => getTransaction(transactionID)).filter((t) => !!t);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
         let canHoldTransactions = selectedTransactions.length > 0 && isMoneyRequestReport && !isReportReimbursed;
         let canUnholdTransactions = selectedTransactions.length > 0 && isMoneyRequestReport;
@@ -200,7 +213,7 @@ function useSelectedTransactionsActions({
             });
         }
         return options;
-    }, [selectedTransactionsID, report, translate, reportActions, setSelectedTransactionsID, onExportFailed, iouType, session?.accountID, showDeleteModal]);
+    }, [selectedTransactionsID, report, selectedTransactions, translate, reportActions, setSelectedTransactionsID, onExportFailed, iouType, session?.accountID, showDeleteModal]);
 
     return {
         options: computedOptions,
