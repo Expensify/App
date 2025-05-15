@@ -350,7 +350,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED)).toBe(true);
     });
 
-    it('includes MARK_AS_EXPORTED option for expense report preffered exporter', () => {
+    it('includes MARK_AS_EXPORTED option for expense report preferred exporter', () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
