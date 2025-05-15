@@ -254,6 +254,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 shouldDisplayHelpButton={!isReportInRHP}
                 onBackButtonPress={onBackButtonPress}
                 shouldEnableDetailPageNavigation
+                openParentReportInCurrentTab
             >
                 {!shouldUseNarrowLayout && (
                     <View style={[styles.flexRow, styles.gap2]}>

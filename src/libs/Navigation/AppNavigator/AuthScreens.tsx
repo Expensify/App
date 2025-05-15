@@ -30,6 +30,7 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
@@ -61,7 +62,12 @@ import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import createRootStackNavigator from './createRootStackNavigator';
-import {reportsSplitsWithEnteringAnimation, settingsSplitWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
+import {
+    reportsSplitsWithEnteringAnimation,
+    searchFullscreenWithEnteringAnimation,
+    settingsSplitWithEnteringAnimation,
+    workspaceSplitsWithoutEnteringAnimation,
+} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
@@ -462,27 +468,30 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         };
     };
 
-    const getSplitNavigatorOptions =
-        (routesWithEnteringAnimation: Set<string>) =>
+    const getFullScreenNavigatorOptions =
+        (routesWithEnteringAnimation: Set<string>, defaultOptions: PlatformStackNavigationOptions) =>
         ({route}: {route: RouteProp<AuthScreensParamList>}) => {
             // We don't need to do anything special for the wide screen.
             if (!shouldUseNarrowLayout) {
-                return rootNavigatorScreenOptions.splitNavigator;
+                return defaultOptions;
             }
             // On the narrow screen, we want to animate this navigator if pushed SplitNavigator includes desired screen
             const animationEnabled = routesWithEnteringAnimation.has(route.key);
 
             return {
-                ...rootNavigatorScreenOptions.splitNavigator,
+                ...defaultOptions,
                 animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
             };
         };
 
     // Animation is enabled when navigating to the report screen
-    const getReportsSplitNavigatorOptions = getSplitNavigatorOptions(reportsSplitsWithEnteringAnimation);
+    const getReportsSplitNavigatorOptions = getFullScreenNavigatorOptions(reportsSplitsWithEnteringAnimation, rootNavigatorScreenOptions.splitNavigator);
 
     // Animation is enabled when navigating to any screen different than SCREENS.SETTINGS.ROOT
-    const getSettingsSplitNavigatorOptions = getSplitNavigatorOptions(settingsSplitWithEnteringAnimation);
+    const getSettingsSplitNavigatorOptions = getFullScreenNavigatorOptions(settingsSplitWithEnteringAnimation, rootNavigatorScreenOptions.splitNavigator);
+
+    // Animation is enabled when navigating to SCREENS.SEARCH.MONEY_REQUEST_REPORT
+    const getSearchFullscreenNavigatorOptions = getFullScreenNavigatorOptions(searchFullscreenWithEnteringAnimation, rootNavigatorScreenOptions.fullScreen);
 
     const clearStatus = () => {
         User.clearCustomStatus();
@@ -533,7 +542,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.fullScreen}
+                    options={getSearchFullscreenNavigatorOptions}
                     getComponent={loadSearchNavigator}
                 />
                 <RootStack.Screen
