@@ -411,7 +411,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 <View style={isChatUsedForOnboarding && !shouldShowDiscount && shouldShowGuideBooking && [styles.dFlex, styles.flexRow]}>
                     <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph5]}>
                         {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
-                            <View style={[styles.flexShrink1, styles.flexBasisAuto, styles.pb3]}>{onboardingHelpDropdownButton}</View>
+                            <View style={[styles.flex1, styles.pb3]}>{onboardingHelpDropdownButton}</View>
                         )}
                         {!isLoading && !shouldShowDiscount && isChatUsedForOnboarding && shouldUseNarrowLayout && (
                             <FreeTrial
