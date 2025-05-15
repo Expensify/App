@@ -15,7 +15,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-type VerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
+type VerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT>;
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const styles = useThemeStyles();

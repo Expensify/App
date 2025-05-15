@@ -380,7 +380,7 @@ function PaymentMethodList({
 
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
             return;
         }
         onPress();
