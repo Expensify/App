@@ -158,7 +158,7 @@ type ProvisioningCardData = {
         /** Name of card holder */
         name: string;
 
-        /** Phone numer of card holder */
+        /** Phone number of card holder */
         phone: string;
 
         /** First line of address */

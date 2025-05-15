@@ -41,8 +41,8 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const uniqueLinks = filterNonUniqueLinks(linkMetadata);
-    const maxAmmountOfLinks = maxAmountOfPreviews >= 0 ? Math.min(maxAmountOfPreviews, linkMetadata.length) : linkMetadata.length;
-    const linksToShow = uniqueLinks.slice(0, maxAmmountOfLinks);
+    const maxAmountOfLinks = maxAmountOfPreviews >= 0 ? Math.min(maxAmountOfPreviews, linkMetadata.length) : linkMetadata.length;
+    const linksToShow = uniqueLinks.slice(0, maxAmountOfLinks);
     return linksToShow.map((linkData) => {
         if (!linkData && Array.isArray(linkData)) {
             return;

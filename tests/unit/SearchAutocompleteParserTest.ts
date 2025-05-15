@@ -75,6 +75,7 @@ const tests = [
         },
     },
     {
+        // cspell:disable-next-line
         query: 'date>2024-01-01 amount>100 merchant:"A B" description:A,B,C ,, reportid:123456789 word',
         expected: {
             autocomplete: null,

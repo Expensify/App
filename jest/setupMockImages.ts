@@ -19,6 +19,6 @@ function mockImages(imagePath: string) {
 export default () => {
     mockImages('images');
     mockImages('images/avatars');
-    mockImages('images/bankicons');
+    mockImages('images/bank-icons');
     mockImages('images/product-illustrations');
 };

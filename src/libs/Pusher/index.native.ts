@@ -299,7 +299,7 @@ function registerSocketEventCallback(cb: SocketEventCallback) {
  */
 function disconnect() {
     if (!socket) {
-        Log.info('[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.');
+        Log.info('[Pusher] Attempting to disconnect from Pusher before initialization has occurred, ignoring.');
         return;
     }
 

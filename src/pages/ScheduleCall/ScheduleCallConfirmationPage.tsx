@@ -63,9 +63,9 @@ function ScheduleCallConfirmationPage() {
         const dateString = format(scheduleCallDraft.date, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
         const timeString = `${DateUtils.formatToLocalTime(scheduleCallDraft?.timeSlot)} - ${DateUtils.formatToLocalTime(addMinutes(scheduleCallDraft?.timeSlot, 30))}`;
 
-        const timeZoneStirng = timezone.selected ? DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), timezone.selected) : '';
+        const timezoneString = timezone.selected ? DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), timezone.selected) : '';
 
-        return `${dateString} from ${timeString} ${timeZoneStirng}`;
+        return `${dateString} from ${timeString} ${timezoneString}`;
     }, [scheduleCallDraft?.date, scheduleCallDraft?.timeSlot, timezone.selected]);
 
     return (

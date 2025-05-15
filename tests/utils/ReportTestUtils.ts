@@ -1,8 +1,9 @@
+import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import createRandomReportAction from './collections/reportActions';
 
-const actionNames: ReportActionName[] = ['ADDCOMMENT', 'IOU', 'REPORTPREVIEW', 'CLOSED'];
+const actionNames: ReportActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.CLOSED];
 
 const getFakeReportAction = (index: number, actionName?: ReportActionName): ReportAction =>
     ({

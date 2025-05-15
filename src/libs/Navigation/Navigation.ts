@@ -268,7 +268,7 @@ type GoBackOptions = {
 
     /**
      * Specifies whether goBack should pop to top when invoked.
-     * Additionaly, to execute popToTop, set the value of the global variable ShouldPopAllStateOnUP to true using the setShouldPopAllStateOnUP function.
+     * Additionally, to execute popToTop, set the value of the global variable ShouldPopAllStateOnUP to true using the setShouldPopAllStateOnUP function.
      */
     shouldPopToTop?: boolean;
 };
