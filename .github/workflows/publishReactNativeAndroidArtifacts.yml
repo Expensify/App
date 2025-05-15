@@ -14,9 +14,6 @@ jobs:
   verifyPatches:
     name: Verify React Native Patches
     runs-on: 'ubuntu-latest'
-    strategy:
-      matrix:
-        is_hybrid: [true, false]
     outputs:
       build_targets: ${{ steps.getArtifactBuildTargets.outputs.BUILD_TARGETS }}
       hybrid_app_patches_hash: ${{ steps.getNewPatchesHash.outputs.HYBRID_APP_HASH }}
