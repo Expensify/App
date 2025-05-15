@@ -556,7 +556,7 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
     // The amounts are stored using an opposite sign and negative values can be set,
     // we need to return an opposite sign than is saved in the transaction object
     let amount = transaction?.modifiedAmount ?? 0;
-    if (amount) {        
+    if (amount) {
         return -amount;
     }
 

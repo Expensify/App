@@ -43,6 +43,7 @@ import {
     isReportInGroupPolicy,
     isSettled as isSettledReportUtils,
     isTrackExpenseReport,
+    shouldEnableNegative,
 } from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -145,6 +146,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${linkedTransactionID}`, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
+    const allowNegativeAmount = shouldEnableNegative(report, policy);
+
     const {
         created: transactionDate,
         amount: transactionAmount,
@@ -159,7 +162,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
-    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, true) ?? {}, [transaction]);
+    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, allowNegativeAmount) ?? {}, [allowNegativeAmount, transaction]);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);

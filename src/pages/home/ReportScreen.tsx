@@ -171,6 +171,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
+    console.log('activeWorkspaceID', activeWorkspaceID);
+
+    console.log('policies', policies);
+
     useEffect(() => {
         // Don't update if there is a reportID in the params already
         if (route.params.reportID) {

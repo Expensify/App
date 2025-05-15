@@ -11,9 +11,8 @@ import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {doesReportBelongToWorkspace, getBankAccountRoute, getPolicyExpenseChat, getTransactionDetails, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {getBankAccountRoute, getPolicyExpenseChat, getTransactionDetails, isArchivedReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
@@ -88,11 +87,10 @@ function IOURequestStepAmount({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
-    const {amount: transactionAmount} = getTransactionDetails(currentTransaction, undefined, true) ?? {amount: 0};
+    const allowNegative = shouldEnableNegative(report, policy, iouType);
+    const {amount: transactionAmount} = getTransactionDetails(currentTransaction, undefined, allowNegative) ?? {amount: 0};
     const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
-
-    const isWorkspace = doesReportBelongToWorkspace(report, getPolicyEmployeeAccountIDs(policyID), policyID);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
@@ -321,7 +319,7 @@ function IOURequestStepAmount({
             policy,
             taxCode,
             policyCategories,
-            allowNegative: isWorkspace,
+            allowNegative,
         });
         navigateBack();
     };
@@ -347,7 +345,7 @@ function IOURequestStepAmount({
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
-                allowFlippingAmount={!isSplitBill && isWorkspace}
+                allowFlippingAmount={!isSplitBill && allowNegative}
             />
         </StepScreenWrapper>
     );

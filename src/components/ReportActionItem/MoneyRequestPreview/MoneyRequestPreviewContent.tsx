@@ -47,6 +47,7 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
     isSettled as isSettledReportUtils,
+    shouldEnableNegative,
 } from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -113,7 +114,8 @@ function MoneyRequestPreviewContent({
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: false});
     const {isOnSearch} = useSearchContext();
 
-    const policy = usePolicy(iouReport?.policyID);
+    const policyID = iouReport?.policyID;
+    const policy = usePolicy(policyID);
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
@@ -135,6 +137,8 @@ function MoneyRequestPreviewContent({
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
+    const allowNegative = shouldEnableNegative(iouReport, policy);
+
     const {
         amount: requestAmount,
         currency: requestCurrency,
@@ -142,7 +146,7 @@ function MoneyRequestPreviewContent({
         merchant,
         tag,
         category,
-    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, true) ?? {}, [transaction]);
+    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, allowNegative) ?? {}, [allowNegative, transaction]);
 
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
