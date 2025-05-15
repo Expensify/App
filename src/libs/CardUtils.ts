@@ -438,6 +438,18 @@ const getCorrectStepForSelectedBank = (selectedBank: ValueOf<typeof CONST.COMPAN
     return CONST.COMPANY_CARDS.STEP.CARD_TYPE;
 };
 
+function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) {
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
+        return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
+    }
+
+    if (selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER) {
+        return CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION;
+    }
+
+    return CONST.COMPANY_CARDS.STEP.BANK_CONNECTION;
+}
+
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeed>, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeed | undefined {
     const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0) as CompanyCardFeed | undefined;
     return lastSelectedFeed ?? defaultFeed;
@@ -654,4 +666,5 @@ export {
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
+    getCorrectStepForPlaidSelectedBank,
 };

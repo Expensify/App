@@ -12,6 +12,7 @@ import {openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import PlaidConnectionStep from './PlaidConnectionStep';
 import AmexCustomFeed from './AmexCustomFeed';
 import CardInstructionsStep from './CardInstructionsStep';
 import CardNameStep from './CardNameStep';
@@ -74,6 +75,8 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             return <DetailsStep policyID={policyID} />;
         case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
             return <AmexCustomFeed />;
+        case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
+            return <PlaidConnectionStep />;
         default:
             return canUsePlaidCompanyCards ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
     }
