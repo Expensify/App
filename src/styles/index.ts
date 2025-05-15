@@ -269,7 +269,7 @@ const styles = (theme: ThemeColors) =>
             marginTop: 4,
             marginBottom: 4,
 
-            // Overwrite default HTML margin for blockquotes
+            // Overwrite default HTML margin for blockquote
             marginLeft: 0,
         },
 
@@ -383,6 +383,20 @@ const styles = (theme: ThemeColors) =>
 
         textAlignLeft: {
             textAlign: 'left',
+        },
+
+        textWithMiddleEllipsisContainer: {
+            width: '100%',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            display: 'flex',
+            flexDirection: 'row',
+        },
+
+        textWithMiddleEllipsisText: {
+            overflow: 'hidden',
+            textOverflow: 'clip',
+            whiteSpace: 'nowrap',
         },
 
         verticalAlignTopText: {
@@ -517,7 +531,7 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.preWrap,
             color: theme.heading,
             fontSize: variables.fontSizeH2,
-            lineHeight: variables.lineHeightSizeh2,
+            lineHeight: variables.lineHeightSizeH2,
         },
 
         textHeadlineH1: {
@@ -525,7 +539,7 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.preWrap,
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh1,
+            lineHeight: variables.lineHeightSizeH1,
         },
 
         textWhite: {
@@ -671,7 +685,7 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'center',
             flexShrink: 1,
 
-            // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
+            // It is needed to unset the line height. We don't need it for buttons as button always contains single line of text.
             // It allows to vertically center the text.
             lineHeight: undefined,
 
@@ -844,6 +858,10 @@ const styles = (theme: ThemeColors) =>
 
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
+        },
+
+        hoveredComponentBG2: {
+            backgroundColor: 'black',
         },
 
         activeComponentBG: {
@@ -1074,7 +1092,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             borderBottomWidth: 2,
             borderColor: theme.borderLighter,
-            // Adding browser specefic style to bring consistency between Safari and other platforms.
+            // Adding browser specific style to bring consistency between Safari and other platforms.
             // Applying the Webkit styles only to browsers as it is not available in native.
             ...(getBrowser()
                 ? {
@@ -1525,6 +1543,12 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
             color: theme.text,
+            textAlign: 'center',
+        },
+
+        textDropZone: {
+            ...headlineFont,
+            fontSize: variables.fontSizeXLarge,
             textAlign: 'center',
         },
 
@@ -2691,6 +2715,14 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 20,
             height: variables.contentHeaderHeight,
             width: '100%',
+        },
+
+        reportSearchHeaderBar: {
+            overflow: 'hidden',
+            justifyContent: 'center',
+            display: 'flex',
+            width: '100%',
+            height: 52,
         },
 
         searchResultsHeaderBar: {
@@ -3959,6 +3991,17 @@ const styles = (theme: ThemeColors) =>
             height: 200,
         },
 
+        dropWrapper: {
+            zIndex: 2,
+            backgroundColor: theme.dropWrapperBG,
+        },
+
+        dropInnerWrapper: {
+            borderWidth: 2,
+            flex: 1,
+            borderStyle: 'dashed',
+        },
+
         reportDropOverlay: {
             backgroundColor: theme.dropUIBG,
             zIndex: 2,
@@ -3966,7 +4009,31 @@ const styles = (theme: ThemeColors) =>
 
         fileDropOverlay: {
             backgroundColor: theme.fileDropUIBG,
+        },
+
+        attachmentDropOverlay: {
+            backgroundColor: theme.attachmentDropUIBG,
+        },
+
+        attachmentDropText: {
+            color: theme.textAttachmentDropZone,
+        },
+
+        attachmentDropInnerWrapper: {
+            borderColor: theme.attachmentDropBorderColor,
+        },
+
+        receiptDropOverlay: {
+            backgroundColor: theme.receiptDropUIBG,
             zIndex: 2,
+        },
+
+        receiptDropText: {
+            color: theme.textReceiptDropZone,
+        },
+
+        receiptDropInnerWrapper: {
+            borderColor: theme.receiptDropBorderColor,
         },
 
         isDraggingOver: {
@@ -5426,6 +5493,17 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
+        emptyStateMoneyRequestPreviewReport: {
+            borderWidth: 1,
+            borderColor: theme.border,
+            height: 168,
+            width: '100%',
+            boxSizing: 'border-box',
+            ...borders.br4,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+        },
+
         pendingStateCardIllustration: {
             width: 233,
             height: 162,
@@ -5651,6 +5729,12 @@ const styles = (theme: ThemeColors) =>
             right: 0,
         },
 
+        getSearchBarStyle: (shouldUseNarrowLayout: boolean) => ({
+            maxWidth: shouldUseNarrowLayout ? '100%' : 300,
+            marginHorizontal: 20,
+            marginBottom: 20,
+        }),
+
         earlyDiscountButton: {
             flexGrow: 1,
             flexShrink: 1,
@@ -5681,8 +5765,19 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
+        unreportedExpenseCreateExpenseButton: {
+            ...flex.alignSelfStart,
+        },
+
         testDriveBannerGap: {
             height: CONST.DESKTOP_HEADER_PADDING * 2,
+        },
+
+        twoColumnLayoutCol: {
+            flexGrow: 1,
+            flexShrink: 1,
+            // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
+            flexBasis: '35%',
         },
     } satisfies Styles);
 
