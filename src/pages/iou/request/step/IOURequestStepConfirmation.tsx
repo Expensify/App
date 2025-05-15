@@ -488,8 +488,6 @@ function IOURequestStepConfirmation({
             report,
             transactions,
             receiptFiles,
-            transactionTaxCode,
-            transactionTaxAmount,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             policy,
