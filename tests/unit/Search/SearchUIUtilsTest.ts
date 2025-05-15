@@ -23,6 +23,7 @@ const policyID = 'A1B2C3';
 const reportID = '123456789';
 const reportID2 = '11111';
 const reportID3 = '99999';
+const reportID4 = '6155022250251839';
 const transactionID = '1';
 const transactionID2 = '2';
 const transactionID3 = '3';
@@ -195,6 +196,14 @@ const searchResults: OnyxTypes.SearchResults = {
             total: 4400,
             type: 'iou',
             unheldTotal: 4400,
+        },
+        [`report_${reportID4}`]: {
+            accountID: adminAccountID,
+            reportID: reportID4,
+            chatReportID: '',
+            chatType: 'policyExpenseChat',
+            created: '2025-03-05 16:34:27',
+            type: 'chat',
         },
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
