@@ -15,7 +15,7 @@ import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsAction
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {exportReportToCSV, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
+import {exportReportToCSV, exportToIntegration, markAsManuallyExported, openUnreportedExpense} from '@libs/actions/Report';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -401,6 +401,31 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
     }, [connectedIntegration, exportModalStatus, moneyRequestReport?.reportID]);
 
+    const addExpenseDropdownOptions: Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> = useMemo(
+        () => [
+            {
+                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
+                text: translate('iou.createNewExpense'),
+                icon: Expensicons.Plus,
+                onSelected: () => {
+                    if (!moneyRequestReport?.reportID) {
+                        return;
+                    }
+                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
+                },
+            },
+            {
+                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
+                text: translate('iou.addUnreportedExpense'),
+                icon: Expensicons.ReceiptPlus,
+                onSelected: () => {
+                    openUnreportedExpense(moneyRequestReport?.reportID);
+                },
+            },
+        ],
+        [moneyRequestReport?.reportID, translate],
+    );
+
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
             <Button
@@ -498,27 +523,24 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE]: (
-            <Button
-                success
-                text={translate('iou.addExpense')}
-                onPress={() => {
-                    if (!moneyRequestReport?.reportID) {
-                        return;
-                    }
-                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
-                }}
+            <ButtonWithDropdownMenu
+                onPress={() => {}}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('iou.addExpense')}
+                options={addExpenseDropdownOptions}
+                isSplitButton={false}
             />
         ),
     };
 
-    const {canUseRetractNewDot} = usePermissions();
+    const {canUseRetractNewDot, canUseTableReportView} = usePermissions();
 
     const secondaryActions = useMemo(() => {
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, canUseRetractNewDot);
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, canUseRetractNewDot]);
+        return getSecondaryReportActions(moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, canUseRetractNewDot, canUseTableReportView);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, canUseRetractNewDot, canUseTableReportView]);
 
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
@@ -670,6 +692,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             text: translate('iou.addExpense'),
             icon: Expensicons.Plus,
             value: CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE,
+            subMenuItems: addExpenseDropdownOptions,
             onSelected: () => {
                 if (!moneyRequestReport?.reportID) {
                     return;

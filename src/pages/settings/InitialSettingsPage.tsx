@@ -112,6 +112,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const isScreenFocused = useIsAccountSettingsRouteActive(shouldUseNarrowLayout);
     const isWorkspacesTabSelected = focusedRouteName === SCREENS.SETTINGS.WORKSPACES;
+    const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
 
     const {
         renderProductTrainingTooltip: renderWorkspaceSettingsTooltip,
@@ -181,6 +182,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     screenName: SCREENS.SETTINGS.WALLET.ROOT,
                     brickRoadIndicator: walletBrickRoadIndicator,
                     action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
+                    badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
                 },
                 {
                     translationKey: 'common.preferences',
@@ -198,7 +200,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         };
 
         return defaultMenu;
-    }, [loginList, privatePersonalDetails, styles.accountSettingsSectionContainer, walletBrickRoadIndicator]);
+    }, [loginList, privatePersonalDetails, styles.accountSettingsSectionContainer, walletBrickRoadIndicator, hasActivatedWallet, userWallet?.currentBalance]);
 
     const navigateToWorkspacesSettings = useCallback(() => {
         hideWorkspaceSettingsTooltip();
@@ -343,12 +345,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      */
     const getMenuItemsSection = useCallback(
         (menuItemsData: Menu) => {
-            /**
-             * @param isPaymentItem whether the item being rendered is the payments menu item
-             * @returns the user's wallet balance
-             */
-            const getWalletBalance = (isPaymentItem: boolean): string | undefined => (isPaymentItem ? convertToDisplayString(userWallet?.currentBalance) : undefined);
-
             const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
                 if (!Navigation.getActiveRoute().includes(ROUTES.SETTINGS)) {
                     return;
@@ -378,7 +374,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
                     {menuItemsData.items.map((item) => {
                         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-                        const isPaymentItem = item.translationKey === 'common.wallet';
                         const isFocused = focusedRouteName ? focusedRouteName === item.screenName : false;
 
                         return (
@@ -393,7 +388,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                     item.action();
                                 })}
                                 iconStyles={item.iconStyles}
-                                badgeText={item.badgeText ?? getWalletBalance(isPaymentItem)}
+                                badgeText={item.badgeText}
                                 badgeStyle={item.badgeStyle}
                                 fallbackIcon={item.fallbackIcon}
                                 brickRoadIndicator={item.brickRoadIndicator}
@@ -425,18 +420,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 </View>
             );
         },
-        [
-            styles.pb4,
-            styles.mh3,
-            styles.sectionTitle,
-            styles.sectionMenuItem,
-            translate,
-            userWallet?.currentBalance,
-            focusedRouteName,
-            isExecuting,
-            singleExecution,
-            styles.productTrainingTooltipWrapper,
-        ],
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, focusedRouteName, isExecuting, singleExecution, styles.productTrainingTooltipWrapper],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);

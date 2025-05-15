@@ -1,4 +1,5 @@
-import {useEffect, useState, useTransition} from 'react';
+import {useEffect, useRef, useState, useTransition} from 'react';
+import type {ListItem} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import usePrevious from './usePrevious';
 
@@ -7,15 +8,21 @@ import usePrevious from './usePrevious';
  * It utilizes `useTransition` to allow the searchQuery to change rapidly, while more expensive renders that occur using
  * the result of the filtering and sorting are de-prioritized, allowing them to happen in the background.
  */
-function useSearchResults<TValue>(data: TValue[], filterData: (datum: TValue, searchInput: string) => boolean, sortData: (data: TValue[]) => TValue[] = (d) => d) {
+function useSearchResults<TValue extends ListItem>(data: TValue[], filterData: (datum: TValue, searchInput: string) => boolean, sortData: (data: TValue[]) => TValue[] = (d) => d) {
     const [inputValue, setInputValue] = useState('');
     const [result, setResult] = useState(data);
-    const [, startTransition] = useTransition();
     const prevData = usePrevious(data);
+    const prevInputValueRef = useRef<string | undefined>(undefined);
+    const [, startTransition] = useTransition();
     useEffect(() => {
+        const normalizedSearchQuery = inputValue.trim().toLowerCase();
+        const filtered = normalizedSearchQuery.length ? data.filter((item) => filterData(item, normalizedSearchQuery)) : data;
+        if (prevInputValueRef.current === inputValue) {
+            setResult(filtered);
+            return;
+        }
+        prevInputValueRef.current = inputValue;
         startTransition(() => {
-            const normalizedSearchQuery = inputValue.trim().toLowerCase();
-            const filtered = normalizedSearchQuery.length ? data.filter((item) => filterData(item, normalizedSearchQuery)) : data;
             const sorted = sortData(filtered);
             setResult(sorted);
         });
