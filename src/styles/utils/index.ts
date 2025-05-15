@@ -509,7 +509,7 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
     return {};
 }
 
-function getWidthAndHeightStyle(width: number | string, height?: number | string): Pick<ViewStyle, 'height' | 'width'> {
+function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle, 'height' | 'width'> {
     return {
         width,
         height: height ?? width,

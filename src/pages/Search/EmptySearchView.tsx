@@ -1,6 +1,6 @@
 import React, {useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText} from 'react-native';
+import type {GestureResponderEvent, ImageStyle, Text as RNText, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -144,11 +144,11 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
                     headerMedia: LottieAnimations.TripsEmptyState,
-                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle('100%', '100%'), StyleUtils.getBackgroundColorStyle(theme.travelBG), {minWidth: 400}],
+                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     children: tripViewChildren,
-                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.h100},
+                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, width: 335, height: 220},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 if (!hasResults) {
@@ -247,7 +247,6 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         translate,
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
-        styles.h100,
         tripViewChildren,
         hasSeenTour,
         navatticURL,
@@ -273,7 +272,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     titleStyles={content.titleStyles}
                     subtitle={content.subtitle}
                     buttons={content.buttons}
-                    headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
+                    headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles] as Array<ViewStyle & ImageStyle>}
                     lottieWebViewStyles={content.lottieWebViewStyles}
                 >
                     {content.children}
