@@ -1,25 +1,14 @@
-import React, {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import React from 'react';
 import {useOnyx} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
-import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDebouncedState from '@hooks/useDebouncedState';
-import useLocalize from '@hooks/useLocalize';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {findSelfDMReportID, getOutstandingReportsForUser, getPolicyName} from '@libs/ReportUtils';
+import {findSelfDMReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
-import StepScreenWrapper from './StepScreenWrapper';
+import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -32,58 +21,14 @@ type ReportListItemType = ListItem & {
 
 type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT>;
 
-/**
- * This function narrows down the data from Onyx to just the properties that we want to trigger a re-render of the component.
- * This helps minimize re-rendering and makes the entire component more performant.
- */
-const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
-    report && {
-        ownerAccountID: report.ownerAccountID,
-        reportID: report.reportID,
-        policyID: report.policyID,
-        reportName: report.reportName,
-        stateNum: report.stateNum,
-        statusNum: report.statusNum,
-        type: report.type,
-    };
-
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
-    const {translate} = useLocalize();
     const {backTo, action} = route.params;
-    const {options} = useOptionsList();
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const reportID = transaction?.reportID || transaction?.participants?.at(0)?.reportID;
     const selfDMReportID = findSelfDMReportID();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, reportSelector), canBeMissing: true});
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const isEditing = action === CONST.IOU.ACTION.EDIT;
-    // We need to get the policyID because it's not defined in the transaction object before we select a report manually.
-    const transactionReport = Object.values(allReports ?? {}).find(
-        (report) => report?.reportID === transaction?.reportID || (transaction?.participants && report?.reportID === transaction?.participants?.at(0)?.reportID),
-    );
-    const expenseReports = getOutstandingReportsForUser(transactionReport?.policyID, transactionReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {});
-    const reportOptions: ReportListItemType[] = useMemo(() => {
-        if (!allReports) {
-            return [];
-        }
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
 
-        const isTransactionReportCorrect = expenseReports.some((report) => report?.reportID === transaction?.reportID);
-        return expenseReports
-            .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
-            .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
-            .filter((report): report is NonNullable<typeof report> => report !== undefined)
-            .map((report) => {
-                const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
-                return {
-                    ...matchingOption,
-                    alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
-                    value: report.reportID,
-                    isSelected: isTransactionReportCorrect ? report.reportID === transaction?.reportID : expenseReports.at(0)?.reportID === report.reportID,
-                };
-            });
-    }, [allReports, expenseReports, transaction?.reportID, debouncedSearchValue, options.reports]);
-    const navigateBack = () => {
-        Navigation.goBack(backTo);
-    };
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     const selectReport = (item: ReportListItemType) => {
         if (!transaction) {
@@ -95,7 +40,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 changeTransactionsReport([transaction.transactionID], item.value);
             }
         }
-        Navigation.goBack(backTo);
+        Navigation.dismissModalWithReport({reportID: item.value});
     };
 
     const removeFromReport = () => {
@@ -106,39 +51,14 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(selfDMReportID));
     };
 
-    const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
-
     return (
-        <StepScreenWrapper
-            headerTitle={translate('common.report')}
-            onBackButtonPress={navigateBack}
-            shouldShowWrapper
-            testID={IOURequestStepReport.displayName}
-            includeSafeAreaPaddingBottom
-            shouldShowNotFoundPage={expenseReports.length === 0}
-        >
-            <SelectionList
-                sections={[{data: reportOptions}]}
-                onSelectRow={selectReport}
-                textInputValue={searchValue}
-                onChangeText={setSearchValue}
-                textInputLabel={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
-                shouldSingleExecuteRowSelect
-                headerMessage={headerMessage}
-                initiallyFocusedOptionKey={transaction?.reportID}
-                ListItem={InviteMemberListItem}
-                listFooterContent={
-                    isEditing ? (
-                        <MenuItem
-                            onPress={removeFromReport}
-                            title={translate('iou.removeFromReport')}
-                            description={translate('iou.moveToPersonalSpace')}
-                            icon={Expensicons.Close}
-                        />
-                    ) : undefined
-                }
-            />
-        </StepScreenWrapper>
+        <IOURequestEditReportCommon
+            backTo={backTo}
+            transactionReport={transactionReport}
+            selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            isEditing={isEditing}
+        />
     );
 }
 

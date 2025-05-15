@@ -3,6 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import usePermissions from '@hooks/usePermissions';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -17,6 +18,7 @@ import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import DetailsStep from './DetailsStep';
 import SelectBankStep from './SelectBankStep';
+import SelectCountryStep from './SelectCountryStep';
 import SelectFeedType from './SelectFeedType';
 
 function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
@@ -24,6 +26,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
     const {currentStep} = addNewCardFeed ?? {};
+    const {canUsePlaidCompanyCards} = usePermissions();
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
 
@@ -72,7 +75,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
             return <AmexCustomFeed />;
         default:
-            return <SelectBankStep />;
+            return canUsePlaidCompanyCards ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
     }
 }
 
