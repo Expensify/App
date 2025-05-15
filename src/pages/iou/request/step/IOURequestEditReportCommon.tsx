@@ -1,14 +1,17 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
+import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReportsForUser} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser, getPolicyName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -40,10 +43,13 @@ type Props = {
     backTo: Route | undefined;
     transactionReport: OnyxEntry<Report>;
     selectReport: (item: ReportListItem) => void;
+    removeFromReport: () => void;
+    isEditing: boolean;
 };
 
-function IOURequestEditReportCommon({backTo, transactionReport, selectReport}: Props) {
+function IOURequestEditReportCommon({backTo, transactionReport, selectReport, removeFromReport, isEditing}: Props) {
     const {translate} = useLocalize();
+    const {options} = useOptionsList();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -59,13 +65,16 @@ function IOURequestEditReportCommon({backTo, transactionReport, selectReport}: P
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
-            .map((report) => ({
-                text: report.reportName,
-                value: report.reportID,
-                keyForList: report.reportID,
-                isSelected: isTransactionReportCorrect ? report.reportID === transactionReport?.reportID : expenseReports.at(0)?.reportID === report.reportID,
-            }));
-    }, [allReports, debouncedSearchValue, expenseReports, transactionReport?.reportID]);
+            .map((report) => {
+                const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
+                return {
+                    ...matchingOption,
+                    alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
+                    value: report.reportID,
+                    isSelected: isTransactionReportCorrect ? report.reportID === transactionReport?.reportID : expenseReports.at(0)?.reportID === report.reportID,
+                };
+            });
+    }, [allReports, expenseReports, transactionReport?.reportID, debouncedSearchValue, options.reports]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -91,7 +100,17 @@ function IOURequestEditReportCommon({backTo, transactionReport, selectReport}: P
                 shouldSingleExecuteRowSelect
                 headerMessage={headerMessage}
                 initiallyFocusedOptionKey={transactionReport?.reportID}
-                ListItem={UserListItem}
+                ListItem={InviteMemberListItem}
+                listFooterContent={
+                    isEditing ? (
+                        <MenuItem
+                            onPress={removeFromReport}
+                            title={translate('iou.removeFromReport')}
+                            description={translate('iou.moveToPersonalSpace')}
+                            icon={Expensicons.Close}
+                        />
+                    ) : undefined
+                }
             />
         </StepScreenWrapper>
     );
