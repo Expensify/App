@@ -365,14 +365,12 @@ function getUpdatedTransaction({
     isFromExpenseReport,
     shouldUpdateReceiptState = true,
     policy = undefined,
-    allowNegative = false,
 }: {
     transaction: Transaction;
     transactionChanges: TransactionChanges;
     isFromExpenseReport: boolean;
     shouldUpdateReceiptState?: boolean;
     policy?: OnyxEntry<Policy>;
-    allowNegative?: boolean;
 }): Transaction {
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = lodashDeepClone(transaction);
@@ -390,7 +388,7 @@ function getUpdatedTransaction({
         shouldStopSmartscan = true;
     }
     if (Object.hasOwn(transactionChanges, 'amount') && typeof transactionChanges.amount === 'number') {
-        updatedTransaction.modifiedAmount = isFromExpenseReport && !allowNegative ? -transactionChanges.amount : transactionChanges.amount;
+        updatedTransaction.modifiedAmount = isFromExpenseReport ? -transactionChanges.amount : transactionChanges.amount;
         shouldStopSmartscan = true;
     }
     if (Object.hasOwn(transactionChanges, 'currency')) {
@@ -458,7 +456,7 @@ function getUpdatedTransaction({
 
             const distanceInMeters = getDistanceInMeters(transaction, oldMileageRate?.unit);
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
-            const updatedAmount = isFromExpenseReport && !allowNegative ? -amount : amount;
+            const updatedAmount = isFromExpenseReport ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
             const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, Localize.translateLocal, (digit) =>
                 toLocaleDigit(preferredLocale, digit),
@@ -543,6 +541,13 @@ function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
 function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false): number {
+    console.log('getAmount', {
+        transaction,
+        isFromExpenseReport,
+        isFromTrackedExpense,
+        allowNegative,
+    });
+
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if ((!isFromExpenseReport || isFromTrackedExpense) && !allowNegative) {
         const amount = transaction?.modifiedAmount ?? 0;
