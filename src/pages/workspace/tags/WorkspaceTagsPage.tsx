@@ -497,6 +497,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 turnOnSelectionModeOnLongPress={!isMultiLevelTags}
                                 onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                                 sections={[{data: filteredTagList, isDisabled: false}]}
+                                shouldUseDefaultRightHandSideCheckmark={false}
                                 selectedItemKeys={selectedTags}
                                 onCheckboxPress={toggleTag}
                                 onSelectRow={navigateToTagSettings}

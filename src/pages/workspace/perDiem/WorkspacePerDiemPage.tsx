@@ -451,6 +451,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             turnOnSelectionModeOnLongPress
                             onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
                             sections={[{data: filteredSubRatesList, isDisabled: false}]}
+                            shouldUseDefaultRightHandSideCheckmark={false}
                             selectedItemKeys={selectedPerDiem.map((item) => item.subRateID)}
                             onCheckboxPress={toggleSubRate}
                             onSelectRow={openSubRateDetails}
