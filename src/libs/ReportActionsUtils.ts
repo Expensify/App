@@ -1013,6 +1013,15 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
 }
 
 /**
+ * Helper for filtering out Report Actions that are either:
+ * - ReportPreview with shouldShow set to false
+ * - Action with parent action deleted
+ */
+function getFilteredReportActionsForReportView(actions: ReportAction[]) {
+    return actions.filter((action) => !isDeletedParentAction(action) && (!isReportPreviewAction(action) || action.shouldShow));
+}
+
+/**
  * This method returns the report actions that are ready for display in the ReportActionsView.
  * The report actions need to be sorted by created timestamp first, and reportActionID second
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
@@ -1238,6 +1247,7 @@ function getOneTransactionThreadReportID(
         if (
             actionType &&
             iouRequestTypesSet.has(actionType) &&
+            action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an assocaited IOU transaction ID or
             // - they have visibile childActions (like comments) that we'd want to display
@@ -1265,8 +1275,8 @@ function getOneTransactionThreadReportID(
         return;
     }
 
-    // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
-    return singleAction?.childReportID ?? CONST.FAKE_REPORT_ID;
+    // Ensure we have a childReportID associated with the IOU report action
+    return singleAction?.childReportID;
 }
 
 /**
@@ -2532,6 +2542,7 @@ export {
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
     getReportActionsLength,
+    getFilteredReportActionsForReportView,
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
     getJoinRequestMessage,
