@@ -397,7 +397,13 @@ function ReportActionCompose({
     );
 
     return (
-        <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
+        <View
+            style={[
+                shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow,
+                isComposerFullSize && styles.chatItemFullComposeRow,
+                !shouldShowReportRecipientLocalTime ? styles.pt4 : {},
+            ]}
+        >
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>
