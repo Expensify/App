@@ -32,6 +32,7 @@ type RequestMoneyParams = {
     attendees?: string;
     isTestDrive?: boolean;
     guidedSetupData?: string;
+    testDriveCommentReportActionID?: string;
 };
 
 export default RequestMoneyParams;
