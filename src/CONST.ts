@@ -376,6 +376,7 @@ const CONST = {
     TASK_TITLE_DISABLED_RULES: ['image'],
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
+    CUSTOM_FIELD_KEYS: {customField1: 'employeeUserID', customField2: 'employeePayrollID'},
     ANDROID_PACKAGE_NAME,
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
@@ -812,8 +813,11 @@ const CONST = {
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
+        RETRACT_NEWDOT: 'retractNewDot',
         PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
+        NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
+        PLAID_COMPANY_CARDS: 'plaidCompanyCards',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1037,7 +1041,6 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
-    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
@@ -1091,8 +1094,8 @@ const CONST = {
         vcf: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-a-visa-commercial-feed',
         gl1025: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-an-american-express-corporate-feed',
     },
-    COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-visa-commercial-feed',
-    COMPANY_CARDS_AMEX_COMMERICAL_CARD_HELP:
+    COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-visa-commercial-feed',
+    COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP:
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-an-american-express-corporate-feed',
     COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
@@ -1202,6 +1205,7 @@ const CONST = {
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             ADD_EXPENSE: 'addExpense',
+            REOPEN: 'reopen',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1220,6 +1224,7 @@ const CONST = {
         },
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
+            ADD_EXPENSE: 'addExpense',
             REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
@@ -1230,6 +1235,10 @@ const CONST = {
             HOLD: 'hold',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+        },
+        ADD_EXPENSE_OPTIONS: {
+            CREATE_NEW_EXPENSE: 'createNewExpense',
+            ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense',
         },
         ACTIONS: {
             LIMIT: 50,
@@ -1290,6 +1299,7 @@ const CONST = {
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
                 DEMOTED_FROM_WORKSPACE: 'DEMOTEDFROMWORKSPACE',
                 RENAMED: 'RENAMED',
+                REOPENED: 'REOPENED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
                 SHARE: 'SHARE', // OldDot Action
@@ -1301,7 +1311,7 @@ const CONST = {
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
-                TRIPPREVIEW: 'TRIPPREVIEW',
+                TRIP_PREVIEW: 'TRIPPREVIEW',
                 UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
@@ -1491,6 +1501,7 @@ const CONST = {
         },
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
+        TRANSACTION_PREVIEW_WIDTH_WIDE: 303,
         MAX_ROOM_NAME_LENGTH: 99,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS: 20,
@@ -2897,7 +2908,7 @@ const CONST = {
             OPTIONAL: 'submitAndClose',
             BASIC: 'submitAndApprove',
             ADVANCED: 'advanced',
-            DYNAMICEXTERNAL: 'dynamictExternal',
+            DYNAMICEXTERNAL: 'dynamicExternal',
             SMARTREPORT: 'smartReport',
             BILLCOM: 'billcom',
         },
@@ -3253,6 +3264,7 @@ const CONST = {
             CARD_DETAILS: 'CardDetails',
             BANK_CONNECTION: 'BankConnection',
             AMEX_CUSTOM_FEED: 'AmexCustomFeed',
+            SELECT_COUNTRY: 'SelectCountry',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -4069,6 +4081,9 @@ const CONST = {
         ES: 'Spain',
         SE: 'Sweden',
     },
+
+    PLAID_EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP'] as string[],
+    PLAID_SUPPORT_COUNTRIES: ['US', 'CA', 'GB', 'AT', 'BE', 'DK', 'EE', 'FI', 'FR', 'DE', 'IE', 'IT', 'LV', 'LT', 'NL', 'NO', 'PL', 'PT', 'ES', 'SE'] as string[],
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
     // https://github.com/Expensify/App/issues/14958#issuecomment-1456026810
