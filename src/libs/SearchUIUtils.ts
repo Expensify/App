@@ -947,7 +947,8 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                 !!policy &&
                 policy.role === CONST.POLICY.ROLE.ADMIN &&
                 policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ||
+                    policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL),
         ).length > 0;
 
     const showExportSuggestion =

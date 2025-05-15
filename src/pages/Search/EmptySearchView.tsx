@@ -89,10 +89,10 @@ function EmptySearchView({hash, type, hasResults}: EmptySearchViewProps) {
     }, [allPolicies]);
 
     const typeMenuItems = useMemo(() => {
-        return createTypeMenuSections(session)
+        return createTypeMenuSections(session, allPolicies)
             .map((section) => section.menuItems)
             .flat();
-    }, [session]);
+    }, [session, allPolicies]);
 
     const tripViewChildren = useMemo(() => {
         const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
