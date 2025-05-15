@@ -1,3 +1,4 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import lodashEscape from 'lodash/escape';
@@ -94,6 +95,7 @@ import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 // eslint-disable-next-line import/no-cycle
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
+import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
@@ -8095,19 +8097,19 @@ function parseReportRouteParams(route: string): ReportRouteParams {
         return {reportID: '', isSubReportPageRoute: false};
     }
 
-    const pathSegments = parsingRoute.split('/');
+    const state = getStateFromPath(parsingRoute as Route);
+    const focusedRoute = findFocusedRoute(state);
 
-    const reportIDSegment = pathSegments.at(1);
-    const hasRouteReportActionID = !Number.isNaN(Number(reportIDSegment));
+    const reportID = focusedRoute?.params && 'reportID' in focusedRoute.params ? (focusedRoute?.params?.reportID as string) : '';
 
-    // Check for "undefined" or any other unwanted string values
-    if (!reportIDSegment || reportIDSegment === 'undefined') {
+    if (!reportID) {
         return {reportID: '', isSubReportPageRoute: false};
     }
 
     return {
-        reportID: reportIDSegment,
-        isSubReportPageRoute: pathSegments.length > 2 && !hasRouteReportActionID,
+        reportID,
+        // We're checking the route start with `r/`, the sub report route is the route that we can open from report screen like `r/:reportID/details`
+        isSubReportPageRoute: focusedRoute?.name !== SCREENS.REPORT,
     };
 }
 
