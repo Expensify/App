@@ -1,8 +1,9 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
 import lodashUnion from 'lodash/union';
-import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
+import {getTransactionsViolationsOnyxData} from '@libs/actions/Policy/Policy';
 import * as API from '@libs/API';
 import type {
     EnablePolicyCategoriesParams,
@@ -28,13 +29,13 @@ import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getPolicy, goBackWhenEnableFeature} from '@libs/PolicyUtils';
-import {getAllPolicyReports} from '@libs/ReportUtils';
+import {getPolicy, goBackWhenEnableFeature, hasDependentTags as hasDependentTagsUtils} from '@libs/PolicyUtils';
+import {getAllPolicyReports, getReportTransactions, isInvoiceReport as isInvoiceReportUtils} from '@libs/ReportUtils';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, Report} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, RecentlyUsedCategories, Report, Transaction} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -84,6 +85,19 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
     waitForCollectionCallback: true,
     callback: (val) => (allPolicyCategories = val),
+});
+
+let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+        allPolicyTags = value;
+    },
 });
 
 function appendSetupCategoriesOnboardingData(onyxData: OnyxData) {
@@ -973,9 +987,11 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
         acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
         return acc;
     }, {});
+
     const shouldDisableRequiresCategory = !hasEnabledOptions(
         Object.values(policyCategories).filter((category) => !categoryNamesToDelete.includes(category.name) && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
     );
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -1009,6 +1025,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             },
         ],
     };
+
     appendSetupCategoriesOnboardingData(onyxData);
     if (shouldDisableRequiresCategory) {
         onyxData.optimisticData?.push({
@@ -1041,6 +1058,14 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             },
         });
     }
+
+    const optimisticPolicyCategories =  Object.fromEntries(
+        Object.entries(policyCategories).filter(([_, category]) => categoryNamesToDelete.includes(category.name))
+    );
+    
+    const violationsOnyxData = getTransactionsViolationsOnyxData(policyID, policy, {}, optimisticPolicyCategories);
+    onyxData.optimisticData?.push(...(violationsOnyxData.optimisticData ?? []));
+    onyxData.failureData?.push(...(violationsOnyxData.failureData ?? []));
 
     const parameters = {
         policyID,

@@ -75,8 +75,9 @@ import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {goBackWhenEnableFeature, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature, hasDependentTags as hasDependentTagsUtils, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -89,7 +90,9 @@ import type {
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
     Policy,
+    PolicyCategories,
     PolicyCategory,
+    PolicyTagLists,
     ReimbursementAccount,
     Report,
     ReportAction,
@@ -165,6 +168,26 @@ Onyx.connect({
         }
 
         allPolicies[key] = val;
+    },
+});
+
+let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyCategories = val),
+});
+
+let allPolicyTagLists: OnyxCollection<PolicyTagLists> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTagLists = {};
+            return;
+        }
+        allPolicyTagLists = value;
     },
 });
 
@@ -321,6 +344,55 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
     // If there are no add or delete pending actions the only option left is an update
     // pendingAction, in which case we should return true.
     return true;
+}
+/**
+ * Updatin
+ */
+
+function getTransactionsViolationsOnyxData(
+    policyID: string,
+    optimisticPolicy: OnyxEntry<Policy> | undefined,
+    optimisticPolicyTagLists: OnyxEntry<PolicyTagLists> | undefined,
+    optimisticPolicyCategories: OnyxEntry<PolicyCategories> | undefined,
+): OnyxData {
+    const policy = optimisticPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const onyxData: {optimisticData: OnyxUpdate[]; failureData: OnyxUpdate[]} = {optimisticData: [], failureData: []};
+
+    if (isEmptyObject(policy) || (isEmptyObject(optimisticPolicyTagLists) && isEmptyObject(optimisticPolicyCategories))) {
+        return onyxData;
+    }
+
+    const policyTagLists = optimisticPolicyTagLists ?? allPolicyTagLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+    const policyCategories = optimisticPolicyCategories ?? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
+    const hasDependentTags = hasDependentTagsUtils(policy, policyTagLists);
+
+    ReportUtils.getAllPolicyReports(policyID).forEach((report) => {
+        if (!report?.reportID) {
+            return;
+        }
+        ReportUtils.getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
+            const transactionViolations = allTransactionViolations?.[transaction.transactionID] ?? [];
+            const transactionViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+                transaction,
+                transactionViolations,
+                policy,
+                policyTagLists,
+                policyCategories,
+                hasDependentTags,
+                ReportUtils.isInvoiceReport(report),
+            );
+
+            if (transactionViolationsOnyxData) {
+                onyxData.optimisticData.push(transactionViolationsOnyxData);
+                onyxData.failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                    value: transactionViolations,
+                });
+            }
+        });
+    });
+    return onyxData;
 }
 
 /**
@@ -5252,4 +5324,5 @@ export {
     updateLastAccessedWorkspaceSwitcher,
     setIsForcedToChangeCurrency,
     setIsComingFromGlobalReimbursementsFlow,
+    getTransactionsViolationsOnyxData,
 };
