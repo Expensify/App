@@ -111,6 +111,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
+    MovedFromReportParams,
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
@@ -952,6 +953,7 @@ const translations = {
         routePending: 'Ruta pendiente...',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto a <a href="${reportUrl}">${reportName}</a>`,
+        movedFromReport: ({reportName, reportID}: MovedFromReportParams) => `movió un gasto desde ${reportName || `ID de informe ${reportID}`}`,
         unreportedTransaction: ({reportUrl, reportName}: UnreportedTransactionParams) => `eliminó este gasto de <a href="${reportUrl}">${reportName}</a>`,
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',

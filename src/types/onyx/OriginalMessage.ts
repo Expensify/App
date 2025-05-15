@@ -490,6 +490,9 @@ type OriginalMessageModifiedExpense = {
     /** The ID of moved report */
     movedToReportID?: string;
 
+    /** The ID of the report the expense moved from */
+    movedFromReport?: string;
+
     /** The old list of attendees */
     oldAttendees?: Attendee[];
 
