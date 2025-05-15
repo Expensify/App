@@ -3456,6 +3456,17 @@ const CONST = {
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
                 },
             },
+            [this.PAYMENT_CARD_CURRENCY.EUR]: {
+                [this.POLICY.TYPE.CORPORATE]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1600,
+                },
+                [this.POLICY.TYPE.TEAM]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1000,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                },
+            },
         };
     },
     REGEX: {
