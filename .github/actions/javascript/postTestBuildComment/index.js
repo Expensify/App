@@ -11574,7 +11574,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
-function getTestBuildMessage(pr, hybridAppPr) {
+function getTestBuildMessage(appPr, mobileExpensifyPr) {
     const inputs = ['ANDROID', 'DESKTOP', 'IOS', 'WEB'];
     const names = {
         [inputs[0]]: 'Android',
@@ -11600,7 +11600,7 @@ function getTestBuildMessage(pr, hybridAppPr) {
         return acc;
     }, {});
     const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
-Built from App PR Expensify/App#${pr}${hybridAppPr ? ` and Mobile-Expensify PR Expensify/Mobile-Expensify#${hybridAppPr}` : ''}.
+Built from App PR Expensify/App#${appPr}${mobileExpensifyPr ? ` and Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}` : ''}.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | Android :robot::arrows_counterclockwise:  | iOS :apple::arrows_counterclockwise: |
@@ -11631,8 +11631,8 @@ async function commentPR(REPO, PR, message) {
     }
 }
 async function run() {
-    const PR_NUMBER = Number(core.getInput('PR_NUMBER', { required: true }));
-    const HYBRID_APP_PR_NUMBER = Number(core.getInput('HYBRID_APP_PR_NUMBER', { required: false }));
+    const APP_PR_NUMBER = Number(core.getInput('APP_PR_NUMBER', { required: true }));
+    const MOBILE_EXPENSIFY_PR_NUMBER = Number(core.getInput('MOBILE_EXPENSIFY_PR_NUMBER', { required: false }));
     const REPO = String(core.getInput('REPO', { required: true }));
     if (REPO !== CONST_1.default.APP_REPO && REPO !== CONST_1.default.MOBILE_EXPENSIFY_REPO) {
         core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
@@ -11642,7 +11642,7 @@ async function run() {
         owner: CONST_1.default.GITHUB_OWNER,
         repo: REPO,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        issue_number: PR_NUMBER,
+        issue_number: APP_PR_NUMBER,
         // eslint-disable-next-line @typescript-eslint/naming-convention
         per_page: 100,
     }, (response) => response.data);
@@ -11659,7 +11659,7 @@ async function run() {
             }
         `);
     }
-    await commentPR(REPO, PR_NUMBER, getTestBuildMessage(PR_NUMBER, HYBRID_APP_PR_NUMBER));
+    await commentPR(REPO, APP_PR_NUMBER, getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
 }
 if (require.main === require.cache[eval('__filename')]) {
     run();

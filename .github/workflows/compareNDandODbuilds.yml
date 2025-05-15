@@ -58,7 +58,7 @@ jobs:
     secrets: inherit
     with:
       APP_PULL_REQUEST_NUMBER: ${{ inputs.PULL_REQUEST_NUMBER }}
-      HYBRIDAPP_PULL_REQUEST_NUMBER: ${{ inputs.OLD_DOT_PULL_REQUEST_NUMBER }}
+      MOBILE_EXPENSIFY_PULL_REQUEST_NUMBER: ${{ inputs.OLD_DOT_PULL_REQUEST_NUMBER }}
 
 
   buildHybridAppAndroid:

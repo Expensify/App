@@ -4,7 +4,7 @@ import type {TupleToUnion} from 'type-fest';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 
-function getTestBuildMessage(pr: number, hybridAppPr?: number): string {
+function getTestBuildMessage(appPr: number, mobileExpensifyPr?: number): string {
     const inputs = ['ANDROID', 'DESKTOP', 'IOS', 'WEB'] as const;
     const names = {
         [inputs[0]]: 'Android',
@@ -36,7 +36,7 @@ function getTestBuildMessage(pr: number, hybridAppPr?: number): string {
     }, {} as Record<TupleToUnion<typeof inputs>, {link: string; qrCode: string}>);
 
     const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
-Built from App PR Expensify/App#${pr}${hybridAppPr ? ` and Mobile-Expensify PR Expensify/Mobile-Expensify#${hybridAppPr}` : ''}.
+Built from App PR Expensify/App#${appPr}${mobileExpensifyPr ? ` and Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}` : ''}.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | Android :robot::arrows_counterclockwise:  | iOS :apple::arrows_counterclockwise: |
@@ -70,8 +70,8 @@ async function commentPR(REPO: string, PR: number, message: string) {
 }
 
 async function run() {
-    const PR_NUMBER = Number(core.getInput('PR_NUMBER', {required: true}));
-    const HYBRID_APP_PR_NUMBER = Number(core.getInput('HYBRID_APP_PR_NUMBER', {required: false}));
+    const APP_PR_NUMBER = Number(core.getInput('APP_PR_NUMBER', {required: true}));
+    const MOBILE_EXPENSIFY_PR_NUMBER = Number(core.getInput('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}));
     const REPO = String(core.getInput('REPO', {required: true}));
 
     if (REPO !== CONST.APP_REPO && REPO !== CONST.MOBILE_EXPENSIFY_REPO) {
@@ -85,7 +85,7 @@ async function run() {
             owner: CONST.GITHUB_OWNER,
             repo: REPO,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            issue_number: PR_NUMBER,
+            issue_number: APP_PR_NUMBER,
             // eslint-disable-next-line @typescript-eslint/naming-convention
             per_page: 100,
         },
@@ -104,7 +104,7 @@ async function run() {
             }
         `);
     }
-    await commentPR(REPO, PR_NUMBER, getTestBuildMessage(PR_NUMBER, HYBRID_APP_PR_NUMBER));
+    await commentPR(REPO, APP_PR_NUMBER, getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
 }
 
 if (require.main === module) {
