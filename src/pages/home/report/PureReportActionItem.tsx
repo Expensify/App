@@ -672,6 +672,7 @@ function PureReportActionItem({
                 onPress: () => {
                     addComment(originalReportID, option);
                 },
+                isMediumSized: true,
             }));
         }
 
