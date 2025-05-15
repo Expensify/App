@@ -1,3 +1,5 @@
+name: Publish React Native Android Artifacts
+
 on:
   push:
     branches:
