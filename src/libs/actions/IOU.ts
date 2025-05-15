@@ -11127,6 +11127,9 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             comment: {
                 comment: split.description,
             },
+            nameValuePairs: {
+                comment: split.description,
+            },
         })) ?? [];
 
     const successData = [] as OnyxUpdate[];

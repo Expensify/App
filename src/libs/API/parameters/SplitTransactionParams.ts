@@ -7,6 +7,9 @@ type SplitTransactionSplitsParam = Array<{
     comment?: {
         comment?: string;
     };
+    nameValuePairs?: {
+        comment?: string;
+    };
     splitReportActionID?: string;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
