@@ -96,6 +96,7 @@ export default {
         // cspell:disable-next-line
         WEB_CLIENT_ID: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
         IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
+        HYBRID_APP_WEB_CLIENT_ID: '1008697809946-5e095eqem3o6ugtpc2rjf7v880tcp28p.apps.googleusercontent.com',
     },
     GCP_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
     FIREBASE_WEB_CONFIG: {
