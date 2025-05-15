@@ -3,12 +3,14 @@ import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useSubStep from '@hooks/useSubStep';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInitialSubStepForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBankInfoStep';
 import getInputKeysForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInputKeysForBankInfoStep';
 import {clearReimbursementAccountBankCreation, createCorpayBankAccount, getCorpayBankAccountFields} from '@userActions/BankAccounts';
+import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
@@ -35,20 +37,26 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
-    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {initWithStoredValues: false, canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
-    const country = reimbursementAccount?.achData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
+    const country = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
     const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
-    const startFrom = getInitialSubStepForBankInfoStep(values, corpayFields);
+    const startFrom = useMemo(() => getInitialSubStepForBankInfoStep(values, corpayFields), [corpayFields, values]);
 
     const submit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
 
         createCorpayBankAccount({...values, ...corpayData} as ReimbursementAccountForm, policyID);
     };
+
+    useNetwork({
+        onReconnect: () => {
+            getCorpayBankAccountFields(country, currency);
+        },
+    });
 
     useEffect(() => {
         if (reimbursementAccount?.isLoading === true || !!reimbursementAccount?.errors) {
@@ -57,20 +65,29 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
 
         if (reimbursementAccount?.isSuccess === true) {
             onSubmit();
+            clearReimbursementAccountBankCreation();
         }
-    }, [onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
+    }, [corpayFields?.bankCurrency, country, currency, onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
 
     useEffect(() => {
-        return () => clearReimbursementAccountBankCreation();
-    }, []);
-
-    useEffect(() => {
+        // No fetching when there is no country
         if (country === '') {
             return;
         }
 
+        // When workspace currency is set to EUR we need to refetch if country from Step 1 doesn't match country inside fetched Corpay data
+        if (currency === CONST.CURRENCY.EUR && country !== corpayFields?.bankCountry) {
+            getCorpayBankAccountFields(country, currency);
+            return;
+        }
+
+        // No fetching when workspace currency matches the currency inside fetched Corpay
+        if (currency === corpayFields?.bankCurrency) {
+            return;
+        }
+
         getCorpayBankAccountFields(country, currency);
-    }, [country, currency]);
+    }, [corpayFields?.bankCurrency, corpayFields?.bankCountry, country, currency]);
 
     const bodyContent: Array<ComponentType<BankInfoSubStepProps>> = [BankAccountDetails, AccountHolderDetails, Confirmation];
 
@@ -85,6 +102,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     } = useSubStep<BankInfoSubStepProps>({bodyContent, startFrom, onFinished: submit});
 
     const handleBackButtonPress = () => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
             goToTheLastStep();
             return;

@@ -15,6 +15,9 @@ type MenuItemStory = StoryFn<typeof MenuItem>;
 const story: Meta<typeof MenuItem> = {
     title: 'Components/MenuItem',
     component: MenuItem,
+    args: {
+        interactive: true,
+    },
 };
 
 function Template(props: MenuItemProps) {

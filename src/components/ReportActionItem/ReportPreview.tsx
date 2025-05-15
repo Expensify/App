@@ -6,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -28,6 +29,7 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import {openUnreportedExpense} from '@libs/actions/Report';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -85,7 +87,7 @@ import {
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
-import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
+import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, startMoneyRequest, submitReport} from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -152,7 +154,7 @@ function ReportPreview({
     const policy = usePolicy(policyID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: false});
     const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`, {canBeMissing: true});
+    const isIouReportArchived = useReportIsArchived(iouReportID);
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: false});
@@ -506,16 +508,41 @@ function ReportPreview({
         }
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
+
+    const addExpenseDropdownOptions = useMemo(
+        () => [
+            {
+                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
+                text: translate('iou.createNewExpense'),
+                icon: Expensicons.Plus,
+                onSelected: () => {
+                    if (!iouReport?.reportID) {
+                        return;
+                    }
+                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReport?.reportID, undefined, false, chatReportID);
+                },
+            },
+            {
+                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
+                text: translate('iou.addUnreportedExpense'),
+                icon: Expensicons.ReceiptPlus,
+                onSelected: () => {
+                    openUnreportedExpense(iouReport?.reportID);
+                },
+            },
+        ],
+        [chatReportID, iouReport?.reportID, translate],
+    );
 
     const reportPreviewAction = useMemo(() => {
         // It's necessary to allow payment animation to finish before button is changed
         if (isPaidAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
-        return getReportPreviewAction(violations, iouReport, policy, transactions, reportNameValuePairs);
-    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, reportNameValuePairs]);
+        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived);
+    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived]);
 
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
@@ -587,6 +614,19 @@ function ReportPreview({
                 text={translate('common.view')}
                 onPress={() => {
                     openReportFromPreview();
+                }}
+            />
+        ),
+        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE]: (
+            <ButtonWithDropdownMenu
+                onPress={() => {}}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('iou.addExpense')}
+                options={addExpenseDropdownOptions}
+                isSplitButton={false}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
             />
         ),

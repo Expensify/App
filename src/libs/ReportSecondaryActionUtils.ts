@@ -1,9 +1,9 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
-import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
+import {getCurrentUserAccountID} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getAllPolicies,
@@ -12,13 +12,12 @@ import {
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
-    hasNoPolicyOtherThanPersonalType,
     isPrefferedExporter,
-    isWorkspaceEligibleForReportChange,
 } from './PolicyUtils';
-import {getIOUActionForReportID, getReportActions, isPayAction} from './ReportActionsUtils';
+import {getIOUActionForReportID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {
     canAddTransaction,
+    isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -29,8 +28,8 @@ import {
     isPayer as isPayerUtils,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
-    isReportManager as isReportManagerUtils,
     isSettled,
+    isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
@@ -45,7 +44,11 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     return canAddTransaction(report);
 }
 
-function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs): boolean {
+    if (isArchivedReport(reportNameValuePairs)) {
+        return false;
+    }
+
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
     if (!transactionAreComplete) {
@@ -271,11 +274,12 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
     return (isAdmin && syncEnabled) || (isExporter && !syncEnabled);
 }
 
-function isHoldAction(report: Report, reportTransactions: Transaction[]): boolean {
+function isHoldAction(report: Report, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
+    const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions);
     const isOneExpenseReport = reportTransactions.length === 1;
     const transaction = reportTransactions.at(0);
 
-    if (!isOneExpenseReport || !transaction) {
+    if ((!!reportActions && !transactionThreadReportID) || !isOneExpenseReport || !transaction) {
         return false;
     }
 
@@ -310,79 +314,21 @@ function isHoldActionForTransation(report: Report, reportTransaction: Transactio
     return isProcessingReport;
 }
 
-function isChangeWorkspaceAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
-    const isExpenseReport = isExpenseReportUtils(report);
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-    const areWorkflowsEnabled = !!(policy && policy.areWorkflowsEnabled);
-    const isClosedReport = isClosedReportUtils(report);
-
+function isChangeWorkspaceAction(report: Report, policy?: Policy): boolean {
     const policies = getAllPolicies();
-    const currentUserEmail = getCurrentUserEmail();
-    const policiesEligibleForChange = policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policy, currentUserEmail));
-
-    if (policiesEligibleForChange.length <= 1) {
-        return false;
-    }
-
-    if (isExpenseReport && isReportSubmitter && !areWorkflowsEnabled && isClosedReport) {
-        return true;
-    }
-
-    const isOpenReport = isOpenReportUtils(report);
-    const isProcessingReport = isProcessingReportUtils(report);
-
-    if (isReportSubmitter && (isOpenReport || isProcessingReport)) {
-        return true;
-    }
-
-    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
-
-    if (isReportApprover && isProcessingReport) {
-        return true;
-    }
-
-    const isReportPayer = isPayerUtils(getSession(), report, false, policy);
-    const isReportApproved = isReportApprovedUtils({report});
-
-    if (isReportPayer && (isReportApproved || isClosedReport)) {
-        return true;
-    }
-
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isReportReimbursed = isSettled(report);
-    const transactionIDs = reportTransactions.map((t) => t.transactionID);
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
-
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-
-    const userControlsReport = isReportSubmitter || isReportApprover || isAdmin;
-    const hasReceiptMatchViolation = hasAllPendingRTERViolations || (userControlsReport && shouldShowBrokenConnectionViolation);
-    const isReportExported = isExportedUtils(getReportActions(report));
-    const isReportFinished = isReportApproved || isReportReimbursed || isClosedReport;
-
-    if (isAdmin && ((!isReportExported && isReportFinished) || hasReceiptMatchViolation)) {
-        return true;
-    }
-
-    const isIOUReport = isIOUReportUtils(report);
-    const hasOnlyPersonalWorkspace = hasNoPolicyOtherThanPersonalType();
-    const isReportReceiver = isReportManagerUtils(report);
-
-    if (isIOUReport && !hasOnlyPersonalWorkspace && isReportReceiver && isReportReimbursed) {
-        return true;
-    }
-
-    return false;
+    const session = getSession();
+    return policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session, policy)).length > 0;
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[]): boolean {
+function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
+    const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
 
     // This should be removed when is merged https://github.com/Expensify/App/pull/58020
     const isSingleTransaction = reportTransactions.length === 1;
 
-    if ((!isExpenseReport && !isIOUReport) || !isSingleTransaction) {
+    if ((!isExpenseReport && !isIOUReport) || !isSingleTransaction || (!!reportActions && !transactionThreadReportID)) {
         return false;
     }
 
@@ -403,20 +349,42 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[]): bool
     return isReportOpen || isProcessingReport;
 }
 
+function isReopenAction(report: Report, policy?: Policy): boolean {
+    const isExpenseReport = isExpenseReportUtils(report);
+    if (!isExpenseReport) {
+        return false;
+    }
+
+    const isClosedReport = isClosedReportUtils(report);
+    if (!isClosedReport) {
+        return false;
+    }
+
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    if (!isAdmin) {
+        return false;
+    }
+
+    return true;
+}
+
 function getSecondaryReportActions(
     report: Report,
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
+    canUseRetractNewDot?: boolean,
+    canUseTableReportView?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    if (isAddExpenseAction(report, reportTransactions)) {
+    if (canUseTableReportView && isAddExpenseAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
-    if (isSubmitAction(report, reportTransactions, policy)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
@@ -440,19 +408,25 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
     }
 
-    if (isHoldAction(report, reportTransactions)) {
+    if (canUseRetractNewDot && isReopenAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
+    }
+
+    if (isHoldAction(report, reportTransactions, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD);
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV);
 
-    if (isChangeWorkspaceAction(report, reportTransactions, violations, policy)) {
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+
+    if (isChangeWorkspaceAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions)) {
+    if (isDeleteAction(report, reportTransactions, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 

@@ -73,14 +73,18 @@ function initGithubAPIMocking() {
     });
 
     // Mock various compareCommits responses with single mocked function
-    jest.spyOn(GithubUtils.octokit.repos, 'compareCommits').mockImplementation((params) => {
-        const base = params?.base;
-        const head = params?.head;
-        const tagPairKey = `${base}...${head}`;
+    jest.spyOn(GithubUtils, 'paginate').mockImplementation((method, p) => {
+        if (method !== GithubUtils.octokit.repos.compareCommitsWithBasehead) {
+            throw new Error(`Paginate called for unmocked method ${method.name}`);
+        }
+
+        const params = p as Parameters<typeof GithubUtils.octokit.repos.compareCommitsWithBasehead>[0];
+
+        const basehead = params?.basehead;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mockCommits: any[] = (() => {
-            switch (tagPairKey) {
+            switch (basehead) {
                 case '2.0.0-0...2.0.0-1-staging':
                     return [{sha: 'sha_pr1_merge', commit: {message: 'Merge pull request #1 from Expensify/pr-1', author: {name: 'Test Author'}}, author: {login: 'testuser'}}];
                 case '2.0.0-0...2.0.0-2-staging':
@@ -168,31 +172,26 @@ function initGithubAPIMocking() {
                         {sha: 'sha_pr15_merge', commit: {message: 'Merge pull request #15 from Expensify/pr-15', author: {name: 'Test Author'}}, author: {login: 'testuser'}},
                     ];
                 default:
-                    console.warn(`Unhandled tag pair in compareCommits mock: ${tagPairKey}`);
+                    console.warn(`Unhandled tag pair in compareCommits mock: ${basehead}`);
                     return [];
             }
         })();
 
         return Promise.resolve({
-            data: {
-                url: '',
-                html_url: '',
-                permalink_url: '',
-                diff_url: '',
-                patch_url: '',
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-                base_commit: {} as any,
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-                merge_base_commit: {} as any,
-                status: mockCommits.length > 0 ? 'ahead' : ('identical' as const),
-                ahead_by: mockCommits.length,
-                behind_by: 0,
-                total_commits: mockCommits.length,
-                commits: mockCommits,
-            },
-            status: 200 as const,
-            headers: {},
             url: '',
+            html_url: '',
+            permalink_url: '',
+            diff_url: '',
+            patch_url: '',
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+            base_commit: {} as any,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+            merge_base_commit: {} as any,
+            status: mockCommits.length > 0 ? 'ahead' : ('identical' as const),
+            ahead_by: mockCommits.length,
+            behind_by: 0,
+            total_commits: mockCommits.length,
+            commits: mockCommits,
         });
     });
 }

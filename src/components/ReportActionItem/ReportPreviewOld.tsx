@@ -257,13 +257,13 @@ function ReportPreviewOld({
         formattedMerchant = null;
     }
 
-    const isArchived = useReportIsArchived(iouReport?.reportID);
+    const isIouReportArchived = useReportIsArchived(iouReport?.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
-    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, violations);
+    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, violations, isIouReportArchived);
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
-    // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
+    // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
 
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
@@ -419,10 +419,10 @@ function ReportPreviewOld({
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
         if (isPayAtEndExpense) {
-            if (!isArchived) {
+            if (!isIouReportArchived) {
                 return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.bookingPending')};
             }
-            if (isArchived && archiveReason === CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED) {
+            if (isIouReportArchived && archiveReason === CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED) {
                 return {
                     shouldShow: true,
                     messageIcon: Expensicons.Box,
@@ -503,7 +503,7 @@ function ReportPreviewOld({
         }
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
     const buttonType = getIOUReportPreviewButtonType({
