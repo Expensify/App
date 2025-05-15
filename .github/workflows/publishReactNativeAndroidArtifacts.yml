@@ -18,26 +18,22 @@ jobs:
       matrix:
         is_hybrid: [true, false]
     outputs:
-      should_publish_hybrid_app_artifacts: ${{ steps.prepareOutputs.outputs.SHOULD_PUBLISH_HYBRID }}
-      should_publish_standalone_artifacts: ${{ steps.prepareOutputs.outputs.SHOULD_PUBLISH_STANDALONE }}
-      patches_hash_hybrid_app: ${{ steps.prepareOutputs.outputs.PATCHES_HASH_HYBRID }}
-      patches_hash_standalone: ${{ steps.prepareOutputs.outputs.PATCHES_HASH_STANDALONE }}
+      build_targets: ${{ steps.getArtifactBuildTargets.outputs.BUILD_TARGETS }}
+      hybrid_app_patches_hash: ${{ steps.getNewPatchesHash.outputs.HYBRID_APP_HASH }}
+      standalone_patches_hash: ${{ steps.getNewPatchesHash.outputs.STANDALONE_APP_HASH }}
     steps:
       - name: Checkout
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
-          submodules: ${{ matrix.is_hybrid }}
+          submodules: true
           ref: ${{ github.event.before }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Get previous patches hash
         id: getOldPatchesHash
         run: |
-          if [[ "${{ matrix.is_hybrid }}" == "true" ]]; then
-            echo "HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-          else
-            echo "HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
-          fi
+            echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+            echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get previous react-native version
         id: getOldVersion
@@ -47,19 +43,13 @@ jobs:
         run: |
           git fetch origin ${{ github.event.after }} --depth=1
           git checkout ${{ github.event.after }}
-          # Only update submodules if they were checked out initially
-          if [[ "${{ matrix.is_hybrid }}" == "true" ]]; then
-            git submodule update
-          fi
+          git submodule update
 
       - name: Get new patches hash
         id: getNewPatchesHash
         run: |
-          if [[ "${{ matrix.is_hybrid }}" == "true" ]]; then
-            echo "HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-          else
-            echo "HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
-          fi
+            echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+            echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get new react-native version
         id: getNewVersion
@@ -77,57 +67,40 @@ jobs:
       - name: Check if patches changed
         id: didPatchesChange
         run: |
-          readonly DID_PATCHES_CHANGE=${{ steps.getOldPatchesHash.outputs.HASH != steps.getNewPatchesHash.outputs.HASH && 'true' || 'false' }}
-          echo "DID_PATCHES_CHANGE=$DID_PATCHES_CHANGE" >> "$GITHUB_OUTPUT"
-          if [[ "$DID_PATCHES_CHANGE" == 'true' ]]; then
-            echo "::notice::Detected changes in patches (${{ steps.getOldPatchesHash.outputs.HASH }} -> ${{ steps.getNewPatchesHash.outputs.HASH }})"
+          readonly DID_HYBRID_APP_PATCHES_CHANGE=${{ steps.getOldPatchesHash.outputs.HYBRID_APP_HASH != steps.getNewPatchesHash.outputs.HYBRID_APP_HASH && 'true' || 'false' }}
+          readonly DID_STANDALONE_APP_PATCHES_CHANGE=${{ steps.getOldPatchesHash.outputs.STANDALONE_APP_HASH != steps.getNewPatchesHash.outputs.STANDALONE_APP_HASH && 'true' || 'false' }}
+          echo "DID_HYBRID_APP_PATCHES_CHANGE=$DID_HYBRID_APP_PATCHES_CHANGE" >> "$GITHUB_OUTPUT"
+          echo "DID_STANDALONE_APP_PATCHES_CHANGE=$DID_STANDALONE_APP_PATCHES_CHANGE" >> "$GITHUB_OUTPUT"
+
+          if [[ "$DID_HYBRID_APP_PATCHES_CHANGE" == 'true' ]]; then
+            echo "::notice::Detected changes in HybridApp patches (${{ steps.getOldPatchesHash.outputs.HYBRID_APP_HASH }} -> ${{ steps.getNewPatchesHash.outputs.HYBRID_APP_HASH }})"
           fi
 
-      - name: Check if we should build and publish the package
-        id: shouldPublish
-        run: |
-          if [[ '${{ steps.didVersionChange.outputs.DID_VERSION_CHANGE }}' == 'true' || '${{ steps.didPatchesChange.outputs.DID_PATCHES_CHANGE }}' == 'true' ]]; then
-            echo "SHOULD_PUBLISH=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice::No relevant changes, skipping further steps"
-            echo "SHOULD_PUBLISH=false" >> "$GITHUB_OUTPUT"
+          if [[ "$DID_STANDALONE_APP_PATCHES_CHANGE" == 'true' ]]; then
+            echo "::notice::Detected changes in Standalone NewDot patches (${{ steps.getOldPatchesHash.outputs.STANDALONE_APP_HASH }} -> ${{ steps.getNewPatchesHash.outputs.STANDALONE_APP_HASH }})"
           fi
 
-      - name: Prepare ${{ matrix.is_hybrid && 'HybridApp' || 'NewDot Standalone' }} outputs
-        id: prepareOutputs
+      - name: Get artifact build targets
+        id: getArtifactBuildTargets
         run: |
-          APP_SUFFIX=${{ matrix.is_hybrid && 'HYBRID' || 'STANDALONE' }}
-          echo "SHOULD_PUBLISH_${APP_SUFFIX}=${{ steps.shouldPublish.outputs.SHOULD_PUBLISH }}" >> "$GITHUB_OUTPUT"
-          echo "PATCHES_HASH_${APP_SUFFIX}=${{ steps.getNewPatchesHash.outputs.HASH }}" >> "$GITHUB_OUTPUT"
-
-  prepareBuilds:
-    name: Prepare Build Matrix
-    runs-on: ubuntu-latest
-    needs: verifyPatches
-    outputs:
-      matrix_strategy: ${{ steps.prepare_matrix.outputs.MATRIX_STRATEGY }}
-    steps:
-      - name: Prepare matrix strategy for artifacts builds
-        id: prepare_matrix
-        run: |
-          STANDALONE_NEEDED="${{ needs.verifyPatches.outputs.should_publish_standalone_artifacts }}"
-          HYBRID_NEEDED="${{ needs.verifyPatches.outputs.should_publish_hybrid_app_artifacts }}"
-          
-          if [[ "$STANDALONE_NEEDED" == "true" ]]; then
-            echo "MATRIX_STRATEGY=[\"true\", \"false\"]" >> "$GITHUB_OUTPUT"
-          elif [[ "$HYBRID_NEEDED" == "true" ]]; then
-            echo "MATRIX_STRATEGY=[\"true\"]" >> "$GITHUB_OUTPUT"
+          # When there is a version change or standalone app patches change, we need to build for both hybrid and standalone
+          if [[ '${{ steps.didVersionChange.outputs.DID_VERSION_CHANGE }}' == 'true' || '${{ steps.didPatchesChange.outputs.DID_STANDALONE_APP_PATCHES_CHANGE }}' == 'true' ]]; then
+            echo "BUILD_TARGETS=[\"true\", \"false\"]" >> "$GITHUB_OUTPUT"
+          elif [[ '${{ steps.didPatchesChange.outputs.DID_HYBRID_APP_PATCHES_CHANGE }}' == 'true' ]]; then
+            echo "BUILD_TARGETS=[\"true\"]" >> "$GITHUB_OUTPUT"
           fi
 
   buildAndPublishReactNativeArtifacts:
     name: Build and Publish React Native Artifacts
     runs-on: ${{ github.repository_owner == 'Expensify' && 'ubuntu-latest-xl' || 'ubuntu-latest' }}
-    needs: [verifyPatches, prepareBuilds]
-    if: needs.prepareBuilds.outputs.matrix_strategy != '' 
+    needs: verifyPatches
+    if: needs.verifyPatches.outputs.build_targets != '' 
     strategy:
+      # Disable fail-fast to prevent cancelling both jobs when only one needs to be stopped due to concurrency limits
       fail-fast: false
       matrix:
-        is_hybrid: ${{ fromJSON(needs.prepareBuilds.outputs.matrix_strategy) }}
+        # Dynamically build the matrix based on the build targets
+        is_hybrid: ${{ fromJSON(needs.verifyPatches.outputs.build_targets) }}
     concurrency:
       group: ${{ github.workflow }}-${{ github.job }}-${{ matrix.is_hybrid }}
       cancel-in-progress: true
@@ -160,9 +133,9 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
 
       - name: Build and publish React Native artifacts
-        working-directory: ${{ matrix.is_hybrid && 'Mobile-Expensify/Android' || 'android' }}
+        working-directory: ${{ matrix.is_hybrid == 'true' && 'Mobile-Expensify/Android' || 'android' }}
         run: |
-          echo "Starting artifacts build for ${{ matrix.is_hybrid && 'HybridApp' || 'NewDot Standalone' }}"
+          echo "Starting artifacts build for ${{ matrix.is_hybrid == 'true' && 'HybridApp' || 'NewDot Standalone' }}"
           echo "Version: ${{ env.PATCHED_VERSION }}"
           echo "Patches hash: ${{ env.PATCHES_HASH }}"
           export ORG_GRADLE_PROJECT_reactNativeArchitectures="armeabi-v7a,arm64-v8a,x86,x86_64"
@@ -173,7 +146,7 @@ jobs:
           GH_PUBLISH_TOKEN: ${{ github.token }}
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
           PATCHED_VERSION: ${{ steps.getNewPatchedVersion.outputs.NEW_PATCHED_VERSION }}
-          PATCHES_HASH: ${{ matrix.is_hybrid && needs.verifyPatches.outputs.patches_hash_hybrid_app || needs.verifyPatches.outputs.patches_hash_standalone }}
+          PATCHES_HASH: ${{ matrix.is_hybrid == 'true' && needs.verifyPatches.outputs.hybrid_app_patches_hash || needs.verifyPatches.outputs.standalone_patches_hash }}
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
