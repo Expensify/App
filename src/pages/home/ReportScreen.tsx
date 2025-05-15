@@ -335,7 +335,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         Navigation.goBack();
-    }, [isInNarrowPaneModal, backTo]);
+    }, [backTo]);
 
     let headerView = (
         <HeaderView
