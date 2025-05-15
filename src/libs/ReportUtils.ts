@@ -4737,13 +4737,13 @@ function getReportNameInternal({
         const originalMessage = getOriginalMessage(parentReportAction);
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                return translateLocal('iou.paidElsewhere', {});
+                return translateLocal('iou.paidElsewhere');
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA || originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 if (originalMessage.automaticAction) {
-                    return translateLocal('iou.automaticallyPaidWithExpensify', {});
+                    return translateLocal('iou.automaticallyPaidWithExpensify');
                 }
-                return translateLocal('iou.paidWithExpensify', {});
+                return translateLocal('iou.paidWithExpensify');
             }
         }
     }
