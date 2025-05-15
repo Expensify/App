@@ -133,7 +133,7 @@ function WorkspaceNewRoomPage() {
         if (!isFocused) {
             return;
         }
-        
+
         setShouldEnableValidation(false);
         clearNewRoomFormError().then(() => setShouldEnableValidation(true));
     }, [isFocused]);
