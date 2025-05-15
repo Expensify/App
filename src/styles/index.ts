@@ -3068,10 +3068,6 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pt0,
         },
 
-        workspaceSettingsSectionContainer: {
-            ...spacing.pt4,
-        },
-
         centralPaneAnimation: {
             height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT,
         },
