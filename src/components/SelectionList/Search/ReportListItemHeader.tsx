@@ -58,6 +58,12 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
+
+    /** Callback passed as goToItem in actionCell, triggered by clicking actionButton */
+    handleOnButtonPress?: () => void;
+
+    /** Whether the action button should be displayed */
+    shouldShowAction?: boolean;
 };
 
 type ReportCellProps = {
@@ -84,7 +90,16 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
     );
 }
 
-function FirstHeaderRow<TItem extends ListItem>({policy, report: moneyRequestReport, item, onCheckboxPress, isDisabled, canSelectMultiple}: FirstRowReportHeaderProps<TItem>) {
+function FirstHeaderRow<TItem extends ListItem>({
+    policy,
+    report: moneyRequestReport,
+    item,
+    onCheckboxPress,
+    isDisabled,
+    canSelectMultiple,
+    handleOnButtonPress = () => {},
+    shouldShowAction = false,
+}: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const reportItem = item as unknown as ReportListItemType;
@@ -112,13 +127,23 @@ function FirstHeaderRow<TItem extends ListItem>({policy, report: moneyRequestRep
                     />
                 </View>
             </View>
-            <View style={[styles.justifyContentEnd, styles.flexShrink0]}>
+            <View style={[styles.flexShrink0, styles.mr3]}>
                 <TotalCell
                     showTooltip
                     isLargeScreenWidth={false}
                     reportItem={reportItem}
                 />
             </View>
+            {shouldShowAction && (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                    <ActionCell
+                        action={reportItem.action}
+                        goToItem={handleOnButtonPress}
+                        isSelected={item.isSelected}
+                        isLoading={reportItem.isActionLoading}
+                    />
+                </View>
+            )}
         </View>
     );
 }
@@ -185,6 +210,8 @@ function ReportListItemHeader<TItem extends ListItem>({
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
+                shouldShowAction
+                handleOnButtonPress={handleOnButtonPress}
             />
             <View style={[styles.mr3, styles.ml3, styles.pv2]}>
                 <View style={[styles.borderBottom]} />
