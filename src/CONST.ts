@@ -6687,8 +6687,9 @@ const CONST = {
         AUD: 'AUD',
         GBP: 'GBP',
         NZD: 'NZD',
+        EUR: 'EUR',
     },
-    GBP_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
+    SCA_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
     FEEDBACK_SURVEY_OPTIONS: {
