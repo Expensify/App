@@ -66,6 +66,7 @@ jobs:
         uses: ./.github/actions/composite/validateActor
         with:
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+          REQUIRE_APP_DEPLOYER: false
 
       - name: Setup git for OSBotify
         uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
