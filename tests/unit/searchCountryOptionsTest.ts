@@ -3,7 +3,6 @@ import searchOptions from '@libs/searchOptions';
 describe('searchCountryOptions', () => {
     test('when the search term is a country code, the country with that code should be prioritized', () => {
         const searchValue = 'US';
-        // cspell:disable
         const countriesData = [
             {
                 value: 'US',
@@ -50,14 +49,12 @@ describe('searchCountryOptions', () => {
                 searchValue: 'auaustralia',
             },
         ];
-        // cspell:enable
         const actual = searchOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
     });
     test('when the search term contains diacritics the country names that exactly match should be prioritized', () => {
         const searchValue = 'Ål';
         const countriesData = [
-            // cspell:disable
             {
                 value: 'AX',
                 keyForList: 'AX',
@@ -79,10 +76,8 @@ describe('searchCountryOptions', () => {
                 isSelected: false,
                 searchValue: 'asamericansamoa',
             },
-            // cspell:enable
         ];
         const expected = [
-            // cspell:disable
             {
                 value: 'AX',
                 keyForList: 'AX',
@@ -97,7 +92,6 @@ describe('searchCountryOptions', () => {
                 isSelected: false,
                 searchValue: 'alalbania',
             },
-            // cspell:enable
         ];
         const actual = searchOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
@@ -105,7 +99,6 @@ describe('searchCountryOptions', () => {
     test('when the search term contains diacritics the country names that exactly match should be prioritized, test case #2', () => {
         const searchValue = 'é';
         const countriesData = [
-            // cspell:disable
             {
                 value: 'BE',
                 keyForList: 'BE',
@@ -127,10 +120,8 @@ describe('searchCountryOptions', () => {
                 isSelected: false,
                 searchValue: 'blsaintbarthelemy',
             },
-            // cspell:enable
         ];
         const expected = [
-            // cspell:disable
             {
                 value: 'BL',
                 keyForList: 'BL',
@@ -152,7 +143,6 @@ describe('searchCountryOptions', () => {
                 isSelected: false,
                 searchValue: 'usunitedstates',
             },
-            // cspell:enable
         ];
         const actual = searchOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
@@ -160,7 +150,6 @@ describe('searchCountryOptions', () => {
     test('when the search term contains no diacritics, countries with diacritics should still be searched by their sanitized names', () => {
         const searchValue = 'al';
         const countriesData = [
-            // cspell:disable
             {
                 value: 'AX',
                 keyForList: 'AX',
@@ -182,10 +171,8 @@ describe('searchCountryOptions', () => {
                 isSelected: false,
                 searchValue: 'asamericansamoa',
             },
-            // cspell:enable
         ];
         const expected = [
-            // cspell:disable
             {
                 value: 'AL',
                 keyForList: 'AL',
@@ -200,7 +187,6 @@ describe('searchCountryOptions', () => {
                 isSelected: false,
                 searchValue: 'axalandislands',
             },
-            // cspell:enable
         ];
         const actual = searchOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
@@ -208,7 +194,6 @@ describe('searchCountryOptions', () => {
     test('when a search term exactly matches the beginning of a countries name, that country should be prioritized', () => {
         const searchValue = 'bar'; // for barbados
         const countriesData = [
-            // cspell:disable
             {
                 value: 'BB',
                 keyForList: 'BB',
@@ -237,10 +222,8 @@ describe('searchCountryOptions', () => {
                 isSelected: false,
                 searchValue: 'agantiguaandbarbuda',
             },
-            // cspell:enable
         ];
         const expected = [
-            // cspell:disable
             {
                 value: 'BB',
                 keyForList: 'BB',
@@ -255,7 +238,6 @@ describe('searchCountryOptions', () => {
                 isSelected: false,
                 searchValue: 'agantiguaandbarbuda',
             },
-            // cspell:enable
         ];
         const actual = searchOptions(searchValue, countriesData);
         expect(actual).toEqual(expected);
@@ -263,7 +245,6 @@ describe('searchCountryOptions', () => {
     test('when the search term is empty, all countries should be returned', () => {
         const searchValue = '';
         const countriesData = [
-            // cspell:disable
             {
                 value: 'BB',
                 keyForList: 'BB',
@@ -292,7 +273,6 @@ describe('searchCountryOptions', () => {
                 isSelected: false,
                 searchValue: 'agantiguaandbarbuda',
             },
-            // cspell:enable
         ];
         const expected = countriesData;
         const actual = searchOptions(searchValue, countriesData);

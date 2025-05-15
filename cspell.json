@@ -685,7 +685,7 @@
         "tests/unit/FastSearchTest.ts",
         "tests/unit/LocaleCompareTest.ts",
         "tests/unit/removeInvisibleCharacters.ts",
-        "tests/unit/Search/searchCountryOptionsTest.ts",
+        "tests/unit/searchCountryOptionsTest.ts",
         "tests/unit/splitLongWordTest.ts",
         "tests/unit/currencyList.json",
         "tests/unit/ValidationUtilsTest.ts",
