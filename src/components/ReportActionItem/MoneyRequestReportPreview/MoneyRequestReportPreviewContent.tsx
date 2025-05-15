@@ -105,7 +105,8 @@ function MoneyRequestReportPreviewContent({
     lastTransactionViolations,
     isDelegateAccessRestricted,
     renderTransactionItem,
-    onLayout,
+    onCarouselLayout,
+    onWrapperLayout,
     currentWidth,
     reportPreviewStyles,
     shouldDisplayContextMenu = true,
@@ -410,7 +411,10 @@ function MoneyRequestReportPreviewContent({
     };
 
     // The button should expand up to transaction width
-    const buttonMaxWidth = !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewStyle.width >= 303 ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
+    const buttonMaxWidth =
+        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW_WIDTH_WIDE
+            ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width}
+            : {};
 
     const approvedOrSettledIcon = (iouSettled || isApproved) && (
         <ImageSVG
@@ -581,14 +585,17 @@ function MoneyRequestReportPreviewContent({
     };
 
     return (
-        <View onLayout={onLayout}>
+        <View onLayout={onWrapperLayout}>
             <OfflineWithFeedback
                 pendingAction={iouReport?.pendingFields?.preview}
                 shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
                 needsOffscreenAlphaCompositing
                 style={styles.mt1}
             >
-                <View style={[styles.chatItemMessage, isReportDeleted && [styles.cursorDisabled, styles.pointerEventsAuto], containerStyles]}>
+                <View
+                    style={[styles.chatItemMessage, isReportDeleted && [styles.cursorDisabled, styles.pointerEventsAuto], containerStyles]}
+                    onLayout={onCarouselLayout}
+                >
                     <PressableWithoutFeedback
                         onPress={onPress}
                         onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
