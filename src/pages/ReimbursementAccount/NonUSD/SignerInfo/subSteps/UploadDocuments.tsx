@@ -85,7 +85,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     });
 
     const handleSubmitWithDownload = (values: FormOnyxValues<'reimbursementAccount'>) => {
-        if (!isPDSandFSGDownloaded) {
+        if (isDocumentNeededStatus.isPRDandFSGNeeded && !isPDSandFSGDownloaded) {
             return;
         }
 
