@@ -4,6 +4,7 @@ import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -36,9 +37,10 @@ import {
     hasUpdatedTotal,
     isAllowedToApproveExpenseReport,
     isExported as isExportedUtils,
-    isInvoiceReport,
+    isInvoiceReport as isInvoiceReportUtil,
     isProcessingReport,
     isReportOwner,
+    isTrackExpenseReport as isTrackExpenseReportUtil,
     navigateToDetailsPage,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
@@ -131,6 +133,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
     const route = useRoute();
+    const {getReportRHPActiveRoute} = useActiveRoute();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -219,6 +222,20 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [moneyRequestReport, chatReport, policy, transaction],
     );
 
+    const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
+    const isTrackExpenseReport = isTrackExpenseReportUtil(moneyRequestReport);
+
+    const iouType = useMemo(() => {
+        if (isTrackExpenseReport) {
+            return CONST.IOU.TYPE.TRACK;
+        }
+        if (isInvoiceReport) {
+            return CONST.IOU.TYPE.INVOICE;
+        }
+
+        return CONST.IOU.TYPE.SUBMIT;
+    }, [isTrackExpenseReport, isInvoiceReport]);
+
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
@@ -285,7 +302,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 setIsNoDelegateAccessMenuVisible(true);
             } else if (isAnyTransactionOnHold) {
                 setIsHoldMenuVisible(true);
-            } else if (isInvoiceReport(moneyRequestReport)) {
+            } else if (isInvoiceReport) {
                 startAnimation();
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, methodID, paymentMethod);
             } else {
@@ -293,7 +310,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport, startAnimation],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, isInvoiceReport, moneyRequestReport, startAnimation],
     );
 
     const confirmApproval = () => {
@@ -698,6 +715,20 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     return;
                 }
                 Navigation.navigate(ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.getRoute(moneyRequestReport.reportID));
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE]: {
+            text: translate('iou.moveExpenses', {count: 1}),
+            icon: Expensicons.DocumentMerge,
+            value: CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE,
+            onSelected: () => {
+                if (!moneyRequestReport || !transaction) {
+                    return;
+                }
+
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, moneyRequestReport.reportID, getReportRHPActiveRoute()),
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
