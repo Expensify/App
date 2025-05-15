@@ -140,6 +140,10 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         }
     }
 
+    /**
+     * Checks if the application is currently running in the foreground.
+     * https://stackoverflow.com/a/8490088/8398300
+     */
     private fun isAppOnForeground(): Boolean {
         val activityManager = applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val appProcesses = activityManager.runningAppProcesses ?: return false
