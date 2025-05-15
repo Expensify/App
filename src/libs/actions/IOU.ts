@@ -3630,7 +3630,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         transactionParams: {
             amount: isExpenseReport(iouReport) ? -amount : amount,
             currency,
-            reportID: shouldUseMoneyReport && iouReport ? iouReport.reportID : undefined,
+            reportID: shouldUseMoneyReport && iouReport ? iouReport.reportID : CONST.REPORT.UNREPORTED_REPORT_ID,
             comment,
             created,
             merchant,

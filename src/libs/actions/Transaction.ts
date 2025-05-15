@@ -595,15 +595,11 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
 
-    // If a transaction doesn't have an assigned report, it is considered an unreported transaction,
-    // so we can assign it the default ID equal to the Unreported report ID.
-    const transactionsWithDefaultIds = transactions.map((transaction) => ({
-        ...transaction,
-        reportID: transaction.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
-    }));
-
-    transactionsWithDefaultIds.forEach((transaction) => {
+    transactions.forEach((transaction) => {
         const oldIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+        if (!transaction.reportID) {
+            return;
+        }
 
         const oldReportID = transaction.reportID;
         const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
