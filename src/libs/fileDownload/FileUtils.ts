@@ -378,22 +378,26 @@ const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: bo
         });
 };
 
-const validateReceiptFile = (file: FileObject) => {
+const isValidReceiptExtension = (file: FileObject) => {
     const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-    if (
-        !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>)
-    ) {
-        return false;
+    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
+    );
+};
+
+const validateReceiptFile = (file: FileObject) => {
+    if (!isValidReceiptExtension(file)) {
+        return CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
     }
 
     if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-        return false;
+        return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
     if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-        return false;
+        return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
     }
-    return true;
+    return '';
 };
 
 const getFileValidationErrorText = (validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>) => {
@@ -439,4 +443,5 @@ export {
     resizeImageIfNeeded,
     createFile,
     validateReceipt,
+    isValidReceiptExtension
 };
