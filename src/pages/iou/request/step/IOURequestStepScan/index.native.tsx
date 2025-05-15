@@ -73,7 +73,7 @@ import type IOURequestStepScanProps from './types';
 function IOURequestStepScan({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo, backToReport},
     },
     transaction,
     currentUserPersonalDetails,
@@ -258,7 +258,7 @@ function IOURequestStepScan({
         (isTestTransaction = false, reportIDParam: string | undefined = undefined) => {
             switch (iouType) {
                 case CONST.IOU.TYPE.REQUEST:
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
                     break;
                 case CONST.IOU.TYPE.SEND:
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
@@ -271,11 +271,12 @@ function IOURequestStepScan({
                             transactionID,
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             reportIDParam || reportID,
+                            backToReport,
                         ),
                     );
             }
         },
-        [iouType, reportID, transactionID],
+        [backToReport, iouType, reportID, transactionID],
     );
 
     const createTransaction = useCallback(
@@ -312,10 +313,11 @@ function IOURequestStepScan({
                         merchant: '',
                         receipt,
                     },
+                    backToReport,
                 });
             }
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.comment?.attendees, transaction?.created, transaction?.currency],
+        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.comment?.attendees, transaction?.created, transaction?.currency],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -426,6 +428,7 @@ function IOURequestStepScan({
                                             receipt,
                                             billable: false,
                                         },
+                                        backToReport,
                                     });
                                 }
                             },
@@ -470,25 +473,26 @@ function IOURequestStepScan({
         },
         [
             backTo,
+            report,
+            reportNameValuePairs,
+            iouType,
+            activePolicy,
+            transactionID,
+            navigateToConfirmationPage,
+            shouldSkipConfirmation,
+            personalDetails,
+            createTransaction,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            reportID,
             transaction?.currency,
             transaction?.created,
             transaction?.comment?.attendees,
-            iouType,
-            report,
-            transactionID,
-            shouldSkipConfirmation,
-            navigateToConfirmationPage,
-            activePolicy,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails.login,
-            navigateToParticipantPage,
-            personalDetails,
-            createTransaction,
-            reportID,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
-            reportNameValuePairs,
+            backToReport,
+            navigateToParticipantPage,
         ],
     );
 

@@ -59,7 +59,7 @@ type IOURequestStepAmountProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID = '-1', backTo, pageIndex, action, currency: selectedCurrency = ''},
+        params: {iouType, reportID, transactionID = '-1', backTo, pageIndex, action, currency: selectedCurrency = '', backToReport},
     },
     transaction,
     currentUserPersonalDetails,
@@ -156,13 +156,13 @@ function IOURequestStepAmount({
     const navigateToConfirmationPage = () => {
         switch (iouType) {
             case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
                 break;
             case CONST.IOU.TYPE.SEND:
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
                 break;
             default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
         }
     };
 
@@ -220,6 +220,7 @@ function IOURequestStepAmount({
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                             attendees: transaction?.comment?.attendees,
                         },
+                        backToReport,
                     });
                     return;
                 }

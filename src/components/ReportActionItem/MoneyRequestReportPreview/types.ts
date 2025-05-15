@@ -81,8 +81,11 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
         /** MoneyRequestReportPreview's current width */
         currentWidth: number;
 
-        /** Callback passed to onLayout  */
-        onLayout: (e: LayoutChangeEvent) => void;
+        /** Callback passed to Carousel's onLayout  */
+        onCarouselLayout: (e: LayoutChangeEvent) => void;
+
+        /** Callback passed to Component wrapper view's onLayout */
+        onWrapperLayout: (e: LayoutChangeEvent) => void;
 
         /** Callback to render a transaction preview item */
         renderTransactionItem: ListRenderItem<Transaction>;

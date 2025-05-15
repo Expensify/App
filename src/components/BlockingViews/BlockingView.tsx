@@ -109,8 +109,8 @@ function BlockingView({
     CustomSubtitle,
     contentFitImage,
     containerStyle: containerStyleProp,
-    addBottomSafeAreaPadding = false,
-    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+    addBottomSafeAreaPadding,
+    addOfflineIndicatorBottomSafeAreaPadding,
     testID,
 }: BlockingViewProps) {
     const styles = useThemeStyles();

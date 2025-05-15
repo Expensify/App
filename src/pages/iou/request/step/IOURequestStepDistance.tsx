@@ -70,7 +70,7 @@ type IOURequestStepDistanceProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepDistance({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo, backToReport},
     },
     transaction,
     currentUserPersonalDetails,
@@ -286,15 +286,15 @@ function IOURequestStepDistance({
     const navigateToConfirmationPage = useCallback(() => {
         switch (iouType) {
             case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
                 break;
             case CONST.IOU.TYPE.SEND:
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
                 break;
             default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
         }
-    }, [iouType, reportID, transactionID]);
+    }, [backToReport, iouType, reportID, transactionID]);
 
     const navigateToNextStep = useCallback(() => {
         if (transaction?.splitShares) {
@@ -368,6 +368,7 @@ function IOURequestStepDistance({
                         splitShares: transaction?.splitShares,
                         attendees: transaction?.comment?.attendees,
                     },
+                    backToReport,
                 });
                 return;
             }
@@ -401,19 +402,20 @@ function IOURequestStepDistance({
         backTo,
         report,
         reportNameValuePairs,
+        iouType,
         activePolicy,
-        transactionID,
         setDistanceRequestData,
         shouldSkipConfirmation,
-        navigateToConfirmationPage,
+        transactionID,
         personalDetails,
         translate,
-        iouType,
         currentUserPersonalDetails.login,
         currentUserPersonalDetails.accountID,
         policy,
         waypoints,
+        backToReport,
         customUnitRateID,
+        navigateToConfirmationPage,
         navigateToParticipantPage,
     ]);
 
