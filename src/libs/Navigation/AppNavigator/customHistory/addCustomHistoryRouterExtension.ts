@@ -7,7 +7,7 @@ import SCREEN_TO_HISTORY_PARAM from '@src/libs/Navigation/linkingConfig/RELATION
 import type {Screen} from '@src/SCREENS';
 import type {HistoryStackNavigatorAction, SetHistoryParamActionType} from './types';
 
-const CUSTOM_HISTORY_PREFIX = 'CUSTOM_HISTORY_';
+const CUSTOM_HISTORY_PREFIX = 'CUSTOM_HISTORY';
 
 function isSetParamsAction(action: HistoryStackNavigatorAction): action is SetParamsAction {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.SET_PARAMS;
