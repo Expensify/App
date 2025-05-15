@@ -5747,7 +5747,7 @@ const styles = (theme: ThemeColors) =>
             const SEARCHBAR_HEIGHT = 50;
             const SEARCHBAR_MARGIN = 14;
             const BUTTON_HEIGHT = 40;
-            const PADDING = 32;
+            const PADDING = 44;
 
             const listHeight = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_MARGIN + BUTTON_HEIGHT + PADDING;
 

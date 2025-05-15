@@ -194,6 +194,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 ListItem={UserSelectionListItem}
                 showScrollIndicator={false}
                 containerStyle={[styles.pt4]}
+                contentContainerStyle={[styles.pb2]}
                 textInputLabel={translate('selectionList.searchForSomeone')}
                 textInputValue={searchTerm}
                 footerContent={<FooterContent />}
