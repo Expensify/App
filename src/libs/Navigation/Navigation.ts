@@ -32,7 +32,6 @@ import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
-import switchPolicyID from './helpers/switchPolicyID';
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
@@ -728,7 +727,6 @@ export default {
     removeScreenFromNavigationState,
     removeScreenByKey,
     getReportRouteByID,
-    switchPolicyID,
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
     isOnboardingFlow,

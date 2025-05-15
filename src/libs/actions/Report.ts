@@ -88,7 +88,7 @@ import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {extractPolicyIDFromPath, getDefaultApprover, getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
+import {getDefaultApprover, getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
@@ -3127,11 +3127,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
         return;
     }
 
-    const onClick = () =>
-        close(() => {
-            const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-            navigateFromNotification(reportID, policyID);
-        });
+    const onClick = () => close(() => navigateFromNotification(reportID));
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);
