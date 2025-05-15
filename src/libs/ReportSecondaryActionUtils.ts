@@ -14,9 +14,10 @@ import {
     hasIntegrationAutoSync,
     isPrefferedExporter,
 } from './PolicyUtils';
-import {getIOUActionForReportID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
+import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {
     canAddTransaction,
+    canEditFieldOfMoneyRequest,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -320,6 +321,20 @@ function isChangeWorkspaceAction(report: Report, policy?: Policy): boolean {
     return policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session, policy)).length > 0;
 }
 
+function isMoveTransactionAction(reportTransactions: Transaction[], reportActions?: ReportAction[]) {
+    const transaction = reportTransactions.at(0);
+
+    if (reportTransactions.length !== 1 || !transaction || !reportActions) {
+        return false;
+    }
+
+    const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+
+    const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
+
+    return canMoveExpense;
+}
+
 function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
     const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
     const isExpenseReport = isExpenseReportUtils(report);
@@ -416,10 +431,16 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD);
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV);
+
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
     if (isChangeWorkspaceAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
+    }
+
+    if (isMoveTransactionAction(reportTransactions, reportActions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
