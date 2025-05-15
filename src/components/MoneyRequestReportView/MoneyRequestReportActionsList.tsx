@@ -514,7 +514,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                     />
                 </>
             )}
-            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, styles.pv4]}>
+            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                 <FloatingMessageCounter
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
@@ -558,6 +558,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                         }
                         keyboardShouldPersistTaps="handled"
                         onScroll={trackVerticalScrolling}
+                        contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt2]}
                         ref={reportScrollManager.ref}
                     />
                 )}

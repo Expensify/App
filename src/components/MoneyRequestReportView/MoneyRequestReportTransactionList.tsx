@@ -167,7 +167,7 @@ function MoneyRequestReportTransactionList({report, transactions, newTransaction
     return !isEmpty(transactions) ? (
         <>
             {!shouldUseNarrowLayout && (
-                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, StyleUtils.getPaddingBottom(6), styles.alignItemsCenter]}>
+                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, styles.alignItemsCenter]}>
                     <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
