@@ -326,10 +326,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(() => {
-        if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
-            Navigation.dismissModal();
-            return;
-        }
         if (Navigation.getShouldPopToSidebar()) {
             Navigation.popToSidebar();
             return;
