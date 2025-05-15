@@ -655,8 +655,6 @@
         "مثال"
     ],
     "ignorePaths": [
-        ".github",
-        "node_modules",
         "src/languages/es.ts",
         "android/app/BUCK",
         "android/app/build_defs.bzl",
@@ -686,19 +684,11 @@
         "tests/unit/LocaleCompareTest.ts",
         "tests/unit/removeInvisibleCharacters.ts",
         "tests/unit/searchCountryOptionsTest.ts",
-        "tests/unit/splitLongWordTest.ts",
         "tests/unit/currencyList.json",
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST.ts",
-        "src/libs/SearchParser/*",
-        ".gitignore"
+        "src/libs/SearchParser/*"
     ],
     "ignoreRegExpList": ["@assets/.*"],
-    "useGitignore": true,
-    "overrides": [
-        {
-            "filename": "src/languages/es.ts",
-            "language": "es"
-        }
-    ]
+    "useGitignore": true
 }
