@@ -4,12 +4,6 @@ import type CONST from '@src/CONST';
 
 type RootStackNavigatorActionType =
     | {
-          type: typeof CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
-          payload: {
-              policyID: string | undefined;
-          };
-      }
-    | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
       }
     | {
@@ -22,10 +16,6 @@ type RootStackNavigatorActionType =
 
 type OpenWorkspaceSplitActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
-};
-
-type SwitchPolicyIdActionType = RootStackNavigatorActionType & {
-    type: typeof CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
 };
 
 type PushActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PUSH};
@@ -44,7 +34,6 @@ type RootStackNavigatorAction = CommonActions.Action | StackActionType | RootSta
 
 export type {
     OpenWorkspaceSplitActionType,
-    SwitchPolicyIdActionType,
     PushActionType,
     ReplaceActionType,
     DismissModalActionType,

@@ -1,5 +1,5 @@
 import type {ParamListBase} from '@react-navigation/native';
-import {createNavigatorFactory} from '@react-navigation/native';
+import {createNavigatorFactory, StackRouter} from '@react-navigation/native';
 import usePreserveNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import createPlatformStackNavigatorComponent from '@navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
@@ -11,7 +11,6 @@ import type {
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
 } from '@navigation/PlatformStackNavigation/types';
-import SearchFullscreenRouter from './SearchFullscreenRouter';
 
 function useCustomEffects(props: CustomEffectsHookProps) {
     useNavigationResetOnLayoutChange(props);
@@ -26,7 +25,7 @@ function useCustomState({state}: CustomStateHookProps) {
 }
 
 const SearchFullscreenNavigatorComponent = createPlatformStackNavigatorComponent('SearchFullscreenNavigator', {
-    createRouter: SearchFullscreenRouter,
+    createRouter: StackRouter,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     useCustomEffects,
     useCustomState,
