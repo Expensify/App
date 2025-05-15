@@ -1689,6 +1689,17 @@ function getValidPersonalDetailOptions(
     return personalDetailsOptions;
 }
 
+function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canShowManagerMcTest: boolean): Record<string, boolean> {
+    const userHasReportWithManagerMcTest = Object.values(options.reports).some((report) => isManagerMcTestReport(report));
+    return {
+        [CONST.EMAIL.MANAGER_MCTEST]:
+            !canShowManagerMcTest ||
+            (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
+            !Permissions.canUseManagerMcTest(config.betas) ||
+            isUserInvitedToWorkspace(),
+    };
+}
+
 /**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
@@ -1707,18 +1718,13 @@ function getValidOptions(
         ...config
     }: GetOptionsConfig = {},
 ): Options {
-    const userHasReportWithManagerMcTest = Object.values(options.reports).some((report) => isManagerMcTestReport(report));
+    const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest);
 
     // Gather shared configs:
     const loginsToExclude: Record<string, boolean> = {
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
-        // Exclude Manager McTest if selection is made from Create or Submit flow
-        [CONST.EMAIL.MANAGER_MCTEST]:
-            !canShowManagerMcTest ||
-            (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
-            !Permissions.canUseManagerMcTest(config.betas) ||
-            isUserInvitedToWorkspace(),
+        ...restrictedLogins,
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
