@@ -247,6 +247,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         translate,
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
+        styles.tripEmptyStateLottieWebView,
         tripViewChildren,
         hasSeenTour,
         navatticURL,
