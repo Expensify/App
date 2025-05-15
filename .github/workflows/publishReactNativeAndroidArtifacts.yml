@@ -1,5 +1,3 @@
-name: Publish React Native Android Artifacts
-
 on:
   push:
     branches:
@@ -11,13 +9,18 @@ on:
       - Mobile-Expensify
 
 jobs:
-  publish:
-    runs-on: ${{ github.repository_owner == 'Expensify' && 'ubuntu-latest-xl' || 'ubuntu-latest' }}
+  verifyPatches:
+    name: Verify React Native Patches
+    runs-on: 'ubuntu-latest'
     strategy:
       matrix:
         is_hybrid: [true, false]
+    outputs:
+      should_publish_hybrid_app_artifacts: ${{ steps.prepareOutputs.outputs.SHOULD_PUBLISH_HYBRID }}
+      should_publish_standalone_artifacts: ${{ steps.prepareOutputs.outputs.SHOULD_PUBLISH_STANDALONE }}
+      patches_hash_hybrid_app: ${{ steps.prepareOutputs.outputs.PATCHES_HASH_HYBRID }}
+      patches_hash_standalone: ${{ steps.prepareOutputs.outputs.PATCHES_HASH_STANDALONE }}
     steps:
-      # v4
       - name: Checkout
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
@@ -35,7 +38,6 @@ jobs:
           fi
 
       - name: Get previous react-native version
-
         id: getOldVersion
         run: echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> "$GITHUB_OUTPUT"
 
@@ -43,7 +45,10 @@ jobs:
         run: |
           git fetch origin ${{ github.event.after }} --depth=1
           git checkout ${{ github.event.after }}
-          git submodule update
+          # Only update submodules if they were checked out initially
+          if [[ "${{ matrix.is_hybrid }}" == "true" ]]; then
+            git submodule update
+          fi
 
       - name: Get new patches hash
         id: getNewPatchesHash
@@ -82,39 +87,77 @@ jobs:
           if [[ '${{ steps.didVersionChange.outputs.DID_VERSION_CHANGE }}' == 'true' || '${{ steps.didPatchesChange.outputs.DID_PATCHES_CHANGE }}' == 'true' ]]; then
             echo "SHOULD_PUBLISH=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::notice::No relevant changes, skipping publishing a new React Native build"
+            echo "::notice::No relevant changes, skipping further steps"
             echo "SHOULD_PUBLISH=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Prepare ${{ matrix.is_hybrid && 'HybridApp' || 'NewDot Standalone' }} outputs
+        id: prepareOutputs
+        run: |
+          APP_SUFFIX=${{ matrix.is_hybrid && 'HYBRID' || 'STANDALONE' }}
+          echo "SHOULD_PUBLISH_${APP_SUFFIX}=${{ steps.shouldPublish.outputs.SHOULD_PUBLISH }}" >> "$GITHUB_OUTPUT"
+          echo "PATCHES_HASH_${APP_SUFFIX}=${{ steps.getNewPatchesHash.outputs.HASH }}" >> "$GITHUB_OUTPUT"
+
+  prepareBuilds:
+    name: Prepare Build Matrix
+    runs-on: ubuntu-latest
+    needs: verifyPatches
+    outputs:
+      matrix_strategy: ${{ steps.prepare_matrix.outputs.MATRIX_STRATEGY }}
+    steps:
+      - name: Prepare matrix strategy for artifacts builds
+        id: prepare_matrix
+        run: |
+          STANDALONE_NEEDED="${{ needs.verifyPatches.outputs.should_publish_standalone_artifacts }}"
+          HYBRID_NEEDED="${{ needs.verifyPatches.outputs.should_publish_hybrid_app_artifacts }}"
+          
+          if [[ "$STANDALONE_NEEDED" == "true" ]]; then
+            echo "MATRIX_STRATEGY=[\"true\", \"false\"]" >> "$GITHUB_OUTPUT"
+          elif [[ "$HYBRID_NEEDED" == "true" ]]; then
+            echo "MATRIX_STRATEGY=[\"true\"]" >> "$GITHUB_OUTPUT"
+          fi
+
+  buildAndPublishReactNativeArtifacts:
+    name: Build and Publish React Native Artifacts
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'ubuntu-latest-xl' || 'ubuntu-latest' }}
+    needs: [verifyPatches, prepareBuilds]
+    if: needs.prepareBuilds.outputs.matrix_strategy != '' 
+    strategy:
+      fail-fast: false
+      matrix:
+        is_hybrid: ${{ fromJSON(needs.prepareBuilds.outputs.matrix_strategy) }}
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.job }}-${{ matrix.is_hybrid }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          submodules: ${{ matrix.is_hybrid }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
       - name: Setup Node
-        if: ${{ steps.shouldPublish.outputs.SHOULD_PUBLISH == 'true' }}
         uses: ./.github/actions/composite/setupNode
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
 
-      # v4
       - name: Setup Java
-        if: ${{ steps.shouldPublish.outputs.SHOULD_PUBLISH == 'true' }}
         uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: oracle
           java-version: 17
 
-      # v4
       - name: Setup Gradle
-        if: ${{ steps.shouldPublish.outputs.SHOULD_PUBLISH == 'true' }}
         uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
-
+      
       - name: Determine new patched RN version
-        if: ${{ steps.shouldPublish.outputs.SHOULD_PUBLISH == 'true' }}
         id: getNewPatchedVersion
         run: echo "NEW_PATCHED_VERSION=$(./.github/scripts/getNewPatchedRNVersion.sh)" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
 
-      - name: Build and publish RN artifacts
-        if: ${{ steps.shouldPublish.outputs.SHOULD_PUBLISH == 'true' }}
+      - name: Build and publish React Native artifacts
         working-directory: ${{ matrix.is_hybrid && 'Mobile-Expensify/Android' || 'android' }}
         run: |
           echo "Starting artifacts build for ${{ matrix.is_hybrid && 'HybridApp' || 'NewDot Standalone' }}"
@@ -128,7 +171,7 @@ jobs:
           GH_PUBLISH_TOKEN: ${{ github.token }}
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
           PATCHED_VERSION: ${{ steps.getNewPatchedVersion.outputs.NEW_PATCHED_VERSION }}
-          PATCHES_HASH: ${{ steps.getNewPatchesHash.outputs.HASH }}
+          PATCHES_HASH: ${{ matrix.is_hybrid && needs.verifyPatches.outputs.patches_hash_hybrid_app || needs.verifyPatches.outputs.patches_hash_standalone }}
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
