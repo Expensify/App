@@ -20,7 +20,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,7 +58,6 @@ const tripsFeatures: FeatureListItem[] = [
 function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreen} = useResponsiveLayout();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [modalVisible, setModalVisible] = useState(false);
@@ -146,10 +144,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
                     headerMedia: LottieAnimations.TripsEmptyState,
-                    headerContentStyles: [
-                        isSmallScreen ? StyleUtils.getWidthAndHeightStyle(375, 240) : StyleUtils.getWidthAndHeightStyle('100%', '100%'),
-                        StyleUtils.getBackgroundColorStyle(theme.travelBG),
-                    ],
+                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle('100%', '100%'), StyleUtils.getBackgroundColorStyle(theme.travelBG), {minWidth: 400}],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     children: tripViewChildren,
@@ -261,7 +256,6 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         viewTourTaskReport,
         canModifyTheTask,
         canActionTheTask,
-        isSmallScreen,
     ]);
 
     return (
