@@ -98,6 +98,7 @@ const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/worksp
 
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
+const loadWorkspaceHubSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceHubSplitNavigator').default;
 const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
 const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
 
@@ -518,6 +519,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                     options={rootNavigatorScreenOptions.fullScreen}
                     getComponent={loadSearchNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR}
+                    options={rootNavigatorScreenOptions.splitNavigator}
+                    getComponent={loadWorkspaceHubSplitNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}

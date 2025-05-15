@@ -659,17 +659,20 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`,
                 value: {
                     [oldIOUAction.reportActionID]: {
-                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                        originalMessage: {
-                            deleted: DateUtils.getDBTime(),
-                        },
+                        previousMessage: oldIOUAction.message,
                         message: [
                             {
-                                deleted: DateUtils.getDBTime(),
-                                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                                html: '',
                                 text: '',
+                                isEdited: true,
+                                isDeletedParentAction: false,
                             },
                         ],
+                        originalMessage: {
+                            IOUTransactionID: null,
+                        },
+                        errors: undefined,
                     },
                 },
             });
