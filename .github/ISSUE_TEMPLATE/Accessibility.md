@@ -35,10 +35,12 @@ What can we do to fix the issue?
 Check off any platforms that are affected by this issue
 --->
 Which of our officially supported platforms is this issue occurring on? Please only tick the box if you have provided a screen-recording in the thread for each platform:
-- [ ] Android: Native
+- [ ] Android: App
 - [ ] Android: mWeb Chrome
-- [ ] iOS: Native
+- [ ] iOS: App
 - [ ] iOS: mWeb Safari
+- [ ] iOS: mWeb Chrome
+- [ ] Windows: Chrome
 - [ ] MacOS: Chrome / Safari
 - [ ] MacOS: Desktop
 

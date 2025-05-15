@@ -69,6 +69,8 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+jest.mock('@src/components/ConfirmedRoute.tsx');
+
 const getMockedReports = (length = 100) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
@@ -91,7 +93,7 @@ const mockedOptions = createOptionList(mockedPersonalDetails, mockedReports);
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
-        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT],
+        evictableKeys: [ONYXKEYS.COLLECTION.REPORT],
     }),
 );
 

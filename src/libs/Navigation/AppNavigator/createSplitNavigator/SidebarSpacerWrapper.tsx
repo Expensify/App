@@ -1,5 +1,5 @@
-import React from 'react';
 import type {ReactNode} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';

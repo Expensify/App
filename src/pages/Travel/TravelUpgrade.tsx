@@ -52,11 +52,13 @@ function TravelUpgrade() {
                 hideModalContentWhileAnimating
                 useNativeDriver
                 onBackdropPress={Navigation.dismissModal}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
                     includePaddingTop={false}
-                    includeSafeAreaPaddingBottom={false}
+                    enableEdgeToEdgeBottomSafeAreaPadding
+                    shouldKeyboardOffsetBottomSafeAreaPadding
                     testID={TravelUpgrade.displayName}
                 >
                     <WorkspaceConfirmationForm

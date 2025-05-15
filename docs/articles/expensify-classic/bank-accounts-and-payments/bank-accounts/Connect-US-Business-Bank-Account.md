@@ -39,21 +39,21 @@ You’ll now receive payments for invoices directly into this bank account.
 - US-issued ID
 - The company address must be in the US
 - The controlling officer (the member initiating the connection to the bank account)'s address must be in the US
-- The controlling officer must have a US-issued social security number
-- **Important:** The person adding the bank account doesn’t need to be an account signer but they must enter their own personal information when connecting the bank account. If another person enters their details, the account will be flagged for review, delaying verification.
+- The controlling officer must have a U.S.-issued Social Security number
+
+**Important:** The person adding the bank account doesn’t need to be an account signer but they must enter their own personal information when connecting the bank account. If another person enters their details, the account will be flagged for review, delaying verification.
 
 ## Step 1: Connect the Bank Account
 
-1. Hover over **Settings**, then click **Account**.
-3. Click the **Wallet** and scroll to **Bank Accounts**.
-4. Choose **Add verified bank account** > **Connect to your bank**.
-6. Click **Continue**.
-7. Enter your phone number and click **Continue**.
-8. Select your bank and login.
+1. Head to **Settings > Account > Wallet > Bank Accounts**.
+2. Choose **Add verified bank account** > **Connect to your bank**.
+3. Click **Continue**.
+4. Enter your phone number and click **Continue**.
+5. Select your bank and login.
    - If your bank isn’t listed, click the **X**, select **Connect manually**, enter details, check the box, and click **Save & continue**.
-9. Click **Allow**.
-10. Ensure the correct account is selected and click **Save & continue**.
-11. Enter company details:
+6. Click **Allow**.
+7. Ensure the correct account is selected and click **Save & continue**.
+8. Enter company details:
     - **Legal business name**
     - **Physical company address** (U.S. address only, no P.O. boxes)
     - **Company phone number**
@@ -61,15 +61,14 @@ You’ll now receive payments for invoices directly into this bank account.
     - **Tax Identification Number (TIN)**
     - **Company incorporation type, date, and state**
     - **Industry Classification Code** ([Find yours here](https://www.sec.gov/corpfin/division-of-corporation-finance-standard-industrial-classification-sic-code-list))
-12. Enter your personal information, including a U.S. address and SSN, and click **Save & continue**.
-13. Verify your identity by uploading:
+9. Enter your personal information, including a U.S. address and SSN, and click **Save & continue**.
+10. Verify your identity by uploading:
     - A **photo ID** (passport or identity card, must be valid and U.S.-issued)
     - A **short video** of yourself
-14. If applicable, check **Additional Information**:
+11. If applicable, check **Additional Information**:
     - If an individual owns 25% or more of the business, their personal details must be provided.
     - If the business is a **non-profit**, leave the boxes unchecked.
-15. Agree to the terms by selecting the checkboxes.
-16. Click **Save & continue**.
+12. Agree to the terms by selecting the checkboxes and clicking **Save & continue**.
 
 ## Step 2: Verify the Bank Account
 
@@ -81,10 +80,9 @@ Expensify will send **three test transactions** within **1-2 business days**. To
 
 ## Step 3: Add the Bank Account to the Workspace
 
-1. Hover over **Settings**, then click **Workspaces**.
-2. Click the desired workspace.
-3. Click the **Reimbursement** tab.
-4. Click **Direct**, then **Add business bank account** and select the account.
+1. Head to **Settings > Workspace > [Workspace Name] > Workflows > Make or track payments**.
+2. Click **Direct**.
+3. Choose **Add business bank account**, and select the account.
 
 ---
 
@@ -132,7 +130,7 @@ If automatic verification fails, manual verification may require documents like:
 - **Business address verification**
 - **Bank letter confirming account ownership**
 
-For details, contact Concierge.
+For details, contact Concierge Support.
 
 ## What if I don’t see all three test transactions?
 
@@ -168,9 +166,9 @@ Yes, Expensify **cannot process direct payments** for businesses in:
 - Casinos & Gambling/Betting Services
 - Non-FI, Money Orders
 - Wires, Money Orders
-- Government Owned Lotteries
-- Government Licensed Online Casinos (Online Gambling)
-- Government Licensed Horse/Dog Racing
+- Government-Owned Lotteries
+- Government-Licensed Online Casinos (Online Gambling)
+- Government-Licensed Horse/Dog Racing
 - Crypto-currency businesses
 - Internet gambling
 - Marijuana-related businesses

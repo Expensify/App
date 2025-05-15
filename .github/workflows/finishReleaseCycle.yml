@@ -1,4 +1,4 @@
-name: Prepare production deploy
+name: Finish release cycle
 
 on:
   issues:

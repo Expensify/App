@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEarliestErrorField, getLatestError, getLatestErrorField, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -87,19 +88,20 @@ function VerifiedBankAccountFlowEntryPoint({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const errors = reimbursementAccount?.errors ?? {};
     const pendingAction = reimbursementAccount?.pendingAction ?? null;
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const optionPressed = useRef('');
+    const isAccountValidated = account?.validated ?? false;
 
     const contactMethod = account?.primaryLogin ?? '';
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
-    const hasMagicCodeBeenSent = !!loginData?.validateCodeSent;
     const plaidDesktopMessage = getPlaidDesktopMessage();
     const bankAccountRoute = `${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
     const personalBankAccounts = bankAccountList ? Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) : [];
@@ -123,7 +125,7 @@ function VerifiedBankAccountFlowEntryPoint({
      * note: non USD accounts only have manual option available
      */
     useEffect(() => {
-        if (!account?.validated) {
+        if (!isAccountValidated) {
             return;
         }
 
@@ -139,13 +141,13 @@ function VerifiedBankAccountFlowEntryPoint({
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
             openPlaidView();
         }
-    }, [account?.validated, isNonUSDWorkspace, setNonUSDBankAccountStep, setUSDBankAccountStep]);
+    }, [isAccountValidated, isNonUSDWorkspace, setNonUSDBankAccountStep, setUSDBankAccountStep]);
 
     const handleConnectPlaid = () => {
         if (isPlaidDisabled) {
             return;
         }
-        if (!account?.validated) {
+        if (!isAccountValidated) {
             optionPressed.current = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
             toggleValidateCodeActionModal?.(true);
             return;
@@ -158,7 +160,7 @@ function VerifiedBankAccountFlowEntryPoint({
     };
 
     const handleConnectManually = () => {
-        if (!account?.validated) {
+        if (!isAccountValidated) {
             optionPressed.current = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
             toggleValidateCodeActionModal?.(true);
             return;
@@ -189,7 +191,7 @@ function VerifiedBankAccountFlowEntryPoint({
                 <Section
                     title={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.almostDone' : 'workspace.bankAccount.streamlinePayments')}
                     titleStyles={styles.textHeadline}
-                    subtitle={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.youreAlmostDone' : 'bankAccount.toGetStarted')}
+                    subtitle={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.youAreAlmostDone' : 'bankAccount.toGetStarted')}
                     subtitleStyles={styles.textSupporting}
                     subtitleMuted
                     illustration={LottieAnimations.FastMoney}
@@ -217,58 +219,56 @@ function VerifiedBankAccountFlowEntryPoint({
                             </Text>
                         </View>
                     )}
-                    {shouldShowContinueSetupButton === true ? (
-                        <OfflineWithFeedback
-                            errors={
-                                reimbursementAccount?.maxAttemptsReached ? getMicroSecondOnyxErrorWithTranslationKey('connectBankAccountStep.maxAttemptsReached') : getLatestError(errors)
-                            }
-                            errorRowStyles={styles.mt2}
-                            shouldShowErrorMessages
-                            canDismissError={!reimbursementAccount?.maxAttemptsReached}
-                            onClose={resetReimbursementAccount}
-                        >
-                            <MenuItem
-                                title={translate('workspace.bankAccount.continueWithSetup')}
-                                icon={Connect}
-                                iconFill={theme.icon}
-                                onPress={onContinuePress}
-                                shouldShowRightIcon
-                                wrapperStyle={[styles.cardMenuItem, styles.mt4]}
-                                disabled={!!pendingAction || !isEmptyObject(errors)}
-                            />
-                            <MenuItem
-                                title={translate('workspace.bankAccount.startOver')}
-                                icon={RotateLeft}
-                                iconFill={theme.icon}
-                                onPress={requestResetBankAccount}
-                                shouldShowRightIcon
-                                wrapperStyle={[styles.cardMenuItem, styles.mt4]}
-                                disabled={!!pendingAction || !isEmptyObject(errors)}
-                            />
-                        </OfflineWithFeedback>
-                    ) : (
-                        <>
-                            {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
+                    <View style={styles.mt4}>
+                        {shouldShowContinueSetupButton === true ? (
+                            <OfflineWithFeedback
+                                errors={
+                                    reimbursementAccount?.maxAttemptsReached ? getMicroSecondOnyxErrorWithTranslationKey('connectBankAccountStep.maxAttemptsReached') : getLatestError(errors)
+                                }
+                                errorRowStyles={styles.mt2}
+                                shouldShowErrorMessages
+                                canDismissError={!reimbursementAccount?.maxAttemptsReached}
+                                onClose={resetReimbursementAccount}
+                            >
                                 <MenuItem
-                                    title={translate('bankAccount.connectOnlineWithPlaid')}
-                                    icon={Bank}
-                                    iconFill={theme.icon}
-                                    disabled={!!isPlaidDisabled}
-                                    onPress={handleConnectPlaid}
+                                    title={translate('workspace.bankAccount.continueWithSetup')}
+                                    icon={Connect}
+                                    onPress={onContinuePress}
                                     shouldShowRightIcon
-                                    wrapperStyle={[styles.cardMenuItem, styles.mt4]}
+                                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                                    disabled={!!pendingAction || !isEmptyObject(errors)}
                                 />
-                            )}
-                            <MenuItem
-                                title={translate('bankAccount.connectManually')}
-                                icon={Connect}
-                                iconFill={theme.icon}
-                                onPress={handleConnectManually}
-                                shouldShowRightIcon
-                                wrapperStyle={[styles.cardMenuItem, styles.mt4]}
-                            />
-                        </>
-                    )}
+                                <MenuItem
+                                    title={translate('workspace.bankAccount.startOver')}
+                                    icon={RotateLeft}
+                                    onPress={requestResetBankAccount}
+                                    shouldShowRightIcon
+                                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                                    disabled={!!pendingAction || !isEmptyObject(errors)}
+                                />
+                            </OfflineWithFeedback>
+                        ) : (
+                            <>
+                                {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
+                                    <MenuItem
+                                        title={translate('bankAccount.connectOnlineWithPlaid')}
+                                        icon={Bank}
+                                        disabled={!!isPlaidDisabled}
+                                        onPress={handleConnectPlaid}
+                                        shouldShowRightIcon
+                                        outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                                    />
+                                )}
+                                <MenuItem
+                                    title={translate('bankAccount.connectManually')}
+                                    icon={Connect}
+                                    onPress={handleConnectManually}
+                                    shouldShowRightIcon
+                                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                                />
+                            </>
+                        )}
+                    </View>
                 </Section>
                 <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                     <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
@@ -302,7 +302,7 @@ function VerifiedBankAccountFlowEntryPoint({
                 descriptionPrimary={translate('contacts.featureRequiresValidate')}
                 descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
                 isVisible={!!isValidateCodeActionModalVisible}
-                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                validateCodeActionErrorField="validateLogin"
                 validatePendingAction={loginData?.pendingFields?.validateCodeSent}
                 sendValidateCode={() => requestValidateCodeAction()}
                 handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}

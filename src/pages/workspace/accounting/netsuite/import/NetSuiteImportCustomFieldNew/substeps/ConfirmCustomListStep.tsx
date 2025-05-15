@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,6 +17,8 @@ function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, o
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+
     const fieldNames = [INPUT_IDS.LIST_NAME, INPUT_IDS.TRANSACTION_FIELD_ID, INPUT_IDS.MAPPING];
 
     if (!values.mapping) {
@@ -23,7 +26,7 @@ function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, o
     }
 
     return (
-        <View style={[styles.flex1, styles.mt3]}>
+        <View style={[styles.flex1, styles.mt3, bottomSafeAreaPaddingStyle]}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('workspace.common.letsDoubleCheck')}</Text>
             {fieldNames.map((fieldName, index) => (
                 <MenuItemWithTopDescription

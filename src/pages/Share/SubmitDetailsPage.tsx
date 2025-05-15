@@ -50,6 +50,17 @@ function SubmitDetailsPage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
 
+    const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
+    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (!errorTitle || !errorMessage) {
+            return;
+        }
+
+        showErrorAlert(errorTitle, errorMessage);
+    }, [errorTitle, errorMessage]);
+
     useEffect(() => {
         initMoneyRequest(reportOrAccountID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
     }, [reportOrAccountID, policy]);
@@ -201,10 +212,18 @@ function SubmitDetailsPage({
                         shouldShowSmartScanFields={false}
                         isDistanceRequest={false}
                         onPDFLoadError={() => {
-                            showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                            if (errorTitle) {
+                                return;
+                            }
+                            setErrorTitle(translate('attachmentPicker.attachmentError'));
+                            setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
                         }}
                         onPDFPassword={() => {
-                            showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
+                            if (errorTitle) {
+                                return;
+                            }
+                            setErrorTitle(translate('attachmentPicker.attachmentError'));
+                            setErrorMessage(translate('attachmentPicker.protectedPDFNotSupported'));
                         }}
                     />
                 </View>

@@ -140,7 +140,7 @@ beforeAll(() => {
     GithubUtils.internalOctokit = moctokit as unknown as InternalOctokit;
 
     // Mock GitUtils
-    GitUtils.getPullRequestsMergedBetween = jest.fn();
+    GitUtils.getPullRequestsDeployedBetween = jest.fn();
 
     jest.mock('../../.github/libs/ActionUtils', () => ({
         getJSONInput: jest.fn().mockImplementation((name: string, defaultValue: string) => {
@@ -265,10 +265,7 @@ platform | result
             if (commit_sha === 'xyz') {
                 return {
                     data: {
-                        message: `Merge pull request #3 blahblahblah
-(cherry picked from commit dagdag)
-(CP triggered by freyja)`,
-                        committer: {name: 'freyja'},
+                        message: `Merge pull request #3 blahblahblah\\n(cherry picked from commit dagdag)\\n(cherry-picked to staging by freyja)`,
                     },
                 };
             }

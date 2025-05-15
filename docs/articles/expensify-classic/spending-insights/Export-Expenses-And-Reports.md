@@ -1,8 +1,10 @@
 ---
 title: Export Expenses and Reports
 description: How to export expenses and reports using custom reports, PDF files, CSVs, and more
+keywords: [Expensify Classic, export expense reports]
 ---
 
+<div id="expensify-classic" markdown="1">
 
 Expensify offers multiple ways to export your expenses and reports:
 - **Export as a PDF**
@@ -296,3 +298,5 @@ Excel may automatically remove leading zeros. To prevent this:
 1. Open Excel and click **File > Import**.
 2. Select your CSV file.
 3. In step 3, set relevant columns to **Text format**.
+
+</div>

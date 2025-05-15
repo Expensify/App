@@ -1,28 +1,46 @@
-import type {OnyxMergeInput} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import * as API from '@libs/API';
+import type {CloseSidePanelParams, OpenSidePanelParams} from '@libs/API/parameters';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type Options = {
-    /** Determines whether the Side Panel should be open or closed */
-    isOpen?: boolean;
+/**
+ * Open the side panel
+ *
+ * @param shouldOpenOnNarrowScreen - Whether to open the side panel on narrow screen
+ */
+function openSidePanel(shouldOpenOnNarrowScreen: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            key: ONYXKEYS.NVP_SIDE_PANEL,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: shouldOpenOnNarrowScreen ? {open: true, openNarrowScreen: true} : {open: true},
+        },
+    ];
 
-    /** Determines whether the Side Panel should be open or closed on narrow screens */
-    isOpenNarrowScreen?: boolean;
-};
+    const params: OpenSidePanelParams = {isNarrowScreen: shouldOpenOnNarrowScreen};
 
-/** Updates the Side Panel state in Onyx */
-function triggerSidePanel({isOpen, isOpenNarrowScreen}: Options) {
-    const value: OnyxMergeInput<typeof ONYXKEYS.NVP_SIDE_PANEL> = {};
-
-    if (isOpen !== undefined) {
-        value.open = isOpen;
-    }
-    if (isOpenNarrowScreen !== undefined) {
-        value.openNarrowScreen = isOpenNarrowScreen;
-    }
-
-    Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, value);
+    API.write(WRITE_COMMANDS.OPEN_SIDE_PANEL, params, {optimisticData});
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {triggerSidePanel};
+/**
+ * Close the side panel
+ *
+ * @param shouldCloseOnNarrowScreen - Whether to close the side panel on narrow screen
+ */
+function closeSidePanel(shouldCloseOnNarrowScreen: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            key: ONYXKEYS.NVP_SIDE_PANEL,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: shouldCloseOnNarrowScreen ? {openNarrowScreen: false} : {open: false},
+        },
+    ];
+
+    const params: CloseSidePanelParams = {isNarrowScreen: shouldCloseOnNarrowScreen};
+
+    API.write(WRITE_COMMANDS.CLOSE_SIDE_PANEL, params, {optimisticData});
+}
+
+export default {openSidePanel, closeSidePanel};

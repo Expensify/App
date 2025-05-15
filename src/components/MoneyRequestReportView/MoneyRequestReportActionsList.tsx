@@ -1,46 +1,57 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
+import {useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import Checkbox from '@components/Checkbox';
+import ConfirmModal from '@components/ConfirmModal';
+import DecisionModal from '@components/DecisionModal';
 import FlatList from '@components/FlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
+import {PressableWithFeedback} from '@components/Pressable';
+import Text from '@components/Text';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DateUtils from '@libs/DateUtils';
+import {parseFSAttributes} from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     getFirstVisibleReportActionID,
-    getIOUActionForTransactionID,
     getMostRecentIOURequestActionID,
     getOneTransactionThreadReportID,
     hasNextActionMadeBySameActor,
     isConsecutiveChronosAutomaticTimerAction,
     isDeletedParentAction,
-    isReportActionUnread,
-    isReportPreviewAction,
-    shouldHideNewMarker,
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated} from '@libs/ReportUtils';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation from '@navigation/Navigation';
 import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
 import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
-import {openReport, readNewestAction} from '@userActions/Report';
+import shouldDisplayNewMarkerOnReportAction from '@pages/home/report/shouldDisplayNewMarkerOnReportAction';
+import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type Transaction from '@src/types/onyx/Transaction';
+import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
+import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 /**
@@ -49,13 +60,21 @@ import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyS
 const EmptyParentReportActionForTransactionThread = undefined;
 
 const INITIAL_NUM_TO_RENDER = 20;
+// Amount of time to wait until all list items should be rendered and scrollToEnd will behave well
+const DELAY_FOR_SCROLLING_TO_END = 100;
 
 type MoneyRequestReportListProps = {
     /** The report */
     report: OnyxTypes.Report;
 
+    /** Policy that the report belongs to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
+
     /** Array of report actions for this report */
     reportActions?: OnyxTypes.ReportAction[];
+
+    /** List of transactions belonging to this report */
+    transactions: OnyxTypes.Transaction[];
 
     /** If the report has newer actions to load */
     hasNewerActions: boolean;
@@ -71,46 +90,46 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function selectTransactionsForReportID(transactions: OnyxCollection<OnyxTypes.Transaction>, reportID: string, reportActions: OnyxTypes.ReportAction[]) {
-    return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
-        if (!transaction) {
-            return false;
-        }
-        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        return transaction.reportID === reportID && !isDeletedParentAction(action);
-    });
-}
-
-/**
- * TODO make this component have the same functionalities as `ReportActionsList`
- *  - shouldDisplayNewMarker
- */
-function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActions, hasOlderActions}: MoneyRequestReportListProps) {
+function MoneyRequestReportActionsList({report, policy, reportActions = [], transactions = [], hasNewerActions, hasOlderActions}: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
+    const reportScrollManager = useReportScrollManager();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
 
     const reportID = report?.reportID;
+    const linkedReportActionID = route?.params?.reportActionID;
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
+        canBeMissing: true,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
     });
 
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
-    const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions): OnyxTypes.Transaction[] => selectTransactionsForReportID(allTransactions, reportID, reportActions),
-    });
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
 
     const canPerformWriteAction = canUserPerformWriteAction(report);
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
 
-    const reportScrollManager = useReportScrollManager();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+
+    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
+
+    const {selectionMode} = useMobileSelectionMode();
+    const {
+        options: selectedTransactionsOptions,
+        handleDeleteTransactions,
+        isDeleteModalVisible,
+        hideDeleteModal,
+    } = useSelectedTransactionsActions({report, reportActions, allTransactionsLength: transactions.length, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
@@ -127,6 +146,18 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
         return filteredActions.toReversed();
     }, [reportActions, isOffline, canPerformWriteAction]);
 
+    const reportActionSize = useRef(visibleReportActions.length);
+    const lastAction = visibleReportActions.at(-1);
+    const lastActionIndex = lastAction?.reportActionID;
+    const previousLastIndex = useRef(lastActionIndex);
+
+    const scrollingVerticalBottomOffset = useRef(0);
+    const readActionSkipped = useRef(false);
+    const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
+    const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
+    const hasNewestReportActionRef = useRef(hasNewestReportAction);
+    const userActiveSince = useRef<string>(DateUtils.getDBTime());
+
     const reportActionIDs = useMemo(() => {
         return reportActions?.map((action) => action.reportActionID) ?? [];
     }, [reportActions]);
@@ -142,31 +173,20 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
-            loadNewerChats(false);
+            loadOlderChats(false);
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
-    }, [loadNewerChats]);
-
-    const onEndReached = useCallback(() => {
-        loadOlderChats(false);
+        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadOlderChats(false)));
     }, [loadOlderChats]);
 
-    const reportActionSize = useRef(visibleReportActions.length);
-    const lastAction = visibleReportActions.at(-1);
-    const lastActionIndex = lastAction?.reportActionID;
-    const previousLastIndex = useRef(lastActionIndex);
-
-    const scrollingVerticalOffset = useRef(0);
-    const readActionSkipped = useRef(false);
-    const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
-    const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
-    const hasNewestReportActionRef = useRef(hasNewestReportAction);
+    const onEndReached = useCallback(() => {
+        loadNewerChats(false);
+    }, [loadNewerChats]);
 
     useEffect(() => {
         if (
-            scrollingVerticalOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
+            scrollingVerticalBottomOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionIndex &&
             reportActionSize.current > reportActions.length &&
             hasNewestReportAction
@@ -190,6 +210,8 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
     }, [visibleReportActions]);
     const prevVisibleActionsMap = usePrevious(visibleActionsMap);
 
+    const reportLastReadTime = report.lastReadTime ?? '';
+
     /**
      * The timestamp for the unread marker.
      *
@@ -198,9 +220,9 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
      * - marks a message as read/unread
      * - reads a new message as it is received
      */
-    const [unreadMarkerTime, setUnreadMarkerTime] = useState(report.lastReadTime);
+    const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
     useEffect(() => {
-        setUnreadMarkerTime(report.lastReadTime);
+        setUnreadMarkerTime(reportLastReadTime);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
@@ -218,65 +240,35 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
     }, [isOffline, lastOfflineAt, lastOnlineAt, preferredLocale, reportActions]);
 
     /**
-     * TODO extract as reusable logic from ReportActionsList - https://github.com/Expensify/App/issues/58891
+     * The reportActionID the unread marker should display above
      */
     const unreadMarkerReportActionID = useMemo(() => {
-        const shouldDisplayNewMarker = (message: OnyxTypes.ReportAction, index: number): boolean => {
-            const nextMessage = visibleReportActions.at(index + 1);
-            const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
-
-            // If the current message is the earliest message received while offline, we want to display the unread marker above this message.
-            const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
-            if (isEarliestReceivedOfflineMessage && !isNextMessageUnread) {
-                return true;
-            }
-
-            // If the unread marker should be hidden or is not within the visible area, don't show the unread marker.
-            if (shouldHideNewMarker(message)) {
-                return false;
-            }
-
-            const isCurrentMessageUnread = isReportActionUnread(message, unreadMarkerTime);
-
-            // If the current message is read or the next message is unread, don't show the unread marker.
-            if (!isCurrentMessageUnread || isNextMessageUnread) {
-                return false;
-            }
-
-            const isPendingAdd = (action: OnyxTypes.ReportAction) => {
-                return action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-            };
-
-            // If no unread marker exists, don't set an unread marker for newly added messages from the current user.
-            const isFromCurrentUser = currentUserAccountID === (isReportPreviewAction(message) ? message.childLastActorAccountID : message.actorAccountID);
-            const isNewMessage = !prevVisibleActionsMap[message.reportActionID];
-
-            // The unread marker will show if the action's `created` time is later than `unreadMarkerTime`.
-            // The `unreadMarkerTime` has already been updated to match the optimistic action created time,
-            // but once the new action is saved on the backend, the actual created time will be later than the optimistic one.
-            // Therefore, we also need to prevent the unread marker from appearing for previously optimistic actions.
-            const isPreviouslyOptimistic =
-                (isPendingAdd(prevVisibleActionsMap[message.reportActionID]) && !isPendingAdd(message)) ||
-                (!!prevVisibleActionsMap[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
-            const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID.current && isFromCurrentUser && (isNewMessage || isPreviouslyOptimistic);
-
-            if (isFromCurrentUser) {
-                return !shouldIgnoreUnreadForCurrentUserMessage;
-            }
-
-            return !isNewMessage || scrollingVerticalOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
-        };
-
-        // If there are message that were recevied while offline,
-        // we can skip checking all messages later than the earliest recevied offline message.
-        const startIndex = earliestReceivedOfflineMessageIndex ?? 0;
+        // If there are message that were received while offline,
+        // we can skip checking all messages later than the earliest received offline message.
+        const startIndex = visibleReportActions.length - 1;
+        const endIndex = earliestReceivedOfflineMessageIndex ?? 0;
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
-        for (let index = startIndex; index < visibleReportActions.length; index++) {
+        for (let index = startIndex; index >= endIndex; index--) {
             const reportAction = visibleReportActions.at(index);
+            const nextAction = visibleReportActions.at(index - 1);
+            const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
+
+            const shouldDisplayNewMarker =
+                reportAction &&
+                shouldDisplayNewMarkerOnReportAction({
+                    message: reportAction,
+                    nextMessage: nextAction,
+                    isEarliestReceivedOfflineMessage,
+                    accountID: currentUserAccountID,
+                    prevSortedVisibleReportActionsObjects: prevVisibleActionsMap,
+                    unreadMarkerTime,
+                    scrollingVerticalOffset: scrollingVerticalBottomOffset.current,
+                    prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
+                });
 
             // eslint-disable-next-line react-compiler/react-compiler
-            if (reportAction && shouldDisplayNewMarker(reportAction, index)) {
+            if (shouldDisplayNewMarker) {
                 return reportAction.reportActionID;
             }
         }
@@ -284,6 +276,78 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
         return null;
     }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
+
+    /**
+     * Subscribe to read/unread events and update our unreadMarkerTime
+     */
+    useEffect(() => {
+        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
+            setUnreadMarkerTime(newLastReadTime);
+            userActiveSince.current = DateUtils.getDBTime();
+        });
+        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
+            setUnreadMarkerTime(newLastReadTime);
+        });
+
+        return () => {
+            unreadActionSubscription.remove();
+            readNewestActionSubscription.remove();
+        };
+    }, [report.reportID]);
+
+    /**
+     * When the user reads a new message as it is received, we'll push the unreadMarkerTime down to the timestamp of
+     * the latest report action. When new report actions are received and the user is not viewing them (they're above
+     * the MSG_VISIBLE_THRESHOLD), the unread marker will display over those new messages rather than the initial
+     * lastReadTime.
+     */
+    useLayoutEffect(() => {
+        if (unreadMarkerReportActionID) {
+            return;
+        }
+
+        const mostRecentReportActionCreated = lastAction?.created ?? '';
+        if (mostRecentReportActionCreated <= unreadMarkerTime) {
+            return;
+        }
+
+        setUnreadMarkerTime(mostRecentReportActionCreated);
+    }, [lastAction?.created, unreadMarkerReportActionID, unreadMarkerTime]);
+
+    const scrollToBottomForCurrentUserAction = useCallback(
+        (isFromCurrentUser: boolean) => {
+            InteractionManager.runAfterInteractions(() => {
+                setIsFloatingMessageCounterVisible(false);
+                // If a new comment is added from the current user, scroll to the bottom, otherwise leave the user position unchanged
+                if (!isFromCurrentUser) {
+                    return;
+                }
+
+                // We want to scroll to the end of the list where the newest message is
+                // however scrollToEnd will not work correctly with items of variable sizes without `getItemLayout` - so we need to delay the scroll until every item rendered
+                setTimeout(() => {
+                    reportScrollManager.scrollToEnd();
+                }, DELAY_FOR_SCROLLING_TO_END);
+            });
+        },
+        [reportScrollManager],
+    );
+
+    useEffect(() => {
+        // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.ts. This allows us to maintain
+        // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
+        const unsubscribe = subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
+
+        return () => {
+            if (!unsubscribe) {
+                return;
+            }
+            unsubscribe();
+        };
+
+        // This effect handles subscribing to events, so we only want to run it on mount, and in case reportID changes
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [report.reportID]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
@@ -306,17 +370,27 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
                     shouldDisplayReplyDivider={visibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
+                    linkedReportActionID={linkedReportActionID}
                 />
             );
         },
-        [visibleReportActions, reportActions, parentReportAction, report, transactionThreadReport, mostRecentIOUReportActionID, unreadMarkerReportActionID, firstVisibleReportActionID],
+        [
+            visibleReportActions,
+            reportActions,
+            parentReportAction,
+            report,
+            transactionThreadReport,
+            mostRecentIOUReportActionID,
+            unreadMarkerReportActionID,
+            firstVisibleReportActionID,
+            linkedReportActionID,
+        ],
     );
 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
             openReport(report.reportID);
             reportScrollManager.scrollToEnd();
             return;
@@ -332,11 +406,11 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      */
     const handleUnreadFloatingButton = () => {
-        if (scrollingVerticalOffset.current > CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!unreadMarkerReportActionID) {
+        if (scrollingVerticalBottomOffset.current > CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!unreadMarkerReportActionID) {
             setIsFloatingMessageCounterVisible(true);
         }
 
-        if (scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
+        if (scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
             if (readActionSkipped.current) {
                 readActionSkipped.current = false;
                 readNewestAction(report.reportID);
@@ -345,21 +419,91 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
         }
     };
 
-    const reportHasComments = visibleReportActions.length > 0;
     const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+        const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
+        const fullContentHeight = contentSize.height;
+
+        /**
+         * Count the diff between current scroll position and the bottom of the list.
+         * Diff == (height of all items in the list) - (height of the layout with the list) - (how far user scrolled)
+         */
+        scrollingVerticalBottomOffset.current = fullContentHeight - layoutMeasurement.height - contentOffset.y;
         handleUnreadFloatingButton();
     };
 
+    const reportHasComments = visibleReportActions.length > 0;
+
+    // Parse Fullstory attributes on initial render
+    useLayoutEffect(parseFSAttributes, []);
+
     return (
         <View style={[styles.flex1]}>
-            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, styles.pb4]}>
+            {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
+                <>
+                    <ButtonWithDropdownMenu
+                        onPress={() => null}
+                        options={selectedTransactionsOptions}
+                        customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
+                        isSplitButton={false}
+                        shouldAlwaysShowDropdownMenu
+                        wrapperStyle={[styles.w100, styles.ph5]}
+                    />
+                    <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8]}>
+                        <Checkbox
+                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            isChecked={selectedTransactionsID.length === transactions.length}
+                            isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
+                            onPress={() => {
+                                if (selectedTransactionsID.length !== 0) {
+                                    setSelectedTransactionsID([]);
+                                } else {
+                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                }
+                            }}
+                        />
+                        <PressableWithFeedback
+                            style={[styles.userSelectNone, styles.alignItemsCenter]}
+                            onPress={() => {
+                                if (selectedTransactionsID.length === transactions.length) {
+                                    setSelectedTransactionsID([]);
+                                } else {
+                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                }
+                            }}
+                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            role="button"
+                            accessibilityState={{checked: selectedTransactionsID.length === transactions.length}}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        >
+                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                        </PressableWithFeedback>
+                    </View>
+                    <ConfirmModal
+                        title={translate('iou.deleteExpense', {count: selectedTransactionsID.length})}
+                        isVisible={isDeleteModalVisible}
+                        onConfirm={handleDeleteTransactions}
+                        onCancel={hideDeleteModal}
+                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsID.length})}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
+                        danger
+                        shouldEnableNewFocusManagement
+                    />
+                </>
+            )}
+            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, styles.pv4]}>
                 <FloatingMessageCounter
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
                 {isEmpty(visibleReportActions) && isEmpty(transactions) ? (
-                    <SearchMoneyRequestReportEmptyState />
+                    <>
+                        <MoneyRequestViewReportFields
+                            report={report}
+                            policy={policy}
+                        />
+                        <SearchMoneyRequestReportEmptyState />
+                    </>
                 ) : (
                     <FlatList
                         initialNumToRender={INITIAL_NUM_TO_RENDER}
@@ -374,12 +518,18 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
                         onStartReached={onStartReached}
                         onStartReachedThreshold={0.75}
                         ListHeaderComponent={
-                            <MoneyRequestReportTransactionList
-                                report={report}
-                                transactions={transactions}
-                                reportActions={reportActions}
-                                hasComments={reportHasComments}
-                            />
+                            <>
+                                <MoneyRequestViewReportFields
+                                    report={report}
+                                    policy={policy}
+                                />
+                                <MoneyRequestReportTransactionList
+                                    report={report}
+                                    transactions={transactions}
+                                    reportActions={reportActions}
+                                    hasComments={reportHasComments}
+                                />
+                            </>
                         }
                         keyboardShouldPersistTaps="handled"
                         onScroll={trackVerticalScrolling}
@@ -387,6 +537,15 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
                     />
                 )}
             </View>
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={shouldUseNarrowLayout}
+                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={isDownloadErrorModalVisible}
+                onClose={() => setIsDownloadErrorModalVisible(false)}
+            />
         </View>
     );
 }

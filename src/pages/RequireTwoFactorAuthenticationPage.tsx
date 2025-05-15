@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {Encryption} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,22 +17,17 @@ function RequireTwoFactorAuthenticationPage() {
 
     return (
         <ScreenWrapper testID={RequireTwoFactorAuthenticationPage.displayName}>
-            <HeaderWithBackButton
-                title={translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsHeader')}
-                shouldShowBackButton={false}
-                shouldDisplayHelpButton={false}
-            />
             <View style={[styles.twoFARequiredContainer]}>
-                <View style={[styles.cardSectionIllustration, styles.alignItemsCenter]}>
+                <View style={[styles.twoFAIllustration, styles.alignItemsCenter]}>
                     <Icon
                         src={Encryption}
-                        width={variables.modalTopIconHeight}
-                        height={variables.modalTopIconHeight}
+                        width={variables.twoFAIconHeight}
+                        height={variables.twoFAIconHeight}
                     />
                 </View>
-                <View style={[styles.mt5, styles.mh5]}>
-                    <View style={[styles.gap2, styles.mb10]}>
-                        <Text style={[styles.textHeadlineH1, styles.textAlignCenter]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsTitle')}</Text>
+                <View style={[styles.mt2, styles.mh5, styles.dFlex, styles.alignItemsCenter]}>
+                    <View style={[styles.mb5]}>
+                        <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mv2]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsHeader')}</Text>
                         <Text style={[styles.textSupporting, styles.textAlignCenter]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsDescription')}</Text>
                     </View>
                     <Button

@@ -64,7 +64,7 @@ function RulesBillableDefaultPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesBillableDefaultPage.displayName}
             >
@@ -92,6 +92,7 @@ function RulesBillableDefaultPage({
                     shouldSingleExecuteRowSelect
                     containerStyle={[styles.pt3]}
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

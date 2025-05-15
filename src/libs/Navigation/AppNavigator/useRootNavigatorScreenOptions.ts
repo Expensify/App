@@ -75,7 +75,7 @@ const useRootNavigatorScreenOptions = () => {
         splitNavigator: {
             ...commonScreenOptions,
             // We need to turn off animation for the full screen to avoid delay when closing screens.
-            animation: shouldUseNarrowLayout ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            animation: Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
                 cardStyle: StyleUtils.getNavigationModalCardStyle(),
@@ -89,7 +89,7 @@ const useRootNavigatorScreenOptions = () => {
                 cardStyle: {
                     height: '100%',
                 },
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePanel: true}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
             },
         },
     } satisfies RootNavigatorScreenOptions;

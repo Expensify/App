@@ -69,6 +69,7 @@ import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crosshair from '@assets/images/crosshair.svg';
+import DocumentMerge from '@assets/images/document-merge.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import DocumentSlash from '@assets/images/document-slash.svg';
 import Document from '@assets/images/document.svg';
@@ -141,6 +142,7 @@ import MakeAdmin from '@assets/images/make-admin.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
+import Minus from '@assets/images/minus.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
 import MoneySearch from '@assets/images/money-search.svg';
@@ -181,6 +183,9 @@ import Shield from '@assets/images/shield.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
 import GoogleLogo from '@assets/images/signIn/google-logo.svg';
 import AdvancedApprovalsSquare from '@assets/images/simple-illustrations/advanced-approvals-icon-square.svg';
+import MessageInABottle from '@assets/images/simple-illustrations/simple-illustration__messageinabottle.svg';
+import ReplaceReceipt from '@assets/images/simple-illustrations/simple-illustration__replace-receipt.svg';
+import SmartScan from '@assets/images/simple-illustrations/simple-illustration__smartscan.svg';
 import Facebook from '@assets/images/social-facebook.svg';
 import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
@@ -276,6 +281,7 @@ export {
     DeletedRoomAvatar,
     Document,
     DocumentSlash,
+    DocumentMerge,
     DomainRoomAvatar,
     DotIndicator,
     DotIndicatorUnfilled,
@@ -337,6 +343,7 @@ export {
     Menu,
     Meter,
     Megaphone,
+    MessageInABottle,
     MoneyBag,
     MoneyCircle,
     MoneySearch,
@@ -370,11 +377,13 @@ export {
     ReceiptSlash,
     RemoveMembers,
     ReceiptSearch,
+    ReplaceReceipt,
     Rotate,
     RotateLeft,
     Scan,
     Send,
     Shield,
+    SmartScan,
     Stopwatch,
     Suitcase,
     Sync,
@@ -440,4 +449,5 @@ export {
     MagnifyingGlassSpyMouthClosed,
     EmptySquare,
     CheckSquare,
+    Minus,
 };

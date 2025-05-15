@@ -7,11 +7,11 @@ import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
+import {getEarliestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as User from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
@@ -19,14 +19,13 @@ type VerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamLis
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const styles = useThemeStyles();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const contactMethod = account?.primaryLogin ?? '';
     const {translate} = useLocalize();
     const loginData = loginList?.[contactMethod];
-    const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
+    const isUserValidated = account?.validated ?? false;
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
     const navigateForwardTo = route.params?.forwardTo;
@@ -34,17 +33,17 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
-    useEffect(() => () => User.clearUnvalidatedNewContactMethodAction(), []);
+    useEffect(() => () => clearUnvalidatedNewContactMethodAction(), []);
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            User.validateSecondaryLogin(loginList, contactMethod, validateCode, true);
+            validateSecondaryLogin(loginList, contactMethod, validateCode, true);
         },
         [loginList, contactMethod],
     );
 
     const clearError = useCallback(() => {
-        User.clearContactMethodErrors(contactMethod, 'validateLogin');
+        clearContactMethodErrors(contactMethod, 'validateLogin');
     }, [contactMethod]);
 
     const closeModal = useCallback(() => {
@@ -87,10 +86,10 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
     return (
         <ValidateCodeActionModal
-            sendValidateCode={() => User.requestValidateCodeAction()}
+            sendValidateCode={requestValidateCodeAction}
             handleSubmitForm={handleSubmitForm}
             validateError={validateLoginError}
-            hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
+            validateCodeActionErrorField="validateLogin"
             isVisible={isValidateCodeActionModalVisible}
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}

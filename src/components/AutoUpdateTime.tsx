@@ -7,7 +7,7 @@ import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
-import Text from './Text';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import type {WithLocalizeProps} from './withLocalize';
 import withLocalize from './withLocalize';
 
@@ -47,16 +47,13 @@ function AutoUpdateTime({timezone, preferredLocale, translate}: AutoUpdateTimePr
     }, [getCurrentUserLocalTime]);
 
     return (
-        <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-            <Text
-                style={[styles.textLabelSupporting, styles.mb1]}
-                numberOfLines={1}
-            >
-                {translate('detailsPage.localTime')}
-            </Text>
-            <Text numberOfLines={1}>
-                {DateUtils.formatToLocalTime(currentUserLocalTime)} {timezoneName}
-            </Text>
+        <View style={[styles.w100, styles.detailsPageSectionContainer]}>
+            <MenuItemWithTopDescription
+                style={[styles.ph0]}
+                title={`${DateUtils.formatToLocalTime(currentUserLocalTime)} ${timezoneName}`}
+                description={translate('detailsPage.localTime')}
+                interactive={false}
+            />
         </View>
     );
 }

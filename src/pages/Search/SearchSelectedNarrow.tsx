@@ -27,6 +27,7 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
         if (selectedOptionIndexRef.current === -1) {
             return;
         }
+
         options[selectedOptionIndexRef.current]?.onSelected?.();
     };
 
@@ -62,6 +63,7 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={handleOnCloseMenu}
                 onModalHide={handleOnModalHide}
+                shouldUseNewModal
             >
                 {options.map((option, index) => (
                     <MenuItem

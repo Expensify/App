@@ -1,34 +1,49 @@
 ---
 title: Expensify API
 description: User-sourced tips and tricks for using Expensify’s API. 
+keywords: [Expensify Classic, API]
 ---
-# Overview
-An API (Application Programming Interface) allows two programs to communicate with each other. Expensify's API connects with various software platforms like NetSuite or Xero, and it can also link to other systems that don’t have a pre-made connection, such as [Workday](https://help.expensify.com/articles/expensify-classic/integrations/HR-integrations/Workday).
 
-{% include info.html %} 
-To begin, review our [Integration Server Manual](https://integrations.expensify.com/Integration-Server/doc/#introduction) thoroughly, as it will be your primary resource. The Expensify API is a self-serve tool, and your internal team is responsible for setting it up and ensuring it meets your needs. We can assist with basic troubleshooting, but the level of support may vary based on the support agent or account manager. It’s important for your team to be familiar with the setup process. 
-{% include end-info.html %}
+<div id="expensify-classic" markdown="1">
 
-We've compiled answers to some frequently asked questions to help you get started.
+Expensify’s API helps connect your account to third-party tools like NetSuite, Xero, and even internal systems like Workday. This guide includes tips, usage examples, and common troubleshooting questions.
 
-## Should I give your support team my API credentials when I need help?
- 
-If you’re seeking help with Expensify's API, do not share your partnerUserSecret. If you do, immediately rotate your credentials on [this page](https://www.expensify.com/tools/integrations/).
+---
 
-## Is there a rate limit?
+# Getting Started
 
-To keep our platform stable and handle high traffic, Expensify limits how many API requests you can send:
-- Up to 5 requests every 10 seconds
-- Up to 20 requests every 60 seconds
+To start using the API, review our full [Integration Server Manual](https://integrations.expensify.com/Integration-Server/doc/#introduction).
 
-Sending more requests than allowed may result in an error with status code `429`.
+**Note:** The API is a self-serve tool. Your internal team will need to manage setup and maintenance. If you have an Account Manager, please reach out to them directly for assistance with setting up Expensify's API.
+
+---
+
+# FAQ
+
+## Should I give Concierge my API credentials?
+
+No. Never share your `partnerUserSecret`. If you already have, rotate your credentials immediately [here](https://www.expensify.com/tools/integrations/).
+
+## What is the API rate limit?
+
+To keep things running smoothly:
+- Max **5 requests every 10 seconds**
+- Max **20 requests every 60 seconds**
+
+Going over this will return a `429` error.
 
 ## What is a Policy ID?
 
-This is also known as a Workspace ID. To find your Policy/Workspace ID, 
-Hover over Settings and click Workspaces. 
-Click the name of the Workspace. 
-Copy the ID number from the URL. For example, if the URL is https://www.expensify.com/policy?param={"policyID":"0810E551A5F2A9C2”}, then your workspace ID is 0810E551A5F2A9C2.
+Your **Policy ID** is also called your **Workspace ID**.
+
+To find it:
+1. Go to `Settings > Workspaces`
+2. Click the Workspace name
+3. Copy the ID from the browser URL. It will look like this:
+   ```
+   https://www.expensify.com/policy?param={"policyID":"0810E551A5F2A9C2"}
+   ```
+   Your Workspace ID is `0810E551A5F2A9C2`.
 
 ## Can I use the parent type `file` to export workspace/policy data?
 
@@ -52,7 +67,7 @@ Boolean fields won't output values without a string. For example, instead of usi
 
 ## Can I export the reports for just one user?
 
-Not in a quick convenient way, as you would need to include the user in your template. The simplest approach is to export data for all users and then apply a filter in your preferred spreadsheet program.
+Not in a quick, convenient way, as you would need to include the user in your template. The simplest approach is to export data for all users and then apply a filter in your preferred spreadsheet program.
 
 ## Can I create expenses on behalf of users?
 
@@ -148,7 +163,7 @@ The template variable determines what information is saved in your CSV file. If 
 
 **Step 3: Save your generated file name**
 
-Expensify currently supports only the "onReceive":{"immediateResponse":["returnRandomFileName"]} option in step 2, so you should receive a random filename back from the API like "exportc111111d-a1a1-a1a1-a1a1-d1111111f.csv". You will need to document this filename if you plan on running the download command after this one.
+Expensify currently supports only the "onReceive":{"immediateResponse":["returnRandomFileName"]} option in step 2, so you should receive a random filename back from the API like "export111111d-a1a1-a1a1-a1a1-d1111111f.csv". You will need to document this filename if you plan on running the download command after this one.
 
 **Step 4: Download your exported report**
 
@@ -161,7 +176,7 @@ Set up another API call in almost the same way you did before. You don't need th
         "partnerUserID": "my_user_id",
         "partnerUserSecret": "my_user_secret"
     },
-    "fileName": "exportc111111d-a1a1-a1a1-a1a1-d1111111f.csv",
+    "fileName": "export111111d-a1a1-a1a1-a1a1-d1111111f.csv",
     "fileSystem": "integrationServer"
 }
 ```
@@ -227,5 +242,4 @@ Remember that there are 4 [required fields](https://integrations.expensify.com/I
 - employeeID	
 - policyID
 
-*Thank you to our customer Raul Hernandez who originally wrote and shared this guide.*
-
+</div>

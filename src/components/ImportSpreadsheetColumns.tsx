@@ -80,7 +80,7 @@ function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles,
                     })}
                 </View>
             </ScrollView>
-            <FixedFooter>
+            <FixedFooter addBottomSafeAreaPadding>
                 <OfflineWithFeedback
                     shouldDisplayErrorAbove
                     errors={errors}

@@ -20,7 +20,7 @@ function SkeletonViewLines({numberOfRows, shouldAnimate = true}: SkeletonViewLin
             height={CONST.CHAT_SKELETON_VIEW.HEIGHT_FOR_ROW_COUNT[numberOfRows]}
             backgroundColor={theme.skeletonLHNIn}
             foregroundColor={theme.skeletonLHNOut}
-            speed={3}
+            speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
             style={styles.mr5}
         >
             <Circle

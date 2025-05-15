@@ -57,6 +57,7 @@ function TransactionFieldIDStep({onNext, isEditing, netSuiteCustomFieldFormValue
             submitFlexEnabled
             shouldUseScrollView
             shouldHideFixErrorsAlert
+            addBottomSafeAreaPadding
         >
             <View style={styles.ph5}>
                 <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(`workspace.netsuite.import.importCustomFields.customLists.addForm.transactionFieldIDTitle`)}</Text>

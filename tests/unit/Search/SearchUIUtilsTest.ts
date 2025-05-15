@@ -12,6 +12,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+jest.mock('@src/components/ConfirmedRoute.tsx');
+
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
 const approverAccountID = 1111111;
@@ -22,6 +24,7 @@ const policyID = 'A1B2C3';
 const reportID = '123456789';
 const reportID2 = '11111';
 const reportID3 = '99999';
+const reportID4 = '6155022250251839';
 const transactionID = '1';
 const transactionID2 = '2';
 const transactionID3 = '3';
@@ -95,7 +98,7 @@ const searchResults: OnyxTypes.SearchResults = {
                         type: 'text',
                         text: 'Payment has been processed.',
                         html: '<p>Payment has been processed.</p>',
-                        whisperedTo: [12345678, 87654321],
+                        whisperedTo: [],
                     },
                     {
                         type: 'comment',
@@ -106,6 +109,27 @@ const searchResults: OnyxTypes.SearchResults = {
                 reportActionID: 'Admin',
                 reportID,
                 reportName: 'Admin',
+            },
+            test1: {
+                accountID: adminAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2024-12-21 13:05:20',
+                message: [
+                    {
+                        type: 'text',
+                        text: 'Payment has been processed.',
+                        html: '<p>Payment has been processed.</p>',
+                        whisperedTo: [12345678, 87654321],
+                    },
+                    {
+                        type: 'comment',
+                        text: 'Please review this expense.',
+                        html: '<p>Please review this expense.</p>',
+                    },
+                ],
+                reportActionID: 'Admin1',
+                reportID,
+                reportName: 'Admin1',
             },
         },
         [`report_${reportID}`]: {
@@ -173,6 +197,14 @@ const searchResults: OnyxTypes.SearchResults = {
             total: 4400,
             type: 'iou',
             unheldTotal: 4400,
+        },
+        [`report_${reportID4}`]: {
+            accountID: adminAccountID,
+            reportID: reportID4,
+            chatReportID: '',
+            chatType: 'policyExpenseChat',
+            created: '2025-03-05 16:34:27',
+            type: 'chat',
         },
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
@@ -339,7 +371,7 @@ const reportActionListItems = [
                 type: 'text',
                 text: 'Payment has been processed.',
                 html: '<p>Payment has been processed.</p>',
-                whisperedTo: [12345678, 87654321],
+                whisperedTo: [],
             },
             {
                 type: 'comment',
@@ -868,7 +900,7 @@ describe('SearchUIUtils', () => {
                             html: '<p>Payment has been processed.</p>',
                             text: 'Payment has been processed.',
                             type: 'text',
-                            whisperedTo: [12345678, 87654321],
+                            whisperedTo: [],
                         },
                         {
                             html: '<p>Please review this expense.</p>',
@@ -903,7 +935,7 @@ describe('SearchUIUtils', () => {
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
             const menuItems = SearchUIUtils.createTypeMenuItems(null, undefined);
-            expect(menuItems).toHaveLength(4);
+            expect(menuItems).toHaveLength(5);
             expect(menuItems).toStrictEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
@@ -922,6 +954,11 @@ describe('SearchUIUtils', () => {
                         icon: Expensicons.ChatBubbles,
                     }),
                     expect.objectContaining({
+                        translationPath: 'common.tasks',
+                        type: CONST.SEARCH.DATA_TYPES.TASK,
+                        icon: Expensicons.Task,
+                    }),
+                    expect.objectContaining({
                         translationPath: 'travel.trips',
                         type: CONST.SEARCH.DATA_TYPES.TRIP,
                         icon: Expensicons.Suitcase,
@@ -937,6 +974,7 @@ describe('SearchUIUtils', () => {
                 ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc'}),
                 ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense status:all sortBy:date sortOrder:desc groupBy:reports'}),
                 ROUTES.SEARCH_ROOT.getRoute({query: 'type:chat status:all sortBy:date sortOrder:desc'}),
+                ROUTES.SEARCH_ROOT.getRoute({query: 'type:task status:all sortBy:date sortOrder:desc'}),
                 ROUTES.SEARCH_ROOT.getRoute({query: 'type:trip status:all sortBy:date sortOrder:desc'}),
             ];
 

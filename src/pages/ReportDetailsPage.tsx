@@ -1,23 +1,21 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import DisplayNames from '@components/DisplayNames';
 import FixedFooter from '@components/FixedFooter';
-import Header from '@components/Header';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Modal from '@components/Modal';
 import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -28,25 +26,29 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import TextWithCopy from '@components/TextWithCopy';
+import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {getConnectedIntegration, isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
+    canDeleteTransaction,
     canEditReportDescription as canEditReportDescriptionUtil,
+    canHoldUnholdReportAction as canHoldUnholdReportActionUtil,
     canJoinChat,
     canLeaveChat,
     canWriteInReport,
@@ -72,6 +74,8 @@ import {
     isConciergeChatReport,
     isDefaultRoom as isDefaultRoomUtil,
     isExpenseReport as isExpenseReportUtil,
+    isExported,
+    isFinancialReportsForBusinesses as isFinancialReportsForBusinessesUtil,
     isGroupChat as isGroupChatUtil,
     isHiddenForCurrentUser,
     isInvoiceReport as isInvoiceReportUtil,
@@ -91,16 +95,25 @@ import {
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
     navigateBackOnDeleteTransaction,
     navigateToPrivateNotes,
+    reportTransactionsSelector,
     shouldDisableRename as shouldDisableRenameUtil,
     shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {deleteMoneyRequest, deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete, getNavigationUrlOnMoneyRequestDelete, unapproveExpenseReport} from '@userActions/IOU';
+import {
+    canCancelPayment,
+    cancelPayment as cancelPaymentAction,
+    canUnapproveIOU,
+    deleteMoneyRequest,
+    deleteTrackExpense,
+    getNavigationUrlAfterTrackExpenseDelete,
+    getNavigationUrlOnMoneyRequestDelete,
+    unapproveExpenseReport,
+} from '@userActions/IOU';
 import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
-    downloadReportPDF,
-    exportReportToPDF,
+    exportReportToCSV,
     getReportPrivateNote,
     hasErrorInPrivateNotes,
     leaveGroupChat,
@@ -147,25 +160,22 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUsePDFExport} = usePermissions();
-    const theme = useTheme();
+    const {canUseTableReportView} = usePermissions();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
-    // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
-    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
 
-    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`) ?? null;
-    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`);
-    const isDownloadingPDF = download?.isDownloading ?? false;
-
-    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`, {
+    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
         selector: (actions) => (report?.parentReportActionID ? actions?.[report.parentReportActionID] : undefined),
+        canBeMissing: true,
     });
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`);
-    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
+    const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`, {canBeMissing: true});
+
     const {reportActions} = usePaginatedReportActions(report.reportID);
+    const {currentSearchHash} = useSearchContext();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -174,18 +184,24 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline), [report.reportID, reportActions, isOffline]);
 
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID || CONST.DEFAULT_NUMBER_ID}`);
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.isDebugModeEnabled, canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (_transactions) => reportTransactionsSelector(_transactions, report.reportID),
+        initialValue: [],
+        canBeMissing: true,
+    });
 
-    const {removeTransaction} = useMoneyRequestReportContext(report.parentReportID);
+    const {removeTransaction} = useMoneyRequestReportContext();
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
-    const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
+    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policies), [report?.policyID, policies]);
@@ -199,6 +215,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const isMoneyRequestReport = useMemo(() => isMoneyRequestReportUtil(report), [report]);
     const isMoneyRequest = useMemo(() => isMoneyRequestUtil(report), [report]);
     const isInvoiceReport = useMemo(() => isInvoiceReportUtil(report), [report]);
+    const isFinancialReportsForBusinesses = useMemo(() => isFinancialReportsForBusinessesUtil(report), [report]);
     const isInvoiceRoom = useMemo(() => isInvoiceRoomUtil(report), [report]);
     const isTaskReport = useMemo(() => isTaskReportUtil(report), [report]);
     const isSelfDM = useMemo(() => isSelfDMUtil(report), [report]);
@@ -224,16 +241,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         return '';
     }, [report]);
 
-    const messagePDF = useMemo(() => {
-        if (!reportPDFFilename) {
-            return translate('reportDetailsPage.waitForPDF');
-        }
-        if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
-            return translate('reportDetailsPage.errorPDF');
-        }
-        return translate('reportDetailsPage.generatedPDF');
-    }, [reportPDFFilename, translate]);
-
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
     const isRootGroupChat = useMemo(() => isRootGroupChatUtil(report), [report]);
@@ -255,6 +262,13 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         // 1. HeaderView
         caseID = CASES.DEFAULT;
     }
+
+    const transactionIDList = useMemo(() => {
+        if (caseID !== CASES.MONEY_REPORT || !transactions) {
+            return [];
+        }
+        return transactions.map((transaction) => transaction.transactionID);
+    }, [caseID, transactions]);
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
@@ -290,10 +304,12 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         return report;
     }, [caseID, parentReport, report]);
 
+    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+
     const canActionTask = canActionTaskAction(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const shouldShowTaskDeleteButton =
         isTaskReport && !isCanceledTaskReport && canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !isClosedReport(report) && canModifyTask && canActionTask;
-    const canDeleteRequest = isActionOwner && isSelfDMTrackExpenseReport && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransactionID);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted);
@@ -327,10 +343,26 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         });
     }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
+    const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {canBeMissing: true});
+    const isMoneyRequestExported = isExported(moneyRequestReportActions);
+    const {isDelegateAccessRestricted} = useDelegateUserDetails();
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+
+    const unapproveExpenseReportOrShowModal = useCallback(() => {
+        if (isDelegateAccessRestricted) {
+            setIsNoDelegateAccessMenuVisible(true);
+        } else if (isMoneyRequestExported) {
+            setIsUnapproveModalVisible(true);
+            return;
+        }
+        Navigation.goBack(backTo);
+        unapproveExpenseReport(moneyRequestReport);
+    }, [isDelegateAccessRestricted, isMoneyRequestExported, backTo, moneyRequestReport]);
+
     const shouldShowLeaveButton = canLeaveChat(report, policy);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
 
-    const reportName = getReportName(report);
+    const reportName = Parser.htmlToText(getReportName(report));
 
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
@@ -349,11 +381,17 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowNotificationPref = !isMoneyRequestReport && !isHiddenForCurrentUser(report);
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
+    const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && canCancelPayment(moneyRequestReport, session);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
 
-    const beginPDFExport = useCallback(() => {
-        setIsPDFModalVisible(true);
-        exportReportToPDF({reportID: report.reportID});
-    }, [report]);
+    const cancelPayment = useCallback(() => {
+        if (!chatReport) {
+            return;
+        }
+
+        cancelPaymentAction(moneyRequestReport, chatReport);
+        setIsConfirmModalVisible(false);
+    }, [moneyRequestReport, chatReport]);
 
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
@@ -376,7 +414,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                 (!isUserCreatedPolicyRoom && participants.length) ||
                 (isUserCreatedPolicyRoom && (isPolicyEmployee || (isChatThread && !isPublicRoomUtil(report))))) &&
             !isConciergeChatReport(report) &&
-            !isSystemChat
+            !isSystemChat &&
+            activeChatMembers.length > 0
         ) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
@@ -484,19 +523,54 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             }
         }
 
-        if (canUsePDFExport) {
+        if (!canUseTableReportView && shouldShowCancelPaymentButton) {
             items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_PDF,
-                translationKey: 'common.downloadAsPDF',
-                icon: Expensicons.Document,
+                key: CONST.REPORT_DETAILS_MENU_ITEM.CANCEL_PAYMENT,
+                icon: Expensicons.Trashcan,
+                translationKey: 'iou.cancelPayment',
+                isAnonymousAction: false,
+                action: () => setIsConfirmModalVisible(true),
+            });
+        }
+
+        if (caseID === CASES.MONEY_REPORT) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_CSV,
+                translationKey: 'common.downloadAsCSV',
+                icon: Expensicons.Table,
                 isAnonymousAction: false,
                 action: () => {
                     if (isOffline) {
                         setOfflineModalVisible(true);
-                    } else {
-                        beginPDFExport();
+                        return;
                     }
+
+                    exportReportToCSV({reportID: report.reportID, transactionIDList}, () => {
+                        setDownloadErrorModalVisible(true);
+                    });
                 },
+            });
+        }
+
+        if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView && isExpenseReport) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
+                translationKey: 'common.export',
+                icon: Expensicons.Export,
+                isAnonymousAction: false,
+                action: () => {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID, connectedIntegration, backTo));
+                },
+            });
+        }
+
+        if (!canUseTableReportView && canUnapproveIOU(report, policy)) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.UNAPPROVE,
+                icon: Expensicons.CircularArrowBackwards,
+                translationKey: 'iou.unapprove',
+                isAnonymousAction: false,
+                action: () => unapproveExpenseReportOrShowModal(),
             });
         }
 
@@ -564,7 +638,14 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isInvoiceReport,
         isTaskReport,
         isCanceledTaskReport,
-        canUsePDFExport,
+        canUseTableReportView,
+        shouldShowCancelPaymentButton,
+        caseID,
+        policy,
+        connectedIntegration,
+        isPolicyAdmin,
+        isSingleTransactionView,
+        isExpenseReport,
         shouldShowGoToWorkspace,
         shouldShowLeaveButton,
         isDebugModeEnabled,
@@ -578,7 +659,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         canModifyTask,
         canActionTask,
         isOffline,
-        beginPDFExport,
+        transactionIDList,
+        unapproveExpenseReportOrShowModal,
         isRootGroupChat,
         leaveChat,
     ]);
@@ -625,7 +707,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     source={icons.at(0)?.source}
                     avatarID={icons.at(0)?.id}
                     isUsingDefaultAvatar={!report.avatarUrl}
-                    size={CONST.AVATAR_SIZE.XLARGE}
+                    size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={styles.avatarXLarge}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                     onImageRemoved={() => {
@@ -654,13 +736,31 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         );
     }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
 
-    const canJoin = canJoinChat(report, parentReportAction, policy);
+    const canHoldUnholdReportAction = canHoldUnholdReportActionUtil(moneyRequestAction);
+    const shouldShowHoldAction =
+        caseID !== CASES.DEFAULT &&
+        (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) &&
+        !isArchivedNonExpenseReport(transactionThreadReportID ? report : parentReport, transactionThreadReportID ? reportNameValuePairs : parentReportNameValuePairs);
+    const canJoin = canJoinChat(report, parentReportAction, policy, reportNameValuePairs);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
 
         if (canJoin) {
             result.push(PromotedActions.join(report));
+        }
+
+        if (!canUseTableReportView && isExpenseReport && shouldShowHoldAction) {
+            result.push(
+                PromotedActions.hold({
+                    isTextHold: canHoldUnholdReportAction.canHoldRequest,
+                    reportAction: moneyRequestAction,
+                    reportID: transactionThreadReportID ? report.reportID : moneyRequestAction?.childReportID,
+                    isDelegateAccessRestricted,
+                    setIsNoDelegateAccessMenuVisible,
+                    currentSearchHash,
+                }),
+            );
         }
 
         if (report) {
@@ -670,7 +770,19 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         result.push(PromotedActions.share(report, backTo));
 
         return result;
-    }, [report, canJoin, backTo]);
+    }, [
+        canJoin,
+        canUseTableReportView,
+        isExpenseReport,
+        shouldShowHoldAction,
+        report,
+        backTo,
+        canHoldUnholdReportAction.canHoldRequest,
+        moneyRequestAction,
+        transactionThreadReportID,
+        isDelegateAccessRestricted,
+        currentSearchHash,
+    ]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
@@ -923,22 +1035,24 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         />
                     )}
 
-                    <FixedFooter style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.pt5]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                            <TextWithCopy
-                                copyValue={base62ReportID}
-                                style={styles.textMicroSupporting}
-                            >
-                                {`${translate('common.reportID')}: ${base62ReportID}`}
-                            </TextWithCopy>
-                            <TextWithCopy
-                                copyValue={report.reportID}
-                                style={styles.textMicroSupporting}
-                            >
-                                {`${translate('common.longID')}: ${report.reportID}`}
-                            </TextWithCopy>
-                        </View>
-                    </FixedFooter>
+                    {isFinancialReportsForBusinesses && (
+                        <FixedFooter style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.pt5]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                                <TextWithCopy
+                                    copyValue={base62ReportID}
+                                    style={styles.textMicroSupporting}
+                                >
+                                    {`${translate('common.reportID')}: ${base62ReportID}`}
+                                </TextWithCopy>
+                                <TextWithCopy
+                                    copyValue={report.reportID}
+                                    style={styles.textMicroSupporting}
+                                >
+                                    {`${translate('common.longID')}: ${report.reportID}`}
+                                </TextWithCopy>
+                            </View>
+                        </FixedFooter>
+                    )}
                 </ScrollView>
                 <ConfirmModal
                     danger
@@ -953,6 +1067,19 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     confirmText={translate('common.leave')}
                     cancelText={translate('common.cancel')}
                 />
+                {!canUseTableReportView && (
+                    <ConfirmModal
+                        title={translate('iou.cancelPayment')}
+                        isVisible={isConfirmModalVisible}
+                        onConfirm={cancelPayment}
+                        onCancel={() => setIsConfirmModalVisible(false)}
+                        prompt={translate('iou.cancelPaymentConfirmation')}
+                        confirmText={translate('iou.cancelPayment')}
+                        cancelText={translate('common.dismiss')}
+                        danger
+                        shouldEnableNewFocusManagement
+                    />
+                )}
                 <ConfirmModal
                     title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1})}
                     isVisible={isDeleteModalVisible}
@@ -968,6 +1095,12 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     shouldEnableNewFocusManagement
                     onModalHide={navigateToTargetUrl}
                 />
+                {!canUseTableReportView && (
+                    <DelegateNoAccessModal
+                        isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                        onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+                    />
+                )}
                 <ConfirmModal
                     title={translate('iou.unapproveReport')}
                     isVisible={isUnapproveModalVisible}
@@ -975,7 +1108,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     confirmText={translate('iou.unapproveReport')}
                     onConfirm={() => {
                         setIsUnapproveModalVisible(false);
-                        Navigation.dismissModal();
+                        Navigation.goBack(backTo);
                         unapproveExpenseReport(moneyRequestReport);
                     }}
                     cancelText={translate('common.cancel')}
@@ -991,48 +1124,15 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     isVisible={offlineModalVisible}
                     onClose={() => setOfflineModalVisible(false)}
                 />
-
-                <Modal
-                    onClose={() => setIsPDFModalVisible(false)}
-                    isVisible={isPDFModalVisible}
-                    type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-                >
-                    <View style={[styles.m5]}>
-                        <View>
-                            <View style={[styles.flexRow, styles.mb4]}>
-                                <Header
-                                    title={translate('reportDetailsPage.generatingPDF')}
-                                    containerStyles={[styles.alignItemsCenter]}
-                                />
-                            </View>
-                            <View>
-                                <Text>{messagePDF}</Text>
-                                {!reportPDFFilename && (
-                                    <ActivityIndicator
-                                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                        color={theme.textSupporting}
-                                        style={styles.mt3}
-                                    />
-                                )}
-                            </View>
-                        </View>
-                        {!!reportPDFFilename && reportPDFFilename !== 'error' && (
-                            <Button
-                                isLoading={isDownloadingPDF}
-                                style={[styles.mt3, styles.noSelect]}
-                                onPress={() => downloadReportPDF(reportPDFFilename ?? '', reportName)}
-                                text={translate('common.download')}
-                            />
-                        )}
-                        {(!reportPDFFilename || reportPDFFilename === 'error') && (
-                            <Button
-                                style={[styles.mt3, styles.noSelect]}
-                                onPress={() => setIsPDFModalVisible(false)}
-                                text={translate('common.close')}
-                            />
-                        )}
-                    </View>
-                </Modal>
+                <DecisionModal
+                    title={translate('common.downloadFailedTitle')}
+                    prompt={translate('common.downloadFailedDescription')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={downloadErrorModalVisible}
+                    onClose={() => setDownloadErrorModalVisible(false)}
+                />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

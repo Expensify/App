@@ -122,6 +122,7 @@ function IOURequestStepDate({
                     defaultValue={currentCreated}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                    autoFocus
                 />
             </FormProvider>
         </StepScreenWrapper>

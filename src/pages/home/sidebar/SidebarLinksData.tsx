@@ -6,7 +6,7 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import {useReportIDs} from '@hooks/useReportIDs';
+import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getAssignedSupportData, openWorkspace} from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -23,10 +23,10 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT, canBeMissing: true});
 
-    const {orderedReportIDs, currentReportID, policyMemberAccountIDs} = useReportIDs();
+    const {orderedReports, currentReportID, policyMemberAccountIDs} = useSidebarOrderedReports();
 
     const previousActiveWorkspaceID = usePrevious(activeWorkspaceID);
 
@@ -59,7 +59,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
                 isActiveReport={isActiveReport}
                 isLoading={isLoadingApp ?? false}
                 activeWorkspaceID={activeWorkspaceID}
-                optionListItems={orderedReportIDs}
+                optionListItems={orderedReports}
             />
         </View>
     );

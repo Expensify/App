@@ -2,6 +2,8 @@ import type * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
 import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
 
+jest.mock('@components/ConfirmedRoute.tsx');
+
 describe('TagsOptionsListUtils', () => {
     it('getTagListSections()', () => {
         const search = 'ing';
