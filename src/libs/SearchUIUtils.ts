@@ -1089,6 +1089,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         to: [`${session.accountID}`],
                         status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.PAID, CONST.SEARCH.STATUS.EXPENSE.DONE],
+                        exportedOn: CONST.SEARCH.NEVER,
                     });
                     return queryString;
                 },

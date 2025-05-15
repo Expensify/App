@@ -12,7 +12,7 @@ import SearchFiltersExportedRootView from './RootView';
 type SearchFiltersExportedPageValues = Record<SearchDateModifier, string | null>;
 
 function SearchFiltersExportedPage() {
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     // Get all of the initial values from the advanced filters form and store them locally so we can modify
     // them without mutating the original form
