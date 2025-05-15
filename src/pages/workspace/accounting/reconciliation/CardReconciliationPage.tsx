@@ -6,10 +6,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
-import {getFundIdFromSettingsKey, isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -41,21 +42,11 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const bankAccountTitle = bankAccountList?.[paymentBankAccountID]?.title ?? '';
 
     const policyID = policy?.id;
-    const [domainFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
-        selector: (cardSetting) => {
-            const matchingKey = Object.entries(cardSetting ?? {}).find(
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                ([key, settings]) => settings?.preferredPolicy && settings.preferredPolicy === policyID && !key.includes(workspaceAccountID.toString()),
-            );
-
-            return getFundIdFromSettingsKey(matchingKey?.[0] ?? '');
-        },
-        canBeMissing: true,
-    });
+    const allCardSettings = useExpensifyCardFeeds(policyID);
     const {connection} = route.params;
     const connectionName = getConnectionNameFromRouteParam(connection) as ConnectionName;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
-    const shouldShow = isExpensifyCardFullySetUp(policy, cardSettings) || domainFundID;
+    const shouldShow = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
 
     const handleToggleContinuousReconciliation = (value: boolean) => {
         toggleContinuousReconciliation(workspaceAccountID, value, connectionName, currentConnectionName);

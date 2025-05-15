@@ -21,6 +21,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -89,12 +90,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const integrationToDisconnect = params?.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
     const policyID = policy?.id;
-    const [allCardSettings] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
-        selector: (cardSettings) => {
-            return Object.values(cardSettings ?? {}).filter((settings) => settings?.preferredPolicy && settings.preferredPolicy === policyID);
-        },
-        canBeMissing: true,
-    });
+    const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
@@ -117,8 +113,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
-    console.log('allCardSettings', allCardSettings);
-    const shouldShowCardReconciliationOption = allCardSettings?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
+    const shouldShowCardReconciliationOption = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
             ...(shouldShowReinstallConnectorMenuItem
