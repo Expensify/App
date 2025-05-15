@@ -14,6 +14,8 @@ type SearchFiltersExportedPageValues = Record<SearchDateModifier, string | null>
 function SearchFiltersExportedPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
+    // Get all of the initial values from the advanced filters form and store them locally so we can modify
+    // them without mutating the original form
     const initialState = useMemo(() => {
         return Object.values(CONST.SEARCH.DATE_MODIFIERS).reduce((acc, dateType) => {
             acc[dateType] = searchAdvancedFiltersForm?.[`${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED}${dateType}`] ?? null;
@@ -29,6 +31,24 @@ function SearchFiltersExportedPage() {
 
     const setDateValue = (key: SearchDateModifier, dateValue: string | null) => {
         setLocalDateValues((currentValue) => {
+            // If we are setting the 'on' to 'never', reset the other dates
+            if (key === CONST.SEARCH.DATE_MODIFIERS.ON && dateValue === CONST.SEARCH.NEVER) {
+                return {
+                    [CONST.SEARCH.DATE_MODIFIERS.ON]: dateValue,
+                    [CONST.SEARCH.DATE_MODIFIERS.AFTER]: null,
+                    [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: null,
+                };
+            }
+
+            // If we are setting any other value while 'on' is set to 'never', reset 'on' to null
+            if (key !== CONST.SEARCH.DATE_MODIFIERS.ON && currentValue?.[CONST.SEARCH.DATE_MODIFIERS.ON] === CONST.SEARCH.NEVER) {
+                return {
+                    ...currentValue,
+                    [key]: dateValue,
+                    [CONST.SEARCH.DATE_MODIFIERS.ON]: null,
+                };
+            }
+
             return {
                 ...currentValue,
                 [key]: dateValue,

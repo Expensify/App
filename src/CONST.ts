@@ -6462,6 +6462,7 @@ const CONST = {
     },
 
     SEARCH: {
+        NEVER: 'never',
         RESULTS_PAGE_SIZE: 50,
         DATA_TYPES: {
             EXPENSE: 'expense',
@@ -6646,9 +6647,6 @@ const CONST = {
             BEFORE: 'Before',
             AFTER: 'After',
             ON: 'On',
-        },
-        EXPORTED_DATE_PRESETS: {
-            NEVER: 'never',
         },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,

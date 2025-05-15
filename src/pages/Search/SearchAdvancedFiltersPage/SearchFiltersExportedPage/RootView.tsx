@@ -35,7 +35,7 @@ function SearchFiltersExportedRootView({value, applyChanges, resetChanges, setVi
 
     // We only want to show the date selected if there is a DATE
     const dateOn = useMemo(() => {
-        if (!unformattedDateOn || unformattedDateOn === CONST.SEARCH.EXPORTED_DATE_PRESETS.NEVER) {
+        if (!unformattedDateOn || unformattedDateOn === CONST.SEARCH.NEVER) {
             return undefined;
         }
 
@@ -61,9 +61,9 @@ function SearchFiltersExportedRootView({value, applyChanges, resetChanges, setVi
                 showTooltip
                 item={{
                     text: translate(`common.never`),
-                    isSelected: unformattedDateOn === CONST.SEARCH.EXPORTED_DATE_PRESETS.NEVER,
+                    isSelected: unformattedDateOn === CONST.SEARCH.NEVER,
                 }}
-                onSelectRow={() => setValue(CONST.SEARCH.DATE_MODIFIERS.ON, CONST.SEARCH.EXPORTED_DATE_PRESETS.NEVER)}
+                onSelectRow={() => setValue(CONST.SEARCH.DATE_MODIFIERS.ON, CONST.SEARCH.NEVER)}
             />
 
             <View>

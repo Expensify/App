@@ -341,20 +341,25 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         // the value of date filter is a combination of dateBefore + dateAfter values
         const keyBefore = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
         const keyAfter = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
+        const keyOn = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
         const dateBefore = filters[keyBefore];
         const dateAfter = filters[keyAfter];
-        let dateValue = '';
+        const dateOn = filters[keyOn];
+        const dateValue = [];
+
         if (dateBefore) {
-            dateValue = translate('search.filters.date.before', {date: dateBefore});
-        }
-        if (dateBefore && dateAfter) {
-            dateValue += ', ';
-        }
-        if (dateAfter) {
-            dateValue += translate('search.filters.date.after', {date: dateAfter});
+            dateValue.push(translate('search.filters.date.before', {date: dateBefore}));
         }
 
-        return dateValue;
+        if (dateOn) {
+            dateValue.push(dateOn === CONST.SEARCH.NEVER ? translate('common.never') : translate('search.filters.date.on', {date: dateOn}));
+        }
+
+        if (dateAfter) {
+            dateValue.push(translate('search.filters.date.after', {date: dateAfter}));
+        }
+
+        return dateValue.join(', ');
     }
 
     const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY>;
