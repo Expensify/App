@@ -191,12 +191,12 @@ describe('createOrUpdateStagingDeploy', () => {
             return [];
         });
 
-        mockListIssues.mockImplementation(async (args: Arguments) => {
+        mockListIssues.mockImplementation((args: Arguments) => {
             if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                return {data: [closedStagingDeployCash]};
+                return Promise.resolve({data: [closedStagingDeployCash]});
             }
 
-            return {data: []};
+            return Promise.resolve({data: []});
         });
 
         const result = await run();
@@ -288,13 +288,13 @@ describe('createOrUpdateStagingDeploy', () => {
                 return [];
             });
 
-            mockListIssues.mockImplementation(async (args: Arguments) => {
+            mockListIssues.mockImplementation((args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
+                    return Promise.resolve({data: [openStagingDeployCashBefore, closedStagingDeployCash]});
                 }
 
                 if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return {
+                    return Promise.resolve({
                         data: [
                             ...currentDeployBlockers,
                             {
@@ -310,10 +310,10 @@ describe('createOrUpdateStagingDeploy', () => {
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                         ],
-                    };
+                    });
                 }
 
-                return {data: []};
+                return Promise.resolve({data: []});
             });
 
             const result = await run();
@@ -365,13 +365,13 @@ describe('createOrUpdateStagingDeploy', () => {
                 }
                 return [];
             });
-            mockListIssues.mockImplementation(async (args: Arguments) => {
+            mockListIssues.mockImplementation((args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
+                    return Promise.resolve({data: [openStagingDeployCashBefore, closedStagingDeployCash]});
                 }
 
                 if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return {
+                    return Promise.resolve({
                         data: [
                             // Suppose the first deploy blocker is demoted, it should not be removed from the checklist and instead just be checked off
                             ...currentDeployBlockers.slice(1),
@@ -388,10 +388,10 @@ describe('createOrUpdateStagingDeploy', () => {
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                         ],
-                    };
+                    });
                 }
 
-                return {data: []};
+                return Promise.resolve({data: []});
             });
 
             const result = await run();
@@ -494,8 +494,8 @@ describe('createOrUpdateStagingDeploy', () => {
         const previousChecklistForFiltering = {number: 29, state: 'closed', labels: [LABELS.STAGING_DEPLOY_CASH]};
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        mockListIssues.mockImplementation(async (_args: Arguments) => {
-            return {data: [openChecklistForFiltering, previousChecklistForFiltering]};
+        mockListIssues.mockImplementation((_args: Arguments) => {
+            return Promise.resolve({data: [openChecklistForFiltering, previousChecklistForFiltering]});
         });
 
         // Run the createOrUpdateStagingDeploy function
