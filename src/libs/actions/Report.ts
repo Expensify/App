@@ -524,13 +524,20 @@ function subscribeToReportTypingEvents(reportID: string) {
         clearTimeout(typingWatchTimers[reportUserIdentifier]);
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, normalizedTypingStatus);
 
-        // Wait for 1.5s of no additional typing events before setting the status back to false.
-        typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
-            const typingStoppedStatus: ReportUserIsTyping = {};
-            typingStoppedStatus[accountIDOrLogin] = false;
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
-            delete typingWatchTimers[reportUserIdentifier];
-        }, 1500);
+        // Regular user typing indicators: time out after 1.5s of inactivity.
+        // Concierge (AgentZero-initiated): use a longer 10s timeout. AgentZero sends a single typing event for Concierge, not a stream, so client holds the indicator longer.
+        const isCurrentlyTyping = normalizedTypingStatus[accountIDOrLogin];
+        if (isCurrentlyTyping) {
+            // While the accountIDOrLogin could be 'Concierge' from OldDot, we only want the longer timeout for events queued from AgentZero (which will only send the accountID)
+            const isConciergeUser = Number(accountIDOrLogin) === CONST.ACCOUNT_ID.CONCIERGE;
+            const timeoutDuration = isConciergeUser ? 10000 : 1500;
+            typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
+                const typingStoppedStatus: ReportUserIsTyping = {};
+                typingStoppedStatus[accountIDOrLogin] = false;
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
+                delete typingWatchTimers[reportUserIdentifier];
+            }, timeoutDuration);
+        }
     }).catch((error: ReportError) => {
         Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {errorType: error.type, pusherChannelName});
     });
@@ -2899,8 +2906,7 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
 function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
-        Navigation.setShouldPopAllStateOnUP(true);
-        Navigation.goBack(undefined, {shouldPopToTop: true});
+        Navigation.popToSidebar();
     } else {
         Navigation.goBack();
     }

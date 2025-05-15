@@ -6,11 +6,11 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
 
 /**
  * Hook to get the default fundID for a given policyID. This is used to get the settings and cards for each of the feeds.
- * It will always return lastSelectedExpensifyCardFeed if it exists or fallback to the workspaceAccountID or domainFundID.
+ * It will always return lastSelectedExpensifyCardFeed if it exists or fallback to the domainFundID or workspaceAccountID.
  */
 function useDefaultFundID(policyID: string | undefined) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
+    const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`, {canBeMissing: true});
 
     const [domainFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
         selector: (cardSettings) => {
@@ -21,17 +21,22 @@ function useDefaultFundID(policyID: string | undefined) {
 
             return getFundIdFromSettingsKey(matchingKey?.[0] ?? '');
         },
+        canBeMissing: true,
     });
 
     if (lastSelectedExpensifyCardFeed) {
         return lastSelectedExpensifyCardFeed;
     }
 
+    if (domainFundID) {
+        return domainFundID;
+    }
+
     if (workspaceAccountID) {
         return workspaceAccountID;
     }
 
-    return domainFundID ?? CONST.DEFAULT_NUMBER_ID;
+    return CONST.DEFAULT_NUMBER_ID;
 }
 
 export default useDefaultFundID;

@@ -15,7 +15,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
-import type {PaymentData} from '@components/Search/types';
+import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -25,6 +25,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -32,6 +33,7 @@ import {
     getLastPolicyPaymentMethod,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
+    search,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -128,6 +130,7 @@ function SearchPage({route}: SearchPageProps) {
                         setIsDownloadErrorModalVisible(true);
                     },
                 );
+                clearSelectedTransactions();
             },
         };
 
@@ -159,6 +162,9 @@ function SearchPage({route}: SearchPageProps) {
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
                         : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
                     approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                    InteractionManager.runAfterInteractions(() => {
+                        clearSelectedTransactions();
+                    });
                 },
             });
         }
@@ -223,6 +229,9 @@ function SearchPage({route}: SearchPageProps) {
                     ) as PaymentData[];
 
                     payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+                    InteractionManager.runAfterInteractions(() => {
+                        clearSelectedTransactions();
+                    });
                 },
             });
         }
@@ -263,6 +272,9 @@ function SearchPage({route}: SearchPageProps) {
                     }
 
                     unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                    InteractionManager.runAfterInteractions(() => {
+                        clearSelectedTransactions();
+                    });
                 },
             });
         }
@@ -275,7 +287,6 @@ function SearchPage({route}: SearchPageProps) {
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 shouldCloseModalOnSelect: true,
-                shouldPreserveSelectionAfterHideModal: true,
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
@@ -316,6 +327,7 @@ function SearchPage({route}: SearchPageProps) {
         selectedReports,
         queryJSON,
         activeWorkspaceID,
+        clearSelectedTransactions,
         lastPaymentMethods,
         theme.icon,
         styles.colorMuted,
@@ -383,6 +395,14 @@ function SearchPage({route}: SearchPageProps) {
         };
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const handleSearchAction = useCallback((value: SearchParams | string) => {
+        if (typeof value === 'string') {
+            searchInServer(value);
+        } else {
+            search(value);
+        }
     }, []);
 
     if (shouldUseNarrowLayout) {
@@ -477,6 +497,7 @@ function SearchPage({route}: SearchPageProps) {
                             <SearchPageHeader
                                 queryJSON={queryJSON}
                                 headerButtonsOptions={headerButtonsOptions}
+                                handleSearch={handleSearchAction}
                             />
                             <SearchStatusBar
                                 queryJSON={queryJSON}
@@ -487,6 +508,7 @@ function SearchPage({route}: SearchPageProps) {
                                 queryJSON={queryJSON}
                                 currentSearchResults={currentSearchResults}
                                 lastNonEmptySearchResults={lastNonEmptySearchResults}
+                                handleSearch={handleSearchAction}
                             />
                         </ScreenWrapper>
                     </View>

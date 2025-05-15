@@ -357,11 +357,12 @@ function SearchList(
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={selectedItemsLength === flattenedTransactions.length}
+                            isChecked={flattenedTransactions.length > 0 && selectedItemsLength === flattenedTransactions.length}
                             isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
+                            disabled={flattenedTransactions.length === 0}
                         />
                     )}
 

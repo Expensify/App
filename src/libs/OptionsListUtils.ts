@@ -50,6 +50,7 @@ import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
+    getJoinRequestMessage,
     getLeaveRoomMessage,
     getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
@@ -62,6 +63,7 @@ import {
     getSortedReportActions,
     getUpdateRoomDescriptionMessage,
     isActionableAddPaymentCard,
+    isActionableJoinRequest,
     isActionOfType,
     isClosedAction,
     isCreatedTaskReportAction,
@@ -813,11 +815,12 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
+    } else if (isActionableJoinRequest(lastReportAction)) {
+        lastMessageTextFromReport = getJoinRequestMessage(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
         lastMessageTextFromReport = getLeaveRoomMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
-    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
         lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
         lastMessageTextFromReport = getRetractedMessage();

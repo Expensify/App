@@ -101,15 +101,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
-        [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
-                    path: ROUTES.TEST_TOOLS_MODAL,
-                    exact: true,
-                },
-            },
-        },
-
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
             // Don't set the initialRouteName, because when the user continues from the last visited onboarding page,
             // the onboarding purpose page will be briefly visible.
@@ -161,15 +152,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_LANGUAGE,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ADD_PAYMENT_CARD]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_PAYMENT_CURRENCY]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.CHANGE_PAYMENT_CURRENCY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY,
                             exact: true,
                         },
@@ -352,19 +343,19 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: {
                             path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.SETTINGS_DETAILS]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.SIZE]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SIZE.route,
                             parse: {
                                 canChangeSize: Number,
                             },
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.REQUEST_EARLY_CANCELLATION]: {
+                        [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.REQUEST_EARLY_CANCELLATION]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION,
                         },
                         [SCREENS.WORKSPACE.CURRENCY]: {
@@ -1314,6 +1305,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT]: ROUTES.SETTINGS_TAGS_ROOT.route,
+                        [SCREENS.MONEY_REQUEST.EDIT_REPORT]: ROUTES.MONEY_REQUEST_EDIT_REPORT.route,
                         [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: ROUTES.MONEY_REQUEST_STEP_SEND_FROM.route,
                         [SCREENS.MONEY_REQUEST.STEP_REPORT]: ROUTES.MONEY_REQUEST_STEP_REPORT.route,
                         [SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO]: ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.route,
@@ -1646,10 +1638,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {
             screens: {
                 [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
-                [SCREENS.SETTINGS.WORKSPACES]: {
-                    path: ROUTES.SETTINGS_WORKSPACES.route,
-                    exact: true,
-                },
                 [SCREENS.SETTINGS.PROFILE.ROOT]: {
                     path: ROUTES.SETTINGS_PROFILE.route,
                     exact: true,
@@ -1671,11 +1659,24 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
-                [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {path: ROUTES.SETTINGS_SUBSCRIPTION.route},
                 [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
                     path: ROUTES.SETTINGS_PREFERENCES,
                     // exact: true,
                 },
+            },
+        },
+
+        [NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR]: {
+            screens: {
+                [SCREENS.WORKSPACE_HUB.ROOT]: {
+                    path: ROUTES.WORKSPACE_HUB_INITIAL,
+                    exact: true,
+                },
+                [SCREENS.WORKSPACE_HUB.WORKSPACES]: {
+                    path: ROUTES.SETTINGS_WORKSPACES.route,
+                    exact: true,
+                },
+                [SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT]: {path: ROUTES.SETTINGS_SUBSCRIPTION.route},
             },
         },
 

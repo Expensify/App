@@ -411,6 +411,9 @@ type OriginalMessageJoinPolicy = {
 
     /** AccountID for the user requesting to join the policy */
     accountID?: number;
+
+    /** Email of the requested user */
+    email?: string;
 };
 
 /** Model of `modified expense` report action */
