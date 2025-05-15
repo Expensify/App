@@ -414,7 +414,7 @@ function SearchPage({route}: SearchPageProps) {
                 setIsLoadingReceipt(true);
             }
             resizeImageIfNeeded(originalFile).then((resizedFile) => {
-                // setIsLoadingReceipt(false);
+                setIsLoadingReceipt(false);
                 // Store the receipt on the transaction object in Onyx
                 const source = URL.createObjectURL(resizedFile as Blob);
                 const newReportID = generateReportID();
