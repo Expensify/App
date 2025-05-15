@@ -1,8 +1,7 @@
-import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusByIdentifier, getSecureWalletInfo} from '@expensify/react-native-wallet';
+import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusBySuffix, getSecureWalletInfo} from '@expensify/react-native-wallet';
 import type {AndroidCardData, AndroidWalletData, CardStatus, TokenizationStatus} from '@expensify/react-native-wallet';
 import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
-import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
 
 function checkIfWalletIsAvailable(): Promise<boolean> {
@@ -21,11 +20,10 @@ function handleAddCardToWallet(card: Card, cardHolderName: string): Promise<Toke
 }
 
 function isCardInWallet(card: Card): Promise<boolean> {
-    const tokenRefId = card.nameValuePairs?.expensifyCard_tokenReferenceIdList?.at(-1);
-    if (!tokenRefId) {
+    if (!card.lastFourPAN) {
         return Promise.resolve(false);
     }
-    return getCardStatusByIdentifier(tokenRefId, CONST.COMPANY_CARDS.CARD_TYPE.VISA)
+    return getCardStatusBySuffix(card.lastFourPAN)
         .then((status: CardStatus) => {
             Log.info(`Card status: ${status}`);
             return status === 'active';

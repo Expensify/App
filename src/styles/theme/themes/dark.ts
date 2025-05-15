@@ -125,7 +125,7 @@ const darkTheme = {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.SETTINGS.WORKSPACES]: {
+        [SCREENS.WORKSPACE_HUB.WORKSPACES]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },

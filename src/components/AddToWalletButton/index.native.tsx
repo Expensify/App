@@ -9,11 +9,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openWalletPage} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
+import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
 import CONST from '@src/CONST';
 import type AddToWalletButtonProps from './types';
 
 function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}: AddToWalletButtonProps) {
+    const [isWalletAvailable, setIsWalletAvailable] = React.useState<boolean>(false);
     const [isInWallet, setIsInWallet] = React.useState<boolean | null>(null);
     const {translate} = useLocalize();
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
@@ -61,7 +62,21 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
         checkIfCardIsInWallet();
     }, [checkIfCardIsInWallet, isCardAvailable, card]);
 
-    if (isInWallet == null || !isCardAvailable) {
+    useEffect(() => {
+        if (!isCardAvailable) {
+            return;
+        }
+
+        checkIfWalletIsAvailable()
+            .then((result) => {
+                setIsWalletAvailable(result);
+            })
+            .catch(() => {
+                setIsWalletAvailable(false);
+            });
+    }, [isCardAvailable]);
+
+    if (!isWalletAvailable || isInWallet == null || !isCardAvailable) {
         return null;
     }
 
