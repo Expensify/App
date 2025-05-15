@@ -10984,7 +10984,7 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
         return;
     }
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
-    const originalTransaction = getTransaction(originalTransactionID);
+    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const splitTransactionData = draftTransaction?.comment?.splitExpenses?.find((item) => item.transactionID === splitExpenseTransactionID);
 
     const transactionDetails = getTransactionDetails(originalTransaction);
@@ -11107,7 +11107,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-    const originalTransaction = getTransaction(originalTransactionID);
+    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${originalTransactionID}`] ?? [];
 
     const policy = getPolicy(transactionReport?.policyID);

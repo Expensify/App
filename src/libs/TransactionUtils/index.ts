@@ -1543,7 +1543,7 @@ function shouldShowRTERViolationMessage(transactions?: Transaction[]) {
 
 const isSplitTransaction = (transaction: OnyxEntry<Transaction>) => {
     const {originalTransactionID} = transaction?.comment ?? {};
-    const originalTransaction = getTransaction(originalTransactionID);
+    const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     return !!originalTransaction;
 };
 
