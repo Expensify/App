@@ -34,6 +34,13 @@ const receiptRequiredViolation = {
     },
 };
 
+const categoryReceiptRequiredViolation = {
+    name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: undefined,
+};
+
 const overLimitViolation = {
     name: CONST.VIOLATIONS.OVER_LIMIT,
     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -41,6 +48,21 @@ const overLimitViolation = {
     data: {
         formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT),
     },
+};
+
+const categoryOverLimitViolation = {
+    name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: {
+        formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT),
+    },
+};
+
+const categoryMissingCommentViolation = {
+    name: CONST.VIOLATIONS.MISSING_COMMENT,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
 };
 
 const customUnitOutOfPolicyViolation = {
@@ -207,6 +229,30 @@ describe('getViolationsOnyxData', () => {
             policy.maxExpenseAmount = 200000;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual([]);
+        });
+    });
+
+    describe('policyCategoryRules', () => {
+        beforeEach(() => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            policyCategories = {
+                Food: {
+                    name: 'Food',
+                    enabled: true,
+                    areCommentsRequired: true,
+                    maxAmountNoReceipt: 0,
+                    maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+                },
+            };
+            transaction.category = 'Food';
+            transaction.amount = CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT + 1;
+            transaction.comment = {comment: ''};
+        });
+
+        it.only('should add category specific violations', () => {
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual(expect.arrayContaining([categoryOverLimitViolation, categoryReceiptRequiredViolation, categoryMissingCommentViolation, ...transactionViolations]));
         });
     });
 
