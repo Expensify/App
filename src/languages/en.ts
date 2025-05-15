@@ -558,6 +558,7 @@ const translations = {
         sharedIn: 'Shared in',
         unreported: 'Unreported',
         general: 'General',
+        workspacesTabTitle: 'Workspaces',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1126,6 +1127,7 @@ const translations = {
         unheldExpense: 'unheld this expense',
         moveUnreportedExpense: 'Move unreported expense',
         addUnreportedExpense: 'Add unreported expense',
+        createNewExpense: 'Create new expense',
         selectUnreportedExpense: 'Select at least one expense to add to the report.',
         emptyStateUnreportedExpenseTitle: 'No unreported expenses',
         emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
@@ -1731,7 +1733,7 @@ const translations = {
             copyCardNumber: 'Copy card number',
             updateAddress: 'Update address',
         },
-        cardAlreadyInWallet: 'Card is already in wallet',
+        cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Added to ${platform} Wallet`,
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
@@ -2053,7 +2055,7 @@ const translations = {
         },
         accounting: {
             title: 'Do you use any accounting software?',
-            none: 'None',
+            noneOfAbove: 'None of the above',
         },
         error: {
             requiredFirstName: 'Please input your first name to continue',
@@ -3780,12 +3782,14 @@ const translations = {
                 },
                 yourCardProvider: `Who's your card provider?`,
                 whoIsYourBankAccount: 'Who’s your bank?',
+                whereIsYourBankLocated: 'Where’s your bank located?',
                 howDoYouWantToConnect: 'How do you want to connect to your bank?',
                 learnMoreAboutOptions: {
                     text: 'Learn more about these ',
                     linkText: 'options.',
                 },
                 commercialFeedDetails: 'Requires setup with your bank. This is typically used by larger companies and is often the best option if you qualify.',
+                commercialFeedPlaidDetails: `Requires setup with your bank, but we'll guide you. This is typically limited to larger companies.`,
                 directFeedDetails: 'The simplest approach. Connect right away using your master credentials. This method is most common.',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
@@ -3825,6 +3829,7 @@ const translations = {
                     pleaseSelectProvider: 'Please select a card provider before continuing',
                     pleaseSelectBankAccount: 'Please select a bank account before continuing',
                     pleaseSelectBank: 'Please select a bank before continuing',
+                    pleaseSelectCountry: 'Please select a country before continuing',
                     pleaseSelectFeedType: 'Please select a feed type before continuing',
                 },
             },
@@ -4354,9 +4359,6 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
-            sap: 'SAP',
-            oracle: 'Oracle',
-            microsoftDynamics: 'Microsoft Dynamics',
             talkYourOnboardingSpecialist: 'Chat with your setup specialist.',
             talkYourAccountManager: 'Chat with your account manager.',
             talkToConcierge: 'Chat with Concierge.',
@@ -4385,7 +4387,7 @@ const translations = {
             import: 'Import',
             export: 'Export',
             advanced: 'Advanced',
-            other: 'Other',
+            other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             reinstall: 'Reinstall connector',
@@ -4637,6 +4639,7 @@ const translations = {
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
             inviteNoMembersError: 'Please select at least one member to invite',
+            joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `${user} requested to join ${workspaceName}`,
         },
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
@@ -6320,10 +6323,6 @@ const translations = {
         outstandingFilter: {
             part1: 'Filter for expenses\nthat ',
             part2: 'need approval',
-        },
-        settingsTab: {
-            part1: 'Explore your ',
-            part2: 'workspace\nand account settings',
         },
         workspacesSettings: {
             part1: 'View your ',
