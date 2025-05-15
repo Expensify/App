@@ -1,8 +1,8 @@
-type RenamePolicyTaglistParams = {
+type RenamePolicyTagListParams = {
     policyID: string;
     oldName: string;
     newName: string;
     tagListIndex: number;
 };
 
-export default RenamePolicyTaglistParams;
+export default RenamePolicyTagListParams;

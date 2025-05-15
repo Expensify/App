@@ -300,7 +300,7 @@ describe('TransactionUtils', () => {
         it('should return true if transaction is receipt being scanned', () => {
             const transaction = generateTransaction({
                 receipt: {
-                    state: CONST.IOU.RECEIPT_STATE.SCANREADY,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
                 },
             });
             expect(TransactionUtils.shouldShowRTERViolationMessage([transaction])).toBe(true);
