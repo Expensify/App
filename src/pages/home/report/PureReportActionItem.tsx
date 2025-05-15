@@ -28,7 +28,6 @@ import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
-import ReportPreviewOld from '@components/ReportActionItem/ReportPreviewOld';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
@@ -61,6 +60,7 @@ import {
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
     getIOUReportIDFromReportActionPreview,
+    getJoinRequestMessage,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -433,7 +433,7 @@ function PureReportActionItem({
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
-    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, undefined, true);
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, undefined, undefined, true);
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
 
@@ -876,23 +876,8 @@ function PureReportActionItem({
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-            children = canUseTableReportView ? (
+            children = (
                 <ReportPreview
-                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                    chatReportID={reportID}
-                    policyID={report?.policyID}
-                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
-                    action={action}
-                    isHovered={hovered}
-                    contextMenuAnchor={popoverAnchorRef.current}
-                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                    onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
-                    onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
-                    isWhisper={isWhisper}
-                    shouldDisplayContextMenu={shouldDisplayContextMenu}
-                />
-            ) : (
-                <ReportPreviewOld
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     chatReportID={reportID}
                     policyID={report?.policyID}
@@ -1085,6 +1070,19 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDeleteMemberMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(action)} />;
+        } else if (isActionableJoinRequest(action)) {
+            children = (
+                <View>
+                    <ReportActionItemBasicMessage message={getJoinRequestMessage(action)} />
+                    {actionableItemButtons.length > 0 && (
+                        <ActionableItemButtons
+                            items={actionableItemButtons}
+                            shouldUseLocalization
+                            layout={isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
+                        />
+                    )}
+                </View>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE)) {
             children = <ReportActionItemBasicMessage message={getDemotedFromWorkspaceMessage(action)} />;
         } else if (
