@@ -176,6 +176,10 @@ function SearchList(
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
                 return;
             }
+            // disable long press for empty expense reports
+            if ('transactions' in item && item.transactions.length === 0) {
+                return;
+            }
             if (selectionMode?.isEnabled) {
                 onCheckboxPress(item);
                 return;
