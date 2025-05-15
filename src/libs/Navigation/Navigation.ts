@@ -546,49 +546,51 @@ function navigateToReportWithPolicyCheck(
     forceReplace = false,
     ref = navigationRef,
 ) {
-    const targetReport = reportID ? {reportID, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]} : report;
-    const policyID = policyIDToCheck ?? getPolicyIDFromState(navigationRef.getRootState() as State<RootNavigatorParamList>);
-    const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
-    const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
+    isNavigationReady().then(() => {
+        const targetReport = reportID ? {reportID, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]} : report;
+        const policyID = policyIDToCheck ?? getPolicyIDFromState(navigationRef.getRootState() as State<RootNavigatorParamList>);
+        const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
+        const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
-    if ((shouldOpenAllWorkspace && !policyID) || !shouldOpenAllWorkspace) {
-        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID, reportActionID, referrer, undefined, undefined, backTo), {forceReplace: !!forceReplace});
-        return;
-    }
+        if ((shouldOpenAllWorkspace && !policyID) || !shouldOpenAllWorkspace) {
+            linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID, reportActionID, referrer, undefined, undefined, backTo), {forceReplace: !!forceReplace});
+            return;
+        }
 
-    const params: Record<string, string | undefined> = {
-        reportID: targetReport?.reportID,
-    };
+        const params: Record<string, string | undefined> = {
+            reportID: targetReport?.reportID,
+        };
 
-    if (reportActionID) {
-        params.reportActionID = reportActionID;
-    }
+        if (reportActionID) {
+            params.reportActionID = reportActionID;
+        }
 
-    if (referrer) {
-        params.referrer = referrer;
-    }
+        if (referrer) {
+            params.referrer = referrer;
+        }
 
-    if (forceReplace) {
+        if (forceReplace) {
+            ref.dispatch(
+                StackActions.replace(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
+                    policyID: undefined,
+                    screen: SCREENS.REPORT,
+                    params,
+                }),
+            );
+            return;
+        }
+
+        if (backTo) {
+            params.backTo = backTo;
+        }
         ref.dispatch(
-            StackActions.replace(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
+            StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
                 policyID: undefined,
                 screen: SCREENS.REPORT,
                 params,
             }),
         );
-        return;
-    }
-
-    if (backTo) {
-        params.backTo = backTo;
-    }
-    ref.dispatch(
-        StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
-            policyID: undefined,
-            screen: SCREENS.REPORT,
-            params,
-        }),
-    );
+    });
 }
 
 function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navigationRef.getRootState().routes): NavigationRoute | null {
