@@ -69,18 +69,21 @@ function SearchFiltersExportedRootView({value, applyChanges, resetChanges, setVi
             <View>
                 <MenuItem
                     shouldShowRightIcon
+                    viewMode={CONST.OPTION_MODE.COMPACT}
                     title={translate('common.on')}
                     description={dateOn}
                     onPress={() => setView(CONST.SEARCH.DATE_MODIFIERS.ON)}
                 />
                 <MenuItem
                     shouldShowRightIcon
+                    viewMode={CONST.OPTION_MODE.COMPACT}
                     title={translate('common.after')}
                     description={dateAfter}
                     onPress={() => setView(CONST.SEARCH.DATE_MODIFIERS.AFTER)}
                 />
                 <MenuItem
                     shouldShowRightIcon
+                    viewMode={CONST.OPTION_MODE.COMPACT}
                     title={translate('common.before')}
                     description={dateBefore}
                     onPress={() => setView(CONST.SEARCH.DATE_MODIFIERS.BEFORE)}

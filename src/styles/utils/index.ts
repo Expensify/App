@@ -997,11 +997,22 @@ function getWrappingStyle(isExtraSmallScreenWidth: boolean): ViewStyle {
 }
 
 /**
- * Returns the text container styles for menu items depending on if the menu item container a small avatar
+ * Returns the text container styles for menu items depending on if the menu item container is in compact mode or not
  */
-function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu: boolean): ViewStyle {
+function getMenuItemTextContainerStyle(compactMode: boolean): ViewStyle {
     return {
-        minHeight: isSmallAvatarSubscriptMenu ? variables.avatarSizeSubscript : variables.componentSizeNormal,
+        minHeight: compactMode ? 20 : variables.componentSizeNormal,
+    };
+}
+
+/**
+ * Returns the style for a menu item's icon based on of the container is in compact mode or not
+ */
+function getMenuItemIconStyle(compactMode: boolean): ViewStyle {
+    return {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: compactMode ? 20 : variables.componentSizeNormal,
     };
 }
 
@@ -1229,6 +1240,7 @@ const staticStyleUtils = {
     getFontSizeStyle,
     getLineHeightStyle,
     getMenuItemTextContainerStyle,
+    getMenuItemIconStyle,
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,

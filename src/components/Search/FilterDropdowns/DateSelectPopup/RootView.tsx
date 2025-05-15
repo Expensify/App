@@ -40,6 +40,7 @@ function RootView({value, applyChanges, resetChanges, setView}: RootViewProps) {
                             shouldShowRightIcon
                             title={translate(`common.${lowerDateModifier}`)}
                             description={description}
+                            viewMode={CONST.OPTION_MODE.COMPACT}
                             onPress={() => setView(dateType)}
                         />
                     );
