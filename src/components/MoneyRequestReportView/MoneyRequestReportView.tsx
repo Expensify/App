@@ -18,7 +18,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {selectAllTransactionsForReport, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getOneTransactionThreadReportID, isMoneyRequestAction, isReportPreviewAction} from '@libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, isDeletedParentAction, isMoneyRequestAction, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
@@ -96,7 +96,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
-    const reportActions = unfilteredReportActions.filter((action) => !isReportPreviewAction(action) || action.shouldShow);
+    const reportActions = unfilteredReportActions.filter((action) => !isDeletedParentAction(action) && (!isReportPreviewAction(action) || action.shouldShow));
 
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
 

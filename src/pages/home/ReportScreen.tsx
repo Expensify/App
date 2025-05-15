@@ -268,7 +268,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
-    const reportActions = unfilteredReportActions.filter((action) => !isReportPreviewAction(action) || action.shouldShow);
+    const reportActions = unfilteredReportActions.filter((action) => !isDeletedParentAction(action) && (!isReportPreviewAction(action) || action.shouldShow));
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
