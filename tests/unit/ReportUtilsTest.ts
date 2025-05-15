@@ -2577,7 +2577,7 @@ describe('ReportUtils', () => {
     describe('getParticipantsList', () => {
         it('should exclude hidden participants', () => {
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(123),
                 participants: {
                     1: {notificationPreference: 'hidden'},
                     2: {notificationPreference: 'always'},
