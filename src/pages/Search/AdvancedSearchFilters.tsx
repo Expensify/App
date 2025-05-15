@@ -11,6 +11,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +30,7 @@ import {getReportName} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {getExpenseTypeTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -36,6 +38,16 @@ import {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report, WorkspaceCardsList} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+type SectionType = {
+    titleTranslationKey: TranslationPaths;
+    items: Array<{
+        key: SearchFilterKey;
+        title: string | undefined;
+        description: string;
+        onPress: () => void;
+    }>;
+};
 
 const baseFilterConfig = {
     date: {
@@ -176,7 +188,7 @@ const baseFilterConfig = {
  */
 const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>>> = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
@@ -186,11 +198,12 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
         ],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -200,7 +213,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -209,9 +222,10 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
         ],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -221,7 +235,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -230,9 +244,10 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
         ],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -243,13 +258,13 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
         [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
         ],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
     [CONST.SEARCH.DATA_TYPES.TASK]: [
         [
@@ -258,8 +273,8 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
             CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
         ],
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
 };
 
@@ -626,21 +641,45 @@ function AdvancedSearchFilters() {
         .filter((section) => !!section.length);
     const displaySearchButton = queryJSON && !isCannedSearchQuery(queryJSON);
 
+    const sections: SectionType[] = [
+        {
+            titleTranslationKey: 'common.general',
+            items: filters.at(0) ?? [],
+        },
+        {
+            titleTranslationKey: 'common.expenses',
+            items: filters.at(1) ?? [],
+        },
+        {
+            titleTranslationKey: 'common.reports',
+            items: filters.at(2) ?? [],
+        },
+    ];
+
+    sections.forEach((section) => {
+        section.items.sort((a, b) => localeCompare(a.description, b.description));
+    });
+
     return (
         <>
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
                 <View>
-                    {filters.map((section, index) => {
+                    {sections.map((section, index) => {
+                        if (section.items.length === 0) {
+                            return;
+                        }
+
                         return (
                             // eslint-disable-next-line react/no-array-index-key
-                            <View key={`${section.at(0)?.key}-${index}`}>
+                            <View key={`${section.items.at(0)?.key}-${index}`}>
                                 {index !== 0 && (
                                     <SpacerView
                                         shouldShow
                                         style={[styles.reportHorizontalRule]}
                                     />
                                 )}
-                                {section.map((item) => {
+                                <Text style={[styles.headerText, styles.reportHorizontalRule, index === 0 ? null : styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
+                                {section.items.map((item) => {
                                     return (
                                         <MenuItemWithTopDescription
                                             key={item.description}

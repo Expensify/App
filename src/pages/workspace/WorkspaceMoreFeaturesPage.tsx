@@ -16,7 +16,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {filterInactiveCards, getAllCardsForWorkspace, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -30,7 +29,6 @@ import {
     enableExpensifyCard,
     enablePolicyConnections,
     enablePolicyInvoicing,
-    enablePolicyReportFields,
     enablePolicyRules,
     enablePolicyTaxes,
     enablePolicyWorkflows,
@@ -92,7 +90,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [cardFeeds] = useCardFeeds(policyID);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
-    const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const [isDisableExpensifyCardWarningModalOpen, setIsDisableExpensifyCardWarningModalOpen] = useState(false);
     const [isDisableCompanyCardsWarningModalOpen, setIsDisableCompanyCardsWarningModalOpen] = useState(false);
     const [isDisableWorkflowWarningModalOpen, setIsDisableWorkflowWarningModalOpen] = useState(false);
@@ -284,32 +281,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 enablePolicyTaxes(policyID, isEnabled);
             },
         },
-        {
-            icon: Illustrations.Pencil,
-            titleTranslationKey: 'workspace.moreFeatures.reportFields.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.reportFields.subtitle',
-            isActive: policy?.areReportFieldsEnabled ?? false,
-            disabled: hasAccountingConnection,
-            pendingAction: policy?.pendingFields?.areReportFieldsEnabled,
-            disabledAction: onDisabledOrganizeSwitchPress,
-            action: (isEnabled: boolean) => {
-                if (!policyID) {
-                    return;
-                }
-                if (isEnabled) {
-                    if (!isControlPolicy(policy)) {
-                        Navigation.navigate(
-                            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
-                        );
-                        return;
-                    }
-
-                    enablePolicyReportFields(policyID, true, true);
-                    return;
-                }
-                setIsReportFieldsWarningModalOpen(true);
-            },
-        },
     ];
 
     const integrateItems: Item[] = [
@@ -344,11 +315,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const sections: SectionObject[] = [
         {
-            titleTranslationKey: 'workspace.moreFeatures.spendSection.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.spendSection.subtitle',
-            items: spendItems,
-        },
-        {
             titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
             items: integrateItems,
@@ -362,6 +328,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.manageSection.title',
             subtitleTranslationKey: 'workspace.moreFeatures.manageSection.subtitle',
             items: manageItems,
+        },
+        {
+            titleTranslationKey: 'workspace.moreFeatures.spendSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.spendSection.subtitle',
+            items: spendItems,
         },
         {
             titleTranslationKey: 'workspace.moreFeatures.earnSection.title',
@@ -470,7 +441,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     shouldUseHeadlineHeader
                     title={translate('workspace.common.moreFeatures')}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={() => goBackFromWorkspaceCentralScreen(policyID)}
+                    onBackButtonPress={Navigation.popToSidebar}
                 />
 
                 <ScrollView addBottomSafeAreaPadding>
@@ -507,22 +478,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     prompt={translate('workspace.moreFeatures.connectionsWarningModal.disconnectText')}
                     confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
                     cancelText={translate('common.cancel')}
-                />
-                <ConfirmModal
-                    title={translate('workspace.reportFields.disableReportFields')}
-                    isVisible={isReportFieldsWarningModalOpen}
-                    onConfirm={() => {
-                        if (!policyID) {
-                            return;
-                        }
-                        setIsReportFieldsWarningModalOpen(false);
-                        enablePolicyReportFields(policyID, false, true);
-                    }}
-                    onCancel={() => setIsReportFieldsWarningModalOpen(false)}
-                    prompt={translate('workspace.reportFields.disableReportFieldsConfirmation')}
-                    confirmText={translate('common.disable')}
-                    cancelText={translate('common.cancel')}
-                    danger
                 />
                 <ConfirmModal
                     title={translate('workspace.moreFeatures.expensifyCard.disableCardTitle')}

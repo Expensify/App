@@ -14,7 +14,7 @@ import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
+import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import {connect} from '@libs/actions/Delegate';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
@@ -98,6 +98,7 @@ const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/worksp
 
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
+const loadWorkspaceHubSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceHubSplitNavigator').default;
 const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
 const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
 
@@ -530,7 +531,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     return (
         <ComposeProviders
-            components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, SidebarOrderedReportIDsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}
+            components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}
         >
             <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
@@ -548,6 +549,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                     options={rootNavigatorScreenOptions.fullScreen}
                     getComponent={loadSearchNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR}
+                    options={rootNavigatorScreenOptions.splitNavigator}
+                    getComponent={loadWorkspaceHubSplitNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
@@ -683,7 +689,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     component={TestDriveDemoNavigator}
                 />
                 <RootStack.Screen
-                    name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
+                    name={NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={FeatureTrainingModalNavigator}
                     listeners={modalScreenListeners}
