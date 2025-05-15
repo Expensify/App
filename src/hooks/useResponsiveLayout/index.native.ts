@@ -48,12 +48,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const navigator = useContext(NavigationContext);
     const currentNavigator = navigator ?? navigationContainerRef;
 
-    const isDisplayedInNarrowModalNavigator = useMemo(
-        () =>
-            !!currentNavigator?.getParent?.(NAVIGATORS.RIGHT_MODAL_NAVIGATOR as unknown as undefined) ||
-            !!currentNavigator?.getParent?.(NAVIGATORS.LEFT_MODAL_NAVIGATOR as unknown as undefined),
-        [currentNavigator],
-    );
+    const isDisplayedInNarrowModalNavigator = useMemo(() => !!currentNavigator?.getParent?.(NAVIGATORS.RIGHT_MODAL_NAVIGATOR as unknown as undefined), [currentNavigator]);
 
     // The component calling this hook is in a "narrow pane modal" if:
     const isInNarrowPaneModal =
