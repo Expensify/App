@@ -176,6 +176,7 @@ function ReportActionItemMessageEdit(
     const setUpComposeFocusManager = useCallback(() => {
         ReportActionComposeFocusManager.onComposerFocus(() => {
             focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
+            emojiPickerSelectionRef.current = undefined;
         }, true);
     }, [focus]);
 
@@ -524,6 +525,7 @@ function ReportActionItemMessageEdit(
                             isDisabled={shouldDisableEmojiPicker}
                             onModalHide={() => {
                                 const activeElementId = DomUtils.getActiveElement()?.id;
+                                console.log('modal hide', activeElementId)
                                 if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
                                     return;
                                 }
