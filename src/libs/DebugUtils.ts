@@ -974,6 +974,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 iouType: CONST.IOU.TYPE,
                 ownerAccountID: 'number',
                 icons: 'array',
+                avatar: 'string',
                 item: 'string',
             });
         case 'errors':

@@ -56,6 +56,28 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - ExpensifyNitroUtils (0.0.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - NitroModules
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - Expo (52.0.41):
     - ExpoModulesCore
   - ExpoAsset (11.0.5):
@@ -313,6 +335,29 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
+  - NitroModules (0.25.2):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - NWWebSocket (0.5.4)
   - Onfido (29.7.2)
   - onfido-react-native-sdk (10.6.0):
@@ -2933,6 +2978,7 @@ DEPENDENCIES:
   - EXAV (from `../node_modules/expo-av/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - "expensify-react-native-background-task (from `../node_modules/@expensify/react-native-background-task`)"
+  - "ExpensifyNitroUtils (from `../node_modules/@expensify/nitro-utils`)"
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
@@ -2948,6 +2994,7 @@ DEPENDENCIES:
   - GzipSwift
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
+  - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - "pusher-websocket-react-native (from `../node_modules/@pusher/pusher-websocket-react-native`)"
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -3117,6 +3164,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-image-loader/ios"
   expensify-react-native-background-task:
     :path: "../node_modules/@expensify/react-native-background-task"
+  ExpensifyNitroUtils:
+    :path: "../node_modules/@expensify/nitro-utils"
   Expo:
     :path: "../node_modules/expo"
   ExpoAsset:
@@ -3146,6 +3195,8 @@ EXTERNAL SOURCES:
     :tag: hermes-2024-11-25-RNv0.77.0-d4f25d534ab744866448b36ca3bf3d97c08e638c
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
+  NitroModules:
+    :path: "../node_modules/react-native-nitro-modules"
   onfido-react-native-sdk:
     :path: "../node_modules/@onfido/react-native-sdk"
   pusher-websocket-react-native:
@@ -3373,11 +3424,12 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: d7090b1a93a9798c029277a8288114f2948f471c
-  DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
+  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
+  DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 57ea461614a714b8b8fcc72c6fbc298b8f1ec78b
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
   expensify-react-native-background-task: f180077e77a41952128fdc2c83ce1d980994d125
+  ExpensifyNitroUtils: 531df6f934e9cd9ef8ba4eb4cb51b47ebd32245f
   Expo: 3a8a619381412bbf8537746ec27b485be01c8a1f
   ExpoAsset: 0687fe05f5d051c4a34dd1f9440bd00858413cfe
   ExpoFont: 773955186469acc5108ff569712a2d243857475f
@@ -3399,7 +3451,7 @@ SPEC CHECKSUMS:
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: c8a10b2358c0d33c57be84d16e4c440b0434b33d
   fullstory_react-native: 5132c9dfa5e1ea4ec42679a708af782d4c4ec4bc
-  glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
+  glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
@@ -3418,6 +3470,7 @@ SPEC CHECKSUMS:
   MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
+  NitroModules: 6cad985fa4a6efaf567fe5c9aa464bce17e2d0cc
   NWWebSocket: 040d22f23438cc09aaeabf537beff67699c3c76d
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 1b8abe574234b86a592d7efb4eeada715709e23b
@@ -3476,7 +3529,6 @@ SPEC CHECKSUMS:
   react-native-safe-area-context: b3edb1da341e5e61f865763d9e0b6d3d34706464
   react-native-view-shot: bb169342812ded991a4a0387e7d0b17cb515e62a
   react-native-wallet: 46df147c6089b2490dc5f4cbf25c58ce70b0215d
-  react-native-webrtc: 0f1c94069ff1eb9d8fb1618c2dc71f73542c8cfa
   react-native-webview: b375842af66a9f0ab979378bdc8b26eeb5d8e3ee
   React-nativeconfig: cb207ebba7cafce30657c7ad9f1587a8f32e4564
   React-NativeModulesApple: 82a8bee52df9f5b378195a500f22be3a6ef0f890
@@ -3523,7 +3575,7 @@ SPEC CHECKSUMS:
   RNLiveMarkdown: e3f49ff5a70a7fb5ba515a390cae767e5e999ac9
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 1d313fe5d7d18845b3015ffd6994e0c81afbffcd
-  RNPermissions: ae4949b7250af8edc4791e440490c0f96237b329
+  RNPermissions: 87e01d323eb97183eaadc492781301922bbf4527
   RNReactNativeHapticFeedback: 5fdbbaedabc1698dc3bb2a72105fadf63136a451
   RNReanimated: 67d8eda35002543abb656f25fa1a457ceeab6807
   RNScreens: 9b9bb7f9dc3eb218d79d84e0ac15df65d0e349f2
@@ -3540,6 +3592,6 @@ SPEC CHECKSUMS:
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: 1fd059161b449018342943b095a6d4e69bcaa719
 
-PODFILE CHECKSUM: 3742d104d6ece80a980e5052f676b69f97405c55
+PODFILE CHECKSUM: 7259116b0f802ccccad12de2f41d2b5abec35add
 
 COCOAPODS: 1.15.2
