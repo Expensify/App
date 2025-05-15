@@ -1267,7 +1267,7 @@ type BuildOnyxDataForTestDriveIOUParams = {
     transaction: OnyxTypes.Transaction;
     iouOptimisticParams: MoneyRequestOptimisticParams['iou'];
     chatOptimisticParams: MoneyRequestOptimisticParams['chat'];
-    testDriveCommentReportActionID: string;
+    testDriveCommentReportActionID?: string;
 };
 
 function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDriveIOUParams): OnyxData {
@@ -1287,16 +1287,15 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
     });
 
     const text = Localize.translateLocal('testDrive.employeeInviteMessage', {name: personalDetailsList?.[userAccountID]?.firstName ?? ''});
-    const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID);
+    const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID, undefined, undefined, undefined, testDriveIOUParams.testDriveCommentReportActionID);
     textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
-    textComment.reportAction.reportActionID = testDriveIOUParams.testDriveCommentReportActionID;
 
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${testDriveIOUParams.chatOptimisticParams.report?.reportID}`,
             value: {
-                [testDriveIOUParams.testDriveCommentReportActionID]: textComment.reportAction,
+                [textComment.reportAction.reportActionID]: textComment.reportAction,
             },
         },
         {
@@ -1533,7 +1532,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             transaction,
             iouOptimisticParams: iou,
             chatOptimisticParams: chat,
-            testDriveCommentReportActionID: testDriveCommentReportActionID ?? '',
+            testDriveCommentReportActionID,
         });
         optimisticData.push(...testDriveOptimisticData);
         successData.push(...testDriveSuccessData);
