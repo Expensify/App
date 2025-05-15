@@ -5447,10 +5447,7 @@ const CONST = {
 
     MINI_CONTEXT_MENU_MAX_ITEMS: 4,
 
-    WORKSPACE_SWITCHER: {
-        NAME: 'Expensify',
-        SUBSCRIPT_ICON_SIZE: 8,
-    },
+    EXPENSIFY_ICON_NAME: 'Expensify',
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
