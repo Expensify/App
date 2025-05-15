@@ -541,7 +541,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     icon={Illustrations.Accounting}
                     shouldUseHeadlineHeader
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
-                    onBackButtonPress={() => Navigation.popToSidebar()}
+                    onBackButtonPress={Navigation.popToSidebar}
                 />
                 <ScrollView
                     contentContainerStyle={styles.pt3}

@@ -265,7 +265,7 @@ function SecuritySettingsPage() {
                     <HeaderWithBackButton
                         title={translate('initialSettingsPage.security')}
                         shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={() => Navigation.popToSidebar()}
+                        onBackButtonPress={Navigation.popToSidebar}
                         icon={Illustrations.LockClosed}
                         shouldUseHeadlineHeader
                         shouldDisplaySearchRouter

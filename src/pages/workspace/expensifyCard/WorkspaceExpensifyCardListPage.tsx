@@ -159,7 +159,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 shouldUseHeadlineHeader
                 title={translate('workspace.common.expensifyCard')}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={() => Navigation.popToSidebar()}
+                onBackButtonPress={Navigation.popToSidebar}
             >
                 {!shouldShowSelector && !shouldUseNarrowLayout && isBankAccountVerified && getHeaderButtons()}
             </HeaderWithBackButton>

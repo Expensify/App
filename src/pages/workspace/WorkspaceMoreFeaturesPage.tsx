@@ -441,7 +441,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     shouldUseHeadlineHeader
                     title={translate('workspace.common.moreFeatures')}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={() => Navigation.popToSidebar()}
+                    onBackButtonPress={Navigation.popToSidebar}
                 />
 
                 <ScrollView addBottomSafeAreaPadding>
