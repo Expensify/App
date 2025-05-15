@@ -25,16 +25,17 @@ jobs:
           ref: ${{ github.event.before }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Get previous App commit hash
-        id: getOldAppHash
-        run: echo "HASH=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Get previous Mobile-Expensify commit hash
-        if: ${{ matrix.is_hybrid }}
-        id: getOldMobileExpensifyHash
-        run: echo "HASH=$(git rev-parse :Mobile-Expensify)" >> "$GITHUB_OUTPUT"
+      - name: Get previous patches hash
+        id: getOldPatchesHash
+        run: |
+          if [[ "${{ matrix.is_hybrid }}" == "true" ]]; then
+            echo "HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+          else
+            echo "HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Get previous react-native version
+
         id: getOldVersion
         run: echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> "$GITHUB_OUTPUT"
 
@@ -44,14 +45,14 @@ jobs:
           git checkout ${{ github.event.after }}
           git submodule update
 
-      - name: Get new App commit hash
-        id: getNewAppHash
-        run: echo "HASH=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Get new Mobile-Expensify commit hash
-        if: ${{ matrix.is_hybrid }}
-        id: getNewMobileExpensifyHash
-        run: echo "HASH=$(git rev-parse :Mobile-Expensify)" >> "$GITHUB_OUTPUT"
+      - name: Get new patches hash
+        id: getNewPatchesHash
+        run: |
+          if [[ "${{ matrix.is_hybrid }}" == "true" ]]; then
+            echo "HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+          else
+            echo "HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Get new react-native version
         id: getNewVersion
@@ -69,21 +70,11 @@ jobs:
       - name: Check if patches changed
         id: didPatchesChange
         run: |
-          if ! git diff --exit-code --name-only ${{ steps.getOldAppHash.outputs.HASH }}..${{ steps.getNewAppHash.outputs.HASH }} -- patches/react-native+*.patch patches/@react-native+*.patch; then
-            echo "::notice::Detected changes in patches (Standalone NewDot)"
-            echo "DID_PATCHES_CHANGE=true" >> "$GITHUB_OUTPUT"
-            exit 0
+          readonly DID_PATCHES_CHANGE=${{ steps.getOldPatchesHash.outputs.HASH != steps.getNewPatchesHash.outputs.HASH && 'true' || 'false' }}
+          echo "DID_PATCHES_CHANGE=$DID_PATCHES_CHANGE" >> "$GITHUB_OUTPUT"
+          if [[ "$DID_PATCHES_CHANGE" == 'true' ]]; then
+            echo "::notice::Detected changes in patches (${{ steps.getOldPatchesHash.outputs.HASH }} -> ${{ steps.getNewPatchesHash.outputs.HASH }})"
           fi
-
-          if [[ '${{ matrix.is_hybrid }}' == 'true' ]]; then
-            if ! git -C Mobile-Expensify diff --exit-code --name-only ${{ steps.getOldMobileExpensifyHash.outputs.HASH }}..${{ steps.getNewMobileExpensifyHash.outputs.HASH }} -- patches/react-native+*.patch patches/@react-native+*.patch; then
-              echo "::notice::Detected changes in patches (HybridApp)"
-              echo "DID_PATCHES_CHANGE=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-          fi
-
-          echo "DID_PATCHES_CHANGE=false" >> "$GITHUB_OUTPUT"
 
       - name: Check if we should build and publish the package
         id: shouldPublish
@@ -128,7 +119,7 @@ jobs:
         run: |
           echo "Starting artifacts build for ${{ matrix.is_hybrid && 'HybridApp' || 'NewDot Standalone' }}"
           echo "Version: ${{ env.PATCHED_VERSION }}"
-          echo "Commit hash: ${{ env.COMMIT_HASH }}"
+          echo "Patches hash: ${{ env.PATCHES_HASH }}"
           export ORG_GRADLE_PROJECT_reactNativeArchitectures="armeabi-v7a,arm64-v8a,x86,x86_64"
           ./gradlew buildReactNativeArtifacts -x lint -x test -x check
           ./gradlew publishReactNativeArtifacts
@@ -137,7 +128,7 @@ jobs:
           GH_PUBLISH_TOKEN: ${{ github.token }}
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
           PATCHED_VERSION: ${{ steps.getNewPatchedVersion.outputs.NEW_PATCHED_VERSION }}
-          COMMIT_HASH: ${{ github.event.after }}
+          PATCHES_HASH: ${{ steps.getNewPatchesHash.outputs.HASH }}
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
