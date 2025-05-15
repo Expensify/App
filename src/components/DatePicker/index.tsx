@@ -3,6 +3,7 @@ import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} fr
 import {InteractionManager, View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
+import useIsResizing from '@hooks/useIsResizing';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -31,9 +32,12 @@ function DatePicker({
     shouldHideClearButton = false,
 }: DateInputWithPickerProps) {
     const styles = useThemeStyles();
-    const {windowHeight, windowWidth} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const isResizing = useIsResizing();
+
     const {translate} = useLocalize();
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isPopoverPositionReadyForDisplay, setIsPopoverPositionReadyForDisplay] = useState(true);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
@@ -61,6 +65,7 @@ function DatePicker({
                 horizontal: x + width,
                 vertical: y + (wouldExceedBottom ? 0 : height + PADDING_MODAL_DATE_PICKER),
             });
+            setIsPopoverPositionReadyForDisplay(true);
         });
     }, [windowHeight]);
 
@@ -88,8 +93,14 @@ function DatePicker({
     };
 
     useEffect(() => {
+        if (isResizing) {
+            setIsPopoverPositionReadyForDisplay(false);
+            return;
+        }
+        // Re-render the date picker when resizing ends
+        // This is necessary to ensure the date picker is positioned correctly after resizing
         calculatePopoverPosition();
-    }, [calculatePopoverPosition, windowWidth]);
+    }, [isResizing, calculatePopoverPosition]);
 
     useEffect(() => {
         if (!autoFocus) {
@@ -107,6 +118,8 @@ function DatePicker({
         }
         return selectedDate;
     }, [selectedDate, defaultValue]);
+
+    const isDatePickerModalVisible = useMemo(() => isPopoverPositionReadyForDisplay && isModalVisible, [isPopoverPositionReadyForDisplay, isModalVisible]);
 
     return (
         <>
@@ -130,7 +143,7 @@ function DatePicker({
                     disabled={disabled}
                     readOnly
                     onPress={handlePress}
-                    textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
+                    textInputContainerStyles={isDatePickerModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                 />
@@ -142,7 +155,7 @@ function DatePicker({
                 maxDate={maxDate}
                 value={getValidDateForCalendar}
                 onSelected={handleDateSelected}
-                isVisible={isModalVisible}
+                isVisible={isDatePickerModalVisible}
                 onClose={closeDatePicker}
                 anchorPosition={popoverPosition}
                 shouldPositionFromTop={!isInverted}
