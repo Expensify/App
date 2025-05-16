@@ -146,6 +146,7 @@ function ReportFieldsListValuesPage({
     }, []);
     const sortListValues = useCallback((values: ValueListItem[]) => values.sort((a, b) => localeCompare(a.value, b.value)), []);
     const [inputValue, setInputValue, filteredListValues] = useSearchResults(data, filterListValue, sortListValues);
+    const sections = useMemo(() => [{data: filteredListValues, isDisabled: false}], [filteredListValues]);
 
     const filteredListValuesArray = filteredListValues.map((item) => item.value);
 
@@ -364,7 +365,8 @@ function ReportFieldsListValuesPage({
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={!hasAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
-                        sections={[{data: filteredListValues, isDisabled: false}]}
+                        sections={sections}
+                        shouldUseDefaultRightHandSideCheckmark={false}
                         onCheckboxPress={toggleValue}
                         onSelectRow={openListValuePage}
                         onSelectAll={toggleAllValues}

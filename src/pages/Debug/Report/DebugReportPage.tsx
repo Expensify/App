@@ -131,7 +131,10 @@ function DebugReportPage({
             >
                 <View style={[styles.mb5, styles.ph5, styles.gap5]}>
                     {metadata?.map(({title, subtitle, message, action}) => (
-                        <View style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p5, styles.br4, styles.flexColumn, styles.gap2]}>
+                        <View
+                            key={title}
+                            style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p5, styles.br4, styles.flexColumn, styles.gap2]}
+                        >
                             <View style={[styles.flexRow, styles.justifyContentBetween]}>
                                 <Text style={styles.h4}>{title}</Text>
                                 <Text>{subtitle}</Text>

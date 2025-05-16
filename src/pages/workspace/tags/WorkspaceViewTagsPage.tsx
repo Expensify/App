@@ -152,6 +152,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         [filteredTagList],
     );
 
+    const sections = useMemo(() => [{data: filteredTagList, isDisabled: false}], [filteredTagList]);
+
     if (!currentPolicyTag) {
         return <NotFoundPage />;
     }
@@ -375,7 +377,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                        sections={[{data: filteredTagList, isDisabled: false}]}
+                        sections={sections}
+                        shouldUseDefaultRightHandSideCheckmark={false}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
                         onSelectAll={toggleAllTags}
