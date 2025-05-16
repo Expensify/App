@@ -36,7 +36,6 @@ import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -135,12 +134,12 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const {selectionMode} = useMobileSelectionMode();
 
-    const customUnit = getPerDiemCustomUnit(policy);
+    const customUnit = useMemo(() => getPerDiemCustomUnit(policy), [policy]);
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
 
-    const allRatesArray = Object.values(customUnitRates);
+    const allRatesArray = useMemo(() => Object.values(customUnitRates), [customUnitRates]);
 
-    const allSubRates = getSubRatesData(allRatesArray);
+    const allSubRates = useMemo(() => getSubRatesData(allRatesArray), [allRatesArray]);
 
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
@@ -203,7 +202,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     }, []);
     const sortRates = useCallback((rates: PolicyOption[]) => lodashSortBy(rates, 'text', localeCompare) as PolicyOption[], []);
     const [inputValue, setInputValue, filteredSubRatesList] = useSearchResults(subRatesList, filterRate, sortRates);
-    const sections = useMemo(() => [{data: filteredSubRatesList, isDisabled: false}], [filteredSubRatesList]);
 
     const toggleSubRate = (subRate: PolicyOption) => {
         if (selectedPerDiem.find((selectedSubRate) => selectedSubRate.subRateID === subRate.subRateID) !== undefined) {
@@ -229,19 +227,25 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         }
     };
 
-    const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, !canSelectMultiple && [styles.ph9, styles.pv3, styles.pb5]]}>
-            <View style={styles.flex3}>
-                <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.destination')}</Text>
+    const getCustomListHeader = () => {
+        const header = (
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
+                <View style={styles.flex3}>
+                    <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.destination')}</Text>
+                </View>
+                <View style={styles.flex2}>
+                    <Text style={[styles.textMicroSupporting, styles.alignItemsStart, styles.pl2]}>{translate('common.subrate')}</Text>
+                </View>
+                <View style={styles.flex2}>
+                    <Text style={[styles.textMicroSupporting, styles.alignSelfEnd]}>{translate('workspace.perDiem.amount')}</Text>
+                </View>
             </View>
-            <View style={styles.flex2}>
-                <Text style={[styles.textMicroSupporting, styles.alignItemsStart, styles.pl2]}>{translate('common.subrate')}</Text>
-            </View>
-            <View style={styles.flex2}>
-                <Text style={[styles.textMicroSupporting, styles.alignSelfEnd]}>{translate('workspace.perDiem.amount')}</Text>
-            </View>
-        </View>
-    );
+        );
+        if (canSelectMultiple) {
+            return header;
+        }
+        return <View style={!canSelectMultiple && [styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
+    };
 
     const openSettings = () => {
         Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_SETTINGS.getRoute(policyID));
@@ -391,7 +395,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             return;
                         }
 
-                        goBackFromWorkspaceCentralScreen(policyID);
+                        Navigation.popToSidebar();
                     }}
                     shouldShowThreeDotsButton
                     threeDotsMenuItems={threeDotsMenuItems}
@@ -446,7 +450,9 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             canSelectMultiple={canSelectMultiple}
                             turnOnSelectionModeOnLongPress
                             onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
-                            sections={sections}
+                            sections={[{data: filteredSubRatesList, isDisabled: false}]}
+                            shouldUseDefaultRightHandSideCheckmark={false}
+                            selectedItemKeys={selectedPerDiem.map((item) => item.subRateID)}
                             onCheckboxPress={toggleSubRate}
                             onSelectRow={openSubRateDetails}
                             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
