@@ -12,17 +12,11 @@ function useSearchResults<TValue extends ListItem>(data: TValue[], filterData: (
     const [inputValue, setInputValue] = useState('');
     const [result, setResult] = useState(data);
     const prevData = usePrevious(data);
-    const prevInputValueRef = useRef<string | undefined>(undefined);
     const [, startTransition] = useTransition();
     useEffect(() => {
-        const normalizedSearchQuery = inputValue.trim().toLowerCase();
-        const filtered = normalizedSearchQuery.length ? data.filter((item) => filterData(item, normalizedSearchQuery)) : data;
-        if (prevInputValueRef.current === inputValue) {
-            setResult(filtered);
-            return;
-        }
-        prevInputValueRef.current = inputValue;
         startTransition(() => {
+            const normalizedSearchQuery = inputValue.trim().toLowerCase();
+            const filtered = normalizedSearchQuery.length ? data.filter((item) => filterData(item, normalizedSearchQuery)) : data;
             const sorted = sortData(filtered);
             setResult(sorted);
         });
