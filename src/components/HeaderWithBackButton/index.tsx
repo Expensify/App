@@ -72,7 +72,6 @@ function HeaderWithBackButton({
     progressBarPercentage,
     style,
     subTitleLink = '',
-    openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -102,7 +101,6 @@ function HeaderWithBackButton({
                     report={report}
                     policy={policy}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
-                    openParentReportInCurrentTab={openParentReportInCurrentTab}
                 />
             );
         }
@@ -135,7 +133,6 @@ function HeaderWithBackButton({
         title,
         titleColor,
         translate,
-        openParentReportInCurrentTab,
     ]);
 
     return (

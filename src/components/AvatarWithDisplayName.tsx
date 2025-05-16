@@ -63,9 +63,6 @@ type AvatarWithDisplayNameProps = {
 
     /** Transactions inside report */
     transactions?: TransactionListItemType[];
-
-    /** Whether to open the parent report link in the current tab if possible */
-    openParentReportInCurrentTab?: boolean;
 };
 
 const fallbackIcon: Icon = {
@@ -159,7 +156,6 @@ function AvatarWithDisplayName({
     shouldEnableDetailPageNavigation = false,
     shouldUseCustomSearchTitleName = false,
     transactions = [],
-    openParentReportInCurrentTab = false,
 }: AvatarWithDisplayNameProps) {
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false}) ?? CONST.EMPTY_OBJECT;
@@ -271,7 +267,6 @@ function AvatarWithDisplayName({
                                 parentReportID={report?.parentReportID}
                                 parentReportActionID={report?.parentReportActionID}
                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
-                                openParentReportInCurrentTab={openParentReportInCurrentTab}
                             />
                         )}
                         {!!subtitle && (
