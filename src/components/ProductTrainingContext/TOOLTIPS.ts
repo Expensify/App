@@ -13,7 +13,6 @@ const {
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
     OUTSANDING_FILTER,
-    SETTINGS_TAB,
     WORKSPACES_SETTINGS,
     GBR_RBR_CHAT,
     ACCOUNT_SWITCHER,
@@ -171,16 +170,6 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(OUTSANDING_FILTER),
         name: OUTSANDING_FILTER,
         priority: 1925,
-        shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
-    },
-    [SETTINGS_TAB]: {
-        content: [
-            {text: 'productTrainingTooltip.settingsTab.part1', isBold: false},
-            {text: 'productTrainingTooltip.settingsTab.part2', isBold: true},
-        ],
-        onHideTooltip: () => dismissProductTraining(SETTINGS_TAB),
-        name: SETTINGS_TAB,
-        priority: 1750,
         shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
     },
     [WORKSPACES_SETTINGS]: {

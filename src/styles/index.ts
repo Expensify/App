@@ -3068,12 +3068,6 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pt0,
         },
 
-        workspaceSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
-            ...spacing.pt4,
-        },
-
         centralPaneAnimation: {
             height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT,
         },
@@ -5605,6 +5599,11 @@ const styles = (theme: ThemeColors) =>
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
             ...display.dFlex,
+        },
+
+        tripEmptyStateLottieWebView: {
+            width: 335,
+            height: 220,
         },
 
         workflowApprovalVerticalLine: {
