@@ -59,7 +59,7 @@ import {
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
-import {getMerchant, hasPendingUI, isCardTransaction, isPartialMerchant, isPending} from '@libs/TransactionUtils';
+import {hasPendingUI, isCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, startMoneyRequest, submitReport} from '@userActions/IOU';
@@ -184,12 +184,6 @@ function MoneyRequestReportPreviewContent({
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
-
-    let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : undefined;
-
-    if (isPartialMerchant(formattedMerchant ?? '')) {
-        formattedMerchant = undefined;
-    }
 
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
@@ -495,7 +489,7 @@ function MoneyRequestReportPreviewContent({
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
             <Button
-                text={translate('iou.approve')}
+                text={translate('iou.approve', {formattedAmount: getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)})}
                 success
                 onPress={() => confirmApproval()}
             />
