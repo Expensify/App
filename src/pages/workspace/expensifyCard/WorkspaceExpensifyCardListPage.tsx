@@ -15,13 +15,16 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
+import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, sortCardsByCardholderName} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -71,6 +74,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
 
     const isBankAccountVerified = !cardOnWaitlist;
+
+    const {windowHeight} = useWindowDimensions();
+    const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
@@ -182,27 +188,30 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
                 >
-                    <View style={styles.appBG}>
-                        <WorkspaceCardListLabels
-                            policyID={policyID}
-                            cardSettings={cardSettings}
-                        />
-                        {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
-                            <SearchBar
-                                label={translate('workspace.expensifyCard.findCard')}
-                                inputValue={inputValue}
-                                onChangeText={setInputValue}
-                                shouldShowEmptyState={isSearchEmpty}
-                                style={[styles.mb0, styles.mt5]}
+                    <View style={{height: windowHeight - headerHeight}}>
+                        <View style={styles.appBG}>
+                            <WorkspaceCardListLabels
+                                policyID={policyID}
+                                cardSettings={cardSettings}
                             />
-                        )}
+                            {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
+                                <SearchBar
+                                    label={translate('workspace.expensifyCard.findCard')}
+                                    inputValue={inputValue}
+                                    onChangeText={setInputValue}
+                                    shouldShowEmptyState={isSearchEmpty}
+                                    style={[styles.mb0, styles.mt5]}
+                                />
+                            )}
+                        </View>
+                        <FlatList
+                            data={filteredSortedCards}
+                            renderItem={renderItem}
+                            ListHeaderComponent={!isSearchEmpty ? renderListHeader : null}
+                            contentContainerStyle={bottomSafeAreaPaddingStyle}
+                        />
                     </View>
-                    <FlatList
-                        data={filteredSortedCards}
-                        renderItem={renderItem}
-                        ListHeaderComponent={!isSearchEmpty ? renderListHeader : null}
-                        contentContainerStyle={bottomSafeAreaPaddingStyle}
-                    />
+                    <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
                 </ScrollView>
             )}
             <DelegateNoAccessModal
