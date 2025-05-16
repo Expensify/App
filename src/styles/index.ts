@@ -1698,7 +1698,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
-            marginLeft: 72,
+            marginLeft: variables.navigationTabBarSize,
         },
 
         // Sidebar Styles

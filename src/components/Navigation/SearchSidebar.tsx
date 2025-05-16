@@ -3,12 +3,12 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchQueryString} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import SearchTypeMenu from '@pages/Search/SearchTypeMenu';
@@ -31,7 +31,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const route = state.routes.at(-1);
-    const params = route?.params as {q?: SearchQueryString} | undefined;
+    const params = route?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT] | undefined;
     const {lastSearchType, setLastSearchType} = useSearchContext();
 
     const queryJSON = useMemo(() => {
@@ -59,7 +59,11 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
     const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !isDataLoaded;
 
-    return !shouldUseNarrowLayout ? (
+    if (shouldUseNarrowLayout) {
+        return null;
+    }
+
+    return (
         <View style={styles.searchSidebar}>
             <View style={styles.flex1}>
                 <TopBar
@@ -72,8 +76,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
             </View>
             <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
         </View>
-    ) : (
-        <View />
     );
 }
 SearchSidebar.displayName = 'SearchSidebar';
