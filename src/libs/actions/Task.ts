@@ -341,7 +341,6 @@ function createTaskAndNavigate(
     };
 
     playSound(SOUNDS.DONE);
-
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     if (!isCreatedUsingMarkdown) {
