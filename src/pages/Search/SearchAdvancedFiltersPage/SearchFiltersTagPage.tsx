@@ -18,19 +18,19 @@ function SearchFiltersTagPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const selectedTagsItems = searchAdvancedFiltersForm?.tag?.map((tag) => {
-        if (tag === CONST.SEARCH.EMPTY_VALUE) {
+        if (tag === CONST.SEARCH.TAG_EMPTY_VALUE) {
             return {name: translate('search.noTag'), value: tag};
         }
         return {name: getCleanedTagName(tag), value: tag};
     });
     const policyID = searchAdvancedFiltersForm?.policyID;
-    const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const singlePolicyTagLists = allPolicyTagLists[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
 
     const tagItems = useMemo(() => {
-        const items = [{name: translate('search.noTag'), value: CONST.SEARCH.EMPTY_VALUE as string}];
+        const items = [{name: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
         if (!singlePolicyTagLists) {
             const uniqueTagNames = new Set<string>();
             const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
