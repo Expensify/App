@@ -1814,8 +1814,15 @@ function buildPolicyData(
     const optimisticMccGroupData = buildOptimisticMccGroup();
 
     const shouldEnableWorkflowsByDefault =
-        !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+        !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND || introSelected.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
+
+    let autoReportingFrequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES> = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+    if (introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+        autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+    } else if (shouldEnableWorkflowsByDefault) {
+        autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1833,7 +1840,7 @@ function buildPolicyData(
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 approver: sessionEmail,
-                autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                autoReportingFrequency,
                 approvalMode: shouldEnableWorkflowsByDefault ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 harvesting: {
                     enabled: !shouldEnableWorkflowsByDefault,
