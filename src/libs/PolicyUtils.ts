@@ -4,11 +4,25 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
+import {getAllPolicyReports, getReportTransactions, isInvoiceReport as isInvoiceReportUtils} from '@libs/ReportUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
+import type {
+    OnyxInputOrEntry,
+    Policy,
+    PolicyCategories,
+    PolicyCategory,
+    PolicyEmployeeList,
+    PolicyTagLists,
+    PolicyTags,
+    Report,
+    TaxRate,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -30,6 +44,7 @@ import type {
     Tenant,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
+import {OnyxData} from '@src/types/onyx/Request';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
@@ -55,7 +70,9 @@ type ConnectionWithLastSyncData = {
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
-
+let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
+let allPolicyTagLists: OnyxCollection<PolicyTagLists> = {};
+let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
 let allPolicies: OnyxCollection<Policy>;
 let activePolicyId: OnyxEntry<string>;
 let isLoadingReportData = true;
@@ -69,6 +86,30 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyId = value),
+});
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyCategories = val),
+});
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTagLists = {};
+            return;
+        }
+        allPolicyTagLists = value;
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allTransactionViolations = value),
 });
 
 Onyx.connect({
@@ -102,6 +143,63 @@ function getPerDiemCustomUnits(policies: OnyxCollection<Policy> | null, email: s
             // We filter out custom units that are undefine but ts cant' figure it out.
             .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled) as Array<{policyID: string; customUnit: CustomUnit}>
     );
+}
+
+/**
+ * Pushs the optimistic transaction violations to the OnyxData object
+ * given the optimistic policy, tag lists and categories
+ */
+
+function pushTransactionViolationsOnyxData(
+    onyxData: OnyxData,
+    policyID: string,
+    policyUpdate: Partial<Policy> = {},
+    policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
+): OnyxData {
+    if (policyUpdate == null && policyCategoriesUpdate == null) {
+        return onyxData;
+    }
+    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
+    const optimisticPolicyCategories = Object.keys(policyCategories).reduce<Record<string, PolicyCategory>>((acc, categoryName) => {
+        acc[categoryName] = {...policyCategories[categoryName], ...policyCategoriesUpdate[categoryName]};
+        return acc;
+    }, {}) as PolicyCategories;
+
+    const policyTagLists = allPolicyTagLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+    const policy = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ...policyUpdate} as Policy;
+    const hasDependentTagsValue = hasDependentTags(policy, policyTagLists);
+
+    getAllPolicyReports(policyID).forEach((report) => {
+        if (!report?.reportID) {
+            return;
+        }
+
+        const isInvoiceReport = isInvoiceReportUtils(report);
+
+        getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
+            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+
+            const optimisticTransactionViolations = ViolationsUtils.getViolationsOnyxData(
+                transaction,
+                transactionViolations,
+                policy,
+                policyTagLists,
+                optimisticPolicyCategories,
+                hasDependentTagsValue,
+                isInvoiceReport,
+            );
+
+            if (optimisticTransactionViolations) {
+                onyxData?.optimisticData?.push(optimisticTransactionViolations);
+                onyxData?.failureData?.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                    value: transactionViolations,
+                });
+            }
+        });
+    });
+    return onyxData;
 }
 
 /**
@@ -1537,6 +1635,7 @@ export {
     getActiveEmployeeWorkspaces,
     isUserInvitedToWorkspace,
     getPolicyRole,
+    pushTransactionViolationsOnyxData,
 };
 
 export type {MemberEmailsToAccountIDs};

@@ -28,7 +28,7 @@ import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getPolicy, goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {getPolicy, goBackWhenEnableFeature, pushTransactionViolationsOnyxData} from '@libs/PolicyUtils';
 import {getAllPolicyReports} from '@libs/ReportUtils';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
@@ -38,8 +38,6 @@ import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, R
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {pushTransactionViolationsOnyxData} from './Policy';
-
 
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
@@ -87,7 +85,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (val) => (allPolicyCategories = val),
 });
-
 
 function appendSetupCategoriesOnboardingData(onyxData: OnyxData) {
     const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData('setupCategories');

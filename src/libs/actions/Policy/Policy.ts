@@ -75,10 +75,8 @@ import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {goBackWhenEnableFeature, hasDependentTags as hasDependentTagsUtils, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {isInvoiceReport as isInvoiceReportUtils} from '@libs/ReportUtils';
-import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -91,9 +89,7 @@ import type {
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
     Policy,
-    PolicyCategories,
     PolicyCategory,
-    PolicyTagLists,
     ReimbursementAccount,
     Report,
     ReportAction,
@@ -169,26 +165,6 @@ Onyx.connect({
         }
 
         allPolicies[key] = val;
-    },
-});
-
-let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
-    waitForCollectionCallback: true,
-    callback: (val) => (allPolicyCategories = val),
-});
-
-let allPolicyTagLists: OnyxCollection<PolicyTagLists> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTagLists = {};
-            return;
-        }
-        allPolicyTagLists = value;
     },
 });
 
@@ -345,63 +321,6 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
     // If there are no add or delete pending actions the only option left is an update
     // pendingAction, in which case we should return true.
     return true;
-}
-
-/**
- * Pushs the optimistic transaction violations to the OnyxData object
- * given the optimistic policy, tag lists and categories
- */
-
-function pushTransactionViolationsOnyxData(
-    onyxData: OnyxData,
-    policyID: string,
-    policyUpdate: Partial<Policy> = {},
-    policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
-): OnyxData {
-    if (policyUpdate == null && policyCategoriesUpdate == null) {
-        return onyxData;
-    }
-    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
-    const optimisticPolicyCategories = Object.keys(policyCategories).reduce<Record<string, PolicyCategory>>((acc, categoryName) => {
-        acc[categoryName] = {...policyCategories[categoryName], ...policyCategoriesUpdate[categoryName]};
-        return acc;
-    }, {}) as PolicyCategories;
-
-    const policyTagLists = allPolicyTagLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    const policy = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ...policyUpdate} as Policy;
-    const hasDependentTags = hasDependentTagsUtils(policy, policyTagLists);
-
-    ReportUtils.getAllPolicyReports(policyID).forEach((report) => {
-        if (!report?.reportID) {
-            return;
-        }
-
-        const isInvoiceReport = isInvoiceReportUtils(report);
-
-        ReportUtils.getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
-            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
-
-            const optimisticTransactionViolations = ViolationsUtils.getViolationsOnyxData(
-                transaction,
-                transactionViolations,
-                policy,
-                policyTagLists,
-                optimisticPolicyCategories,
-                hasDependentTags,
-                isInvoiceReport,
-            );
-
-            if (optimisticTransactionViolations) {
-                onyxData?.optimisticData?.push(optimisticTransactionViolations);
-                onyxData?.failureData?.push({
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                    value: transactionViolations,
-                });
-            }
-        });
-    });
-    return onyxData;
 }
 
 /**
@@ -5333,5 +5252,4 @@ export {
     updateLastAccessedWorkspaceSwitcher,
     setIsForcedToChangeCurrency,
     setIsComingFromGlobalReimbursementsFlow,
-    pushTransactionViolationsOnyxData,
 };
