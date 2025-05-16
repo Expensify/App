@@ -276,7 +276,7 @@ function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, cer
 /**
  * Add card to digital wallet
  *
- * @param walletAcountID ID of the wallet on user's phone
+ * @param walletAccountID ID of the wallet on user's phone
  * @param deviceID ID of user's phone
  */
 function createDigitalGoogleWallet({walletAccountID, deviceID, cardHolderName}: {deviceID: string; walletAccountID: string; cardHolderName: string}): Promise<AndroidCardData> {
