@@ -628,23 +628,27 @@ describe('GithubUtils', () => {
 
     const commitHistoryData = {
         emptyResponse: {
-            commits: [],
+            data: {
+                commits: [],
+            },
         },
         singleCommit: {
-            commits: [
-                {
-                    sha: 'abc123',
-                    commit: {
-                        message: 'Test commit message',
+            data: {
+                commits: [
+                    {
+                        sha: 'abc123',
+                        commit: {
+                            message: 'Test commit message',
+                            author: {
+                                name: 'Test Author',
+                            },
+                        },
                         author: {
-                            name: 'Test Author',
+                            login: 'testuser',
                         },
                     },
-                    author: {
-                        login: 'testuser',
-                    },
-                },
-            ],
+                ],
+            },
         },
         expectedFormattedCommit: [
             {
@@ -676,15 +680,7 @@ describe('GithubUtils', () => {
                         compareCommits: mockCompareCommits, // Use the mock function here
                     },
                 },
-                paginate: jest.fn().mockImplementation((method, p) => {
-                    if (method !== GithubUtils.octokit.repos.compareCommitsWithBasehead) {
-                        throw new Error(`Paginate called for unmocked method ${(method as {name: string}).name}`);
-                    }
-
-                    const params = p as Parameters<typeof GithubUtils.octokit.repos.compareCommitsWithBasehead>[0];
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                    return mockCompareCommits(params);
-                }),
+                paginate: jest.fn(),
             } as unknown as InternalOctokit;
 
             // Prevent the real initOctokit from running and overwriting our mock
