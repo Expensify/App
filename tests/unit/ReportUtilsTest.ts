@@ -1125,7 +1125,7 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
             });
 
-            it("it is a submitted report tied to user's own policy expense chat and the policy does not have Instant Submit frequency", () => {
+            it("it is a submitted report tied to user's own policy expense chat", () => {
                 const paidPolicy: Policy = {
                     id: '3f54cca8',
                     type: CONST.POLICY.TYPE.TEAM,
