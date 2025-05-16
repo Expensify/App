@@ -17,25 +17,12 @@ import {
     handlePushSearchPageAction,
     handlePushSettingsSplitAction,
     handleReplaceReportsSplitNavigatorAction,
-    handleSwitchPolicyIDAction,
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
-import type {
-    DismissModalActionType,
-    OpenWorkspaceSplitActionType,
-    PushActionType,
-    ReplaceActionType,
-    RootStackNavigatorAction,
-    RootStackNavigatorRouterOptions,
-    SwitchPolicyIdActionType,
-} from './types';
+import type {DismissModalActionType, OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, RootStackNavigatorAction, RootStackNavigatorRouterOptions} from './types';
 
 function isOpenWorkspaceSplitAction(action: RootStackNavigatorAction): action is OpenWorkspaceSplitActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
-}
-
-function isSwitchPolicyIdAction(action: RootStackNavigatorAction): action is SwitchPolicyIdActionType {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
 }
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
@@ -91,10 +78,6 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
         getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
             if (isOpenWorkspaceSplitAction(action)) {
                 return handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
-            }
-
-            if (isSwitchPolicyIdAction(action)) {
-                return handleSwitchPolicyIDAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
             }
 
             if (isDismissModalAction(action)) {
