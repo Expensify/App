@@ -66,12 +66,16 @@ function canUseGlobalReimbursementsOnND(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) || canUseAllBetas(betas);
 }
 
-function canUseRetractNewDot(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.RETRACT_NEWDOT) || canUseAllBetas(betas);
-}
-
 function canUsePrivateDomainOnboarding(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PRIVATE_DOMAIN_ONBOARDING) || canUseAllBetas(betas);
+}
+
+function canUsePlaidCompanyCards(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.PLAID_COMPANY_CARDS) || canUseAllBetas(betas);
+}
+
+function canUseRetractNewDot(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.RETRACT_NEWDOT) || canUseAllBetas(betas);
 }
 
 function canUseCallScheduling() {
@@ -101,4 +105,5 @@ export default {
     canUseRetractNewDot,
     canUseCallScheduling,
     canUseMultiFilesDragAndDrop,
+    canUsePlaidCompanyCards,
 };

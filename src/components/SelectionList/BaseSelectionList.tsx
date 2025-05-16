@@ -129,14 +129,15 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldDebounceScrolling = false,
         shouldPreventActiveCellVirtualization = false,
         shouldScrollToFocusedIndex = true,
+        isSmallScreenWidth,
         onContentSizeChange,
         listItemTitleStyles,
         initialNumToRender = 12,
         listItemTitleContainerStyles,
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
-        addBottomSafeAreaPadding = false,
-        addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+        addBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding,
         fixedNumItemsForLoader,
         loaderSpeed,
         errorText,
@@ -413,6 +414,11 @@ function BaseSelectionList<TItem extends ListItem>(
 
                 if (shouldShowTextInput) {
                     clearInputAfterSelect();
+                } else if (isSmallScreenWidth) {
+                    if (!item.isDisabledCheckbox) {
+                        onCheckboxPress?.(item);
+                    }
+                    return;
                 }
             }
 
@@ -438,6 +444,8 @@ function BaseSelectionList<TItem extends ListItem>(
             shouldPreventDefaultFocusOnSelectRow,
             isFocused,
             isScreenFocused,
+            isSmallScreenWidth,
+            onCheckboxPress,
         ],
     );
 

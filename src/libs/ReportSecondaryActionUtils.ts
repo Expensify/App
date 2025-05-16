@@ -13,12 +13,13 @@ import {
     hasAccountingConnections,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
-    isPrefferedExporter,
+    isPreferredExporter,
     isSubmitAndClose as isSubmitAndCloseUtils,
 } from './PolicyUtils';
-import {getIOUActionForReportID, isPayAction} from './ReportActionsUtils';
+import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {
     canAddTransaction,
+    canEditFieldOfMoneyRequest,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -80,7 +81,8 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    if (isAdmin) {
+    const isManager = report.managerID === getCurrentUserAccountID();
+    if (isAdmin || isManager) {
         return true;
     }
 
@@ -271,24 +273,25 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const isExporter = isPrefferedExporter(policy);
+    const isExporter = isPreferredExporter(policy);
 
     return (isAdmin && syncEnabled) || (isExporter && !syncEnabled);
 }
 
-function isHoldAction(report: Report, reportTransactions: Transaction[]): boolean {
+function isHoldAction(report: Report, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
+    const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions);
     const isOneExpenseReport = reportTransactions.length === 1;
     const transaction = reportTransactions.at(0);
 
-    if (!isOneExpenseReport || !transaction) {
+    if ((!!reportActions && !transactionThreadReportID) || !isOneExpenseReport || !transaction) {
         return false;
     }
 
-    const isTransactionOnHold = isHoldActionForTransation(report, transaction);
+    const isTransactionOnHold = isHoldActionForTransaction(report, transaction);
     return isTransactionOnHold;
 }
 
-function isHoldActionForTransation(report: Report, reportTransaction: Transaction): boolean {
+function isHoldActionForTransaction(report: Report, reportTransaction: Transaction): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
     const iouOrExpenseReport = isExpenseReport || isIOUReport;
@@ -321,14 +324,29 @@ function isChangeWorkspaceAction(report: Report, policy?: Policy): boolean {
     return policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session, policy)).length > 0;
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[]): boolean {
+function isMoveTransactionAction(reportTransactions: Transaction[], reportActions?: ReportAction[]) {
+    const transaction = reportTransactions.at(0);
+
+    if (reportTransactions.length !== 1 || !transaction || !reportActions) {
+        return false;
+    }
+
+    const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+
+    const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
+
+    return canMoveExpense;
+}
+
+function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
+    const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
 
     // This should be removed when is merged https://github.com/Expensify/App/pull/58020
     const isSingleTransaction = reportTransactions.length === 1;
 
-    if ((!isExpenseReport && !isIOUReport) || !isSingleTransaction) {
+    if ((!isExpenseReport && !isIOUReport) || !isSingleTransaction || (!!reportActions && !transactionThreadReportID)) {
         return false;
     }
 
@@ -400,10 +418,11 @@ function getSecondaryReportActions(
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
     canUseRetractNewDot?: boolean,
+    canUseTableReportView?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    if (isAddExpenseAction(report, reportTransactions)) {
+    if (canUseTableReportView && isAddExpenseAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
@@ -439,19 +458,25 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }
 
-    if (isHoldAction(report, reportTransactions)) {
+    if (isHoldAction(report, reportTransactions, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD);
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV);
+
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
     if (isChangeWorkspaceAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
+    if (isMoveTransactionAction(reportTransactions, reportActions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions)) {
+    if (isDeleteAction(report, reportTransactions, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -461,7 +486,7 @@ function getSecondaryReportActions(
 function getSecondaryTransactionThreadActions(parentReport: Report, reportTransaction: Transaction): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
-    if (isHoldActionForTransation(parentReport, reportTransaction)) {
+    if (isHoldActionForTransaction(parentReport, reportTransaction)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 

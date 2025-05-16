@@ -46,7 +46,7 @@ describe('getSecondaryAction', () => {
         const report = {} as unknown as Report;
         const policy = {} as unknown as Policy;
 
-        const result = [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
+        const result = [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV, CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
         expect(getSecondaryReportActions(report, [], {}, policy)).toEqual(result);
     });
 
@@ -70,7 +70,7 @@ describe('getSecondaryAction', () => {
             transactionID: TRANSACTION_ID,
         } as unknown as Transaction;
 
-        const result = getSecondaryReportActions(report, [transaction], {}, policy);
+        const result = getSecondaryReportActions(report, [transaction], {}, policy, undefined, undefined, undefined, true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
     });
 
