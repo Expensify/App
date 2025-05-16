@@ -29,12 +29,12 @@ import {
     deleteWorkspace,
     deleteWorkspaceAvatar,
     openPolicyProfilePage,
+    setIsComingFromGlobalReimbursementsFlow,
     updateLastAccessedWorkspaceSwitcher,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -69,6 +69,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         selector: (session) => session?.accountID,
         canBeMissing: true,
     });
+    const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, {canBeMissing: true});
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -205,6 +206,20 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         setIsDeleteModalOpen(true);
     }, [setIsDeletingPaidWorkspace]);
 
+    const handleBackButtonPress = () => {
+        if (isComingFromGlobalReimbursementsFlow) {
+            setIsComingFromGlobalReimbursementsFlow(false);
+            Navigation.goBack();
+        }
+
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        Navigation.popToSidebar();
+    };
+
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -216,14 +231,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowNonAdmin
             icon={Building}
             shouldShowNotFoundPage={policy === undefined}
-            onBackButtonPress={() => {
-                if (backTo) {
-                    Navigation.goBack(backTo);
-                    return;
-                }
-
-                goBackFromWorkspaceCentralScreen(policy?.id);
-            }}
+            onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
         >
             {(hasVBA?: boolean) => (
