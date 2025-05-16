@@ -39,6 +39,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
+                        hash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -61,6 +62,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
+                        hash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -87,6 +89,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
+                        hash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -109,6 +112,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
+                        hash={1}
                         type={dataType}
                         hasResults={false}
                     />

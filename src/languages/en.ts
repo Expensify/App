@@ -557,7 +557,20 @@ const translations = {
         comments: 'Comments',
         sharedIn: 'Shared in',
         unreported: 'Unreported',
+        explore: 'Explore',
+        todo: 'To-do',
+        invoice: 'Invoice',
+        expense: 'Expense',
+        chat: 'Chat',
+        task: 'Task',
+        trip: 'Trip',
+        apply: 'Apply',
+        status: 'Status',
+        on: 'On',
+        before: 'Before',
+        after: 'After',
         general: 'General',
+        never: 'Never',
         workspacesTabTitle: 'Workspaces',
     },
     supportalNoAccess: {
@@ -660,6 +673,7 @@ const translations = {
     selectionList: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
+        searchForSomeone: 'Search for someone',
     },
     emptyList: {
         [CONST.IOU.TYPE.CREATE]: {
@@ -5252,6 +5266,23 @@ const translations = {
                 subtitle: 'Get started by booking your first trip below.',
                 buttonText: 'Book a trip',
             },
+            emptySubmitResults: {
+                title: 'No expenses to submit',
+                subtitle: "You're all clear. Take a victory lap!",
+                buttonText: 'Create report',
+            },
+            emptyApproveResults: {
+                title: 'No expenses to approve',
+                subtitle: 'Zero expenses. Maximum chill. Well done!',
+            },
+            emptyPayResults: {
+                title: 'No expenses to pay',
+                subtitle: 'Congrats! You crossed the finish line.',
+            },
+            emptyExportResults: {
+                title: 'No expenses to export',
+                subtitle: 'Time to take it easy, nice work.',
+            },
         },
         saveSearch: 'Save search',
         deleteSavedSearch: 'Delete saved search',
@@ -5272,6 +5303,7 @@ const translations = {
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Before ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
+                on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
             },
             status: 'Status',
             keyword: 'Keyword',

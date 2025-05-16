@@ -111,7 +111,7 @@ function SearchList(
     const styles = useThemeStyles();
     const flattenedTransactions = shouldGroupByReports ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
     const selectedItemsLength = flattenedTransactions.reduce((acc, item) => {
-        return item.isSelected ? acc + 1 : acc;
+        return item?.isSelected ? acc + 1 : acc;
     }, 0);
     const {translate} = useLocalize();
     const isFocused = useIsFocused();

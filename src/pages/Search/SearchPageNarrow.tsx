@@ -11,9 +11,9 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
+import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
@@ -40,13 +40,12 @@ const ANIMATION_DURATION_IN_MS = 300;
 
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
-    searchName?: string;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     currentSearchResults?: SearchResults;
     lastNonEmptySearchResults?: SearchResults;
 };
 
-function SearchPageNarrow({queryJSON, searchName, headerButtonsOptions, currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -176,11 +175,8 @@ function SearchPageNarrow({queryJSON, searchName, headerButtonsOptions, currentS
                                 </View>
                                 <View style={[styles.appBG]}>
                                     {!searchRouterListVisible && (
-                                        <SearchStatusBar
+                                        <SearchFiltersBar
                                             queryJSON={queryJSON}
-                                            onStatusChange={() => {
-                                                topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
-                                            }}
                                             headerButtonsOptions={headerButtonsOptions}
                                         />
                                     )}
@@ -200,7 +196,6 @@ function SearchPageNarrow({queryJSON, searchName, headerButtonsOptions, currentS
                         />
                         <SearchPageHeader
                             queryJSON={queryJSON}
-                            searchName={searchName}
                             headerButtonsOptions={headerButtonsOptions}
                             handleSearch={handleSearchAction}
                         />

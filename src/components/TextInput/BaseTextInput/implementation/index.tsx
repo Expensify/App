@@ -423,6 +423,7 @@ function BaseTextInput(
                                     }}
                                 >
                                     <TextInputClearButton
+                                        style={styles.mt4}
                                         onPressButton={() => {
                                             setValue('');
                                             onClearInput?.();
