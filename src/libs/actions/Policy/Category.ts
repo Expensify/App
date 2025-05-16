@@ -383,9 +383,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
         ],
     };
 
-   
     appendSetupCategoriesOnboardingData(onyxData);
-    pushTransactionViolationsOnyxData(onyxData, policyID, shouldDisableRequiresCategory ? {...policy, requiresCategory: false} as Policy : null, null, optimisticPolicyCategoriesData);
     if (shouldDisableRequiresCategory) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -954,8 +952,7 @@ function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolea
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyID, {...(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {}), requiresCategory} as Policy);
-
+    pushTransactionViolationsOnyxData(onyxData, policyID, {requiresCategory: requiresCategory} as Policy);
     const parameters = {
         policyID,
         requiresCategory,
@@ -1030,7 +1027,8 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             },
         ],
     };
-    pushTransactionViolationsOnyxData(onyxData, policyID, shouldDisableRequiresCategory ? {...policy, requiresCategory: false} as Policy: null, null, {...policyCategories, ...(optimisticPolicyCategoriesData as PolicyCategories)});
+
+    pushTransactionViolationsOnyxData(onyxData, policyID, shouldDisableRequiresCategory ? {requiresCategory: false} : {}, optimisticPolicyCategoriesData);
     appendSetupCategoriesOnboardingData(onyxData);
     if (shouldDisableRequiresCategory) {
         onyxData.optimisticData?.push({

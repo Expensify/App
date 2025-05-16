@@ -354,17 +354,20 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
 function pushTransactionViolationsOnyxData(
     onyxData: OnyxData,
     policyID: string,
-    optimisticPolicy: OnyxEntry<Policy> | null = null,
-    optimisticPolicyTagLists: OnyxEntry<PolicyTagLists> | null = null,
-    optimisticPolicyCategories: OnyxEntry<PolicyCategories> | null = null,
+    policyUpdate: Partial<Policy> = {},
+    policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
 ): OnyxData {
-    if (optimisticPolicy == null && optimisticPolicyTagLists == null && optimisticPolicyCategories == null) {
+    if (policyUpdate == null && policyCategoriesUpdate == null) {
         return onyxData;
     }
+    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
+    const optimisticPolicyCategories = Object.keys(policyCategories).reduce<Record<string, PolicyCategory>>((acc, categoryName) => {
+        acc[categoryName] = {...policyCategories[categoryName], ...policyCategoriesUpdate[categoryName]};
+        return acc;
+    }, {}) as PolicyCategories;
 
-    const policyCategories = optimisticPolicyCategories ?? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
-    const policyTagLists = optimisticPolicyTagLists ?? allPolicyTagLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    const policy = optimisticPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
+    const policyTagLists = allPolicyTagLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+    const policy = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ...policyUpdate} as Policy;
     const hasDependentTags = hasDependentTagsUtils(policy, policyTagLists);
 
     ReportUtils.getAllPolicyReports(policyID).forEach((report) => {
@@ -375,22 +378,22 @@ function pushTransactionViolationsOnyxData(
         const isAnInvoiceReport = ReportUtils.isInvoiceReport(report);
 
         ReportUtils.getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
-            const transactionViolations = allTransactionViolations?.[transaction.transactionID] ?? [];
+            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
 
-            const transactionViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+            const optimisticTransactionViolations = ViolationsUtils.getViolationsOnyxData(
                 transaction,
                 transactionViolations,
                 policy,
                 policyTagLists,
-                policyCategories,
+                optimisticPolicyCategories,
                 hasDependentTags,
                 isAnInvoiceReport,
             );
 
-            if (transactionViolationsOnyxData) {
-                onyxData?.optimisticData?.push(transactionViolationsOnyxData);
-                onyxData?.optimisticData?.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
+            if (optimisticTransactionViolations) {
+                onyxData?.optimisticData?.push(optimisticTransactionViolations);
+                onyxData?.failureData?.push({
+                    onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
                     value: transactionViolations,
                 });
@@ -5331,3 +5334,6 @@ export {
     setIsComingFromGlobalReimbursementsFlow,
     pushTransactionViolationsOnyxData,
 };
+function lodashCloneDeep(policyCategories: PolicyCategories) {
+    throw new Error('Function not implemented.');
+}
