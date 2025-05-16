@@ -32,6 +32,9 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Preferred policy */
     preferredPolicy?: string;
 
+    /** The id of the domain the feed relates to */
+    domainID?: number;
+
     /** Specifies the format for the report title related to this card */
     reportTitleFormat?: string;
 
@@ -52,6 +55,9 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Defines the type of liability for the card */
     liabilityType?: string;
+
+    /** The id of the domain the feed relates to */
+    domainID?: number;
 
     /** Whether any actions are pending */
     pending?: boolean;
@@ -134,6 +140,7 @@ export type {
     CompanyCardFeed,
     DirectCardFeedData,
     CardFeedProvider,
+    CardFeedData,
     CompanyFeeds,
     CompanyCardNicknames,
     CompanyCardFeedWithNumber,
