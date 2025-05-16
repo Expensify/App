@@ -13,7 +13,6 @@ import {
     hasAccountingConnections,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
-    isPrefferedExporter,
     isSubmitAndClose as isSubmitAndCloseUtils,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
