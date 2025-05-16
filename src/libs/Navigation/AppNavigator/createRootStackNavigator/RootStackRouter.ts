@@ -111,7 +111,7 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
                 }
 
                 if (action.payload.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-                    return handlePushSearchPageAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+                    return handlePushSearchPageAction(state, action, configOptions, stackRouter);
                 }
 
                 if (action.payload.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
