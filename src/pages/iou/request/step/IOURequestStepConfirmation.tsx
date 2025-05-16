@@ -34,7 +34,7 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, isScanRequest} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import type {GpsPoint} from '@userActions/IOU';
 import {
@@ -932,7 +932,7 @@ function IOURequestStepConfirmation({
                             },
                         ]}
                     />
-                    {(isLoading || isLoadingReceipt) && <FullScreenLoadingIndicator />}
+                    {(isLoading || isLoadingReceipt || (isScanRequest(transaction) && !receiptFile)) && <FullScreenLoadingIndicator />}
                     {PDFThumbnailView}
                     {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
                     {canUseMultiFilesDragAndDrop ? (
