@@ -1,9 +1,10 @@
-import {useRoute} from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import React from 'react';
+import { View } from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
-import type {WorkspaceHubSplitNavigatorParamList} from '@libs/Navigation/types';
+import type { WorkspaceHubSplitNavigatorParamList } from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
@@ -24,6 +25,7 @@ function WorkspaceHubSplitNavigator() {
 
     return (
         <FocusTrapForScreens>
+            <View style={{flex: 1}}>
             <Split.Navigator
                 persistentScreens={[SCREENS.WORKSPACE_HUB.ROOT]}
                 sidebarScreen={SCREENS.WORKSPACE_HUB.ROOT}
@@ -46,6 +48,7 @@ function WorkspaceHubSplitNavigator() {
                     );
                 })}
             </Split.Navigator>
+            </View>
         </FocusTrapForScreens>
     );
 }
