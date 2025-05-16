@@ -10,12 +10,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteMoneyRequest, getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU';
+import {deleteMoneyRequest} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
-import {changeMoneyRequestHoldStatus, navigateBackOnDeleteTransaction, navigateToDetailsPage} from '@libs/ReportUtils';
+import {changeMoneyRequestHoldStatus, navigateToDetailsPage} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     hasReceipt,
@@ -316,7 +316,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
 
-                    deleteMoneyRequest(transaction?.transactionID, parentReportAction);
+                    deleteMoneyRequest(transaction?.transactionID, parentReportAction, true);
                     onBackButtonPress();
                 }}
                 onCancel={() => setIsDeleteModalVisible(false)}
