@@ -130,7 +130,7 @@ function SecuritySettingsPage() {
                         setIsLockedAccountModalOpen(true);
                         return;
                     }
-                    waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute()));
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
                 },
             },
         ];
