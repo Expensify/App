@@ -1,9 +1,11 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Collapsible from '@components/CollapsibleSection/Collapsible';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import IconButton from '@components/VideoPlayer/IconButton';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -11,6 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,11 +36,13 @@ function ReportListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isExpanded, setIsExpanded] = useState(false);
     const {canUseTableReportView} = usePermissions();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
     const isEmptyReport = reportItem.transactions.length === 0;
     const isDisabledOrEmpty = isEmptyReport || isDisabled;
+    const src = isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -99,15 +104,24 @@ function ReportListItem<TItem extends ListItem>({
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
             <View style={[styles.flex1]}>
-                <ReportListItemHeader
-                    report={reportItem}
-                    policy={policy}
-                    item={item}
-                    onSelectRow={onSelectRow}
-                    onCheckboxPress={onCheckboxPress}
-                    isDisabled={isDisabledOrEmpty}
-                    canSelectMultiple={canSelectMultiple}
-                />
+                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter]}>
+                    <ReportListItemHeader
+                        report={reportItem}
+                        policy={policy}
+                        item={item}
+                        onSelectRow={onSelectRow}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        canSelectMultiple={canSelectMultiple}
+                    />
+                    <IconButton
+                        fill={theme.icon}
+                        src={src}
+                        onPress={() => setIsExpanded(!isExpanded)}
+                        style={[styles.p0, styles.pr3]}
+                        hoverStyle={[styles.bgTransparent]}
+                    />
+                </View>
                 {isEmptyReport ? (
                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
                         <Text
@@ -118,25 +132,32 @@ function ReportListItem<TItem extends ListItem>({
                         </Text>
                     </View>
                 ) : (
-                    reportItem.transactions.map((transaction) => (
-                        <TransactionListItemRow
-                            key={transaction.transactionID}
-                            parentAction={reportItem.action}
-                            item={transaction}
-                            showTooltip={showTooltip}
-                            onButtonPress={() => {
-                                openReportInRHP(transaction);
-                            }}
-                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                            showItemHeaderOnNarrowLayout={false}
-                            containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
-                            isChildListItem
-                            isDisabled={!!isDisabled}
-                            canSelectMultiple={!!canSelectMultiple}
-                            isButtonSelected={transaction.isSelected}
-                            shouldShowTransactionCheckbox
-                        />
-                    ))
+                    <>
+                        {isExpanded && <View style={[styles.threadDividerLine, styles.mv2, styles.mr2]} />}
+                        <Collapsible isOpened={isExpanded}>
+                            <View>
+                                {reportItem.transactions.map((transaction) => (
+                                    <TransactionListItemRow
+                                        key={transaction.transactionID}
+                                        parentAction={reportItem.action}
+                                        item={transaction}
+                                        showTooltip={showTooltip}
+                                        onButtonPress={() => {
+                                            openReportInRHP(transaction);
+                                        }}
+                                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                        showItemHeaderOnNarrowLayout={false}
+                                        containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
+                                        isChildListItem
+                                        isDisabled={!!isDisabled}
+                                        canSelectMultiple={!!canSelectMultiple}
+                                        isButtonSelected={transaction.isSelected}
+                                        shouldShowTransactionCheckbox
+                                    />
+                                ))}
+                            </View>
+                        </Collapsible>
+                    </>
                 )}
             </View>
         </BaseListItem>
