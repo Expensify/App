@@ -12219,13 +12219,28 @@ class GithubUtils {
     static async getCommitHistoryBetweenTags(fromTag, toTag) {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
         try {
-            const comparison = await this.paginate(this.octokit.repos.compareCommitsWithBasehead, {
-                owner: CONST_1.default.GITHUB_OWNER,
-                repo: CONST_1.default.APP_REPO,
-                basehead: `${fromTag}...${toTag}`,
-            });
+            // Max number of pages to fetch, for safety
+            const maxPages = 25;
+            const allCommits = [];
+            let page = 1;
+            let totalCommits = 0;
+            do {
+                console.log('Getting page of commits: ', page);
+                const { data: comparison } = await this.octokit.repos.compareCommitsWithBasehead({
+                    owner: CONST_1.default.GITHUB_OWNER,
+                    repo: CONST_1.default.APP_REPO,
+                    basehead: `${fromTag}...${toTag}`,
+                    page: page++,
+                });
+                allCommits.push(...comparison.commits);
+                totalCommits = comparison.total_commits;
+            } while (allCommits.length < totalCommits && page < maxPages);
+            if (page >= maxPages && allCommits.length < totalCommits) {
+                console.error(`⚠️ Reached the maximum number of pages (${maxPages}) while fetching commits. Some commits may be missing. Total commits fetched: ${allCommits.length} vs expected: ${totalCommits}`);
+            }
+            console.log(`Found ${allCommits.length} commits in total`);
             // Map API response to our CommitType format
-            return comparison.commits.map((commit) => ({
+            return allCommits.map((commit) => ({
                 commit: commit.sha,
                 subject: commit.commit.message,
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
