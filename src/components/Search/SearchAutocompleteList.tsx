@@ -334,7 +334,9 @@ function SearchAutocompleteList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
                 const filteredParticipants = getParticipantsAutocompleteList()
                     .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                     .slice(0, 10);

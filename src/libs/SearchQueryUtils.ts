@@ -57,6 +57,8 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     description: 'description',
     from: 'from',
     to: 'to',
+    payer: 'payer',
+    exporter: 'exporter',
     category: 'category',
     tag: 'tag',
     taxRate: 'tax-rate',
@@ -215,7 +217,12 @@ function getFilters(queryJSON: SearchQueryJSON) {
  * - for personal filters it tries to substitute any user emails with accountIDs
  */
 function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filterValue: string | string[]) {
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
+    if (
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
+    ) {
         if (typeof filterValue === 'string') {
             return getPersonalDetailByEmail(filterValue)?.accountID.toString() ?? filterValue;
         }
@@ -406,7 +413,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.TO ||
                     filterKey === FILTER_KEYS.FEED ||
                     filterKey === FILTER_KEYS.IN ||
-                    filterKey === FILTER_KEYS.ASSIGNEE) &&
+                    filterKey === FILTER_KEYS.ASSIGNEE ||
+                    filterKey === FILTER_KEYS.PAYER ||
+                    filterKey === FILTER_KEYS.EXPORTER) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
@@ -484,7 +493,13 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
             filtersForm[filterKey] = filterValues.filter((id) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]?.reportID);
         }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE) {
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
+        ) {
             filtersForm[filterKey] = filterValues.filter((id) => personalDetails && personalDetails[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
@@ -607,7 +622,13 @@ function getFilterDisplayValue(
     cardFeedNamesWithType: CardFeedNamesWithType,
     policies: OnyxCollection<OnyxTypes.Policy>,
 ) {
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE) {
+    if (
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
+    ) {
         // login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return personalDetails?.[filterValue]?.displayName || filterValue;

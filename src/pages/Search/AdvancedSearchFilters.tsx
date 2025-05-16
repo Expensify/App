@@ -160,7 +160,6 @@ const baseFilterConfig = {
         description: 'common.assignee' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_ASSIGNEE,
     },
-
     reimbursable: {
         getTitle: getFilterDisplayTitle,
         description: 'common.reimbursable' as const,
@@ -565,9 +564,11 @@ function AdvancedSearchFilters() {
             return section
                 .map((key) => {
                     // 'feed' filter row does not appear in advanced filters, it is created using selected cards
-                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+                    // 'payer' and 'reimburser' do not appear in advanced filters, they are created using suggested searches
+                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
                         return;
                     }
+
                     const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
                     let filterTitle;
                     if (

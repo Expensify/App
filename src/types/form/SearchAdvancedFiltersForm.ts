@@ -50,6 +50,8 @@ const FILTER_KEYS = {
     KEYWORD: 'keyword',
     FROM: 'from',
     TO: 'to',
+    PAYER: 'payer',
+    EXPORTER: 'exporter',
     IN: 'in',
     TITLE: 'title',
     ASSIGNEE: 'assignee',
@@ -99,6 +101,8 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.EXPENSE_TYPE]: string[];
         [FILTER_KEYS.TAG]: string[];
         [FILTER_KEYS.FROM]: string[];
+        [FILTER_KEYS.PAYER]: string[];
+        [FILTER_KEYS.EXPORTER]: string[];
         [FILTER_KEYS.TO]: string[];
         [FILTER_KEYS.IN]: string[];
         [FILTER_KEYS.TITLE]: string;
