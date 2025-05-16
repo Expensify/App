@@ -4,16 +4,17 @@ import ConfirmModal from './ConfirmModal';
 
 type AccountLockedModalProps = {
     isLockedAccountModalOpen: boolean;
-    hideLockedAccountModal: () => void;
+    onClose: () => void;
 };
 
-function LockedAccountModal({isLockedAccountModalOpen, hideLockedAccountModal}: AccountLockedModalProps) {
+function LockedAccountModal({isLockedAccountModalOpen, onClose}: AccountLockedModalProps) {
     const {translate} = useLocalize();
     return (
         <ConfirmModal
-            title={translate('lockedAccount.title')}
             isVisible={isLockedAccountModalOpen}
-            onConfirm={hideLockedAccountModal}
+            onConfirm={onClose}
+            onCancel={onClose}
+            title={translate('lockedAccount.title')}
             prompt={translate('lockedAccount.description')}
             confirmText={translate('common.buttonConfirm')}
             shouldShowCancelButton={false}
