@@ -81,7 +81,6 @@ function SecuritySettingsPage() {
     const isAccountLocked = lockAccountDetails?.isLocked ?? false;
     const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
-    debugger;
     const setMenuPosition = useCallback(() => {
         if (!delegateButtonRef.current) {
             return;
@@ -126,11 +125,12 @@ function SecuritySettingsPage() {
                 action: () => {
                     if (isActingAsDelegate) {
                         showDelegateNoAccessMenu();
+                        return;
                     } else if (isAccountLocked) {
                         setIsLockedAccountModalOpen(true);
-                    } else {
-                        waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute()));
+                        return;
                     }
+                    waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute()));
                 },
             },
         ];
@@ -239,6 +239,9 @@ function SecuritySettingsPage() {
                 if (isActingAsDelegate) {
                     modalClose(() => setIsNoDelegateAccessMenuVisible(true));
                     return;
+                } else if (isAccountLocked) {
+                    modalClose(() => setIsLockedAccountModalOpen(true));
+                    return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
                 setShouldShowDelegatePopoverMenu(false);
@@ -252,6 +255,9 @@ function SecuritySettingsPage() {
             onPress: () => {
                 if (isActingAsDelegate) {
                     modalClose(() => setIsNoDelegateAccessMenuVisible(true));
+                    return;
+                } else if (isAccountLocked) {
+                    modalClose(() => setIsLockedAccountModalOpen(true));
                     return;
                 }
                 modalClose(() => {

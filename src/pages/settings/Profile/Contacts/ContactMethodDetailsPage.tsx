@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import LockedAccountModal from '@components/LockedAccountModal';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -69,6 +70,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const backTo = route.params.backTo;
+
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     /**
      * Gets the current contact method from the route params
@@ -243,7 +248,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <MenuItem
                         title={translate('contacts.setAsDefault')}
                         icon={Star}
-                        onPress={setAsDefault}
+                        onPress={() => {isAccountLocked ? setIsLockedAccountModalOpen(true) : setAsDefault}}
                     />
                 </OfflineWithFeedback>
             ) : null}
@@ -270,6 +275,9 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         onPress={() => {
                             if (isActingAsDelegate) {
                                 setIsNoDelegateAccessMenuVisible(true);
+                                return;
+                            } else if (isAccountLocked) {
+                                setIsLockedAccountModalOpen(true);
                                 return;
                             }
                             toggleDeleteModal(true);
@@ -358,6 +366,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
+            <LockedAccountModal
+                isLockedAccountModalOpen={isLockedAccountModalOpen}
+                onClose={() => setIsLockedAccountModalOpen(false)}
             />
         </ScreenWrapper>
     );
