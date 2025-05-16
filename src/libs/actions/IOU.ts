@@ -423,6 +423,7 @@ type MoneyRequestInformationParams = {
     existingTransactionID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    isSplitExpense?: boolean;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -3088,6 +3089,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         existingTransactionID,
         moneyRequestReportID = '',
         retryParams,
+        isSplitExpense,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -3135,15 +3137,19 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency)
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     } else if (isPolicyExpenseChat) {
-        iouReport = {...iouReport};
-        // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-        if (iouReport?.currency === currency) {
-            if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
-                iouReport.total -= amount;
-            }
+        // Splitting doesn’t affect the amount, so no adjustment is needed
+        // The amount remains constant after the split
+        if (!isSplitExpense) {
+            iouReport = {...iouReport};
+            // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+            if (iouReport?.currency === currency) {
+                if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
+                    iouReport.total -= amount;
+                }
 
-            if (typeof iouReport.unheldTotal === 'number') {
-                iouReport.unheldTotal -= amount;
+                if (typeof iouReport.unheldTotal === 'number') {
+                    iouReport.unheldTotal -= amount;
+                }
             }
         }
     } else {
@@ -11105,20 +11111,23 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
 
 function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, hash: number) {
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
+    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
+    const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${originalTransactionID}`] ?? [];
+    const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
 
-    const policy = getPolicy(transactionReport?.policyID);
-    const policyCategories = getPolicyCategoriesData(transactionReport?.policyID);
-    const policyTags = getPolicyTagsData(transactionReport?.policyID);
-    const participants = getMoneyRequestParticipantsFromReport(transactionReport);
+    const policy = getPolicy(expenseReport?.policyID);
+    const policyCategories = getPolicyCategoriesData(expenseReport?.policyID);
+    const policyTags = getPolicyTagsData(expenseReport?.policyID);
+    const participants = getMoneyRequestParticipantsFromReport(expenseReport);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
 
     const splits: SplitTransactionSplitsParam =
         splitExpenses.map((split) => ({
-            amount: Number(originalTransaction?.amount) >= 0 ? Math.abs(split.amount ?? 0) : -Math.abs(split.amount ?? 0),
+            amount: split.amount,
             category: split.category ?? '',
             tag: split.tags?.[0] ?? '',
             created: DateUtils.extractDate(split.created),
@@ -11138,7 +11147,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     splitExpenses.forEach((splitExpense, index) => {
         const requestMoneyInformation = {
-            report: transactionReport,
+            report: expenseReport,
             participantParams: {
                 participant: participants.at(0) ?? ({} as Participant),
                 payeeEmail: currentUserPersonalDetails?.login ?? '',
@@ -11178,6 +11187,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             transactionParams,
             moneyRequestReportID: report?.reportID,
             existingTransactionID,
+            isSplitExpense: true,
         });
 
         const split = splits.at(index);
@@ -11200,10 +11210,26 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         },
     });
 
+    const firstIOU = iouActions.at(0);
+    if (firstIOU) {
+        const {updatedReportAction, iouReport} = prepareToCleanUpMoneyRequest(originalTransactionID, firstIOU, Permissions.canUseTableReportView(betas));
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+            value: updatedReportAction,
+        });
+    }
+
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
         value: originalTransaction,
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${draftTransaction?.reportID}`,
+        value: iouActions,
     });
 
     optimisticData.push({
