@@ -317,9 +317,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     }
 
                     deleteMoneyRequest(transaction?.transactionID, parentReportAction);
-
-                    const goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, parentReportAction, true);
-                    navigateBackOnDeleteTransaction(goBackRoute);
+                    onBackButtonPress();
                 }}
                 onCancel={() => setIsDeleteModalVisible(false)}
                 prompt={translate('iou.deleteConfirmation', {count: 1})}
