@@ -631,12 +631,11 @@ function PureReportActionItem({
         }),
         [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs, shouldDisplayContextMenu],
     );
-
     const attachmentContextValue = useMemo(() => {
         if (isOnSearch) {
             return {type: CONST.ATTACHMENT_TYPE.SEARCH, currentSearchHash};
         }
-        return {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
+        return {reportID, reportActionID: action.reportActionID, type: CONST.ATTACHMENT_TYPE.REPORT};
     }, [reportID, isOnSearch, currentSearchHash]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID, exactlyMatch: true}), [report?.reportID]);
