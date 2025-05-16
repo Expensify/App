@@ -451,52 +451,57 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
  * Do not use directly, use only via `getSections()` facade.
  */
 function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemType[] {
-    return Object.keys(data)
-        .filter(isReportEntry)
-        .map((key) => {
-            const taskItem = data[key] as SearchTask;
-            const personalDetails = data.personalDetailsList;
+    return (
+        Object.keys(data)
+            .filter(isReportEntry)
+            // Ensure that the reports that were passed are tasks, and not some other
+            // type of report that was sent as the parent
+            .filter((key) => isTaskListItemType(data[key] as SearchListItem))
+            .map((key) => {
+                const taskItem = data[key] as SearchTask;
+                const personalDetails = data.personalDetailsList;
 
-            const assignee = personalDetails?.[taskItem.managerID] ?? emptyPersonalDetails;
-            const createdBy = personalDetails?.[taskItem.accountID] ?? emptyPersonalDetails;
-            const formattedAssignee = formatPhoneNumber(getDisplayNameOrDefault(assignee));
-            const formattedCreatedBy = formatPhoneNumber(getDisplayNameOrDefault(createdBy));
+                const assignee = personalDetails?.[taskItem.managerID] ?? emptyPersonalDetails;
+                const createdBy = personalDetails?.[taskItem.accountID] ?? emptyPersonalDetails;
+                const formattedAssignee = formatPhoneNumber(getDisplayNameOrDefault(assignee));
+                const formattedCreatedBy = formatPhoneNumber(getDisplayNameOrDefault(createdBy));
 
-            const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
-            const parentReport = getReportOrDraftReport(taskItem.parentReportID);
+                const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
+                const parentReport = getReportOrDraftReport(taskItem.parentReportID);
 
-            const doesDataContainAPastYearTransaction = shouldShowYear(data);
-            const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName));
-            const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description));
+                const doesDataContainAPastYearTransaction = shouldShowYear(data);
+                const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName));
+                const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description));
 
-            const result: TaskListItemType = {
-                ...taskItem,
-                reportName,
-                description,
-                assignee,
-                formattedAssignee,
-                createdBy,
-                formattedCreatedBy,
-                keyForList: taskItem.reportID,
-                shouldShowYear: doesDataContainAPastYearTransaction,
-            };
+                const result: TaskListItemType = {
+                    ...taskItem,
+                    reportName,
+                    description,
+                    assignee,
+                    formattedAssignee,
+                    createdBy,
+                    formattedCreatedBy,
+                    keyForList: taskItem.reportID,
+                    shouldShowYear: doesDataContainAPastYearTransaction,
+                };
 
-            if (parentReport && personalDetails) {
-                const policy = getPolicy(parentReport.policyID);
-                const parentReportName = getReportName(parentReport, policy, undefined, undefined);
-                const icons = getIcons(parentReport, personalDetails, null, '', -1, policy);
-                const parentReportIcon = icons?.at(0);
+                if (parentReport && personalDetails) {
+                    const policy = getPolicy(parentReport.policyID);
+                    const parentReportName = getReportName(parentReport, policy, undefined, undefined);
+                    const icons = getIcons(parentReport, personalDetails, null, '', -1, policy);
+                    const parentReportIcon = icons?.at(0);
 
-                result.parentReportName = parentReportName;
-                result.parentReportIcon = parentReportIcon;
-            }
+                    result.parentReportName = parentReportName;
+                    result.parentReportIcon = parentReportIcon;
+                }
 
-            if (report) {
-                result.report = report;
-            }
+                if (report) {
+                    result.report = report;
+                }
 
-            return result;
-        });
+                return result;
+            })
+    );
 }
 
 /**
@@ -571,7 +576,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
-        if (isReportEntry(key)) {
+        if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
             const reportItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
@@ -625,8 +630,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
         }
     }
 
-    // Filter out reports with no transactions to prevent the wrong number of the selected options
-    return Object.values(reportIDToTransactions).filter((report) => report.transactions.length);
+    return Object.values(reportIDToTransactions);
 }
 
 /**

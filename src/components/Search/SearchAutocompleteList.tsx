@@ -17,7 +17,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
 import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import memoize from '@libs/memoize';
@@ -35,7 +34,7 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -56,6 +55,9 @@ type GetAdditionalSectionsCallback = (options: Options) => Array<SectionListData
 type SearchAutocompleteListProps = {
     /** Value of TextInput */
     autocompleteQueryValue: string;
+
+    /** Callback to trigger search action * */
+    handleSearch: (value: string) => void;
 
     /** An optional item to always display on the top of the router list  */
     searchQueryItem?: SearchQueryItem;
@@ -133,6 +135,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 function SearchAutocompleteList(
     {
         autocompleteQueryValue,
+        handleSearch,
         searchQueryItem,
         getAdditionalSections,
         onListItemPress,
@@ -168,13 +171,28 @@ function SearchAutocompleteList(
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
     const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
-    const statusAutocompleteList = Object.values({
-        ...CONST.SEARCH.STATUS.EXPENSE,
-        ...CONST.SEARCH.STATUS.INVOICE,
-        ...CONST.SEARCH.STATUS.CHAT,
-        ...CONST.SEARCH.STATUS.TRIP,
-        ...CONST.SEARCH.STATUS.TASK,
-    });
+
+    const statusAutocompleteList = useMemo(() => {
+        const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
+        const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+        const currentType = typeFilter?.value;
+
+        switch (currentType) {
+            case CONST.SEARCH.DATA_TYPES.EXPENSE:
+                return Object.values(CONST.SEARCH.STATUS.EXPENSE);
+            case CONST.SEARCH.DATA_TYPES.INVOICE:
+                return Object.values(CONST.SEARCH.STATUS.INVOICE);
+            case CONST.SEARCH.DATA_TYPES.CHAT:
+                return Object.values(CONST.SEARCH.STATUS.CHAT);
+            case CONST.SEARCH.DATA_TYPES.TRIP:
+                return Object.values(CONST.SEARCH.STATUS.TRIP);
+            case CONST.SEARCH.DATA_TYPES.TASK:
+                return Object.values(CONST.SEARCH.STATUS.TASK);
+            default:
+                return Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.TASK});
+        }
+    }, [autocompleteQueryValue]);
+
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
     const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
 
@@ -251,8 +269,13 @@ function SearchAutocompleteList(
     }, [activeWorkspaceID, allPoliciesTags]);
     const recentTagsAutocompleteList = getAutocompleteRecentTags(allRecentTags, activeWorkspaceID);
 
+    const [autocompleteParsedQuery, autocompleteQueryWithoutFilters] = useMemo(() => {
+        const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
+        const queryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
+        return [parsedQuery, queryWithoutFilters];
+    }, [autocompleteQueryValue]);
+
     const autocompleteSuggestions = useMemo<AutocompleteItemData[]>(() => {
-        const autocompleteParsedQuery = parseForAutocomplete(autocompleteQueryValue);
         const {autocomplete, ranges = []} = autocompleteParsedQuery ?? {};
         const autocompleteKey = autocomplete?.key;
         const autocompleteValue = autocomplete?.value ?? '';
@@ -436,7 +459,7 @@ function SearchAutocompleteList(
             }
         }
     }, [
-        autocompleteQueryValue,
+        autocompleteParsedQuery,
         tagAutocompleteList,
         recentTagsAutocompleteList,
         categoryAutocompleteList,
@@ -499,8 +522,12 @@ function SearchAutocompleteList(
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
     useEffect(() => {
-        searchInServer(autocompleteQueryValue.trim());
-    }, [autocompleteQueryValue]);
+        if (!handleSearch) {
+            return;
+        }
+
+        handleSearch(autocompleteQueryWithoutFilters);
+    }, [autocompleteQueryWithoutFilters, handleSearch]);
 
     /* Sections generation */
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
