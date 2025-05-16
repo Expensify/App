@@ -19,6 +19,7 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +29,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
 import {buildOldDotURL, openOldDotLink} from '@userActions/Link';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -90,6 +92,10 @@ function WorkspaceHubInitialPage() {
 
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const isWorkspacesTabSelected = focusedRouteName === SCREENS.WORKSPACE_HUB.WORKSPACES;
+
+    // Controls the visibility of the educational tooltip based on user scrolling.
+    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
+    const triggerScrollEvent = useScrollEventEmitter();
 
     const {
         renderProductTrainingTooltip: renderWorkspaceSettingsTooltip,
@@ -245,13 +251,21 @@ function WorkspaceHubInitialPage() {
                                 shouldRenderTooltip={item.shouldRenderTooltip}
                                 renderTooltipContent={item.renderTooltipContent}
                                 onEducationTooltipPress={item.onEducationTooltipPress}
+                                tooltipAnchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                }}
+                                tooltipShiftHorizontal={variables.workspacesSettingsTooltipShiftHorizontal}
+                                tooltipShiftVertical={variables.workspacesSettingsTooltipShiftVertical}
+                                tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
+                                shouldHideOnScroll
                             />
                         );
                     })}
                 </View>
             );
         },
-        [styles.p3, styles.sectionMenuItem, translate, focusedRouteName, isExecuting, singleExecution],
+        [styles.p3, styles.sectionMenuItem, styles.productTrainingTooltipWrapper, translate, focusedRouteName, isExecuting, singleExecution],
     );
 
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
@@ -268,8 +282,9 @@ function WorkspaceHubInitialPage() {
                 return;
             }
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+            triggerScrollEvent();
         },
-        [route, saveScrollOffset],
+        [route, saveScrollOffset, triggerScrollEvent],
     );
 
     useLayoutEffect(() => {
