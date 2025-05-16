@@ -198,7 +198,7 @@ function AttachmentModal({
     const styles = useThemeStyles();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
-    const [attachmentError, setAttachmentError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | undefined>(undefined);
+    const [fileError, setFileError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | undefined>(undefined);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequiredState, setIsAuthTokenRequiredState] = useState(isAuthTokenRequired);
     const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
@@ -210,7 +210,7 @@ function AttachmentModal({
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nope = useSharedValue(false);
-    const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && attachmentError);
+    const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && fileError);
     const iouType = useMemo(() => iouTypeProp ?? (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction, iouTypeProp]);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -311,7 +311,7 @@ function AttachmentModal({
      * Close the confirm modals.
      */
     const closeConfirmModal = useCallback(() => {
-        setAttachmentError(undefined);
+        setFileError(undefined);
         setIsDeleteReceiptConfirmModalVisible(false);
     }, []);
 
@@ -328,15 +328,15 @@ function AttachmentModal({
         (fileObject: FileObject) =>
             validateImageForCorruption(fileObject)
                 .then(() => {
-                    const fileError = validateReceiptFile(fileObject);
-                    if (fileError) {
-                        setAttachmentError(fileError);
+                    const error = validateReceiptFile(fileObject);
+                    if (error) {
+                        setFileError(error);
                         return false;
                     }
                     return true;
                 })
                 .catch(() => {
-                    setAttachmentError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED);
+                    setFileError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED);
                     return false;
                 }),
         [],
@@ -344,7 +344,7 @@ function AttachmentModal({
 
     const isDirectoryCheck = useCallback((data: FileObject) => {
         if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
-            setAttachmentError(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
+            setFileError(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
             return false;
         }
         return true;
@@ -530,7 +530,7 @@ function AttachmentModal({
                     setShouldLoadAttachment(false);
                     clearAttachmentErrors();
                     if (isPDFLoadError.current) {
-                        setAttachmentError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED)
+                        setFileError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED)
                         return;
                     }
 
@@ -677,11 +677,11 @@ function AttachmentModal({
             </Modal>
             {!isReceiptAttachment && (
                 <ConfirmModal
-                    title={attachmentError ? translate(getFileValidationErrorText(attachmentError).title) : ''}
+                    title={fileError ? translate(getFileValidationErrorText(fileError).title) : ''}
                     onConfirm={closeConfirmModal}
                     onCancel={closeConfirmModal}
-                    isVisible={!!attachmentError}
-                    prompt={attachmentError ? translate(getFileValidationErrorText(attachmentError).reason) : ''}
+                    isVisible={!!fileError}
+                    prompt={fileError ? translate(getFileValidationErrorText(fileError).reason) : ''}
                     confirmText={translate('common.close')}
                     shouldShowCancelButton={false}
                     onModalHide={() => {
