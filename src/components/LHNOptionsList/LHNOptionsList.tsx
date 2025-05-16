@@ -23,7 +23,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport, hasReportErrors} from '@libs/OptionsListUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, requiresAttentionFromCurrentUser} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, getReportAttributes} from '@libs/ReportUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -76,14 +76,12 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             if (hasReportErrors(report, itemReportActions)) {
                 return true;
             }
-            const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
-            const itemParentReportAction = report?.parentReportActionID ? itemParentReportActions?.[report?.parentReportActionID] : undefined;
-            const hasGBR = requiresAttentionFromCurrentUser(report, itemParentReportAction);
+            const hasGBR = getReportAttributes(report.reportID, reportAttributes)?.requiresAttention;
             return hasGBR;
         });
 
         return firstReportWithGBRorRBR?.reportID;
-    }, [isGBRorRBRTooltipDismissed, data, reportActions]);
+    }, [isGBRorRBRTooltipDismissed, data, reportActions, reportAttributes]);
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
