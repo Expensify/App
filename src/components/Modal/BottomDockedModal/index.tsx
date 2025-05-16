@@ -37,7 +37,6 @@ function BottomDockedModal({
     ...props
 }: ModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
-    const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [deviceWidth, setDeviceWidth] = useState(() => Dimensions.get('window').width);
     const [deviceHeight, setDeviceHeight] = useState(() => Dimensions.get('window').height);
@@ -79,14 +78,14 @@ function BottomDockedModal({
     );
 
     useEffect(() => {
-        if (getPlatform() === CONST.PLATFORM.WEB) {
+        if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
         } else {
             backHandlerListener.current = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressHandler);
         }
 
         return () => {
-            if (getPlatform() === CONST.PLATFORM.WEB) {
+            if (getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP) {
                 document.body.removeEventListener('keyup', handleEscape, {capture: true});
             } else {
                 backHandlerListener.current?.remove();
@@ -102,30 +101,32 @@ function BottomDockedModal({
     useEffect(
         () => () => {
             onModalWillHide();
+            if (handleRef.current) {
+                InteractionManager.clearInteractionHandle(handleRef.current);
+            }
 
             setIsVisibleState(false);
-            setIsContainerOpen(false);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
     useEffect(() => {
-        if (isVisible && !isContainerOpen && !isTransitioning) {
+        if (isVisible && !isVisibleState && !isTransitioning) {
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillShow();
 
             setIsVisibleState(true);
             setIsTransitioning(true);
-        } else if (!isVisible && isContainerOpen && !isTransitioning) {
+        } else if (!isVisible && isVisibleState && !isTransitioning) {
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillHide();
-
-            setIsVisibleState(false);
             setIsTransitioning(true);
+        } else if (!isVisible && isVisibleState && isTransitioning) {
+            setIsVisibleState(false);
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isVisible, isContainerOpen, isTransitioning]);
+    }, [isVisible, isTransitioning, isVisibleState]);
 
     const backdropStyle: ViewStyle = useMemo(() => {
         return {
@@ -137,7 +138,6 @@ function BottomDockedModal({
 
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
-        setIsContainerOpen(true);
         if (handleRef.current) {
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
@@ -146,7 +146,6 @@ function BottomDockedModal({
 
     const onCloseCallBack = useCallback(() => {
         setIsTransitioning(false);
-        setIsContainerOpen(false);
         if (handleRef.current) {
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
@@ -187,12 +186,10 @@ function BottomDockedModal({
                 pointerEvents="box-none"
                 style={[styles.modalBackdrop, styles.modalContainerBox]}
             >
-                {isVisibleState && (
-                    <>
-                        {hasBackdrop && backdropView}
-                        {containerView}
-                    </>
-                )}
+                <>
+                    {hasBackdrop && backdropView}
+                    {containerView}
+                </>
             </View>
         );
     }
@@ -203,7 +200,7 @@ function BottomDockedModal({
                 transparent
                 animationType="none"
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                visible={isVisibleState || isTransitioning || isContainerOpen !== isVisibleState}
+                visible={isVisibleState || isTransitioning}
                 onRequestClose={onBackButtonPress}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}

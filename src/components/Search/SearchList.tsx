@@ -77,6 +77,9 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
 
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
+
+    /** Invoked on mount and layout changes */
+    onLayout?: () => void;
 };
 
 const onScrollToIndexFailed = () => {};
@@ -101,6 +104,7 @@ function SearchList(
         queryJSONHash,
         shouldGroupByReports,
         onViewableItemsChanged,
+        onLayout,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -353,11 +357,12 @@ function SearchList(
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={selectedItemsLength === flattenedTransactions.length}
+                            isChecked={flattenedTransactions.length > 0 && selectedItemsLength === flattenedTransactions.length}
                             isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
+                            disabled={flattenedTransactions.length === 0}
                         />
                     )}
 
@@ -393,6 +398,7 @@ function SearchList(
                 removeClippedSubviews
                 onViewableItemsChanged={onViewableItemsChanged}
                 onScrollToIndexFailed={onScrollToIndexFailed}
+                onLayout={onLayout}
             />
             <Modal
                 isVisible={isModalVisible}
