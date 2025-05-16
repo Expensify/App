@@ -16,7 +16,7 @@ import type GoogleError from './types';
 function googleSignInRequest() {
     GoogleSignin.configure({
         webClientId: CONFIG.IS_HYBRID_APP ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP_WEB_CLIENT_ID : CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
-        iosClientId: CONFIG.GOOGLE_SIGN_IN.IOS_CLIENT_ID,
+        iosClientId: CONFIG.IS_HYBRID_APP ? CONFIG.GOOGLE_SIGN_IN.HYBRID_APP_IOS_CLIENT_ID : CONFIG.GOOGLE_SIGN_IN.IOS_CLIENT_ID,
         offlineAccess: false,
     });
 
