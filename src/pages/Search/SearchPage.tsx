@@ -571,28 +571,6 @@ function SearchPage({route}: SearchPageProps) {
             >
                 {!!queryJSON && (
                     <View style={styles.searchSplitContainer}>
-                        <View style={styles.searchSidebar}>
-                            {queryJSON ? (
-                                <View style={styles.flex1}>
-                                    <TopBar
-                                        shouldShowLoadingBar={shouldShowLoadingState}
-                                        breadcrumbLabel={translate('common.reports')}
-                                        shouldDisplaySearch={false}
-                                        shouldDisplayHelpButton={false}
-                                    />
-                                    <SearchTypeMenu queryJSON={queryJSON} />
-                                </View>
-                            ) : (
-                                <HeaderWithBackButton
-                                    title={translate('common.selectMultiple')}
-                                    onBackButtonPress={() => {
-                                        clearSelectedTransactions();
-                                        turnOffMobileSelectionMode();
-                                    }}
-                                />
-                            )}
-                            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
-                        </View>
                         <ScreenWrapper
                             testID={Search.displayName}
                             shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
