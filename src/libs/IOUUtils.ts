@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -9,6 +10,7 @@ import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import Navigation from './Navigation/Navigation';
+import Performance from './Performance';
 import {getReportTransactions} from './ReportUtils';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
 
@@ -34,6 +36,20 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
         default:
             Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID), {compareParams: false});
             break;
+    }
+}
+
+function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
+    Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
+    switch (iouType) {
+        case CONST.IOU.TYPE.REQUEST:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+            break;
+        case CONST.IOU.TYPE.SEND:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, transactionID, reportID));
+            break;
+        default:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     }
 }
 
@@ -210,4 +226,5 @@ export {
     updateIOUOwnerAndTotal,
     formatCurrentUserToAttendee,
     shouldStartLocationPermissionFlow,
+    navigateToParticipantPage,
 };
