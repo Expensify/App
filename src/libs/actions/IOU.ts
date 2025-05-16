@@ -5248,7 +5248,6 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     };
 
     playSound(SOUNDS.DONE);
-
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
 
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
@@ -5315,7 +5314,6 @@ function sendInvoice(
     };
 
     playSound(SOUNDS.DONE);
-
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
@@ -6192,7 +6190,6 @@ function splitBill({
     };
 
     playSound(SOUNDS.DONE);
-
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
@@ -6268,7 +6265,6 @@ function splitBillAndOpenReport({
     };
 
     playSound(SOUNDS.DONE);
-
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
@@ -6876,7 +6872,6 @@ function completeSplitBill(
     };
 
     playSound(SOUNDS.DONE);
-
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     dismissModalAndOpenReportInInboxTab(chatReportID);
@@ -8799,7 +8794,6 @@ function getPayMoneyRequestParams(
 function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerID, recipient);
     playSound(SOUNDS.DONE);
-
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
     dismissModalAndOpenReportInInboxTab(params.chatReportID);
@@ -8813,7 +8807,6 @@ function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number,
 function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant | OptionData) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerID, recipient);
     playSound(SOUNDS.DONE);
-
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
     dismissModalAndOpenReportInInboxTab(params.chatReportID);

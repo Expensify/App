@@ -39,7 +39,6 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             requestMoneyParams.transactionParams.receipt = file;
             requestMoneyParams.isRetry = true;
             requestMoneyParams.shouldPlaySound = false;
-
             IOU.requestMoney(requestMoneyParams);
             break;
         }
