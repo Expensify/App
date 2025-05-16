@@ -1,5 +1,7 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import lodashIsEmpty from 'lodash/isEmpty';
+import React, {useMemo, useState} from 'react';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -24,7 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import MoneyRequestPreview from './MoneyRequestPreview';
+import TransactionPreview from './TransactionPreview';
 
 type MoneyRequestActionProps = {
     /** All the data of the action */
@@ -83,6 +85,20 @@ function MoneyRequestAction({
     const {isOffline} = useNetwork();
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
+    const [previewWidth, setPreviewWidth] = useState(255);
+    const containerStyles = useMemo(
+        () => [
+            {
+                width: previewWidth,
+                maxWidth: previewWidth,
+            },
+            styles.cursorPointer,
+            isHovered ? styles.reportPreviewBoxHoverBorder : undefined,
+            style,
+            styles.borderNone,
+        ],
+        [isHovered, previewWidth, style, styles.borderNone, styles.cursorPointer, styles.reportPreviewBoxHoverBorder],
+    );
 
     const onMoneyRequestPreviewPressed = () => {
         if (contextMenuRef.current?.isContextMenuOpening) {
@@ -129,26 +145,32 @@ function MoneyRequestAction({
         return <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isReversedTransaction}">${translate(message)}</deleted-action>`} />;
     }
 
-    // NOTE: this part of code is needed here if we want to replace MoneyRequestPreview with TransactionPreview
-    // const renderCondition = lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction);
-    // return renderCondition ? null : (
-    return (
-        <MoneyRequestPreview
-            iouReportID={requestReportID}
-            chatReportID={chatReportID}
-            reportID={reportID}
-            isBillSplit={isSplitBillAction}
-            isTrackExpense={isTrackExpenseAction}
-            action={action}
-            contextMenuAnchor={contextMenuAnchor}
-            checkIfContextMenuActive={checkIfContextMenuActive}
-            shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-            onPreviewPressed={onMoneyRequestPreviewPressed}
-            containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, style]}
-            isHovered={isHovered}
-            isWhisper={isWhisper}
-            shouldDisplayContextMenu={shouldDisplayContextMenu}
-        />
+    // Condition extracted from MoneyRequestPreview
+    const renderCondition = lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction);
+    return renderCondition ? null : (
+        <View
+            onLayout={(e: LayoutChangeEvent) => {
+                setPreviewWidth(e.nativeEvent.layout.width ?? 255);
+            }}
+        >
+            <TransactionPreview
+                iouReportID={requestReportID}
+                chatReportID={chatReportID}
+                reportID={reportID}
+                action={action}
+                transactionPreviewWidth={previewWidth}
+                isBillSplit={isSplitBillAction}
+                isTrackExpense={isTrackExpenseAction}
+                contextMenuAnchor={contextMenuAnchor}
+                checkIfContextMenuActive={checkIfContextMenuActive}
+                shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+                onPreviewPressed={onMoneyRequestPreviewPressed}
+                containerStyles={containerStyles}
+                isHovered={isHovered}
+                isWhisper={isWhisper}
+                shouldDisplayContextMenu={shouldDisplayContextMenu}
+            />
+        </View>
     );
 }
 
