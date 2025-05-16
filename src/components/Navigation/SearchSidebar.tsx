@@ -1,8 +1,9 @@
 import type {ParamListBase} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {useSearchContext} from '@components/Search/SearchContext';
+import type {SearchQueryString} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,11 +31,18 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const route = state.routes.at(-1);
-    const {q} = route?.params ?? {}; // here too
+    const params = route?.params as {q?: SearchQueryString} | undefined;
     const {lastSearchType, setLastSearchType} = useSearchContext();
 
-    const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]); // this q still needs ot be changed
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const queryJSON = useMemo(() => {
+        if (params?.q) {
+            return buildSearchQueryJSON(params.q);
+        }
+        return undefined;
+    }, [params?.q]);
+
+    const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {canBeMissing: true});
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
     useEffect(() => {
