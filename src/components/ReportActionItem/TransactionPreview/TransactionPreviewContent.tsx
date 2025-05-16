@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
@@ -53,6 +54,7 @@ function TransactionPreviewContent({
     shouldShowIOUData,
 }: TransactionPreviewContentProps) {
     const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`, {canBeMissing: true});
