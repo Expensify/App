@@ -24,14 +24,31 @@ function SelectFeedType() {
     const [hasError, setHasError] = useState(false);
     const {canUsePlaidCompanyCards} = usePermissions();
     const isCountrySupportPlaid = addNewCard?.data?.selectedCountry ? CONST.PLAID_SUPPORT_COUNTRIES.includes(addNewCard.data.selectedCountry) : false;
+    const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
 
     const submit = () => {
         if (!typeSelected) {
             setHasError(true);
             return;
         }
+        if (!canUsePlaidCompanyCards) {
+            setAddNewCompanyCardStepAndData({
+                step: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                data: {selectedFeedType: typeSelected},
+            });
+            return;
+        }
+        const isDirectSelected = typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT;
+        if (!isDirectSelected) {
+            setAddNewCompanyCardStepAndData({
+                step: CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                data: {selectedFeedType: typeSelected},
+            });
+            return;
+        }
+        const step = isDirectSelected && isUSCountry ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION;
         setAddNewCompanyCardStepAndData({
-            step: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+            step,
             data: {selectedFeedType: typeSelected},
         });
     };
