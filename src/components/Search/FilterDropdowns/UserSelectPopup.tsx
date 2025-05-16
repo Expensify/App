@@ -8,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {Option, Section} from '@libs/OptionsListUtils';
@@ -37,6 +38,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const {translate} = useLocalize();
     const {options} = useOptionsList();
     const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
 
     // Since accountIDs are passed as value, we need to "populate" them into OptionData
@@ -164,9 +166,25 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const isLoadingNewOptions = !!isSearchingForReports;
     const dataLength = sections.flatMap((section) => section.data).length;
 
-    const FooterContent = useCallback(
-        () => (
-            <View style={[styles.flexRow, styles.gap2]}>
+    return (
+        <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
+            <SelectionList
+                canSelectMultiple
+                shouldClearInputOnSelect={false}
+                headerMessage={headerMessage}
+                sections={sections}
+                ListItem={UserSelectionListItem}
+                showScrollIndicator={false}
+                containerStyle={[!shouldUseNarrowLayout && styles.pt4]}
+                contentContainerStyle={[styles.pb2]}
+                textInputLabel={translate('selectionList.searchForSomeone')}
+                textInputValue={searchTerm}
+                onSelectRow={selectUser}
+                onChangeText={setSearchTerm}
+                isLoadingNewOptions={isLoadingNewOptions}
+            />
+
+            <View style={[styles.flexRow, styles.gap2, styles.mh5, !shouldUseNarrowLayout && styles.mb4]}>
                 <Button
                     medium
                     style={[styles.flex1]}
@@ -181,28 +199,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                     onPress={applyChanges}
                 />
             </View>
-        ),
-        [applyChanges, resetChanges, styles.flex1, styles.flexRow, styles.gap2, translate],
-    );
-
-    return (
-        <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight)]}>
-            <SelectionList
-                canSelectMultiple
-                shouldClearInputOnSelect={false}
-                headerMessage={headerMessage}
-                sections={sections}
-                ListItem={UserSelectionListItem}
-                showScrollIndicator={false}
-                containerStyle={[styles.pt4]}
-                contentContainerStyle={[styles.pb2]}
-                textInputLabel={translate('selectionList.searchForSomeone')}
-                textInputValue={searchTerm}
-                footerContent={<FooterContent />}
-                onSelectRow={selectUser}
-                onChangeText={setSearchTerm}
-                isLoadingNewOptions={isLoadingNewOptions}
-            />
         </View>
     );
 }

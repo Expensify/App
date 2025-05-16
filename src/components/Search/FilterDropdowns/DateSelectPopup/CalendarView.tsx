@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 
@@ -17,6 +18,7 @@ type CalendarViewProps = {
 function CalendarView({view, value, navigateBack, setValue}: CalendarViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [localDateValue, setLocalDateValue] = useState(value);
 
     const lowerDateModifier = view.toLowerCase() as SearchDateModifierLower;
@@ -32,7 +34,7 @@ function CalendarView({view, value, navigateBack, setValue}: CalendarViewProps) 
     };
 
     return (
-        <View style={[styles.pv4]}>
+        <View style={[!shouldUseNarrowLayout && styles.pv4]}>
             <HeaderWithBackButton
                 shouldDisplayHelpButton={false}
                 style={[styles.h10, styles.pb3]}

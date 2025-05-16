@@ -5743,11 +5743,11 @@ const styles = (theme: ThemeColors) =>
             ...sizing.mh65vh,
         }),
 
-        getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number) => {
+        getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean) => {
             const SEARCHBAR_HEIGHT = 50;
             const SEARCHBAR_MARGIN = 14;
             const BUTTON_HEIGHT = 40;
-            const PADDING = 44;
+            const PADDING = 44 - (shouldUseNarrowLayout ? 32 : 0);
 
             const listHeight = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_MARGIN + BUTTON_HEIGHT + PADDING;
 
