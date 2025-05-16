@@ -7084,16 +7084,12 @@ function updateMoneyRequestAmountAndCurrency({
     taxCode,
     allowNegative = false,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
-    console.log('allowNegative', allowNegative);
-
     const transactionChanges = {
         amount,
         currency,
         taxCode,
         taxAmount,
     };
-
-    console.log('transactionChanges', transactionChanges);
 
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
@@ -7114,8 +7110,6 @@ function updateMoneyRequestAmountAndCurrency({
         );
     }
     const {params, onyxData} = data;
-    console.log('params', params);
-    console.log('onyxData', onyxData);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
