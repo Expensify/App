@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState, useTransition} from 'react';
+import {useEffect, useState, useTransition} from 'react';
 import type {ListItem} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import usePrevious from './usePrevious';
