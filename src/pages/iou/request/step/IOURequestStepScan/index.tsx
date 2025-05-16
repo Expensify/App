@@ -41,7 +41,7 @@ import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
-import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
+import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -143,6 +143,7 @@ function IOURequestStepScan({
     const isTabActive = useIsFocused();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
@@ -286,19 +287,6 @@ function IOURequestStepScan({
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
     }, [backTo]);
-
-    const navigateToParticipantPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, initialTransactionID, reportID));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, initialTransactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, reportID));
-        }
-    }, [iouType, reportID, initialTransactionID]);
 
     const navigateToConfirmationPage = useCallback(
         (isTestTransaction = false, reportIDParam: string | undefined = undefined) => {
@@ -517,7 +505,7 @@ function IOURequestStepScan({
                     ),
                 );
             } else {
-                navigateToParticipantPage();
+                navigateToParticipantPage(iouType, initialTransactionID, reportID);
             }
         },
         [
@@ -539,6 +527,7 @@ function IOURequestStepScan({
             transactionTaxAmount,
             policy,
             navigateToParticipantPage,
+            backToReport,
         ],
     );
 
@@ -970,9 +959,9 @@ function IOURequestStepScan({
                                         setReceiptAndNavigate(file);
                                     }
                                 }}
-                                icon={Expensicons.SmartScan}
+                                icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
                                 dropStyles={styles.receiptDropOverlay}
-                                dropTitle={translate('dropzone.scanReceipts')}
+                                dropTitle={isEditing ? translate('dropzone.replaceReceipt') : translate('dropzone.scanReceipts')}
                                 dropTextStyles={styles.receiptDropText}
                                 dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
                             />
