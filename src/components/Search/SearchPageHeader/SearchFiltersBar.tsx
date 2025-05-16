@@ -335,7 +335,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     <ButtonWithDropdownMenu
                         onPress={() => null}
                         shouldAlwaysShowDropdownMenu
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                         customText={selectionButtonText}
                         options={headerButtonsOptions}
                         isSplitButton={false}
