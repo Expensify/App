@@ -1,6 +1,7 @@
 import type {RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -34,7 +35,7 @@ type DropdownOption<TValueType> = {
     titleStyle?: ViewStyle;
     shouldCloseModalOnSelect?: boolean;
     displayInDefaultIconColor?: boolean;
-    shouldPreserveSelectionAfterHideModal?: boolean;
+    subMenuItems?: PopoverMenuItem[];
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {

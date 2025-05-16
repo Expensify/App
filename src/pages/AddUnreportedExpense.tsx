@@ -17,7 +17,6 @@ import {startMoneyRequest} from '@userActions/IOU';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import NewChatSelectorPage from './NewChatSelectorPage';
@@ -122,7 +121,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                             setErrorMessage(translate('iou.selectUnreportedExpense'));
                             return;
                         }
-                        Navigation.goBack(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
+                        Navigation.dismissModal();
                         changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
                         setErrorMessage('');
                     }}

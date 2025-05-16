@@ -358,7 +358,7 @@ function getCurrentTimezone(): Required<Timezone> {
 }
 
 /**
- * @returns [January, Fabruary, March, April, May, June, July, August, ...]
+ * @returns [January, February, March, April, May, June, July, August, ...]
  */
 function getMonthNames(preferredLocale: Locale): string[] {
     if (preferredLocale) {
@@ -374,7 +374,7 @@ function getMonthNames(preferredLocale: Locale): string[] {
 }
 
 /**
- * @returns [Monday, Thuesday, Wednesday, ...]
+ * @returns [Monday, Tuesday, Wednesday, ...]
  */
 function getDaysOfWeek(preferredLocale: Locale): string[] {
     if (preferredLocale) {
@@ -883,6 +883,19 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
 }
 
 /**
+ * Returns a formatted cancellation date.
+ * Dates are formatted as follows:
+ * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
+ * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
+ */
+function getFormattedCancellationDate(date: Date): string {
+    if (isThisYear(date)) {
+        return format(date, 'EEEE, MMM d h:mm a');
+    }
+    return format(date, 'EEEE, MMM d, yyyy h:mm a');
+}
+
+/**
  * Returns a formatted layover duration in format "2h 30m".
  */
 function getFormattedDurationBetweenDates(translateParam: LocaleContextProps['translate'], start: Date, end: Date): string | undefined {
@@ -998,6 +1011,7 @@ const DateUtils = {
     getFormattedReservationRangeDate,
     getFormattedTransportDate,
     getFormattedTransportDateAndHour,
+    getFormattedCancellationDate,
     doesDateBelongToAPastYear,
     isCardExpired,
     getDifferenceInDaysFromNow,

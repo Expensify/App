@@ -557,6 +557,8 @@ const translations = {
         comments: 'Comments',
         sharedIn: 'Shared in',
         unreported: 'Unreported',
+        general: 'General',
+        workspacesTabTitle: 'Workspaces',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1125,6 +1127,7 @@ const translations = {
         unheldExpense: 'unheld this expense',
         moveUnreportedExpense: 'Move unreported expense',
         addUnreportedExpense: 'Add unreported expense',
+        createNewExpense: 'Create new expense',
         selectUnreportedExpense: 'Select at least one expense to add to the report.',
         emptyStateUnreportedExpenseTitle: 'No unreported expenses',
         emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
@@ -1214,6 +1217,7 @@ const translations = {
         dates: 'Dates',
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
+        moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
     },
     share: {
         shareToExpensify: 'Share to Expensify',
@@ -1456,7 +1460,7 @@ const translations = {
             lossOfUnsubmittedData: `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for `,
             enterMagicCode: `To continue, please enter the magic code sent to `,
             errors: {
-                incorrect2fa: 'Incorrect two-factor authentication code. Please try again.',
+                incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
                 fallback: 'Something went wrong. Please try again later.',
             },
         },
@@ -1730,7 +1734,7 @@ const translations = {
             copyCardNumber: 'Copy card number',
             updateAddress: 'Update address',
         },
-        cardAlreadyInWallet: 'Card is already in wallet',
+        cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Added to ${platform} Wallet`,
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
@@ -3779,12 +3783,14 @@ const translations = {
                 },
                 yourCardProvider: `Who's your card provider?`,
                 whoIsYourBankAccount: 'Who’s your bank?',
+                whereIsYourBankLocated: 'Where’s your bank located?',
                 howDoYouWantToConnect: 'How do you want to connect to your bank?',
                 learnMoreAboutOptions: {
                     text: 'Learn more about these ',
                     linkText: 'options.',
                 },
                 commercialFeedDetails: 'Requires setup with your bank. This is typically used by larger companies and is often the best option if you qualify.',
+                commercialFeedPlaidDetails: `Requires setup with your bank, but we'll guide you. This is typically limited to larger companies.`,
                 directFeedDetails: 'The simplest approach. Connect right away using your master credentials. This method is most common.',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Enable your ${provider} feed`,
@@ -3824,6 +3830,7 @@ const translations = {
                     pleaseSelectProvider: 'Please select a card provider before continuing',
                     pleaseSelectBankAccount: 'Please select a bank account before continuing',
                     pleaseSelectBank: 'Please select a bank before continuing',
+                    pleaseSelectCountry: 'Please select a country before continuing',
                     pleaseSelectFeedType: 'Please select a feed type before continuing',
                 },
             },
@@ -4636,6 +4643,7 @@ const translations = {
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
             inviteNoMembersError: 'Please select at least one member to invite',
+            joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `${user} requested to join ${workspaceName}`,
         },
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
@@ -4832,6 +4840,7 @@ const translations = {
             },
             pricing: {
                 perActiveMember: 'per active member per month.',
+                perMember: 'per member per month.',
             },
             note: {
                 upgradeWorkspace: 'Upgrade your workspace to access this feature, or',
@@ -5291,11 +5300,11 @@ const translations = {
             },
             current: 'Current',
             past: 'Past',
-            submitted: 'Submitted',
-            approved: 'Approved',
-            paid: 'Paid',
-            exported: 'Exported',
-            posted: 'Posted',
+            submitted: 'Submitted date',
+            approved: 'Approved date',
+            paid: 'Paid date',
+            exported: 'Exported date',
+            posted: 'Posted date',
             billable: 'Billable',
             reimbursable: 'Reimbursable',
         },
@@ -6318,10 +6327,6 @@ const translations = {
         outstandingFilter: {
             part1: 'Filter for expenses\nthat ',
             part2: 'need approval',
-        },
-        settingsTab: {
-            part1: 'Explore your ',
-            part2: 'workspace\nand account settings',
         },
         workspacesSettings: {
             part1: 'View your ',

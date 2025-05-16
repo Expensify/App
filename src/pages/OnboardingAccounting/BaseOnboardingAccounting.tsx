@@ -132,12 +132,16 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     }, [paidGroupPolicy, onboardingPolicyID]);
 
     useEffect(() => {
-        if (!!isLoading || !prevIsLoading || !CONFIG.IS_HYBRID_APP) {
+        if (!!isLoading || !prevIsLoading) {
             return;
         }
 
-        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-        setRootStatusBarEnabled(false);
+        if (CONFIG.IS_HYBRID_APP) {
+            HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+            setRootStatusBarEnabled(false);
+            return;
+        }
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
     }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
@@ -339,7 +343,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     text={translate('common.continue')}
                     onPress={handleContinue}
                     isLoading={isLoading}
-                    isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
+                    isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP}
                     pressOnEnter
                 />
             </FixedFooter>
