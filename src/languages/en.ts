@@ -558,6 +558,7 @@ const translations = {
         sharedIn: 'Shared in',
         unreported: 'Unreported',
         general: 'General',
+        workspacesTabTitle: 'Workspaces',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1216,6 +1217,7 @@ const translations = {
         dates: 'Dates',
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
+        moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
     },
     share: {
         shareToExpensify: 'Share to Expensify',
@@ -6322,10 +6324,6 @@ const translations = {
         outstandingFilter: {
             part1: 'Filter for expenses\nthat ',
             part2: 'need approval',
-        },
-        settingsTab: {
-            part1: 'Explore your ',
-            part2: 'workspace\nand account settings',
         },
         workspacesSettings: {
             part1: 'View your ',

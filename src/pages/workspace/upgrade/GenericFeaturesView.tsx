@@ -59,7 +59,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mt4]}>
                     {translate('workspace.upgrade.commonFeatures.benefits.startsAt')}
                     <Text style={[styles.textSupporting, styles.textBold]}>{formattedPrice}</Text>
-                    {hasTeam2025Pricing ? translate('workspace.upgrade.pricing.perMember') : translate('workspace.upgrade.pricing.perActiveMember')}
+                    {hasTeam2025Pricing ? translate('workspace.upgrade.pricing.perMember') : translate('workspace.upgrade.pricing.perActiveMember')}{' '}
                     <TextLink
                         style={[styles.link]}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}

@@ -159,7 +159,7 @@ import {
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -171,7 +171,6 @@ import {
     getCurrency,
     getDistanceInMeters,
     getMerchant,
-    getTransaction,
     getUpdatedTransaction,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
@@ -803,8 +802,15 @@ Onyx.connect({
  * It is a helper function used only in this file.
  */
 function dismissModalAndOpenReportInInboxTab(reportID?: string) {
-    if (isSearchTopmostFullScreenRoute() || !reportID) {
+    const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
+    if (isSearchPageTopmostFullScreenRoute || !reportID) {
         Navigation.dismissModal();
+        if (isSearchPageTopmostFullScreenRoute) {
+            const query = buildCannedSearchQuery();
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.setParams({q: query});
+            });
+        }
         return;
     }
     Navigation.dismissModalWithReport({reportID});
@@ -8205,7 +8211,7 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
 
     Object.values(iouReportActions).forEach((action) => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-        const transaction = getTransaction(transactionID);
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
         if (transaction?.comment?.hold) {
             holdReportActions.push(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>);
@@ -8846,7 +8852,6 @@ function canIOUBePaid(
     invoiceReceiverPolicy?: SearchPolicy,
     shouldCheckApprovedState = true,
 ) {
-    const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     const reportNameValuePairs = chatReportRNVP ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
     const isChatReportArchived = isArchivedReport(reportNameValuePairs);
     const iouSettled = isSettled(iouReport);
@@ -8884,7 +8889,7 @@ function canIOUBePaid(
         policy,
     );
 
-    const isOpenExpenseReport = isPolicyExpenseChat && isOpenExpenseReportReportUtils(iouReport);
+    const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
 
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);

@@ -549,6 +549,7 @@ const translations = {
         sharedIn: 'Compartido en',
         unreported: 'No reportado',
         general: 'General',
+        workspacesTabTitle: 'Espacios',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1214,6 +1215,7 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+        moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
     },
     share: {
         shareToExpensify: 'Compartir para Expensify',
@@ -6847,10 +6849,6 @@ const translations = {
         outstandingFilter: {
             part1: 'Filtra los gastos\nque ',
             part2: 'necesitan aprobación',
-        },
-        settingsTab: {
-            part1: 'Explora ',
-            part2: 'tu espacio de trabajo\ny la configuración de tu cuenta',
         },
         workspacesSettings: {
             part1: 'Ver tus ',
