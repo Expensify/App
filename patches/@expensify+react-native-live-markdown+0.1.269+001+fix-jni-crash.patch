@@ -1,0 +1,24 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp b/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp
+index 43caf3c..b81e7a1 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/main/new_arch/react/renderer/components/RNLiveMarkdownSpec/MarkdownTextInputDecoratorShadowNode.cpp
+@@ -3,6 +3,7 @@
+ #include <fbjni/fbjni.h>
+ #include <react/fabric/JFabricUIManager.h>
+ #include <react/jni/ReadableNativeMap.h>
++#include <react/jni/SafeReleaseJniRef.h>
+ #include <react/renderer/components/view/conversions.h>
+ #include <react/renderer/core/ComponentDescriptor.h>
+ #include <yoga/Yoga.h>
+@@ -45,9 +46,9 @@ void MarkdownTextInputDecoratorShadowNode::createCustomContextContainer() {
+   const auto &fabricUIManager =
+       this->getContextContainer()->at<JFabricUIManager::javaobject>("FabricUIManager");
+ 
+-  const auto customFabricUIManager = jni::make_global(createMethod(
++  const auto customFabricUIManager = SafeReleaseJniRef(jni::make_global(createMethod(
+       customFabricUIManagerClass, fabricUIManager,
+-      decoratorPropsRM.get(), parserId));
++      decoratorPropsRM.get(), parserId)));
+   const auto contextContainer =
+       std::make_shared<ContextContainer const>();
+   contextContainer->insert("FabricUIManager", customFabricUIManager);

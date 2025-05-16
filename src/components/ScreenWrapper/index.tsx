@@ -51,7 +51,7 @@ type ScreenWrapperChildrenProps = {
 
 type ScreenWrapperProps = {
     /** Returns a function as a child to pass insets to or a node to render without insets */
-    children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
+    children: ReactNode | ((props: ScreenWrapperChildrenProps) => ReactNode);
 
     /** Content to display under the offline indicator */
     bottomContent?: ReactNode;
