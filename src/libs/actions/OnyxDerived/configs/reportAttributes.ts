@@ -47,7 +47,7 @@ export default createOnyxDerivedValueConfig({
             };
         }
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
-        // we need to recompute all report attributes on locale change becuase the report names are locale dependent
+        // we need to recompute all report attributes on locale change because the report names are locale dependent
         if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues)) {
             isFullyComputed = false;
         }
@@ -116,7 +116,7 @@ export default createOnyxDerivedValueConfig({
 
             return acc;
         }, currentValue?.reports ?? {});
-        // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputations on all objects
+        // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
         if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
             isFullyComputed = true;
         }

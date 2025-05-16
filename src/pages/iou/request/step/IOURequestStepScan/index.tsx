@@ -39,7 +39,7 @@ import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
-import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
+import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -126,6 +126,7 @@ function IOURequestStepScan({
     const isTabActive = useIsFocused();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -270,19 +271,6 @@ function IOURequestStepScan({
         Navigation.goBack(backTo);
     }, [backTo]);
 
-    const navigateToParticipantPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-        }
-    }, [iouType, reportID, transactionID]);
-
     const navigateToConfirmationPage = useCallback(
         (isTestTransaction = false, reportIDParam: string | undefined = undefined) => {
             switch (iouType) {
@@ -394,7 +382,7 @@ function IOURequestStepScan({
                 if (shouldSkipConfirmation) {
                     const receipt: Receipt = file;
                     receipt.source = source;
-                    receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+                    receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                     if (iouType === CONST.IOU.TYPE.SPLIT) {
                         startSplitBill({
                             participants,
@@ -507,7 +495,7 @@ function IOURequestStepScan({
                     );
                 });
             } else {
-                navigateToParticipantPage();
+                navigateToParticipantPage(iouType, transactionID, reportID);
             }
         },
         [
@@ -531,7 +519,6 @@ function IOURequestStepScan({
             transactionTaxAmount,
             policy,
             backToReport,
-            navigateToParticipantPage,
         ],
     );
 
@@ -899,7 +886,7 @@ function IOURequestStepScan({
     );
 
     const elementTopOffset = useMemo(() => {
-        if (platform === CONST.PLATFORM.MOBILEWEB) {
+        if (platform === CONST.PLATFORM.MOBILE_WEB) {
             return SMALL_SCREEN_TOOLTIP_OFFSET;
         }
 
@@ -949,9 +936,9 @@ function IOURequestStepScan({
                                         setReceiptAndNavigate(file);
                                     }
                                 }}
-                                icon={Expensicons.SmartScan}
+                                icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
                                 dropStyles={styles.receiptDropOverlay}
-                                dropTitle={translate('dropzone.scanReceipts')}
+                                dropTitle={isEditing ? translate('dropzone.replaceReceipt') : translate('dropzone.scanReceipts')}
                                 dropTextStyles={styles.receiptDropText}
                                 dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
                             />
