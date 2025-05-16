@@ -615,11 +615,6 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[], a
     const previousAction = findPreviousAction(reportActions, actionIndex);
     const currentAction = reportActions.at(actionIndex);
 
-    // It's OK for there to be no previous action, and in that case, false will be returned
-    // so that the comment isn't grouped
-    if (!currentAction || !previousAction) {
-        return false;
-    }
     return canActionsBeGrouped(currentAction, previousAction);
 }
 
@@ -639,12 +634,6 @@ function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex
         return false;
     }
 
-    // It's OK for there to be no previous action, and in that case, false will be returned
-    // so that the comment isn't grouped
-    if (!currentAction || !nextAction) {
-        return true;
-    }
-
     return canActionsBeGrouped(currentAction, nextAction);
 }
 
@@ -656,13 +645,14 @@ function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex
  * @param otherAction - Chronologically - previous action. Named otherAction to avoid confusion as isConsecutiveActionMadeByPreviousActor and hasNextActionMadeBySameActor take action lists that are in opposite orders.
  */
 function canActionsBeGrouped(currentAction?: ReportAction, otherAction?: ReportAction): boolean {
+    // It's OK for there to be no previous action, and in that case, false will be returned
+    // so that the comment isn't grouped
     if (!currentAction || !otherAction) {
         return false;
     }
 
     // Comments are only grouped if they happen within 5 minutes of each other
-    const timeDiff = new Date(currentAction?.created).getTime() - new Date(otherAction.created).getTime();
-    if (timeDiff > 5 * 60 * 1000) {
+    if (new Date(currentAction?.created).getTime() - new Date(otherAction.created).getTime() > 5 * 60 * 1000) {
         return false;
     }
     // Do not group if other action was a created action

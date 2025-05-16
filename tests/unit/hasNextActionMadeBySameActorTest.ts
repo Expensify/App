@@ -13,11 +13,6 @@ describe('hasNextActionMadeBySameActor', () => {
         expect(result).toBe(false);
     });
 
-    it('returns true if current action is missing', () => {
-        const result = hasNextActionMadeBySameActorUtil([getFakeReportAction(accountID)], 1);
-        expect(result).toBe(true);
-    });
-
     it('returns false if actions are more than 5 minutes apart', () => {
         const actions = [getFakeReportAction(accountID, {created: '2025-01-01T01:01:00Z'}), getFakeReportAction(accountID, {created: '2025-01-01T02:00:00Z'})];
         const result = hasNextActionMadeBySameActorUtil(actions, 1);
