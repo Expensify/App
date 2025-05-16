@@ -4,8 +4,8 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import {updateLastAccessedWorkspaceSwitcher} from '@libs/actions/Policy/Policy';
 import {handleSwitchPolicyIDFromSearchAction} from '@navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import type {RootStackNavigatorAction, SwitchPolicyIdActionType} from '@navigation/AppNavigator/createRootStackNavigator/types';
-import CONST from '@src/CONST';
 import {getPreservedNavigatorState} from '@navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import CONST from '@src/CONST';
 import type SearchFullscreenNavigatorRouterOptions from './types';
 
 function isSwitchPolicyIdAction(action: RootStackNavigatorAction): action is SwitchPolicyIdActionType {

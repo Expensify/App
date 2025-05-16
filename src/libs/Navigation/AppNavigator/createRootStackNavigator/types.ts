@@ -40,12 +40,4 @@ type RootStackNavigatorRouterOptions = StackRouterOptions;
 
 type RootStackNavigatorAction = CommonActions.Action | StackActionType | RootStackNavigatorActionType;
 
-export type {
-    OpenWorkspaceSplitActionType,
-    SwitchPolicyIdActionType,
-    PushActionType,
-    ReplaceActionType,
-    DismissModalActionType,
-    RootStackNavigatorAction,
-    RootStackNavigatorRouterOptions,
-};
+export type {OpenWorkspaceSplitActionType, SwitchPolicyIdActionType, PushActionType, ReplaceActionType, DismissModalActionType, RootStackNavigatorAction, RootStackNavigatorRouterOptions};

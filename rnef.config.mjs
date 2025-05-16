@@ -6,7 +6,7 @@ const isHybrid = process.env.IS_HYBRID_APP === 'true';
 
 /** @type {import('@rnef/config').Config} */
 export default {
-    remoteCacheProvider: null,
+    remoteCacheProvider: 'github-actions',
     bundler: pluginMetro(),
     platforms: {
         ios: platformIOS({sourceDir: isHybrid ? './Mobile-Expensify/iOS' : './ios'}),
