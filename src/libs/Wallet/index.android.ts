@@ -9,14 +9,9 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
 }
 
 function handleAddCardToWallet(card: Card, cardHolderName: string): Promise<TokenizationStatus> {
-    return checkIfWalletIsAvailable().then((response) => {
-        if (!response) {
-            throw new Error('Wallet not available');
-        }
-        return getSecureWalletInfo().then((walletData: AndroidWalletData) =>
-            createDigitalGoogleWallet({cardHolderName, ...walletData}).then((cardData: AndroidCardData) => addCardToGoogleWallet(cardData)),
-        );
-    });
+    return getSecureWalletInfo().then((walletData: AndroidWalletData) =>
+        createDigitalGoogleWallet({cardHolderName, ...walletData}).then((cardData: AndroidCardData) => addCardToGoogleWallet(cardData)),
+    );
 }
 
 function isCardInWallet(card: Card): Promise<boolean> {
