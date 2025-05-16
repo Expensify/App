@@ -3,6 +3,7 @@ import type {AppleError} from '@invertase/react-native-apple-authentication';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
 import {setNewDotSignInState} from '@libs/actions/HybridApp';
+import Growl from '@libs/Growl';
 import Log from '@libs/Log';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -24,6 +25,7 @@ function appleSignInRequest(): Promise<string | null | undefined> {
             appleAuth.getCredentialStateForUser(response.user).then((credentialState) => {
                 if (credentialState !== appleAuth.State.AUTHORIZED) {
                     Log.alert('[Apple Sign In] Authentication failed. Original response: ', {response});
+                    Growl.error(`[Apple Sign In] Authentication failed. Original response: ${JSON.stringify(response)}`);
                     throw new Error('Authentication failed');
                 }
                 return response.identityToken;

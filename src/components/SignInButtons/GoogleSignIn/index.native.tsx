@@ -35,6 +35,7 @@ function googleSignInRequest() {
             // Handle unexpected error shape
             if (error?.code === undefined) {
                 Log.alert(`[Google Sign In] Google sign in failed: ${JSON.stringify(error)}`);
+                Growl.error(`[Google Sign In] Google sign in failed: ${JSON.stringify(error)}`);
                 return;
             }
             /** The logged code is useful for debugging any new errors that are not specifically handled. To decode, see:
