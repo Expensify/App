@@ -626,7 +626,7 @@ function clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSavingCorpayOnboardingBeneficialOwnersFields: null});
 }
 
-function clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation() {
+function clearReimbursementAccountSaveCorpayOnboardingDirectorInformation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSavingCorpayOnboardingDirectorInformation: null});
 }
 
@@ -918,7 +918,7 @@ export {
     saveCorpayOnboardingBeneficialOwners,
     saveCorpayOnboardingDirectorInformation,
     clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners,
-    clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation,
+    clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
     finishCorpayBankAccountOnboarding,
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
