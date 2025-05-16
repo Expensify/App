@@ -1030,7 +1030,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             },
         ],
     };
-    pushTransactionViolationsOnyxData(onyxData, policyID, shouldDisableRequiresCategory ? {...policy, requiresCategory: false} as Policy: null, {}, {...policyCategories, ...(optimisticPolicyCategoriesData as PolicyCategories)});
+    pushTransactionViolationsOnyxData(onyxData, policyID, shouldDisableRequiresCategory ? {...policy, requiresCategory: false} as Policy: null, null, {...policyCategories, ...(optimisticPolicyCategoriesData as PolicyCategories)});
     appendSetupCategoriesOnboardingData(onyxData);
     if (shouldDisableRequiresCategory) {
         onyxData.optimisticData?.push({
