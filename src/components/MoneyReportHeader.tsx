@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
+import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,6 +22,8 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
+import {isSecondaryActionAPaymentOption, selectPaymentType} from '@libs/PaymentUtils';
+import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -96,6 +99,7 @@ import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import KYCWall from './KYCWall';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import Modal from './Modal';
@@ -140,6 +144,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${moneyRequestReport?.reportID}`, {canBeMissing: true}) ?? null;
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`, {canBeMissing: true});
@@ -434,6 +439,20 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
         }
     }, [connectedIntegration, exportModalStatus, moneyRequestReport?.reportID]);
+
+    const paymentButtonOptions = usePaymentOptions({
+        addBankAccountRoute: bankAccountRoute,
+        currency: moneyRequestReport?.currency,
+        iouReport: moneyRequestReport,
+        chatReportID: chatReport?.reportID,
+        formattedAmount,
+        policyID: moneyRequestReport?.policyID,
+        onPress: confirmPayment,
+        shouldHidePaymentOptions: !shouldShowPayButton,
+        shouldShowApproveButton,
+        shouldDisableApproveButton,
+        onlyShowPayElsewhere,
+    });
 
     const addExpenseDropdownOptions: Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> = useMemo(
         () => [
@@ -764,6 +783,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.PAY]: {
+            text: translate('iou.settlePayment', {formattedAmount}),
+            icon: Expensicons.Cash,
+            value: CONST.REPORT.SECONDARY_ACTIONS.PAY,
+            subMenuItems: Object.values(paymentButtonOptions),
+        },
     };
 
     const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
@@ -813,6 +838,43 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             <Text>{translate('iou.reopenExportedReportConfirmation', {connectionName: integrationNameFromExportMessage ?? ''})}</Text>
         </Text>
     );
+    const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) =>
+        selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, confirmPayment, isUserValidated, confirmApproval, moneyRequestReport);
+
+    const KYCMoreDropdown = (
+        <KYCWall
+            onSuccessfulKYC={(payment) => confirmPayment(payment)}
+            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+            addBankAccountRoute={bankAccountRoute}
+            isDisabled={isOffline}
+            source={CONST.KYC_WALL_SOURCE.REPORT}
+            chatReportID={chatReport?.reportID}
+            iouReport={moneyRequestReport}
+            anchorAlignment={{
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, // button is at left, so horizontal anchor is at LEFT
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
+            }}
+        >
+            {(triggerKYCFlow, buttonRef) => (
+                <ButtonWithDropdownMenu
+                    success={false}
+                    onPress={() => {}}
+                    onSubitemSelected={(item, index, event) => {
+                        if (!isSecondaryActionAPaymentOption(item)) {
+                            return;
+                        }
+                        onPaymentSelect(event, item.value, triggerKYCFlow);
+                    }}
+                    buttonRef={buttonRef}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    options={applicableSecondaryActions}
+                    isSplitButton={false}
+                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
+                />
+            )}
+        </KYCWall>
+    );
 
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
@@ -830,16 +892,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {!shouldDisplayNarrowVersion && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
-                        {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
-                            <ButtonWithDropdownMenu
-                                success={false}
-                                onPress={() => {}}
-                                shouldAlwaysShowDropdownMenu
-                                customText={translate('common.more')}
-                                options={applicableSecondaryActions}
-                                isSplitButton={false}
-                            />
-                        )}
+                        {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && KYCMoreDropdown}
                         {shouldShowSelectedTransactionsButton && (
                             <View>
                                 <ButtonWithDropdownMenu
@@ -857,17 +910,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             {shouldDisplayNarrowVersion && !shouldShowSelectedTransactionsButton && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
-                    {!!applicableSecondaryActions.length && (
-                        <ButtonWithDropdownMenu
-                            success={false}
-                            onPress={() => {}}
-                            shouldAlwaysShowDropdownMenu
-                            customText={translate('common.more')}
-                            options={applicableSecondaryActions}
-                            isSplitButton={false}
-                            wrapperStyle={[!primaryAction && styles.flex1]}
-                        />
-                    )}
+                    {!!applicableSecondaryActions.length && KYCMoreDropdown}
                 </View>
             )}
             {isMoreContentShown && (
