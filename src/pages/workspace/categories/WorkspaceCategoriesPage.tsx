@@ -41,7 +41,6 @@ import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/conn
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -162,9 +161,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, []);
     const [inputValue, setInputValue, filteredCategoryList] = useSearchResults(categoryList, filterCategory, sortCategories);
 
-    useAutoTurnSelectionModeOffWhenHasNoActiveOption(filteredCategoryList);
-
-    const sections = useMemo(() => [{data: filteredCategoryList, isDisabled: false}], [filteredCategoryList]);
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
     const toggleCategory = useCallback(
         (category: PolicyOption) => {
@@ -407,7 +404,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
 
-                        goBackFromWorkspaceCentralScreen(policyId);
+                        Navigation.popToSidebar();
                     }}
                     shouldShowThreeDotsButton
                     threeDotsMenuItems={threeDotsMenuItems}
@@ -466,7 +463,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             canSelectMultiple={canSelectMultiple}
                             turnOnSelectionModeOnLongPress={isSmallScreenWidth}
                             onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
-                            sections={sections}
+                            sections={[{data: filteredCategoryList, isDisabled: false}]}
+                            shouldUseDefaultRightHandSideCheckmark={false}
+                            selectedItemKeys={selectedCategories}
                             onCheckboxPress={toggleCategory}
                             onSelectRow={navigateToCategorySettings}
                             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
