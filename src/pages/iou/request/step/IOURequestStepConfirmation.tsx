@@ -406,9 +406,9 @@ function IOURequestStepConfirmation({
                     const receipt: Receipt = file;
                     if (item?.receipt?.isTestReceipt) {
                         receipt.isTestReceipt = true;
-                        receipt.state = CONST.IOU.RECEIPT_STATE.SCANCOMPLETE;
+                        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
                     } else {
-                        receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+                        receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
                     }
 
                     newReceiptFiles = {...newReceiptFiles, [item.transactionID]: receipt};

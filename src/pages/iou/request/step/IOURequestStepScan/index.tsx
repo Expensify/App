@@ -907,7 +907,7 @@ function IOURequestStepScan({
     );
 
     const elementTopOffset = useMemo(() => {
-        if (platform === CONST.PLATFORM.MOBILEWEB) {
+        if (platform === CONST.PLATFORM.MOBILE_WEB) {
             return SMALL_SCREEN_TOOLTIP_OFFSET;
         }
 
