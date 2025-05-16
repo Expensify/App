@@ -1,5 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import CalendarView from './CalendarView';
 import RootView from './RootView';
 
@@ -34,11 +35,13 @@ function DateSelectPopup({value, closeOverlay, onChange}: DateSelectPopupProps) 
     }, []);
 
     const resetChanges = useCallback(() => {
-        // Reset each field back to null
-        setLocalDateValues((prev) => {
-            return Object.fromEntries(Object.entries(prev).map(([key]) => [key, null])) as DateSelectPopupValue;
+        closeOverlay();
+        onChange({
+            [CONST.SEARCH.DATE_MODIFIERS.ON]: null,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: null,
+            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: null,
         });
-    }, []);
+    }, [closeOverlay, onChange]);
 
     const applyChanges = useCallback(() => {
         closeOverlay();

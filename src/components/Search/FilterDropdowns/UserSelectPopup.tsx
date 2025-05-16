@@ -152,9 +152,10 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         closeOverlay();
     }, [closeOverlay, onChange, selectedOptions]);
 
-    const resetChanges = () => {
-        setSelectedOptions([]);
-    };
+    const resetChanges = useCallback(() => {
+        onChange([]);
+        closeOverlay();
+    }, [closeOverlay, onChange]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -181,7 +182,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 />
             </View>
         ),
-        [applyChanges, styles, translate],
+        [applyChanges, resetChanges, styles.flex1, styles.flexRow, styles.gap2, translate],
     );
 
     return (
