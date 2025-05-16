@@ -9,12 +9,12 @@ function useReportScrollManager(): ReportScrollManagerData {
      * Scroll to the provided index. On non-native implementations we do not want to scroll when we are scrolling because
      */
     const scrollToIndex = useCallback(
-        (index: number, isEditing?: boolean) => {
+        (index: number, isEditing?: boolean, viewPosition?: number) => {
             if (!flatListRef?.current || isEditing) {
                 return;
             }
 
-            flatListRef.current.scrollToIndex({index, animated: true});
+            flatListRef.current.scrollToIndex({index, animated: true, viewPosition});
         },
         [flatListRef],
     );
