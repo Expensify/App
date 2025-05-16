@@ -1,11 +1,14 @@
-import * as core from '@actions/core';
 import {execSync, spawn} from 'child_process';
 import CONST from './CONST';
-import GithubUtils from './GithubUtils';
-import type {CommitType} from './GithubUtils';
 import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
 import {getPreviousVersion, SEMANTIC_VERSION_LEVELS} from './versionUpdater';
 import type {SemverLevel} from './versionUpdater';
+
+type CommitType = {
+    commit: string;
+    subject: string;
+    authorName: string;
+};
 
 /**
  * Check if a tag exists locally or in the remote.
@@ -112,8 +115,6 @@ function fetchTag(tag: string, shallowExcludeTag = '') {
 
 /**
  * Get merge logs between two tags (inclusive) as a JavaScript object.
- *
- * @deprecated Use GithubUtils.getCommitHistoryBetweenTags - to be removed after verification of https://github.com/Expensify/App/issues/60687
  */
 function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitType[]> {
     // Fetch tags, excluding commits reachable from the previous patch version (or minor for prod) (i.e: previous checklist), so that we don't have to fetch the full history
@@ -190,29 +191,20 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
  */
-async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
-    console.log(`Looking for commits made between ${fromTag} and ${toTag}`);
+async function getPullRequestsMergedBetween(fromTag: string, toTag: string) {
+    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
+    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
-    const apiCommitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag);
-    const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
-    console.log(`[API] Found ${apiCommitList.length} commits.`);
-    core.startGroup('[API] Parsed PRs:');
-    core.info(JSON.stringify(apiPullRequestNumbers));
-    core.endGroup();
-
-    // eslint-disable-next-line deprecation/deprecation
-    const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
-    const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
-    console.log(`[git log] Found ${gitCommitList.length} commits.`);
-    core.startGroup('[git log] Parsed PRs:');
-    core.info(JSON.stringify(gitLogPullRequestNumbers));
-    core.endGroup();
-
-    return gitLogPullRequestNumbers;
+    // Find which commit messages correspond to merged PR's
+    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
+    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
+    return pullRequestNumbers;
 }
 
 export default {
     getPreviousExistingTag,
     getValidMergedPRs,
-    getPullRequestsDeployedBetween,
+    getPullRequestsMergedBetween,
 };
+export type {CommitType};
