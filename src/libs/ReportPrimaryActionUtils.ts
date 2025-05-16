@@ -11,7 +11,7 @@ import {
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
-    isPrefferedExporter,
+    isPreferredExporter,
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID} from './ReportActionsUtils';
 import {
@@ -19,6 +19,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     hasExportError as hasExportErrorUtil,
+    hasOnlyHeldExpenses,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -52,7 +53,11 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     return isExpenseReport && canAddTransaction && isReportSubmitter && reportTransactions.length === 0;
 }
 
-function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
+function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs) {
+    if (isArchivedReport(reportNameValuePairs)) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const isOpenReport = isOpenReportUtils(report);
@@ -122,9 +127,7 @@ function isPayAction(report: Report, policy?: Policy, reportNameValuePairs?: Rep
     const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
-
-    if (isChatReportArchived) {
+    if (isArchivedReport(reportNameValuePairs)) {
         return false;
     }
 
@@ -166,7 +169,7 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
         return false;
     }
 
-    const isReportExporter = isPrefferedExporter(policy);
+    const isReportExporter = isPreferredExporter(policy);
     if (!isReportExporter) {
         return false;
     }
@@ -267,6 +270,8 @@ function getReportPrimaryAction(
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+    const isPayActionWithAllExpensesHeld = isPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID);
+
     if (isAddExpenseAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
     }
@@ -279,11 +284,11 @@ function getReportPrimaryAction(
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isRemoveHoldAction(report, reportTransactions)) {
+    if (isRemoveHoldAction(report, reportTransactions) || isPayActionWithAllExpensesHeld) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
-    if (isSubmitAction(report, reportTransactions, policy)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
@@ -344,4 +349,4 @@ function getTransactionThreadPrimaryAction(
     return '';
 }
 
-export {getReportPrimaryAction, getTransactionThreadPrimaryAction};
+export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction};

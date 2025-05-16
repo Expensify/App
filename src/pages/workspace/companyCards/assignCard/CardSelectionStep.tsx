@@ -12,13 +12,13 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {filterInactiveCards, getBankName, getCardFeedIcon, getFilteredCardList, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getBankName, getCardFeedIcon, getFilteredCardList, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -35,15 +35,13 @@ type CardSelectionStepProps = {
 };
 
 function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const {environmentURL} = useEnvironment();
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`, {selector: filterInactiveCards, canBeMissing: false});
+    const [list] = useCardsList(policyID, feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
 
@@ -176,9 +174,8 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                             buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
                             onSubmit={submit}
                             isAlertVisible={shouldShowError}
-                            containerStyles={[styles.ph5, !shouldShowError && styles.mt5]}
+                            containerStyles={[!shouldShowError && styles.mt5]}
                             message={translate('common.error.pleaseSelectOne')}
-                            buttonStyles={styles.mb5}
                         />
                     }
                 />

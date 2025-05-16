@@ -1,7 +1,9 @@
+import {renderHook} from '@testing-library/react-native';
 import {format} from 'date-fns';
 import isEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import {
     calculateDiffAmount,
     canApproveIOU,
@@ -109,6 +111,9 @@ jest.mock('@src/libs/actions/Report', () => {
     };
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
+
+// This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
@@ -2014,7 +2019,7 @@ describe('actions/IOU', () => {
                                     vitTransaction = Object.values(allTransactions ?? {}).find(
                                         (transaction) => vitIOUAction && transaction?.transactionID === getOriginalMessage(vitIOUAction)?.IOUTransactionID,
                                     );
-                                    groupTransaction = Object.values(allTransactions ?? {}).find((transaction) => transaction?.reportID === CONST.REPORT.SPLIT_REPORTID);
+                                    groupTransaction = Object.values(allTransactions ?? {}).find((transaction) => transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID);
 
                                     expect(carlosTransaction?.reportID).toBe(carlosIOUReport?.reportID);
                                     expect(julesTransaction?.reportID).toBe(julesIOUReport?.reportID);
@@ -2126,7 +2131,7 @@ describe('actions/IOU', () => {
         });
 
         it('should update split chat report lastVisibleActionCreated to the report preview action', async () => {
-            // Given a workspace chat with no expenses
+            // Given a expense chat with no expenses
             const workspaceReportID = '1';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
 
@@ -2145,7 +2150,7 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            // Then the workspace chat lastVisibleActionCreated should be updated to the report preview action created
+            // Then the expense chat lastVisibleActionCreated should be updated to the report preview action created
             const reportPreviewAction = await new Promise<OnyxEntry<ReportAction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceReportID}`,
@@ -2870,7 +2875,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('a workspace chat with a cancelled payment', () => {
+    describe('a expense chat with a cancelled payment', () => {
         const amount = 10000;
         const comment = '💸💸💸💸';
         const merchant = 'NASDAQ';
@@ -3138,7 +3143,8 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(t).toBeFalsy();
+            expect(t).toBeTruthy();
+            expect(t?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
             // Given fetch operations are resumed
             mockFetch?.resume?.();
@@ -3768,9 +3774,9 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('chatReportID');
             expect(iouReport?.total).toBe(30000);
 
-            const ioupreview = chatReport?.reportID && iouReport?.reportID ? getReportPreviewAction(chatReport.reportID, iouReport.reportID) : undefined;
-            expect(ioupreview).toBeTruthy();
-            expect(getReportActionText(ioupreview)).toBe('rory@expensifail.com owes $300.00');
+            const iouPreview = chatReport?.reportID && iouReport?.reportID ? getReportPreviewAction(chatReport.reportID, iouReport.reportID) : undefined;
+            expect(iouPreview).toBeTruthy();
+            expect(getReportActionText(iouPreview)).toBe('rory@expensifail.com owes $300.00');
 
             // When we delete the first expense
             mockFetch?.pause?.();
@@ -5153,6 +5159,9 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
+            // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if we have only scan failure transactions', async () => {
             const policyID = '2';
@@ -5177,7 +5186,7 @@ describe('actions/IOU', () => {
                 modifiedAmount: 0,
                 receipt: {
                     source: 'test',
-                    state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 modifiedMerchant: undefined,
@@ -5189,7 +5198,7 @@ describe('actions/IOU', () => {
                 modifiedAmount: 0,
                 receipt: {
                     source: 'test',
-                    state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
                 merchant: 'test merchant',
                 modifiedMerchant: undefined,
@@ -5205,6 +5214,9 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
+            // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if all transactions are pending card or scan failure transaction', async () => {
             const policyID = '2';
@@ -5235,7 +5247,7 @@ describe('actions/IOU', () => {
                 modifiedAmount: 0,
                 receipt: {
                     source: 'test',
-                    state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
                 merchant: 'test merchant',
                 modifiedMerchant: undefined,
@@ -5248,6 +5260,9 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
+            // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return true if at least one transactions is not pending card or scan failure transaction', async () => {
             const policyID = '2';
@@ -5277,7 +5292,7 @@ describe('actions/IOU', () => {
                 amount: 0,
                 receipt: {
                     source: 'test',
-                    state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 modifiedMerchant: undefined,
@@ -5296,6 +5311,9 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeTruthy();
+            // Then should return true when passing transactions directly as the third parameter instead of relying on Onyx data
+            const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID));
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeTruthy();
         });
 
         it('should return false if the report is closed', async () => {
@@ -5325,6 +5343,8 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
             // Then, canApproveIOU should return false since the report is closed
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
+            // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
+            expect(canApproveIOU(fakeReport, fakePolicy, [fakeTransaction])).toBeFalsy();
         });
     });
 
@@ -5737,7 +5757,7 @@ describe('actions/IOU', () => {
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
                 callback: (allReportActions) => {
-                    const action = Object.values(allReportActions ?? {}).find((a) => a?.actionName === 'REIMBURSEMENTDEQUEUED');
+                    const action = Object.values(allReportActions ?? {}).find((a) => a?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED);
                     expect(action?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 },
             });

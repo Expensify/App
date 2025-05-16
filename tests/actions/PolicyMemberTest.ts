@@ -358,8 +358,8 @@ describe('actions/PolicyMember', () => {
             expect(adminRoom?.participants?.[userAccountID]).toBeUndefined();
         });
 
-        it('should unarchive existing workspace chat when adding back a member', async () => {
-            // Given an archived workspace chat
+        it('should unarchive existing expense chat when adding back a member', async () => {
+            // Given an archived expense chat
             const policyID = '1';
             const workspaceReportID = '1';
             const userAccountID = 1236;
@@ -380,7 +380,7 @@ describe('actions/PolicyMember', () => {
 
             await waitForBatchedUpdates();
 
-            // Then the member workspace chat should be unarchived optimistically
+            // Then the member expense chat should be unarchived optimistically
             const isArchived = await new Promise<boolean>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
@@ -473,8 +473,8 @@ describe('actions/PolicyMember', () => {
             expect(successAdminRoomMetadata?.pendingChatMembers).toBeUndefined();
         });
 
-        it('should archive the member workspace chat', async () => {
-            // Given a workspace chat
+        it('should archive the member expense chat', async () => {
+            // Given a expense chat
             const policyID = '1';
             const workspaceReportID = '1';
             const userAccountID = 1236;
@@ -492,7 +492,7 @@ describe('actions/PolicyMember', () => {
 
             await waitForBatchedUpdates();
 
-            // Then the member workspace chat should be archived optimistically
+            // Then the member expense chat should be archived optimistically
             const isArchived = await new Promise<boolean>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
@@ -531,7 +531,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 1, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 0}));
         });
 
         it('should show a "multiple members added message" when multiple new members are added', async () => {
@@ -560,7 +560,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 2, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 0}));
         });
 
         it('should show a "no members added/updated message" when no new members are added or updated', async () => {
@@ -593,7 +593,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the no member added/updated message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 0, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 0}));
         });
 
         it('should show a "single member updated message" when a member is updated', async () => {
@@ -626,7 +626,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 0, updated: 1}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 1}));
         });
 
         it('should show a "multiple members updated message" when multiple members are updated', async () => {
@@ -667,7 +667,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 0, updated: 2}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 2}));
         });
 
         it('should show a "single member added and updated message" when a member is both added and updated', async () => {
@@ -703,7 +703,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added and updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 1, updated: 1}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 1}));
         });
 
         it('should show a "multiple members added and updated message" when multiple members are both added and updated', async () => {
@@ -746,7 +746,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added and updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 2, updated: 2}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 2}));
         });
     });
 });
