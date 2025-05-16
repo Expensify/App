@@ -463,6 +463,8 @@ function TransactionListItemRow({
                         parentAction={parentAction}
                         goToItem={onButtonPress}
                         isLoading={isLoading}
+                        policyID={item.policyID}
+                        reportID={item?.reportID}
                     />
                 </View>
             </View>
