@@ -56,7 +56,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
-        isScreenFocused && canSwitchAccounts,
+        isScreenFocused && canSwitchAccounts && !isActingAsDelegate,
     );
 
     const onPressSwitcher = () => {
