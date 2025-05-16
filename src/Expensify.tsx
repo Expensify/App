@@ -4,7 +4,6 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
-import alert from './components/Alert';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -25,9 +24,10 @@ import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
+import {isSafari} from './libs/Browser';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
-import * as Growl from './libs/Growl';
+import Growl, {growlRef} from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
@@ -56,7 +56,7 @@ Onyx.registerLogger(({level, message, parameters}) => {
         // when they don't return data.
         const shouldShowAlert = typeof parameters === 'object' && !Array.isArray(parameters) && 'showAlert' in parameters && 'key' in parameters;
         if (Environment.isDevelopment() && shouldShowAlert) {
-            alert(`${message} Key: ${parameters.key as string}`);
+            Growl.error(`${message} Key: ${parameters.key as string}`, 10000);
         }
     } else if (level === 'hmmm') {
         Log.hmmm(message, parameters);
@@ -95,16 +95,16 @@ function Expensify() {
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, {canBeMissing: true});
-    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: false});
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false, canBeMissing: false});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false, canBeMissing: false});
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: false});
+    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false, canBeMissing: true});
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false, canBeMissing: true});
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
-    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false, canBeMissing: false});
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: false});
+    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false, canBeMissing: true});
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
     useDebugShortcut();
 
@@ -130,7 +130,14 @@ function Expensify() {
             return;
         }
 
-        ActiveClientManager.init();
+        // Delay client init to avoid issues with delayed Onyx events on iOS. All iOS browsers use WebKit, which suspends events in background tabs.
+        // Events are flushed only when the tab becomes active again causing issues with client initialization.
+        // See: https://stackoverflow.com/questions/54095584/page-becomes-inactive-when-switching-tabs-on-ios
+        if (isSafari()) {
+            setTimeout(ActiveClientManager.init, 400);
+        } else {
+            ActiveClientManager.init();
+        }
     };
 
     const setNavigationReady = useCallback(() => {
@@ -269,7 +276,7 @@ function Expensify() {
         >
             {shouldInit && (
                 <>
-                    <GrowlNotification ref={Growl.growlRef} />
+                    <GrowlNotification ref={growlRef} />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}

@@ -9,13 +9,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 type ScrollOffsetContextValue = {
-    /** Save scroll offset of flashlist on given screen */
+    /** Save scroll offset of FlashList on given screen */
     saveScrollOffset: (route: PlatformStackRouteProp<ParamListBase>, scrollOffset: number) => void;
 
     /** Get scroll offset value for given screen */
     getScrollOffset: (route: PlatformStackRouteProp<ParamListBase>) => number | undefined;
 
-    /** Save scroll index of flashlist on given screen */
+    /** Save scroll index of FlashList on given screen */
     saveScrollIndex: (route: PlatformStackRouteProp<ParamListBase>, scrollIndex: number) => void;
 
     /** Get scroll index value for given screen */
@@ -49,7 +49,7 @@ function getKey(route: PlatformStackRouteProp<ParamListBase> | NavigationPartial
 }
 
 function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProps) {
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
     const scrollOffsetsRef = useRef<Record<string, number>>({});
     const previousPriorityMode = usePrevious(priorityMode);
 
@@ -79,9 +79,9 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
 
     const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback((state) => {
         const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
-        const scrollOffsetkeysOfExistingScreens = sidebarRoutes.map((route) => getKey(route));
+        const scrollOffsetKeysOfExistingScreens = sidebarRoutes.map((route) => getKey(route));
         for (const key of Object.keys(scrollOffsetsRef.current)) {
-            if (!scrollOffsetkeysOfExistingScreens.includes(key)) {
+            if (!scrollOffsetKeysOfExistingScreens.includes(key)) {
                 delete scrollOffsetsRef.current[key];
             }
         }
@@ -115,5 +115,3 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
 export default ScrollOffsetContextProvider;
 
 export {ScrollOffsetContext};
-
-export type {ScrollOffsetContextProviderProps, ScrollOffsetContextValue};

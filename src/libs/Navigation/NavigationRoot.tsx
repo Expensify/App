@@ -14,7 +14,6 @@ import Log from '@libs/Log';
 import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
-import * as Session from '@userActions/Session';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
@@ -27,8 +26,8 @@ import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import customGetPathFromState from './helpers/customGetPathFromState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
-import {saveSettingsTabPathToSessionStorage} from './helpers/getLastVisitedWorkspace';
-import {isSettingsTabScreenName} from './helpers/isNavigatorName';
+import {saveWorkspacesTabPathToSessionStorage} from './helpers/getLastVisitedWorkspaceTabScreen';
+import {isWorkspacesTabScreenName} from './helpers/isNavigatorName';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
@@ -73,8 +72,8 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     Navigation.setIsNavigationReady();
-    if (isSettingsTabScreenName(state.routes.at(-1)?.name)) {
-        saveSettingsTabPathToSessionStorage(currentPath);
+    if (isWorkspacesTabScreenName(state.routes.at(-1)?.name)) {
+        saveWorkspacesTabPathToSessionStorage(currentPath);
     }
 
     // Fullstory Page navigation tracking
@@ -92,17 +91,17 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const currentReportIDValue = useCurrentReportID();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [user] = useOnyx(ONYXKEYS.USER);
-    const isPrivateDomain = Session.isUserOnPrivateDomain();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
+        canBeMissing: true,
     });
     const [wasInvitedToNewDot = false] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: wasInvitedToNewDotSelector,
+        canBeMissing: true,
     });
-    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
+    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY, {canBeMissing: true});
 
     const previousAuthenticated = usePrevious(authenticated);
 
@@ -112,7 +111,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
         }
 
-        if (!user || user.isFromPublicDomain) {
+        if (!account || account.isFromPublicDomain) {
             return;
         }
 
@@ -126,7 +125,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
         if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
-            return getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
+            return getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config);
         }
 
         // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
@@ -170,14 +169,14 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        // After resizing the screen from wide to narrow, if we have visited multiple central screens, we want to go back to the LHN screen, so we set shouldPopAllStateOnUP to true.
+        // After resizing the screen from wide to narrow, if we have visited multiple central screens, we want to go back to the LHN screen, so we set shouldPopToSidebar to true.
         // Now when this value is true, Navigation.goBack with the option {shouldPopToTop: true} will remove all visited central screens in the given tab from the navigation stack and go back to the LHN.
         // More context here: https://github.com/Expensify/App/pull/59300
         if (!shouldUseNarrowLayout) {
             return;
         }
 
-        Navigation.setShouldPopAllStateOnUP(true);
+        Navigation.setShouldPopToSidebar(true);
     }, [shouldUseNarrowLayout]);
 
     useEffect(() => {

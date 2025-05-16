@@ -40,7 +40,7 @@ import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
-import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
@@ -718,6 +718,19 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, curre
     return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
+/** Return active policies where current user is an employee (of the role "user") */
+function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyUser(policy, currentUserLogin));
+}
+
+/**
+ * Checks whether the current user has a policy with admin access
+ */
+function hasActiveAdminWorkspaces(currentUserLogin: string | undefined) {
+    return getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
+}
+
 /**
  *
  * Checks whether the current user has a policy with Xero accounting software integration
@@ -1109,44 +1122,6 @@ const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: Work
 };
 
 /**
- * Determines whether the report can be moved to the workspace.
- */
-const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, oldPolicy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean => {
-    const currentUserAccountID = getCurrentUserAccountID();
-    const isCurrentUserMember = !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
-    if (!isCurrentUserMember) {
-        return false;
-    }
-
-    const isAdmin = isUserPolicyAdmin(newPolicy, currentUserLogin);
-    if (report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isAdmin) {
-        return false;
-    }
-
-    // Submitters: workspaces where the submitter is a member of
-    const isCurrentUserSubmitter = report?.ownerAccountID === currentUserAccountID;
-    if (isCurrentUserSubmitter) {
-        return true;
-    }
-
-    // Approvers: workspaces where both the approver AND submitter are members of
-    const reportApproverAccountID = getSubmitToAccountID(oldPolicy, report);
-    const isCurrentUserApprover = currentUserAccountID === reportApproverAccountID;
-    if (isCurrentUserApprover) {
-        const reportSubmitterLogin = report?.ownerAccountID ? getLoginByAccountID(report?.ownerAccountID) : undefined;
-        const isReportSubmitterMember = !!reportSubmitterLogin && !!newPolicy?.employeeList?.[reportSubmitterLogin];
-        return isCurrentUserApprover && isReportSubmitterMember;
-    }
-
-    // Admins: same as approvers OR workspaces where the admin is an admin of (note that the submitter is invited to the workspace in this case)
-    if (isPolicyOwner(newPolicy, currentUserAccountID) || isAdmin) {
-        return true;
-    }
-
-    return false;
-};
-
-/**
  * Takes removes pendingFields and errorFields from a customUnit
  */
 function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
@@ -1249,6 +1224,10 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
 
 function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
+}
+
+function getAllPolicies() {
+    return Object.values(allPolicies ?? {}).filter((p) => !!p);
 }
 
 function getActivePolicy(): OnyxEntry<Policy> {
@@ -1404,16 +1383,14 @@ function isPrefferedExporter(policy: Policy) {
     return exporters.some((exporter) => exporter && exporter === user);
 }
 
-function isAutoSyncEnabled(policy: Policy) {
-    const values = [
-        policy.connections?.intacct?.config?.autoSync?.enabled,
-        policy.connections?.netsuite?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
-        policy.connections?.xero?.config?.autoSync?.enabled,
-    ];
-
-    return values.some((value) => !!value);
+/**
+ * Checks if the user is invited to any workspace.
+ */
+function isUserInvitedToWorkspace(): boolean {
+    const currentUserAccountID = getCurrentUserAccountID();
+    return Object.values(allPolicies ?? {}).some(
+        (policy) => policy?.ownerAccountID !== currentUserAccountID && policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE,
+    );
 }
 
 export {
@@ -1472,6 +1449,7 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
+    hasActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
@@ -1540,6 +1518,7 @@ export {
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
+    getAllPolicies,
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
@@ -1552,11 +1531,12 @@ export {
     getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
-    isWorkspaceEligibleForReportChange,
     getManagerAccountID,
     isPrefferedExporter,
-    isAutoSyncEnabled,
     areAllGroupPoliciesExpenseChatDisabled,
+    getActiveEmployeeWorkspaces,
+    isUserInvitedToWorkspace,
+    getPolicyRole,
 };
 
 export type {MemberEmailsToAccountIDs};

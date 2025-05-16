@@ -13,4 +13,4 @@ type LinkToOptions = {
     forceReplace: boolean;
 };
 
-export type {ActionPayload, ActionPayloadParams, LinkToOptions};
+export type {ActionPayload, LinkToOptions};

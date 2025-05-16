@@ -92,6 +92,7 @@ function ChatListItem<TItem extends ListItem>({
                     ].some((type) => type === reportActionItem.actionName)
                 }
                 policies={policies}
+                shouldShowBorder
             />
         </BaseListItem>
     );

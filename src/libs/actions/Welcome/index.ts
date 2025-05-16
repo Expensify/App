@@ -15,7 +15,6 @@ import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearInitialPath} from './OnboardingFlow';
-import switchToOldDotOnNonMicroCompanySize from './switchToOldDotOnNonMicroCompanySize';
 
 type OnboardingData = Onboarding | undefined;
 
@@ -141,7 +140,7 @@ function completeHybridAppOnboarding() {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_TRYNEWDOT,
+            key: ONYXKEYS.NVP_TRY_NEW_DOT,
             value: {
                 classicRedirect: {
                     completedHybridAppOnboarding: true,
@@ -180,7 +179,7 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.NVP_TRYNEWDOT,
+    key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (value) => {
         tryNewDotData = value;
         checkTryNewDotDataReady();
@@ -246,7 +245,6 @@ export {
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
     completeHybridAppOnboarding,
-    switchToOldDotOnNonMicroCompanySize,
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
     setSelfTourViewed,

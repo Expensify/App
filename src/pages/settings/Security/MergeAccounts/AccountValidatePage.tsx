@@ -1,5 +1,5 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -22,11 +22,12 @@ import {
     requestValidationCodeForAccountMerge,
 } from '@userActions/MergeAccounts';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-const getMergeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
+const getMergeErrorPage = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
     if (err.includes('403')) {
         return CONST.MERGE_ACCOUNT_RESULTS.TOO_MANY_ATTEMPTS;
     }
@@ -58,8 +59,22 @@ const getMergeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESUL
     return null;
 };
 
+const getAuthenticationErrorKey = (err: string): TranslationPaths | null => {
+    if (!err) {
+        return null;
+    }
+
+    if (err.includes('Invalid validateCode')) {
+        return 'mergeAccountsPage.accountValidate.errors.incorrectMagicCode';
+    }
+
+    return 'mergeAccountsPage.accountValidate.errors.fallback';
+};
+
 function AccountValidatePage() {
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
+    const navigation = useNavigation();
+
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (data) => ({
             mergeWithValidateCode: data?.mergeWithValidateCode,
@@ -78,7 +93,7 @@ function AccountValidatePage() {
     const isAccountMerged = mergeWithValidateCode?.isAccountMerged;
 
     const latestError = getLatestErrorMessage(mergeWithValidateCode);
-    const errorKey = getMergeErrorKey(latestError);
+    const errorPage = getMergeErrorPage(latestError);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -94,21 +109,24 @@ function AccountValidatePage() {
 
     useFocusEffect(
         useCallback(() => {
-            if (!errorKey || !email) {
+            if (!errorPage || !email) {
                 return;
             }
-            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorKey), {forceReplace: true});
-        }, [errorKey, email]),
+            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorPage), {forceReplace: true});
+        }, [errorPage, email]),
     );
 
-    useFocusEffect(
-        useCallback(() => {
-            return () => {
-                clearMergeWithValidateCode();
-                clearGetValidateCodeForAccountMerge();
-            };
-        }, []),
-    );
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('blur', () => {
+            clearGetValidateCodeForAccountMerge();
+            clearMergeWithValidateCode();
+        });
+
+        return unsubscribe;
+    }, [navigation]);
+
+    const authenticationErrorKey = getAuthenticationErrorKey(latestError);
+    const validateCodeError = !errorPage && authenticationErrorKey ? {authError: translate(authenticationErrorKey)} : undefined;
 
     return (
         <ScreenWrapper
@@ -119,7 +137,7 @@ function AccountValidatePage() {
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute(email));
+                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
                 }}
                 shouldDisplayHelpButton={false}
             />
@@ -131,7 +149,7 @@ function AccountValidatePage() {
                     descriptionPrimary={translate('mergeAccountsPage.accountValidate.confirmMerge')}
                     descriptionPrimaryStyles={{...styles.mb8, ...styles.textStrong}}
                     descriptionSecondary={
-                        <View>
+                        <View style={[styles.w100]}>
                             <Text style={[styles.mb8]}>
                                 {translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData')}
                                 <Text style={styles.textStrong}>{email}</Text>.
@@ -147,12 +165,12 @@ function AccountValidatePage() {
                         mergeWithValidateCodeAction(email, code);
                     }}
                     sendValidateCode={() => {
-                        requestValidationCodeForAccountMerge(email);
+                        requestValidationCodeForAccountMerge(email, true);
                     }}
                     shouldSkipInitialValidation
                     clearError={() => clearMergeWithValidateCode()}
-                    validateError={!errorKey ? mergeWithValidateCode?.errors : undefined}
-                    hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeSent}
+                    validateError={validateCodeError}
+                    hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeResent}
                     submitButtonText={translate('mergeAccountsPage.mergeAccount')}
                     forwardedRef={validateCodeFormRef}
                     isLoading={mergeWithValidateCode?.isLoading}

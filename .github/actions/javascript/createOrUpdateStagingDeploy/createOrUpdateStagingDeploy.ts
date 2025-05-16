@@ -35,19 +35,25 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const mostRecentChecklist = recentDeployChecklists.at(0);
 
         if (!mostRecentChecklist) {
-            throw new Error('Could not find the most recent checklist');
+            throw new Error('⚠️⚠️ Could not find the most recent checklist! ⚠️⚠️');
         }
 
         const shouldCreateNewDeployChecklist = mostRecentChecklist.state !== 'open';
         const previousChecklist = shouldCreateNewDeployChecklist ? mostRecentChecklist : recentDeployChecklists.at(1);
         if (shouldCreateNewDeployChecklist) {
-            console.log('Latest StagingDeployCash is closed, creating a new one.', mostRecentChecklist);
+            core.startGroup('ℹ️ Latest StagingDeployCash is closed, creating a new one. Current:');
+            core.info(JSON.stringify(mostRecentChecklist, null, 2));
+            core.endGroup();
         } else {
-            console.log('Latest StagingDeployCash is open, updating it instead of creating a new one.', 'Current:', mostRecentChecklist, 'Previous:', previousChecklist);
+            core.startGroup('ℹ️ Latest StagingDeployCash is open, updating it instead of creating a new one. Current:');
+            core.info(JSON.stringify(mostRecentChecklist, null, 2));
+            core.info('Previous:');
+            core.info(JSON.stringify(previousChecklist, null, 2));
+            core.endGroup();
         }
 
         if (!previousChecklist) {
-            throw new Error('Could not find the previous checklist');
+            throw new Error('⚠️⚠️ Could not find the previous checklist! ⚠️⚠️');
         }
 
         // Parse the data from the previous and current checklists into the format used to generate the checklist
@@ -55,7 +61,27 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const currentChecklistData: StagingDeployCashData | undefined = shouldCreateNewDeployChecklist ? undefined : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
+        const mergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag);
+
+        // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
+        const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
+        core.info('Deployed PRs include cherry-picked PRs released with previous checklist, these must be excluded');
+        core.startGroup('Filtering out cherry-picked PRs');
+        core.info(`Found ${mergedPRs.length} PRs deployed since previous checklist: ${JSON.stringify(mergedPRs)}`);
+        core.info(`Found ${previousPRNumbers.size} PRs from the previous checklist: ${JSON.stringify(Array.from(previousPRNumbers))}`);
+
+        // Create the final list of PRs for the current checklist
+        const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
+
+        // Log the PRs that were filtered out
+        const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
+        if (removedPRs.length > 0) {
+            core.info(`ℹ️🧹 Filtered out the following cherry-picked PRs that were released with the previous checklist: ${JSON.stringify(removedPRs)}`);
+        } else {
+            core.info('ℹ️🧐 No PRs from previous checklist were filtered out');
+        }
+        core.endGroup();
+        console.info(`Created final list of PRs for current checklist: ${JSON.stringify(newPRNumbers)}`);
 
         // Next, we generate the checklist body
         let checklistBody = '';
@@ -63,7 +89,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         if (shouldCreateNewDeployChecklist) {
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
-                mergedPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
+                newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
             );
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
@@ -71,7 +97,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             }
         } else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
-            const PRList = mergedPRs.map((prNum) => {
+            const PRList = newPRNumbers.map((prNum) => {
                 const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum) ?? -1;
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
                 return {

@@ -50,6 +50,8 @@ import {
 } from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
+import {getViolationTranslatePath} from '@libs/TransactionPreviewUtils';
 import {
     compareDuplicateTransactionFields,
     hasMissingSmartscanFields,
@@ -105,17 +107,17 @@ function MoneyRequestPreviewContent({
     const {windowWidth} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: false});
     const {isOnSearch} = useSearchContext();
 
     const policy = usePolicy(iouReport?.policyID);
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const violations = useTransactionViolations(transaction?.transactionID);
 
     const sessionAccountID = session?.accountID;
@@ -142,7 +144,7 @@ function MoneyRequestPreviewContent({
         category,
     } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
 
-    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToMarkdown(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = hasReceiptTransactionUtils(transaction);
     const isScanning = hasReceipt && isReceiptBeingScanned(transaction);
@@ -184,7 +186,7 @@ function MoneyRequestPreviewContent({
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const reviewingTransactionID = isMoneyRequestActionReportActionsUtils(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
 
@@ -222,6 +224,8 @@ function MoneyRequestPreviewContent({
         showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
     };
 
+    const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? '');
+
     const getPreviewHeaderText = (): string => {
         let message = showCashOrCard;
 
@@ -256,11 +260,9 @@ function MoneyRequestPreviewContent({
             if (firstViolation) {
                 const canEdit = isMoneyRequestAction && canEditMoneyRequest(action, transaction);
                 const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
-                const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
-                const isTooLong = violationsCount > 1 || violationMessage.length > 15;
-                const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-                return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
+                const translationPath = getViolationTranslatePath(violations, hasFieldErrors, violationMessage, isOnHold);
+                return `${message} ${CONST.DOT_SEPARATOR} ${getTranslatedText(translationPath)}`;
             }
             if (hasFieldErrors) {
                 const isMerchantMissing = isMerchantMissingTransactionUtils(transaction);

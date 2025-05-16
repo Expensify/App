@@ -3,7 +3,7 @@ import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMo
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
-import type {Attendee, Participant, Split} from './IOU';
+import type {Accountant, Attendee, Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type {Unit} from './Policy';
 import type RecentWaypoint from './RecentWaypoint';
@@ -18,7 +18,7 @@ type Waypoint = {
     /** The full address of the waypoint */
     address?: string;
 
-    /** The lattitude of the waypoint */
+    /** The latitude of the waypoint */
     lat?: number;
 
     /** The longitude of the waypoint */
@@ -214,27 +214,6 @@ type ReceiptError = {
 /** Collection of receipt errors, indexed by a UNIX timestamp of when the error occurred */
 type ReceiptErrors = Record<string, ReceiptError>;
 
-/** Tax rate data */
-type TaxRateData = {
-    /** Tax rate percentage */
-    value: string;
-
-    /** Tax rate code */
-    code?: string;
-};
-
-/** Model of tax rate */
-type TaxRate = {
-    /** Default name of the tax rate */
-    text: string;
-
-    /** Key of the tax rate to index it on options list */
-    keyForList: string;
-
-    /** Data of the tax rate */
-    data?: TaxRateData;
-};
-
 /** This represents the details of the traveler */
 type TravelerPersonalDetails = {
     /** Email of the traveler */
@@ -397,6 +376,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The original transaction amount */
         amount: number;
 
+        /** Selected accountant */
+        accountant?: Accountant;
+
         /** The transaction tax amount */
         taxAmount?: number;
 
@@ -479,7 +461,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         isFromGlobalCreate?: boolean;
 
         /** The transaction tax rate */
-        taxRate?: TaxRate;
+        taxRate?: string | undefined;
 
         /** Card Transactions */
 
@@ -593,13 +575,11 @@ export type {
     ReceiptErrors,
     TransactionPendingFieldsKey,
     TransactionChanges,
-    TaxRate,
     Reservation,
     ReservationTimeDetails,
     ReservationType,
     ReceiptSource,
     TransactionCollectionDataSet,
-    SplitShare,
     SplitShares,
     TransactionCustomUnit,
 };

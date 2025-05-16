@@ -11,6 +11,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -44,8 +45,8 @@ function ShareDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
-    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
+    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const isTextShared = currentAttachment?.mimeType === 'txt';
     const [message, setMessage] = useState(isTextShared ? currentAttachment?.content ?? '' : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
@@ -131,7 +132,6 @@ function ShareDetailsPage({
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            shouldEnableKeyboardAvoidingView={false}
             keyboardAvoidingViewBehavior="padding"
             shouldEnableMinHeight={canUseTouchScreen()}
             testID={ShareDetailsPage.displayName}
@@ -168,17 +168,19 @@ function ShareDetailsPage({
                 </PressableWithoutFeedback>
                 <View style={[styles.ph5, styles.flex1, styles.flexColumn, styles.overflowHidden]}>
                     <View style={styles.pv3}>
-                        <TextInput
-                            autoFocus={false}
-                            value={message}
-                            multiline
-                            scrollEnabled
-                            autoGrowHeight
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            onChangeText={setMessage}
-                            accessibilityLabel={translate('share.messageInputLabel')}
-                            label={translate('share.messageInputLabel')}
-                        />
+                        <ScrollView scrollEnabled={false}>
+                            <TextInput
+                                autoFocus={false}
+                                value={message}
+                                scrollEnabled
+                                type="markdown"
+                                autoGrowHeight
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                onChangeText={setMessage}
+                                accessibilityLabel={translate('share.messageInputLabel')}
+                                label={translate('share.messageInputLabel')}
+                            />
+                        </ScrollView>
                     </View>
                     <PressableWithoutFeedback
                         onPress={() => {

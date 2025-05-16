@@ -86,7 +86,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
                 {GuideBookingButton}
                 <Button
                     success
-                    style={shouldUseNarrowLayout ? styles.flex1 : styles.mr2}
+                    style={shouldUseNarrowLayout ? styles.earlyDiscountButton : styles.mr2}
                     text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
                 />
@@ -101,7 +101,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
         styles.flexRow,
         styles.gap2,
         styles.alignItemsCenter,
-        styles.flex1,
+        styles.earlyDiscountButton,
         styles.mr2,
         TalkToSalesButton,
         GuideBookingButton,

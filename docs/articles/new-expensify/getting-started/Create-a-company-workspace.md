@@ -22,7 +22,7 @@ Workspaces help manage company expenses, enforce policies, and integrate with ac
 
 ![Click your profile photo or icon]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_1.png){:width="100%"}
 
-![Click Workspaces in the left menu and New Worksapce]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_2.png){:width="100%"}
+![Click Workspaces in the left menu and New Workspace]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_2.png){:width="100%"}
 
 ![Options to make changes like a custom workspace name]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_3.png){:width="100%"}
 
@@ -164,6 +164,6 @@ Track your Free Trial start date and remaining days on the Subscription page.
 - You’ll receive notifications when your trial starts and ends.
 - To continue using Expensify, add a <b>billing card<b/> before your trial ends.
 
-![Hightlight the free trial start and end date]({{site.url}}/assets/images/ExpensifyHelp-FreeTrial-1.png){:width="100%"}
+![Highlight the free trial start and end date]({{site.url}}/assets/images/ExpensifyHelp-FreeTrial-1.png){:width="100%"}
  
 </div>

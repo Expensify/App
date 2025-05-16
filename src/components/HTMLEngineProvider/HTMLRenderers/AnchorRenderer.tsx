@@ -29,10 +29,11 @@ type AnchorRendererProps = CustomRendererProps<TBlock> & {
 function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {report, action} = useContext(ShowContextMenuContext);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${introSelected?.viewTour}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${introSelected?.viewTour}`, {canBeMissing: true});
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
+        canBeMissing: true,
     });
     const canModifyViewTourTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
     const canActionViewTourTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);

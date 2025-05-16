@@ -47,8 +47,8 @@ type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryC
 type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
 function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps, forwardedRef: ForwardedRef<BaseValidateCodeFormRef>) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -65,9 +65,9 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const prevRequiresTwoFactorAuth = usePrevious(account?.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(credentials?.validateCode);
 
-    const inputValidateCodeRef = useRef<MagicCodeInputHandle>();
-    const input2FARef = useRef<MagicCodeInputHandle>();
-    const timerRef = useRef<NodeJS.Timeout>();
+    const inputValidateCodeRef = useRef<MagicCodeInputHandle | undefined>(undefined);
+    const input2FARef = useRef<MagicCodeInputHandle | undefined>(undefined);
+    const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
     const isLoadingResendValidationForm = account?.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;

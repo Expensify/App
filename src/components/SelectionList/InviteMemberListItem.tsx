@@ -48,10 +48,10 @@ function InviteMemberListItem<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER,
-        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isSelectedManagerMcTest(item.login),
+        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isSelectedManagerMcTest(item.login) && !item.isSelected,
     );
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;

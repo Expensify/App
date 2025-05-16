@@ -25,7 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
-import {setOnboardingAdminsChatReportID, setOnboardingPolicyID, switchToOldDotOnNonMicroCompanySize} from '@libs/actions/Welcome';
+import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import getPlatform from '@libs/getPlatform';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
@@ -80,12 +80,16 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     }, [paidGroupPolicy, onboardingPolicyID]);
 
     useEffect(() => {
-        if (!!isLoading || !prevIsLoading || !CONFIG.IS_HYBRID_APP) {
+        if (!!isLoading || !prevIsLoading) {
             return;
         }
 
-        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-        setRootStatusBarEnabled(false);
+        if (CONFIG.IS_HYBRID_APP) {
+            HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+            setRootStatusBarEnabled(false);
+            return;
+        }
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
     }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
@@ -178,8 +182,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         return;
                     }
 
-                    switchToOldDotOnNonMicroCompanySize(onboardingCompanySize);
-
                     const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
 
                     // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
@@ -203,10 +205,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     });
 
                     if (onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP) {
-                        if (CONFIG.IS_HYBRID_APP) {
-                            return;
-                        }
-                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                        return;
                     }
                     // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
                     InteractionManager.runAfterInteractions(() => {
@@ -217,6 +216,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     // We need to wait the policy is created before navigating out the onboarding flow
                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                         navigateAfterOnboarding(
+                            onboardingPurposeSelected,
                             isSmallScreenWidth,
                             canUseDefaultRooms,
                             policyID,
@@ -229,7 +229,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     });
                 }}
                 isLoading={isLoading}
-                isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
+                isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP}
                 pressOnEnter
             />
         </>
@@ -237,7 +237,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             testID="BaseOnboardingAccounting"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
@@ -260,6 +259,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 footerContent={footerContent}
                 shouldShowTooltips={false}
                 listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
+                includeSafeAreaPaddingBottom={false}
             />
         </ScreenWrapper>
     );

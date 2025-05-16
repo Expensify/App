@@ -34,7 +34,7 @@ const mockTransactionsBig = Array.from({length: 12}).map((item, index) => {
     return {...transactionR14932, transactionID: `${transactionR14932.transactionID}${index}`};
 });
 
-const style = getMoneyRequestReportPreviewStyle(false);
+const reportPreviewStyle = getMoneyRequestReportPreviewStyle(false, 400, 400, false);
 
 const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
     <TransactionPreviewContent
@@ -46,9 +46,7 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         iouReport={iouReportR14932}
         transaction={item}
         violations={item.errors ? violationsR14932 : []}
-        showContextMenu={() => undefined}
         offlineWithFeedbackOnClose={() => undefined}
-        onPreviewPressed={() => {}}
         navigateToReviewFields={() => undefined}
         isBillSplit={false}
         areThereDuplicates={false}
@@ -56,7 +54,7 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         walletTermsErrors={undefined}
         routeName={SCREENS.TRANSACTION_DUPLICATE.REVIEW}
         shouldHideOnDelete={false}
-        wrapperStyle={style.transactionPreviewStyle}
+        transactionPreviewWidth={303}
         containerStyles={[sizing.h100]}
     />
 );
@@ -93,7 +91,7 @@ export default {
             control: {type: 'radio'},
         },
         /** Callback for updating context menu active state, used for showing context menu */
-        chceckIfContextMenuActive: {
+        checkIfContextMenuActive: {
             options: [undefined, () => {}],
             control: {type: 'radio'},
         },
@@ -126,7 +124,7 @@ export default {
         violations: violationsR14932,
         invoiceReceiverPersonalDetail: undefined,
         invoiceReceiverPolicy: undefined,
-        renderItem: mockRenderItem,
+        renderTransactionItem: mockRenderItem,
     },
     parameters: {
         useLightTheme: true,
@@ -144,7 +142,8 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
                     <MoneyRequestReportPreviewContent
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
-                        containerStyles={[style.componentStyle, props.containerStyles]}
+                        reportPreviewStyles={reportPreviewStyle}
+                        containerStyles={[reportPreviewStyle.componentStyle, props.containerStyles]}
                         transactions={transactions}
                     />
                 </View>
