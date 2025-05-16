@@ -37,7 +37,7 @@ import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
-import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
+import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -74,7 +74,7 @@ import type IOURequestStepScanProps from './types';
 function IOURequestStepScan({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo, backToReport},
     },
     transaction,
     currentUserPersonalDetails,
@@ -242,24 +242,11 @@ function IOURequestStepScan({
         Navigation.goBack();
     };
 
-    const navigateToParticipantPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-        }
-    }, [iouType, reportID, transactionID]);
-
     const navigateToConfirmationPage = useCallback(
         (isTestTransaction = false, reportIDParam: string | undefined = undefined) => {
             switch (iouType) {
                 case CONST.IOU.TYPE.REQUEST:
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
                     break;
                 case CONST.IOU.TYPE.SEND:
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
@@ -272,11 +259,12 @@ function IOURequestStepScan({
                             transactionID,
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             reportIDParam || reportID,
+                            backToReport,
                         ),
                     );
             }
         },
-        [iouType, reportID, transactionID],
+        [backToReport, iouType, reportID, transactionID],
     );
 
     const createTransaction = useCallback(
@@ -313,10 +301,11 @@ function IOURequestStepScan({
                         merchant: '',
                         receipt,
                     },
+                    backToReport,
                 });
             }
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.comment?.attendees, transaction?.created, transaction?.currency],
+        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.comment?.attendees, transaction?.created, transaction?.currency],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -429,6 +418,7 @@ function IOURequestStepScan({
                                             receipt,
                                             billable: false,
                                         },
+                                        backToReport,
                                     });
                                 }
                             },
@@ -470,30 +460,30 @@ function IOURequestStepScan({
                     );
                 });
             } else {
-                navigateToParticipantPage();
+                navigateToParticipantPage(iouType, transactionID, reportID);
             }
         },
         [
             backTo,
+            report,
+            reportNameValuePairs,
+            iouType,
+            activePolicy,
+            transactionID,
+            navigateToConfirmationPage,
+            shouldSkipConfirmation,
+            personalDetails,
+            createTransaction,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            reportID,
             transaction?.currency,
             transaction?.created,
             transaction?.comment?.attendees,
-            iouType,
-            report,
-            transactionID,
-            shouldSkipConfirmation,
-            navigateToConfirmationPage,
-            activePolicy,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails.login,
-            navigateToParticipantPage,
-            personalDetails,
-            createTransaction,
-            reportID,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
-            reportNameValuePairs,
+            backToReport,
         ],
     );
 
