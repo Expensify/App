@@ -9,6 +9,7 @@ import {isValidTwoFactorCode} from '@libs/ValidationUtils';
 import {clearAccountMessages, toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseTwoFactorAuthFormRef} from './types';
+import LockedAccountModal from '@components/LockedAccountModal';
 
 type BaseTwoFactorAuthFormProps = {
     autoComplete: AutoCompleteVariant;
@@ -25,6 +26,13 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
     const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: false});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(isAccountLocked);
+    const hideLockedAccountModal = () => {
+        setIsLockedAccountModalOpen(false);
+    };
+    debugger;
 
     /**
      * Handle text input and clear formError upon text change
@@ -80,15 +88,21 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
     }));
 
     return (
-        <MagicCodeInput
-            autoComplete={autoComplete}
-            name="twoFactorAuthCode"
-            value={twoFactorAuthCode}
-            onChangeText={onTextInput}
-            onFulfill={validateAndSubmitForm}
-            errorText={formError.twoFactorAuthCode ?? getLatestErrorMessage(account)}
-            ref={inputRef}
-        />
+        <>
+            <MagicCodeInput
+                autoComplete={autoComplete}
+                name="twoFactorAuthCode"
+                value={twoFactorAuthCode}
+                onChangeText={onTextInput}
+                onFulfill={validateAndSubmitForm}
+                errorText={formError.twoFactorAuthCode ?? getLatestErrorMessage(account)}
+                ref={inputRef}
+            />
+            <LockedAccountModal
+                isLockedAccountModalOpen={isLockedAccountModalOpen}
+                hideLockedAccountModal={hideLockedAccountModal}
+            />
+        </>
     );
 }
 
