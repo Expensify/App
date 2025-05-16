@@ -1013,6 +1013,15 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
 }
 
 /**
+ * Helper for filtering out Report Actions that are either:
+ * - ReportPreview with shouldShow set to false
+ * - Action with parent action deleted
+ */
+function getFilteredReportActionsForReportView(actions: ReportAction[]) {
+    return actions.filter((action) => !isDeletedParentAction(action) && (!isReportPreviewAction(action) || action.shouldShow));
+}
+
+/**
  * This method returns the report actions that are ready for display in the ReportActionsView.
  * The report actions need to be sorted by created timestamp first, and reportActionID second
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
@@ -2533,6 +2542,7 @@ export {
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
     getReportActionsLength,
+    getFilteredReportActionsForReportView,
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
     getJoinRequestMessage,
