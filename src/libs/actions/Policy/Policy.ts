@@ -345,33 +345,38 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
     // pendingAction, in which case we should return true.
     return true;
 }
+
 /**
- * Updatin
+ * Pushs the optimistic transaction violations to the OnyxData object
+ * given the optimistic policy, tag lists and categories
  */
 
-function getTransactionsViolationsOnyxData(
+function pushTransactionViolationsOnyxData(
+    onyxData: OnyxData,
     policyID: string,
-    optimisticPolicy: OnyxEntry<Policy> | undefined,
-    optimisticPolicyTagLists: OnyxEntry<PolicyTagLists> | undefined,
-    optimisticPolicyCategories: OnyxEntry<PolicyCategories> | undefined,
+    optimisticPolicy: OnyxEntry<Policy> | null = null,
+    optimisticPolicyTagLists: OnyxEntry<PolicyTagLists> | null = null,
+    optimisticPolicyCategories: OnyxEntry<PolicyCategories> | null = null,
 ): OnyxData {
-    const policy = optimisticPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const onyxData: {optimisticData: OnyxUpdate[]; failureData: OnyxUpdate[]} = {optimisticData: [], failureData: []};
-
-    if (isEmptyObject(policy) || (isEmptyObject(optimisticPolicyTagLists) && isEmptyObject(optimisticPolicyCategories))) {
+    if (optimisticPolicy == null && optimisticPolicyTagLists == null && optimisticPolicyCategories == null) {
         return onyxData;
     }
 
-    const policyTagLists = optimisticPolicyTagLists ?? allPolicyTagLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
     const policyCategories = optimisticPolicyCategories ?? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
+    const policyTagLists = optimisticPolicyTagLists ?? allPolicyTagLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+    const policy = optimisticPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
     const hasDependentTags = hasDependentTagsUtils(policy, policyTagLists);
 
     ReportUtils.getAllPolicyReports(policyID).forEach((report) => {
         if (!report?.reportID) {
             return;
         }
+
+        const isAnInvoiceReport = ReportUtils.isInvoiceReport(report);
+
         ReportUtils.getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
             const transactionViolations = allTransactionViolations?.[transaction.transactionID] ?? [];
+
             const transactionViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
                 transaction,
                 transactionViolations,
@@ -379,12 +384,12 @@ function getTransactionsViolationsOnyxData(
                 policyTagLists,
                 policyCategories,
                 hasDependentTags,
-                ReportUtils.isInvoiceReport(report),
+                isAnInvoiceReport,
             );
 
             if (transactionViolationsOnyxData) {
-                onyxData.optimisticData.push(transactionViolationsOnyxData);
-                onyxData.failureData.push({
+                onyxData?.optimisticData?.push(transactionViolationsOnyxData);
+                onyxData?.optimisticData?.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
                     value: transactionViolations,
@@ -4204,7 +4209,7 @@ function updateCustomRules(policyID: string, customRules: string) {
 
 /**
  * Call the API to enable or disable the billable mode for the given policy
- * @param policyID - id of the policy to enable or disable the bilable mode
+ * @param policyID - id of the policy to enable or disable the billable mode
  * @param defaultBillable - whether the billable mode is enabled in the given policy
  */
 function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
@@ -4270,7 +4275,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
 
 /**
  * Call the API to disable the billable mode for the given policy
- * @param policyID - id of the policy to enable or disable the bilable mode
+ * @param policyID - id of the policy to enable or disable the billable mode
  */
 function disableWorkspaceBillableExpenses(policyID: string) {
     const policy = getPolicy(policyID);
@@ -5324,5 +5329,5 @@ export {
     updateLastAccessedWorkspaceSwitcher,
     setIsForcedToChangeCurrency,
     setIsComingFromGlobalReimbursementsFlow,
-    getTransactionsViolationsOnyxData,
+    pushTransactionViolationsOnyxData,
 };

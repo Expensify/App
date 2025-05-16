@@ -97,7 +97,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
 
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
-    const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList);
+    const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {

@@ -1,9 +1,9 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
 import lodashUnion from 'lodash/union';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
-import {getTransactionsViolationsOnyxData} from '@libs/actions/Policy/Policy';
+import {pushTransactionViolationsOnyxData} from '@libs/actions/Policy/Policy';
 import * as API from '@libs/API';
 import type {
     EnablePolicyCategoriesParams,
@@ -29,13 +29,13 @@ import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getPolicy, goBackWhenEnableFeature, hasDependentTags as hasDependentTagsUtils} from '@libs/PolicyUtils';
-import {getAllPolicyReports, getReportTransactions, isInvoiceReport as isInvoiceReportUtils} from '@libs/ReportUtils';
+import {getPolicy, goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {getAllPolicyReports} from '@libs/ReportUtils';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, RecentlyUsedCategories, Report, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -382,7 +382,10 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             },
         ],
     };
+
+   
     appendSetupCategoriesOnboardingData(onyxData);
+    pushTransactionViolationsOnyxData(onyxData, policyID, shouldDisableRequiresCategory ? {...policy, requiresCategory: false} as Policy : null, null, optimisticPolicyCategoriesData);
     if (shouldDisableRequiresCategory) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -951,6 +954,8 @@ function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolea
         ],
     };
 
+    pushTransactionViolationsOnyxData(onyxData, policyID, {...(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {}), requiresCategory} as Policy);
+
     const parameters = {
         policyID,
         requiresCategory,
@@ -1025,7 +1030,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             },
         ],
     };
-
+    pushTransactionViolationsOnyxData(onyxData, policyID, shouldDisableRequiresCategory ? {...policy, requiresCategory: false} as Policy: null, {}, {...policyCategories, ...(optimisticPolicyCategoriesData as PolicyCategories)});
     appendSetupCategoriesOnboardingData(onyxData);
     if (shouldDisableRequiresCategory) {
         onyxData.optimisticData?.push({
@@ -1058,14 +1063,6 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             },
         });
     }
-
-    const optimisticPolicyCategories =  Object.fromEntries(
-        Object.entries(policyCategories).filter(([_, category]) => categoryNamesToDelete.includes(category.name))
-    );
-    
-    const violationsOnyxData = getTransactionsViolationsOnyxData(policyID, policy, {}, optimisticPolicyCategories);
-    onyxData.optimisticData?.push(...(violationsOnyxData.optimisticData ?? []));
-    onyxData.failureData?.push(...(violationsOnyxData.failureData ?? []));
 
     const parameters = {
         policyID,
