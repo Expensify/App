@@ -339,7 +339,7 @@ function IOURequestStepScan({
                 const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
                 const receipt: Receipt = receiptFile.file;
                 receipt.source = receiptFile.source;
-                receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+                receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                 if (iouType === CONST.IOU.TYPE.TRACK && report) {
                     trackExpense({
                         report,
@@ -431,9 +431,11 @@ function IOURequestStepScan({
                 });
 
                 if (shouldSkipConfirmation) {
-                    if (iouType === CONST.IOU.TYPE.SPLIT) {
-                        const splitReceipt = files.at(0) as Receipt;
-                        splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+                    const firstReceiptFile = files.at(0);
+                    if (iouType === CONST.IOU.TYPE.SPLIT && firstReceiptFile) {
+                        const splitReceipt: Receipt = firstReceiptFile.file;
+                        splitReceipt.source = firstReceiptFile.source;
+                        splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                         playSound(SOUNDS.DONE);
                         startSplitBill({
                             participants,
