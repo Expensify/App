@@ -20,9 +20,12 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Popover from '@components/Popover';
+import PopoverMenu from '@components/PopoverMenu';
+import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import IconSection from '@components/Section/IconSection';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -84,8 +87,8 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionHorizontal: 0,
         anchorPositionVertical: 0,
-        anchorPositionTop: 0,
-        anchorPositionRight: 0,
+        anchorPositionPopoverMenuHorizontal: 0,
+        anchorPositionPopoverMenuVertical: 0,
     });
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
 
@@ -117,13 +120,12 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         const position = getClickedTargetLocation(paymentMethodButtonRef.current);
 
         setAnchorPosition({
-            anchorPositionTop: position.top + position.height - variables.bankAccountActionPopoverTopSpacing,
-            // We want the position to be 23px to the right of the left border
-            anchorPositionRight: windowWidth - position.right + variables.bankAccountActionPopoverRightSpacing,
             anchorPositionHorizontal: position.x + variables.addBankAccountLeftSpacing,
             anchorPositionVertical: position.y,
+            anchorPositionPopoverMenuHorizontal: position.x + position.width - variables.bankAccountActionPopoverRightSpacing,
+            anchorPositionPopoverMenuVertical: position.y + position.height - CONST.MODAL.POPOVER_MENU_PADDING,
         });
-    }, [windowWidth]);
+    }, []);
 
     const getSelectedPaymentMethodID = useCallback(() => {
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
@@ -318,27 +320,27 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         openWalletPage();
     }, [network.isOffline]);
 
-    useLayoutEffect(() => {
-        if (!shouldListenForResize) {
-            return;
-        }
-        const popoverPositionListener = Dimensions.addEventListener('change', () => {
-            if (!shouldShowAddPaymentMenu && !shouldShowDefaultDeleteMenu && !shouldShowCardMenu) {
-                return;
-            }
-            if (shouldShowAddPaymentMenu) {
-                debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
-                return;
-            }
-            setMenuPosition();
-        });
-        return () => {
-            if (!popoverPositionListener) {
-                return;
-            }
-            popoverPositionListener.remove();
-        };
-    }, [shouldShowAddPaymentMenu, shouldShowDefaultDeleteMenu, shouldShowCardMenu, setMenuPosition, shouldListenForResize]);
+    // useLayoutEffect(() => {
+    //     if (!shouldListenForResize) {
+    //         return;
+    //     }
+    //     const popoverPositionListener = Dimensions.addEventListener('change', () => {
+    //         if (!shouldShowAddPaymentMenu && !shouldShowDefaultDeleteMenu && !shouldShowCardMenu) {
+    //             return;
+    //         }
+    //         if (shouldShowAddPaymentMenu) {
+    //             debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
+    //             return;
+    //         }
+    //         setMenuPosition();
+    //     });
+    //     return () => {
+    //         if (!popoverPositionListener) {
+    //             return;
+    //         }
+    //         popoverPositionListener.remove();
+    //     };
+    // }, [shouldShowAddPaymentMenu, shouldShowDefaultDeleteMenu, shouldShowCardMenu, setMenuPosition, shouldListenForResize]);
 
     useEffect(() => {
         if (!shouldShowDefaultDeleteMenu) {
@@ -379,7 +381,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
-    const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
+    const isPopoverBottomMount = shouldUseNarrowLayout;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
     const headerWithBackButton = (
@@ -605,110 +607,111 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         </OfflineWithFeedback>
                     </View>
                 </ScrollView>
-                <Popover
-                    isVisible={shouldShowDefaultDeleteMenu}
+                <PopoverMenu
+                    isVisible={shouldShowDefaultDeleteMenu && !showConfirmDeleteModal}
                     onClose={hideDefaultDeleteMenu}
                     anchorPosition={{
-                        top: anchorPosition.anchorPositionTop,
-                        right: anchorPosition.anchorPositionRight,
+                        horizontal: anchorPosition.anchorPositionPopoverMenuHorizontal,
+                        vertical: anchorPosition.anchorPositionPopoverMenuVertical,
                     }}
                     anchorRef={paymentMethodButtonRef as RefObject<View>}
-                >
-                    {!showConfirmDeleteModal && (
-                        <View
-                            style={[
-                                !shouldUseNarrowLayout
-                                    ? {
-                                          ...styles.sidebarPopover,
-                                          ...styles.pv4,
-                                      }
-                                    : styles.pt5,
-                            ]}
-                        >
-                            {isPopoverBottomMount && (
-                                <MenuItem
-                                    title={paymentMethod.formattedSelectedPaymentMethod.title}
-                                    icon={paymentMethod.formattedSelectedPaymentMethod.icon?.icon}
-                                    iconHeight={paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
-                                    iconWidth={paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
-                                    iconStyles={paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles}
-                                    description={paymentMethod.formattedSelectedPaymentMethod.description}
-                                    wrapperStyle={[styles.mb4, styles.ph5, styles.pv0]}
-                                    interactive={false}
-                                    displayInDefaultIconColor
-                                />
-                            )}
-                            {shouldShowMakeDefaultButton && (
-                                <MenuItem
-                                    title={translate('walletPage.setDefaultConfirmation')}
-                                    icon={Expensicons.Star}
-                                    onPress={() => {
-                                        if (isActingAsDelegate) {
-                                            closeModal(() => {
-                                                setIsNoDelegateAccessMenuVisible(true);
-                                            });
-                                            return;
-                                        }
-                                        makeDefaultPaymentMethod();
-                                        setShouldShowDefaultDeleteMenu(false);
-                                    }}
-                                    wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
-                                    numberOfLinesTitle={0}
-                                />
-                            )}
-                            <MenuItem
-                                title={translate('common.delete')}
-                                icon={Expensicons.Trashcan}
-                                onPress={() => {
-                                    if (isActingAsDelegate) {
-                                        closeModal(() => {
-                                            setIsNoDelegateAccessMenuVisible(true);
-                                        });
-                                        return;
-                                    }
-                                    closeModal(() => setShowConfirmDeleteModal(true));
-                                }}
-                                wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
-                            />
-                        </View>
-                    )}
-                </Popover>
-                <Popover
+                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                    containerStyles={[
+                        !shouldUseNarrowLayout
+                            ? {
+                                  ...styles.sidebarPopover,
+                                  ...styles.pv4,
+                              }
+                            : styles.pt5,
+                    ]}
+                    menuItems={[
+                        ...(isPopoverBottomMount
+                            ? [
+                                  {
+                                      icon: paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
+                                      text: paymentMethod.formattedSelectedPaymentMethod.title,
+                                      description: paymentMethod.formattedSelectedPaymentMethod.description,
+                                      iconStyles: paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
+                                      iconHeight: paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+                                      iconWidth: paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+                                      displayInDefaultIconColor: true,
+                                      interactive: false,
+                                      wrapperStyle: [styles.mb4, styles.ph5, styles.pv0],
+                                  },
+                              ]
+                            : []),
+
+                        ...(shouldShowMakeDefaultButton
+                            ? [
+                                  {
+                                      icon: Expensicons.Star,
+                                      text: translate('walletPage.setDefaultConfirmation'),
+                                      onSelected: () => {
+                                          if (isActingAsDelegate) {
+                                              closeModal(() => {
+                                                  setIsNoDelegateAccessMenuVisible(true);
+                                              });
+                                              return;
+                                          }
+                                          makeDefaultPaymentMethod();
+                                          setShouldShowDefaultDeleteMenu(false);
+                                      },
+                                      numberOfLinesTitle: 0,
+                                  },
+                              ]
+                            : []),
+                        {
+                            icon: Expensicons.Trashcan,
+                            text: translate('common.delete'),
+                            onSelected: () => {
+                                if (isActingAsDelegate) {
+                                    closeModal(() => {
+                                        setIsNoDelegateAccessMenuVisible(true);
+                                    });
+                                    return;
+                                }
+                                closeModal(() => setShowConfirmDeleteModal(true));
+                            },
+                        },
+                    ]}
+                />
+                <PopoverMenu
                     isVisible={shouldShowCardMenu}
                     onClose={hideCardMenu}
                     anchorPosition={{
-                        top: anchorPosition.anchorPositionTop,
-                        right: anchorPosition.anchorPositionRight,
+                        horizontal: anchorPosition.anchorPositionPopoverMenuHorizontal,
+                        vertical: anchorPosition.anchorPositionPopoverMenuVertical,
                     }}
                     anchorRef={paymentMethodButtonRef as RefObject<View>}
-                >
-                    <View
-                        style={[
-                            !shouldUseNarrowLayout
-                                ? {
-                                      ...styles.sidebarPopover,
-                                      ...styles.pv4,
-                                  }
-                                : styles.pt5,
-                        ]}
-                    >
-                        {isPopoverBottomMount && (
-                            <MenuItem
-                                title={paymentMethod.formattedSelectedPaymentMethod.title}
-                                icon={paymentMethod.formattedSelectedPaymentMethod.icon?.icon}
-                                iconHeight={paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
-                                iconWidth={paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
-                                iconStyles={paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles}
-                                description={paymentMethod.formattedSelectedPaymentMethod.description}
-                                wrapperStyle={[styles.mb4, styles.ph5, styles.pv0]}
-                                interactive={false}
-                                displayInDefaultIconColor
-                            />
-                        )}
-                        <MenuItem
-                            icon={Expensicons.MoneySearch}
-                            title={translate('workspace.common.viewTransactions')}
-                            onPress={() => {
+                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                    containerStyles={[
+                        !shouldUseNarrowLayout
+                            ? {
+                                  ...styles.sidebarPopover,
+                                  ...styles.pv4,
+                              }
+                            : styles.pt5,
+                    ]}
+                    menuItems={[
+                        ...(isPopoverBottomMount
+                            ? [
+                                  {
+                                      icon: paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
+                                      text: paymentMethod.formattedSelectedPaymentMethod.title,
+                                      description: paymentMethod.formattedSelectedPaymentMethod.description,
+                                      iconStyles: paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
+                                      iconHeight: paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+                                      iconWidth: paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+                                      displayInDefaultIconColor: true,
+                                      interactive: false,
+                                      wrapperStyle: [styles.mb4, styles.ph5, styles.pv0],
+                                  },
+                              ]
+                            : []),
+                        {
+                            icon: Expensicons.MoneySearch,
+                            text: translate('workspace.common.viewTransactions'),
+                            onSelected: () => {
                                 Navigation.navigate(
                                     ROUTES.SEARCH_ROOT.getRoute({
                                         query: buildCannedSearchQuery({
@@ -718,10 +721,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         }),
                                     }),
                                 );
-                            }}
-                        />
-                    </View>
-                </Popover>
+                            },
+                        },
+                    ]}
+                />
                 <ConfirmModal
                     isVisible={showConfirmDeleteModal}
                     onConfirm={() => {
