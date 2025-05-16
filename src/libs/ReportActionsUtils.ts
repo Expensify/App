@@ -1994,7 +1994,8 @@ function getWorkspaceFrequencyUpdateMessage(action: ReportAction): string {
 }
 
 function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
-    const {categoryName, oldValue, newName, oldName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+    const {categoryName, oldValue, newValue, newName, oldName, updatedField} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY && categoryName) {
         return translateLocal('workspaceActions.addCategory', {
@@ -2009,10 +2010,39 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
-        return translateLocal('workspaceActions.updateCategory', {
-            oldValue: !!oldValue,
-            categoryName,
-        });
+        switch (updatedField) {
+            case 'Payroll Code':
+                return translateLocal('workspaceActions.updatedPayrollCode', {
+                    oldValue,
+                    newValue,
+                    categoryName,
+                });
+            case 'GL Code':
+                return translateLocal('workspaceActions.updatedGlCode', {
+                    oldValue,
+                    newValue,
+                    categoryName,
+                });
+            case 'areCommentsRequired':
+                return translateLocal('workspaceActions.updatedAreCommentsRequired', {
+                    newValue,
+                    categoryName,
+                });
+            case 'maxExpenseAmount':
+                return translateLocal('workspaceActions.updatedMaxExpenseAmount', {oldValue, newValue, categoryName});
+            case 'maxAmountNoReceipt':
+                return translateLocal('workspaceActions.updatedMaxAmountNoReceipt', {
+                    oldValue,
+                    newValue,
+                    categoryName,
+                });
+
+            default:
+                return translateLocal('workspaceActions.updateCategory', {
+                    oldValue: !!oldValue,
+                    categoryName,
+                });
+        }
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {

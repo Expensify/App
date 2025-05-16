@@ -5108,6 +5108,53 @@ const translations = {
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `removed the category "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
+        updatedPayrollCode: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
+            if (!newValue) {
+                return `updated the category "${categoryName}" by removing the Payroll Code (previously "${oldValue}")`;
+            }
+
+            return !oldValue
+                ? `updated the category "${categoryName}" by adding a Payroll Code of "${newValue}"`
+                : `updated the category "${categoryName}" by changing the Payroll Code to "${newValue}" (previously "${oldValue}")`;
+        },
+        updatedGlCode: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
+            if (!newValue) {
+                return `updated the category "${categoryName}" by removing the Gl Code (previously "${oldValue}")`;
+            }
+
+            return !oldValue
+                ? `updated the category "${categoryName}" by adding a Gl Code of "${newValue}"`
+                : `updated the category "${categoryName}" by changing the Gl Code to "${newValue}" (previously "${oldValue}")`;
+        },
+        updatedMaxExpenseAmount: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
+            if (!newValue) {
+                return `updated the category "${categoryName}" by removing the Max Amount (previously "${oldValue}")`;
+            }
+
+            return !oldValue
+                ? `updated the category "${categoryName}" by adding a Max Amount of "${newValue}"`
+                : `updated the category "${categoryName}" by changing the Max Amount to "${newValue}" (previously "${oldValue}")`;
+        },
+        updatedMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
+            const [oldValueText, newValueText] = [oldValue, newValue].map((value) => {
+                switch (value) {
+                    case 0:
+                        return 'Required';
+                    case CONST.DISABLED_MAX_EXPENSE_VALUE:
+                        return 'Not Required';
+                    default:
+                        return 'Default';
+                }
+            });
+            return `updated the category "${categoryName}" by changing the receipts to "${newValueText}" (previously "${oldValueText}")`;
+        },
+        updatedAreCommentsRequired: ({categoryName, newValue}: UpdatedPolicyCategoryParams) => {
+            if (newValue) {
+                return `updated the category "${categoryName}" by changing the description from Not Required to Required`;
+            }
+
+            return `updated the category "${categoryName}" by changing the description from Required to Not Required`;
+        },
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,

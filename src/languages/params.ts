@@ -315,7 +315,7 @@ type UpdatedPolicyDescriptionParams = {oldDescription: string; newDescription: s
 
 type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
 
-type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
+type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean | string | number; newValue?: boolean | string | number};
 
 type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
 
