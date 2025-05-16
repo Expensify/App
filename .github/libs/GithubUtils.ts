@@ -578,11 +578,15 @@ class GithubUtils {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
 
         try {
+            // Max number of pages to fetch, for safety
+            const maxPages = 25;
             const allCommits: Commit[] = [];
             let page = 1;
             let totalCommits = 0;
 
             do {
+                console.log('Getting page of commits: ', page);
+
                 const {data: comparison} = await this.octokit.repos.compareCommitsWithBasehead({
                     owner: CONST.GITHUB_OWNER,
                     repo: CONST.APP_REPO,
@@ -592,7 +596,12 @@ class GithubUtils {
 
                 allCommits.push(...comparison.commits);
                 totalCommits = comparison.total_commits;
-            } while (allCommits.length < totalCommits && page < 20);
+            } while (allCommits.length < totalCommits && page < maxPages);
+
+            if (page >= maxPages && allCommits.length < totalCommits) {
+                console.error(`⚠️ Reached the maximum number of pages (${maxPages}) while fetching commits. Some commits may be missing. Total commits fetched: ${allCommits.length} vs expected: ${totalCommits}`);
+            }
+            console.log(`Found ${allCommits.length} commits in total`);
 
             // Map API response to our CommitType format
             return allCommits.map((commit) => ({
