@@ -38,8 +38,6 @@ type DismissModalActionType = RootStackNavigatorActionType & {
 
 type RootStackNavigatorRouterOptions = StackRouterOptions;
 
-type SearchFullscreenNavigatorRouterOptions = StackRouterOptions;
-
 type RootStackNavigatorAction = CommonActions.Action | StackActionType | RootStackNavigatorActionType;
 
 export type {
@@ -50,5 +48,4 @@ export type {
     DismissModalActionType,
     RootStackNavigatorAction,
     RootStackNavigatorRouterOptions,
-    SearchFullscreenNavigatorRouterOptions,
 };
