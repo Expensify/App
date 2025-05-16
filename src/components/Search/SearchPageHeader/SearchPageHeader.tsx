@@ -22,11 +22,12 @@ type SearchPageHeaderProps = {
     hideSearchRouterList?: () => void;
     onSearchRouterFocus?: () => void;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
+    handleSearch: (value: string) => void;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, headerButtonsOptions}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, headerButtonsOptions, handleSearch}: SearchPageHeaderProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
@@ -64,6 +65,7 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, hideSearchRouterL
             queryJSON={queryJSON}
             hideSearchRouterList={hideSearchRouterList}
             inputRightComponent={InputRightComponent}
+            handleSearch={handleSearch}
         />
     );
 }

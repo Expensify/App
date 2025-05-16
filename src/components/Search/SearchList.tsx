@@ -176,6 +176,10 @@ function SearchList(
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
                 return;
             }
+            // disable long press for empty expense reports
+            if ('transactions' in item && item.transactions.length === 0) {
+                return;
+            }
             if (selectionMode?.isEnabled) {
                 onCheckboxPress(item);
                 return;
@@ -357,11 +361,12 @@ function SearchList(
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={selectedItemsLength === flattenedTransactions.length}
+                            isChecked={flattenedTransactions.length > 0 && selectedItemsLength === flattenedTransactions.length}
                             isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
+                            disabled={flattenedTransactions.length === 0}
                         />
                     )}
 

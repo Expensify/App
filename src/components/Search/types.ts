@@ -149,6 +149,11 @@ type SearchAutocompleteQueryRange = {
     value: string;
 };
 
+type SearchParams = {
+    queryJSON: SearchQueryJSON;
+    offset: number;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -173,6 +178,7 @@ export type {
     SearchAutocompleteResult,
     PaymentData,
     SearchAutocompleteQueryRange,
+    SearchParams,
     TableColumnSize,
     SearchGroupBy,
     SingularSearchStatus,
