@@ -435,12 +435,19 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
     }, [connectedIntegration, exportModalStatus, moneyRequestReport?.reportID]);
 
+    const getAmount = (actionType: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>) => ({
+        formattedAmount: getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, actionType),
+    });
+
+    const {formattedAmount: payAmount} = getAmount(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    const {formattedAmount: totalAmount} = hasOnlyHeldExpenses ? getAmount(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW) : getAmount(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+
     const paymentButtonOptions = usePaymentOptions({
         addBankAccountRoute: bankAccountRoute,
         currency: moneyRequestReport?.currency,
         iouReport: moneyRequestReport,
         chatReportID: chatReport?.reportID,
-        formattedAmount,
+        formattedAmount: totalAmount,
         policyID: moneyRequestReport?.policyID,
         onPress: confirmPayment,
         shouldHidePaymentOptions: !shouldShowPayButton,
@@ -473,10 +480,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         ],
         [moneyRequestReport?.reportID, translate],
     );
-
-    const getAmount = (actionType: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>) => ({
-        formattedAmount: getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, actionType),
-    });
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
@@ -516,7 +519,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 shouldHidePaymentOptions={!shouldShowPayButton}
                 shouldShowApproveButton={shouldShowApproveButton}
                 shouldDisableApproveButton={shouldDisableApproveButton}
-                formattedAmount={getAmount(CONST.REPORT.PRIMARY_ACTIONS.PAY).formattedAmount}
+                formattedAmount={payAmount}
                 isDisabled={isOffline && !canAllowSettlement}
                 isLoading={!isOffline && !canAllowSettlement}
             />
@@ -783,7 +786,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.PAY]: {
-            text: translate('iou.settlePayment', {formattedAmount}),
+            text: translate('iou.settlePayment', {formattedAmount: totalAmount}),
             icon: Expensicons.Cash,
             value: CONST.REPORT.SECONDARY_ACTIONS.PAY,
             subMenuItems: Object.values(paymentButtonOptions),

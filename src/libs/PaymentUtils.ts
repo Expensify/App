@@ -1,6 +1,6 @@
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {Merge, TupleToUnion, ValueOf} from 'type-fest';
+import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {PaymentMethod as KYCPaymentMethod} from '@components/KYCWall/types';
