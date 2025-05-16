@@ -1408,6 +1408,22 @@ const CONST = {
         TRANSACTION_LIST: {
             COLUMNS: {
                 COMMENTS: 'comments',
+                RECEIPT: 'receipt',
+                DATE: 'date',
+                MERCHANT: 'merchant',
+                DESCRIPTION: 'description',
+                FROM: 'from',
+                TO: 'to',
+                CATEGORY: 'category',
+                TAG: 'tag',
+                TOTAL_AMOUNT: 'amount',
+                TYPE: 'type',
+                ACTION: 'action',
+                TAX_AMOUNT: 'taxAmount',
+                TITLE: 'title',
+                ASSIGNEE: 'assignee',
+                CREATED_BY: 'createdBy',
+                IN: 'in',
             },
         },
         CANCEL_PAYMENT_REASONS: {

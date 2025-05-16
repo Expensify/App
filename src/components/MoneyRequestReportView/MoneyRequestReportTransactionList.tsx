@@ -260,6 +260,16 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
                                 shouldShowCheckbox={!!selectionMode?.isEnabled || isMediumScreenWidth}
                                 onCheckboxPress={toggleTransaction}
+                                columns={[
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
+                                ]}
                             />
                         </PressableWithFeedback>
                     );

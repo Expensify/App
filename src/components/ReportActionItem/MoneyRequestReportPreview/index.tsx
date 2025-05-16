@@ -58,8 +58,8 @@ function MoneyRequestReportPreview({
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
-    const [currentWidth, setCurrentWidth] = useState(256);
-    const [currentWrapperWidth, setCurrentWrapperWidth] = useState(256);
+    const [currentWidth, setCurrentWidth] = useState(1000);
+    const [currentWrapperWidth, setCurrentWrapperWidth] = useState(1000);
     const reportPreviewStyles = useMemo(
         () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, currentWrapperWidth, transactions.length === 1),
         [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
