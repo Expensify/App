@@ -35,7 +35,6 @@ import {
 } from '@libs/actions/Policy/DistanceRate';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -378,7 +377,7 @@ function PolicyDistanceRatesPage({
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        goBackFromWorkspaceCentralScreen(policyID);
+                        Navigation.popToSidebar();
                     }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}

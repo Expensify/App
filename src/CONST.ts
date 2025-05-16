@@ -1207,6 +1207,7 @@ const CONST = {
             DELETE: 'delete',
             ADD_EXPENSE: 'addExpense',
             REOPEN: 'reopen',
+            MOVE_EXPENSE: 'moveExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -6403,7 +6404,7 @@ const CONST = {
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
-        LAST_VISITED_SETTINGS_TAB_PATH: 'LAST_VISITED_SETTINGS_TAB_PATH',
+        LAST_VISITED_WORKSPACES_TAB_PATH: 'LAST_VISITED_WORKSPACES_TAB_PATH',
     },
 
     RESERVATION_TYPE: {
@@ -7029,7 +7030,6 @@ const CONST = {
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
         OUTSANDING_FILTER: 'outstandingFilter',
-        SETTINGS_TAB: 'settingsTab',
         WORKSPACES_SETTINGS: 'workspacesSettings',
         GBR_RBR_CHAT: 'chatGBRRBR',
         ACCOUNT_SWITCHER: 'accountSwitcher',
