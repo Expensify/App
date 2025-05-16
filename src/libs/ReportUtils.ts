@@ -4561,6 +4561,9 @@ function getReportActionMessage({
             personalDetails,
         });
     }
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPTSCANFAILED) {
+        return translateLocal('receipt.scanFailed');
+    }
 
     return parseReportActionHtmlToText(reportAction, reportID, childReportID);
 }
