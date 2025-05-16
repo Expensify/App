@@ -3458,6 +3458,17 @@ const CONST = {
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
                 },
             },
+            [this.PAYMENT_CARD_CURRENCY.EUR]: {
+                [this.POLICY.TYPE.CORPORATE]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1600,
+                },
+                [this.POLICY.TYPE.TEAM]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
+                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1000,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                },
+            },
         };
     },
     REGEX: {
@@ -5089,7 +5100,7 @@ const CONST = {
         },
     },
     DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
-    STRIPE_GBP_AUTH_STATUSES: {
+    STRIPE_SCA_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
@@ -6678,8 +6689,9 @@ const CONST = {
         AUD: 'AUD',
         GBP: 'GBP',
         NZD: 'NZD',
+        EUR: 'EUR',
     },
-    GBP_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
+    SCA_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
     FEEDBACK_SURVEY_OPTIONS: {
