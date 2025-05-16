@@ -78,6 +78,9 @@ type TooltipProps = ChildrenProps &
     SharedTooltipProps & {
         /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
         shouldHandleScroll?: boolean;
+
+        /** Whether the current screen or component is actively focused via navigation */
+        isFocused?: boolean;
     };
 
 type EducationalTooltipProps = ChildrenProps &

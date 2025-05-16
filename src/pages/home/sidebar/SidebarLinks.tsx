@@ -21,7 +21,7 @@ type SidebarLinksProps = {
     insets: EdgeInsets;
 
     /** List of options to display */
-    optionListItems: string[];
+    optionListItems: Report[];
 
     /** Whether the reports are loading. When false it means they are ready to be used. */
     isLoading: OnyxEntry<boolean>;
