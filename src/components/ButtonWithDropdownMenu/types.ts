@@ -35,7 +35,6 @@ type DropdownOption<TValueType> = {
     titleStyle?: ViewStyle;
     shouldCloseModalOnSelect?: boolean;
     displayInDefaultIconColor?: boolean;
-    shouldPreserveSelectionAfterHideModal?: boolean;
     subMenuItems?: PopoverMenuItem[];
 };
 
