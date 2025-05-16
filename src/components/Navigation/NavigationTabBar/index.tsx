@@ -120,8 +120,9 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         if (selectedTab === NAVIGATION_TABS.SETTINGS) {
             return;
         }
-
-        Navigation.navigate(ROUTES.SETTINGS);
+        interceptAnonymousUser(() => {
+            Navigation.navigate(ROUTES.SETTINGS);
+        });
     }, [selectedTab]);
 
     /**
