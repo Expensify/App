@@ -47,7 +47,7 @@ export default createOnyxDerivedValueConfig({
             };
         }
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
-        // we need to recompute all report attributes on locale change becuase the report names are locale dependent
+        // we need to recompute all report attributes on locale change because the report names are locale dependent
         if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues)) {
             isFullyComputed = false;
         }
@@ -73,9 +73,13 @@ export default createOnyxDerivedValueConfig({
                 dataToIterate = prepareReportKeys(updates);
                 recentlyUpdated = updates;
             } else if (!!transactionsUpdates || !!transactionViolationsUpdates) {
+                let transactionReportIds: string[] = [];
+                if (transactionsUpdates) {
+                    transactionReportIds = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+                }
                 // if transactions are updated, they might not be directly related to the reports yet (e.g. transaction is optimistically created)
                 // so we use report keys that were updated before to recompute the reports
-                const recentReportKeys = prepareReportKeys(recentlyUpdated);
+                const recentReportKeys = prepareReportKeys([...recentlyUpdated, ...transactionReportIds]);
                 dataToIterate = recentReportKeys;
             }
         }
@@ -112,7 +116,7 @@ export default createOnyxDerivedValueConfig({
 
             return acc;
         }, currentValue?.reports ?? {});
-        // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputations on all objects
+        // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
         if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
             isFullyComputed = true;
         }

@@ -1,6 +1,5 @@
-import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -94,7 +93,9 @@ function WorkspaceReportFieldsPage({
 
     const {isOffline} = useNetwork({onReconnect: fetchReportFields});
 
-    useFocusEffect(fetchReportFields);
+    useEffect(() => {
+        fetchReportFields();
+    }, [fetchReportFields]);
 
     const reportFieldsSections = useMemo(() => {
         if (!policy) {
@@ -175,6 +176,7 @@ function WorkspaceReportFieldsPage({
                     title={translate('common.reports')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    onBackButtonPress={Navigation.popToSidebar}
                 />
                 {isLoading && (
                     <ActivityIndicator

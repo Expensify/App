@@ -65,7 +65,6 @@ function Template(
                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                         isSelected={isSelected}
                         shouldShowTooltip={shouldShowTooltip}
-                        shouldShowChatBubbleComponent
                         dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         onCheckboxPress={() => {}}
                         shouldShowCheckbox={shouldShowCheckbox}
