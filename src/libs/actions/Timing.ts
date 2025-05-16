@@ -5,7 +5,10 @@ import * as Environment from '@libs/Environment/Environment';
 import Firebase from '@libs/Firebase';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import telemetry from '@libs/Telemetry';
 import pkg from '../../../package.json';
+
+const timingsHistogram = telemetry.meter.createGauge("timings");
 
 type TimestampData = {
     startTime: number;
@@ -56,6 +59,7 @@ function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
         delete timestampData[eventName];
 
         if (Environment.isDevelopment()) {
+            timingsHistogram.record(eventTime, { eventName });
             // Don't create traces on dev as this will mess up the accuracy of data in release builds of the app
             return;
         }
