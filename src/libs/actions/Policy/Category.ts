@@ -3,7 +3,6 @@ import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
-import {pushTransactionViolationsOnyxData} from '@libs/actions/Policy/Policy';
 import * as API from '@libs/API';
 import type {
     EnablePolicyCategoriesParams,
@@ -35,10 +34,12 @@ import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, PolicyTagLists, RecentlyUsedCategories, Report} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {pushTransactionViolationsOnyxData} from './Policy';
+
 
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
@@ -87,18 +88,6 @@ Onyx.connect({
     callback: (val) => (allPolicyCategories = val),
 });
 
-let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-        allPolicyTags = value;
-    },
-});
 
 function appendSetupCategoriesOnboardingData(onyxData: OnyxData) {
     const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData('setupCategories');
@@ -952,7 +941,7 @@ function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolea
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyID, {requiresCategory: requiresCategory} as Policy);
+    pushTransactionViolationsOnyxData(onyxData, policyID, {requiresCategory} as Partial<Policy>);
     const parameters = {
         policyID,
         requiresCategory,

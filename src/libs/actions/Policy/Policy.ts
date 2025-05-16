@@ -77,6 +77,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature, hasDependentTags as hasDependentTagsUtils, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {isInvoiceReport as isInvoiceReportUtils} from '@libs/ReportUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -375,7 +376,7 @@ function pushTransactionViolationsOnyxData(
             return;
         }
 
-        const isAnInvoiceReport = ReportUtils.isInvoiceReport(report);
+        const isInvoiceReport = isInvoiceReportUtils(report);
 
         ReportUtils.getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
             const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
@@ -387,7 +388,7 @@ function pushTransactionViolationsOnyxData(
                 policyTagLists,
                 optimisticPolicyCategories,
                 hasDependentTags,
-                isAnInvoiceReport,
+                isInvoiceReport,
             );
 
             if (optimisticTransactionViolations) {
@@ -5334,6 +5335,3 @@ export {
     setIsComingFromGlobalReimbursementsFlow,
     pushTransactionViolationsOnyxData,
 };
-function lodashCloneDeep(policyCategories: PolicyCategories) {
-    throw new Error('Function not implemented.');
-}
