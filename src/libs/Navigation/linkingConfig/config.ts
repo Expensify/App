@@ -1605,7 +1605,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SCHEDULE_CALL_BOOK.route,
                         },
                         [SCREENS.SCHEDULE_CALL.CONFIRMATION]: {
-                            path: ROUTES.SCHEDULE_CALL_CONFIRMATON.route,
+                            path: ROUTES.SCHEDULE_CALL_CONFIRMATION.route,
                         },
                     },
                 },
