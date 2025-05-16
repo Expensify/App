@@ -12,10 +12,12 @@ import {useCameraDevice} from 'react-native-vision-camera';
 import type {TupleToUnion} from 'type-fest';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
+import MultiScanHand from '@assets/images/multi-scan-hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -50,6 +52,7 @@ import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {
     getMoneyRequestParticipantsFromReport,
@@ -784,7 +787,20 @@ function IOURequestStepScan({
                         )}
                     </View>
                 </EducationalTooltip>
-
+                <ConfirmModal
+                    title={translate('iou.scanMultipleReceipts')}
+                    image={MultiScanHand}
+                    imageStyles={{backgroundColor: colors.pink700}}
+                    isVisible
+                    onConfirm={() => {}}
+                    onCancel={() => {}}
+                    confirmText={translate('common.buttonConfirm')}
+                    prompt={translate('iou.scanMultipleReceiptsDescription')}
+                    promptStyles={[styles.textSupporting, styles.mb2]}
+                    titleStyles={styles.textHeadline}
+                    titleContainerStyles={styles.mb3}
+                    shouldShowCancelButton={false}
+                />
                 <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                     <AttachmentPicker onOpenPicker={() => setIsLoaderVisible(true)}>
                         {({openPicker}) => (

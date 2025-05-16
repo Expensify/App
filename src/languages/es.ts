@@ -962,6 +962,8 @@ const translations = {
             one: 'Escaneando recibo...',
             other: 'Escaneando recibos...',
         }),
+        scanMultipleReceipts: 'Escanea varios recibos',
+        scanMultipleReceiptsDescription: 'Tome fotos de todos sus recibos a la vez y confirme los detalles usted mismo o deje que SmartScan se encargue.',
         receiptScanInProgress: 'Escaneado de recibo en proceso',
         receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelve a comprobarlo más tarde o introduce los detalles ahora.',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
