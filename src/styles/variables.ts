@@ -39,6 +39,7 @@ export default {
     avatarSizeHeader: 40,
     avatarSizeNormal: 40,
     avatarSizeSmallNormal: 32,
+    avatarSizeLargeNormal: 48,
     avatarSizeSmall: 28,
     avatarSizeSmaller: 24,
     avatarSizeSubscript: 20,

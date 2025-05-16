@@ -3181,6 +3181,7 @@ const CONST = {
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
         SMALL_NORMAL: 'small-normal',
+        LARGE_NORMAL: 'large-normal',
     },
     COMPANY_CARD: {
         FEED_BANK_NAME: {

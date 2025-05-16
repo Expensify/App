@@ -40,6 +40,7 @@ type DropdownOption<TValueType> = {
     displayInDefaultIconColor?: boolean;
     shouldPreserveSelectionAfterHideModal?: boolean;
     subMenuItems?: PopoverMenuItem[];
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {

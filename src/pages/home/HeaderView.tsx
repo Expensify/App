@@ -73,6 +73,7 @@ import {
 import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
+import variables from '@styles/variables';
 import {joinRoom} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {deleteTask} from '@userActions/Task';
@@ -172,7 +173,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         return true;
     };
 
-    const shouldShowGuideBooking = !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
+    const shouldShowGuideBooking = true || (!!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink);
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
@@ -268,11 +269,12 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 descriptionTextStyle: [styles.themeTextColor, styles.ml2],
                 displayInDefaultIconColor: true,
                 icon: Illustrations.HeadSet,
-                iconWidth: 40,
-                iconHeight: 40,
+                iconWidth: variables.avatarSizeLargeNormal,
+                iconHeight: variables.avatarSizeLargeNormal,
                 wrapperStyle: [styles.mb3, styles.pl4, styles.pr5, styles.pt3, styles.pb6, styles.borderBottom],
                 interactive: false,
                 titleStyle: styles.ml2,
+                avatarSize: CONST.AVATAR_SIZE.LARGE_NORMAL,
             },
             {
                 text: translate('common.reschedule'),
