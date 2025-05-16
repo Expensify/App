@@ -13,6 +13,7 @@ function useExpensifyCardFeeds(policyID: string | undefined) {
 
             return Object.fromEntries(matchingEntries);
         },
+        canBeMissing: true,
     });
 
     return allExpensifyCardFeeds;
