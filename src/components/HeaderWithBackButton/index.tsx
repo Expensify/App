@@ -12,7 +12,6 @@ import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -73,13 +72,13 @@ function HeaderWithBackButton({
     progressBarPercentage,
     style,
     subTitleLink = '',
+    openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
-    const {canUseLeftHandBar} = usePermissions();
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -97,13 +96,13 @@ function HeaderWithBackButton({
                 </>
             );
         }
-
         if (shouldShowReportAvatarWithDisplay) {
             return (
                 <AvatarWithDisplayName
                     report={report}
                     policy={policy}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
+                    openParentReportInCurrentTab={openParentReportInCurrentTab}
                 />
             );
         }
@@ -136,6 +135,7 @@ function HeaderWithBackButton({
         title,
         titleColor,
         translate,
+        openParentReportInCurrentTab,
     ]);
 
     return (
@@ -145,7 +145,7 @@ function HeaderWithBackButton({
             dataSet={{dragArea: false}}
             style={[
                 styles.headerBar,
-                shouldUseHeadlineHeader && styles.headerBarDesktopHeight(canUseLeftHandBar),
+                shouldUseHeadlineHeader && styles.headerBarHeight,
                 shouldShowBorderBottom && styles.borderBottom,
                 // progressBarPercentage can be 0 which would
                 // be falsy, hence using !== undefined explicitly

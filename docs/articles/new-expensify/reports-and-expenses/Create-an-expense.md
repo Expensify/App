@@ -164,33 +164,32 @@ You can also forward receipts to receipts@expensify.com using your primary or se
 - You will also be notified once your approver approves or denies your expenses.
 - Make sure to [connect your personal bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account) to receive payment. 
 
-{% include faq-begin.md %}
-
-**Can I add multiple receipts to a newly created expense?**
+# FAQ
+## Can I add multiple receipts to a newly created expense?**
 
 Each expense can only have one receipt image attached. If you have multiple receipts:
 - Combine them into a single PDF before uploading.
 - Or, add the extra receipts to the report itself as attachments.
 
-**Can I divide a payment between multiple people?**
+## Can I divide a payment between multiple people?**
 
 Yes, you can [split an expense](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Split-an-expense) in a group chat.  
 
-**Can I change an expense once I’ve submitted it?**
+## Can I change an expense once I’ve submitted it?**
 
 Yes, you can edit an expense until it is paid. When an expense is submitted, the details can be edited except for the amount and date.
 
-**Can I add multiple receipts to a newly created expense?**
-
-Yes, you can add multiple receipt images to a new expense. One possible way to do this is to combine all receipts into a single PDF file. From there, simply upload the combined PDF to the expense.
-
-**What are expense reports?**
+## What are expense reports?**
 
 In Expensify, expense reports group expenses in a batch to be paid or reconciled. When a draft report is open, all new expenses are added to it. 
 
 Once a report is submitted, you can track the status from the **Search** section. Click the **View** button for a specific expense or expense report. The status is displayed at the top of the expense or report.
 
-**How can I enable camera permission for a website on mobile browsers?**
+## Why does my report show as submitted to "Hidden"?
+
+If you're submitting to someone new, their email shows as "Hidden" until they act on the expense.
+
+## How can I enable camera permission for a website on mobile browsers?**
 
 **Google Chrome:**
 1. Open Chrome.
@@ -206,7 +205,5 @@ Once a report is submitted, you can track the status from the **Search** section
 3. Tap **Allow** to grant permission.
 4. Tap **Done**.
 5. Refresh the site.
-
-{% include faq-end.md %}
 
 </div>

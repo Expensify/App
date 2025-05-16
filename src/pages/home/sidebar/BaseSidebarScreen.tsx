@@ -8,7 +8,6 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
@@ -34,8 +33,7 @@ function BaseSidebarScreen() {
     const [activeWorkspace, activeWorkspaceResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`, {canBeMissing: true});
     const currentRoute = useRoute();
     const isLoading = isLoadingOnyxValue(activeWorkspaceResult);
-    const {canUseLeftHandBar} = usePermissions();
-    const shouldDisplayLHB = !!canUseLeftHandBar && !shouldUseNarrowLayout;
+    const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -80,7 +78,6 @@ function BaseSidebarScreen() {
                 <>
                     <TopBar
                         breadcrumbLabel={translate('common.inbox')}
-                        activeWorkspaceID={activeWorkspaceID}
                         shouldDisplaySearch={shouldUseNarrowLayout}
                         shouldDisplayHelpButton={shouldUseNarrowLayout}
                     />

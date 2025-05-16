@@ -11,6 +11,7 @@ import BankAccount from './libs/models/BankAccount';
 import {addTrailingForwardSlash} from './libs/Url';
 import ONYXKEYS from './ONYXKEYS';
 import SCREENS from './SCREENS';
+import variables from './styles/variables';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
@@ -375,6 +376,7 @@ const CONST = {
     TASK_TITLE_DISABLED_RULES: ['image'],
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
+    CUSTOM_FIELD_KEYS: {customField1: 'employeeUserID', customField2: 'employeePayrollID'},
     ANDROID_PACKAGE_NAME,
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
@@ -399,8 +401,8 @@ const CONST = {
         TEXTAREA: 'TEXTAREA',
     },
     POPOVER_ACCOUNT_SWITCHER_POSITION: {
-        horizontal: 12,
-        vertical: 80,
+        horizontal: 12 + variables.navigationTabBarSize,
+        vertical: 72,
     },
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_MAX_HEIGHT: 366,
@@ -809,11 +811,13 @@ const CONST = {
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
-        LEFT_HAND_BAR: 'leftHandBar',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
+        RETRACT_NEWDOT: 'retractNewDot',
         PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
+        NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
+        PLAID_COMPANY_CARDS: 'plaidCompanyCards',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1090,12 +1094,12 @@ const CONST = {
         vcf: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-a-visa-commercial-feed',
         gl1025: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-an-american-express-corporate-feed',
     },
-    COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-visa-commercial-feed',
-    COMPANY_CARDS_AMEX_COMMERICAL_CARD_HELP:
+    COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-visa-commercial-feed',
+    COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP:
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-an-american-express-corporate-feed',
     COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
-    CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
+    CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
@@ -1196,11 +1200,14 @@ const CONST = {
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             MARK_AS_EXPORTED: 'markAsExported',
             HOLD: 'hold',
-            DOWNLOAD: 'download',
+            DOWNLOAD_CSV: 'downloadCSV',
+            DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             ADD_EXPENSE: 'addExpense',
+            REOPEN: 'reopen',
+            MOVE_EXPENSE: 'moveExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1219,6 +1226,7 @@ const CONST = {
         },
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
+            ADD_EXPENSE: 'addExpense',
             REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
@@ -1229,6 +1237,10 @@ const CONST = {
             HOLD: 'hold',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+        },
+        ADD_EXPENSE_OPTIONS: {
+            CREATE_NEW_EXPENSE: 'createNewExpense',
+            ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense',
         },
         ACTIONS: {
             LIMIT: 50,
@@ -1290,6 +1302,7 @@ const CONST = {
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
                 DEMOTED_FROM_WORKSPACE: 'DEMOTEDFROMWORKSPACE',
                 RENAMED: 'RENAMED',
+                REOPENED: 'REOPENED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
                 SHARE: 'SHARE', // OldDot Action
@@ -1301,7 +1314,7 @@ const CONST = {
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
-                TRIPPREVIEW: 'TRIPPREVIEW',
+                TRIP_PREVIEW: 'TRIPPREVIEW',
                 UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
@@ -1366,6 +1379,7 @@ const CONST = {
                     UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
                     UPDATE_DESCRIPTION: 'POLICYCHANGELOG_UPDATE_DESCRIPTION',
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
+                    UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
                     UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
@@ -1493,6 +1507,7 @@ const CONST = {
         },
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
+        TRANSACTION_PREVIEW_WIDTH_WIDE: 303,
         MAX_ROOM_NAME_LENGTH: 99,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS: 20,
@@ -2000,6 +2015,7 @@ const CONST = {
         HEIGHT: 416,
     },
     DESKTOP_HEADER_PADDING: 12,
+    SEARCH_ITEM_LIMIT: 15,
     CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
@@ -2898,7 +2914,7 @@ const CONST = {
             OPTIONAL: 'submitAndClose',
             BASIC: 'submitAndApprove',
             ADVANCED: 'advanced',
-            DYNAMICEXTERNAL: 'dynamictExternal',
+            DYNAMICEXTERNAL: 'dynamicExternal',
             SMARTREPORT: 'smartReport',
             BILLCOM: 'billcom',
         },
@@ -3254,6 +3270,7 @@ const CONST = {
             CARD_DETAILS: 'CardDetails',
             BANK_CONNECTION: 'BankConnection',
             AMEX_CUSTOM_FEED: 'AmexCustomFeed',
+            SELECT_COUNTRY: 'SelectCountry',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -4070,6 +4087,9 @@ const CONST = {
         ES: 'Spain',
         SE: 'Sweden',
     },
+
+    PLAID_EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP'] as string[],
+    PLAID_SUPPORT_COUNTRIES: ['US', 'CA', 'GB', 'AT', 'BE', 'DK', 'EE', 'FI', 'FR', 'DE', 'IE', 'IT', 'LV', 'LT', 'NL', 'NO', 'PL', 'PT', 'ES', 'SE'] as string[],
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
     // https://github.com/Expensify/App/issues/14958#issuecomment-1456026810
@@ -5309,7 +5329,6 @@ const CONST = {
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
-        OVER_TRIP_LIMIT: 'overTripLimit',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
@@ -5401,7 +5420,6 @@ const CONST = {
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
-    NEW_DOT_SUPPORTED_COMPANY_SIZES: [onboardingCompanySize.MICRO, onboardingCompanySize.SMALL] as string[],
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_ACCOUNTING_MAPPING,
     ONBOARDING_MESSAGES: {
@@ -5608,14 +5626,12 @@ const CONST = {
                     type: 'reviewWorkspaceSettings',
                     autoCompleted: false,
                     mediaAttributes: {},
-                    title: 'Review your workspace settings',
-                    description:
-                        "Here's how to review and update your workspace settings:" +
-                        '\n' +
-                        '1. Click *Settings*.' +
-                        '2. Go to *Workspaces* > [Your workspace].' +
-                        '\n' +
-                        "Make any changes there and we'll track them in the #admins room.",
+                    title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
+                    description: ({workspaceSettingsLink}) =>
+                        "Here's how to review and update your workspace settings:\n" +
+                        '1. Click the settings tab.\n' +
+                        '2. Click *Workspaces* > [Your workspace].\n' +
+                        `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
                 },
                 {
                     type: 'submitExpense',
@@ -6393,7 +6409,7 @@ const CONST = {
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
-        LAST_VISITED_SETTINGS_TAB_PATH: 'LAST_VISITED_SETTINGS_TAB_PATH',
+        LAST_VISITED_WORKSPACES_TAB_PATH: 'LAST_VISITED_WORKSPACES_TAB_PATH',
     },
 
     RESERVATION_TYPE: {
@@ -6451,6 +6467,7 @@ const CONST = {
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
+            TASK: 'task',
             TRIP: 'trip',
             CHAT: 'chat',
         },
@@ -6519,6 +6536,11 @@ const CONST = {
                 LINKS: 'links',
                 PINNED: 'pinned',
             },
+            TASK: {
+                ALL: 'all',
+                OUTSTANDING: 'outstanding',
+                COMPLETED: 'completed',
+            },
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -6533,6 +6555,10 @@ const CONST = {
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'createdBy',
+            IN: 'in',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -6573,6 +6599,9 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'createdBy',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
@@ -6611,6 +6640,9 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'created-by',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
         },
@@ -6710,6 +6742,11 @@ const CONST = {
                 title: 'workspace.upgrade.reportFields.title' as const,
                 description: 'workspace.upgrade.reportFields.description' as const,
                 icon: 'Pencil',
+            },
+            policyPreventMemberChangingTitle: {
+                id: 'policyPreventMemberChangingTitle' as const,
+                alias: 'policy-prevent-member-changing-title',
+                name: undefined,
             },
             categories: {
                 id: 'categories' as const,
@@ -6997,6 +7034,8 @@ const CONST = {
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
+        OUTSANDING_FILTER: 'outstandingFilter',
+        WORKSPACES_SETTINGS: 'workspacesSettings',
         GBR_RBR_CHAT: 'chatGBRRBR',
         ACCOUNT_SWITCHER: 'accountSwitcher',
         EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',

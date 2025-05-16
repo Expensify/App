@@ -58,10 +58,6 @@ function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
 }
 
-function canUseLeftHandBar(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.LEFT_HAND_BAR) || canUseAllBetas(betas);
-}
-
 function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WALLET) || canUseAllBetas(betas);
 }
@@ -72,6 +68,22 @@ function canUseGlobalReimbursementsOnND(betas: OnyxEntry<Beta[]>): boolean {
 
 function canUsePrivateDomainOnboarding(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PRIVATE_DOMAIN_ONBOARDING) || canUseAllBetas(betas);
+}
+
+function canUsePlaidCompanyCards(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.PLAID_COMPANY_CARDS) || canUseAllBetas(betas);
+}
+
+function canUseRetractNewDot(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.RETRACT_NEWDOT) || canUseAllBetas(betas);
+}
+
+function canUseCallScheduling() {
+    return false;
+}
+
+function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || canUseAllBetas(betas);
 }
 
 export default {
@@ -87,8 +99,11 @@ export default {
     canUseTableReportView,
     canUseTalkToAISales,
     canUseProhibitedExpenses,
-    canUseLeftHandBar,
     canUseInAppProvisioning,
     canUseGlobalReimbursementsOnND,
     canUsePrivateDomainOnboarding,
+    canUseRetractNewDot,
+    canUseCallScheduling,
+    canUseMultiFilesDragAndDrop,
+    canUsePlaidCompanyCards,
 };

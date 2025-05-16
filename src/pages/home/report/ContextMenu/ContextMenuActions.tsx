@@ -26,18 +26,20 @@ import {
     getCardIssuedMessage,
     getExportIntegrationMessageHTML,
     getIOUReportIDFromReportActionPreview,
+    getJoinRequestMessage,
     getMemberChangeMessageFragment,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
-    getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogUpdateEmployee,
     getRemovedConnectionMessage,
     getRenamedAction,
+    getReopenedMessage,
     getReportActionMessageText,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
@@ -50,12 +52,14 @@ import {
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    isActionableJoinRequest,
     isActionableMentionWhisper,
     isActionableTrackExpense,
     isActionOfType,
     isCardIssuedAction,
     isCreatedTaskReportAction,
     isDeletedAction as isDeletedActionReportActionsUtils,
+    isMarkAsClosedAction,
     isMemberChangeAction,
     isMessageDeleted,
     isModifiedExpenseAction,
@@ -97,6 +101,7 @@ import {
     getReportPreviewMessage,
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
+    isExpenseReport,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
 } from '@libs/ReportUtils';
@@ -550,9 +555,13 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionableTrackExpense(reportAction)) {
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);
                 } else if (isRenamedAction(reportAction)) {
-                    setClipboardMessage(getRenamedAction(reportAction));
-                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED)) {
-                    const {harvesting} = getOriginalMessage(reportAction) ?? {};
+                    setClipboardMessage(getRenamedAction(reportAction, isExpenseReport(report)));
+                } else if (
+                    isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
+                    isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
+                    isMarkAsClosedAction(reportAction)
+                ) {
+                    const harvesting = !isMarkAsClosedAction(reportAction) ? getOriginalMessage(reportAction)?.harvesting ?? false : false;
                     if (harvesting) {
                         setClipboardMessage(getReportAutomaticallySubmittedMessage(reportAction));
                     } else {
@@ -604,11 +613,13 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
                     setClipboardMessage(getPolicyChangeLogAddEmployeeMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
-                    setClipboardMessage(getPolicyChangeLogChangeRoleMessage(reportAction));
+                    setClipboardMessage(getPolicyChangeLogUpdateEmployee(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
                     setClipboardMessage(getPolicyChangeLogDeleteMemberMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
                     setClipboardMessage(getDeletedTransactionMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
+                    setClipboardMessage(getReopenedMessage());
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
                     const {label, errorMessage} = getOriginalMessage(reportAction) ?? {label: '', errorMessage: ''};
                     setClipboardMessage(translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage}));
@@ -616,6 +627,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, card}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
                     setClipboardMessage(getRemovedConnectionMessage(reportAction));
+                } else if (isActionableJoinRequest(reportAction)) {
+                    const displayMessage = getJoinRequestMessage(reportAction);
+                    Clipboard.setString(displayMessage);
                 } else if (content) {
                     setClipboardMessage(
                         content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {

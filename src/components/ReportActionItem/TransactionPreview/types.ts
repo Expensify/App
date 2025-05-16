@@ -66,6 +66,9 @@ type TransactionPreviewProps = {
 
     /** Whether to show payer/receiver data in the preview */
     shouldShowIOUData?: boolean;
+
+    /** In case we want to override context menu action */
+    contextAction?: OnyxEntry<ReportAction>;
 };
 
 type TransactionPreviewContentProps = {
