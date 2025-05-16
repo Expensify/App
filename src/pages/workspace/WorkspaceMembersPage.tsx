@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
@@ -227,7 +227,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     }, [preferredLocale, validateSelection]);
 
     useEffect(() => {
-        if (removeMembersConfirmModalVisible && !lodashIsEqual(accountIDs, prevAccountIDs)) {
+        if (removeMembersConfirmModalVisible && !deepEqual(accountIDs, prevAccountIDs)) {
             setRemoveMembersConfirmModalVisible(false);
         }
         setSelectedEmployees((prevSelectedEmployees) => {

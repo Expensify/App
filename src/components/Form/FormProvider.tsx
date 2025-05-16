@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'react';
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
@@ -171,7 +171,7 @@ function FormProvider(
 
             const touchedInputErrors = Object.fromEntries(Object.entries(validateErrors).filter(([inputID]) => touchedInputs.current[inputID]));
 
-            if (!lodashIsEqual(errors, touchedInputErrors)) {
+            if (!deepEqual(errors, touchedInputErrors)) {
                 setErrors(touchedInputErrors);
             }
 

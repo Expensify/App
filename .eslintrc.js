@@ -83,8 +83,12 @@ const restrictedImportPaths = [
         message: "Please use '@src/libs/memoize' instead.",
     },
     {
+        name: 'lodash/isEqual',
+        message: "Please use 'deepEqual' from 'fast-equals' instead.",
+    },
+    {
         name: 'lodash',
-        importNames: ['memoize'],
+        importNames: ['memoize', 'isEqual'],
         message: "Please use '@src/libs/memoize' instead.",
     },
     {

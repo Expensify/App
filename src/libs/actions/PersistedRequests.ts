@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,7 +18,7 @@ Onyx.connect({
 
             // We try to remove the next request from the persistedRequests if it is the same as ongoingRequest
             // so we don't process it twice.
-            if (isEqual(nextRequestToProcess, ongoingRequest)) {
+            if (deepEqual(nextRequestToProcess, ongoingRequest)) {
                 persistedRequests = persistedRequests.slice(1);
             }
         }
@@ -61,7 +61,7 @@ function endRequestAndRemoveFromQueue(requestToRemove: Request) {
      * If we were to remove all matching requests, we can end up with a final state that is different than what the user intended.
      */
     const requests = [...persistedRequests];
-    const index = requests.findIndex((persistedRequest) => isEqual(persistedRequest, requestToRemove));
+    const index = requests.findIndex((persistedRequest) => deepEqual(persistedRequest, requestToRemove));
 
     if (index !== -1) {
         requests.splice(index, 1);
