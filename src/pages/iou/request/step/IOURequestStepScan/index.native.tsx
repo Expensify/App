@@ -486,8 +486,6 @@ function IOURequestStepScan({
             transactionTaxCode,
             transactionTaxAmount,
             policy,
-            navigateToParticipantPage,
-            backToReport,
         ],
     );
 
