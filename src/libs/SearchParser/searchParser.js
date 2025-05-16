@@ -197,7 +197,7 @@ function peg$parse(input, options) {
   var peg$c10 = "category";
   var peg$c11 = "to";
   var peg$c12 = "exporter";
-  var peg$c13 = "reimburser";
+  var peg$c13 = "payer";
   var peg$c14 = "taxrate";
   var peg$c15 = "tax-rate";
   var peg$c16 = "cardID";
@@ -265,7 +265,7 @@ function peg$parse(input, options) {
   var peg$e13 = peg$literalExpectation("category", true);
   var peg$e14 = peg$literalExpectation("to", true);
   var peg$e15 = peg$literalExpectation("exporter", true);
-  var peg$e16 = peg$literalExpectation("reimburser", true);
+  var peg$e16 = peg$literalExpectation("payer", true);
   var peg$e17 = peg$literalExpectation("taxRate", true);
   var peg$e18 = peg$literalExpectation("tax-rate", true);
   var peg$e19 = peg$literalExpectation("cardID", false);
@@ -397,7 +397,7 @@ function peg$parse(input, options) {
   var peg$f16 = function() { return "category"; };
   var peg$f17 = function() { return "to"; };
   var peg$f18 = function() { return "exporter"; };
-  var peg$f19 = function() { return "reimburser"; };
+  var peg$f19 = function() { return "payer"; };
   var peg$f20 = function() { return "taxRate"; };
   var peg$f21 = function() { return "cardID"; };
   var peg$f22 = function() { return "from"; };
@@ -819,7 +819,7 @@ function peg$parse(input, options) {
                             if (s1 === peg$FAILED) {
                               s1 = peg$parsefrom();
                               if (s1 === peg$FAILED) {
-                                s1 = peg$parsereimburser();
+                                s1 = peg$parsepayer();
                                 if (s1 === peg$FAILED) {
                                   s1 = peg$parseexporter();
                                   if (s1 === peg$FAILED) {
@@ -1295,13 +1295,13 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parsereimburser() {
+  function peg$parsepayer() {
     var s0, s1;
 
     s0 = peg$currPos;
-    s1 = input.substr(peg$currPos, 10);
+    s1 = input.substr(peg$currPos, 5);
     if (s1.toLowerCase() === peg$c13) {
-      peg$currPos += 10;
+      peg$currPos += 5;
     } else {
       s1 = peg$FAILED;
       if (peg$silentFails === 0) { peg$fail(peg$e16); }
