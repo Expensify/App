@@ -55,6 +55,7 @@ import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
+import LockedAccountModal from '@components/LockedAccountModal';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
@@ -117,6 +118,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = isPolicyAdminUtil(policy);
+
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -262,6 +267,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 titleStyle={shouldShowBankAccount ? undefined : styles.textLabelSupportingEmptyValue}
                                 description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
                                 onPress={() => {
+                                    if (isAccountLocked) {
+                                        setIsLockedAccountModalOpen(true);
+                                        return;
+                                    }
                                     if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType, canUseGlobalReimbursementsOnND ?? false)) {
                                         setIsUpdateWorkspaceCurrencyModalOpen(true);
                                         return;
@@ -401,6 +410,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     )}
                 </View>
             </WorkspacePageWithSections>
+            <LockedAccountModal
+                isLockedAccountModalOpen={isLockedAccountModalOpen}
+                onClose={() => setIsLockedAccountModalOpen(false)}
+            />
         </AccessOrNotFoundWrapper>
     );
 }
