@@ -498,7 +498,7 @@ function WorkspacesListPage() {
                 shouldEnableMaxHeight
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
-                bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
+                bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
                 <HeaderWithBackButton
