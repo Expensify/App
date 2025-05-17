@@ -236,7 +236,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             hoverDimmingValue={1}
                             onMouseDown={(e) => e.preventDefault()}
                             id={transaction.transactionID}
-                            style={[pressableStyle]}
+                            style={[pressableStyle, styles.userSelectNone]}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             onMouseLeave={handleMouseLeave}
                             onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                             onPressOut={() => ControlSelection.unblock()}
