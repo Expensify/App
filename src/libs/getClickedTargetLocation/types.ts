@@ -1,4 +1,4 @@
-type DOMRectProperties = 'top' | 'bottom' | 'left' | 'right' | 'height' | 'x' | 'y';
+type DOMRectProperties = 'top' | 'bottom' | 'left' | 'right' | 'height' | 'x' | 'y' | 'width';
 
 type GetClickedTargetLocation = (target: HTMLDivElement) => Pick<DOMRect, DOMRectProperties>;
 
