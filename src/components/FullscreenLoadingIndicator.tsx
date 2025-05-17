@@ -9,9 +9,10 @@ type FullScreenLoadingIndicatorIconSize = ActivityIndicatorProps['size'];
 type FullScreenLoadingIndicatorProps = {
     style?: StyleProp<ViewStyle>;
     iconSize?: FullScreenLoadingIndicatorIconSize;
+    testID?: string;
 };
 
-function FullScreenLoadingIndicator({style, iconSize = 'large'}: FullScreenLoadingIndicatorProps) {
+function FullScreenLoadingIndicator({style, iconSize = 'large', testID = ''}: FullScreenLoadingIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     return (
@@ -19,6 +20,7 @@ function FullScreenLoadingIndicator({style, iconSize = 'large'}: FullScreenLoadi
             <ActivityIndicator
                 color={theme.spinner}
                 size={iconSize}
+                testID={testID}
             />
         </View>
     );
