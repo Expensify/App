@@ -171,6 +171,7 @@ function ReportActionItemImage({
         <ReceiptImage
             {...propsObj}
             shouldUseFullHeight={shouldUseFullHeight}
+            thumbnailContainerStyles={styles.thumbnailImageContainerHover}
         />
     );
 }
