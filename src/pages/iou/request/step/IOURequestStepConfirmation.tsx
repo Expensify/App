@@ -337,6 +337,12 @@ function IOURequestStepConfirmation({
             return;
         }
 
+        // If the user came from Test Drive modal, we need to take him back there
+        if (transaction?.receipt?.isTestDriveReceipt) {
+            Navigation.goBack(ROUTES.TEST_DRIVE_MODAL_ROOT);
+            return;
+        }
+
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
         navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
     }, [
@@ -344,6 +350,7 @@ function IOURequestStepConfirmation({
         isPerDiemRequest,
         transaction?.isFromGlobalCreate,
         transaction?.receipt?.isTestReceipt,
+        transaction?.receipt?.isTestDriveReceipt,
         transaction?.participantsAutoAssigned,
         transaction?.reportID,
         requestType,
@@ -373,6 +380,9 @@ function IOURequestStepConfirmation({
             const receipt: Receipt = file;
             if (transaction?.receipt?.isTestReceipt) {
                 receipt.isTestReceipt = true;
+                receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
+            } else if (transaction?.receipt?.isTestDriveReceipt) {
+                receipt.isTestDriveReceipt = true;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
             } else {
                 receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
@@ -427,6 +437,7 @@ function IOURequestStepConfirmation({
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
                     waypoints: Object.keys(transaction.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
                     customUnitRateID,
+                    isTestDrive: transaction?.receipt?.isTestDriveReceipt,
                 },
                 backToReport,
             });
@@ -908,6 +919,9 @@ function IOURequestStepConfirmation({
     const shouldShowThreeDotsButton =
         requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense;
 
+    const shouldShowSmartScanFields =
+        !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
@@ -1014,7 +1028,7 @@ function IOURequestStepConfirmation({
                         iouCreated={transaction?.created}
                         isDistanceRequest={isDistanceRequest}
                         isPerDiemRequest={isPerDiemRequest}
-                        shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
+                        shouldShowSmartScanFields={shouldShowSmartScanFields}
                         action={action}
                         payeePersonalDetails={payeePersonalDetails}
                         shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}

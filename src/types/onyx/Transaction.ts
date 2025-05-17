@@ -182,6 +182,9 @@ type Receipt = {
 
     /** Receipt is manager_mctest@expensify.com testing receipt */
     isTestReceipt?: true;
+
+    /** Receipt is Test Drive testing receipt */
+    isTestDriveReceipt?: true;
 };
 
 /** Model of route */

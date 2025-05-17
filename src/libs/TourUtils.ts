@@ -16,8 +16,4 @@ function getTestDriveURL(environment: ValueOf<typeof CONST.ENVIRONMENT>, shouldU
     return environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.STORYLANE.ADMIN_TOUR_PRODUCTION : CONST.STORYLANE.ADMIN_TOUR_STAGING;
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    getNavatticURL,
-    getTestDriveURL,
-};
+export {getNavatticURL, getTestDriveURL};

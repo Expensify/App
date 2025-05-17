@@ -5235,6 +5235,7 @@ function buildOptimisticAddCommentReportAction(
     createdOffset = 0,
     shouldEscapeText?: boolean,
     reportID?: string,
+    reportActionID: string = rand64(),
 ): OptimisticReportAction {
     const commentText = getParsedComment(text ?? '', {shouldEscapeText, reportID});
     const attachmentHtml = getUploadingAttachmentHtml(file);
@@ -5251,7 +5252,7 @@ function buildOptimisticAddCommentReportAction(
     return {
         commentText,
         reportAction: {
-            reportActionID: rand64(),
+            reportActionID,
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             actorAccountID: accountID,
             person: [
@@ -6299,6 +6300,7 @@ function buildOptimisticReportPreview(
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
     const isTestTransaction = isTestTransactionReport(iouReport);
+    const isTestDriveTransaction = !!transaction?.receipt?.isTestDriveReceipt;
     const isScanRequest = transaction ? isScanRequestTransactionUtils(transaction) : false;
     return {
         reportActionID: reportActionID ?? rand64(),
@@ -6326,7 +6328,7 @@ function buildOptimisticReportPreview(
         childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) && transaction?.transactionID ? {[transaction.transactionID]: created} : undefined,
-        ...(isTestTransaction && !isScanRequest && {childStateNum: 2, childStatusNum: 4}),
+        ...((isTestDriveTransaction || isTestTransaction) && !isScanRequest && {childStateNum: 2, childStatusNum: 4}),
     };
 }
 
