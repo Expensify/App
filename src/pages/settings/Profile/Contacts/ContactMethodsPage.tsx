@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import LockedAccountModal from '@components/LockedAccountModal';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -35,6 +36,10 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
     // The default contact method is determined by checking against the session email (the current login).
@@ -92,9 +97,12 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
         if (isActingAsDelegate) {
             setIsNoDelegateAccessMenuVisible(true);
             return;
+        } else if (isAccountLocked) {
+            setIsLockedAccountModalOpen(true);
+            return;
         }
         Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
-    }, [navigateBackTo, isActingAsDelegate]);
+    }, [navigateBackTo, isActingAsDelegate, isAccountLocked]);
 
     return (
         <ScreenWrapper
@@ -130,6 +138,10 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
+            <LockedAccountModal
+                isLockedAccountModalOpen={isLockedAccountModalOpen}
+                onClose={() => setIsLockedAccountModalOpen(false)}
             />
         </ScreenWrapper>
     );

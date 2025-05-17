@@ -8,6 +8,7 @@ import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import LockedAccountModal from '@components/LockedAccountModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -65,6 +66,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const isActingAsDelegate = !!userAccount?.delegatedAccess?.delegate || false;
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
@@ -190,6 +194,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         }
         if (isActingAsDelegate) {
             setIsNoDelegateAccessMenuVisible(true);
+            return;
+        } else if (isAccountLocked) {
+            setIsLockedAccountModalOpen(true);
             return;
         }
         setShouldShowAddPaymentMenu(true);
@@ -581,6 +588,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                             if (isActingAsDelegate) {
                                                                 setIsNoDelegateAccessMenuVisible(true);
                                                                 return;
+                                                            } else if (isAccountLocked) {
+                                                                setIsLockedAccountModalOpen(true);
+                                                                return;
                                                             }
 
                                                             if (!isUserValidated) {
@@ -648,6 +658,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 setIsNoDelegateAccessMenuVisible(true);
                                             });
                                             return;
+                                        } else if (isAccountLocked) {
+                                            closeModal(() => setIsLockedAccountModalOpen(true));
+                                            return;
                                         }
                                         makeDefaultPaymentMethod();
                                         setShouldShowDefaultDeleteMenu(false);
@@ -664,6 +677,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         closeModal(() => {
                                             setIsNoDelegateAccessMenuVisible(true);
                                         });
+                                        return;
+                                    } else if (isAccountLocked) {
+                                        closeModal(() => setIsLockedAccountModalOpen(true));
                                         return;
                                     }
                                     closeModal(() => setShowConfirmDeleteModal(true));
@@ -752,6 +768,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
+            <LockedAccountModal
+                isLockedAccountModalOpen={isLockedAccountModalOpen}
+                onClose={() => setIsLockedAccountModalOpen(false)}
             />
         </>
     );

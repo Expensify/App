@@ -42,6 +42,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Delegate} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import LockedAccountModal from '@components/LockedAccountModal';
 
 function SecuritySettingsPage() {
     const styles = useThemeStyles();
@@ -75,6 +76,10 @@ function SecuritySettingsPage() {
 
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
+
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
+    const [isLockedAccountModalOpen, setIsLockedAccountModalOpen] = useState(false);
 
     const setMenuPosition = useCallback(() => {
         if (!delegateButtonRef.current) {
@@ -117,7 +122,16 @@ function SecuritySettingsPage() {
             {
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: Expensicons.Shield,
-                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute())),
+                action: () => {
+                    if (isActingAsDelegate) {
+                        showDelegateNoAccessMenu();
+                        return;
+                    } else if (isAccountLocked) {
+                        setIsLockedAccountModalOpen(true);
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
+                },
             },
         ];
 
@@ -143,7 +157,7 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate, canUseMergeAccounts]);
+    }, [translate, waitForNavigate, styles, isActingAsDelegate, isAccountLocked, canUseMergeAccounts]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
@@ -225,6 +239,9 @@ function SecuritySettingsPage() {
                 if (isActingAsDelegate) {
                     modalClose(() => setIsNoDelegateAccessMenuVisible(true));
                     return;
+                } else if (isAccountLocked) {
+                    modalClose(() => setIsLockedAccountModalOpen(true));
+                    return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
                 setShouldShowDelegatePopoverMenu(false);
@@ -238,6 +255,9 @@ function SecuritySettingsPage() {
             onPress: () => {
                 if (isActingAsDelegate) {
                     modalClose(() => setIsNoDelegateAccessMenuVisible(true));
+                    return;
+                } else if (isAccountLocked) {
+                    modalClose(() => setIsLockedAccountModalOpen(true));
                     return;
                 }
                 modalClose(() => {
@@ -315,7 +335,7 @@ function SecuritySettingsPage() {
                                         <MenuItem
                                             title={translate('delegate.addCopilot')}
                                             icon={Expensicons.UserPlus}
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
+                                            onPress={() => isAccountLocked ? setIsLockedAccountModalOpen(true) : Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
                                             shouldShowRightIcon
                                             wrapperStyle={[styles.sectionMenuItemTopDescription, hasDelegators && styles.mb6]}
                                         />
@@ -368,6 +388,10 @@ function SecuritySettingsPage() {
                     <DelegateNoAccessModal
                         isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                         onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+                    />
+                    <LockedAccountModal
+                        isLockedAccountModalOpen={isLockedAccountModalOpen}
+                        onClose={() => setIsLockedAccountModalOpen(false)}
                     />
                 </>
             )}
