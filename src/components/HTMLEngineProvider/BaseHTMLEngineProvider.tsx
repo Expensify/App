@@ -156,7 +156,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
 
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps: TextProps = useMemo(() => ({selectable: textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [textSelectable]);
-    const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText, styles.w100]};
+    const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText, styles.mw100]};
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}
