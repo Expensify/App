@@ -87,7 +87,7 @@ import {
     getWorkspaceUpdateFieldMessage,
     isActionableAddPaymentCard,
     isActionableJoinRequest,
-    isActionableMentionInviteToSubmitExpensesConfirmWhisper,
+    isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableMentionWhisper,
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
@@ -429,7 +429,7 @@ function PureReportActionItem({
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isActionableWhisper =
-        isActionableMentionWhisper(action) || isActionableMentionInviteToSubmitExpensesConfirmWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
+        isActionableMentionWhisper(action) || isActionableMentionInviteToSubmitExpenseConfirmWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
@@ -751,12 +751,12 @@ function PureReportActionItem({
             ];
         }
 
-        if (isActionableMentionInviteToSubmitExpensesConfirmWhisper(action)) {
+        if (isActionableMentionInviteToSubmitExpenseConfirmWhisper(action)) {
             return [
                 {
                     text: 'common.buttonConfirm',
-                    key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSES_CONFIRM_WHISPER.DONE}`,
-                    onPress: () => resolveActionableMentionConfirmWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSES_CONFIRM_WHISPER.DONE),
+                    key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE}`,
+                    onPress: () => resolveActionableMentionConfirmWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE),
                     isPrimary: true,
                 },
             ];
