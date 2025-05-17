@@ -20,6 +20,7 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             dismissError();
             const startSplitBillParams = {...retryParams} as IOU.StartSplitBilActionParams;
             startSplitBillParams.receipt = file;
+            startSplitBillParams.shouldPlaySound = false;
             IOU.startSplitBill(startSplitBillParams);
             break;
         }
@@ -28,6 +29,7 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             const trackExpenseParams = {...retryParams} as IOU.CreateTrackExpenseParams;
             trackExpenseParams.transactionParams.receipt = file;
             trackExpenseParams.isRetry = true;
+            trackExpenseParams.shouldPlaySound = false;
             IOU.trackExpense(trackExpenseParams);
             break;
         }
@@ -36,6 +38,7 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             const requestMoneyParams = {...retryParams} as IOU.RequestMoneyInformation;
             requestMoneyParams.transactionParams.receipt = file;
             requestMoneyParams.isRetry = true;
+            requestMoneyParams.shouldPlaySound = false;
             IOU.requestMoney(requestMoneyParams);
             break;
         }

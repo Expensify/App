@@ -44,7 +44,6 @@ import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, 
 import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
@@ -345,7 +344,6 @@ function IOURequestStepScan({
                     receipt.source = source;
                     receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                     if (iouType === CONST.IOU.TYPE.SPLIT) {
-                        playSound(SOUNDS.DONE);
                         startSplitBill({
                             participants,
                             currentUserLogin: currentUserPersonalDetails?.login ?? '',
@@ -369,7 +367,6 @@ function IOURequestStepScan({
                     if (locationPermissionGranted) {
                         getCurrentPosition(
                             (successData) => {
-                                playSound(SOUNDS.DONE);
                                 if (iouType === CONST.IOU.TYPE.TRACK && report) {
                                     trackExpense({
                                         report,
@@ -425,7 +422,6 @@ function IOURequestStepScan({
                             (errorData) => {
                                 Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                                playSound(SOUNDS.DONE);
                                 createTransaction(receipt, participant);
                             },
                             {
@@ -435,7 +431,6 @@ function IOURequestStepScan({
                         );
                         return;
                     }
-                    playSound(SOUNDS.DONE);
                     createTransaction(receipt, participant);
                     return;
                 }
