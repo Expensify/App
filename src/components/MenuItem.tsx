@@ -527,6 +527,7 @@ function MenuItem(
     const shouldShowSubscriptAvatar = shouldShowSubscriptAvatarProp && !!firstIcon;
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
+        styles.textLineHeightNormal,
         icon && !Array.isArray(icon) ? styles.ml3 : {},
         title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         (descriptionTextStyle as TextStyle) || styles.breakWord,
