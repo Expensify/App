@@ -71,4 +71,17 @@ function isDeletedNode(tnode: TNode): boolean {
     return 'textDecorationLine' in parentStyle && parentStyle.textDecorationLine === 'line-through';
 }
 
-export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle};
+/**
+ * @returns Whether the node is a child of alert-text
+ */
+function isChildOfRbr(tnode: TNode): boolean {
+    if (!tnode.parent) {
+        return false;
+    }
+    if (tnode.parent.tagName === 'rbr') {
+        return true;
+    }
+    return isChildOfRbr(tnode.parent);
+}
+
+export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle, isChildOfRbr, isCommentTag};
