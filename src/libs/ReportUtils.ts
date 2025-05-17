@@ -7561,10 +7561,9 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     const potentialReports = reportsByPolicyID[report.policyID] ?? [];
     return potentialReports.some((potentialReport) => {
         return (
-            !isInvoiceReport(potentialReport) &&
-            (hasViolations(potentialReport.reportID, transactionViolations, true) ||
-                hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true) ||
-                hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true))
+            hasViolations(potentialReport.reportID, transactionViolations, true) ||
+            hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true) ||
+            hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true)
         );
     });
 }

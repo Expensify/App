@@ -184,7 +184,7 @@ const ViolationsUtils = {
         let newTransactionViolations = [...transactionViolations];
 
         // Calculate client-side category violations
-        const policyRequiresCategories = !!policy.requiresCategory;
+        const policyRequiresCategories = !!policy.requiresCategory && !isInvoiceTransaction;
         if (policyRequiresCategories) {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
