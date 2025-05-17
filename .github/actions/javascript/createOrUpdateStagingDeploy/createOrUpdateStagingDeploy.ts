@@ -82,7 +82,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             });
 
             // Generate the deploy blocker list, preserving the previous state of `isResolved`
-            const {data: openDeployBlockers} = await GithubUtils.octokit.issues.listForRepo({
+            const openDeployBlockers = await GithubUtils.paginate(GithubUtils.octokit.issues.listForRepo, {
                 log: console,
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
