@@ -28,7 +28,7 @@ import {openExternalLink, openOldDotLink, openTravelDotLink} from '@libs/actions
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
-import {canActionTask as canActionTaskUtils, canModifyTask as canModifyTaskUtils, completeTask} from '@libs/actions/Task';
+import {canActionTask as canActionTaskUtils, completeTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -384,7 +384,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`, {canBeMissing: true});
 
-    const canModifyTask = canModifyTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
     const canActionTask = canActionTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const isTravelEnabled = useMemo(() => {
@@ -503,7 +502,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       onSelected: () => {
                           openExternalLink(navatticURL);
                           setSelfTourViewed(isAnonymousUser());
-                          if (viewTourTaskReport && canModifyTask && canActionTask) {
+                          // Even if the viewTourTaskReport doesn't exist in onyx we will still call completeTask without checking
+                          // canActionTheTask as we don't want to avoid completing the test drive task due to its unavailabilty
+                          // in onyx until we make the appropriate BE change to make viewTourTaskReport always available.
+                          if (viewTourTaskReportID && (!viewTourTaskReport || canActionTask)) {
                               completeTask(viewTourTaskReport);
                           }
                       },

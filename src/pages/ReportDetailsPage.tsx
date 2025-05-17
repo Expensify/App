@@ -509,7 +509,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
         // Show actions related to Task Reports
         if (isTaskReport && !isCanceledTaskReport) {
-            if (isCompletedTaskReport(report) && canModifyTask && canActionTask) {
+            if (isCompletedTaskReport(report) && canActionTask) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.MARK_AS_INCOMPLETE,
                     icon: Expensicons.Checkmark,
@@ -656,7 +656,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         iouTransactionID,
         moneyRequestReport?.reportID,
         session,
-        canModifyTask,
         canActionTask,
         isOffline,
         transactionIDList,
