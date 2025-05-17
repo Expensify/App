@@ -40,6 +40,7 @@ import {
     isArchivedNonExpenseReportWithID,
     isChatUsedForOnboarding,
     isPayer,
+    isReportOutstanding,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
@@ -2679,6 +2680,19 @@ describe('ReportUtils', () => {
             };
             const participants = getParticipantsList(report, participantsPersonalDetails);
             expect(participants.length).toBe(2);
+        });
+    });
+
+    describe('isReportOutstanding', () => {
+        it('should return true for submitted reports', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            expect(isReportOutstanding(report, policy.id)).toBe(true);
         });
     });
 });
