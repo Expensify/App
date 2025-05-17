@@ -550,6 +550,8 @@ const translations = {
         unreported: 'No reportado',
         general: 'General',
         workspacesTabTitle: 'Espacios',
+        getTheApp: 'Descarga la app',
+        scanReceiptsOnTheGo: 'Escanea recibos desde tu teléfono',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
