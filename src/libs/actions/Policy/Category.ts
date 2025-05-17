@@ -29,7 +29,7 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPolicy, goBackWhenEnableFeature} from '@libs/PolicyUtils';
-import {getAllPolicyReports} from '@libs/ReportUtils';
+import {getAllPolicyReports, pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -368,6 +368,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             },
         ],
     };
+
     appendSetupCategoriesOnboardingData(onyxData);
     if (shouldDisableRequiresCategory) {
         onyxData.optimisticData?.push({
@@ -937,6 +938,7 @@ function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolea
         ],
     };
 
+    pushTransactionViolationsOnyxData(onyxData, policyID, {requiresCategory} as Partial<Policy>);
     const parameters = {
         policyID,
         requiresCategory,
@@ -973,9 +975,11 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
         acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
         return acc;
     }, {});
+
     const shouldDisableRequiresCategory = !hasEnabledOptions(
         Object.values(policyCategories).filter((category) => !categoryNamesToDelete.includes(category.name) && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
     );
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -1009,6 +1013,8 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             },
         ],
     };
+
+    pushTransactionViolationsOnyxData(onyxData, policyID, shouldDisableRequiresCategory ? {requiresCategory: false} : {}, optimisticPolicyCategoriesData);
     appendSetupCategoriesOnboardingData(onyxData);
     if (shouldDisableRequiresCategory) {
         onyxData.optimisticData?.push({
