@@ -10,7 +10,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getTransactionDetails, isExpenseReport} from '@libs/ReportUtils';
 import {getOriginalTransactionIfBillIsSplit, getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
@@ -78,7 +78,9 @@ function TransactionPreview(props: TransactionPreviewProps) {
         Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
     }, [duplicates, report, route, transaction]);
 
-    const {originalTransaction, isBillSplit} = getOriginalTransactionIfBillIsSplit(transaction);
+    const {originalTransaction, isBillSplit: isSplit} = getOriginalTransactionIfBillIsSplit(transaction);
+    const isExpense = isExpenseReport(iouReport);
+    const isBillSplit = isSplit && !isExpense;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);

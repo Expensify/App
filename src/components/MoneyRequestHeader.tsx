@@ -10,7 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {deleteMoneyRequest, getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU';
+import {deleteMoneyRequest, getNavigationUrlOnMoneyRequestDelete, initSplitExpense} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
@@ -197,8 +197,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!parentReport || !transaction) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(parentReport, transaction);
-    }, [parentReport, transaction]);
+        return getSecondaryTransactionThreadActions(parentReport, transaction, policy);
+    }, [parentReport, policy, transaction]);
 
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
@@ -211,6 +211,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 }
 
                 changeMoneyRequestHoldStatus(parentReportAction);
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
+            text: translate('iou.split'),
+            icon: Expensicons.ArrowSplit,
+            value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
+            onSelected: () => {
+                initSplitExpense(transaction, reportID ?? String(CONST.DEFAULT_NUMBER_ID));
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {

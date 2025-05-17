@@ -572,6 +572,24 @@ const ROUTES = {
             return getUrlWithBackToParam(`r/${reportID}/invite` as const, backTo);
         },
     },
+    SPLIT_EXPENSE: {
+        route: 'r/:reportID/split-expense/:transactionID/:splitExpenseTransactionID?',
+        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
+            if (!reportID || !originalTransactionID) {
+                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE route`);
+            }
+            return getUrlWithBackToParam(`r/${reportID}/split-expense/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
+        },
+    },
+    SPLIT_EXPENSE_EDIT: {
+        route: 'r/:reportID/split-expense-edit/:transactionID/:splitExpenseTransactionID?',
+        getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
+            if (!reportID || !originalTransactionID) {
+                Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE_EDIT route`);
+            }
+            return getUrlWithBackToParam(`r/${reportID}/split-expense-edit/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
+        },
+    },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?/:searchHash?',
         getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string, searchHash?: number) => {

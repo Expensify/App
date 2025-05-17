@@ -1342,6 +1342,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
+                        [SCREENS.RIGHT_MODAL.SPLIT_EXPENSE]: ROUTES.SPLIT_EXPENSE.route,
+                        [SCREENS.RIGHT_MODAL.SPLIT_EXPENSE_EDIT]: ROUTES.SPLIT_EXPENSE_EDIT.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: {

@@ -1060,6 +1060,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1096,6 +1097,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
                 splits: 'array',
                 dismissedViolations: 'object',
+                splitExpenses: 'array',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {

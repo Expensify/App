@@ -59,11 +59,17 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
         const transactionID = route.params.transactionID;
         const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
-        const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-        const [transactionDraft, transactionDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+        const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+        const [transactionDraft, transactionDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
         const isLoadingTransaction = isLoadingOnyxValue(transactionResult, transactionDraftResult);
 
+        const [splitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+
+        const userType = 'iouType' in route.params && route.params.iouType ? route.params.iouType : CONST.IOU.TYPE.CREATE;
+
         const isFocused = useIsFocused();
+
+        const transactionDraftData = userType === CONST.IOU.TYPE.SPLIT_EXPENSE ? splitTransactionDraft : transactionDraft;
 
         // If the transaction does not have a transactionID, then the transaction no longer exists in Onyx as a full transaction and the not-found page should be shown.
         // In addition, the not-found page should be shown only if the component screen's route is active (i.e. is focused).
@@ -75,7 +81,7 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
-                transaction={shouldUseTransactionDraft(userAction) ? transactionDraft : transaction}
+                transaction={shouldUseTransactionDraft(userAction, userType) ? transactionDraftData : transaction}
                 isLoadingTransaction={isLoadingTransaction}
                 ref={ref}
             />
