@@ -11,9 +11,6 @@ type UseLoadReportActionsArguments = {
     /** The id of the current report */
     reportID: string;
 
-    /** The id of the reportAction (if specific action was linked to */
-    reportActionID?: string;
-
     /** The list of reportActions linked to the current report  */
     reportActions: ReportAction[];
 
@@ -34,7 +31,7 @@ type UseLoadReportActionsArguments = {
  * Provides reusable logic to get the functions for loading older/newer reportActions.
  * Used in the report displaying components
  */
-function useLoadReportActions({reportID, reportActionID, reportActions, allReportActionIDs, transactionThreadReport, hasOlderActions, hasNewerActions}: UseLoadReportActionsArguments) {
+function useLoadReportActions({reportID, reportActions, allReportActionIDs, transactionThreadReport, hasOlderActions, hasNewerActions}: UseLoadReportActionsArguments) {
     const didLoadOlderChats = useRef(false);
     const didLoadNewerChats = useRef(false);
 
@@ -89,8 +86,7 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
         (force = false) => {
             if (
                 !force &&
-                (!reportActionID ||
-                    !isFocused ||
+                (!isFocused ||
                     !newestReportAction ||
                     !hasNewerActions ||
                     isOffline ||
@@ -117,7 +113,7 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
                 getNewerActions(reportID, newestReportAction.reportActionID);
             }
         },
-        [reportActionID, isFocused, newestReportAction, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
+        [isFocused, newestReportAction, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
     );
 
     return {

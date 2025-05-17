@@ -319,16 +319,30 @@ function ReportActionsList({
     const indexOfLinkedAction = reportActionID ? sortedVisibleReportActions.findIndex((action) => action.reportActionID === reportActionID) : -1;
     const isLinkedActionCloseToNewest = indexOfLinkedAction < IS_CLOSE_TO_NEWEST_THRESHOLD;
 
+    const [isScrolledToStart, setIsScrolledToStart] = useState(true);
+    const trackScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+        onScroll?.(event);
+
+        scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+
+        // Once we hit the start of the list, we want to trigger the read last message logic, if the message is unread
+        if (scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD) {
+            if (!isScrolledToStart) {
+                setIsScrolledToStart(true);
+            }
+        } else if (isScrolledToStart) {
+            setIsScrolledToStart(false);
+        }
+    };
+
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
         floatingMessageVisibleInitialValue: !isLinkedActionCloseToNewest,
         readActionSkippedRef: readActionSkipped,
         hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
-        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
-            onScroll?.(event);
-        },
+        onTrackScrolling: trackScrolling,
     });
 
     useEffect(() => {
@@ -357,17 +371,22 @@ function ReportActionsList({
         prevReportID = report.reportID;
     }, [report.reportID]);
 
+    const initialScrollKey = useMemo(() => {
+        return linkedReportActionID ?? unreadMarkerReportActionID;
+    }, [linkedReportActionID, unreadMarkerReportActionID]);
+
+    const [isListInitiallyLoaded, setIsListInitiallyLoaded] = useState(false);
     useEffect(() => {
         if (report.reportID !== prevReportID) {
             return;
         }
 
-        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction))) {
+        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction) && isListInitiallyLoaded)) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+            if ((isVisible || isFromNotification) && isScrolledToStart) {
                 readNewestAction(report.reportID);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
@@ -375,12 +394,14 @@ function ReportActionsList({
             } else {
                 readActionSkipped.current = true;
             }
+        } else {
+            readActionSkipped.current = true;
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible]);
+    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, isScrolledToStart, isListInitiallyLoaded]);
 
     useEffect(() => {
-        if (linkedReportActionID) {
+        if (linkedReportActionID || unreadMarkerReportActionID) {
             return;
         }
         InteractionManager.runAfterInteractions(() => {
@@ -432,7 +453,7 @@ function ReportActionsList({
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
-        //         meaning that the cleanup might not get called. When we then open a report we had open already previosuly, a new
+        //         meaning that the cleanup might not get called. When we then open a report we had open already previously, a new
         //         ReportScreen will get created. Thus, we have to cancel the earlier subscription of the previous screen,
         //         because the two subscriptions could conflict!
         //         In case we return to the previous screen (e.g. by web back navigation) the useEffect for that screen would
@@ -665,7 +686,7 @@ function ReportActionsList({
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }, [shouldShowSkeleton]);
 
-    const onStartReached = useCallback(() => {
+    const handleStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
             return;
@@ -707,18 +728,19 @@ function ReportActionsList({
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
-                    onStartReached={onStartReached}
+                    onStartReached={handleStartReached}
                     onStartReachedThreshold={0.75}
                     ListHeaderComponent={listHeaderComponent}
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
+                    onInitiallyLoaded={() => setIsListInitiallyLoaded(true)}
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollKey={reportActionID}
+                    initialScrollKey={initialScrollKey}
                 />
             </View>
         </>
