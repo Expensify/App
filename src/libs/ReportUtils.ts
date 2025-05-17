@@ -237,7 +237,6 @@ import {
     getTag,
     getTaxAmount,
     getTaxCode,
-    getTransaction,
     getAmount as getTransactionAmount,
     getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
@@ -2476,7 +2475,7 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
  * Checks whether the card transaction support deleting based on liability type
  */
 function canDeleteCardTransactionByLiabilityType(iouTransactionID?: string): boolean {
-    const transaction = getTransaction(iouTransactionID ?? CONST.DEFAULT_NUMBER_ID);
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID ?? CONST.DEFAULT_NUMBER_ID}`];
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     if (!isCardTransaction) {
         return true;
