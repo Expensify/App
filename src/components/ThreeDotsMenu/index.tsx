@@ -1,4 +1,4 @@
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
@@ -55,12 +55,12 @@ function ThreeDotsMenu({
         setPopupMenuVisible(true);
     };
 
-    const hidePopoverMenu = (selectedItem?: PopoverMenuItem) => {
+    const hidePopoverMenu = useCallback((selectedItem?: PopoverMenuItem) => {
         if (selectedItem && selectedItem.shouldKeepModalOpen) {
             return;
         }
         setPopupMenuVisible(false);
-    };
+    }, []);
 
     useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}> | undefined, () => ({
         isPopupMenuVisible,
@@ -72,7 +72,7 @@ function ThreeDotsMenu({
             return;
         }
         hidePopoverMenu();
-    }, [isBehindModal, isPopupMenuVisible]);
+    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
 
     const onThreeDotsPress = () => {
         if (isPopupMenuVisible) {
