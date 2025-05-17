@@ -40,6 +40,8 @@ import {
     isArchivedNonExpenseReportWithID,
     isChatUsedForOnboarding,
     isPayer,
+    isReportOutstanding,
+    parseReportRouteParams,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
     shouldDisableThread,
@@ -2442,6 +2444,28 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('parseReportRouteParams', () => {
+        const testReportID = '123456789';
+
+        it('should return empty reportID and isSubReportPageRoute as false if the route is not a report route', () => {
+            const result = parseReportRouteParams('/concierge');
+            expect(result.reportID).toBe('');
+            expect(result.isSubReportPageRoute).toBe(false);
+        });
+
+        it('should return isSubReportPageRoute as false if the route is a report screen route', () => {
+            const result = parseReportRouteParams(`r/${testReportID}/11111111`);
+            expect(result.reportID).toBe(testReportID);
+            expect(result.isSubReportPageRoute).toBe(false);
+        });
+
+        it('should return isSubReportPageRoute as true if the route is a sub report page route', () => {
+            const result = parseReportRouteParams(`r/${testReportID}/details`);
+            expect(result.reportID).toBe(testReportID);
+            expect(result.isSubReportPageRoute).toBe(true);
+        });
+    });
+
     describe('isPayer', () => {
         const approvedReport: Report = {
             ...createRandomReport(1),
@@ -2656,6 +2680,19 @@ describe('ReportUtils', () => {
             };
             const participants = getParticipantsList(report, participantsPersonalDetails);
             expect(participants.length).toBe(2);
+        });
+    });
+
+    describe('isReportOutstanding', () => {
+        it('should return true for submitted reports', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            expect(isReportOutstanding(report, policy.id)).toBe(true);
         });
     });
 });
