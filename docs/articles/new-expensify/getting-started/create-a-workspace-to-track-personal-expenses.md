@@ -80,7 +80,7 @@ SmartScan reads receipt details like merchant, date, total, and currency automat
 4. Select your **workspace**.
 5. Click **Create expense**.
 
-You can view expenses in your Workspace chat or the **Reports** page. [Export to CSV](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Search-and-Download-Expenses) for tax or accountant use.
+You can view expenses in your Expense chat or the **Reports** page. [Export to CSV](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Search-and-Download-Expenses) for tax or accountant use.
 
 ---
 
