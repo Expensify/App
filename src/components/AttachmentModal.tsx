@@ -581,7 +581,7 @@ function AttachmentModal({
                         shouldDisplayHelpButton={false}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
-                        {isLoading && <FullScreenLoadingIndicator />}
+                        {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
                         {shouldShowNotFoundPage && !isLoading && (
                             <BlockingView
                                 icon={Illustrations.ToddBehindCloud}

@@ -27,6 +27,17 @@ const Stack = createPlatformStackNavigator<AuthScreensParamList>();
 
 setupGlobalFetchMock();
 
+jest.mock('@rnmapbox/maps', () => {
+    return {
+        default: jest.fn(),
+        MarkerView: jest.fn(),
+        setAccessToken: jest.fn(),
+    };
+});
+
+jest.mock('@react-native-community/geolocation', () => ({
+    setRNConfiguration: jest.fn(),
+}));
 jest.mock('@src/components/Attachments/AttachmentCarousel/Pager/usePageScrollHandler', () => jest.fn());
 
 const renderPage = (initialRouteName: typeof SCREENS.ATTACHMENTS, initialParams: AuthScreensParamList[typeof SCREENS.ATTACHMENTS]) => {
@@ -137,7 +148,7 @@ describe('ReportAttachments', () => {
                 [ONYXKEYS.SESSION]: {accountID: TEST_USER_ACCOUNT_ID, email: TEST_USER_LOGIN},
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN}},
             },
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
     });
     beforeEach(async () => {
@@ -159,8 +170,6 @@ describe('ReportAttachments', () => {
         jest.clearAllMocks();
     });
     it('should display the attachment if the source link is origin url', async () => {
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportAttachmentID}`, reportAttachmentOnyx);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAttachmentID}`, reportActionsAttachmentOnyx);
 
@@ -179,8 +188,9 @@ describe('ReportAttachments', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Then the blocking view or not here page should not appear.
+        // Then the not here page and the loading spinner should not appear.
         expect(screen.queryByText(translateLocal('notFound.notHere'))).toBeNull();
+        expect(screen.queryByTestId('attachment-loading-spinner')).toBeNull();
     });
     it('should fetch the report id, if the report has not yet been opened by the user', async () => {
         // Given the report attachments params
