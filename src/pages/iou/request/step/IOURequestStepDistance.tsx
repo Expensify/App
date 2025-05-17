@@ -1,5 +1,5 @@
+import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
-import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -429,7 +429,7 @@ function IOURequestStepDistance({
 
     const updateWaypoints = useCallback(
         ({data}: DataParams) => {
-            if (isEqual(waypointsList, data)) {
+            if (deepEqual(waypointsList, data)) {
                 return;
             }
 
@@ -469,8 +469,8 @@ function IOURequestStepDistance({
             const oldWaypoints = transactionBackup?.comment?.waypoints ?? {};
             const oldAddresses = Object.fromEntries(Object.entries(oldWaypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
             const addresses = Object.fromEntries(Object.entries(waypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
-            const hasRouteChanged = !isEqual(transactionBackup?.routes, transaction?.routes);
-            if (isEqual(oldAddresses, addresses)) {
+            const hasRouteChanged = !deepEqual(transactionBackup?.routes, transaction?.routes);
+            if (deepEqual(oldAddresses, addresses)) {
                 navigateBack();
                 return;
             }

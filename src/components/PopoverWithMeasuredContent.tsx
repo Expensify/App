@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
@@ -197,7 +197,7 @@ export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => 
     if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {
         return true;
     }
-    return isEqual(prevProps, nextProps);
+    return deepEqual(prevProps, nextProps);
 });
 
 export type {PopoverWithMeasuredContentProps};

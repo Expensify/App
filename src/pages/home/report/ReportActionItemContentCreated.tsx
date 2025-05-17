@@ -1,4 +1,4 @@
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -196,8 +196,8 @@ ReportActionItemContentCreated.displayName = 'ReportActionItemContentCreated';
 export default memo(
     ReportActionItemContentCreated,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.contextValue, nextProps.contextValue) &&
-        lodashIsEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
+        deepEqual(prevProps.contextValue, nextProps.contextValue) &&
+        deepEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
         prevProps.transactionID === nextProps.transactionID &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,
