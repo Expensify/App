@@ -420,7 +420,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -438,7 +437,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -455,7 +453,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -474,7 +471,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -492,7 +488,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -510,7 +505,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -528,7 +522,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -546,7 +539,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -564,7 +556,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -582,7 +573,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -600,7 +590,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -618,7 +607,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -636,7 +624,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -654,7 +641,6 @@ PODS:
     - React-jsiexecutor
     - React-jsinspector
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -729,7 +715,6 @@ PODS:
     - React-Fabric/componentregistry (= 0.77.1)
     - React-Fabric/componentregistrynative (= 0.77.1)
     - React-Fabric/components (= 0.77.1)
-    - React-Fabric/consistency (= 0.77.1)
     - React-Fabric/core (= 0.77.1)
     - React-Fabric/dom (= 0.77.1)
     - React-Fabric/imagemanager (= 0.77.1)
@@ -921,27 +906,6 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/core
     - Yoga
-  - React-Fabric/consistency (0.77.1):
-    - DoubleConversion
-    - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
-    - glog
-    - hermes-engine
-    - RCT-Folly/Fabric (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-cxxreact
-    - React-debug
-    - React-featureflags
-    - React-graphics
-    - React-jsi
-    - React-jsiexecutor
-    - React-logger
-    - React-rendererdebug
-    - React-runtimescheduler
-    - React-utils
-    - ReactCommon/turbomodule/core
   - React-Fabric/core (0.77.1):
     - DoubleConversion
     - fast_float (= 6.1.4)
@@ -3400,8 +3364,8 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: d7090b1a93a9798c029277a8288114f2948f471c
-  DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
+  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 57ea461614a714b8b8fcc72c6fbc298b8f1ec78b
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
   expensify-react-native-background-task: f180077e77a41952128fdc2c83ce1d980994d125
@@ -3426,7 +3390,7 @@ SPEC CHECKSUMS:
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: c8a10b2358c0d33c57be84d16e4c440b0434b33d
   fullstory_react-native: 5132c9dfa5e1ea4ec42679a708af782d4c4ec4bc
-  glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
+  glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
@@ -3453,19 +3417,19 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   pusher-websocket-react-native: e40c49a1e4ec96d4157375aebcf44943f0f8f62f
   PusherSwift: cad631bad86cfff4b8458dce1310a7774e469b1f
-  RCT-Folly: 36fe2295e44b10d831836cc0d1daec5f8abcf809
+  RCT-Folly: e78785aa9ba2ed998ea4151e314036f6c49e6d82
   RCTDeprecation: 664055db806cce35c3c1b43c84414dd66e117ae6
   RCTRequired: dc9a83fa1012054f94430d210337ca3a1afe6fc0
   RCTTypeSafety: 031cefa254a1df313a196f105b8fcffdab1c5ab6
   React: 8edfc46c315852ec88ea4a29d5e79019af3dc667
   React-callinvoker: 4450b01574dfc7a8f074f7e29e6965ac04859c8f
-  React-Core: 0ac3acde025b10da5ccb9970547ab60a863654ce
+  React-Core: 13bdd0a0125fdaecdee747b62e02d2a65b026520
   React-CoreModules: ebe93fa403bbd4d0909de105ffd34eeaad355083
   React-cxxreact: af8a2be3edfed0e1168279eea443f95a7285602e
   React-debug: b0f7271aeacc2eb9e34f863397dcfc204ef721c0
   React-defaultsnativemodule: 2ad21fff895dabfb7db60ee1c37d0a3866229430
   React-domnativemodule: f788e7169988a61ac38a5fc493ac02b5fbda7d6b
-  React-Fabric: 012ec12475cf941575871fdc006cf934090a9840
+  React-Fabric: 8b404451db2bb07bcf0e3f6dfebfb26455e4d7ce
   React-FabricComponents: 40cecebced128b2aa50c25a5fa6fdcd3b175286d
   React-FabricImage: 81787fa643b67f1327b4aa5fa1678dc73a771e34
   React-featureflags: 23d3dcdac6c9badeeb631db8a0883c7a3108d580
@@ -3503,11 +3467,10 @@ SPEC CHECKSUMS:
   react-native-safe-area-context: b3edb1da341e5e61f865763d9e0b6d3d34706464
   react-native-view-shot: bb169342812ded991a4a0387e7d0b17cb515e62a
   react-native-wallet: 46df147c6089b2490dc5f4cbf25c58ce70b0215d
-  react-native-webrtc: 0f1c94069ff1eb9d8fb1618c2dc71f73542c8cfa
   react-native-webview: b375842af66a9f0ab979378bdc8b26eeb5d8e3ee
   React-nativeconfig: cb207ebba7cafce30657c7ad9f1587a8f32e4564
   React-NativeModulesApple: 82a8bee52df9f5b378195a500f22be3a6ef0f890
-  React-perflogger: a8a27aa65a47f740eff65bb38b79baacb38a50d5
+  React-perflogger: 8152bab3f0eb4b8751f282f9af7caed2c823a9ea
   React-performancetimeline: 3ef4a640b56f9c7ec5f52bd93217b9b607c37cf4
   React-RCTActionSheet: 0fdf55fb8724856d63ca8c63cdb4e2325e15e8ec
   React-RCTAnimation: b93f5a1675cc2599e96851fec13c909fdfb1d6bb
@@ -3521,7 +3484,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: 433c9f6a070bcecbe5a44d5009326b4d6f3b0667
   React-RCTText: 46249950f8d8738b90a60883d19b5bef09f0a296
   React-RCTVibration: 8f41e85ab6d40c7db6111ca9e8c7492c8de374fb
-  React-rendererconsistency: d59654ad59217708509d1bb6373358be321613a4
+  React-rendererconsistency: c766ce7261ab6ed6be7bc155c403e29436d4f156
   React-rendererdebug: 1f619b295f346242842f3accee23e8394b995d3c
   React-rncore: cafe45e14d870bbecbbf4bd89e12ef3b596e1f2d
   React-RuntimeApple: 7f27fb75a37e00a8e1efaa6e8f7a5b653871fb1b

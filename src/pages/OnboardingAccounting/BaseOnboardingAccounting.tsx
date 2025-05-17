@@ -29,7 +29,7 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/acti
 import getPlatform from '@libs/getPlatform';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
@@ -90,7 +90,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             setRootStatusBarEnabled(false);
             return;
         }
-        SequentialQueue.waitForIdle().then(() => {
+        waitForIdle().then(() => {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
         });
     }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
