@@ -97,7 +97,7 @@ export type {default as ValidateTwoFactorAuthParams} from './ValidateTwoFactorAu
 export type {default as DisableTwoFactorAuthParams} from './DisableTwoFactorAuthParams';
 export type {default as VerifyIdentityForBankAccountParams} from './VerifyIdentityForBankAccountParams';
 export type {default as AnswerQuestionsForWalletParams} from './AnswerQuestionsForWalletParams';
-export type {default as AddCommentOrAttachementParams} from './AddCommentOrAttachementParams';
+export type {default as AddCommentOrAttachmentParams} from './AddCommentOrAttachmentParams';
 export type {default as ReadNewestActionParams} from './ReadNewestActionParams';
 export type {default as MarkAsUnreadParams} from './MarkAsUnreadParams';
 export type {default as TogglePinnedChatParams} from './TogglePinnedChatParams';
@@ -142,6 +142,7 @@ export type {default as OpenPolicyCategoriesPageParams} from './OpenPolicyCatego
 export type {default as OpenPolicyTagsPageParams} from './OpenPolicyTagsPageParams';
 export type {default as OpenDraftWorkspaceRequestParams} from './OpenDraftWorkspaceRequestParams';
 export type {default as CreateWorkspaceFromIOUPaymentParams} from './CreateWorkspaceFromIOUPaymentParams';
+export type {default as UpdatePolicyMembersCustomFieldsParams} from './UpdatePolicyMembersCustomFieldsParams';
 export type {default as CreateTaskParams} from './CreateTaskParams';
 export type {default as CancelTaskParams} from './CancelTaskParams';
 export type {default as EditTaskAssigneeParams} from './EditTaskAssigneeParams';
@@ -187,7 +188,7 @@ export type {default as SetWorkspaceReimbursementParams} from './SetWorkspaceRei
 export type {default as SetWorkspaceDefaultSpendCategoryParams} from './SetWorkspaceDefaultSpendCategoryParams';
 export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
 export type {default as SetPolicyTagsRequired} from './SetPolicyTagsRequired';
-export type {default as RenamePolicyTaglistParams} from './RenamePolicyTaglistParams';
+export type {default as RenamePolicyTagListParams} from './RenamePolicyTagListParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
 export type {default as TrackExpenseParams} from './TrackExpenseParams';
 export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';
@@ -299,7 +300,6 @@ export type {default as SetPolicyPreventMemberCreatedTitleParams} from './SetPol
 export type {default as SetPolicyAutoReimbursementLimitParams} from './SetPolicyAutoReimbursementLimit';
 export type {default as EnablePolicyAutoReimbursementLimitParams} from './EnablePolicyAutoReimbursementLimit';
 export type {default as EnablePolicyAutoApprovalOptionsParams} from './EnablePolicyAutoApprovalOptions';
-export type {default as EnablePolicyDefaultReportTitleParams} from './EnablePolicyDefaultReportTitle';
 export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExpenseMaxAmountNoReceipt';
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
@@ -389,8 +389,10 @@ export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './Chan
 export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';
 export type {default as SendRecapInAdminsRoomParams} from './SendRecapInAdminsRoomParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
+export type {default as CreateDigitalWalletParams} from './CreateDigitalWalletParams';
 export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuideCallAvailabilitySchedule';
 export type {default as GetEmphemeralTokenParams} from './GetEmphemeralTokenParams';
-export type {default as CreateAppleDigitalWalletParams} from './CreateAppleDigitalWalletParams';
 export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
+export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
+export type {default as ReopenReportParams} from './ReopenReportParams';

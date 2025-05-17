@@ -46,8 +46,32 @@ describe('getSecondaryAction', () => {
         const report = {} as unknown as Report;
         const policy = {} as unknown as Policy;
 
-        const result = [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
+        const result = [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV, CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
         expect(getSecondaryReportActions(report, [], {}, policy)).toEqual(result);
+    });
+
+    it('includes ADD_EXPENSE option for empty report', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+        } as unknown as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+        } as unknown as Transaction;
+
+        const result = getSecondaryReportActions(report, [transaction], {}, policy, undefined, undefined, undefined, true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
     });
 
     it('includes SUBMIT option', async () => {
@@ -57,6 +81,7 @@ describe('getSecondaryAction', () => {
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
         } as unknown as Report;
         const policy = {
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
@@ -434,7 +459,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
-    it('includes CHANGE_WORKSPACE option for opened expense report submitter', async () => {
+    it('includes CHANGE_WORKSPACE option for open expense report submitter', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -454,6 +479,7 @@ describe('getSecondaryAction', () => {
             role: CONST.POLICY.ROLE.ADMIN,
             employeeList: {
                 [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
             },
         } as unknown as Policy;
 
@@ -575,6 +601,16 @@ describe('getSecondaryAction', () => {
     });
 
     it('includes CHANGE_WORKSPACE option for admin', async () => {
+        const policy = {
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {
+                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+                [EMPLOYEE_EMAIL]: {login: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+            },
+        } as unknown as Policy;
+
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -582,21 +618,13 @@ describe('getSecondaryAction', () => {
             managerID: MANAGER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            policyID: policy.id,
         } as unknown as Report;
 
         const personalDetails = {
             [EMPLOYEE_ACCOUNT_ID]: {login: EMPLOYEE_EMAIL},
             [ADMIN_ACCOUNT_ID]: {login: ADMIN_EMAIL},
         };
-
-        const policy = {
-            id: POLICY_ID,
-            type: CONST.POLICY.TYPE.TEAM,
-            role: CONST.POLICY.ROLE.ADMIN,
-            employeeList: {
-                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
-            },
-        } as unknown as Policy;
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);

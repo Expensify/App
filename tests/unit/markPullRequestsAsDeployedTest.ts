@@ -140,7 +140,7 @@ beforeAll(() => {
     GithubUtils.internalOctokit = moctokit as unknown as InternalOctokit;
 
     // Mock GitUtils
-    GitUtils.getPullRequestsDeployedBetween = jest.fn();
+    GitUtils.getPullRequestsMergedBetween = jest.fn();
 
     jest.mock('../../.github/libs/ActionUtils', () => ({
         getJSONInput: jest.fn().mockImplementation((name: string, defaultValue: string) => {
