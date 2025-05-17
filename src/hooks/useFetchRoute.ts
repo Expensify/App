@@ -1,8 +1,8 @@
 import {deepEqual} from 'fast-equals';
 import {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {getRoute} from '@libs/actions/Transaction';
 import {getValidWaypoints, hasRoute as hasRouteTransactionUtils, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
-import * as TransactionAction from '@userActions/Transaction';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
@@ -33,7 +33,7 @@ export default function useFetchRoute(
             return;
         }
 
-        TransactionAction.getRoute(transaction.transactionID, validatedWaypoints, transactionState);
+        getRoute(transaction.transactionID, validatedWaypoints, transactionState);
     }, [shouldFetchRoute, transaction?.transactionID, validatedWaypoints, isOffline, action, transactionState]);
 
     return {shouldFetchRoute, validatedWaypoints};
