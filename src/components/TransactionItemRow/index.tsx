@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
@@ -31,6 +31,7 @@ function TransactionItemRow({
     dateColumnSize,
     onCheckboxPress,
     shouldShowCheckbox = false,
+    scrollToNewTransaction,
 }: {
     transactionItem: TransactionWithOptionalHighlight;
     shouldUseNarrowLayout: boolean;
@@ -39,10 +40,12 @@ function TransactionItemRow({
     dateColumnSize: TableColumnSize;
     onCheckboxPress: (transactionID: string) => void;
     shouldShowCheckbox: boolean;
+    scrollToNewTransaction?: ((offset: number) => void) | undefined;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+    const viewRef = useRef<View>(null);
 
     const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
@@ -70,11 +73,21 @@ function TransactionItemRow({
     const merchantName = getMerchant(transactionItem);
     const isMerchantEmpty = isPartialMerchant(merchantName);
 
+    useEffect(() => {
+        if (!transactionItem.shouldBeHighlighted || !scrollToNewTransaction) {
+            return;
+        }
+        viewRef?.current?.measure((x, y, width, height, pageX, pageY) => {
+            scrollToNewTransaction?.(pageY);
+        });
+    }, [scrollToNewTransaction, transactionItem.shouldBeHighlighted]);
+
     return (
         <View
             style={[styles.flex1]}
             onMouseLeave={bindHover.onMouseLeave}
             onMouseEnter={bindHover.onMouseEnter}
+            ref={viewRef}
         >
             {shouldUseNarrowLayout ? (
                 <Animated.View style={[animatedHighlightStyle]}>
