@@ -37,6 +37,7 @@ import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
+import convertHeicImage from '@libs/fileDownload/heicConverter';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
@@ -538,7 +539,7 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
+    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean, conversionAttempted = false) => {
         validateReceipt(originalFile, setUploadReceiptError).then((isFileValid) => {
             if (!isFileValid) {
                 return;
@@ -547,6 +548,22 @@ function IOURequestStepScan({
             // If we have a pdf file and if it is not validated then set the pdf file for validation and return
             if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
                 setPdfFile(originalFile);
+                return;
+            }
+
+            // Check if the file is HEIC/HEIF and needs conversion (only if not already attempted)
+            if (
+                !conversionAttempted &&
+                originalFile?.type?.startsWith('image') &&
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                (originalFile.name?.toLowerCase().endsWith('.heic') || originalFile.name?.toLowerCase().endsWith('.heif'))
+            ) {
+                convertHeicImage(originalFile, {
+                    onStart: () => setIsLoadingReceipt(true),
+                    onSuccess: (convertedFile) => setReceiptAndNavigate(convertedFile, isPdfValidated, false),
+                    onError: (_, nonConvertedFile) => setReceiptAndNavigate(nonConvertedFile, isPdfValidated, true),
+                    onFinish: () => setIsLoadingReceipt(false),
+                });
                 return;
             }
 

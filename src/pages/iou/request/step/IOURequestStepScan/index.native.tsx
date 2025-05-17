@@ -34,6 +34,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
+import convertHeicImage from '@libs/fileDownload/heicConverter';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
@@ -547,7 +548,7 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
+    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean, conversionAttempted = false) => {
         if (!validateReceipt(originalFile)) {
             return;
         }
@@ -555,6 +556,22 @@ function IOURequestStepScan({
         // If we have a pdf file and if it is not validated then set the pdf file for validation and return
         if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
             setPdfFile(originalFile);
+            return;
+        }
+
+        // Check if the file is HEIC/HEIF and needs conversion (only if not already attempted)
+        if (
+            !conversionAttempted &&
+            originalFile?.type?.startsWith('image') &&
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            (originalFile.name?.toLowerCase().endsWith('.heic') || originalFile.name?.toLowerCase().endsWith('.heif'))
+        ) {
+            convertHeicImage(originalFile, {
+                onStart: () => setIsLoaderVisible(true),
+                onSuccess: (convertedFile) => setReceiptAndNavigate(convertedFile, isPdfValidated, false),
+                onError: (_, nonConvertedFile) => setReceiptAndNavigate(nonConvertedFile, isPdfValidated, true),
+                onFinish: () => setIsLoaderVisible(false),
+            });
             return;
         }
 
