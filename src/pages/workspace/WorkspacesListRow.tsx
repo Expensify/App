@@ -219,7 +219,7 @@ function WorkspacesListRow({
     return (
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.p5]}>
             <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex1, isNarrow && styles.mb3, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex4, isNarrow && styles.mb3, styles.alignItemsCenter]}>
                     <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
                         <Avatar
                             imageStyles={[styles.alignSelfCenter]}
@@ -230,12 +230,14 @@ function WorkspacesListRow({
                             name={title}
                             type={CONST.ICON_TYPE_WORKSPACE}
                         />
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
-                        >
-                            {title}
-                        </Text>
+                        <Tooltip text={title}>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                            >
+                                {title}
+                            </Text>
+                        </Tooltip>
                     </View>
                     {shouldUseNarrowLayout && ThreeDotMenuOrPendingIcon}
                 </View>
