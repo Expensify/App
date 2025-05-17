@@ -55,6 +55,15 @@ Onyx.connect({
     },
 });
 
+let allTransactionDrafts: OnyxCollection<Transaction> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allTransactionDrafts = value ?? {};
+    },
+});
+
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -577,6 +586,13 @@ function getAllTransactions() {
     return Object.keys(allTransactions ?? {}).length;
 }
 
+/**
+ * Returns a client generated 16 character hexadecimal value for the transactionID
+ */
+function generateTransactionID(): string {
+    return NumberUtils.generateHexadecimalValue(16);
+}
+
 function setTransactionReport(transactionID: string, reportID: string, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reportID});
 }
@@ -845,6 +861,10 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     });
 }
 
+function getDraftTransactions(): Transaction[] {
+    return Object.values(allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
+}
+
 export {
     saveWaypoint,
     removeWaypoint,
@@ -853,6 +873,8 @@ export {
     clearError,
     markAsCash,
     dismissDuplicateTransactionViolation,
+    getDraftTransactions,
+    generateTransactionID,
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
