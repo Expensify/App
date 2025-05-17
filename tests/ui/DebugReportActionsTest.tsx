@@ -25,8 +25,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
-jest.mock('@components/ConfirmedRoute.tsx');
-
 describe('DebugReportActions', () => {
     beforeAll(() => {
         Onyx.init({

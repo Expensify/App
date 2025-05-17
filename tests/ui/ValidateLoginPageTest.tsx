@@ -9,8 +9,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
-jest.mock('@components/ConfirmedRoute.tsx');
-
 const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
 
 const renderPage = (initialParams: PublicScreensParamList[typeof SCREENS.VALIDATE_LOGIN]) => {
