@@ -26,6 +26,7 @@ const story: Meta<typeof TransactionItemRow> = {
         shouldUseNarrowLayout: false,
         isSelected: false,
         shouldShowTooltip: true,
+        shouldShowCheckbox: true,
     },
     argTypes: {
         transactionItem: {
@@ -62,12 +63,11 @@ function Template(
                     <TransactionItemRow
                         transactionItem={transactionItem}
                         shouldUseNarrowLayout={shouldUseNarrowLayout}
-                        shouldShowCheckbox={shouldShowCheckbox}
                         isSelected={isSelected}
                         shouldShowTooltip={shouldShowTooltip}
-                        shouldShowChatBubbleComponent
                         dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         onCheckboxPress={() => {}}
+                        shouldShowCheckbox={shouldShowCheckbox}
                     />
                 </ThemeStylesProvider>
             </ScreenWrapper>

@@ -60,7 +60,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {canBeMissing: true});
     const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT, {canBeMissing: true});
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN, {canBeMissing: true});
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
@@ -111,8 +110,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     /** Returns true if user passed first step of flow for non USD VBBA */
     const hasInProgressNonUSDVBBA = useCallback((): boolean => {
-        return (!!achData?.bankAccountID && !!achData?.created) || (policyCurrency === CONST.CURRENCY.EUR && nonUSDCountryDraftValue !== '');
-    }, [achData?.bankAccountID, achData?.created, nonUSDCountryDraftValue, policyCurrency]);
+        return (!!achData?.bankAccountID && !!achData?.created) || nonUSDCountryDraftValue !== '';
+    }, [achData?.bankAccountID, achData?.created, nonUSDCountryDraftValue]);
 
     /** Returns true if VBBA flow is in progress */
     const shouldShowContinueSetupButtonValue = useMemo(() => {
@@ -245,8 +244,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     const continueNonUSDVBBASetup = () => {
         setShouldShowContinueSetupButton(false);
-        if (policyCurrency === CONST.CURRENCY.EUR && nonUSDCountryDraftValue !== '' && achData?.created === undefined) {
-            setNonUSDBankAccountStep(corpayFields !== undefined ? CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO : CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+        if (nonUSDCountryDraftValue !== '' && achData?.created === undefined) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO);
             return;
         }
 

@@ -19,7 +19,7 @@ index 32287a7..5607be3 100644
 +
 +def patchedVersion = System.getenv("PATCHED_VERSION")
 +def isHybridBuild = System.getenv("IS_HYBRID_BUILD")?.toBoolean()
-+def publishingGroupId = isHybridBuild ? "com.expensify.react-standalone" : "com.expensify.react-hybrid"
++def publishingGroupId = isHybridBuild ? "com.expensify.react-hybrid" : "com.expensify.react-standalone"
  
  publishing {
      publications {
@@ -45,7 +45,7 @@ index 32287a7..5607be3 100644
                  url = "https://github.com/facebook/react-native"
  
 +                properties = [
-+                    "commitHash": System.getenv("COMMIT_HASH"),
++                    "patchesHash": System.getenv("PATCHES_HASH"),
 +                ]
 +
                  developers {
