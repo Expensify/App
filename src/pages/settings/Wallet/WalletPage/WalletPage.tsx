@@ -320,28 +320,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         openWalletPage();
     }, [network.isOffline]);
 
-    // useLayoutEffect(() => {
-    //     if (!shouldListenForResize) {
-    //         return;
-    //     }
-    //     const popoverPositionListener = Dimensions.addEventListener('change', () => {
-    //         if (!shouldShowAddPaymentMenu && !shouldShowDefaultDeleteMenu && !shouldShowCardMenu) {
-    //             return;
-    //         }
-    //         if (shouldShowAddPaymentMenu) {
-    //             debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
-    //             return;
-    //         }
-    //         setMenuPosition();
-    //     });
-    //     return () => {
-    //         if (!popoverPositionListener) {
-    //             return;
-    //         }
-    //         popoverPositionListener.remove();
-    //     };
-    // }, [shouldShowAddPaymentMenu, shouldShowDefaultDeleteMenu, shouldShowCardMenu, setMenuPosition, shouldListenForResize]);
-
     useEffect(() => {
         if (!shouldShowDefaultDeleteMenu) {
             return;
