@@ -1417,7 +1417,7 @@ const CONST = {
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
-            INVITE_TO_SUBMIT_EXPENSES: 'inviteToSubmitExpense',
+            INVITE_TO_SUBMIT_EXPENSE: 'inviteToSubmitExpense',
             NOTHING: 'nothing',
         },
         ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSES_CONFIRM_WHISPER: {

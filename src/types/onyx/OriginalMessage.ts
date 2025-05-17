@@ -116,6 +116,9 @@ type OriginalMessageAddComment = {
 /** Model of `actionable mention whisper` report action */
 type OriginalMessageActionableMentionWhisper = {
     /** Account IDs of users that aren't members of the room  */
+    inviteeEmails: string[];
+
+    /** Account IDs of users that aren't members of the room  */
     inviteeAccountIDs: number[];
 
     /** Decision on whether to invite users that were mentioned but aren't members or do nothing */
