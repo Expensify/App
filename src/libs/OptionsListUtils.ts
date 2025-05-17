@@ -836,6 +836,11 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));
     }
 
+    // If the last report action is a pending moderation action, get the last message text from the last visible report action
+    if (reportID && !lastMessageTextFromReport && isPendingRemove(lastOriginalReportAction)) {
+        lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
+    }
+
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
