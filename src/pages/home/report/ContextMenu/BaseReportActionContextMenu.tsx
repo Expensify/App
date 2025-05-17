@@ -20,7 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import {getExpensifyCardFromReportAction} from '@libs/CardMessageUtils';
-import {getLinkedTransactionID, getOneTransactionThreadReportID, getReportAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getOneTransactionThreadReportID, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     getSourceIDFromReportAction,
@@ -163,7 +163,7 @@ function BaseReportActionContextMenu({
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {canBeMissing: true});
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`, {canBeMissing: true});
-    const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
+
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
 
     const transactionThreadReportID = useMemo(
@@ -183,10 +183,10 @@ function BaseReportActionContextMenu({
             }
             return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
         }
-        return parentReportAction;
-    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID]);
+        return reportAction;
+    }, [reportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID]);
 
-    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : reportAction;
 
     const [childReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.reportID}`, {canBeMissing: true});
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${childReport?.parentReportID}`, {canBeMissing: true});
@@ -195,7 +195,8 @@ function BaseReportActionContextMenu({
     const isMoneyRequest = useMemo(() => ReportUtilsIsMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtilsIsTrackExpenseReport(childReport);
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
-    const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
+    const isParentActionOfRequest = isTransactionThread(reportAction) && !isSentMoneyReportAction(reportAction);
+    const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView || isParentActionOfRequest;
 
     const areHoldRequirementsMet =
         !isInvoiceReport &&
