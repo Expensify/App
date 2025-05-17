@@ -9,6 +9,7 @@ import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+import { isMessageDeleted } from '../../src/libs/ReportActionsUtils';
 
 jest.mock('@components/ConfirmedRoute.tsx');
 
@@ -696,6 +697,108 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('isMessageDeleted', () => {
+        it('should return true if there is property deleted inside message', () => {
+            const reportAction = {
+                created: '2025-05-12 17:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: []
+                },
+                message: [
+                    {
+                        html: 'Hello world',
+                        deleted: '2025-05-12 17:37:01.825',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        text: ''
+                    },
+                ],
+            };
+            expect(isMessageDeleted(reportAction)).toBeTruthy();
+        })
+        it('should return true if there is property isDeletedParentAction inside message', () => {
+            const reportAction = {
+                created: '2025-05-12 17:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: []
+                },
+                message: [
+                    {
+                        html: 'Hello world',
+                        isDeletedParentAction: true,
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        text: ''
+                    },
+                ],
+            };
+            expect(isMessageDeleted(reportAction)).toBeTruthy();
+        })
+        it('should return true if there is property deleted inside original message', () => {
+            const reportAction = {
+                created: '2025-05-12 17:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                    deleted: '2025-05-12 17:37:01.825'
+                },
+                message: [
+                    {
+                        html: 'Hello world',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        text: ''
+                    },
+                ],
+            };
+            expect(isMessageDeleted(reportAction)).toBeTruthy();
+        })
+        it('should return true if there is property isDeletedParentAction inside original message', () => {
+            const reportAction = {
+                created: '2025-05-12 17:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                    isDeletedParentAction: true
+                },
+                message: [
+                    {
+                        html: 'Hello world',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        text: ''
+                    },
+                ],
+            };
+            expect(isMessageDeleted(reportAction)).toBeTruthy();
+        })
+        it('should return false if there are no deletion properties in message and originalMessage', () => {
+            const reportAction = {
+                created: '2025-05-12 17:27:01.825',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: []
+                },
+                message: [
+                    {
+                        html: 'Hello world',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        text: ''
+                    },
+                ],
+            };
+            expect(isMessageDeleted(reportAction)).toBeFalsy();
+        })
+    })
+
     describe('getReportActionMessageFragments', () => {
         it('should return the correct fragment for the REIMBURSED action', () => {
             const action = {
@@ -733,6 +836,22 @@ describe('ReportActionsUtils', () => {
             const expectedMessage = ReportActionsUtils.getReportActionMessageText(action);
             const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
+        });
+        it('should return the correct fragment for the deleted message', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                created: '1',
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        text: '',
+                        deleted: '2025-05-12 17:27:01.825'
+                    }
+                ],
+            };
+            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
+            expect(expectedFragments).toEqual([{text: '', type: CONST.REPORT.MESSAGE.TYPE.COMMENT, isDeletedParentAction: true, deleted: '2025-05-12 17:27:01.825'}]);
         });
     });
 
