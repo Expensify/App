@@ -29,9 +29,9 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
-import getPlatform from '@libs/getPlatform';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
@@ -192,8 +192,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         return [...integrations.map(createAccountingOption), othersAccountingOption, noneAccountingOption];
     }, [StyleUtils, styles.mr3, styles.onboardingSmallIcon, theme.icon, translate, userReportedIntegration]);
 
-    const supportedIntegrationsInNewDot = useMemo(() => ['quickbooksOnline', 'quickbooksDesktop', 'xero', 'netsuite', 'intacct', 'other'] as OnboardingAccounting[], []);
-
     const handleContinue = useCallback(() => {
         if (userReportedIntegration === undefined) {
             setError(translate('onboarding.errorSelection'));
@@ -226,9 +224,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             userReportedIntegration,
         });
 
-        const isSupportedIntegration = supportedIntegrationsInNewDot.includes(userReportedIntegration) || userReportedIntegration === null;
-        const shouldRedirectToOldDot = getPlatform() !== CONST.PLATFORM.DESKTOP && (!isSupportedIntegration || onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO);
-        if (shouldRedirectToOldDot) {
+        if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, userReportedIntegration)) {
             if (CONFIG.IS_HYBRID_APP) {
                 return;
             }
@@ -265,7 +261,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         onboardingPurposeSelected,
         paidGroupPolicy,
         session?.email,
-        supportedIntegrationsInNewDot,
         translate,
         userReportedIntegration,
     ]);
@@ -343,7 +338,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     text={translate('common.continue')}
                     onPress={handleContinue}
                     isLoading={isLoading}
-                    isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP}
+                    isDisabled={isOffline && shouldOnboardingRedirectToOldDot(onboardingCompanySize, userReportedIntegration)}
                     pressOnEnter
                 />
             </FixedFooter>
