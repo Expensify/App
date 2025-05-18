@@ -86,6 +86,7 @@ import {
     isUnapprovedAction,
     isWhisperAction,
     shouldReportActionBeVisible,
+    isMovedTransactionAction,
 } from './ReportActionsUtils';
 import {
     canUserPerformWriteAction,
@@ -139,6 +140,7 @@ import {
     shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
+    getMovedTransactionMessage,
 } from './ReportUtils';
 import type {OptionData} from './ReportUtils';
 import StringUtils from './StringUtils';
