@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useMemo, useRef} from 'react';
+import {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getNewerActions, getOlderActions} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -32,9 +32,6 @@ type UseLoadReportActionsArguments = {
  * Used in the report displaying components
  */
 function useLoadReportActions({reportID, reportActions, allReportActionIDs, transactionThreadReport, hasOlderActions, hasNewerActions}: UseLoadReportActionsArguments) {
-    const didLoadOlderChats = useRef(false);
-    const didLoadNewerChats = useRef(false);
-
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
 
@@ -64,8 +61,6 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                 return;
             }
 
-            didLoadOlderChats.current = true;
-
             if (!isEmptyObject(transactionThreadReport)) {
                 // Get older actions based on the oldest reportAction for the current report
                 const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
@@ -92,13 +87,10 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                     isOffline ||
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
-                    didLoadNewerChats.current ||
                     newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             ) {
                 return;
             }
-
-            didLoadNewerChats.current = true;
 
             // If this is a one transaction report, ensure we load newer actions for both this report and the report associated with the transaction
             if (!isEmptyObject(transactionThreadReport)) {
