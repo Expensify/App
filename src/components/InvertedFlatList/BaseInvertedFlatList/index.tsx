@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
@@ -41,6 +42,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         renderItem,
         keyExtractor = defaultKeyExtractor,
         onInitiallyLoaded,
+        onContentSizeChange,
         initialNumToRender = 10,
         ...rest
     } = props;
@@ -73,9 +75,6 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
     const listRef = useRef<(RNFlatList & HTMLElement) | null>(null);
 
-    const isMessageOnFirstPage = currentDataIndex > Math.max(0, data.length - initialNumToRender);
-    const [shouldScrollInitially, setShouldScrollInitially] = useState(isMessageOnFirstPage);
-
     // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
     const renderQueue = useMemo(() => new RenderTaskQueue(), []);
     useEffect(() => {
@@ -83,6 +82,34 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
             renderQueue.cancel();
         };
     }, [renderQueue]);
+
+    // If the unread message is on the first page, scroll to the end once the content is measured and the data is loaded
+    const isMessageOnFirstPage = useRef(currentDataIndex > Math.max(0, data.length - initialNumToRender));
+    const didScroll = useRef(false);
+    const [hasInitialContentBeenRendered, setHasInitialContentBeenRendered] = useState(false);
+
+    const handleContentSizeChange = useCallback(
+        (contentWidth: number, contentHeight: number) => {
+            onContentSizeChange?.(contentWidth, contentHeight);
+            setHasInitialContentBeenRendered(true);
+        },
+        [onContentSizeChange],
+    );
+
+    useEffect(() => {
+        if (didScroll.current || !isMessageOnFirstPage.current || !hasInitialContentBeenRendered) {
+            return;
+        }
+
+        listRef.current?.scrollToIndex({animated: false, index: displayedData.length - initialNegativeScrollIndex.current});
+
+        // We need to wait for a few milliseconds until the scrolling is done,
+        // before we start rendering additional items in the list.
+        setTimeout(() => {
+            didScroll.current = true;
+            renderQueue.start();
+        }, INITIAL_SCROLL_DELAY);
+    }, [currentDataIndex, data.length, displayedData.length, hasInitialContentBeenRendered, initialNumToRender, isInitialData, isMessageOnFirstPage, onInitiallyLoaded, renderQueue]);
 
     const isLoadingData = data.length > displayedData.length;
     const wasLoadingData = usePrevious(isLoadingData);
@@ -105,9 +132,10 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
     const handleStartReached = useCallback(
         (info: RenderInfo) => {
-            renderQueue.add(info, !shouldScrollInitially);
+            const startRendering = didScroll.current || !isMessageOnFirstPage.current;
+            renderQueue.add(info, startRendering);
         },
-        [shouldScrollInitially, renderQueue],
+        [renderQueue],
     );
 
     const handleRenderItem = useCallback(
@@ -130,19 +158,6 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
         return config;
     }, [data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
-
-    useEffect(() => {
-        if (!shouldScrollInitially) {
-            return;
-        }
-
-        // Scroll to the end once the content is measured and the data is loaded
-        setTimeout(() => {
-            listRef.current?.scrollToIndex({animated: false, index: displayedData.length - initialNegativeScrollIndex.current});
-            setShouldScrollInitially(false);
-            renderQueue.start();
-        }, INITIAL_SCROLL_DELAY);
-    }, [displayedData.length, shouldScrollInitially, isInitialData, onInitiallyLoaded, renderQueue]);
 
     useImperativeHandle(ref, () => {
         // If we're trying to scroll at the start of the list we need to make sure to
@@ -198,6 +213,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
             data={displayedData}
             initialNumToRender={initialNumToRender}
             onStartReached={handleStartReached}
+            onContentSizeChange={handleContentSizeChange}
             renderItem={handleRenderItem}
             keyExtractor={keyExtractor}
         />
