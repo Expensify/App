@@ -136,7 +136,7 @@ jest.mock(
             private onEndReached: (() => void) | undefined = undefined;
 
             add(info: unknown) {
-                this.handler(info);
+                this.handler?.(info);
             }
 
             start() {}
