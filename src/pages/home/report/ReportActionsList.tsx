@@ -99,6 +99,9 @@ type ReportActionsListProps = {
     /** Function to load newer chats */
     loadNewerChats: (force?: boolean) => void;
 
+    /** Whether the report has newer actions to load */
+    hasNewerActions: boolean;
+
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
 
@@ -142,6 +145,7 @@ function ReportActionsList({
     mostRecentIOUReportActionID = '',
     loadNewerChats,
     loadOlderChats,
+    hasNewerActions,
     onLayout,
     isComposerFullSize,
     listID,
@@ -343,6 +347,7 @@ function ReportActionsList({
         readActionSkippedRef: readActionSkipped,
         hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
         onTrackScrolling: trackScrolling,
+        hasNewerActions,
     });
 
     useEffect(() => {
@@ -381,22 +386,21 @@ function ReportActionsList({
             return;
         }
 
-        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction) && isListInitiallyLoaded)) {
+        if (isListInitiallyLoaded && (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction)))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && isScrolledToStart) {
+            if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToStart) {
                 readNewestAction(report.reportID);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
                 }
-            } else {
-                readActionSkipped.current = true;
+                return;
             }
-        } else {
-            readActionSkipped.current = true;
         }
+
+        readActionSkipped.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, isScrolledToStart, isListInitiallyLoaded]);
 
@@ -555,7 +559,7 @@ function ReportActionsList({
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
     useEffect(() => {
-        if (report.reportID !== prevReportID) {
+        if (report.reportID !== prevReportID || !isListInitiallyLoaded) {
             return;
         }
 

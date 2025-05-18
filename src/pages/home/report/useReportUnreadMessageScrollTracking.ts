@@ -20,6 +20,9 @@ type Args = {
     /** Whether the unread marker is displayed for any report action */
     hasUnreadMarkerReportAction: boolean;
 
+    /** Whether the report has newer actions to load */
+    hasNewerActions: boolean;
+
     /** Callback to call on every scroll event */
     onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
@@ -29,6 +32,7 @@ export default function useReportUnreadMessageScrollTracking({
     currentVerticalScrollingOffsetRef,
     floatingMessageVisibleInitialValue,
     hasUnreadMarkerReportAction,
+    hasNewerActions,
     readActionSkippedRef,
     onTrackScrolling,
 }: Args) {
@@ -49,7 +53,7 @@ export default function useReportUnreadMessageScrollTracking({
 
         // hide floating button if we're scrolled closer than the offset and mark message as read
         if (currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
-            if (readActionSkippedRef.current) {
+            if (readActionSkippedRef.current && !hasNewerActions) {
                 // eslint-disable-next-line react-compiler/react-compiler,no-param-reassign
                 readActionSkippedRef.current = false;
                 readNewestAction(reportID);
