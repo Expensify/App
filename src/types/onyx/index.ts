@@ -13,7 +13,7 @@ import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
-import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
+import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
@@ -134,6 +134,7 @@ export type {
     Card,
     CardList,
     CardOnWaitlist,
+    ProvisioningCardData,
     Credentials,
     CorpayOnboardingFields,
     Currency,

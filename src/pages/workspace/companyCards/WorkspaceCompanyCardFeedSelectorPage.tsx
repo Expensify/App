@@ -13,7 +13,15 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {checkIfFeedConnectionIsBroken, filterInactiveCards, getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, getSelectedFeed} from '@libs/CardUtils';
+import {
+    checkIfFeedConnectionIsBroken,
+    filterInactiveCards,
+    getCardFeedIcon,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    getDomainOrWorkspaceAccountID,
+    getSelectedFeed,
+} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isCollectPolicy} from '@libs/PolicyUtils';
@@ -50,8 +58,11 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const isCollect = isCollectPolicy(policy);
 
-    const feeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((feed) => {
-        const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`]);
+    const feeds: CardFeedListItem[] = Object.entries(companyFeeds).map(([key, feedSettings]) => {
+        const feed = key as CompanyCardFeed;
+        const filteredFeedCards = filterInactiveCards(
+            allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getDomainOrWorkspaceAccountID(workspaceAccountID, feedSettings)}_${feed}`],
+        );
         const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
         return {
             value: feed,
