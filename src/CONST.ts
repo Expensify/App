@@ -123,6 +123,13 @@ const testDriveTask: OnboardingTask = {
     title: ({testDriveURL}) => getTestDriveTaskName(testDriveURL),
     description: ({testDriveURL}) => `[Take a quick product tour](${testDriveURL}) to see why Expensify is the fastest way to do your expenses.`,
 };
+const createTestDriveAdminWorkspaceTask: OnboardingTask = {
+    type: 'createWorkspace',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: ({workspaceConfirmationLink}) => `[Create](${workspaceConfirmationLink}) a workspace`,
+    description: 'Create a workspace and configure the settings with the help of your setup specialist!',
+};
 
 const createWorkspaceTask: OnboardingTask = {
     type: 'createWorkspace',
@@ -292,6 +299,7 @@ type OnboardingTaskLinks = Partial<{
     workspaceMoreFeaturesLink: string;
     workspaceMembersLink: string;
     workspaceAccountingLink: string;
+    workspaceConfirmationLink: string;
     navatticURL: string;
     testDriveURL: string;
     corporateCardLink: string;
@@ -5649,7 +5657,7 @@ const CONST = {
         },
         [onboardingChoices.TEST_DRIVE_RECEIVER]: {
             message: "*You've got 3 months free! Get started below.*",
-            tasks: [testDriveTask, createWorkspaceTask],
+            tasks: [testDriveTask, createTestDriveAdminWorkspaceTask],
         },
     } satisfies Record<OnboardingPurpose, OnboardingMessage>,
 
