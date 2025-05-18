@@ -186,4 +186,5 @@ export type {
     SearchParams,
     TableColumnSize,
     SearchGroupBy,
+    SelectedReports,
 };
