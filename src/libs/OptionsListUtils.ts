@@ -80,6 +80,7 @@ import {
     isUnapprovedAction,
     isWhisperAction,
     shouldReportActionBeVisible,
+    isMovedTransactionAction,
 } from './ReportActionsUtils';
 import {
     canUserPerformWriteAction,
@@ -139,6 +140,7 @@ import {
     shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
+    getMovedTransactionMessage,
 } from './ReportUtils';
 import type {OptionData} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -767,6 +769,8 @@ function getLastMessageTextForReport(
     } else if (isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
+    } else if (isMovedTransactionAction(lastReportAction)) {
+        lastMessageTextFromReport = getMovedTransactionMessage(lastReportAction);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
