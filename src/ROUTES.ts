@@ -2536,9 +2536,9 @@ const ROUTES = {
         route: 'r/:reportID/schedule-call/book',
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/book` as const,
     },
-    SCHEDULE_CALL_CONFIRMATON: {
-        route: 'r/:reportID/schedule-call/confimation',
-        getRoute: (reportID: string) => `r/${reportID}/schedule-call/confimation` as const,
+    SCHEDULE_CALL_CONFIRMATION: {
+        route: 'r/:reportID/schedule-call/confirmation',
+        getRoute: (reportID: string) => `r/${reportID}/schedule-call/confirmation` as const,
     },
 } as const;
 
