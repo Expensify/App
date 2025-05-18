@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -37,7 +37,7 @@ type SubscriptAvatarProps = {
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Background color used for subscript avatar border */
-    backgroundColor?: string;
+    backgroundColor?: ColorValue;
 
     /** Subscript icon */
     subscriptIcon?: SubIcon;
