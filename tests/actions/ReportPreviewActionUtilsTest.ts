@@ -41,7 +41,7 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
-    isPrefferedExporter: jest.fn().mockReturnValue(true),
+    isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
 }));
 
