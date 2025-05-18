@@ -5610,6 +5610,11 @@ const styles = (theme: ThemeColors) =>
             ...display.dFlex,
         },
 
+        tripEmptyStateLottieWebView: {
+            width: 335,
+            height: 220,
+        },
+
         workflowApprovalVerticalLine: {
             height: 16,
             width: 1,
