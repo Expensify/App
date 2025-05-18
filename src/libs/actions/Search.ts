@@ -111,7 +111,7 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
 
     return {
         shouldEnablePayOption: shouldShowPayOption,
-        isFirstTimePayment: hasLastPaymentMethod,
+        isFirstTimePayment: !hasLastPaymentMethod,
     };
 }
 
