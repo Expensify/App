@@ -394,5 +394,6 @@ export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuide
 export type {default as GetEmphemeralTokenParams} from './GetEmphemeralTokenParams';
 export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
+export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';
 export type {default as VerifyTestDriveRecipientParams} from './VerifyTestDriveRecipientParams';
