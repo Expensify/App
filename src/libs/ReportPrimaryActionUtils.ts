@@ -19,6 +19,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     hasExportError as hasExportErrorUtil,
+    hasOnlyHeldExpenses,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -269,6 +270,8 @@ function getReportPrimaryAction(
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+    const isPayActionWithAllExpensesHeld = isPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID);
+
     if (isAddExpenseAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
     }
@@ -281,7 +284,7 @@ function getReportPrimaryAction(
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isRemoveHoldAction(report, reportTransactions)) {
+    if (isRemoveHoldAction(report, reportTransactions) || isPayActionWithAllExpensesHeld) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 

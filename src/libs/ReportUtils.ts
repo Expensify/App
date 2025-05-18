@@ -4268,10 +4268,6 @@ function getReportPreviewMessage(
         let actualPayerName = report.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: true});
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
-        if (isForListPreview && report?.parentReportID != null) {
-            const payerText = isDM(parentReport) && translatePhraseKey === 'iou.payerPaidAmount' ? '' : payerDisplayName;
-            return translateLocal(translatePhraseKey, {amount: formattedReimbursableAmount, payer: payerText});
-        }
 
         return translateLocal(translatePhraseKey, {amount: formattedReimbursableAmount, payer: payerDisplayName ?? ''});
     }
@@ -5973,12 +5969,18 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
         delete originalMessage.IOUReportID;
+    }
+
+    if (type !== CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         // Split expense made from a policy expense chat only have the payee's accountID as the participant because the payer could be any policy admin
-        if (isOwnPolicyExpenseChat) {
+        if (isOwnPolicyExpenseChat && type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
             originalMessage.participantAccountIDs = currentUserAccountID ? [currentUserAccountID] : [];
         } else {
             originalMessage.participantAccountIDs = currentUserAccountID
-                ? [currentUserAccountID, ...participants.map((participant) => participant.accountID ?? CONST.DEFAULT_NUMBER_ID)]
+                ? [
+                      currentUserAccountID,
+                      ...participants.filter((participant) => participant.accountID !== currentUserAccountID).map((participant) => participant.accountID ?? CONST.DEFAULT_NUMBER_ID),
+                  ]
                 : participants.map((participant) => participant.accountID ?? CONST.DEFAULT_NUMBER_ID);
         }
     }
@@ -8510,7 +8512,7 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
             ROUTES.SEARCH_REPORT.getRoute({
                 reportID: ancestor.report.reportID,
                 reportActionID: ancestor.reportAction.reportActionID,
-                backTo: SCREENS.SEARCH.REPORT_RHP,
+                backTo: Navigation.getActiveRoute(),
             }),
         );
         return;
@@ -9617,20 +9619,15 @@ function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: stri
     if (!iouReport || isEmptyObject(iouReport)) {
         return false;
     }
-    const policy = getPolicy(iouReport.policyID);
-    const shouldIncludeSubmitted = policy?.harvesting?.enabled;
-    if (
+    return (
         isExpenseReport(iouReport) &&
         iouReport?.stateNum !== undefined &&
         iouReport?.statusNum !== undefined &&
         iouReport?.policyID === policyID &&
-        (shouldIncludeSubmitted ? iouReport?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED : iouReport?.stateNum < CONST.REPORT.STATE_NUM.SUBMITTED) &&
-        (shouldIncludeSubmitted ? iouReport?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED : iouReport?.statusNum < CONST.REPORT.STATUS_NUM.SUBMITTED) &&
+        iouReport?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
+        iouReport?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED &&
         !hasForwardedAction(iouReport.reportID)
-    ) {
-        return true;
-    }
-    return false;
+    );
 }
 
 /**
