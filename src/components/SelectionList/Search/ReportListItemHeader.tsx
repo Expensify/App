@@ -188,7 +188,7 @@ function ReportListItemHeader<TItem extends ListItem>({
 
     const avatarBorderColor =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!(isFocused || isHovered), !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
+        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!(isFocused || isHovered), !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
         avatarBorderColorProp;
 
     const handleOnButtonPress = () => {
@@ -239,6 +239,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 canSelectMultiple={canSelectMultiple}
                 shouldShowAction
                 handleOnButtonPress={handleOnButtonPress}
+                avatarBorderColor={avatarBorderColor}
             />
             <View style={[styles.mr3, styles.ml3, styles.pv2]}>
                 <View style={[styles.borderBottom]} />
