@@ -63,7 +63,7 @@ function useSidePanel() {
     const {windowWidth} = useWindowDimensions();
     const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
 
-    const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
+    const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(false);
     const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, sidePanelNVP} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
