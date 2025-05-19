@@ -57,7 +57,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     useEffect(() => {
         setErrorMessage(null);
-    }, [sumOfSplitExpenses]);
+    }, [sumOfSplitExpenses, draftTransaction?.comment?.splitExpenses?.length]);
 
     const onAddSplitExpense = useCallback(() => {
         addSplitExpenseField(transaction, draftTransaction);
