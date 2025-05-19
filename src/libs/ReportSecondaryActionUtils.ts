@@ -1,6 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
@@ -324,7 +325,7 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     if (!hasAvailablePolicies && availablePolicies.length === 1) {
         hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;
     }
-    const reportPolicy = policies?.[`{ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy);
 }
 
