@@ -40,6 +40,8 @@ import {
     isArchivedNonExpenseReportWithID,
     isChatUsedForOnboarding,
     isPayer,
+    isReportOutstanding,
+    parseReportRouteParams,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
     shouldDisableThread,
@@ -909,37 +911,6 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.length).toBe(0);
                 });
             });
-
-            it("it is a submitted report tied to user's own policy expense chat and the policy does not have Instant Submit frequency", () => {
-                const paidPolicy: Policy = {
-                    id: '3f54cca8',
-                    type: CONST.POLICY.TYPE.TEAM,
-                    name: '',
-                    role: 'user',
-                    owner: '',
-                    outputCurrency: '',
-                    isPolicyExpenseChatEnabled: false,
-                };
-                Promise.all([
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy),
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}101`, {
-                        reportID: '101',
-                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                        isOwnPolicyExpenseChat: true,
-                    }),
-                ]).then(() => {
-                    const report = {
-                        ...LHNTestUtils.getFakeReport(),
-                        type: CONST.REPORT.TYPE.EXPENSE,
-                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                        parentReportID: '101',
-                        policyID: paidPolicy.id,
-                    };
-                    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
-                    expect(moneyRequestOptions.length).toBe(0);
-                });
-            });
         });
 
         describe('return only iou split option if', () => {
@@ -1152,6 +1123,39 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.PAY)).toBe(true);
                 expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
+            });
+
+            it("it is a submitted report tied to user's own policy expense chat", () => {
+                const paidPolicy: Policy = {
+                    id: '3f54cca8',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    name: '',
+                    role: 'user',
+                    owner: '',
+                    outputCurrency: '',
+                    isPolicyExpenseChatEnabled: false,
+                };
+                Promise.all([
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${paidPolicy.id}`, paidPolicy),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}101`, {
+                        reportID: '101',
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                        isOwnPolicyExpenseChat: true,
+                    }),
+                ]).then(() => {
+                    const report = {
+                        ...LHNTestUtils.getFakeReport(),
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                        parentReportID: '101',
+                        policyID: paidPolicy.id,
+                    };
+                    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
+                    expect(moneyRequestOptions.length).toBe(2);
+                    expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
+                    expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                });
             });
 
             it("it is user's own policy expense chat", () => {
@@ -2442,6 +2446,28 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('parseReportRouteParams', () => {
+        const testReportID = '123456789';
+
+        it('should return empty reportID and isSubReportPageRoute as false if the route is not a report route', () => {
+            const result = parseReportRouteParams('/concierge');
+            expect(result.reportID).toBe('');
+            expect(result.isSubReportPageRoute).toBe(false);
+        });
+
+        it('should return isSubReportPageRoute as false if the route is a report screen route', () => {
+            const result = parseReportRouteParams(`r/${testReportID}/11111111`);
+            expect(result.reportID).toBe(testReportID);
+            expect(result.isSubReportPageRoute).toBe(false);
+        });
+
+        it('should return isSubReportPageRoute as true if the route is a sub report page route', () => {
+            const result = parseReportRouteParams(`r/${testReportID}/details`);
+            expect(result.reportID).toBe(testReportID);
+            expect(result.isSubReportPageRoute).toBe(true);
+        });
+    });
+
     describe('isPayer', () => {
         const approvedReport: Report = {
             ...createRandomReport(1),
@@ -2656,6 +2682,19 @@ describe('ReportUtils', () => {
             };
             const participants = getParticipantsList(report, participantsPersonalDetails);
             expect(participants.length).toBe(2);
+        });
+    });
+
+    describe('isReportOutstanding', () => {
+        it('should return true for submitted reports', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            expect(isReportOutstanding(report, policy.id)).toBe(true);
         });
     });
 });
