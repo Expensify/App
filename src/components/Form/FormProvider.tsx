@@ -87,6 +87,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Whether the submit button should stick to the bottom of the screen. */
     shouldSubmitButtonStickToBottom?: boolean;
+
+    /** Fires at most once per frame during scrolling. */
+    onScroll?: () => void;
 };
 
 function FormProvider(
