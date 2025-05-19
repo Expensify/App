@@ -81,7 +81,8 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    if (isAdmin) {
+    const isManager = report.managerID === getCurrentUserAccountID();
+    if (isAdmin || isManager) {
         return true;
     }
 
