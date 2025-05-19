@@ -15,9 +15,6 @@ type IntroSelected = {
     /** Task reportID for 'viewTour' type */
     viewTour?: string;
 
-    /** Task reportID for 'testDrive' type */
-    testDrive?: string;
-
     /** Task reportID for 'createWorkspace' type */
     createWorkspace?: string;
 
