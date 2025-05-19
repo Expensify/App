@@ -320,9 +320,9 @@ function ReportActionItemSingle({
                         />
                         <Text
                             numberOfLines={1}
-                            style={[styles.chatItemMessageHeaderSender, styles.optionItemAvatarNameWrapper]}
+                            style={[styles.chatItemMessageHeaderSender, styles.flexShrink0]}
                         >
-                            {' & '}
+                            {`\u00A0&\u00A0`}
                         </Text>
                         <ReportActionItemFragment
                             style={[styles.flexShrink1]}
