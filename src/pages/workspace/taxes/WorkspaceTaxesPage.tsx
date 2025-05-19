@@ -167,7 +167,6 @@ function WorkspaceTaxesPage({
                 text: value.name,
                 alternateText: textForDefault(key, value),
                 keyForList: key,
-                isSelected: !!selectedTaxesIDs.includes(key) && canSelectMultiple,
                 isDisabledCheckbox: !canEditTaxRatePolicyUtils(policy, key),
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
@@ -182,7 +181,7 @@ function WorkspaceTaxesPage({
                 ),
             };
         });
-    }, [policy, textForDefault, selectedTaxesIDs, canSelectMultiple, translate, updateWorkspaceTaxEnabled]);
+    }, [policy, textForDefault, translate, updateWorkspaceTaxEnabled]);
 
     const filterTax = useCallback((tax: ListItem, searchInput: string) => {
         const taxName = StringUtils.normalize(tax.text?.toLowerCase() ?? '');
@@ -410,7 +409,7 @@ function WorkspaceTaxesPage({
                         onTurnOnSelectionMode={(item) => item && toggleTax(item)}
                         sections={[{data: filteredTaxesList, isDisabled: false}]}
                         shouldUseDefaultRightHandSideCheckmark={false}
-                        selectedItemKeys={selectedTaxesIDs}
+                        selectedItems={selectedTaxesIDs}
                         onCheckboxPress={toggleTax}
                         onSelectRow={navigateToEditTaxRate}
                         onSelectAll={toggleAllTaxes}

@@ -156,7 +156,6 @@ function PolicyDistanceRatesPage({
                     `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
                 )}`,
                 keyForList: value.customUnitRateID,
-                isSelected: selectedDistanceRates.includes(value.customUnitRateID) && canSelectMultiple,
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction:
                     value.pendingAction ??
@@ -176,7 +175,7 @@ function PolicyDistanceRatesPage({
                     />
                 ),
             })),
-        [customUnitRates, translate, customUnit, selectedDistanceRates, canSelectMultiple, policy?.pendingAction, updateDistanceRateEnabled],
+        [customUnitRates, translate, customUnit, policy?.pendingAction, updateDistanceRateEnabled],
     );
 
     const filterRate = useCallback((rate: RateForList, searchInput: string) => {
@@ -411,7 +410,7 @@ function PolicyDistanceRatesPage({
                             onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                             sections={[{data: filteredDistanceRatesList, isDisabled: false}]}
                             shouldUseDefaultRightHandSideCheckmark={false}
-                            selectedItemKeys={selectedDistanceRates}
+                            selectedItems={selectedDistanceRates}
                             onCheckboxPress={toggleRate}
                             onSelectRow={openRateDetails}
                             onSelectAll={toggleAllRates}

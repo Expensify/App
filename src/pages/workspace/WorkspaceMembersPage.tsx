@@ -437,9 +437,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                     return;
                 }
             }
-
-            const isSelected = selectedEmployees.includes(accountID) && canSelectMultiple;
-
             const isOwner = policy?.owner === details.login;
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
             const isAuditor = policyEmployee.role === CONST.POLICY.ROLE.AUDITOR;
@@ -454,7 +451,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             result.push({
                 keyForList: String(accountID),
                 accountID,
-                isSelected,
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
                 isDisabled: isPendingDeleteOrError,
                 isInteractive: !details.isOptimisticPersonalDetail,
@@ -488,11 +484,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         policy?.employeeList,
         policyMemberEmailsToAccountIDs,
         policyOwner,
-        selectedEmployees,
         session?.accountID,
         translate,
         styles.cursorDefault,
-        canSelectMultiple,
         isPolicyAdmin,
     ]);
 
@@ -790,33 +784,31 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                                 shouldShowEmptyState={!filteredData.length}
                             />
                         )}
-                        <View style={[styles.w100, styles.flex1]}>
-                            <SelectionListWithModal
-                                ref={selectionListRef}
-                                canSelectMultiple={canSelectMultiple}
-                                sections={[{data: filteredData, isDisabled: false}]}
-                                selectedItemKeys={selectedEmployees}
-                                ListItem={TableListItem}
-                                shouldUseDefaultRightHandSideCheckmark={false}
-                                turnOnSelectionModeOnLongPress={isPolicyAdmin}
-                                onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
-                                shouldUseUserSkeletonView
-                                disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                                headerMessage={shouldUseNarrowLayout ? headerMessage : undefined}
-                                onSelectRow={openMemberDetails}
-                                shouldSingleExecuteRowSelect={!isPolicyAdmin}
-                                onCheckboxPress={(item) => toggleUser(item.accountID)}
-                                onSelectAll={() => toggleAllUsers(filteredData)}
-                                onDismissError={dismissError}
-                                showLoadingPlaceholder={isLoading}
-                                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                                textInputRef={textInputRef}
-                                customListHeader={getCustomListHeader()}
-                                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                                showScrollIndicator={false}
-                                addBottomSafeAreaPadding
-                            />
-                        </View>
+                        <SelectionListWithModal
+                            ref={selectionListRef}
+                            canSelectMultiple={canSelectMultiple}
+                            sections={[{data: filteredData, isDisabled: false}]}
+                            selectedItems={selectedEmployees.map(String)}
+                            ListItem={TableListItem}
+                            shouldUseDefaultRightHandSideCheckmark={false}
+                            turnOnSelectionModeOnLongPress={isPolicyAdmin}
+                            onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
+                            shouldUseUserSkeletonView
+                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
+                            headerMessage={shouldUseNarrowLayout ? headerMessage : undefined}
+                            onSelectRow={openMemberDetails}
+                            shouldSingleExecuteRowSelect={!isPolicyAdmin}
+                            onCheckboxPress={(item) => toggleUser(item.accountID)}
+                            onSelectAll={() => toggleAllUsers(filteredData)}
+                            onDismissError={dismissError}
+                            showLoadingPlaceholder={isLoading}
+                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                            textInputRef={textInputRef}
+                            customListHeader={getCustomListHeader()}
+                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            showScrollIndicator={false}
+                            addBottomSafeAreaPadding
+                        />
                     </ScrollView>
                 </>
             )}

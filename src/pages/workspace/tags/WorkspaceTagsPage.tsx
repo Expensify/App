@@ -125,6 +125,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const [selectedTags, setSelectedTags] = useFilteredSelection(tagsList, filterTags);
 
+    const isTagSelected = useCallback((tag: TagListItem) => selectedTags.includes(tag.value), [selectedTags]);
+
     const {isOffline} = useNetwork({onReconnect: fetchTags});
 
     useEffect(() => {
@@ -181,7 +183,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     orderWeight: policyTagList.orderWeight,
                     text: getCleanedTagName(policyTagList.name),
                     keyForList: String(policyTagList.orderWeight),
-                    isSelected: selectedTags.includes(policyTagList.name) && canSelectMultiple,
                     pendingAction: getPendingAction(policyTagList),
                     enabled: true,
                     required: policyTagList.required,
@@ -200,7 +201,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             value: tag.name,
             text: getCleanedTagName(tag.name),
             keyForList: tag.name,
-            isSelected: selectedTags.includes(tag.name) && canSelectMultiple,
             pendingAction: tag.pendingAction,
             errors: tag.errors ?? undefined,
             enabled: tag.enabled,
@@ -214,7 +214,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             ),
         }));
-    }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
+    }, [isMultiLevelTags, policyTagLists, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
         const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
@@ -519,7 +519,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                                 sections={[{data: filteredTagList, isDisabled: false}]}
                                 shouldUseDefaultRightHandSideCheckmark={false}
-                                selectedItemKeys={selectedTags}
+                                selectedItems={selectedTags}
+                                isSelected={isTagSelected}
                                 onCheckboxPress={toggleTag}
                                 onSelectRow={navigateToTagSettings}
                                 shouldSingleExecuteRowSelect={!canSelectMultiple}

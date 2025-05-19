@@ -134,12 +134,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const {selectionMode} = useMobileSelectionMode();
 
-    const customUnit = useMemo(() => getPerDiemCustomUnit(policy), [policy]);
-    const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
-
-    const allRatesArray = useMemo(() => Object.values(customUnitRates), [customUnitRates]);
-
-    const allSubRates = useMemo(() => getSubRatesData(allRatesArray), [allRatesArray]);
+    const [customUnit, allRatesArray, allSubRates] = useMemo(() => {
+        const customUnits = getPerDiemCustomUnit(policy);
+        const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
+        const allRates = Object.values(customUnitRates);
+        const allSubRatesMemo = getSubRatesData(allRates);
+        return [customUnits, allRates, allSubRatesMemo];
+    }, [policy]);
 
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
@@ -167,7 +168,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     subRateID: value.subRateID,
                     rateID: value.rateID,
                     keyForList: value.subRateID,
-                    isSelected: selectedPerDiem.find((rate) => rate.subRateID === value.subRateID) !== undefined && canSelectMultiple,
                     isDisabled,
                     pendingAction: value.pendingAction,
                     rightElement: (
@@ -192,7 +192,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     ),
                 };
             }),
-        [allSubRates, selectedPerDiem, canSelectMultiple, styles.flex2, styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2, styles.alignSelfEnd],
+        [allSubRates, styles.flex2, styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2, styles.alignSelfEnd],
     );
 
     const filterRate = useCallback((rate: PolicyOption, searchInput: string) => {
@@ -452,7 +452,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
                             sections={[{data: filteredSubRatesList, isDisabled: false}]}
                             shouldUseDefaultRightHandSideCheckmark={false}
-                            selectedItemKeys={selectedPerDiem.map((item) => item.subRateID)}
+                            selectedItems={selectedPerDiem.map((item) => item.subRateID)}
                             onCheckboxPress={toggleSubRate}
                             onSelectRow={openSubRateDetails}
                             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

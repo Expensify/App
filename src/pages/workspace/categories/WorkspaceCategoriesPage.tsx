@@ -132,7 +132,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             acc.push({
                 text: value.name,
                 keyForList: value.name,
-                isSelected: selectedCategories.includes(value.name) && canSelectMultiple,
                 isDisabled,
                 pendingAction: value.pendingAction,
                 errors: value.errors ?? undefined,
@@ -148,7 +147,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return acc;
         }, []);
-    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceRequiresCategory]);
+    }, [policyCategories, isOffline, translate, updateWorkspaceRequiresCategory]);
 
     const filterCategory = useCallback((categoryOption: PolicyOption, searchInput: string) => {
         const categoryText = StringUtils.normalize(categoryOption.text?.toLowerCase() ?? '');
@@ -465,7 +464,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
                             sections={[{data: filteredCategoryList, isDisabled: false}]}
                             shouldUseDefaultRightHandSideCheckmark={false}
-                            selectedItemKeys={selectedCategories}
+                            selectedItems={selectedCategories}
                             onCheckboxPress={toggleCategory}
                             onSelectRow={navigateToCategorySettings}
                             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

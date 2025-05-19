@@ -142,6 +142,8 @@ function BaseSelectionList<TItem extends ListItem>(
         loaderSpeed,
         errorText,
         shouldUseDefaultRightHandSideCheckmark,
+        selectedItems = [],
+        isSelected,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -180,6 +182,11 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
+    const isItemSelected = useCallback(
+        (item: TItem) => (item.isSelected ?? isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple,
+        [isSelected, selectedItems, canSelectMultiple],
+    );
+
     /**
      * Iterates through the sections and items inside each section, and builds 4 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
@@ -199,8 +206,6 @@ function BaseSelectionList<TItem extends ListItem>(
         let offset = customListHeader ? customListHeaderHeight : 0;
         const itemLayouts = [{length: 0, offset}];
 
-        const selectedOptions: TItem[] = [];
-
         sections.forEach((section, sectionIndex) => {
             const sectionHeaderHeight = !!section.title || !!section.CustomSectionHeader ? variables.optionsListSectionHeaderHeight : 0;
             itemLayouts.push({length: sectionHeaderHeight, offset});
@@ -215,7 +220,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 });
 
                 // If disabled, add to the disabled indexes array
-                const isItemDisabled = !!section.isDisabled || (item.isDisabled && !item.isSelected);
+                const isItemDisabled = !!section.isDisabled || (item.isDisabled && !isItemSelected(item));
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (isItemDisabled || item.isDisabledCheckbox) {
                     disabledOptionsIndexes.push(disabledIndex);
@@ -229,10 +234,6 @@ function BaseSelectionList<TItem extends ListItem>(
                 const fullItemHeight = item?.keyForList && itemHeights[item.keyForList] ? itemHeights[item.keyForList] : getItemHeight(item);
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
-
-                if (item.isSelected && !selectedOptions.find((option) => option.keyForList === item.keyForList)) {
-                    selectedOptions.push(item);
-                }
             });
 
             // We're not rendering any section footer, but we need to push to the array
@@ -244,7 +245,7 @@ function BaseSelectionList<TItem extends ListItem>(
         // because React Native accounts for it in getItemLayout
         itemLayouts.push({length: 0, offset});
 
-        if (selectedOptions.length > 1 && !canSelectMultiple) {
+        if (selectedItems.length > 1 && !canSelectMultiple) {
             Log.alert(
                 'Dev error: SelectionList - multiple items are selected but prop `canSelectMultiple` is false. Please enable `canSelectMultiple` or make your list have only 1 item with `isSelected: true`.',
             );
@@ -253,14 +254,13 @@ function BaseSelectionList<TItem extends ListItem>(
 
         return {
             allOptions,
-            selectedOptions,
             disabledOptionsIndexes,
             disabledArrowKeyOptionsIndexes,
             itemLayouts,
-            allSelected: selectedOptions.length > 0 && selectedOptions.length === totalSelectable,
-            someSelected: selectedOptions.length > 0 && selectedOptions.length < totalSelectable,
+            allSelected: selectedItems.length > 0 && selectedItems.length === totalSelectable,
+            someSelected: selectedItems.length > 0 && selectedItems.length < totalSelectable,
         };
-    }, [canSelectMultiple, sections, customListHeader, customListHeaderHeight, itemHeights, getItemHeight]);
+    }, [customListHeader, customListHeaderHeight, sections, selectedItems.length, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
@@ -378,8 +378,8 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [setHasKeyBeenPressed]);
 
     const selectedItemIndex = useMemo(
-        () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex((option) => option.isSelected) : -1),
-        [flattenedSections.allOptions, initiallyFocusedOptionKey],
+        () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex(isItemSelected) : -1),
+        [flattenedSections.allOptions, initiallyFocusedOptionKey, isItemSelected],
     );
 
     useEffect(() => {
@@ -407,7 +407,7 @@ function BaseSelectionList<TItem extends ListItem>(
             }
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
-                if (sections.length > 1 && !item.isSelected) {
+                if (sections.length > 1 && !isItemSelected(item)) {
                     // If we're selecting an item, scroll to it's position at the top, so we can see it
                     scrollToIndex(0, true);
                 }
@@ -433,19 +433,20 @@ function BaseSelectionList<TItem extends ListItem>(
             }
         },
         [
-            canSelectMultiple,
-            sections.length,
-            scrollToIndex,
-            shouldShowTextInput,
-            clearInputAfterSelect,
-            shouldUpdateFocusedIndex,
-            setFocusedIndex,
-            onSelectRow,
-            shouldPreventDefaultFocusOnSelectRow,
             isFocused,
             isScreenFocused,
+            canSelectMultiple,
+            shouldUpdateFocusedIndex,
+            onSelectRow,
+            shouldShowTextInput,
+            shouldPreventDefaultFocusOnSelectRow,
+            sections.length,
+            isItemSelected,
             isSmallScreenWidth,
+            scrollToIndex,
+            clearInputAfterSelect,
             onCheckboxPress,
+            setFocusedIndex,
         ],
     );
 
@@ -460,12 +461,12 @@ function BaseSelectionList<TItem extends ListItem>(
     const getFocusedOption = useCallback(() => {
         const focusedOption = focusedIndex !== -1 ? flattenedSections.allOptions.at(focusedIndex) : undefined;
 
-        if (!focusedOption || (focusedOption.isDisabled && !focusedOption.isSelected)) {
+        if (!focusedOption || (focusedOption.isDisabled && !isItemSelected(focusedOption))) {
             return;
         }
 
         return focusedOption;
-    }, [flattenedSections.allOptions, focusedIndex]);
+    }, [flattenedSections.allOptions, focusedIndex, isItemSelected]);
 
     const selectFocusedOption = () => {
         const focusedOption = getFocusedOption();
@@ -566,7 +567,8 @@ function BaseSelectionList<TItem extends ListItem>(
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
-        const isItemFocused = (!isDisabled || item.isSelected) && focusedIndex === normalizedIndex;
+        const selected = isItemSelected(item);
+        const isItemFocused = (!isDisabled || selected) && focusedIndex === normalizedIndex;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
         return (
@@ -575,6 +577,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     ListItem={ListItem}
                     item={{
                         shouldAnimateInHighlight: isItemHighlighted,
+                        isSelected: selected,
                         ...item,
                     }}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
@@ -733,23 +736,22 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     const prevTextInputValue = usePrevious(textInputValue);
-    const prevSelectedOptionsLength = usePrevious(flattenedSections.selectedOptions.length);
+    const prevSelectedOptionsLength = usePrevious(selectedItems.length);
     const prevAllOptionsLength = usePrevious(flattenedSections.allOptions.length);
 
     useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
         if (
-            (prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) ||
+            (prevTextInputValue === textInputValue && selectedItems.length === prevSelectedOptionsLength) ||
             flattenedSections.allOptions.length === 0 ||
-            (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && shouldUpdateFocusedIndex)
+            (selectedItems.length !== prevSelectedOptionsLength && shouldUpdateFocusedIndex)
         ) {
             return;
         }
         // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)
         // else focus on the first non disabled item
         const newSelectedIndex =
-            (isEmpty(prevTextInputValue) && textInputValue === '') ||
-            (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length)
+            (isEmpty(prevTextInputValue) && textInputValue === '') || (selectedItems.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length)
                 ? -1
                 : 0;
 
@@ -760,7 +762,7 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [
         canSelectMultiple,
         flattenedSections.allOptions.length,
-        flattenedSections.selectedOptions.length,
+        selectedItems.length,
         prevTextInputValue,
         textInputValue,
         updateAndScrollToFocusedIndex,
