@@ -644,7 +644,7 @@ describe('PolicyUtils', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('returns false if policy is not paid group policy', () => {
+        it('returns false if policy is not paid group policy', async () => {
             const currentUserLogin = employeeEmail;
             const currentUserAccountID = employeeAccountID;
 
@@ -655,6 +655,7 @@ describe('PolicyUtils', () => {
                 },
             };
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
             const report = {
                 ...createRandomReport(0),
                 type: CONST.REPORT.TYPE.IOU,
@@ -678,7 +679,7 @@ describe('PolicyUtils', () => {
                 },
             };
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
             const report = {
                 ...createRandomReport(0),
                 type: CONST.REPORT.TYPE.IOU,
@@ -691,7 +692,7 @@ describe('PolicyUtils', () => {
             expect(result).toBe(true);
         });
 
-        it('returns true if policy is paid group policy and submitter is not a member but current user is admin', () => {
+        it('returns true if policy is paid group policy and submitter is not a member but current user is admin', async () => {
             const currentUserLogin = adminEmail;
 
             const newPolicy = {
@@ -702,6 +703,7 @@ describe('PolicyUtils', () => {
                 },
             };
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
             const report = {
                 ...createRandomReport(0),
                 type: CONST.REPORT.TYPE.IOU,
