@@ -112,12 +112,15 @@ function IOURequestStepScan({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+    const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const platform = getPlatform(true);
     const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
     const isPlatformMuted = mutedPlatforms[platform];
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const isTabActive = useIsFocused();
+
+    const shouldShowMultiScanEducationalPopup = !dismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL];
 
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
@@ -287,7 +290,15 @@ function IOURequestStepScan({
     );
 
     const createTransaction = useCallback(
-        (files: ReceiptFile[], participant: Participant, gpsPoints?: GpsPoint, policyParams?: {policy: OnyxEntry<Policy>}, billable?: boolean) => {
+        (
+            files: ReceiptFile[],
+            participant: Participant,
+            gpsPoints?: GpsPoint,
+            policyParams?: {
+                policy: OnyxEntry<Policy>;
+            },
+            billable?: boolean,
+        ) => {
             files.forEach((receiptFile: ReceiptFile, index) => {
                 const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
                 const receipt: Receipt = receiptFile.file;
@@ -374,7 +385,17 @@ function IOURequestStepScan({
                 if (!managerMcTestParticipant.reportID && report?.reportID) {
                     reportIDParam = generateReportID();
                 }
-                setMoneyRequestParticipants(initialTransactionID, [{...managerMcTestParticipant, reportID: reportIDParam, selected: true}], true).then(() => {
+                setMoneyRequestParticipants(
+                    initialTransactionID,
+                    [
+                        {
+                            ...managerMcTestParticipant,
+                            reportID: reportIDParam,
+                            selected: true,
+                        },
+                    ],
+                    true,
+                ).then(() => {
                     navigateToConfirmationPage(true, reportIDParam);
                 });
                 return;
@@ -530,7 +551,17 @@ function IOURequestStepScan({
                     }
 
                     setMoneyRequestReceipt(initialTransactionID, file.uri, filename, !isEditing, file.type, true);
-                    navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);
+                    navigateToConfirmationStep(
+                        [
+                            {
+                                file,
+                                source: file.uri,
+                                transactionID: initialTransactionID,
+                            },
+                        ],
+                        false,
+                        true,
+                    );
                 })
                 .catch((error) => {
                     Log.warn('Error downloading test receipt:', {message: error});
@@ -550,6 +581,10 @@ function IOURequestStepScan({
             },
         },
     );
+
+    const dismissMultiScanEducationalPopup = () => {
+        dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
+    };
 
     /**
      * Sets the Receipt objects and navigates the user to the next page
@@ -800,22 +835,23 @@ function IOURequestStepScan({
                         )}
                     </View>
                 </EducationalTooltip>
-                <FeatureTrainingModal
-                    title={translate('iou.scanMultipleReceipts')}
-                    image={MultiScanHand}
-                    shouldRenderSVG
-                    contentFitImage="contain"
-                    modalInnerContainerStyle={styles.pt0}
-                    illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
-                    imageHeight={232}
-                    illustrationInnerContainerStyle={{transform: [{translateY: 15}]}}
-                    onConfirm={() => {}}
-                    onClose={() => {}}
-                    titleStyles={styles.mb2}
-                    confirmText={translate('common.buttonConfirm')}
-                    description={translate('iou.scanMultipleReceiptsDescription')}
-                    shouldGoBack={false}
-                />
+                {shouldShowMultiScanEducationalPopup && (
+                    <FeatureTrainingModal
+                        title={translate('iou.scanMultipleReceipts')}
+                        image={MultiScanHand}
+                        shouldRenderSVG
+                        contentFitImage="contain"
+                        modalInnerContainerStyle={styles.pt0}
+                        illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
+                        imageHeight={232}
+                        illustrationInnerContainerStyle={{transform: [{translateY: 15}]}}
+                        onConfirm={dismissMultiScanEducationalPopup}
+                        titleStyles={styles.mb2}
+                        confirmText={translate('common.buttonConfirm')}
+                        description={translate('iou.scanMultipleReceiptsDescription')}
+                        shouldGoBack={false}
+                    />
+                )}
                 <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                     <AttachmentPicker onOpenPicker={() => setIsLoaderVisible(true)}>
                         {({openPicker}) => (
