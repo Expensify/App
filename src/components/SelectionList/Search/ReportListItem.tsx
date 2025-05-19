@@ -9,7 +9,9 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {generateReportID} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +30,7 @@ function ReportListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    queryJSONHash,
 }: ReportListItemProps<TItem>) {
     const reportItem = item as unknown as ReportListItemType;
     const theme = useTheme();
@@ -62,11 +65,25 @@ function ReportListItem<TItem extends ListItem>({
 
         const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-        const reportID =
+        let reportID =
             (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
                 ? transactionItem.transactionThreadReportID
                 : transactionItem.reportID;
 
+        // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
+        if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            reportID = generateReportID();
+            updateSearchResultsWithTransactionThreadReportID(queryJSONHash, transactionItem.transactionID, reportID);
+            Navigation.navigate(
+                ROUTES.SEARCH_REPORT.getRoute({
+                    reportID,
+                    backTo,
+                    moneyRequestReportActionID: transactionItem.moneyRequestReportActionID,
+                    transactionID: transactionItem.transactionID,
+                }),
+            );
+            return;
+        }
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
     };
 

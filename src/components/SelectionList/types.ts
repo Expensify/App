@@ -409,6 +409,8 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 };
 
 type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    queryJSONHash: number;
+
     /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem, isOpenedAsReport?: boolean) => void;
 };
