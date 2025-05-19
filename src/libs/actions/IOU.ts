@@ -11211,7 +11211,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
         value: {
-            reportID: CONST.REPORT.SPLIT_REPORTID,
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
         },
     });
 
@@ -11244,7 +11244,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             data: {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: {
                     ...originalTransactionViolations,
-                    reportID: CONST.REPORT.SPLIT_REPORTID,
+                    reportID: CONST.REPORT.SPLIT_REPORT_ID,
                 },
             },
         },
