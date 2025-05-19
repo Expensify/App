@@ -629,7 +629,6 @@ function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex
     const currentAction = reportActions.at(actionIndex);
     const nextAction = findNextAction(reportActions, actionIndex);
 
-    // Todo first should have avatar - verify that this works with long chats (issue: https://github.com/Expensify/App/issues/58625)
     if (actionIndex === 0) {
         return false;
     }
