@@ -635,19 +635,26 @@ jobs:
 
       - name:  🚀 Create release 🚀
         run: |
-          gh release create ${{ needs.prep.outputs.TAG }} ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
-            --repo ${{ github.repository }} \
-            --title ${{ needs.prep.outputs.TAG }} \
-            ${{ github.ref == 'refs/heads/production' && format('--notes-start-tag {0}', steps.get_last_prod_version.outputs.LAST_PROD_VERSION) || '' }} \
-            --generate-notes \
-            --verify-tag \
-            --target ${{ github.ref }}
-          RETRIES=0
-          readonly MAX_RETRIES=10
-          until [[ $(gh release view ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }}) || $RETRIES -ge $MAX_RETRIES ]]; do
-            echo "Release not found, retrying $((MAX_RETRIES - RETRIES++)) times"
-            sleep 1
-          done
+          # Check if the release already exists
+          if gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" &> /dev/null; then
+            echo "Release ${{ needs.prep.outputs.TAG }} already exists, skipping creating it again."
+          else
+            echo "Release ${{ needs.prep.outputs.TAG }} does not exist, creating it now."
+            gh release create "${{ needs.prep.outputs.TAG }}" ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
+              --repo "${{ github.repository }}" \
+              --title "${{ needs.prep.outputs.TAG }}" \
+              ${{ github.ref == 'refs/heads/production' && format('--notes-start-tag {0}', steps.get_last_prod_version.outputs.LAST_PROD_VERSION) || '' }} \
+              --generate-notes \
+              --verify-tag \
+              --target "${{ github.ref }}"
+
+            RETRIES=0
+            readonly MAX_RETRIES=10
+            until [[ $(gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}") || $RETRIES -ge $MAX_RETRIES ]]; do
+              echo "Release ${{ needs.prep.outputs.TAG }} not yet visible after creation. Retrying... ($((MAX_RETRIES - RETRIES++)) attempts left)"
+              sleep 1
+            done
+          fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
