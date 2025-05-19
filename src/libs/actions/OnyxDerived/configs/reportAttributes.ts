@@ -26,7 +26,7 @@ const prepareReportKeys = (keys: string[]) => {
  * This derived value is used to get the report attributes for the report.
  */
 
-const config = createOnyxDerivedValueConfig({
+export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     dependencies: [
         ONYXKEYS.COLLECTION.REPORT,
@@ -152,5 +152,3 @@ const config = createOnyxDerivedValueConfig({
         };
     },
 });
-
-export default config;
