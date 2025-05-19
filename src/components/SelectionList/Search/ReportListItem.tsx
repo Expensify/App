@@ -110,7 +110,6 @@ function ReportListItem<TItem extends ListItem>({
                         isHovered={hovered}
                         isFocused={isFocused}
                         canSelectMultiple={canSelectMultiple}
-                        avatarBorderColor={theme.highlightBG}
                     />
                     {isEmptyReport ? (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>

@@ -46,9 +46,6 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
-
-    /** Color of the secondary avatar border, usually should match the container background */
-    avatarBorderColor?: string;
 };
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
@@ -174,7 +171,6 @@ function ReportListItemHeader<TItem extends ListItem>({
     isHovered,
     isFocused,
     canSelectMultiple,
-    avatarBorderColor: avatarBorderColorProp,
 }: ReportListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -187,9 +183,8 @@ function ReportListItemHeader<TItem extends ListItem>({
     const showArrowComponent = reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo;
 
     const avatarBorderColor =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!(isFocused || isHovered), !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        avatarBorderColorProp;
+        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
+        theme.highlightBG;
 
     const handleOnButtonPress = () => {
         handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
