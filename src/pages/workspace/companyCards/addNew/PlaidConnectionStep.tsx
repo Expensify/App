@@ -45,6 +45,6 @@ function PlaidConnectionStep() {
     );
 }
 
-PlaidConnectionStep.displayName = 'CardInstructionsStep';
+PlaidConnectionStep.displayName = 'PlaidConnectionStep';
 
 export default PlaidConnectionStep;
