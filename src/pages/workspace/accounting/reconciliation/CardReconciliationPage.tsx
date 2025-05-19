@@ -53,10 +53,10 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         };
 
         return entries.reduce<FullySetUpCardSetting>((acc, [key, cardSetting]) => {
-            if (isExpensifyCardFullySetUp(policy, cardSetting)) {
+            if (cardSetting && isExpensifyCardFullySetUp(policy, cardSetting)) {
                 return {
                     key,
-                    cardSetting: cardSetting ?? initialValue.cardSetting,
+                    cardSetting,
                 };
             }
             return acc;
@@ -64,7 +64,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     }, [allCardSettings, policy]);
 
     const domainID = fullySetUpCardSetting.key.split('_').at(-1);
-    const effectiveDomainID = Number(domainID) ?? workspaceAccountID;
+    const effectiveDomainID = Number(domainID ?? workspaceAccountID);
 
     const [isContinuousReconciliationOn] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {canBeMissing: true});
     const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`, {canBeMissing: true});
