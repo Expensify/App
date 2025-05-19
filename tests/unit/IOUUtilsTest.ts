@@ -267,7 +267,7 @@ describe('canSubmitReport', () => {
             autoReportingFrequency: 'immediate',
             harvesting: {
                 enabled: false,
-            }
+            },
         };
         const expenseReport: Report = {
             ...createRandomReport(6),
