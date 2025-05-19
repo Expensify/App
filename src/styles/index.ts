@@ -1882,27 +1882,6 @@ const styles = (theme: ThemeColors) =>
                 overflow: 'hidden',
             } satisfies ViewStyle),
 
-        TestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
-            flex: 1,
-            justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
-            alignItems: 'center',
-        }),
-
-        TestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
-            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
-            const defaultHeight = shouldUseNarrowLayout ? '78%' : '75%';
-            const height = isAuthenticated ? defaultHeight : '55%';
-
-            return {
-                width: shouldUseNarrowLayout ? '100%' : '91%',
-                height,
-                borderRadius: variables.componentBorderRadiusLarge,
-                borderBottomRightRadius: borderBottomRadius,
-                borderBottomLeftRadius: borderBottomRadius,
-                overflow: 'hidden',
-            };
-        },
-
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
@@ -3087,12 +3066,6 @@ const styles = (theme: ThemeColors) =>
             ...spacing.mt0,
             ...spacing.mb0,
             ...spacing.pt0,
-        },
-
-        workspaceSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
-            ...spacing.pt4,
         },
 
         centralPaneAnimation: {
@@ -5626,6 +5599,11 @@ const styles = (theme: ThemeColors) =>
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
             ...display.dFlex,
+        },
+
+        tripEmptyStateLottieWebView: {
+            width: 335,
+            height: 220,
         },
 
         workflowApprovalVerticalLine: {

@@ -145,7 +145,7 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
         accountID,
         creationDate: new Date().getTime(),
     }).then(() => {
-        Log.info('[Supportal] Authtoken set');
+        Log.info('[Supportal] Auth token set');
     });
     Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
 }
@@ -294,7 +294,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     }
 
     // If this is a supportal token, and we've received the parameters to stashSession as true, and
-    // we already have a stashedSession, that means we are supportaled, currently supportaling
+    // we already have a stashedSession, that means we are supportal-ed, currently supportal-ing
     // into another account and we want to keep the stashed data from the original account.
     if (isSupportal && shouldStashSession && hasStashedSession()) {
         onyxSetParams = {

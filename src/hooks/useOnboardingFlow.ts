@@ -21,6 +21,8 @@ function useOnboardingFlowRouter() {
     const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         canBeMissing: true,
     });
+
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const startedOnboardingFlowRef = useRef(false);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
@@ -74,14 +76,14 @@ function useOnboardingFlowRouter() {
                 // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
                 if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                     startedOnboardingFlowRef.current = true;
-                    startOnboardingFlow(undefined, onboardingValues);
+                    startOnboardingFlow(undefined, onboardingValues, account?.isFromPublicDomain);
                 }
             }
 
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
             if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
                 startedOnboardingFlowRef.current = true;
-                startOnboardingFlow(undefined, onboardingValues);
+                startOnboardingFlow(undefined, onboardingValues, account?.isFromPublicDomain);
             }
         });
     }, [
@@ -96,6 +98,7 @@ function useOnboardingFlowRouter() {
         dismissedProductTraining?.migratedUserWelcomeModal,
         onboardingValues,
         dismissedProductTraining,
+        account?.isFromPublicDomain,
     ]);
 
     return {isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues), isHybridAppOnboardingCompleted};

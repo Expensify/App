@@ -36,7 +36,6 @@ import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -396,7 +395,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             return;
                         }
 
-                        goBackFromWorkspaceCentralScreen(policyID);
+                        Navigation.popToSidebar();
                     }}
                     shouldShowThreeDotsButton
                     threeDotsMenuItems={threeDotsMenuItems}
@@ -452,6 +451,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             turnOnSelectionModeOnLongPress
                             onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
                             sections={[{data: filteredSubRatesList, isDisabled: false}]}
+                            shouldUseDefaultRightHandSideCheckmark={false}
                             selectedItemKeys={selectedPerDiem.map((item) => item.subRateID)}
                             onCheckboxPress={toggleSubRate}
                             onSelectRow={openSubRateDetails}
