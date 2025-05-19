@@ -11,6 +11,7 @@ import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useSidePanel from './useSidePanel';
+import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
@@ -36,7 +37,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
             if (inputRef.current && isMultiline) {
                 moveSelectionToEnd(inputRef.current);
             }
-            inputRef.current?.focus();
+            isWindowReadyToFocus().then(() => inputRef.current?.focus());
             setIsScreenTransitionEnded(false);
         });
 
