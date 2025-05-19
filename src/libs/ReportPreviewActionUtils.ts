@@ -1,7 +1,7 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
@@ -12,20 +12,22 @@ import {
     hasAccountingConnections,
     hasIntegrationAutoSync,
     isPolicyAdmin,
-    isPrefferedExporter,
+    isPreferredExporter,
 } from './PolicyUtils';
+import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     getReportTransactions,
+    hasExportError as hasExportErrorUtil,
     hasMissingSmartscanFields,
     hasNoticeTypeViolations,
     hasViolations,
     hasWarningTypeViolations,
-    isArchivedReport,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
+    isExported as isExportedUtil,
     isInvoiceReport,
     isIOUReport,
     isOpenReport,
@@ -42,6 +44,8 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isOpen = isOpenReport(report);
+    const isManager = report.managerID === getCurrentUserAccountID();
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const hasAnyViolations =
         hasMissingSmartscanFields(report.reportID, transactions) ||
@@ -56,7 +60,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
-    return isExpense && isSubmitter && isOpen && isManualSubmitEnabled && !hasAnyViolations && !isAnyReceiptBeingScanned;
+    return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && isManualSubmitEnabled && !hasAnyViolations && !isAnyReceiptBeingScanned;
 }
 
 function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[]) {
@@ -84,10 +88,8 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
     return isExpense && isApprover && isProcessing && isApprovalEnabled && !hasAnyViolations && reportTransactions.length > 0 && isCurrentUserManager;
 }
 
-function canPay(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs) {
-    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
-
-    if (isChatReportArchived) {
+function canPay(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, isReportArchived = false) {
+    if (isReportArchived) {
         return false;
     }
 
@@ -134,9 +136,9 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
     return policy?.role === CONST.POLICY.ROLE.ADMIN;
 }
 
-function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, reportActions?: OnyxEntry<ReportActions> | ReportAction[]) {
     const isExpense = isExpenseReport(report);
-    const isExporter = policy ? isPrefferedExporter(policy) : false;
+    const isExporter = policy ? isPreferredExporter(policy) : false;
     const isReimbursed = isSettled(report);
     const isClosed = isClosedReport(report);
     const isApproved = isReportApproved({report});
@@ -150,7 +152,13 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
-    if (syncEnabled) {
+    const isExported = isExportedUtil(reportActions);
+    if (isExported) {
+        return false;
+    }
+
+    const hasExportError = hasExportErrorUtil(reportActions);
+    if (syncEnabled && !hasExportError) {
         return false;
     }
 
@@ -193,10 +201,14 @@ function getReportPreviewAction(
     report?: Report,
     policy?: Policy,
     transactions?: Transaction[],
-    reportNameValuePairs?: ReportNameValuePairs,
+    isReportArchived = false,
+    reportActions?: OnyxEntry<ReportActions> | ReportAction[],
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
+    }
+    if (isAddExpenseAction(report, transactions ?? [])) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
     if (canSubmit(report, violations, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
@@ -204,10 +216,10 @@ function getReportPreviewAction(
     if (canApprove(report, violations, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, violations, policy, reportNameValuePairs)) {
+    if (canPay(report, violations, policy, isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, violations, policy)) {
+    if (canExport(report, violations, policy, reportActions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
     if (canReview(report, violations, policy, transactions)) {

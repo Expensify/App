@@ -27,6 +27,10 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
+function canUseMultiLevelTags(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.MULTI_LEVEL_TAGS) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -70,6 +74,22 @@ function canUsePrivateDomainOnboarding(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PRIVATE_DOMAIN_ONBOARDING) || canUseAllBetas(betas);
 }
 
+function canUsePlaidCompanyCards(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.PLAID_COMPANY_CARDS) || canUseAllBetas(betas);
+}
+
+function canUseRetractNewDot(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.RETRACT_NEWDOT) || canUseAllBetas(betas);
+}
+
+function canUseCallScheduling() {
+    return false;
+}
+
+function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -86,4 +106,9 @@ export default {
     canUseInAppProvisioning,
     canUseGlobalReimbursementsOnND,
     canUsePrivateDomainOnboarding,
+    canUseRetractNewDot,
+    canUseCallScheduling,
+    canUseMultiLevelTags,
+    canUseMultiFilesDragAndDrop,
+    canUsePlaidCompanyCards,
 };

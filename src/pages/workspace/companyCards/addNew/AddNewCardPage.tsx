@@ -1,7 +1,9 @@
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import usePermissions from '@hooks/usePermissions';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -9,21 +11,26 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import {openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AmexCustomFeed from './AmexCustomFeed';
 import CardInstructionsStep from './CardInstructionsStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import DetailsStep from './DetailsStep';
 import SelectBankStep from './SelectBankStep';
+import SelectCountryStep from './SelectCountryStep';
 import SelectFeedType from './SelectFeedType';
 
 function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const policyID = policy?.id;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [addNewCardFeed] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
+    const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
     const {currentStep} = addNewCardFeed ?? {};
+    const {canUsePlaidCompanyCards} = usePermissions();
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
+
+    const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
 
     useEffect(() => {
         // If the user only has a domain feed, a workspace account may not have been created yet.
@@ -34,6 +41,10 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         }
         openPolicyAddCardFeedPage(policyID);
     }, [workspaceAccountID, policyID]);
+
+    if (isAddCardFeedLoading) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     if (isActingAsDelegate) {
         return (
@@ -64,7 +75,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
             return <AmexCustomFeed />;
         default:
-            return <SelectBankStep />;
+            return canUsePlaidCompanyCards ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
     }
 }
 

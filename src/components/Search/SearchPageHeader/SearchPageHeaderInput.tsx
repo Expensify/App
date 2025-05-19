@@ -50,9 +50,10 @@ type SearchPageHeaderInputProps = {
     onSearchRouterFocus?: () => void;
     searchName?: string;
     inputRightComponent: React.ReactNode;
+    handleSearch: (value: string) => void;
 };
 
-function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, searchName, inputRightComponent}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, searchName, inputRightComponent, handleSearch}: SearchPageHeaderInputProps) {
     const {translate} = useLocalize();
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
@@ -83,8 +84,13 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [isAutocompleteListVisible, setIsAutocompleteListVisible] = useState(false);
     const listRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
+    const hasMountedRef = useRef(false);
     const isFocused = useIsFocused();
     const {registerSearchPageInput} = useSearchRouterContext();
+
+    useEffect(() => {
+        hasMountedRef.current = true;
+    }, []);
 
     // useEffect for blurring TextInput when we cancel SearchRouter interaction on narrow layout
     useEffect(() => {
@@ -132,6 +138,16 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const handleSearchAction = useCallback(
+        (value: string) => {
+            // Skip calling handleSearch on the initial mount
+            if (!hasMountedRef.current) {
+                return;
+            }
+            handleSearch(value);
+        },
+        [handleSearch],
+    );
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
             const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
@@ -279,6 +295,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         <View style={[styles.flex1]}>
                             <SearchAutocompleteList
                                 autocompleteQueryValue={autocompleteQueryValue}
+                                handleSearch={handleSearchAction}
                                 searchQueryItem={searchQueryItem}
                                 onListItemPress={onListItemPress}
                                 setTextQuery={setTextAndUpdateSelection}
@@ -345,6 +362,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     <View style={[styles.mh65vh, !isAutocompleteListVisible && styles.dNone]}>
                         <SearchAutocompleteList
                             autocompleteQueryValue={autocompleteQueryValue}
+                            handleSearch={handleSearchAction}
                             searchQueryItem={searchQueryItem}
                             onListItemPress={onListItemPress}
                             setTextQuery={setTextAndUpdateSelection}

@@ -10,6 +10,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,7 +27,7 @@ import GenericFeaturesView from './GenericFeaturesView';
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    feature?: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
+    feature?: ValueOf<Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>>;
     onUpgrade: () => void;
     isCategorizing?: boolean;
     policyID?: string;
@@ -40,6 +41,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const {environmentURL} = useEnvironment();
     const subscriptionPlan = useSubscriptionPlan();
     const preferredCurrency = usePreferredCurrency();
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
 
     const formattedPrice = React.useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
@@ -102,7 +104,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                     <Text style={[styles.textNormal, styles.textSupporting]}>
                         {translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`)}
                         <Text style={[styles.textSupporting, styles.textBold]}>{formattedPrice}</Text>
-                        {translate(`workspace.upgrade.pricing.perActiveMember`)}
+                        {hasTeam2025Pricing ? translate('workspace.upgrade.pricing.perMember') : translate('workspace.upgrade.pricing.perActiveMember')}
                     </Text>
                 </View>
                 <Button
