@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import {BoundsObserver} from '@react-ng/bounds-observer';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, memo, useCallback, useRef} from 'react';
@@ -49,10 +48,9 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
     return target.getBoundingClientRect();
 }
 
-function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps, ref: ForwardedRef<BoundsObserver>) {
+function Tooltip({children, shouldHandleScroll = false, isFocused = true, ...props}: TooltipProps, ref: ForwardedRef<BoundsObserver>) {
     const target = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
-    const isFocused = useIsFocused();
 
     const updateTargetAndMousePosition = useCallback((e: MouseEvent) => {
         if (!(e.currentTarget instanceof HTMLElement)) {
@@ -87,8 +85,13 @@ function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps,
         [children, updateTargetAndMousePosition],
     );
 
-    // Skip the tooltip and return the children if the device does not support hovering or if navigation does not focus.
-    if (!hasHoverSupport || !isFocused) {
+    // Skip the tooltip and return the children if the device does not support hovering
+    if (!hasHoverSupport) {
+        return children;
+    }
+
+    // Skip the tooltip and return the children if navigation does not focus.
+    if (!isFocused) {
         return children;
     }
 
