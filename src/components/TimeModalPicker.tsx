@@ -55,6 +55,7 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: Ti
                 onModalHide={hidePickerModal}
                 hideModalContentWhileAnimating
                 useNativeDriver
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <ScreenWrapper
                     style={styles.pb0}

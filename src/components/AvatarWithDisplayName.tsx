@@ -63,6 +63,9 @@ type AvatarWithDisplayNameProps = {
 
     /** Transactions inside report */
     transactions?: TransactionListItemType[];
+
+    /** Whether to open the parent report link in the current tab if possible */
+    openParentReportInCurrentTab?: boolean;
 };
 
 const fallbackIcon: Icon = {
@@ -156,6 +159,7 @@ function AvatarWithDisplayName({
     shouldEnableDetailPageNavigation = false,
     shouldUseCustomSearchTitleName = false,
     transactions = [],
+    openParentReportInCurrentTab = false,
 }: AvatarWithDisplayNameProps) {
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false}) ?? CONST.EMPTY_OBJECT;
@@ -168,7 +172,8 @@ function AvatarWithDisplayName({
         {canBeMissing: true},
     );
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
-    const title = getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy, reportAttributes);
+    const parentReportActionParam = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
+    const title = getReportName(report, undefined, parentReportActionParam, undefined, invoiceReceiverPolicy, reportAttributes);
     const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
@@ -267,6 +272,7 @@ function AvatarWithDisplayName({
                                 parentReportID={report?.parentReportID}
                                 parentReportActionID={report?.parentReportActionID}
                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
+                                openParentReportInCurrentTab={openParentReportInCurrentTab}
                             />
                         )}
                         {!!subtitle && (
