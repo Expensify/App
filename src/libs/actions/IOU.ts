@@ -76,6 +76,8 @@ import {
 } from '@libs/PolicyUtils';
 import {
     getAllReportActions,
+    getIOUActionForReportID,
+    getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
     getLastVisibleMessage,
@@ -340,6 +342,18 @@ type PayMoneyRequestData = {
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
+};
+
+type HoldDataEntry = {
+    transactionThreadReportID?: string;
+    transactionThreadCreatedReportActionID?: string;
+    holdReportActionID: string;
+    commentReportActionID: string;
+};
+
+type BulkHoldParams = {
+    holdData: Record<string, HoldDataEntry>;
+    comment: string;
 };
 
 type SendMoneyParamsData = {
@@ -10359,6 +10373,190 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
 }
 
 /**
+ * Put bulk expenses on HOLD
+ */
+function putOnHoldBulk(transactionIDs: string[], comment: string, reportID: string, searchHash?: number) {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    const currentTime = DateUtils.getDBTime();
+    const createdReportAction = buildOptimisticHoldReportAction(currentTime);
+    const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
+    const parentReportActionOptimistic = getOptimisticDataForParentReportAction(reportID, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
+                [createdReportActionComment.reportActionID]: createdReportActionComment as ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: createdReportActionComment.created,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: null,
+                [createdReportActionComment.reportActionID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: report?.lastVisibleActionCreated,
+            },
+        },
+    ];
+
+    parentReportActionOptimistic.forEach((parentActionData) => {
+        if (!parentActionData) {
+            return;
+        }
+        optimisticData.push(parentActionData);
+    });
+
+    const reportActions = Object.values(getAllReportActions(reportID));
+    const holdData: Record<string, HoldDataEntry> = {};
+    const iouReportsOptimisticData: Record<string, Partial<OnyxTypes.Report>> = {};
+    const iouReportsFailureData: Record<string, Partial<OnyxTypes.Report>> = {};
+
+    transactionIDs.forEach((transactionID) => {
+        const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
+        const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        const updatedViolations = [...transactionViolations, newViolation];
+        const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+        const iouAction = getIOUActionForTransactionID(reportActions, transactionID);
+        const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+        const transactionThreadReportID = iouAction?.childReportID;
+        const iouReportID = transaction?.reportID;
+
+        const iouReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
+        const createdAction = Object.values(iouReportActions)
+            .filter((action) => action?.isOptimisticAction && action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
+            .at(0);
+
+        holdData[transactionID] = {
+            transactionThreadReportID: createdAction?.reportID,
+            transactionThreadCreatedReportActionID: createdAction?.reportActionID,
+            holdReportActionID: createdReportAction.reportActionID,
+            commentReportActionID: createdReportActionComment.reportActionID,
+        };
+
+        if (iouReportID && iouReport && iouReport.currency === transaction?.currency) {
+            const isExpenseReportLocal = isExpenseReport(iouReport);
+            const coefficient = isExpenseReportLocal ? -1 : 1;
+            const transactionAmount = getAmount(transaction, isExpenseReportLocal) * coefficient;
+            const value = iouReportsOptimisticData?.[iouReportID] ?? iouReport;
+            iouReportsOptimisticData[iouReportID] = {
+                unheldTotal: (value?.unheldTotal ?? 0) - transactionAmount,
+                unheldNonReimbursableTotal: !transaction?.reimbursable ? (value?.unheldNonReimbursableTotal ?? 0) - transactionAmount : value.unheldNonReimbursableTotal,
+            };
+            iouReportsFailureData[iouReportID] = iouReportsFailureData?.[iouReportID] ?? {
+                unheldTotal: iouReport?.unheldTotal,
+                unheldNonReimbursableTotal: iouReport?.unheldNonReimbursableTotal,
+            };
+        }
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                comment: {
+                    hold: createdReportAction.reportActionID,
+                },
+            },
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: updatedViolations,
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
+                comment: {
+                    hold: null,
+                },
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericHoldExpenseFailureMessage'),
+            },
+        });
+
+        // If we are holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
+        if (!searchHash) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                            canHold: false,
+                            canUnhold: true,
+                        },
+                    },
+                } as Record<string, Record<string, Partial<SearchTransaction>>>,
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                            canHold: true,
+                            canUnhold: false,
+                        },
+                    },
+                } as Record<string, Record<string, Partial<SearchTransaction>>>,
+            });
+        }
+    });
+
+    Object.keys(iouReportsOptimisticData).forEach((iouReportID) => {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            value: iouReportsOptimisticData[iouReportID],
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            value: iouReportsFailureData,
+        });
+    });
+
+    API.write(WRITE_COMMANDS.BULK_HOLD_MONEY_REQUEST, {holdData, comment}, {optimisticData, successData, failureData});
+
+    const currentReportID = getDisplayedReportID(reportID);
+    Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, userAccountID));
+}
+
+/**
  * Remove expense from HOLD
  */
 function unholdRequest(transactionID: string, reportID: string, searchHash?: number) {
@@ -10961,6 +11159,7 @@ export {
     payInvoice,
     payMoneyRequest,
     putOnHold,
+    putOnHoldBulk,
     replaceReceipt,
     requestMoney,
     resetSplitShares,

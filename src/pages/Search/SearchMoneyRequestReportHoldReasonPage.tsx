@@ -2,7 +2,7 @@ import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
 import useLocalize from '@hooks/useLocalize';
-import {putOnHold} from '@libs/actions/IOU';
+import {putOnHoldBulk} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchReportParamList} from '@libs/Navigation/types';
@@ -20,8 +20,7 @@ function SearchMoneyRequestReportHoldReasonPage({route}: PlatformStackScreenProp
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        selectedTransactionsID.forEach((transactionID) => putOnHold(transactionID, values.comment, reportID));
-
+        putOnHoldBulk(selectedTransactionsID, values.comment, reportID);
         setSelectedTransactionsID([]);
         Navigation.goBack();
     };
