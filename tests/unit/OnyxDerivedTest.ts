@@ -18,8 +18,8 @@ describe('OnyxDerived', () => {
         initOnyxDerivedValues();
     });
 
-    beforeEach(() => {
-        Onyx.clear();
+    beforeEach(async () => {
+        await Onyx.clear();
         resetReportAttributesState();
     });
 
@@ -35,7 +35,7 @@ describe('OnyxDerived', () => {
 
     describe('reportAttributes', () => {
         const mockReport = {
-            reportID: `test_${Date.now()}`,
+            reportID: `test_1`,
             reportName: 'Test Report',
             type: 'chat',
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
@@ -71,7 +71,6 @@ describe('OnyxDerived', () => {
                         reportName: mockReport.reportName,
                     },
                 },
-                locale: 'en',
             });
         });
 
