@@ -31,22 +31,16 @@ function SelectFeedType() {
             setHasError(true);
             return;
         }
-        if (!canUsePlaidCompanyCards) {
-            setAddNewCompanyCardStepAndData({
-                step: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
-                data: {selectedFeedType: typeSelected},
-            });
-            return;
-        }
         const isDirectSelected = typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT;
-        if (!isDirectSelected) {
+
+        if (!canUsePlaidCompanyCards || !isDirectSelected) {
             setAddNewCompanyCardStepAndData({
-                step: CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                step: isDirectSelected ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
                 data: {selectedFeedType: typeSelected},
             });
             return;
         }
-        const step = isDirectSelected && isUSCountry ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION;
+        const step = isUSCountry ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION;
         setAddNewCompanyCardStepAndData({
             step,
             data: {selectedFeedType: typeSelected},
