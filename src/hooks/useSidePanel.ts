@@ -10,9 +10,9 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import KeyboardUtils from '@src/utils/keyboard';
+import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
-import usePrevious from './usePrevious';
 
 /**
  * Hook to get the display status of the Side Panel
