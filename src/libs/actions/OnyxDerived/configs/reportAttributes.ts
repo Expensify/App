@@ -9,6 +9,15 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 let isFullyComputed = false;
 let recentlyUpdated: string[] = [];
 
+/**
+ * Reset the module-level variables for testing purposes
+ * This function is exported only for testing
+ */
+function resetState() {
+    isFullyComputed = false;
+    recentlyUpdated = [];
+}
+
 const prepareReportKeys = (keys: string[]) => {
     return [
         ...new Set(
@@ -26,7 +35,7 @@ const prepareReportKeys = (keys: string[]) => {
  * This derived value is used to get the report attributes for the report.
  */
 
-export default createOnyxDerivedValueConfig({
+const config = createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     dependencies: [
         ONYXKEYS.COLLECTION.REPORT,
@@ -46,6 +55,13 @@ export default createOnyxDerivedValueConfig({
                 locale: null,
             };
         }
+
+        // If Onyx.clear() has been called (common in tests), we need to reset our state
+        if (currentValue === null) {
+            isFullyComputed = false;
+            recentlyUpdated = [];
+        }
+
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
         // we need to recompute all report attributes on locale change because the report names are locale dependent
         if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues)) {
@@ -145,3 +161,6 @@ export default createOnyxDerivedValueConfig({
         };
     },
 });
+
+export {resetState};
+export default config;
