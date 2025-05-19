@@ -34,12 +34,12 @@ describe('OnyxDerived', () => {
     });
 
     describe('reportAttributes', () => {
-        it('ensures dependencies are initialized', async () => {
+        it('returns empty reports when dependencies are not set', async () => {
             await waitForBatchedUpdates();
-
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
-            expect(derivedReportAttributes).toBeTruthy();
-            expect(typeof derivedReportAttributes?.reports).toBe('object');
+            expect(derivedReportAttributes).toMatchObject({
+                reports: {},
+            });
         });
 
         it('computes report attributes when reports are set', async () => {
