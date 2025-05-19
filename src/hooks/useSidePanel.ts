@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import KeyboardUtils from '@src/utils/keyboard';
 import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
+import usePrevious from './usePrevious';
 
 /**
  * Hook to get the display status of the Side Panel
@@ -70,8 +71,15 @@ function useSidePanel() {
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
     const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sideBarWidth : 0));
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
+    const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
 
     useEffect(() => {
+        if (shouldHideSidePanel && prevShouldHideSidePanel) {
+            setIsSidePanelTransitionEnded(true);
+            sidePanelTranslateX.current.setValue(sidePanelWidth);
+            sidePanelOffset.current.setValue(shouldApplySidePanelOffset ? variables.sideBarWidth : 0);
+            return;
+        }
         setIsSidePanelTransitionEnded(false);
 
         Animated.parallel([
@@ -86,7 +94,7 @@ function useSidePanel() {
                 useNativeDriver: true,
             }),
         ]).start(() => setIsSidePanelTransitionEnded(true));
-    }, [shouldHideSidePanel, shouldApplySidePanelOffset, sidePanelWidth]);
+    }, [shouldHideSidePanel, shouldApplySidePanelOffset, sidePanelWidth, prevShouldHideSidePanel]);
 
     const openSidePanel = useCallback(() => {
         setIsSidePanelTransitionEnded(false);
