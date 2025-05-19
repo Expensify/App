@@ -263,7 +263,7 @@ function addSubscriptionPaymentCard(
         },
     ];
 
-    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP || currency === CONST.PAYMENT_CARD_CURRENCY.EUR) {
+    if (CONST.SCA_CURRENCIES.has(currency)) {
         addPaymentCardSCA(parameters, {optimisticData, successData, failureData});
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
