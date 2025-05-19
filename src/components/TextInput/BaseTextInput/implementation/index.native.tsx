@@ -314,7 +314,7 @@ function BaseTextInput(
                             <>
                                 {/* Adding this background to the label only for multiline text input,
                 to prevent text overlapping with label when scrolling */}
-                                {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone, inputProps.disabled && styles.highlightBG]} />}
+                                {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone, inputProps.disabled && styles.textInputDisabledContainer]} />}
                                 <TextInputLabel
                                     label={label}
                                     labelTranslateY={labelTranslateY}
