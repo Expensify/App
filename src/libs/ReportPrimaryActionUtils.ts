@@ -13,9 +13,10 @@ import {
     hasIntegrationAutoSync,
     isPreferredExporter,
 } from './PolicyUtils';
-import {getAllReportActions, getOneTransactionThreadReportID} from './ReportActionsUtils';
+import {getAllReportActions, getOneTransactionThreadReportID, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     canAddTransaction as canAddTransactionUtil,
+    canHoldUnholdReportAction,
     getMoneyRequestSpendBreakdown,
     getParentReport,
     hasExportError as hasExportErrorUtil,
@@ -262,6 +263,14 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
+function getAllExpensesToHoldIfApplicable(report?: Report, reportActions?: ReportAction[]) {
+    if (!report || !reportActions || !hasOnlyHeldExpenses(report?.reportID)) {
+        return [];
+    }
+
+    return reportActions?.filter((action) => isMoneyRequestAction(action) && action.childType === CONST.REPORT.TYPE.CHAT && canHoldUnholdReportAction(action).canUnholdRequest);
+}
+
 function getReportPrimaryAction(
     report: Report,
     reportTransactions: Transaction[],
@@ -302,6 +311,10 @@ function getReportPrimaryAction(
 
     if (isExportAction(report, policy, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
+    }
+
+    if (getAllExpensesToHoldIfApplicable(report, reportActions).length) {
+        return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
     return '';
@@ -349,4 +362,4 @@ function getTransactionThreadPrimaryAction(
     return '';
 }
 
-export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction};
+export {getReportPrimaryAction, getTransactionThreadPrimaryAction, isAddExpenseAction, isPrimaryPayAction, getAllExpensesToHoldIfApplicable};

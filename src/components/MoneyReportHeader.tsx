@@ -25,7 +25,7 @@ import {isSecondaryActionAPaymentOption, selectPaymentType} from '@libs/PaymentU
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
+import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     changeMoneyRequestHoldStatus,
@@ -548,6 +548,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 text={translate('iou.unhold')}
                 onPress={() => {
                     const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
+
+                    const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions);
+
+                    if (IOUActions.length) {
+                        IOUActions.forEach(changeMoneyRequestHoldStatus);
+                        return;
+                    }
 
                     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
                     if (!moneyRequestAction) {
