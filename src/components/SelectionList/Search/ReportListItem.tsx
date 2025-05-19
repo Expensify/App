@@ -73,7 +73,9 @@ function ReportListItem<TItem extends ListItem>({
         // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
         if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             reportID = generateReportID();
-            updateSearchResultsWithTransactionThreadReportID(queryJSONHash, transactionItem.transactionID, reportID);
+            if (queryJSONHash) {
+                updateSearchResultsWithTransactionThreadReportID(queryJSONHash, transactionItem.transactionID, reportID);
+            }
             Navigation.navigate(
                 ROUTES.SEARCH_REPORT.getRoute({
                     reportID,
