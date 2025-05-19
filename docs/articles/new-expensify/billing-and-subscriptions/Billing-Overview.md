@@ -47,7 +47,7 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
 
 ---
 
-## Control Plan
+# Control Plan
 
 ## 💸 Best Way to Save
 
