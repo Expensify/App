@@ -1,7 +1,10 @@
 ---
 title: Claim and Verify a Domain
 description: Learn how to claim and verify a private domain in Expensify to manage employee permissions and enable advanced features.
+keywords: [Expensify Classic, claim a domain, domain permissions, verify domain]
 ---
+
+<div id="expensify-classic" markdown="1">
 
 If you have a private domain (e.g., `yourcompany.com`), you can claim and verify it in Expensify to manage employee permissions and enable additional security features.
 
@@ -18,6 +21,7 @@ If you have a private domain (e.g., `yourcompany.com`), you can claim and verify
 **Note:** Only private domains can be claimed and verified. Public domains (e.g., gmail.com) cannot be used.
 
 ---
+
 # Step 1: Claim Your Domain
 1. Hover over **Settings**, then click **Domains**.
 2. Click **New Domain**.
@@ -25,6 +29,7 @@ If you have a private domain (e.g., `yourcompany.com`), you can claim and verify
 4. Click **Submit**.
 
 ---
+
 # Step 2: Verify Domain Ownership
 To verify a domain, you must have a **Control** workspace and access to your domain provider account (e.g., GoDaddy, Wix, Google Domains).
 
@@ -51,7 +56,10 @@ For provider-specific instructions, refer to your domain provider’s documentat
 Once verified, an email will be sent to all domain members informing them that their accounts are now managed under the domain rules.
 
 ---
+
 # Add Another Domain
 To add an additional domain:
 1. Add your domain email address (`@yourcompany.com`) as a **primary or secondary email** in Expensify -- [How to add an email](https://help.expensify.com/articles/expensify-classic/settings/account-settings/Change-or-add-email-address)
 2. Follow the steps above to claim and verify the new domain.
+
+</div>

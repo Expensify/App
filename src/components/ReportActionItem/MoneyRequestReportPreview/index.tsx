@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import Performance from '@libs/Performance';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
+import {isIOUReport} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import Timing from '@userActions/Timing';
@@ -58,10 +59,20 @@ function MoneyRequestReportPreview({
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
     const [currentWidth, setCurrentWidth] = useState(256);
+    const [currentWrapperWidth, setCurrentWrapperWidth] = useState(256);
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, transactions.length === 1),
-        [StyleUtils, currentWidth, shouldUseNarrowLayout, transactions.length],
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, currentWrapperWidth, transactions.length === 1),
+        [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
     );
+
+    const shouldShowIOUData = useMemo(() => {
+        if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
+            return false;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
+    }, [transactions, action.childType, iouReport]);
 
     const openReportFromPreview = useCallback(() => {
         if (!iouReportID || contextMenuRef.current?.isContextMenuOpening) {
@@ -70,13 +81,14 @@ function MoneyRequestReportPreview({
 
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
             chatReportID={chatReportID}
             action={getIOUActionForReportID(item.reportID, item.transactionID)}
+            contextAction={action}
             reportID={item.reportID}
             isBillSplit={isSplitBillAction}
             isTrackExpense={isTrackExpenseAction}
@@ -85,9 +97,12 @@ function MoneyRequestReportPreview({
             isHovered={isHovered}
             iouReportID={iouReportID}
             containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle, containerStyles]}
+            shouldDisplayContextMenu={shouldDisplayContextMenu}
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
+            onPreviewPressed={openReportFromPreview}
+            shouldShowIOUData={shouldShowIOUData}
         />
     );
 
@@ -113,9 +128,13 @@ function MoneyRequestReportPreview({
             lastTransactionViolations={lastTransactionViolations}
             isDelegateAccessRestricted={isDelegateAccessRestricted}
             renderTransactionItem={renderItem}
-            onLayout={(e: LayoutChangeEvent) => {
+            onCarouselLayout={(e: LayoutChangeEvent) => {
                 setCurrentWidth(e.nativeEvent.layout.width ?? 255);
             }}
+            onWrapperLayout={(e: LayoutChangeEvent) => {
+                setCurrentWrapperWidth(e.nativeEvent.layout.width ?? 255);
+            }}
+            currentWidth={currentWidth}
             reportPreviewStyles={reportPreviewStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             isInvoice={isInvoice}

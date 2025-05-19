@@ -40,7 +40,7 @@ import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
-import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
@@ -596,7 +596,7 @@ function getDefaultApprover(policy: OnyxEntry<Policy> | SearchPolicy): string {
 }
 
 function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>) {
-    const categoryAppovers: string[] = [];
+    const categoryApprovers: string[] = [];
     const tagApprovers: string[] = [];
     const allReportTransactions = getAllSortedTransactions(expenseReport?.reportID);
 
@@ -606,10 +606,10 @@ function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseRepor
         const transaction = allReportTransactions.at(i);
         const tag = getTag(transaction);
         const category = getCategory(transaction);
-        const categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
+        const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
         const tagApprover = getTagApproverRule(policy, tag)?.approver;
-        if (categoryAppover) {
-            categoryAppovers.push(categoryAppover);
+        if (categoryApprover) {
+            categoryApprovers.push(categoryApprover);
         }
 
         if (tagApprover) {
@@ -617,7 +617,7 @@ function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseRepor
         }
     }
 
-    return [...categoryAppovers, ...tagApprovers];
+    return [...categoryApprovers, ...tagApprovers];
 }
 
 function getManagerAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>) {
@@ -718,6 +718,19 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, curre
     return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
+/** Return active policies where current user is an employee (of the role "user") */
+function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyUser(policy, currentUserLogin));
+}
+
+/**
+ * Checks whether the current user has a policy with admin access
+ */
+function hasActiveAdminWorkspaces(currentUserLogin: string | undefined) {
+    return getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
+}
+
 /**
  *
  * Checks whether the current user has a policy with Xero accounting software integration
@@ -748,6 +761,13 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
         return false;
     }
     return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
+}
+
+function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
+    if (!policy?.hasMultipleTagLists) {
+        return false;
+    }
+    return Object.values(policyTagList ?? {}).every((tagList) => Object.values(tagList.tags).every((tag) => !tag.rules?.parentTagsFilter && !tag.parentTagsFilter));
 }
 
 /** Get the Xero organizations connected to the policy */
@@ -1109,44 +1129,6 @@ const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: Work
 };
 
 /**
- * Determines whether the report can be moved to the workspace.
- */
-const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, oldPolicy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean => {
-    const currentUserAccountID = getCurrentUserAccountID();
-    const isCurrentUserMember = !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
-    if (!isCurrentUserMember) {
-        return false;
-    }
-
-    const isAdmin = isUserPolicyAdmin(newPolicy, currentUserLogin);
-    if (report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isAdmin) {
-        return false;
-    }
-
-    // Submitters: workspaces where the submitter is a member of
-    const isCurrentUserSubmitter = report?.ownerAccountID === currentUserAccountID;
-    if (isCurrentUserSubmitter) {
-        return true;
-    }
-
-    // Approvers: workspaces where both the approver AND submitter are members of
-    const reportApproverAccountID = getSubmitToAccountID(oldPolicy, report);
-    const isCurrentUserApprover = currentUserAccountID === reportApproverAccountID;
-    if (isCurrentUserApprover) {
-        const reportSubmitterLogin = report?.ownerAccountID ? getLoginByAccountID(report?.ownerAccountID) : undefined;
-        const isReportSubmitterMember = !!reportSubmitterLogin && !!newPolicy?.employeeList?.[reportSubmitterLogin];
-        return isCurrentUserApprover && isReportSubmitterMember;
-    }
-
-    // Admins: same as approvers OR workspaces where the admin is an admin of (note that the submitter is invited to the workspace in this case)
-    if (isPolicyOwner(newPolicy, currentUserAccountID) || isAdmin) {
-        return true;
-    }
-
-    return false;
-};
-
-/**
  * Takes removes pendingFields and errorFields from a customUnit
  */
 function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
@@ -1249,6 +1231,10 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
 
 function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
+}
+
+function getAllPolicies() {
+    return Object.values(allPolicies ?? {}).filter((p) => !!p);
 }
 
 function getActivePolicy(): OnyxEntry<Policy> {
@@ -1391,7 +1377,7 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
-function isPrefferedExporter(policy: Policy) {
+function isPreferredExporter(policy: Policy) {
     const user = getCurrentUserEmail();
     const exporters = [
         policy.connections?.intacct?.config?.export?.exporter,
@@ -1402,18 +1388,6 @@ function isPrefferedExporter(policy: Policy) {
     ];
 
     return exporters.some((exporter) => exporter && exporter === user);
-}
-
-function isAutoSyncEnabled(policy: Policy) {
-    const values = [
-        policy.connections?.intacct?.config?.autoSync?.enabled,
-        policy.connections?.netsuite?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
-        policy.connections?.xero?.config?.autoSync?.enabled,
-    ];
-
-    return values.some((value) => !!value);
 }
 
 /**
@@ -1482,6 +1456,7 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
+    hasActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
@@ -1550,6 +1525,7 @@ export {
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
+    getAllPolicies,
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
@@ -1562,12 +1538,13 @@ export {
     getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
-    isWorkspaceEligibleForReportChange,
     getManagerAccountID,
-    isPrefferedExporter,
-    isAutoSyncEnabled,
+    isPreferredExporter,
     areAllGroupPoliciesExpenseChatDisabled,
+    getActiveEmployeeWorkspaces,
     isUserInvitedToWorkspace,
+    getPolicyRole,
+    hasIndependentTags,
 };
 
 export type {MemberEmailsToAccountIDs};

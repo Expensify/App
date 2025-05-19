@@ -15,7 +15,9 @@ const story = {
     component: PromotedActionsBar,
 };
 
-type StoryType = typeof Template & {args?: Partial<PromotedActionsBarProps>};
+type PromotedActionWithText = Omit<PromotedAction, 'translationKey'> & {text: string};
+type PromotedActionsBarPropsWithText = Omit<PromotedActionsBarProps, 'promotedActions'> & {promotedActions: PromotedActionWithText[]};
+type StoryType = typeof Template & {args?: Partial<PromotedActionsBarPropsWithText>};
 
 function Template(args: PromotedActionsBarProps) {
     return (
@@ -47,7 +49,7 @@ const promotedActions = [
         text: 'Share',
         onSelected: () => {},
     },
-] satisfies PromotedAction[];
+] satisfies PromotedActionWithText[];
 
 const defaultPromotedAction = {
     key: '',

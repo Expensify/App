@@ -8,7 +8,8 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
-import {clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
+import {clearReimbursementAccountSaveCorpayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
+import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -41,11 +42,11 @@ const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Jo
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
@@ -72,15 +73,15 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         if (reimbursementAccount?.isSuccess) {
             if (currency === CONST.CURRENCY.AUD) {
                 setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
-                clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation();
+                clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
                 return;
             }
             onSubmit();
-            clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation();
+            clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
         }
 
         return () => {
-            clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation();
+            clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
         };
     }, [reimbursementAccount, onSubmit, currency]);
 
@@ -124,6 +125,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     );
 
     const handleBackButtonPress = useCallback(() => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
             goToTheLastStep();
             return;

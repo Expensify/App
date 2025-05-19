@@ -265,10 +265,7 @@ platform | result
             if (commit_sha === 'xyz') {
                 return {
                     data: {
-                        message: `Merge pull request #3 blahblahblah
-(cherry picked from commit dagdag)
-(CP triggered by freyja)`,
-                        committer: {name: 'freyja'},
+                        message: `Merge pull request #3 blahblahblah\\n(cherry picked from commit dagdag)\\n(cherry-picked to staging by freyja)`,
                     },
                 };
             }

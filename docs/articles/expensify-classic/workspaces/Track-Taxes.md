@@ -1,7 +1,7 @@
 ---
 title: Track Taxes
 description: How to track taxes and apply them to expenses
-keywords: [Expensify Classic, track tax]
+keywords: [Expensify Classic, track taxes]
 ---
 <div id="expensify-classic" markdown="1">
 
@@ -12,9 +12,10 @@ Expensify's tax tracking allows you to create tax rates and codes for domestic a
 # Tax Tracking - Connected to an Accounting Integration
 
 If your Workspace is connected to **Xero, QuickBooks Online, Sage Intacct,** or **NetSuite**, follow these steps to set up tax tracking:
-1. Go to **Settings > Workspaces > [Workspace Name] > Connections**.
-2. Click **Configure**.
-3. Click **Sync Connection**. 
+1. Configure the tax settings in your accounting system. 
+2. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
+3. Click **Configure**.
+4. Click **Sync Connection**. 
 
 The tax rates are then imported from the accounting system and displayed with the connection's logo.
 
@@ -23,7 +24,7 @@ The tax rates are then imported from the accounting system and displayed with th
 # Tax Tracking - Not Connected to an Accounting Integration
 
 If your Workspace is not connected to an accounting system, follow these steps to set up tax tracking:
-1. Go to **Settings > Workspaces > [Workspace Name] > Tax**.
+1. Go to **Settings > Workspaces > [Workspace Name] > Taxes**.
 2. Enable the toggle to allow taxes to be added to expenses.
 3. Modify the existing tax rate or click **New Tax Rate** to add a new one. For each tax rate, you can:
    - Enable/turn off individually.
@@ -53,7 +54,7 @@ This rate will be applied to all new expenses under this category, overriding th
 
 Expenses sometimes have more than one tax applied to them (for example, in Canada, expenses can have both a Federal GST and a provincial PST or QST). 
 
-You can create a new tax rate that combines both into a single rate to handle multiple tax rates. For example, if you have a GST of 5% and PST of 7%, you can add them together and create a new tax rate of 12%.
+To handle multiple tax rates, you can create a new tax rate that combines both into a single rate. For example, if you have a GST of 5% and PST of 7%, you can add them together and create a new tax rate of 12%.
 
 You can generate a CSV from the Reports page containing all the expense information, including the split-out taxes, by going to the Reports tab, clicking **Export To**, and selecting **Tax Report**. 
 

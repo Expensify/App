@@ -24,7 +24,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
@@ -56,16 +55,17 @@ type WalletPageProps = {
 };
 
 function WalletPage({shouldListenForResize = false}: WalletPageProps) {
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {initialValue: {}});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {initialValue: {}});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {initialValue: {}});
-    const [isLoadingPaymentMethods] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {initialValue: true});
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}});
-    const isUserValidated = useAccountValidation();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {initialValue: {}, canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {initialValue: {}, canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {initialValue: {}, canBeMissing: true});
+    const [isLoadingPaymentMethods] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {initialValue: true, canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}, canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isUserValidated = userAccount?.validated ?? false;
+    const isActingAsDelegate = !!userAccount?.delegatedAccess?.delegate || false;
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const theme = useTheme();
@@ -389,7 +389,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
-            onBackButtonPress={() => Navigation.goBack(undefined, {shouldPopToTop: true})}
+            onBackButtonPress={Navigation.popToSidebar}
         />
     );
 
@@ -482,13 +482,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     titleStyles={styles.accountSettingsSectionTitle}
                                 >
                                     <>
-                                        {shouldShowLoadingSpinner ? (
+                                        {shouldShowLoadingSpinner && (
                                             <ActivityIndicator
                                                 color={theme.spinner}
                                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                                 style={[styles.mt7, styles.mb5]}
                                             />
-                                        ) : (
+                                        )}
+                                        {!shouldShowLoadingSpinner && hasActivatedWallet && (
                                             <OfflineWithFeedback
                                                 pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
                                                 errors={walletTerms?.errors}
@@ -517,7 +518,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
                                             }}
                                             enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                            addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
+                                            addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route}
                                             addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                             source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                             shouldIncludeDebitCard={hasActivatedWallet}

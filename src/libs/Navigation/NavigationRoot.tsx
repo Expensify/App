@@ -26,8 +26,8 @@ import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import customGetPathFromState from './helpers/customGetPathFromState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
-import {saveSettingsTabPathToSessionStorage} from './helpers/getLastVisitedWorkspace';
-import {isSettingsTabScreenName} from './helpers/isNavigatorName';
+import {saveWorkspacesTabPathToSessionStorage} from './helpers/getLastVisitedWorkspaceTabScreen';
+import {isWorkspacesTabScreenName} from './helpers/isNavigatorName';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
@@ -72,8 +72,8 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     Navigation.setIsNavigationReady();
-    if (isSettingsTabScreenName(state.routes.at(-1)?.name)) {
-        saveSettingsTabPathToSessionStorage(currentPath);
+    if (isWorkspacesTabScreenName(state.routes.at(-1)?.name)) {
+        saveWorkspacesTabPathToSessionStorage(currentPath);
     }
 
     // Fullstory Page navigation tracking
@@ -91,7 +91,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const currentReportIDValue = useCurrentReportID();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -112,7 +111,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
         }
 
-        if (!user || user.isFromPublicDomain) {
+        if (!account || account.isFromPublicDomain) {
             return;
         }
 
@@ -170,14 +169,14 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        // After resizing the screen from wide to narrow, if we have visited multiple central screens, we want to go back to the LHN screen, so we set shouldPopAllStateOnUP to true.
+        // After resizing the screen from wide to narrow, if we have visited multiple central screens, we want to go back to the LHN screen, so we set shouldPopToSidebar to true.
         // Now when this value is true, Navigation.goBack with the option {shouldPopToTop: true} will remove all visited central screens in the given tab from the navigation stack and go back to the LHN.
         // More context here: https://github.com/Expensify/App/pull/59300
         if (!shouldUseNarrowLayout) {
             return;
         }
 
-        Navigation.setShouldPopAllStateOnUP(true);
+        Navigation.setShouldPopToSidebar(true);
     }, [shouldUseNarrowLayout]);
 
     useEffect(() => {

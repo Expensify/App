@@ -350,6 +350,9 @@ type MenuItemBaseProps = {
     /** Callback to fire when the education tooltip is pressed */
     onEducationTooltipPress?: () => void;
 
+    /** Whether the tooltip should hide on scroll */
+    shouldHideOnScroll?: boolean;
+
     shouldShowLoadingSpinnerIcon?: boolean;
 
     /** Should selected item be marked with checkmark */
@@ -373,7 +376,7 @@ type MenuItemBaseProps = {
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
 
-const getSubscriptpAvatarBackgroundColor = (isHovered: boolean, isPressed: boolean, hoveredBackgroundColor: string, pressedBackgroundColor: string) => {
+const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolean, hoveredBackgroundColor: string, pressedBackgroundColor: string) => {
     if (isPressed) {
         return pressedBackgroundColor;
     }
@@ -474,6 +477,7 @@ function MenuItem(
         onBlur,
         avatarID,
         shouldRenderTooltip = false,
+        shouldHideOnScroll = false,
         tooltipAnchorAlignment,
         tooltipWrapperStyle = {},
         tooltipShiftHorizontal = 0,
@@ -514,6 +518,7 @@ function MenuItem(
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : {},
             shouldBreakWord ? styles.breakWord : {},
+            styles.mw100,
         ],
         titleStyle ?? {},
     );
@@ -545,7 +550,7 @@ function MenuItem(
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
         if (shouldRenderAsHTML) {
-            titleToWrap = title ? convertToLTR(title) : '';
+            titleToWrap = title ?? '';
         }
 
         if (shouldParseTitle) {
@@ -638,6 +643,7 @@ function MenuItem(
                 shiftVertical={tooltipShiftVertical}
                 shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                 onTooltipPress={onEducationTooltipPress}
+                shouldHideOnScroll={shouldHideOnScroll}
             >
                 <View>
                     <Hoverable>
@@ -698,7 +704,7 @@ function MenuItem(
                                                     )}
                                                     {shouldShowAvatar && shouldShowSubscriptAvatar && (
                                                         <SubscriptAvatar
-                                                            backgroundColor={getSubscriptpAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
+                                                            backgroundColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
                                                             mainAvatar={firstIcon as IconType}
                                                             secondaryAvatar={(icon as IconType[]).at(1)}
                                                             size={avatarSize}

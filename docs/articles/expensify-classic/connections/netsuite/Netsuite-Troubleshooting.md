@@ -1,8 +1,9 @@
 ---
-title: Netsuite-Troubleshooting.md
+title: Netsuite Troubleshooting
 description: Troubleshoot common NetSuite sync and export errors in Expensify and learn how to fix each issue.
-keywords: [NetSuite, Expensify, export errors, sync issues, ExpensiError, integrations, accounting, troubleshooting]
+keywords: [NetSuite, Expensify Classic, export errors, sync issues, troubleshooting]
 ---
+
 <div id="expensify-classic" markdown="1">
 
 This guide helps you fix common sync and export issues between Expensify and NetSuite. Each section covers an error code, explains what it means, and walks you through how to resolve it.
@@ -20,7 +21,7 @@ This error occurs when required classification fields are missing in the vendor 
 2. Click **Edit** next to the vendor bill form used.
 3. Go to **Screen Fields > Main**.
 4. Uncheck both **Show** and **Mandatory** for Department, Location, and Class.
-5. In Expensify, go to **Settings > Workspaces > [Workspace Name] > Connections** and click **Sync**.
+5. In Expensify, go to **Settings > Workspaces > [Workspace Name] > Accounting** and click **Sync**.
 6. Retry the export.
 
 ## Journal entries and expense reports
@@ -47,7 +48,7 @@ The currency being used isn’t available in the NetSuite subsidiary.
 
 ## Scenario 2
 
-Non-OneWorld NetSuite instances only support **EUR**, **GBP**, **USD**, and **CAD** by default.
+By default, non-OneWorld NetSuite instances only support **EUR**, **GBP**, **USD**, and **CAD**.
 
 **How to fix:**
 1. In NetSuite, go to **Setup > Enable Features**.
@@ -209,14 +210,14 @@ Common elements include:
    - **Screen Fields > Main** for Vendor Bills
 5. Make sure the listed field is marked as **Show**.
 
-Additional fixes by element:
+## Additional fixes by element
 
-## `line.entity`
+**Element:** `line.entity`
 
 1. Edit your **Journal Entry** form.
 2. Under **Screen Fields > Main**, ensure the **Name** field is shown.
 
-## `entityid`
+**Element:** `entityid`
 
 1. Go to **Customization > Forms > Entry Forms** and edit the preferred **Vendor** form.
 2. Set **Vendor ID** to:
@@ -227,7 +228,7 @@ Additional fixes by element:
    - Disable them, or
    - Enable **Allow Override**.
 
-## `approvalstatus`
+**Element:** `approvalstatus`
 
 1. Edit your form and make sure **Approval Status** is shown.
 2. Optional: Disable approval routing under **Setup > Accounting > Accounting Preferences > Approval Routing**.
@@ -235,21 +236,21 @@ Additional fixes by element:
 4. Under **Permissions > Transactions**, add **Approve Vendor Payments** with **Full** access.
 5. Review **Customization > Workflows** and category-specific settings if issues persist.
 
-## `expense.foreignamount`
+**Element:** `expense.foreignamount`
 
 1. In NetSuite, open each **Expense Category** and disable **Rate is Required**.
 2. Sync and retry.
 
-## `tranid`
+**Element:** `tranid`
 
 1. In NetSuite, search **Auto-Generated Numbers**.
 2. Enable **Allow Override** for Invoices.
 
-## `memo`
+**Element:** `memo`
 
-Can appear if the report has a negative reimbursable total. Only positive reimbursable reports can export.
+It can appear if the report has a negative reimbursable total. Only positive reimbursable reports can be exported.
 
-## `nexus`
+**Element:** `nexus`
 
 1. Go to **Setup > Users/Roles > Manage Roles > Expensify Integration > Edit**.
 2. Under **Permissions > Lists**, set **Tax Details Tab** to **Full**.
@@ -260,7 +261,7 @@ Can appear if the report has a negative reimbursable total. Only positive reimbu
 
 ## Why am I seeing “You do not have permissions to set a value for element…” errors?
 
-Usually, this means a required field is hidden or restricted in NetSuite. Edit the preferred form and check that the field is visible.
+This usually means a required field is hidden or restricted in NetSuite. Edit the preferred form and check that the field is visible.
 
 ## What if I’ve made all changes and still see the error?
 
@@ -274,16 +275,17 @@ This may be due to missing **Location**, **Class**, or **Department** info, or m
 
 **How to fix:**
 1. Update your **Bill Payment Form** in NetSuite.
-2. Verify **Expensify workspace connection settings** under **Connections > Accounting Integrations > Advanced**.
+2. Verify **Expensify workspace connection settings** under **Accounting > Accounting Integrations > Advanced**.
 
 ## "Invite Employees & Set Approval Workflow" is enabled, why are NetSuite approvers not being set as Expensify approvers?
 
-The Invite Employees & Set Approval Workflow setting will not overwrite manual changes to the approval table so if an employee was added before this setting was enabled, the integration will not automatically update their approver to their NetSuite approver/supervisor.
+The Invite Employees & Set Approval Workflow setting will not overwrite manual changes to the approval table, so if an employee was added before this setting was enabled, the integration will not automatically update their approver to their NetSuite approver/supervisor.
 
 **Fix**:
 1. Remove the employee from the workspace from **Settings > Workspaces > Group > [Workspace Name] > Members**.
-2. Sync the connection from **Settings > Workspaces > Group > [Workspace Name] > Connections > Sync Now** to import the employee and their designated NetSuite approver.
+2. Sync the connection from **Settings > Workspaces > Group > [Workspace Name] > Accounting > Sync Now** to import the employee and their designated NetSuite approver.
 
 **Alternative fix:**
-1. Manually update the employee's approver in **Settings > Workspaces > Group > [Workspace Name] > Members**.
+Manually update the employee's approver in **Settings > Workspaces > Group > [Workspace Name] > Members**.
+
 </div>

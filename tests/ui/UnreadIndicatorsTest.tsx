@@ -148,7 +148,9 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
         .then(async () => {
             reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
             reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
-
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
+            });
             // Simulate setting an unread report and personal details
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,
@@ -174,9 +176,6 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
                 7: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 70), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '7'),
                 8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8'),
                 9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
-            });
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
             });
 
             // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
@@ -677,5 +676,40 @@ describe('Unread Indicators', () => {
         const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(0);
+    });
+    it('Mark the chat as unread on clicking "Mark as unread" on an item in LHN when the last message of the chat was deleted by another user', async () => {
+        await signInAndGetAppWithUnreadChat();
+
+        await navigateToSidebar();
+
+        const reportAction11CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 110), CONST.DATE.FNS_DB_FORMAT_STRING);
+        const reportAction11 = TestHelper.buildTestReportComment(reportAction11CreatedDate, USER_B_ACCOUNT_ID, '11');
+        const reportAction12CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 120), CONST.DATE.FNS_DB_FORMAT_STRING);
+        const reportAction12 = TestHelper.buildTestReportComment(reportAction12CreatedDate, USER_B_ACCOUNT_ID, '12');
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+            11: reportAction11,
+            12: reportAction12,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            lastVisibleActionCreated: reportAction12CreatedDate,
+        });
+
+        const message = reportAction12.message.at(0);
+        if (message) {
+            message.html = ''; // Simulate the server response for deleting the last message
+        }
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            lastVisibleActionCreated: reportAction11CreatedDate,
+        });
+
+        markCommentAsUnread(REPORT_ID, {reportActionID: -1} as unknown as ReportAction); // Marking the chat as unread from LHN passing a dummy reportActionID
+
+        await waitForBatchedUpdates();
+        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+        const displayNameTexts = screen.queryAllByLabelText(hintText);
+        expect(displayNameTexts).toHaveLength(1);
+        expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
     });
 });

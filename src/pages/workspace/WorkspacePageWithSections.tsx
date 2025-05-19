@@ -11,13 +11,11 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import BankAccount from '@libs/models/BankAccount';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -129,17 +127,19 @@ function WorkspacePageWithSections({
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
-    const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
-    const {canUseLeftHandBar} = usePermissions();
+    useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
-    const [user] = useOnyx(ONYXKEYS.USER);
-    const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {
+        selector: (session) => session?.email,
+        canBeMissing: true,
+    });
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
     const achState = reimbursementAccount?.achData?.state;
-    const isUsingECard = user?.isUsingExpensifyCard ?? false;
+    const isUsingECard = account?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -157,7 +157,7 @@ function WorkspacePageWithSections({
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-    const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
+    const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
     const shouldShow = useMemo(() => {
@@ -182,7 +182,7 @@ function WorkspacePageWithSections({
             return;
         }
 
-        goBackFromWorkspaceCentralScreen(policyID);
+        Navigation.popToSidebar();
     };
 
     return (
@@ -200,13 +200,13 @@ function WorkspacePageWithSections({
                 shouldShow={shouldShow}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
                 shouldForceFullScreen
+                shouldDisplaySearchRouter
             >
                 <HeaderWithBackButton
                     title={headerText}
                     onBackButtonPress={handleOnBackButtonPress}
                     shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     icon={icon ?? undefined}
-                    style={styles.headerBarDesktopHeight(canUseLeftHandBar)}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={threeDotsAnchorPosition}

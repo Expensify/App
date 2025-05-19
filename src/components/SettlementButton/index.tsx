@@ -6,7 +6,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {PaymentType} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -79,8 +78,8 @@ function SettlementButton({
     const {isOffline} = useNetwork();
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: false});
-    const isUserValidated = useAccountValidation();
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
@@ -109,7 +108,7 @@ function SettlementButton({
     }, [isLoadingLastPaymentMethod]);
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
-    const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions;
+    const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
@@ -152,7 +151,7 @@ function SettlementButton({
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
-        if (isExpenseReport && shouldShowPaywithExpensifyOption) {
+        if (isExpenseReport && shouldShowPayWithExpensifyOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
         if (shouldShowPayElsewhereOption) {
@@ -168,6 +167,9 @@ function SettlementButton({
                     description: formattedPaymentMethod?.description ?? '',
                     icon: formattedPaymentMethod?.icon,
                     onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType),
+                    iconStyles: formattedPaymentMethod?.iconStyles,
+                    iconHeight: formattedPaymentMethod?.iconSize,
+                    iconWidth: formattedPaymentMethod?.iconSize,
                 }));
 
             if (isIndividualInvoiceRoomUtil(chatReport)) {
@@ -237,7 +239,7 @@ function SettlementButton({
         currency,
         shouldHidePaymentOptions,
         shouldShowApproveButton,
-        shouldShowPaywithExpensifyOption,
+        shouldShowPayWithExpensifyOption,
         shouldShowPayElsewhereOption,
         chatReport,
         onPress,

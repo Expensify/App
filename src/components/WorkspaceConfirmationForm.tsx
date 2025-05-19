@@ -108,7 +108,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
                 source={workspaceAvatar?.avatarUri || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter)}
                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.XLARGE}
+                size={CONST.AVATAR_SIZE.X_LARGE}
                 name={workspaceNameFirstCharacter}
                 avatarID={policyID}
                 type={CONST.ICON_TYPE_WORKSPACE}
@@ -143,7 +143,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                         setAvatarFile(undefined);
                         setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    size={CONST.AVATAR_SIZE.XLARGE}
+                    size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
                     shouldDisableViewPhoto
                     editIcon={Expensicons.Camera}

@@ -13,6 +13,7 @@ import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -37,14 +38,14 @@ type WorkspaceExpensifyCardBankAccountsProps = PlatformStackScreenProps<Settings
 function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankAccountsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: false});
 
     const policyID = route?.params?.policyID;
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
-    const [cardBankAccountMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA}${workspaceAccountID}`);
-    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
+    const [cardBankAccountMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA}${workspaceAccountID}`, {canBeMissing: true});
+    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`, {canBeMissing: true});
 
     const getVerificationState = () => {
         if (cardOnWaitlist) {
@@ -102,6 +103,8 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const verificationState = getVerificationState();
     const isInVerificationState = !!verificationState;
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+
     const renderVerificationStateView = () => {
         switch (verificationState) {
             case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.LOADING:
@@ -114,6 +117,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                         animationWebStyle={styles.loadingVBAAnimationWeb}
                         subtitleStyle={styles.textLabelSupporting}
                         containerStyle={styles.pb20}
+                        addBottomSafeAreaPadding
                     />
                 );
             case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.ON_WAITLIST:
@@ -131,7 +135,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                             success
                             large
                             text={translate('workspace.expensifyCard.goToConcierge')}
-                            style={[styles.m5]}
+                            style={[styles.m5, bottomSafeAreaPaddingStyle]}
                             pressOnEnter
                             onPress={() => Navigation.navigate(ROUTES.CONCIERGE)}
                         />
@@ -152,7 +156,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                             success
                             large
                             text={translate('workspace.expensifyCard.gotIt')}
-                            style={[styles.m5]}
+                            style={[styles.m5, bottomSafeAreaPaddingStyle]}
                             pressOnEnter
                             onPress={() => {
                                 Navigation.dismissModal();

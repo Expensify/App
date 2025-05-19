@@ -26,7 +26,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import {getFullSizeAvatar, getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
 import {clearAvatarErrors, deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
@@ -45,11 +45,11 @@ function ProfilePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
 
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
@@ -64,7 +64,7 @@ function ProfilePage() {
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const publicOptions = [
@@ -152,7 +152,13 @@ function ProfilePage() {
         >
             <HeaderWithBackButton
                 title={translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(route.params?.backTo, {shouldPopToTop: true})}
+                onBackButtonPress={() => {
+                    if (Navigation.getShouldPopToSidebar()) {
+                        Navigation.popToSidebar();
+                        return;
+                    }
+                    Navigation.goBack(route.params?.backTo);
+                }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 icon={Illustrations.Profile}
@@ -175,7 +181,7 @@ function ProfilePage() {
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
-                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.XLARGE} />
+                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.X_LARGE} />
                                 ) : (
                                     <MenuItemGroup shouldUseSingleExecution={false}>
                                         <AvatarWithImagePicker
@@ -184,7 +190,7 @@ function ProfilePage() {
                                             avatarID={accountID}
                                             onImageSelected={updateAvatar}
                                             onImageRemoved={deleteAvatar}
-                                            size={CONST.AVATAR_SIZE.XLARGE}
+                                            size={CONST.AVATAR_SIZE.X_LARGE}
                                             avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
                                             pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                             errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
