@@ -216,7 +216,7 @@ import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
 import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
-import {removeDraftTransaction} from './TransactionEdit';
+import {removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -406,6 +406,7 @@ type RequestMoneyInformation = {
     reimbursible?: boolean;
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
+    shouldHandleNavigation?: boolean;
     backToReport?: string;
 };
 
@@ -523,6 +524,7 @@ type CreateTrackExpenseParams = {
     transactionParams: TrackExpenseTransactionParams;
     accountantParams?: TrackExpenseAccountantParams;
     isRetry?: boolean;
+    shouldHandleNavigation?: boolean;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -931,8 +933,8 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
 }
 
 function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
+    removeDraftTransactions();
     Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
 function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation = false, backToReport?: string) {
@@ -5002,7 +5004,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
  * Submit expense to another user
  */
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
-    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible, backToReport} = requestMoneyInformation;
+    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible, shouldHandleNavigation = true, backToReport} = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
     transactionParams.comment = parsedComment;
@@ -5167,14 +5169,16 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         }
     }
 
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    if (!requestMoneyInformation.isRetry) {
-        dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
-    }
+    if (shouldHandleNavigation) {
+        InteractionManager.runAfterInteractions(() => removeDraftTransactions());
+        if (!requestMoneyInformation.isRetry) {
+            dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
+        }
 
-    const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
-    if (trackReport?.key) {
-        Navigation.removeScreenByKey(trackReport.key);
+        const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
+        if (trackReport?.key) {
+            Navigation.removeScreenByKey(trackReport.key);
+        }
     }
 
     if (activeReportID && (!isMoneyRequestReport || !Permissions.canUseTableReportView(betas))) {
@@ -5333,7 +5337,7 @@ function sendInvoice(
  * Track an expense
  */
 function trackExpense(params: CreateTrackExpenseParams) {
-    const {report, action, isDraftPolicy, participantParams, policyParams: policyData = {}, transactionParams: transactionData, accountantParams} = params;
+    const {report, action, isDraftPolicy, participantParams, policyParams: policyData = {}, transactionParams: transactionData, accountantParams, shouldHandleNavigation = true} = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
     const parsedComment = getParsedComment(transactionData.comment ?? '');
@@ -5586,10 +5590,13 @@ function trackExpense(params: CreateTrackExpenseParams) {
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }
-    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    if (!params.isRetry) {
-        dismissModalAndOpenReportInInboxTab(activeReportID);
+    if (shouldHandleNavigation) {
+        InteractionManager.runAfterInteractions(() => removeDraftTransactions());
+
+        if (!params.isRetry) {
+            dismissModalAndOpenReportInInboxTab(activeReportID);
+        }
     }
 
     notifyNewAction(activeReportID, payeeAccountID);
@@ -10498,6 +10505,20 @@ function navigateToStartStepIfScanFileCannotBeRead(
     readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
+function checkIfScanFileCanBeRead(
+    receiptFilename: string | undefined,
+    receiptPath: ReceiptSource | undefined,
+    receiptType: string | undefined,
+    onSuccess: (file: File) => void,
+    onFailure: () => void,
+) {
+    if (!receiptFilename || !receiptPath) {
+        return;
+    }
+
+    return readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
+}
+
 /** Save the preferred payment method for a policy */
 function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMethodType, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
     Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: type ? {[type]: paymentMethod, [CONST.LAST_PAYMENT_METHOD.LAST_USED]: paymentMethod} : paymentMethod});
@@ -10910,6 +10931,8 @@ export {
     dismissHoldUseExplanation,
     getIOURequestPolicyID,
     initMoneyRequest,
+    checkIfScanFileCanBeRead,
+    dismissModalAndOpenReportInInboxTab,
     navigateToStartStepIfScanFileCannotBeRead,
     completePaymentOnboarding,
     payInvoice,
