@@ -29,6 +29,7 @@ import {
     isPayer as isPayerUtils,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
+    isReportManager as isReportManagerUtils,
     isSettled,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
@@ -79,7 +80,8 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    if (isAdmin) {
+    const isManager = report.managerID === getCurrentUserAccountID();
+    if (isAdmin || isManager) {
         return true;
     }
 
@@ -305,8 +307,9 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
 
     const isOpenReport = isOpenReportUtils(report);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportManager = isReportManagerUtils(report);
 
-    if (isOpenReport && isSubmitter) {
+    if (isOpenReport && (isSubmitter || isReportManager)) {
         return true;
     }
 
