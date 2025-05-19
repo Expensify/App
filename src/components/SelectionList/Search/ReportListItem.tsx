@@ -107,73 +107,58 @@ function ReportListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
-            <View style={[styles.flex1]}>
-                <ReportListItemHeader
-                    report={reportItem}
-                    policy={policy}
-                    item={item}
-                    onSelectRow={onSelectRow}
-                    onCheckboxPress={onCheckboxPress}
-                    isDisabled={isDisabledOrEmpty}
-                    canSelectMultiple={canSelectMultiple}
-                />
-                {isEmptyReport ? (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
-                        <Text
-                            style={[styles.textLabelSupporting]}
-                            numberOfLines={1}
-                        >
-                            {translate('search.moneyRequestReport.emptyStateTitle')}
-                        </Text>
-                    </View>
-                ) : (
-                    reportItem.transactions.map((transaction) => (
-                        <View>
-                            <TransactionListItemRow
-                                key={transaction.transactionID}
-                                parentAction={reportItem.action}
-                                item={transaction}
-                                showTooltip={showTooltip}
-                                onButtonPress={() => {
-                                    openReportInRHP(transaction);
-                                }}
-                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                showItemHeaderOnNarrowLayout={false}
-                                containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
-                                isChildListItem
-                                isDisabled={!!isDisabled}
-                                canSelectMultiple={!!canSelectMultiple}
-                                isButtonSelected={transaction.isSelected}
-                                shouldShowTransactionCheckbox
-                            />
-                            <TransactionItemRow
-                                transactionItem={transaction}
-                                isSelected={!!transaction.isSelected}
-                                dateColumnSize={dateColumnSize}
-                                shouldShowTooltip
-                                shouldUseNarrowLayout={!isLargeScreenWidth}
-                                shouldShowCheckbox={!!canSelectMultiple}
-                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
-                                columns={[
-                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
-                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
-                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
-                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
-                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM,
-                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO,
-                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY,
-                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
-                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION,
-                                ]}
-                                onButtonPress={() => {
-                                    openReportInRHP(transaction);
-                                }}
-                            />
+            {(hovered) => (
+                <View style={[styles.flex1]}>
+                    <ReportListItemHeader
+                        report={reportItem}
+                        policy={policy}
+                        item={item}
+                        onSelectRow={onSelectRow}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        canSelectMultiple={canSelectMultiple}
+                    />
+                    {isEmptyReport ? (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
+                            <Text
+                                style={[styles.textLabelSupporting]}
+                                numberOfLines={1}
+                            >
+                                {translate('search.moneyRequestReport.emptyStateTitle')}
+                            </Text>
                         </View>
-                    ))
-                )}
-            </View>
+                    ) : (
+                        reportItem.transactions.map((transaction) => (
+                            <View>
+                                <TransactionItemRow
+                                    transactionItem={transaction}
+                                    isSelected={!!transaction.isSelected}
+                                    dateColumnSize={dateColumnSize}
+                                    shouldShowTooltip
+                                    shouldUseNarrowLayout={!isLargeScreenWidth}
+                                    shouldShowCheckbox={!!canSelectMultiple}
+                                    onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                    columns={[
+                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
+                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
+                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
+                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
+                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM,
+                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO,
+                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY,
+                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
+                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION,
+                                    ]}
+                                    onButtonPress={() => {
+                                        openReportInRHP(transaction);
+                                    }}
+                                    isParentHovered={hovered}
+                                />
+                            </View>
+                        ))
+                    )}
+                </View>
+            )}
         </BaseListItem>
     );
 }

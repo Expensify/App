@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
@@ -40,8 +39,8 @@ function TransactionItemRow({
     onCheckboxPress,
     shouldShowCheckbox = false,
     columns,
-    containerStyle,
-    onButtonPress,
+    onButtonPress = () => {},
+    isParentHovered,
 }: {
     transactionItem: TransactionWithOptionalSearchFields;
     shouldUseNarrowLayout: boolean;
@@ -51,8 +50,8 @@ function TransactionItemRow({
     onCheckboxPress: (transactionID: string) => void;
     shouldShowCheckbox: boolean;
     columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
-    containerStyle?: StyleProp<ViewStyle>;
-    onButtonPress: () => void;
+    onButtonPress?: () => void;
+    isParentHovered?: boolean;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -76,10 +75,10 @@ function TransactionItemRow({
             return styles.activeComponentBG;
         }
 
-        if (hovered) {
+        if (hovered || isParentHovered) {
             return styles.hoveredComponentBG;
         }
-    }, [hovered, isSelected, styles.activeComponentBG, styles.hoveredComponentBG]);
+    }, [hovered, isParentHovered, isSelected, styles.activeComponentBG, styles.hoveredComponentBG]);
 
     const merchantName = getMerchant(transactionItem);
     const isMerchantEmpty = isPartialMerchant(merchantName);
@@ -144,10 +143,6 @@ function TransactionItemRow({
                 )}
             </View>
         ),
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.ASSIGNEE]: <View />,
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CREATED_BY]: <View />,
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: <View />,
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.IN]: <View />,
         [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
                 <MerchantCell
@@ -157,8 +152,6 @@ function TransactionItemRow({
                 />
             </View>
         ),
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX_AMOUNT]: <View />,
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TITLE]: <View />,
         [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                 {!!transactionItem.to && (

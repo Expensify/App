@@ -67,10 +67,10 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     onButtonPress?: () => void;
 
     /** The personal details of the user requesting money */
-    from: SearchPersonalDetails;
+    from?: SearchPersonalDetails;
 
     /** The personal details of the user paying the request */
-    to: SearchPersonalDetails;
+    to?: SearchPersonalDetails;
 };
 
 const sortableColumnNames = [
