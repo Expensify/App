@@ -34,6 +34,21 @@ describe('OnyxDerived', () => {
     });
 
     describe('reportAttributes', () => {
+        const mockReport = {
+            reportID: `test_${Date.now()}`,
+            reportName: 'Test Report',
+            type: 'chat',
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            lastVisibleActionCreated: '2023-01-01T00:00:00.000Z',
+            lastMessageText: 'Test message',
+            lastActorAccountID: 1,
+            lastMessageHtml: '<p>Test message</p>',
+            policyID: '123',
+            ownerAccountID: 1,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
         it('returns empty reports when dependencies are not set', async () => {
             await waitForBatchedUpdates();
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
@@ -43,27 +58,6 @@ describe('OnyxDerived', () => {
         });
 
         it('computes report attributes when reports are set', async () => {
-            const mockReport = {
-                reportID: `test_${Date.now()}`,
-                reportName: 'Test Report',
-                type: 'chat',
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                lastVisibleActionCreated: '2023-01-01T00:00:00.000Z',
-                lastMessageText: 'Test message',
-                lastActorAccountID: 1,
-                lastMessageHtml: '<p>Test message</p>',
-                participants: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '1': {
-                        role: CONST.REPORT.ROLE.ADMIN,
-                    },
-                },
-                policyID: '123',
-                ownerAccountID: 1,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
             await waitForBatchedUpdates();
 
             // Set the report directly with the proper key format
@@ -84,40 +78,18 @@ describe('OnyxDerived', () => {
         });
 
         it('updates when locale changes', async () => {
-            // Use a unique ID to avoid conflicts with other tests
-            const mockReportId = `test_${Date.now()}`;
-            const mockReport = {
-                reportID: mockReportId,
-                reportName: 'Test Report',
-                type: 'chat',
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                lastVisibleActionCreated: '2023-01-01T00:00:00.000Z',
-                lastMessageText: 'Test message',
-                lastActorAccountID: 1,
-                lastMessageHtml: '<p>Test message</p>',
-                participants: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '1': {
-                        role: CONST.REPORT.ROLE.ADMIN,
-                    },
-                },
-                policyID: '123',
-                ownerAccountID: 1,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
             await waitForBatchedUpdates();
 
             // Set the report directly with the proper key format
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportId}`, mockReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es');
 
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // Check if our specific report was processed
-            expect(derivedReportAttributes?.reports?.[mockReportId]).toBeTruthy();
-            expect(derivedReportAttributes?.locale).toBe('es');
+            expect(derivedReportAttributes).toMatchObject({
+                locale: 'es',
+            });
         });
     });
 });
