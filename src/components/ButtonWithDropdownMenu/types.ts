@@ -36,6 +36,7 @@ type DropdownOption<TValueType> = {
     shouldCloseModalOnSelect?: boolean;
     displayInDefaultIconColor?: boolean;
     subMenuItems?: PopoverMenuItem[];
+    backButtonText?: string;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
