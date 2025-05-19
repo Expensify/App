@@ -82,113 +82,115 @@ function TransactionItemRow({
 
     const merchantName = getMerchant(transactionItem);
     const isMerchantEmpty = isPartialMerchant(merchantName);
+    const columnComponent: ColumnComponents = useMemo(
+        () => ({
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
+                    <TypeCell
+                        transactionItem={transactionItem}
+                        shouldShowTooltip={shouldShowTooltip}
+                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                    />
+                </View>
+            ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
+                    <ReceiptCell
+                        transactionItem={transactionItem}
+                        isSelected={isSelected}
+                    />
+                </View>
+            ),
 
-    const columnComponent: ColumnComponents = {
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
-                <TypeCell
-                    transactionItem={transactionItem}
-                    shouldShowTooltip={shouldShowTooltip}
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                />
-            </View>
-        ),
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
-                <ReceiptCell
-                    transactionItem={transactionItem}
-                    isSelected={isSelected}
-                />
-            </View>
-        ),
-
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
-                <TagCell
-                    transactionItem={transactionItem}
-                    shouldShowTooltip={shouldShowTooltip}
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                />
-            </View>
-        ),
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide)]}>
-                <DateCell
-                    created={createdAt}
-                    showTooltip={shouldShowTooltip}
-                    isLargeScreenWidth={!shouldUseNarrowLayout}
-                />
-            </View>
-        ),
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
-                <CategoryCell
-                    transactionItem={transactionItem}
-                    shouldShowTooltip={shouldShowTooltip}
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                />
-            </View>
-        ),
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                {!!transactionItem.action && (
-                    <ActionCell
-                        action={transactionItem.action}
-                        isSelected={false}
-                        isChildListItem
-                        parentAction={transactionItem.parentTransactionID}
-                        goToItem={onButtonPress}
-                        isLoading={false}
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
+                    <TagCell
+                        transactionItem={transactionItem}
+                        shouldShowTooltip={shouldShowTooltip}
+                        shouldUseNarrowLayout={shouldUseNarrowLayout}
                     />
-                )}
-            </View>
-        ),
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
-                <MerchantCell
-                    transactionItem={transactionItem}
-                    shouldShowTooltip={shouldShowTooltip}
-                    shouldUseNarrowLayout={false}
-                />
-            </View>
-        ),
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
-                {!!transactionItem.to && (
-                    <UserInfoCell
-                        accountID={transactionItem.to.accountID}
-                        avatar={transactionItem.to.avatar}
-                        displayName={transactionItem.to.displayName ?? ''}
+                </View>
+            ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide)]}>
+                    <DateCell
+                        created={createdAt}
+                        showTooltip={shouldShowTooltip}
+                        isLargeScreenWidth={!shouldUseNarrowLayout}
                     />
-                )}
-            </View>
-        ),
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
-                {!!transactionItem.from && (
-                    <UserInfoCell
-                        accountID={transactionItem.from.accountID}
-                        avatar={transactionItem.from.avatar}
-                        displayName={transactionItem.from.displayName ?? ''}
+                </View>
+            ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
+                    <CategoryCell
+                        transactionItem={transactionItem}
+                        shouldShowTooltip={shouldShowTooltip}
+                        shouldUseNarrowLayout={shouldUseNarrowLayout}
                     />
-                )}
-            </View>
-        ),
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>
-                <ChatBubbleCell transaction={transactionItem} />
-            </View>
-        ),
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
-                <TotalCell
-                    transactionItem={transactionItem}
-                    shouldShowTooltip={shouldShowTooltip}
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                />
-            </View>
-        ),
-    };
+                </View>
+            ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                    {!!transactionItem.action && (
+                        <ActionCell
+                            action={transactionItem.action}
+                            isSelected={false}
+                            isChildListItem
+                            parentAction={transactionItem.parentTransactionID}
+                            goToItem={onButtonPress}
+                            isLoading={false}
+                        />
+                    )}
+                </View>
+            ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
+                    <MerchantCell
+                        transactionItem={transactionItem}
+                        shouldShowTooltip={shouldShowTooltip}
+                        shouldUseNarrowLayout={false}
+                    />
+                </View>
+            ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                    {!!transactionItem.to && (
+                        <UserInfoCell
+                            accountID={transactionItem.to.accountID}
+                            avatar={transactionItem.to.avatar}
+                            displayName={transactionItem.to.displayName ?? ''}
+                        />
+                    )}
+                </View>
+            ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                    {!!transactionItem.from && (
+                        <UserInfoCell
+                            accountID={transactionItem.from.accountID}
+                            avatar={transactionItem.from.avatar}
+                            displayName={transactionItem.from.displayName ?? ''}
+                        />
+                    )}
+                </View>
+            ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>
+                    <ChatBubbleCell transaction={transactionItem} />
+                </View>
+            ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                    <TotalCell
+                        transactionItem={transactionItem}
+                        shouldShowTooltip={shouldShowTooltip}
+                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                    />
+                </View>
+            ),
+        }),
+        [StyleUtils, createdAt, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
+    );
 
     return (
         <View
