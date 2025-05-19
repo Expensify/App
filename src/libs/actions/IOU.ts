@@ -10427,9 +10427,9 @@ function putOnHoldBulk(transactionIDs: string[], comment: string, reportID: stri
     });
 
     const reportActions = Object.values(getAllReportActions(reportID));
-    const holdData: Record<string, HoldDataEntry> = {};
+   
     const iouReportsOptimisticData: Record<string, Partial<OnyxTypes.Report>> = {};
-    const iouReportsFailureData: Record<string, Partial<OnyxTypes.Report>> = {};
+    const holdData: Record<string, HoldDataEntry> = {};
 
     transactionIDs.forEach((transactionID) => {
         const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
@@ -10437,13 +10437,8 @@ function putOnHoldBulk(transactionIDs: string[], comment: string, reportID: stri
         const updatedViolations = [...transactionViolations, newViolation];
         const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
-        const iouAction = getIOUActionForTransactionID(reportActions, transactionID);
-        const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-        const transactionThreadReportID = iouAction?.childReportID;
-        const iouReportID = transaction?.reportID;
-
-        const iouReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
-        const createdAction = Object.values(iouReportActions)
+        const transactionThreadReportID = getIOUActionForTransactionID(reportActions, transactionID)?.childReportID;
+        const createdAction = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {})
             .filter((action) => action?.isOptimisticAction && action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
             .at(0);
 
@@ -10454,18 +10449,15 @@ function putOnHoldBulk(transactionIDs: string[], comment: string, reportID: stri
             commentReportActionID: createdReportActionComment.reportActionID,
         };
 
-        if (iouReportID && iouReport && iouReport.currency === transaction?.currency) {
+        const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+        if (transaction?.reportID && iouReport && iouReport.currency === transaction?.currency) {
             const isExpenseReportLocal = isExpenseReport(iouReport);
             const coefficient = isExpenseReportLocal ? -1 : 1;
             const transactionAmount = getAmount(transaction, isExpenseReportLocal) * coefficient;
-            const value = iouReportsOptimisticData?.[iouReportID] ?? iouReport;
-            iouReportsOptimisticData[iouReportID] = {
+            const value = iouReportsOptimisticData?.[transaction?.reportID] ?? iouReport;
+            iouReportsOptimisticData[transaction?.reportID] = {
                 unheldTotal: (value?.unheldTotal ?? 0) - transactionAmount,
                 unheldNonReimbursableTotal: !transaction?.reimbursable ? (value?.unheldNonReimbursableTotal ?? 0) - transactionAmount : value.unheldNonReimbursableTotal,
-            };
-            iouReportsFailureData[iouReportID] = iouReportsFailureData?.[iouReportID] ?? {
-                unheldTotal: iouReport?.unheldTotal,
-                unheldNonReimbursableTotal: iouReport?.unheldNonReimbursableTotal,
             };
         }
 
@@ -10536,21 +10528,31 @@ function putOnHoldBulk(transactionIDs: string[], comment: string, reportID: stri
         }
     });
 
-    Object.keys(iouReportsOptimisticData).forEach((iouReportID) => {
+    Object.entries(iouReportsOptimisticData).forEach(([iouReportID, data]) => {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-            value: iouReportsOptimisticData[iouReportID],
+            value: data,
         });
 
+        const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-            value: iouReportsFailureData,
+            value: {
+                unheldTotal: iouReport?.unheldTotal,
+                unheldNonReimbursableTotal: iouReport?.unheldNonReimbursableTotal,
+            },
         });
     });
 
-    API.write(WRITE_COMMANDS.BULK_HOLD_MONEY_REQUEST, {holdData, comment}, {optimisticData, successData, failureData});
+    API.write(
+        WRITE_COMMANDS.BULK_HOLD_MONEY_REQUEST, {
+            holdData: JSON.stringify(holdData), 
+            comment
+        }, 
+        {optimisticData, successData, failureData}
+    );
 
     const currentReportID = getDisplayedReportID(reportID);
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, userAccountID));

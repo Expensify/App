@@ -16,11 +16,11 @@ import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 function SearchMoneyRequestReportHoldReasonPage({route}: PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>) {
     const {translate} = useLocalize();
 
-    const {backTo, reportID} = route.params;
+    const {backTo, reportID, searchHash} = route.params;
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        putOnHoldBulk(selectedTransactionsID, values.comment, reportID);
+        putOnHoldBulk(selectedTransactionsID, values.comment, reportID, searchHash);
         setSelectedTransactionsID([]);
         Navigation.goBack();
     };
