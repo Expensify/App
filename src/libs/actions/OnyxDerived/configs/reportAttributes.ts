@@ -46,7 +46,6 @@ export default createOnyxDerivedValueConfig({
                 locale: null,
             };
         }
-
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
         // we need to recompute all report attributes on locale change because the report names are locale dependent
         if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues)) {
