@@ -35,6 +35,8 @@ type DropdownOption<TValueType> = {
     titleStyle?: ViewStyle;
     shouldCloseModalOnSelect?: boolean;
     displayInDefaultIconColor?: boolean;
+    /** Whether the selected index should be updated when the option is selected even if we have onSelected callback */
+    shouldUpdateSelectedIndex?: boolean;
     subMenuItems?: PopoverMenuItem[];
 };
 
@@ -125,6 +127,12 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** The second line text displays under the first line */
     secondLineText?: string;
+
+    /** Whether the popover content should be scrollable */
+    shouldPopoverUseScrollView?: boolean;
+
+    /** Container style to be applied to the popover of the dropdown menu */
+    containerStyles?: StyleProp<ViewStyle>;
 };
 
 export type {

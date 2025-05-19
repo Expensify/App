@@ -15,6 +15,7 @@ import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import PDFThumbnail from '@components/PDFThumbnail';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -38,6 +39,7 @@ import {
     deleteMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     getLastPolicyPaymentMethod,
+    getPayOption,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
     search,
@@ -49,7 +51,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasVBBA} from '@libs/PolicyUtils';
-import {generateReportID} from '@libs/ReportUtils';
+import {generateReportID, isExpenseReport, isInvoiceReport, isIOUReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -135,6 +137,16 @@ function SearchPage({route}: SearchPageProps) {
         return translate(attachmentInvalidReason);
     };
 
+    const getSubMenuItems = (): PopoverMenuItem[] => {
+        const reportIDToCheck = selectedReports.length ? selectedReports.at(0)?.reportID : selectedTransactions[selectedTransactionsKeys[0]]?.reportID;
+        const policyIDToCheck = selectedReports.length ? selectedReports.at(0)?.policyID : selectedTransactions[selectedTransactionsKeys[0]]?.policyID;
+        const isExpenseBulk = isExpenseReport(reportIDToCheck);
+        const isInvoiceBulk = isInvoiceReport(reportIDToCheck);
+        const isIOUBulk = isIOUReport(reportIDToCheck);
+
+        return [];
+    };
+
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || !status || !hash) {
             return [];
@@ -211,24 +223,18 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowPayOption =
-            !isOffline &&
-            !isAnyTransactionOnHold &&
-            (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
-                : selectedTransactionsKeys.every(
-                      (id) =>
-                          selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                          selectedTransactions[id].policyID &&
-                          getLastPolicyPaymentMethod(selectedTransactions[id].policyID, lastPaymentMethods),
-                  ));
+        const {shouldEnablePayOption, isFirstTimePayment} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods);
+
+        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnablePayOption;
 
         if (shouldShowPayOption) {
+            const subMenuItems = getSubMenuItems();
             options.push({
                 icon: Expensicons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
+                subMenuItems: isFirstTimePayment ? subMenuItems : undefined,
                 onSelected: () => {
                     if (isOffline) {
                         setIsOfflineModalVisible(true);
