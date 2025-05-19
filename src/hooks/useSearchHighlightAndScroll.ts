@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import isEqual from 'lodash/isEqual';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -34,12 +33,9 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
-    const navigation = useNavigation();
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
-        const isNavigating = !navigation.isFocused();
-
         const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
         const transactionsIDs = Object.keys(transactions ?? {});
 
@@ -50,10 +46,9 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             .map((actions) => Object.keys(actions ?? {}))
             .flat();
 
-        if (searchTriggeredRef.current || isNavigating) {
+        if (searchTriggeredRef.current) {
             return;
         }
-
         const hasTransactionsIDsChange = !isEqual(transactionsIDs, previousTransactionsIDs);
         const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
 
@@ -83,7 +78,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         return () => {
             searchTriggeredRef.current = false;
         };
-    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, navigation]);
+    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {

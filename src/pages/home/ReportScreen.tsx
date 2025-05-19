@@ -40,6 +40,7 @@ import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
+    getFilteredReportActionsForReportView,
     getOneTransactionThreadReportID,
     isCreatedAction,
     isDeletedParentAction,
@@ -266,7 +267,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID, canBeMissing: false});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const {reportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+    const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
@@ -324,16 +326,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(() => {
-        if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
-            Navigation.dismissModal();
+        if (Navigation.getShouldPopToSidebar()) {
+            Navigation.popToSidebar();
             return;
         }
         if (backTo) {
-            Navigation.goBack(backTo as Route, {shouldPopToTop: true});
+            Navigation.goBack(backTo as Route);
             return;
         }
-        Navigation.goBack(undefined, {shouldPopToTop: true});
-    }, [isInNarrowPaneModal, backTo]);
+        Navigation.goBack();
+    }, [backTo]);
 
     let headerView = (
         <HeaderView
@@ -587,9 +589,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
-                Navigation.setShouldPopAllStateOnUP(true);
                 Navigation.isNavigationReady().then(() => {
-                    Navigation.goBack(undefined, {shouldPopToTop: true});
+                    Navigation.popToSidebar();
                 });
             }
             if (prevReport?.parentReportID) {
