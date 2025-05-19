@@ -6359,7 +6359,6 @@ const translations = {
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Take a 2-minute test drive',
-            exploreExpensify: 'Explore everything Expensify has to offer',
         },
         modal: {
             title: 'Take us for a test drive',
