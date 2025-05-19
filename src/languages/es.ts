@@ -1097,6 +1097,7 @@ const translations = {
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
             receiptFailureMessage: 'Hubo un error al cargar tu recibo. Por favor, ',
+            receiptFailureMessageShort: 'Hubo un error al cargar tu recibo.',
             tryAgainMessage: 'inténtalo de nuevo ',
             saveFileMessage: ' guarda el recibo',
             uploadLaterMessage: ' para cargarlo más tarde.',

@@ -1099,6 +1099,7 @@ const translations = {
             genericUnholdExpenseFailureMessage: 'Unexpected error taking this expense off hold. Please try again later.',
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
             receiptFailureMessage: 'There was an error uploading your receipt. Please ',
+            receiptFailureMessageShort: 'There was an error uploading your receipt.',
             tryAgainMessage: 'try again ',
             saveFileMessage: ' save the receipt',
             uploadLaterMessage: ' to upload later.',
