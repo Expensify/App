@@ -147,6 +147,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPaths)
         : '';
+    const isConcierge = isConciergeChatReport(report);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -167,8 +168,6 @@ function ProfilePage({route}: ProfilePageProps) {
         }
         return result;
     }, [accountID, isCurrentUser, loginParams, report]);
-
-    const isConcierge = isConciergeChatReport(report);
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
