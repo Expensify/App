@@ -18,7 +18,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ReportListItemHeader from './ReportListItemHeader';
-import TransactionListItemRow from './TransactionListItemRow';
 
 function ReportListItem<TItem extends ListItem>({
     item,
