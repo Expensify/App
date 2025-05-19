@@ -381,7 +381,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
-    // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcircuit the logic for performance reasons
+    // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcut the logic for performance reasons
     if (!isMoneyRequestReport(report)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
@@ -576,7 +576,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
-        if (isReportEntry(key)) {
+        if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
             const reportItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
