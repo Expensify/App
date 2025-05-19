@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
-import {resetState as resetReportAttributesState} from '@userActions/OnyxDerived/configs/reportAttributes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -20,7 +19,6 @@ describe('OnyxDerived', () => {
 
     beforeEach(async () => {
         await Onyx.clear();
-        resetReportAttributesState();
     });
 
     describe('conciergeChatReportID', () => {

@@ -9,15 +9,6 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 let isFullyComputed = false;
 let recentlyUpdated: string[] = [];
 
-/**
- * Reset the module-level variables for testing purposes
- * This function is exported only for testing
- */
-function resetState() {
-    isFullyComputed = false;
-    recentlyUpdated = [];
-}
-
 const prepareReportKeys = (keys: string[]) => {
     return [
         ...new Set(
@@ -162,5 +153,4 @@ const config = createOnyxDerivedValueConfig({
     },
 });
 
-export {resetState};
 export default config;
