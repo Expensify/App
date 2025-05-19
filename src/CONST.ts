@@ -817,6 +817,7 @@ const CONST = {
         RETRACT_NEWDOT: 'retractNewDot',
         PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
+        MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
     },
