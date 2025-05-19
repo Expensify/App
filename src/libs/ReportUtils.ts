@@ -3833,7 +3833,18 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
     const isExpenseType = isExpenseReport(report);
     const isOpen = isOpenReport(report);
     const isSubmitted = isProcessingReport(report);
-    console.log('over here canEditReportPolicy', {isIOUType, isInvoiceType, isExpenseType, isOpen, isSubmitted, isAdmin, isManager, isSubmitter, isReportAuditor, isAwaitingFirstLevelApproval: isAwaitingFirstLevelApproval(report)});
+    console.log('over here canEditReportPolicy', {
+        isIOUType,
+        isInvoiceType,
+        isExpenseType,
+        isOpen,
+        isSubmitted,
+        isAdmin,
+        isManager,
+        isSubmitter,
+        isReportAuditor,
+        isAwaitingFirstLevelApproval: isAwaitingFirstLevelApproval(report),
+    });
     if (isIOUType) {
         return isOpen || isSubmitted;
     }
