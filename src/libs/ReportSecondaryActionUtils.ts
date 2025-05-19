@@ -416,14 +416,6 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
-    if (isExportAction(report, policy, reportActions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING);
-    }
-
-    if (isMarkAsExportedAction(report, policy)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
-    }
-
     if (canUseRetractNewDot && isReopenAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }
@@ -432,7 +424,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV);
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
@@ -453,6 +445,22 @@ function getSecondaryReportActions(
     return options;
 }
 
+function getSecondaryExportReportActions(report: Report, policy?: Policy, reportActions?: ReportAction[]): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> {
+    const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> = [];
+
+    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
+
+    if (isMarkAsExportedAction(report, policy)) {
+        options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
+    }
+
+    if (isExportAction(report, policy, reportActions)) {
+        options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+    }
+
+    return options;
+}
+
 function getSecondaryTransactionThreadActions(parentReport: Report, reportTransaction: Transaction): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -468,4 +476,4 @@ function getSecondaryTransactionThreadActions(parentReport: Report, reportTransa
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, getSecondaryExportReportActions};
