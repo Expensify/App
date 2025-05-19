@@ -183,7 +183,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
     const isItemSelected = useCallback(
-        (item: TItem) => (item.isSelected ?? isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple,
+        (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
         [isSelected, selectedItems, canSelectMultiple],
     );
 
