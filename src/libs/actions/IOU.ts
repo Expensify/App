@@ -63,6 +63,7 @@ import Permissions from '@libs/Permissions';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
+    getCorrectedAutoReportingFrequency,
     getMemberAccountIDsForWorkspace,
     getPerDiemCustomUnit,
     getPersonalPolicy,
@@ -73,7 +74,6 @@ import {
     isPaidGroupPolicy,
     isPolicyAdmin,
     isSubmitAndClose,
-    getCorrectedAutoReportingFrequency,
 } from '@libs/PolicyUtils';
 import {
     getAllReportActions,
