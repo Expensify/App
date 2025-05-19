@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import {addMinutes, format} from 'date-fns';
-import {formatInTimeZone} from 'date-fns-tz';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -63,7 +62,7 @@ function ScheduleCallConfirmationPage() {
             return '';
         }
         const dateString = format(scheduleCallDraft.date, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
-        const timeString = `${formatInTimeZone(scheduleCallDraft?.timeSlot, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${formatInTimeZone(
+        const timeString = `${DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft?.timeSlot, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${DateUtils.formatInTimeZoneWithFallback(
             addMinutes(scheduleCallDraft?.timeSlot, 30),
             userTimezone,
             CONST.DATE.LOCAL_TIME_FORMAT,

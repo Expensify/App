@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import {addMinutes, isPast} from 'date-fns';
-import {formatInTimeZone} from 'date-fns-tz';
 import React, {memo, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -173,7 +172,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         return true;
     };
 
-    const shouldShowGuideBooking = true || (!!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink);
+    const shouldShowGuideBooking = !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
@@ -255,13 +254,13 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
         const menuItems: Array<DropdownOption<string>> = [
             {
-                text: `${formatInTimeZone(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${formatInTimeZone(
+                text: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${DateUtils.formatInTimeZoneWithFallback(
                     latestScheduledCall.eventTime,
                     userTimezone,
                     CONST.DATE.MONTH_DAY_YEAR_FORMAT,
                 )}`,
                 value: latestScheduledCall.eventTime,
-                description: `${formatInTimeZone(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${formatInTimeZone(
+                description: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${DateUtils.formatInTimeZoneWithFallback(
                     addMinutes(latestScheduledCall.eventTime, 30),
                     userTimezone,
                     CONST.DATE.LOCAL_TIME_FORMAT,

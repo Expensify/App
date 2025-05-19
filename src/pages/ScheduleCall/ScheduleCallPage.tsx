@@ -1,6 +1,5 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {compareAsc, format, parse} from 'date-fns';
-import {formatInTimeZone} from 'date-fns-tz';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -18,6 +17,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getGuideCallAvailabilitySchedule, saveBookingDraft} from '@libs/actions/ScheduleCall';
+import DateUtils from '@libs/DateUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -93,7 +93,7 @@ function ScheduleCallPage() {
 
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         allTimeSlots.forEach((timeSlot) => {
-            const timeSlotDate = formatInTimeZone(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
+            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
             if (!timeSlotMap[timeSlotDate]) {
                 timeSlotMap[timeSlotDate] = [];
             }
@@ -202,7 +202,7 @@ function ScheduleCallPage() {
                                             }}
                                             shouldEnableHapticFeedback
                                             style={styles.twoColumnLayoutCol}
-                                            text={formatInTimeZone(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)}
+                                            text={DateUtils.formatInTimeZoneWithFallback(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)}
                                         />
                                     ))}
                                     {timeFillerItem}
