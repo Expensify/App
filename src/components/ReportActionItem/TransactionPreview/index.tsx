@@ -37,6 +37,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         iouReportID,
         transactionID: transactionIDFromProps,
         onPreviewPressed,
+        reportPreviewAction,
         contextAction,
     } = props;
 
@@ -45,7 +46,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const violations = useTransactionViolations(transaction?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
@@ -140,7 +141,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             sessionAccountID={sessionAccountID}
             walletTermsErrors={walletTerms?.errors}
             routeName={route.name}
-            reportPreviewAction={props.reportPreviewAction}
+            reportPreviewAction={reportPreviewAction}
         />
     );
 }
