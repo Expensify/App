@@ -2495,7 +2495,7 @@ function getUpdatedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
     const {field, oldApproverEmail, oldApproverName, newApproverEmail, newApproverName, name} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE>) ?? {};
 
-    if (field && oldApproverEmail && oldApproverName && newApproverEmail && newApproverName && name) {
+    if (field && oldApproverEmail && newApproverEmail && name) {
         return translateLocal('workspaceActions.updateApprovalRule', {
             field,
             name,

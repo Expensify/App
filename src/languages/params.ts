@@ -357,7 +357,7 @@ type PolicyDisabledReportFieldAllOptionsParams = {fieldName: string; optionName:
 
 type AddedPolicyApprovalRuleParams = {approverEmail: string; approverName: string; field: string; name: string};
 
-type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverName: string; newApproverEmail: string; newApproverName: string; field: string; name: string};
+type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverName?: string; newApproverEmail: string; newApproverName?: string; field: string; name: string};
 
 type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
 
