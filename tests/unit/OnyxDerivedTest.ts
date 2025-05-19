@@ -60,13 +60,11 @@ describe('OnyxDerived', () => {
         it('computes report attributes when reports are set', async () => {
             await waitForBatchedUpdates();
 
-            // Set the report directly with the proper key format
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
 
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-            // Check if our specific report was processed
             expect(derivedReportAttributes).toMatchObject({
                 reports: {
                     [mockReport.reportID]: {
@@ -80,13 +78,11 @@ describe('OnyxDerived', () => {
         it('updates when locale changes', async () => {
             await waitForBatchedUpdates();
 
-            // Set the report directly with the proper key format
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es');
 
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-            // Check if our specific report was processed
             expect(derivedReportAttributes).toMatchObject({
                 locale: 'es',
             });
