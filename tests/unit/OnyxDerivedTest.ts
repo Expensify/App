@@ -12,12 +12,6 @@ jest.mock('@components/ConfirmedRoute.tsx');
 const accountID = 2;
 const conciergeChatReport = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
 
-// Helper function to wait for a short time
-const wait = (ms: number): Promise<void> =>
-    new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-
 describe('OnyxDerived', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -78,9 +72,6 @@ describe('OnyxDerived', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportId}`, mockReport);
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
 
-            // Wait longer for the derived value computation
-            await wait(500);
-
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // Check if our specific report was processed
@@ -117,9 +108,6 @@ describe('OnyxDerived', () => {
             // Set the report directly with the proper key format
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportId}`, mockReport);
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es');
-
-            // Wait longer for the derived value computation
-            await wait(500);
 
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
