@@ -17,7 +17,7 @@ import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
+import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -787,19 +787,21 @@ function IOURequestStepScan({
                         )}
                     </View>
                 </EducationalTooltip>
-                <ConfirmModal
+                <FeatureTrainingModal
                     title={translate('iou.scanMultipleReceipts')}
                     image={MultiScanHand}
-                    imageStyles={{backgroundColor: colors.pink700}}
-                    isVisible
+                    shouldRenderSVG
+                    contentFitImage="contain"
+                    modalInnerContainerStyle={styles.pt0}
+                    illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
+                    imageHeight={232}
+                    illustrationInnerContainerStyle={{transform: [{translateY: 15}]}}
                     onConfirm={() => {}}
-                    onCancel={() => {}}
+                    onClose={() => {}}
+                    titleStyles={styles.mb2}
                     confirmText={translate('common.buttonConfirm')}
-                    prompt={translate('iou.scanMultipleReceiptsDescription')}
-                    promptStyles={[styles.textSupporting, styles.mb2]}
-                    titleStyles={styles.textHeadline}
-                    titleContainerStyles={styles.mb3}
-                    shouldShowCancelButton={false}
+                    description={translate('iou.scanMultipleReceiptsDescription')}
+                    shouldGoBack={false}
                 />
                 <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                     <AttachmentPicker onOpenPicker={() => setIsLoaderVisible(true)}>
