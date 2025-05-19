@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -947,19 +947,19 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 title={translate('iou.deleteExpense', {count: 1})}
                 isVisible={isDeleteModalVisible}
                 onConfirm={() => {
-                    setIsDeleteModalVisible(false);
                     let goBackRoute: Route | undefined;
                     if (transactionThreadReportID) {
                         if (!requestParentReportAction || !transaction?.transactionID) {
                             throw new Error('Missing data!');
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
-                        deleteMoneyRequest(transaction?.transactionID, requestParentReportAction);
+                        // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
+                        InteractionManager.runAfterInteractions(() => deleteMoneyRequest(transaction?.transactionID, requestParentReportAction));
                         goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, false);
                     }
-
+                    setIsDeleteModalVisible(false);
                     if (goBackRoute) {
-                        Navigation.navigate(goBackRoute);
+                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(goBackRoute));
                     }
                 }}
                 onCancel={() => setIsDeleteModalVisible(false)}
