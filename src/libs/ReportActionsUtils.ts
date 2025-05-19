@@ -1014,11 +1014,13 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
 
 /**
  * Helper for filtering out Report Actions that are either:
- * - ReportPreview with shouldShow set to false
- * - Action with parent action deleted
+ * - ReportPreview with shouldShow set to false and without a pending action
+ * - Money request with parent action deleted
  */
 function getFilteredReportActionsForReportView(actions: ReportAction[]) {
-    return actions.filter((action) => !isDeletedParentAction(action) && (!isReportPreviewAction(action) || action.shouldShow));
+    const isDeletedMoneyRequest = (action: ReportAction) => isDeletedParentAction(action) && isMoneyRequestAction(action);
+    const isHiddenReportPreviewWithoutPendingAction = (action: ReportAction) => isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
+    return actions.filter((action) => !isDeletedMoneyRequest(action) && !isHiddenReportPreviewWithoutPendingAction(action));
 }
 
 /**
