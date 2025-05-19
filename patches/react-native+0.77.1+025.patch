@@ -45,7 +45,7 @@ index 32287a7..5607be3 100644
                  url = "https://github.com/facebook/react-native"
  
 +                properties = [
-+                    "commitHash": System.getenv("COMMIT_HASH"),
++                    "patchesHash": System.getenv("PATCHES_HASH"),
 +                ]
 +
                  developers {

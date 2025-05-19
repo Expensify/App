@@ -3068,12 +3068,6 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pt0,
         },
 
-        workspaceSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
-            ...spacing.pt4,
-        },
-
         centralPaneAnimation: {
             height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT,
         },
@@ -5189,15 +5183,6 @@ const styles = (theme: ThemeColors) =>
             flexBasis: '35%',
             marginTop: 12,
         },
-        onboardingAccountingItem: {
-            backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
-            paddingHorizontal: 16,
-            paddingVertical: 20,
-            flexGrow: 1,
-            flexShrink: 1,
-            flexBasis: '35%',
-        },
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
@@ -5614,6 +5599,11 @@ const styles = (theme: ThemeColors) =>
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
             ...display.dFlex,
+        },
+
+        tripEmptyStateLottieWebView: {
+            width: 335,
+            height: 220,
         },
 
         workflowApprovalVerticalLine: {
