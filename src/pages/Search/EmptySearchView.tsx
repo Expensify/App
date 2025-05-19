@@ -1,7 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, ViewStyle} from 'react-native';
-import {Linking, View} from 'react-native';
+import {InteractionManager, Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
@@ -29,6 +29,7 @@ import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
 import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
@@ -37,6 +38,7 @@ import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContex
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -163,7 +165,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
-                                              openExternalLink(testDriveURL);
+                                              InteractionManager.runAfterInteractions(() => {
+                                                  Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                                              });
                                               setSelfTourViewed();
                                               if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
                                                   completeTask(viewTourTaskReport);
