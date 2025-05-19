@@ -47,12 +47,6 @@ export default createOnyxDerivedValueConfig({
             };
         }
 
-        // If Onyx.clear() has been called (common in tests), we need to reset our state
-        if (currentValue === null) {
-            isFullyComputed = false;
-            recentlyUpdated = [];
-        }
-
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
         // we need to recompute all report attributes on locale change because the report names are locale dependent
         if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues)) {
