@@ -1217,6 +1217,7 @@ const translations = {
         dates: 'Dates',
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
+        moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
     },
     share: {
         shareToExpensify: 'Share to Expensify',
@@ -6296,7 +6297,7 @@ const translations = {
             part1: 'You’ll see 🟢 on ',
             part2: 'actions to take',
             part3: ',\nand 🔴 on ',
-            part4: 'errors to review.',
+            part4: 'items to review.',
         },
         accountSwitcher: {
             part1: 'Access your ',

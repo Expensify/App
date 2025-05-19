@@ -49,7 +49,13 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
-                onBackButtonPress={() => Navigation.goBack(backTo, {shouldPopToTop: true})}
+                onBackButtonPress={() => {
+                    if (Navigation.getShouldPopToSidebar()) {
+                        Navigation.popToSidebar();
+                        return;
+                    }
+                    Navigation.goBack(backTo);
+                }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 icon={Illustrations.CreditCardsNew}

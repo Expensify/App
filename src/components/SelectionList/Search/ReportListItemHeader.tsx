@@ -127,7 +127,7 @@ function FirstHeaderRow<TItem extends ListItem>({
                     />
                 </View>
             </View>
-            <View style={[styles.flexShrink0, styles.mr3]}>
+            <View style={[styles.flexShrink0, shouldShowAction && styles.mr3]}>
                 <TotalCell
                     showTooltip
                     isLargeScreenWidth={false}
@@ -161,14 +161,14 @@ function ReportListItemHeader<TItem extends ListItem>({
     const reportItem = item as unknown as ReportListItemType;
     const {currentSearchHash} = useSearchContext();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showArrowComponent = reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo;
 
     const handleOnButtonPress = () => {
         handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
     };
-    return shouldUseNarrowLayout ? (
+    return !isLargeScreenWidth ? (
         <View>
             <FirstHeaderRow
                 item={item}
