@@ -1,7 +1,7 @@
 ---
-title: Create-a-Workspace-to-Track-Personal-Expenses.md
+title: Track Personal Expenses
 description: Learn how to set up a New Expensify workspace and start tracking your personal or freelance expenses.
-keywords: [workspace setup, personal expenses, New Expensify, SmartScan, categories, free trial]
+keywords: [New Expensify, workspace setup, personal expenses, New Expensify, SmartScan, categories, free trial]
 ---
 <div id="new-expensify" markdown="1">
 
@@ -22,16 +22,16 @@ To chat with Concierge, open your **chat inbox** anytime for help and guidance.
 
 ---
 
-# Create a workspace
+# Create a Workspace
 
-Each workspace has its own rules and settings—even for personal tracking.
+Each workspace has its own rules and settings, even for personal tracking.
 
-1. Click your **profile photo or icon** in the bottom-left menu.
-2. Select **Workspaces** from the left menu.
+1. Click your **profile photo or icon** in the lower-left of the screen.
+2. Use the **left-hand navigation bar (LHB)** to go to **Workspaces**.
 3. Click **New workspace**.
 4. Click the **camera icon** to upload a custom image.
 5. Click **Name** to rename the workspace.
-6. Click **Default currency** to set your currency. All other currencies will be auto-converted.
+6. Click **Default currency** to set your currency. Other currencies are auto-converted.
 
 ![Create a workspace - step visuals]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_1.png){:width="100%"}
 ![Workspace menu navigation]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_2.png){:width="100%"}
@@ -39,95 +39,89 @@ Each workspace has its own rules and settings—even for personal tracking.
 
 ---
 
-# Add an expense
+# Add Expenses
 
-You can add expenses using SmartScan or manually.
+You can add expenses using SmartScan or by creating them manually.
 
-## SmartScan a receipt
+## SmartScan a Receipt
 
 SmartScan reads receipt details like merchant, date, total, and currency automatically.
 
-{% include selector.html values="desktop, mobile" %}
-
-{% include option.html value="desktop" %}
+**SmartScan on web:**
 1. Click the green **Create (+)** button.
 2. Select **Create expense**.
 3. Upload an image of your receipt.
-{% include end-option.html %}
 
-{% include option.html value="mobile" %}
+**SmartScan on mobile:**
 1. Tap the green **Create (+)** button.
 2. Select **Create expense**.
-3. Upload or take a photo of your receipt.
-    - **Upload**: Tap the gallery icon and select an image.
-    - **Take a photo**: Ensure receipt details are visible and snap a photo.
-{% include end-option.html %}
-
-{% include end-selector.html %}
+3. Upload or take a photo of your receipt:
+   - **Upload**: Tap the gallery icon and select an image.
+   - **Take a photo**: Ensure receipt details are visible and snap a photo.
 
 **Note:** You can also email receipts to `receipts@expensify.com` from your linked email. SmartScan will extract the details and add the expense to your account. [Add a contact method](https://help.expensify.com/articles/new-expensify/settings/Change-or-add-email-address)
 
-## Manually enter an expense
+## Manually Enter an Expense
 
 1. Click or tap the green **Create (+)** button.
 2. Select **Create expense**.
 3. Choose a method:
-   - **Manual**: Enter details manually.
-   - **Scan**: Upload a saved image.
-   - **Create multiple**: Add expenses in bulk.
-   - **Distance**: Enter start/end to calculate mileage.
-   - **Per diem**: Enter a daily allowance.
+   - **Manual** – Enter details manually.
+   - **Scan** – Upload a saved image.
+   - **Create multiple** – Add expenses in bulk.
+   - **Distance** – Enter mileage data.
+   - **Per diem** – Add a daily allowance.
 4. Select your **workspace**.
 5. Click **Create expense**.
 
-You can view expenses in your Expense chat or the **Reports** page. [Export to CSV](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Search-and-Download-Expenses) for tax or accountant use.
+View expenses in your Expense chat or the **Reports** page. [Export to CSV](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Search-and-Download-Expenses) for tax or accountant use.
 
 ---
 
-# Connect your cards and accounts
+# Connect Credit Cards and Bank Accounts
 
-Connecting a bank or card lets Expensify automatically import and merge transactions with SmartScanned receipts.
+Let Expensify automatically import and match card transactions to SmartScanned receipts.
 
-## Connect a bank account
+## Connect a Bank Account
 
-1. Go to **Settings > Workspaces > [Your Workspace]**.
+1. Go to **Settings > Workspaces > [Workspace Name]** in the left-hand navigation menu
 2. Click **More features**.
 3. Enable **Workflows**.
-4. In the left menu, click **Workflows**.
+4. From the left-hand menu, click **Workflows**.
 5. Enable **Make or track payments**.
 6. Click **Connect bank account**.
 
-## Connect a company card
+## Connect a Company Card
 
-1. Go to **Settings > Workspaces > [Your Workspace]**.
+1. Go to **Settings > Workspaces > [Workspace Name]**.
 2. Click **More features**.
 3. Enable **Company cards**.
-4. In the left menu, click **Company cards**.
+4. From the left-hand menu, click **Company cards**.
 5. Click **Add cards** and follow the prompts.
 
 ---
 
-# Add categories
+# Add Categories
 
-Categories help you organize and code your expenses.
+Categories help you organize and code expenses. To set these up:
 
-1. Go to **Settings > Workspaces > [Your Workspace]**.
+1. Go to **Settings > Workspaces > [Workspace Name]**.
 2. Click **Categories** in the left menu.
 3. To disable a category, click it and toggle it off.
 4. To add a new category:
-   - Click **Add category**.
-   - Name the category.
-   - Click **Save**.
+   - Click **Add category**
+   - Enter a name
+   - Click **Save**
 
-**Note:** If you’ve connected an accounting system (like QuickBooks), you must edit categories in that system. You can still disable them in Expensify.
+If you don't need to use categories, go to **More features** and toggle **Categories** off.
 
-**Tip:** To disable all categories, go to **More features** and toggle **Categories** off.
+**Note:** If you're connected to an accounting system (like QuickBooks), you must edit categories there. You can still disable them in Expensify.
 
 ---
 
-# Add more features
+# Set Up Additional Features
 
-You can customize your workspace by enabling additional features. Once enabled, a new menu item will appear with its settings.
+You can customize your workspace by enabling additional features. Once enabled, new menu items appear.
 
 Popular options:
 - [Distance rates](https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates)
@@ -137,14 +131,14 @@ Popular options:
 - [Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-taxes)
 
 To enable a feature:
-1. Go to **More features** in the left menu.
-2. Turn on the desired feature.
-3. Click the new menu item to adjust its settings.
+1. Go to **More features** in the left-hand menu.
+2. Toggle on the feature.
+3. Click the new menu item to adjust settings.
 
 ---
 
 # Free Trial
 
-You can track the status of your free 30-day trial on your **Subscription** page. We’ll send reminders as your trial nears the end. To continue using all features, add a billing card when prompted.
+You can track the status of your 30-day free trial on your **Subscription** page. We’ll send reminders near the end of your trial. To continue using all features, add a billing card when prompted.
 
 </div>
