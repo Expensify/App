@@ -20,6 +20,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,7 +32,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
-import {getNavatticURL} from '@libs/TourUtils';
+import {getTestDriveURL} from '@libs/TourUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -65,6 +66,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const contextMenuAnchor = useRef<RNText>(null);
     const tripViewChildren = useMemo(() => {
@@ -125,9 +127,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     }, [styles, translate]);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const onboardingPurpose = introSelected?.choice;
     const {environment} = useEnvironment();
-    const navatticURL = getNavatticURL(environment, onboardingPurpose);
+    const testDriveURL = getTestDriveURL(environment, shouldUseNarrowLayout);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
         canBeMissing: true,
@@ -162,7 +163,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
-                                              openExternalLink(navatticURL);
+                                              openExternalLink(testDriveURL);
                                               setSelfTourViewed();
                                               if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
                                                   completeTask(viewTourTaskReport);
@@ -202,7 +203,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
-                                              openExternalLink(navatticURL);
+                                              openExternalLink(testDriveURL);
                                               setSelfTourViewed();
                                               if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
                                                   completeTask(viewTourTaskReport);
@@ -250,7 +251,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         styles.tripEmptyStateLottieWebView,
         tripViewChildren,
         hasSeenTour,
-        navatticURL,
+        testDriveURL,
         shouldRedirectToExpensifyClassic,
         hasResults,
         viewTourTaskReport,
