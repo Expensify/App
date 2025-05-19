@@ -46,35 +46,26 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         setSelectedItems(initiallySelectedItems ?? []);
     }, [initiallySelectedItems]);
 
-    const {sections, noResultsFound} = useMemo(() => {
-        const selectedItemsSection = selectedItems
-            .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => sortOptionsWithEmptyValue(a, b))
-            .map((item) => ({
-                text: item.name,
-                keyForList: item.name,
-                isSelected: true,
-                value: item.value,
-            }));
+    const {sections, noResultsFound, firstKeyForList} = useMemo(() => {
         const remainingItemsSection = items
-            .filter((item) => selectedItems.some((selectedItem) => selectedItem.value === item.value) === false && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+            .filter((item) => item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => sortOptionsWithEmptyValue(a, b))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
-                isSelected: false,
+                isSelected: selectedItems.some((selectedItem) => selectedItem.value === item.value),
                 value: item.value,
             }));
-        const isEmpty = !selectedItemsSection.length && !remainingItemsSection.length;
+
+        const isEmpty = !remainingItemsSection.length;
+
+        const firstSelectedItem = remainingItemsSection.find((item) => item.isSelected);
+        const firstKey = firstSelectedItem?.keyForList ?? null;
+
         return {
             sections: isEmpty
                 ? []
                 : [
-                      {
-                          title: undefined,
-                          data: selectedItemsSection,
-                          shouldShow: selectedItemsSection.length > 0,
-                      },
                       {
                           title: pickerTitle,
                           data: remainingItemsSection,
@@ -82,6 +73,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                       },
                   ],
             noResultsFound: isEmpty,
+            firstKeyForList: firstKey,
         };
     }, [selectedItems, items, pickerTitle, debouncedSearchTerm]);
 
@@ -131,6 +123,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             shouldShowTooltips
             canSelectMultiple
             ListItem={SelectableListItem}
+            initiallyFocusedOptionKey={firstKeyForList}
         />
     );
 }
