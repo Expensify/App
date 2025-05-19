@@ -172,7 +172,8 @@ function AvatarWithDisplayName({
         {canBeMissing: true},
     );
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
-    const title = getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy, reportAttributes);
+    const parentReportActionParam = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
+    const title = getReportName(report, undefined, parentReportActionParam, undefined, invoiceReceiverPolicy, reportAttributes);
     const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
