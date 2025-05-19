@@ -1963,8 +1963,17 @@ function buildPolicyData(
                     address: null,
                     description: null,
                     type: null,
+                    areReportFieldsEnabled: null,
                 },
                 ...optimisticMccGroupData.successData,
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                        pendingFields: {
+                            defaultValue: null,
+                            deletable: null,
+                        },
+                    },
+                },
             },
         },
         {
