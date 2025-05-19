@@ -16,8 +16,10 @@ import {
     buildOptimisticCreatedReportAction,
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticMovedTransactionAction,
+    buildOptimisticSelfDMReport,
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
+    findSelfDMReportID,
 } from '@libs/ReportUtils';
 import {getAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -801,10 +803,14 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
             value: {[movedAction?.reportActionID]: null},
         });
-
+        const selfDMReportID = findSelfDMReportID();
+        const currentTime = DateUtils.getDBTime();
+        const selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        const selfDMCreatedReportActionID = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
         transactionIDToReportActionAndThreadData[transaction.transactionID] = {
             movedReportActionID: movedAction.reportActionID,
             moneyRequestPreviewReportActionID: newIOUAction.reportActionID,
+            ...(!selfDMReportID ? {selfDMReportID: selfDMReport.reportID, selfDMCreatedReportActionID: selfDMCreatedReportActionID.reportActionID} : {}),
             ...(oldIOUAction && !oldIOUAction.childReportID
                 ? {
                       transactionThreadReportID,
