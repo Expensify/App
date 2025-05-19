@@ -199,7 +199,6 @@ function PopoverMenu({
     shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
-
     shouldAvoidSafariException = false,
     testID,
 }: PopoverMenuProps) {

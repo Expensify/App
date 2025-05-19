@@ -7,16 +7,7 @@ import type PopoverProps from './types';
  * This is a convenience wrapper around the Modal component for a responsive Popover.
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
-function Popover({
-    animationIn,
-    animationOut,
-    popoverAnchorPosition,
-    disableAnimation,
-    anchorPosition = {},
-    fromSidebarMediumScreen,
-
-    ...propsWithoutAnimation
-}: PopoverProps) {
+function Popover({animationIn, animationOut, popoverAnchorPosition, disableAnimation, anchorPosition = {}, fromSidebarMediumScreen, ...propsWithoutAnimation}: PopoverProps) {
     return (
         <Modal
             type={fromSidebarMediumScreen ? CONST.MODAL.MODAL_TYPE.POPOVER : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
