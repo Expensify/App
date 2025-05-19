@@ -36,6 +36,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
@@ -57,6 +58,19 @@ type MoneyRequestReportTransactionListProps = {
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     /** Whether the transaction should be highlighted, when it is added to the report */
     shouldBeHighlighted?: boolean;
+};
+
+type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
+    /** The action that can be performed for the transaction */
+    action?: SearchTransactionAction;
+
+    onButtonPress?: () => void;
+
+    /** The personal details of the user requesting money */
+    from: SearchPersonalDetails;
+
+    /** The personal details of the user paying the request */
+    to: SearchPersonalDetails;
 };
 
 const sortableColumnNames = [
@@ -335,4 +349,4 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 MoneyRequestReportTransactionList.displayName = 'MoneyRequestReportTransactionList';
 
 export default memo(MoneyRequestReportTransactionList);
-export type {TransactionWithOptionalHighlight};
+export type {TransactionWithOptionalHighlight, TransactionWithOptionalSearchFields};

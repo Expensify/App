@@ -1,11 +1,14 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
-import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
+import type {TransactionWithOptionalSearchFields} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import type {TableColumnSize} from '@components/Search/types';
+import ActionCell from '@components/SelectionList/Search/ActionCell';
 import DateCell from '@components/SelectionList/Search/DateCell';
+import UserInfoCell from '@components/SelectionList/Search/UserInfoCell';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useHover from '@hooks/useHover';
@@ -37,15 +40,19 @@ function TransactionItemRow({
     onCheckboxPress,
     shouldShowCheckbox = false,
     columns,
+    containerStyle,
+    onButtonPress,
 }: {
-    transactionItem: TransactionWithOptionalHighlight;
+    transactionItem: TransactionWithOptionalSearchFields;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
     onCheckboxPress: (transactionID: string) => void;
     shouldShowCheckbox: boolean;
-    columns: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
+    columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
+    containerStyle?: StyleProp<ViewStyle>;
+    onButtonPress: () => void;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -123,30 +130,71 @@ function TransactionItemRow({
                 />
             </View>
         ),
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION]: <View />,
+        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                {!!transactionItem.action && (
+                    <ActionCell
+                        action={transactionItem.action}
+                        isSelected={false}
+                        isChildListItem
+                        parentAction={transactionItem.parentTransactionID}
+                        goToItem={onButtonPress}
+                        isLoading={false}
+                    />
+                )}
+            </View>
+        ),
         [CONST.REPORT.TRANSACTION_LIST.COLUMNS.ASSIGNEE]: <View />,
         [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CREATED_BY]: <View />,
         [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: <View />,
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM]: <View />,
         [CONST.REPORT.TRANSACTION_LIST.COLUMNS.IN]: <View />,
         [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
                 <MerchantCell
                     transactionItem={transactionItem}
                     shouldShowTooltip={shouldShowTooltip}
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                    shouldUseNarrowLayout={false}
                 />
             </View>
         ),
         [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX_AMOUNT]: <View />,
         [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TITLE]: <View />,
-        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]: <View />,
+        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                {!!transactionItem.to && (
+                    <UserInfoCell
+                        accountID={transactionItem.to.accountID}
+                        avatar={transactionItem.to.avatar}
+                        displayName={transactionItem.to.displayName ?? ''}
+                    />
+                )}
+            </View>
+        ),
+        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                {!!transactionItem.from && (
+                    <UserInfoCell
+                        accountID={transactionItem.from.accountID}
+                        avatar={transactionItem.from.avatar}
+                        displayName={transactionItem.from.displayName ?? ''}
+                    />
+                )}
+            </View>
+        ),
         [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>
                 <ChatBubbleCell transaction={transactionItem} />
             </View>
         ),
-        amount: undefined,
+        [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                <TotalCell
+                    transactionItem={transactionItem}
+                    shouldShowTooltip={shouldShowTooltip}
+                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                />
+            </View>
+        ),
     };
 
     return (
@@ -256,7 +304,7 @@ function TransactionItemRow({
                                     isChecked={isSelected}
                                 />
                             </View>
-                            {columns.map((column) => columnComponent[column])}
+                            {columns?.map((column) => columnComponent[column])}
                         </View>
                         <TransactionItemRowRBR transaction={transactionItem} />
                     </View>

@@ -1,15 +1,18 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,6 +41,12 @@ function ReportListItem<TItem extends ListItem>({
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
     const isEmptyReport = reportItem.transactions.length === 0;
     const isDisabledOrEmpty = isEmptyReport || isDisabled;
+    const {isLargeScreenWidth} = useResponsiveLayout();
+
+    const dateColumnSize = useMemo(() => {
+        const shouldShowYearForSomeTransaction = reportItem.transactions.some((transaction) => shouldShowTransactionYear(transaction));
+        return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    }, [reportItem.transactions]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -119,23 +128,49 @@ function ReportListItem<TItem extends ListItem>({
                     </View>
                 ) : (
                     reportItem.transactions.map((transaction) => (
-                        <TransactionListItemRow
-                            key={transaction.transactionID}
-                            parentAction={reportItem.action}
-                            item={transaction}
-                            showTooltip={showTooltip}
-                            onButtonPress={() => {
-                                openReportInRHP(transaction);
-                            }}
-                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                            showItemHeaderOnNarrowLayout={false}
-                            containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
-                            isChildListItem
-                            isDisabled={!!isDisabled}
-                            canSelectMultiple={!!canSelectMultiple}
-                            isButtonSelected={transaction.isSelected}
-                            shouldShowTransactionCheckbox
-                        />
+                        <View>
+                            <TransactionListItemRow
+                                key={transaction.transactionID}
+                                parentAction={reportItem.action}
+                                item={transaction}
+                                showTooltip={showTooltip}
+                                onButtonPress={() => {
+                                    openReportInRHP(transaction);
+                                }}
+                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                showItemHeaderOnNarrowLayout={false}
+                                containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
+                                isChildListItem
+                                isDisabled={!!isDisabled}
+                                canSelectMultiple={!!canSelectMultiple}
+                                isButtonSelected={transaction.isSelected}
+                                shouldShowTransactionCheckbox
+                            />
+                            <TransactionItemRow
+                                transactionItem={transaction}
+                                isSelected={!!transaction.isSelected}
+                                dateColumnSize={dateColumnSize}
+                                shouldShowTooltip
+                                shouldUseNarrowLayout={!isLargeScreenWidth}
+                                shouldShowCheckbox={!!canSelectMultiple}
+                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
+                                columns={[
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
+                                    CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION,
+                                ]}
+                                onButtonPress={() => {
+                                    openReportInRHP(transaction);
+                                }}
+                            />
+                        </View>
                     ))
                 )}
             </View>
