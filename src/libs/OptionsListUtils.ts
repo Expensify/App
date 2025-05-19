@@ -70,6 +70,7 @@ import {
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
+    isMovedTransactionAction,
     isOldDotReportAction,
     isPendingRemove,
     isReimbursementDeQueuedOrCanceledAction,
@@ -80,7 +81,6 @@ import {
     isUnapprovedAction,
     isWhisperAction,
     shouldReportActionBeVisible,
-    isMovedTransactionAction,
 } from './ReportActionsUtils';
 import {
     canUserPerformWriteAction,
@@ -97,6 +97,7 @@ import {
     getIOUSubmittedMessage,
     getIOUUnapprovedMessage,
     getMoneyRequestSpendBreakdown,
+    getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
@@ -140,7 +141,6 @@ import {
     shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
-    getMovedTransactionMessage,
 } from './ReportUtils';
 import type {OptionData} from './ReportUtils';
 import StringUtils from './StringUtils';
