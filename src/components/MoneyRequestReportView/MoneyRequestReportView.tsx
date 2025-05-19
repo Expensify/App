@@ -121,7 +121,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
     const isTransactionThreadView = isReportTransactionThread(report);
 
-    const isEmptyTransactionReport = transactions && transactionThreadReportID === undefined;
+    const isEmptyTransactionReport = transactions && transactionThreadReportID === undefined && !isLoadingInitialReportActions;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport && shouldDisplayReportTableView(report, transactions);
 
     const reportHeaderView = useMemo(
