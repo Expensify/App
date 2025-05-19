@@ -830,7 +830,7 @@ function getLastMessageTextForReport(
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
     }
 
-    // When the last report action has unkown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
+    // When the last report action has unknown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
     // so we reconstruct the last message text of the report from the last report action.
     if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction))) {
         lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));

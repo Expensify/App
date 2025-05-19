@@ -1305,6 +1305,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT]: ROUTES.SETTINGS_TAGS_ROOT.route,
+                        [SCREENS.MONEY_REQUEST.EDIT_REPORT]: ROUTES.MONEY_REQUEST_EDIT_REPORT.route,
                         [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: ROUTES.MONEY_REQUEST_STEP_SEND_FROM.route,
                         [SCREENS.MONEY_REQUEST.STEP_REPORT]: ROUTES.MONEY_REQUEST_STEP_REPORT.route,
                         [SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO]: ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.route,
@@ -1604,7 +1605,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SCHEDULE_CALL_BOOK.route,
                         },
                         [SCREENS.SCHEDULE_CALL.CONFIRMATION]: {
-                            path: ROUTES.SCHEDULE_CALL_CONFIRMATON.route,
+                            path: ROUTES.SCHEDULE_CALL_CONFIRMATION.route,
                         },
                     },
                 },
