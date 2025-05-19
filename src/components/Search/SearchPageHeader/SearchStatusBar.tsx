@@ -1,10 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -349,8 +349,21 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
                 </EducationalTooltip>
             );
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [translatedOptions, queryJSON.status],
+        [
+            translatedOptions,
+            queryJSON,
+            singleExecution,
+            hideProductTrainingTooltip,
+            onStatusChange,
+            shouldShowProductTrainingTooltip,
+            renderProductTrainingTooltip,
+            styles,
+            theme,
+            StyleUtils,
+            scrollRef,
+            isScrolledRef,
+            options.length,
+        ],
     );
 
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
