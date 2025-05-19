@@ -9,11 +9,12 @@ const {
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
-    OUTSANDING_FILTER,
+    OUTSTANDING_FILTER,
     WORKSPACES_SETTINGS,
     ACCOUNT_SWITCHER,
     GBR_RBR_CHAT,
     EXPENSE_REPORTS_FILTER,
+    MULTI_SCAN_EDUCATIONAL_MODAL,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 /**
@@ -80,7 +81,7 @@ type DismissedProductTraining = {
     /**
      * When user dismisses the outstanding filter product training tooltip, we store the timestamp here.
      */
-    [OUTSANDING_FILTER]: DismissedProductTrainingElement;
+    [OUTSTANDING_FILTER]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the workspaces settings product training tooltip, we store the timestamp here.
@@ -101,6 +102,11 @@ type DismissedProductTraining = {
      * When user dismisses the expenseReportsFilter product training tooltip, we store the timestamp here.
      */
     [EXPENSE_REPORTS_FILTER]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the MultiScan product training tooltip, we store the timestamp here.
+     */
+    [MULTI_SCAN_EDUCATIONAL_MODAL]: DismissedProductTrainingElement
 
     /**
      * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.
