@@ -151,10 +151,11 @@ function ProfilePage({route}: ProfilePageProps) {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (isValidAccountRoute(accountID) && !loginParams) {
+        // Concierge's profile page information is already available in CONST.ts
+        if (isValidAccountRoute(accountID) && !loginParams && !isConcierge) {
             openPublicProfilePage(accountID);
         }
-    }, [accountID, loginParams]);
+    }, [accountID, loginParams, isConcierge]);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
