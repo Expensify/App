@@ -43,45 +43,42 @@ describe('OnyxDerived', () => {
             [mockReport.reportID]: mockReport,
         };
 
-        it('returns empty reports when dependencies are not set', () => {
-            waitForBatchedUpdates().then(async () => {
-                const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
-                expect(derivedReportAttributes).toEqual({
-                    reports: {},
-                    locale: null,
-                });
+        it('returns empty reports when dependencies are not set', async () => {
+            await waitForBatchedUpdates();
+            const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            expect(derivedReportAttributes).toEqual({
+                reports: {},
+                locale: null,
             });
         });
 
-        it('computes report attributes when reports are set', () => {
-            waitForBatchedUpdates().then(async () => {
-                await Onyx.set(ONYXKEYS.COLLECTION.REPORT, mockReports);
-                await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
-                const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
-                expect(derivedReportAttributes).toEqual({
-                    reports: {
-                        [mockReport.reportID]: {
-                            reportName: expect(String),
-                        },
+        it('computes report attributes when reports are set', async () => {
+            await waitForBatchedUpdates();
+            await Onyx.set(ONYXKEYS.COLLECTION.REPORT, mockReports);
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+            const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            expect(derivedReportAttributes).toEqual({
+                reports: {
+                    [mockReport.reportID]: {
+                        reportName: expect(String),
                     },
-                    locale: 'en',
-                });
+                },
+                locale: 'en',
             });
         });
 
-        it('updates when locale changes', () => {
-            waitForBatchedUpdates().then(async () => {
-                await Onyx.set(ONYXKEYS.COLLECTION.REPORT, mockReports);
-                await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es');
-                const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
-                expect(derivedReportAttributes).toEqual({
-                    reports: {
-                        [mockReport.reportID]: {
-                            reportName: expect(String),
-                        },
+        it('updates when locale changes', async () => {
+            await waitForBatchedUpdates();
+            await Onyx.set(ONYXKEYS.COLLECTION.REPORT, mockReports);
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es');
+            const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            expect(derivedReportAttributes).toEqual({
+                reports: {
+                    [mockReport.reportID]: {
+                        reportName: expect(String),
                     },
-                    locale: 'es',
-                });
+                },
+                locale: 'es',
             });
         });
     });
