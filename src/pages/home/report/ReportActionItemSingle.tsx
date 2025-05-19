@@ -311,9 +311,9 @@ function ReportActionItemSingle({
                         <ReportActionItemFragment
                             style={[styles.flexShrink1]}
                             key={`person-${action?.reportActionID}-${0}`}
-                            accountID={Number(icon.id) ?? -1}
+                            accountID={Number(icon.id)}
                             fragment={{...personArray.at(0), type: 'TEXT', text: displayName ?? ''}}
-                            delegateAccountID={action?.delegateAccountID}
+                            delegateAccountID={Number(action?.delegateAccountID)}
                             isSingleLine
                             actorIcon={icon}
                             moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
@@ -327,9 +327,9 @@ function ReportActionItemSingle({
                         <ReportActionItemFragment
                             style={[styles.flexShrink1]}
                             key={`person-${action?.reportActionID}-${1}`}
-                            accountID={parseInt(`${secondaryAvatar?.id ?? CONST.DEFAULT_NUMBER_ID}`, 10)}
+                            accountID={Number(secondaryAvatar?.id)}
                             fragment={{...personArray.at(1), type: 'TEXT', text: secondaryAvatar.name ?? ''}}
-                            delegateAccountID={action?.delegateAccountID}
+                            delegateAccountID={Number(action?.delegateAccountID)}
                             isSingleLine
                             actorIcon={secondaryAvatar}
                             moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
@@ -343,9 +343,9 @@ function ReportActionItemSingle({
                         <ReportActionItemFragment
                             style={[styles.flex1]}
                             key={`person-${action?.reportActionID}-${fragment?.text ?? ''}`}
-                            accountID={actorAccountID ?? CONST.DEFAULT_NUMBER_ID}
+                            accountID={Number(actorAccountID)}
                             fragment={{...fragment, type: fragment?.type ?? '', text: fragment?.text ?? ''}}
-                            delegateAccountID={action?.delegateAccountID}
+                            delegateAccountID={Number(action?.delegateAccountID)}
                             isSingleLine
                             actorIcon={icon}
                             moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
