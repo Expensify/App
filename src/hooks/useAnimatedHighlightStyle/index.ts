@@ -65,12 +65,32 @@ export default function useAnimatedHighlightStyle({
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const theme = useTheme();
 
-    const highlightBackgroundStyle = useAnimatedStyle(() => ({
-        backgroundColor: interpolateColor(repeatableProgress.get(), [0, 1], [backgroundColor ?? theme.appBG, highlightColor ?? theme.border]),
-        height: height ? interpolate(nonRepeatableProgress.get(), [0, 1], [0, height]) : 'auto',
-        opacity: interpolate(nonRepeatableProgress.get(), [0, 1], [0, 1]),
-        borderRadius,
-    }));
+    const highlightBackgroundStyle = useAnimatedStyle(() => {
+        'worklet';
+
+        // This code runs both on the JS thread (once for setup) and on the UI thread (for actual animation).
+        // To avoid accessing Reanimated shared values (like .value) on the JS thread,
+        // we guard the JS execution path with `_WORKLET`. This ensures we return a safe fallback style
+        // during the JS pass and avoid any crashes or unexpected behavior.
+        if (!_WORKLET) {
+            return {
+                backgroundColor: backgroundColor ?? theme.appBG,
+                height: height ?? 'auto',
+                opacity: 0,
+                borderRadius,
+            };
+        }
+
+        const repeatableValue = repeatableProgress.get();
+        const nonRepeatableValue = nonRepeatableProgress.get();
+
+        return {
+            backgroundColor: interpolateColor(repeatableValue, [0, 1], [backgroundColor ?? theme.appBG, highlightColor ?? theme.border]),
+            height: height ? interpolate(nonRepeatableValue, [0, 1], [0, height]) : 'auto',
+            opacity: interpolate(nonRepeatableValue, [0, 1], [0, 1]),
+            borderRadius,
+        };
+    }, [borderRadius, height, backgroundColor, highlightColor, theme.appBG, theme.border]);
 
     React.useEffect(() => {
         if (!shouldHighlight || startHighlight) {
