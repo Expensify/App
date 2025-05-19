@@ -10,6 +10,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidEmail, isValidPhoneInternational} from '@libs/ValidationUtils';
+import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -47,8 +48,13 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: isEditing,
+        onNext: (values) => {
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
+                [BUSINESS_CONFIRMATION_EMAIL]: (values as FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>)[BUSINESS_CONFIRMATION_EMAIL],
+            });
+            onNext();
+        },
+        shouldSaveDraft: true,
     });
 
     return (
