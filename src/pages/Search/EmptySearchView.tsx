@@ -17,15 +17,13 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
-import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
+import {openOldDotLink} from '@libs/actions/Link';
 import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -33,7 +31,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
-import {getTestDriveURL} from '@libs/TourUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -68,7 +65,6 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const contextMenuAnchor = useRef<RNText>(null);
     const tripViewChildren = useMemo(() => {
@@ -129,8 +125,6 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     }, [styles, translate]);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const {environment} = useEnvironment();
-    const testDriveURL = getTestDriveURL(environment, shouldUseNarrowLayout);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
         canBeMissing: true,
@@ -207,7 +201,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
-                                              openExternalLink(testDriveURL);
+                                              InteractionManager.runAfterInteractions(() => {
+                                                  Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                                              });
                                               setSelfTourViewed();
                                               if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
                                                   completeTask(viewTourTaskReport);
@@ -255,7 +251,6 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         styles.tripEmptyStateLottieWebView,
         tripViewChildren,
         hasSeenTour,
-        testDriveURL,
         shouldRedirectToExpensifyClassic,
         hasResults,
         viewTourTaskReport,
