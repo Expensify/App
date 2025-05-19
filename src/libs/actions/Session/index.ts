@@ -266,7 +266,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         return;
     }
 
-    // In the HybridApp, we want the Old Dot to handle the sign out process
+    // When signing out from the HybridApp, we need to sign out from the oldDot app as well
     if (CONFIG.IS_HYBRID_APP && shouldSignOutFromOldDot) {
         HybridAppModule.signOutFromOldDot();
     }
@@ -527,13 +527,6 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: string, tryNewD
         if (!hybridApp.useNewDotSignInPage) {
             return Promise.resolve();
         }
-        // TODO: Check if it is necessary
-        // We also need to reset:
-        //  - IS_LOADING_APP after sign in to ensure the condition to show ExplanationModal runs once
-        //    https://github.com/Expensify/App/issues/57575#issuecomment-2780189425
-        // return Onyx.clear(KEYS_TO_PRESERVE)
-        //     .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: null}))
-        //     .then(() => Onyx.merge(ONYXKEYS.IS_LOADING_APP, null));
 
         return redirectToSignIn();
     };
