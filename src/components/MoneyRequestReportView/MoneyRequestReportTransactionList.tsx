@@ -21,7 +21,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -125,18 +127,17 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
     const {sortBy, sortOrder} = sortConfig;
 
-    const newTransactionID = useMemo(() => {
+    const newTransactionsID = useMemo(() => {
         if (!prevTransactions || transactions.length === prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as string[];
         }
 
-        return transactions
-            .filter((transaction) => !prevTransactions.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID))
-            .reduce((latest, t) => {
-                const inserted = t?.inserted ?? 0;
-                const latestInserted = latest?.inserted ?? 0;
-                return inserted > latestInserted ? t : latest;
-            }, transactions.at(0))?.transactionID;
+        return transactions.reduce((acc, t) => {
+            if (!prevTransactions.some((prevTransaction) => prevTransaction.transactionID === t.transactionID)) {
+                acc.push(t.transactionID);
+            }
+            return acc;
+        }, [] as string[]);
     }, [prevTransactions, transactions]);
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
@@ -144,9 +145,9 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
             .sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy))
             .map((transaction) => ({
                 ...transaction,
-                shouldBeHighlighted: newTransactionID === transaction.transactionID,
+                shouldBeHighlighted: newTransactionsID?.includes(transaction.transactionID),
             }));
-    }, [newTransactionID, sortBy, sortOrder, transactions]);
+    }, [newTransactionsID, sortBy, sortOrder, transactions]);
 
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
@@ -238,6 +239,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             id={transaction.transactionID}
                             style={[pressableStyle]}
                             onMouseLeave={handleMouseLeave}
+                            onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                            onPressOut={() => ControlSelection.unblock()}
                             onLongPress={() => {
                                 if (!shouldUseNarrowLayout) {
                                     return;
@@ -300,6 +303,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={() => setIsModalVisible(false)}
                 shouldPreventScrollOnFocus
+                shouldUseNewModal
             >
                 <MenuItem
                     title={translate('common.select')}
