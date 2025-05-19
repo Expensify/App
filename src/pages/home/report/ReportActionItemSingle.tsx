@@ -320,7 +320,7 @@ function ReportActionItemSingle({
                         />
                         <Text
                             numberOfLines={1}
-                            style={[styles.chatItemMessageHeaderSender, styles.pre, styles.optionItemAvatarNameWrapper]}
+                            style={[styles.chatItemMessageHeaderSender, styles.optionItemAvatarNameWrapper]}
                         >
                             {' & '}
                         </Text>
@@ -363,7 +363,6 @@ function ReportActionItemSingle({
         styles.overflowHidden,
         styles.flexShrink1,
         styles.chatItemMessageHeaderSender,
-        styles.pre,
         styles.optionItemAvatarNameWrapper,
         action,
         icon,
