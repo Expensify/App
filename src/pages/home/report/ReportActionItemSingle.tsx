@@ -363,7 +363,7 @@ function ReportActionItemSingle({
         styles.overflowHidden,
         styles.flexShrink1,
         styles.chatItemMessageHeaderSender,
-        styles.optionItemAvatarNameWrapper,
+        styles.flexShrink0,
         action,
         icon,
         displayName,
