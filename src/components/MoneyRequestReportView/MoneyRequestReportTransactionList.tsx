@@ -64,6 +64,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** The action that can be performed for the transaction */
     action?: SearchTransactionAction;
 
+    /** Function passed to the action button, triggered when the button is pressed */
     onButtonPress?: () => void;
 
     /** The personal details of the user requesting money */
