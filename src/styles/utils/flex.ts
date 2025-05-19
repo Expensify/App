@@ -42,10 +42,6 @@ export default {
         flexDirection: 'column',
     },
 
-    flexRowReverse: {
-        flexDirection: 'row-reverse',
-    },
-
     flexColumnReverse: {
         flexDirection: 'column-reverse',
     },

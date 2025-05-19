@@ -38,7 +38,6 @@ type DropdownOption<TValueType> = {
     descriptionTextStyle?: StyleProp<TextStyle>;
     wrapperStyle?: StyleProp<ViewStyle>;
     displayInDefaultIconColor?: boolean;
-    shouldPreserveSelectionAfterHideModal?: boolean;
     subMenuItems?: PopoverMenuItem[];
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 };

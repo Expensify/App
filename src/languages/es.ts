@@ -550,6 +550,7 @@ const translations = {
         unreported: 'No reportado',
         reschedule: 'Reprogramar',
         general: 'General',
+        workspacesTabTitle: 'Espacios',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1215,6 +1216,7 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+        moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
     },
     share: {
         shareToExpensify: 'Compartir para Expensify',
@@ -1731,7 +1733,7 @@ const translations = {
             copyCardNumber: 'Copiar número de la tarjeta',
             updateAddress: 'Actualizar dirección',
         },
-        cardAlreadyInWallet: 'La tarjeta ya está en la billetera',
+        cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Añadida a ${platform} Wallet`,
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
         validateCardTitle: 'Asegurémonos de que eres tú',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
@@ -2056,7 +2058,7 @@ const translations = {
         },
         accounting: {
             title: '¿Utilizas algún software de contabilidad?',
-            none: 'Ninguno',
+            noneOfAbove: 'Ninguno de los anteriores',
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
@@ -2922,7 +2924,7 @@ const translations = {
         },
         publicDomainError: {
             title: 'Comienza con Expensify Travel',
-            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com)',
+            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com).',
         },
         blockedFeatureModal: {
             title: 'Expensify Travel ha sido deshabilitado',
@@ -3820,12 +3822,14 @@ const translations = {
                 },
                 yourCardProvider: `¿Quién es su proveedor de tarjetas?`,
                 whoIsYourBankAccount: '¿Cuál es tu banco?',
+                whereIsYourBankLocated: '¿Dónde está ubicado tu banco?',
                 howDoYouWantToConnect: '¿Cómo deseas conectarte a tu banco?',
                 learnMoreAboutOptions: {
                     text: 'Obtén más información sobre estas ',
                     linkText: 'opciones.',
                 },
                 commercialFeedDetails: 'Requiere configuración con tu banco. Esto suele ser utilizado por empresas más grandes y a menudo es la mejor opción si calificas.',
+                commercialFeedPlaidDetails: 'Requiere configurarlo con tu banco, pero te guiaremos. Esto suele estar limitado a empresas más grandes.',
                 directFeedDetails: 'El enfoque más simple. Conéctate de inmediato usando tus credenciales maestras. Este método es el más común.',
                 enableFeed: {
                     title: ({provider}: GoBackMessageParams) => `Habilita tu feed ${provider}`,
@@ -3866,6 +3870,7 @@ const translations = {
                     pleaseSelectProvider: 'Seleccione un proveedor de tarjetas antes de continuar',
                     pleaseSelectBankAccount: 'Seleccione una cuenta bancaria antes de continuar',
                     pleaseSelectBank: 'Seleccione una bancaria antes de continuar',
+                    pleaseSelectCountry: 'Seleccione un país antes de continuar',
                     pleaseSelectFeedType: 'Seleccione un tipo de pienso antes de continuar',
                 },
             },
@@ -4364,9 +4369,6 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
-            sap: 'SAP',
-            oracle: 'Oracle',
-            microsoftDynamics: 'Microsoft Dynamics',
             talkYourOnboardingSpecialist: 'Chatea con tu especialista asignado.',
             talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
             talkToConcierge: 'Chatear con Concierge.',
@@ -4395,7 +4397,7 @@ const translations = {
             import: 'Importar',
             export: 'Exportar',
             advanced: 'Avanzado',
-            other: 'Otro',
+            other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
             reinstall: 'Reinstalar el conector',
@@ -4685,6 +4687,7 @@ const translations = {
             personalMessagePrompt: 'Mensaje',
             inviteNoMembersError: 'Por favor, selecciona al menos un miembro a invitar.',
             genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Por favor, vuelva a intentarlo.',
+            joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `${user} solicitó unirse al espacio de trabajo ${workspaceName}`,
         },
         distanceRates: {
             oopsNotSoFast: 'Ups! No tan rápido...',
@@ -6818,9 +6821,9 @@ const translations = {
         },
         GBRRBRChat: {
             part1: 'Verás 🟢 en ',
-            part2: 'las acciones a realizar',
-            part3: '\ny 🔴 en ',
-            part4: 'los errores que debes revisar.',
+            part2: 'acciones a realizar',
+            part3: ',\ny 🔴 en ',
+            part4: 'elementos para revisar.',
         },
         accountSwitcher: {
             part1: 'Accede a tus ',
@@ -6847,10 +6850,6 @@ const translations = {
         outstandingFilter: {
             part1: 'Filtra los gastos\nque ',
             part2: 'necesitan aprobación',
-        },
-        settingsTab: {
-            part1: 'Explora ',
-            part2: 'tu espacio de trabajo\ny la configuración de tu cuenta',
         },
         workspacesSettings: {
             part1: 'Ver tus ',
