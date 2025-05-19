@@ -5,14 +5,13 @@ import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMess
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
-import {getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowOneTransactionThreadID, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowOneTransactionThreadID, isIOUActionMatchingTransactionList, isMessageDeleted} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Report, ReportAction} from '../../src/types/onyx';
 import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-import { isMessageDeleted } from '../../src/libs/ReportActionsUtils';
 
 describe('ReportActionsUtils', () => {
     beforeAll(() =>
@@ -822,19 +821,19 @@ describe('ReportActionsUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 originalMessage: {
                     html: 'Hello world',
-                    whisperedTo: []
+                    whisperedTo: [],
                 },
                 message: [
                     {
                         html: 'Hello world',
                         deleted: '2025-05-12 17:37:01.825',
                         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        text: ''
+                        text: '',
                     },
                 ],
             };
             expect(isMessageDeleted(reportAction)).toBeTruthy();
-        })
+        });
         it('should return true if there is property isDeletedParentAction inside message', () => {
             const reportAction = {
                 created: '2025-05-12 17:27:01.825',
@@ -842,19 +841,19 @@ describe('ReportActionsUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 originalMessage: {
                     html: 'Hello world',
-                    whisperedTo: []
+                    whisperedTo: [],
                 },
                 message: [
                     {
                         html: 'Hello world',
                         isDeletedParentAction: true,
                         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        text: ''
+                        text: '',
                     },
                 ],
             };
             expect(isMessageDeleted(reportAction)).toBeTruthy();
-        })
+        });
         it('should return true if there is property deleted inside original message', () => {
             const reportAction = {
                 created: '2025-05-12 17:27:01.825',
@@ -863,18 +862,18 @@ describe('ReportActionsUtils', () => {
                 originalMessage: {
                     html: 'Hello world',
                     whisperedTo: [],
-                    deleted: '2025-05-12 17:37:01.825'
+                    deleted: '2025-05-12 17:37:01.825',
                 },
                 message: [
                     {
                         html: 'Hello world',
                         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        text: ''
+                        text: '',
                     },
                 ],
             };
             expect(isMessageDeleted(reportAction)).toBeTruthy();
-        })
+        });
         it('should return true if there is property isDeletedParentAction inside original message', () => {
             const reportAction = {
                 created: '2025-05-12 17:27:01.825',
@@ -883,18 +882,18 @@ describe('ReportActionsUtils', () => {
                 originalMessage: {
                     html: 'Hello world',
                     whisperedTo: [],
-                    isDeletedParentAction: true
+                    isDeletedParentAction: true,
                 },
                 message: [
                     {
                         html: 'Hello world',
                         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        text: ''
+                        text: '',
                     },
                 ],
             };
             expect(isMessageDeleted(reportAction)).toBeTruthy();
-        })
+        });
         it('should return false if there are no deletion properties in message and originalMessage', () => {
             const reportAction = {
                 created: '2025-05-12 17:27:01.825',
@@ -902,19 +901,19 @@ describe('ReportActionsUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 originalMessage: {
                     html: 'Hello world',
-                    whisperedTo: []
+                    whisperedTo: [],
                 },
                 message: [
                     {
                         html: 'Hello world',
                         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        text: ''
+                        text: '',
                     },
                 ],
             };
             expect(isMessageDeleted(reportAction)).toBeFalsy();
-        })
-    })
+        });
+    });
 
     describe('getReportActionMessageFragments', () => {
         it('should return the correct fragment for the REIMBURSED action', () => {
@@ -963,8 +962,8 @@ describe('ReportActionsUtils', () => {
                     {
                         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                         text: '',
-                        deleted: '2025-05-12 17:27:01.825'
-                    }
+                        deleted: '2025-05-12 17:27:01.825',
+                    },
                 ],
             };
             const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);

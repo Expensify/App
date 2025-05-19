@@ -463,20 +463,20 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.CHAT,
                     reportID: '4401445780099175',
                     parentReportActionID: '8401445780099176',
-                    parentReportID: '4401445780099175'
-                }
-                const reportAction = { 
+                    parentReportID: '4401445780099175',
+                };
+                const reportAction = {
                     created: '2025-05-12 17:27:01.825',
                     reportActionID: '8401445780099176',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     message: [
-                        { 
-                            deleted: '2025-05-12 17:27:01.825', 
-                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT, 
-                            text: ''
-                        }
-                    ]
-                }
+                        {
+                            deleted: '2025-05-12 17:27:01.825',
+                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                            text: '',
+                        },
+                    ],
+                };
                 expect(getReportName(report, undefined, reportAction)).toEqual(translateLocal('parentReportAction.deletedMessage'));
             });
 
@@ -485,22 +485,22 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.CHAT,
                     parentReportActionID: '8401445780099176',
                     parentReportID: '4401445780099175',
-                    reportID: '2401445780099174'
-                }
-                const reportAction = { 
-                    reportActionID: '8401445780099176', 
-                    parentReportID: '', 
+                    reportID: '2401445780099174',
+                };
+                const reportAction = {
+                    reportActionID: '8401445780099176',
+                    parentReportID: '',
                     message: [
-                        { 
-                            deleted: '2025-05-12 17:27:01.825', 
-                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT, 
-                            text: ''
-                        }
-                    ]
-                }
+                        {
+                            deleted: '2025-05-12 17:27:01.825',
+                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                            text: '',
+                        },
+                    ],
+                };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
-                    [reportAction.reportActionID]: reportAction
-                })
+                    [reportAction.reportActionID]: reportAction,
+                });
                 expect(getReportName(report)).toEqual(translateLocal('parentReportAction.deletedMessage'));
             });
 

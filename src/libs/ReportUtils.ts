@@ -4793,18 +4793,17 @@ function getSearchReportName(props: GetReportNameParams): string {
     return getReportNameInternal(props);
 }
 
-function isChatThreadDeleted(report: OnyxInputOrEntry<Report>, reportActionParam: OnyxInputOrEntry<ReportAction>): boolean
-{
+function isChatThreadDeleted(report: OnyxInputOrEntry<Report>, reportActionParam: OnyxInputOrEntry<ReportAction>): boolean {
     if (!isChatThread(report)) {
-        return false
+        return false;
     }
 
-    let reportAction = reportActionParam as OnyxEntry<ReportAction>
+    let reportAction = reportActionParam as OnyxEntry<ReportAction>;
     if (!reportAction) {
         reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     }
 
-    return isMessageDeleted(reportAction)
+    return isMessageDeleted(reportAction);
 }
 
 function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {

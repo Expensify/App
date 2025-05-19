@@ -1113,10 +1113,12 @@ function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean
     const message = getReportActionMessage(reportAction);
     const originalMessage = getOriginalMessage(reportAction) as Message;
 
-    return (message?.deleted && message?.deleted != "") ||
+    return (
+        (message?.deleted !== undefined && message?.deleted !== '') ||
         (message?.isDeletedParentAction ?? false) ||
-        (originalMessage?.deleted && originalMessage?.deleted != "") ||
-        (originalMessage?.isDeletedParentAction ?? false);
+        (originalMessage?.deleted !== undefined && originalMessage?.deleted !== '') ||
+        (originalMessage?.isDeletedParentAction ?? false)
+    );
 }
 
 /**
@@ -1810,7 +1812,7 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
     const actionMessage = action.previousMessage ?? action.message;
     if (Array.isArray(actionMessage)) {
         if (actionMessage?.length === 1) {
-            return [{...actionMessage.at(0), isDeletedParentAction: isMessageDeleted(action) } as Message];
+            return [{...actionMessage.at(0), isDeletedParentAction: isMessageDeleted(action)} as Message];
         }
         return actionMessage.filter((item): item is Message => !!item);
     }
