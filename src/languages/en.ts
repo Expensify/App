@@ -194,13 +194,13 @@ import type {
     UnreportedTransactionParams,
     UnshareParams,
     UntilTimeParams,
+    UpdatedCustomFieldParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryGLCodeParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     UpdatedPolicyCategoryMaxExpenseAmountParams,
-    UpdatedCustomFieldParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
@@ -5124,54 +5124,54 @@ const translations = {
         deleteApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) =>
             `removed ${approverName} (${approverEmail}) as an approver for the ${field} "${name}"`,
         updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) =>
-            `updated the approver for the ${field} "${name}" to ${newApproverName} (${newApproverEmail}) (previously ${oldApproverName} (${oldApproverEmail}))`,
+            `changed the approver for the ${field} "${name}" to ${newApproverName} (${newApproverEmail}) (previously ${oldApproverName} (${oldApproverEmail}))`,
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `added the category "${categoryName}"`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `removed the category "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,
         updateCategoryPayrollCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
             if (!oldValue) {
-                return `updated the category "${categoryName}" by adding a Payroll Code of ${newValue}`;
+                return `added the payroll code "${newValue}" to the category "${categoryName}"`;
             }
             if (!newValue && oldValue) {
-                return `updated the category "${categoryName}" by removing the Payroll Code (previously "${oldValue}")`;
+                return `removed the payroll code "${oldValue}" from the category "${categoryName}"`;
             }
-            return `updated the category "${categoryName}" by changing the Payroll Code to ${newValue} (previously "${oldValue}")`;
+            return `changed the "${categoryName}" category payroll code to “${newValue}” (previously “${oldValue}”)`;
         },
         updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
             if (!oldValue) {
-                return `updated the category "${categoryName}" by adding a GL Code of "${newValue}"`;
+                return `added the GL code "${newValue}” to the category "${categoryName}"`;
             }
             if (!newValue && oldValue) {
-                return `updated the category "${categoryName}" by removing the GL Code (previously "${oldValue}")`;
+                return `removed the GL code "${oldValue}" from the category "${categoryName}"`;
             }
-            return `updated the category "${categoryName}" by changing the GL Code to "${newValue}" (previously "${oldValue}")`;
+            return `changed the “${categoryName}” category GL code to “${newValue}” (previously “${oldValue}“)`;
         },
         updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
-            return `updated the category "${categoryName}" by changing the Description to ${!oldValue ? 'Required' : 'Not Required'} (previously ${!oldValue ? 'Not Required' : 'Required'})`;
+            return `changed the "${categoryName}" category description to ${!oldValue ? 'required' : 'not required'} (previously ${!oldValue ? 'not required' : 'required'})`;
         },
         updateCategoryMaxExpenseAmount: ({categoryName, oldAmount, newAmount}: UpdatedPolicyCategoryMaxExpenseAmountParams) => {
             if (newAmount && !oldAmount) {
-                return `updated the category "${categoryName}" by adding a Max Amount of ${newAmount}`;
+                return `added a ${newAmount} max amount to the category "${categoryName}"`;
             }
             if (oldAmount && !newAmount) {
-                return `updated the category "${categoryName}" by removing the Max Amount (previously "${oldAmount}")`;
+                return `removed the ${oldAmount} max amount from the category "${categoryName}"`;
             }
-            return `updated the category "${categoryName}" by changing the Max Amount to ${newAmount} (previously "${oldAmount}")`;
+            return `changed the "${categoryName}" category max amount to ${newAmount} (previously ${oldAmount})`;
         },
         updateCategoryExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryExpenseLimitTypeParams) => {
             if (!oldValue) {
-                return `updated the category "${categoryName}" by adding a Limit Type of ${newValue}`;
+                return `added a limit type of ${newValue} to the category "${categoryName}"`;
             }
-            return `updated the category "${categoryName}" by changing the Limit Type to ${newValue} (previously "${oldValue}")`;
+            return `changed the "${categoryName}" category limit type to ${newValue} (previously ${oldValue})`;
         },
         updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
             if (!oldValue) {
                 return `updated the category "${categoryName}" by changing Receipts to ${newValue}`;
             }
-            return `updated the category "${categoryName}" by changing Receipts to ${newValue} (previously ${oldValue})`;
+            return `changed the "${categoryName}" category to ${newValue} (previously ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
-        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `updated the name of the tag list to "${newName}" (previously "${oldName}")`,
+        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `changed the tag list name to "${newName}" (previously "${oldName}")`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,
@@ -5184,38 +5184,35 @@ const translations = {
             return `updated the tag "${tagName}" on the list "${tagListName}" by adding a ${updatedField} of "${newValue}"`;
         },
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
-            `updated the ${customUnitName} ${updatedField} to "${newValue}" (previously "${oldValue}")`,
+            `changed the ${customUnitName} ${updatedField} to "${newValue}" (previously "${oldValue}")`,
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'enabled' : 'disabled'} tax tracking on distance rates`,
         addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `added a new "${customUnitName}" rate "${rateName}"`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
-            `updated the rate of the ${customUnitName} ${updatedField} "${customUnitRateName}" to "${newValue}" (previously "${oldValue}")`,
+            `changed the rate of the ${customUnitName} ${updatedField} "${customUnitRateName}" to "${newValue}" (previously "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
             if (oldTaxPercentage && oldValue) {
-                return `updated the tax rate to "${newValue} (${newTaxPercentage})" on the distance rate "${customUnitRateName}" (previously "${oldValue} (${oldTaxPercentage})")`;
+                return `changed the tax rate on the distance rate "${customUnitRateName}" to "${newValue} (${newTaxPercentage})" (previously "${oldValue} (${oldTaxPercentage})")`;
             }
             return `added the tax rate "${newValue} (${newTaxPercentage})" to the distance rate "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: ({customUnitRateName, newValue, oldValue}: UpdatedPolicyCustomUnitTaxClaimablePercentageParams) => {
             if (oldValue) {
-                return `updated the tax reclaimable portion to "${newValue}" on the distance rate "${customUnitRateName}" (previously "${oldValue}")`;
+                return `changed the tax reclaimable portion on the distance rate "${customUnitRateName}" to "${newValue}" (previously "${oldValue}")`;
             }
-            return `added the tax reclaimable portion "${newValue}" to the distance rate "${customUnitRateName}"`;
+            return `added a tax reclaimable portion of "${newValue}" to the distance rate "${customUnitRateName}`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removed the "${customUnitName}" rate "${rateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
-
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
-        addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `updated Report Field "${fieldName}"; Added the option "${optionName}"`,
-        removedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `updated Report Field "${fieldName}"; Removed the option "${optionName}"`,
+        addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `added the option "${optionName}" to the report field "${fieldName}"`,
+        removedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `removed the option "${optionName}" from the report field "${fieldName}"`,
         updateReportFieldOptionDisabled: ({fieldName, optionName, optionEnabled}: PolicyDisabledReportFieldOptionParams) =>
-            `updated Report Field "${fieldName}"; Set the option "${optionName}" to be ${optionEnabled ? 'Enabled' : 'Disabled'}`,
+            `${optionEnabled ? 'enabled' : 'disabled'} the option "${optionName}" for the report field "${fieldName}"`,
         updateReportFieldAllOptionsDisabled: ({fieldName, optionName, allEnabled, toggledOptionsCount}: PolicyDisabledReportFieldAllOptionsParams) => {
             if (toggledOptionsCount && toggledOptionsCount > 1) {
-                return `updated Report Field "${fieldName}"; Set all options to be ${allEnabled ? 'Enabled' : 'Disabled'}`;
+                return `${allEnabled ? 'enabled' : 'disabled'} all "${fieldName}" report field options`;
             }
-            return `updated Report Field "${fieldName}"; Set the option "${optionName}" to be ${allEnabled ? 'Enabled' : 'Disabled'} making all options ${
-                allEnabled ? 'Enabled' : 'Disabled'
-            }`;
+            return `${allEnabled ? 'enabled' : 'disabled'} the option "${optionName}" for the report field "${fieldName}", making all options ${allEnabled ? 'enabled' : 'disabled'}`;
         },
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `removed ${fieldType} Report Field "${fieldName}"`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
@@ -5262,9 +5259,9 @@ const translations = {
         upgradedWorkspace: 'upgraded this workspace to the Control plan',
         downgradedWorkspace: 'downgraded this workspace to the Collect plan',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
-            `updated the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
+            `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
-            `updated the limit for manual approval of all expenses to ${newLimit} (previously ${oldLimit})`,
+            `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',
