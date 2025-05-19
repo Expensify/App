@@ -6297,7 +6297,7 @@ const translations = {
             part1: 'You’ll see 🟢 on ',
             part2: 'actions to take',
             part3: ',\nand 🔴 on ',
-            part4: 'errors to review.',
+            part4: 'items to review.',
         },
         accountSwitcher: {
             part1: 'Access your ',
