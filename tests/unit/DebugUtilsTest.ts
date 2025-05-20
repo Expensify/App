@@ -1108,6 +1108,7 @@ describe('DebugUtils', () => {
                         },
                         undefined,
                         false,
+                        undefined,
                     ) ?? {};
                 expect(reportAction).toBeUndefined();
             });
@@ -1159,6 +1160,7 @@ describe('DebugUtils', () => {
                         MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report,
                         undefined,
                         false,
+                        undefined,
                     ) ?? {};
                 expect(reportAction).toBe(undefined);
             });
@@ -1217,7 +1219,7 @@ describe('DebugUtils', () => {
                                 accountID: 12345,
                             },
                         });
-                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false) ?? {};
+                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false, undefined) ?? {};
                         expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                     });
                 });
@@ -1275,7 +1277,7 @@ describe('DebugUtils', () => {
                                 accountID: 12345,
                             },
                         });
-                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false) ?? {};
+                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false, undefined) ?? {};
                         expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                     });
                 });
@@ -1334,7 +1336,7 @@ describe('DebugUtils', () => {
                             accountID: 12345,
                         },
                     });
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, false) ?? {};
+                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, false, undefined) ?? {};
                     expect(reportAction).toMatchObject(MOCK_CHAT_REPORT_ACTIONS['1']);
                 });
                 it('returns correct report action which is a split bill and has an error', async () => {
@@ -1396,7 +1398,7 @@ describe('DebugUtils', () => {
                             accountID: 12345,
                         },
                     });
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, false) ?? {};
+                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, false, undefined) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
                 it("returns undefined if there's no report action is a report preview or a split bill", async () => {
@@ -1452,7 +1454,7 @@ describe('DebugUtils', () => {
                             accountID: 12345,
                         },
                     });
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false) ?? {};
+                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false, undefined) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
             });
@@ -1505,6 +1507,7 @@ describe('DebugUtils', () => {
                         },
                         MOCK_REPORT_ACTIONS,
                         false,
+                        undefined,
                     ) ?? {};
                 expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
             });
@@ -1533,6 +1536,7 @@ describe('DebugUtils', () => {
                             },
                         },
                         false,
+                        undefined,
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasErrors');
             });
@@ -1544,6 +1548,7 @@ describe('DebugUtils', () => {
                         },
                         undefined,
                         true,
+                        undefined,
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasViolations');
             });
@@ -1555,6 +1560,7 @@ describe('DebugUtils', () => {
                         },
                         undefined,
                         true,
+                        undefined,
                         true,
                     ) ?? {};
                 expect(reason).toBe(undefined);
@@ -1593,7 +1599,7 @@ describe('DebugUtils', () => {
                         },
                     ],
                 });
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, {}, false) ?? {};
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, {}, false, undefined) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
             });
         });

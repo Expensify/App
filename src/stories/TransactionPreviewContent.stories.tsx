@@ -106,7 +106,6 @@ const story: Meta<typeof TransactionPreviewContent> = {
         transaction: transactionR14932,
         violations: [],
         offlineWithFeedbackOnClose(): void {},
-        navigateToReviewFields: () => undefined,
         containerStyles: [],
         isBillSplit: false,
         areThereDuplicates: false,

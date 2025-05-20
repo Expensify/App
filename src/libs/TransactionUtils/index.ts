@@ -1511,7 +1511,7 @@ function buildMergeDuplicatesParams(
         transactionID: reviewDuplicates?.transactionID,
         transactionIDList: removeSettledAndApprovedTransactions(duplicates ?? [])
             .filter((transaction) => !!transaction)
-            .map((transaction) => transaction?.transactionID),
+            .map((transaction) => transaction.transactionID),
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',
