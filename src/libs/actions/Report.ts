@@ -176,6 +176,7 @@ import type {
     ReportActionReactions,
     ReportUserIsTyping,
     Transaction,
+    TransactionViolations,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -288,6 +289,13 @@ Onyx.connect({
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allReportActions[reportID] = actions;
     },
+});
+
+let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allTransactionViolations = value),
 });
 
 let allReports: OnyxCollection<Report>;
@@ -4577,6 +4585,7 @@ function deleteAppReport(reportID: string | undefined) {
     }
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -4584,6 +4593,7 @@ function deleteAppReport(reportID: string | undefined) {
     let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     let createdAction: ReportAction;
     let selfDMParameters: SelfDMParameters = {};
+
     if (!selfDMReport) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
@@ -4644,6 +4654,7 @@ function deleteAppReport(reportID: string | undefined) {
             },
         );
     }
+
     // 1. Get all report transactions
     const reportActionsForReport = allReportActions?.[reportID];
     const transactionIDs = [];
@@ -4655,15 +4666,29 @@ function deleteAppReport(reportID: string | undefined) {
 
     // 2. Set transaction's reportID to 0
     [...new Set(transactionIDs)].forEach((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {reportID: 0},
         });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: transaction,
+        });
+
+        const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: transactionViolations,
         });
     });
 
@@ -4692,6 +4717,14 @@ function deleteAppReport(reportID: string | undefined) {
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                 value: {
                     [newReportActionID]: updatedReportAction,
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                value: {
+                    [newReportActionID]: null,
                 },
             });
 
@@ -4743,6 +4776,12 @@ function deleteAppReport(reportID: string | undefined) {
         value: null,
     });
 
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: reportActionsForReport,
+    });
+
     // 7. Delete the report
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -4750,8 +4789,15 @@ function deleteAppReport(reportID: string | undefined) {
         value: null,
     });
 
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: report,
+    });
+
     // 8. Delete chat report preview
     const reportactionID = report?.parentReportActionID;
+    const reportaction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
     const parentReportID = report?.parentReportID;
 
     if (reportactionID) {
@@ -4760,6 +4806,14 @@ function deleteAppReport(reportID: string | undefined) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {
                 [reportactionID]: null,
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {
+                [reportactionID]: reportaction,
             },
         });
     }
