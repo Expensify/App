@@ -527,6 +527,9 @@ const ONYXKEYS = {
     /** Set this gets redirected from global reimbursements flow */
     IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW: 'isComingFromGlobalReimbursementsFlow',
 
+    /** Stores the information about notification popup */
+    IS_REQUEST_NOTIFICATION_PERMISSION_SHOW: 'isRequestNotificationPermissionShow',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1163,6 +1166,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft;
     [ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY]: boolean | undefined;
     [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
+    [ONYXKEYS.IS_REQUEST_NOTIFICATION_PERMISSION_SHOW]: boolean | undefined;
 };
 
 type OnyxDerivedValuesMapping = {
