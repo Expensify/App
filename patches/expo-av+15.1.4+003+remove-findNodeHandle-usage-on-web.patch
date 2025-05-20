@@ -1,0 +1,90 @@
+diff --git a/node_modules/expo-av/build/ExponentVideo.web.js b/node_modules/expo-av/build/ExponentVideo.web.js
+index b7ecf1d..1d2f6e2 100644
+--- a/node_modules/expo-av/build/ExponentVideo.web.js
++++ b/node_modules/expo-av/build/ExponentVideo.web.js
+@@ -10,6 +10,9 @@ export default class ExponentVideo extends React.Component {
+     componentWillUnmount() {
+         this._removeFullscreenListener?.();
+     }
++    getVideoElement = () => {
++        return this._video;
++    };
+     onFullscreenChange = (isFullscreen) => {
+         if (!this.props.onFullscreenUpdate)
+             return;
+diff --git a/node_modules/expo-av/build/Video.js b/node_modules/expo-av/build/Video.js
+index 50e0b91..6d9100e 100644
+--- a/node_modules/expo-av/build/Video.js
++++ b/node_modules/expo-av/build/Video.js
+@@ -1,5 +1,5 @@
+ import * as React from 'react';
+-import { findNodeHandle, Image, StyleSheet, View } from 'react-native';
++import { findNodeHandle, Image, StyleSheet, View, Platform } from 'react-native';
+ import { assertStatusValuesInBounds, getNativeSourceAndFullInitialStatusForLoadAsync, getNativeSourceFromSource, getUnloadedStatus, PlaybackMixin, } from './AV';
+ import ExpoVideoManager from './ExpoVideoManager';
+ import ExponentAV from './ExponentAV';
+@@ -68,7 +68,16 @@ class Video extends React.Component {
+         if (!video) {
+             throw new Error(`Cannot complete operation because the Video component has not yet loaded`);
+         }
+-        const handle = findNodeHandle(this._nativeRef.current);
++        let handle = null;
++        if (Platform.OS === 'web' && 'getVideoElement' in this._nativeRef.current) {
++            handle = this._nativeRef.current.getVideoElement();
++        }
++        if (Platform.OS !== 'web') {
++            handle = findNodeHandle(this._nativeRef.current);
++        }
++        if (!handle) {
++            throw new Error('failed to find node handle');
++        }
+         const status = await operation(handle);
+         this._handleNewStatus(status);
+         return status;
+diff --git a/node_modules/expo-av/src/ExponentVideo.web.tsx b/node_modules/expo-av/src/ExponentVideo.web.tsx
+index 5b548b8..5923b61 100644
+--- a/node_modules/expo-av/src/ExponentVideo.web.tsx
++++ b/node_modules/expo-av/src/ExponentVideo.web.tsx
+@@ -48,6 +48,10 @@ export default class ExponentVideo extends React.Component<ExponentVideoProps> {
+     this._removeFullscreenListener?.();
+   }
+ 
++  getVideoElement = () => {
++    return this._video;
++  };
++
+   onFullscreenChange = (isFullscreen: boolean) => {
+     if (!this.props.onFullscreenUpdate) return;
+     if (isFullscreen) {
+diff --git a/node_modules/expo-av/src/Video.tsx b/node_modules/expo-av/src/Video.tsx
+index 1444b7b..17df3a4 100644
+--- a/node_modules/expo-av/src/Video.tsx
++++ b/node_modules/expo-av/src/Video.tsx
+@@ -1,5 +1,5 @@
+ import * as React from 'react';
+-import { findNodeHandle, Image, NativeMethods, StyleSheet, View } from 'react-native';
++import { findNodeHandle, Image, NativeMethods, StyleSheet, View, Platform } from 'react-native';
+ 
+ import {
+   assertStatusValuesInBounds,
+@@ -103,8 +103,18 @@ class Video extends React.Component<VideoProps, VideoState> implements Playback
+       throw new Error(`Cannot complete operation because the Video component has not yet loaded`);
+     }
+ 
+-    const handle = findNodeHandle(this._nativeRef.current)!;
+-    const status: AVPlaybackStatus = await operation(handle);
++    let handle = null;
++    if (Platform.OS === 'web' && 'getVideoElement' in this._nativeRef.current!) {
++      handle = (this._nativeRef.current as any).getVideoElement() as HTMLMediaElement;
++    }
++    if (Platform.OS !== 'web') {
++      handle = findNodeHandle(this._nativeRef.current)!;
++    }
++    if (!handle) {
++      throw new Error('failed to find node handle');
++    }
++
++    const status: AVPlaybackStatus = await operation(handle! as number);
+     this._handleNewStatus(status);
+     return status;
+   };
