@@ -19,6 +19,7 @@ import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
     canEditFieldOfMoneyRequest,
+    canHoldUnholdReportAction,
     hasOnlyHeldExpenses,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
@@ -288,16 +289,17 @@ function isHoldAction(report: Report, reportTransactions: Transaction[], reportA
         return false;
     }
 
-    const isTransactionOnHold = isHoldActionForTransaction(report, transaction);
-    return isTransactionOnHold;
+    return !!reportActions && isHoldActionForTransaction(report, transaction, reportActions);
 }
 
-function isHoldActionForTransaction(report: Report, reportTransaction: Transaction): boolean {
+function isHoldActionForTransaction(report: Report, reportTransaction: Transaction, reportActions: ReportAction[]): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
     const iouOrExpenseReport = isExpenseReport || isIOUReport;
+    const action = getIOUActionForTransactionID(reportActions, reportTransaction.transactionID);
+    const {canHoldRequest} = canHoldUnholdReportAction(action);
 
-    if (!iouOrExpenseReport) {
+    if (!iouOrExpenseReport || !canHoldRequest) {
         return false;
     }
 
@@ -461,10 +463,14 @@ function getSecondaryReportActions(
     return options;
 }
 
-function getSecondaryTransactionThreadActions(parentReport: Report, reportTransaction: Transaction): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
+function getSecondaryTransactionThreadActions(
+    parentReport: Report,
+    reportTransaction: Transaction,
+    reportActions: ReportAction[],
+): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
-    if (isHoldActionForTransaction(parentReport, reportTransaction)) {
+    if (isHoldActionForTransaction(parentReport, reportTransaction, reportActions)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 
