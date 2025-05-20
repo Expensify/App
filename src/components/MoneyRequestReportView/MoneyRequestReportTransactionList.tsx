@@ -28,7 +28,7 @@ import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
-import {compareValues, isAmountLengthLong} from '@libs/SearchUIUtils';
+import {compareValues, isFormattedAmountTooLong} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -174,7 +174,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     }, [transactions]);
 
     const amountColumnSize = useMemo(() => {
-        const shouldShowYearForSomeTransaction = transactions.some((transaction) => isAmountLengthLong(transaction));
+        const shouldShowYearForSomeTransaction = transactions.some((transaction) => isFormattedAmountTooLong(transaction));
         return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     }, [transactions]);
 
