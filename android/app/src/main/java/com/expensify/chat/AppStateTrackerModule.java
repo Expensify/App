@@ -7,7 +7,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 
-import javax.annotation.Nonnull;
+import androidx.annotation.NonNull;
 
 public class AppStateTrackerModule extends ReactContextBaseJavaModule {
     private final ReactApplicationContext reactContext;
@@ -18,7 +18,7 @@ public class AppStateTrackerModule extends ReactContextBaseJavaModule {
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public String getName() {
         return "AppStateTracker";
     }
