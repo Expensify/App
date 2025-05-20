@@ -240,7 +240,6 @@ import {
     hasWarningTypeViolation,
     isCardTransaction as isCardTransactionTransactionUtils,
     isDistanceRequest,
-    isDuplicate,
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isOnHold as isOnHoldTransactionUtils,
@@ -3976,7 +3975,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentActionLocal && !isClosed && !isDeletedParentAction(reportAction);
     const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestIOU || canModifyStatus) && !isScanning;
-    const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && !isDuplicate(transaction.transactionID, true) && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
+    const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
 
     return {canHoldRequest, canUnholdRequest};
 }
@@ -7436,8 +7435,29 @@ function buildOptimisticMoneyRequestEntities({
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
 
-// Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
+/**
+ * Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
+ * Added caching mechanism via derived values.
+ */
 function isEmptyReport(report: OnyxEntry<Report>): boolean {
+    if (!report) {
+        return true;
+    }
+
+    // Get the `isEmpty` state from cached report attributes
+    const attributes = reportAttributes?.[report.reportID];
+    if (attributes) {
+        return attributes.isEmpty;
+    }
+
+    return generateIsEmptyReport(report);
+}
+
+/**
+ * Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
+ * No cache implementation which bypasses derived value check.
+ */
+function generateIsEmptyReport(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return true;
     }
@@ -10353,10 +10373,9 @@ function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions) 
 }
 
 function getReportLastVisibleActionCreated(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>) {
+    const lastVisibleReportActionCreated = getLastVisibleActionReportActionsUtils(report?.reportID)?.created ?? report?.lastVisibleActionCreated ?? '';
     const lastVisibleActionCreated =
-        (oneTransactionThreadReport?.lastVisibleActionCreated ?? '') > (report?.lastVisibleActionCreated ?? '')
-            ? oneTransactionThreadReport?.lastVisibleActionCreated
-            : report?.lastVisibleActionCreated;
+        (oneTransactionThreadReport?.lastVisibleActionCreated ?? '') > lastVisibleReportActionCreated ? oneTransactionThreadReport?.lastVisibleActionCreated : lastVisibleReportActionCreated;
 
     return lastVisibleActionCreated;
 }
@@ -10961,6 +10980,7 @@ export {
     isDefaultRoom,
     isDeprecatedGroupDM,
     isEmptyReport,
+    generateIsEmptyReport,
     isRootGroupChat,
     isExpenseReport,
     isExpenseRequest,

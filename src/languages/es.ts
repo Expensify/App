@@ -2924,7 +2924,7 @@ const translations = {
         },
         publicDomainError: {
             title: 'Comienza con Expensify Travel',
-            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com)',
+            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com).',
         },
         blockedFeatureModal: {
             title: 'Expensify Travel ha sido deshabilitado',

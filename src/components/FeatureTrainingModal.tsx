@@ -361,7 +361,6 @@ function FeatureTrainingModal({
                     : {}),
                 ...modalInnerContainerStyle,
             }}
-            shouldUseNewModal
         >
             <Wrapper
                 style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
