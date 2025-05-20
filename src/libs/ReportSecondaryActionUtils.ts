@@ -338,12 +338,11 @@ function isMoveTransactionAction(reportTransactions: Transaction[], reportAction
     return canMoveExpense;
 }
 
-function isDeleteAction(report: Report, reportActions?: ReportAction[]): boolean {
-    const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
+function isDeleteAction(report: Report): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
 
-    if ((!isExpenseReport && !isIOUReport) || (!!reportActions && !transactionThreadReportID)) {
+    if (!isExpenseReport && !isIOUReport) {
         return false;
     }
 
@@ -445,7 +444,7 @@ function getSecondaryReportActions(
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportActions)) {
+    if (isDeleteAction(report)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 

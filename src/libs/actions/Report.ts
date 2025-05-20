@@ -4675,7 +4675,7 @@ function deleteAppReport(reportID: string | undefined) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction,
+            value: {reportID: transaction?.reportID},
         });
 
         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -4717,6 +4717,16 @@ function deleteAppReport(reportID: string | undefined) {
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                 value: {
                     [newReportActionID]: updatedReportAction,
+                },
+            });
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                value: {
+                    [newReportActionID]: {
+                        pendingAction: null,
+                    },
                 },
             });
 
