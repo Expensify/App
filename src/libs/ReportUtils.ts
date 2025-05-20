@@ -812,6 +812,11 @@ type GetChatRoomSubtitleConfig = {
     isCreateExpenseFlow?: boolean;
 };
 
+type SelfDMParameters = {
+    reportID?: string;
+    createdReportActionID?: string;
+};
+
 type GetPolicyNameParams = {
     report: OnyxInputOrEntry<Report>;
     returnEmptyIfNotFound?: boolean;
@@ -10158,10 +10163,6 @@ function prepareOnboardingOnyxData(
         guidedSetupData.push({type: 'message', ...textMessage});
     }
 
-    type SelfDMParameters = {
-        reportID?: string;
-        createdReportActionID?: string;
-    };
 
     let selfDMParameters: SelfDMParameters = {};
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
@@ -11160,4 +11161,5 @@ export type {
     ParsingDetails,
     MissingPaymentMethod,
     OptimisticNewReport,
+    SelfDMParameters,
 };

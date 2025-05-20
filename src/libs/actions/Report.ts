@@ -93,7 +93,7 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import type {OptimisticAddCommentReportAction, OptimisticChatReport} from '@libs/ReportUtils';
+import type {OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
     buildOptimisticChangeFieldAction,
@@ -4576,14 +4576,73 @@ function deleteAppReport(reportID: string | undefined) {
         return;
     }
     const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
-    let selfDMReportID = findSelfDMReportID();
-
-    if (!selfDMReportID) {
+    const selfDMReportID = findSelfDMReportID();
+    let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+    let createdAction: ReportAction;
+    let selfDMParameters: SelfDMParameters = {};
+    if (!selfDMReport) {
         const currentTime = DateUtils.getDBTime();
-        const selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        selfDMReportID = selfDMReport.reportID;
+        selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        createdAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+        selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                value: {
+                    ...selfDMReport,
+                    pendingFields: {
+                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                value: {
+                    isOptimisticReport: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                value: {
+                    [createdAction.reportActionID]: createdAction,
+                },
+            },
+        );
+
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: null,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                value: {
+                    [createdAction.reportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        );
     }
     // 1. Get all report transactions
     const reportActionsForReport = allReportActions?.[reportID];
@@ -4708,7 +4767,8 @@ function deleteAppReport(reportID: string | undefined) {
     const parameters: DeleteAppReportParams = {
         reportID,
         transactionIDToMoneyRequestReportActionIDMap: JSON.stringify(transactionIDToMoneyRequestReportActionIDMap),
-        selfDMReportID,
+        selfDMReportID: selfDMParameters.reportID,
+        selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
     API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters, {optimisticData});
