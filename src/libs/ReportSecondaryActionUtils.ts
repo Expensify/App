@@ -338,15 +338,12 @@ function isMoveTransactionAction(reportTransactions: Transaction[], reportAction
     return canMoveExpense;
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
+function isDeleteAction(report: Report, reportActions?: ReportAction[]): boolean {
     const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
 
-    // This should be removed when is merged https://github.com/Expensify/App/pull/58020
-    const isSingleTransaction = reportTransactions.length === 1;
-
-    if ((!isExpenseReport && !isIOUReport) || !isSingleTransaction || (!!reportActions && !transactionThreadReportID)) {
+    if ((!isExpenseReport && !isIOUReport) || (!!reportActions && !transactionThreadReportID)) {
         return false;
     }
 
@@ -448,7 +445,7 @@ function getSecondaryReportActions(
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, reportActions)) {
+    if (isDeleteAction(report, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
