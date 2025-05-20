@@ -25,17 +25,15 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
 
     return (
         <View style={[props.layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart], styles.gap2, styles.mt2]}>
-            {props.items?.map((item) => {
-                return (
-                    <Button
-                        key={item.key}
-                        onPress={item.onPress}
-                        text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
-                        medium
-                        success={item.isPrimary}
-                    />
-                );
-            })}
+            {props.items?.map((item) => (
+                <Button
+                    key={item.key}
+                    onPress={item.onPress}
+                    text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
+                    medium
+                    success={item.isPrimary}
+                />
+            ))}
         </View>
     );
 }
