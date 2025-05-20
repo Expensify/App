@@ -3813,7 +3813,7 @@ function getUpdateMoneyRequestParams(
           })
         : undefined;
 
-    const transactionDetails = getTransactionDetails(updatedTransaction, undefined, allowNegative);
+    const transactionDetails = getTransactionDetails(updatedTransaction, undefined, undefined, allowNegative);
 
     if (transactionDetails?.waypoints) {
         // This needs to be a JSON string since we're sending this to the MapBox API
