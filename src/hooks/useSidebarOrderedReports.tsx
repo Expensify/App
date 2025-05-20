@@ -14,19 +14,19 @@ import useResponsiveLayout from './useResponsiveLayout';
 
 type PartialPolicyForSidebar = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
 
-type SidebarOrderedReportIDsContextProviderProps = {
+type SidebarOrderedReportsContextProviderProps = {
     children: React.ReactNode;
     currentReportIDForTests?: string;
 };
 
-type SidebarOrderedReportIDsContextValue = {
-    orderedReportIDs: string[];
+type SidebarOrderedReportsContextValue = {
+    orderedReports: OnyxTypes.Report[];
     currentReportID: string | undefined;
     policyMemberAccountIDs: number[];
 };
 
-const SidebarOrderedReportIDsContext = createContext<SidebarOrderedReportIDsContextValue>({
-    orderedReportIDs: [],
+const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextValue>({
+    orderedReports: [],
     currentReportID: '',
     policyMemberAccountIDs: [],
 });
@@ -39,7 +39,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSi
         employeeList: policy.employeeList,
     }) as PartialPolicyForSidebar;
 
-function SidebarOrderedReportIDsContextProvider({
+function SidebarOrderedReportsContextProvider({
     children,
     /**
      * Only required to make unit tests work, since we
@@ -50,15 +50,16 @@ function SidebarOrderedReportIDsContextProvider({
      * This is a workaround to have currentReportID available in testing environment.
      */
     currentReportIDForTests,
-}: SidebarOrderedReportIDsContextProviderProps) {
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT});
-    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}});
+}: SidebarOrderedReportsContextProviderProps) {
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT, canBeMissing: true});
+    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}, canBeMissing: true});
     const draftAmount = Object.keys(reportsDrafts ?? {}).length;
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -80,14 +81,29 @@ function SidebarOrderedReportIDsContextProvider({
                 activeWorkspaceID,
                 policyMemberAccountIDs,
                 reportNameValuePairs,
+                reportAttributes,
             ),
         // we need reports draft in deps array to reload the list when a draft is added or removed
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, draftAmount, reportNameValuePairs],
+        [chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, draftAmount, reportNameValuePairs, reportAttributes],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
-    const contextValue: SidebarOrderedReportIDsContextValue = useMemo(() => {
+
+    // Get the actual reports based on the ordered IDs
+    const getOrderedReports = useCallback(
+        (reportIDs: string[]): OnyxTypes.Report[] => {
+            if (!chatReports) {
+                return [];
+            }
+            return reportIDs.map((reportID) => chatReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).filter(Boolean) as OnyxTypes.Report[];
+        },
+        [chatReports],
+    );
+
+    const orderedReports = useMemo(() => getOrderedReports(orderedReportIDs), [getOrderedReports, orderedReportIDs]);
+
+    const contextValue: SidebarOrderedReportsContextValue = useMemo(() => {
         // We need to make sure the current report is in the list of reports, but we do not want
         // to have to re-generate the list every time the currentReportID changes. To do that
         // we first generate the list as if there was no current report, then we check if
@@ -104,22 +120,28 @@ function SidebarOrderedReportIDsContextProvider({
             derivedCurrentReportID !== '-1' &&
             orderedReportIDs.indexOf(derivedCurrentReportID) === -1
         ) {
-            return {orderedReportIDs: getOrderedReportIDs(derivedCurrentReportID), currentReportID: derivedCurrentReportID, policyMemberAccountIDs};
+            const updatedReportIDs = getOrderedReportIDs(derivedCurrentReportID);
+            const updatedReports = getOrderedReports(updatedReportIDs);
+            return {
+                orderedReports: updatedReports,
+                currentReportID: derivedCurrentReportID,
+                policyMemberAccountIDs,
+            };
         }
 
         return {
-            orderedReportIDs,
+            orderedReports,
             currentReportID: derivedCurrentReportID,
             policyMemberAccountIDs,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout]);
+    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
 
-    return <SidebarOrderedReportIDsContext.Provider value={contextValue}>{children}</SidebarOrderedReportIDsContext.Provider>;
+    return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
 }
 
-function useSidebarOrderedReportIDs() {
-    return useContext(SidebarOrderedReportIDsContext);
+function useSidebarOrderedReports() {
+    return useContext(SidebarOrderedReportsContext);
 }
 
-export {SidebarOrderedReportIDsContext, SidebarOrderedReportIDsContextProvider, useSidebarOrderedReportIDs};
+export {SidebarOrderedReportsContext, SidebarOrderedReportsContextProvider, useSidebarOrderedReports};
 export type {PartialPolicyForSidebar};
