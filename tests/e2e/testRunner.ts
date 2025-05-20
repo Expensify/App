@@ -253,7 +253,7 @@ const runTests = async (): Promise<void> => {
         }
 
         return new Promise<void>((resolve) => {
-            Logger.log('Press any key to continue with the next run...');
+            Logger.log('🎮 Press any key to continue with the next run...');
             process.stdin.setRawMode(true);
             process.stdin.resume();
             process.stdin.once('data', () => {
