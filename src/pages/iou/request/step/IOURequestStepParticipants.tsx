@@ -280,7 +280,7 @@ function IOURequestStepParticipants({
         }
         // We don't want to clear out participants every time the transactions change
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isFocused, action, initialTransactionID]);
+    }, [isFocused, action]);
 
     return (
         <StepScreenWrapper
