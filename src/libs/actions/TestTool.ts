@@ -1,9 +1,9 @@
 import throttle from 'lodash/throttle';
-import {close} from '@libs/actions/Modal';
 import {getBrowser, isChromeIOS} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {close} from './Modal';
 
 /**
  * Toggle the test tools modal open or closed.
