@@ -11,25 +11,19 @@ import type {ListItem, SectionListDataType, SelectionListHandle} from '@componen
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {startMoneyRequest} from '@userActions/IOU';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import NewChatSelectorPage from './NewChatSelectorPage';
 import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 
 type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpensesParamList, typeof SCREENS.ADD_UNREPORTED_EXPENSES_ROOT>;
-
-type AddUnreportedExpensesParamList = {
-    [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: {
-        reportID: string;
-    };
-};
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {translate} = useLocalize();
@@ -59,7 +53,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     const thereIsNoUnreportedTransaction = !((sections.at(0)?.data.length ?? 0) > 0);
 
-    const reportID = route.params.reportID;
+    const {reportID, backToReport} = route.params;
     const selectedIds = new Set<string>();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     return (
@@ -92,7 +86,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                             buttonText: translate('iou.createExpense'),
                             buttonAction: () => {
                                 interceptAnonymousUser(() => {
-                                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID);
+                                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, undefined, false, backToReport);
                                 });
                             },
                             success: true,
@@ -122,7 +116,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                             setErrorMessage(translate('iou.selectUnreportedExpense'));
                             return;
                         }
-                        Navigation.goBack(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
+                        Navigation.dismissModal();
                         changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
                         setErrorMessage('');
                     }}

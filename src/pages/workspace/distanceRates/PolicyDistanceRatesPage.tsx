@@ -35,7 +35,6 @@ import {
 } from '@libs/actions/Policy/DistanceRate';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -266,6 +265,17 @@ function PolicyDistanceRatesPage({
         }
     };
 
+    const toggleOrNavigate = (rate: RateForList) => {
+        if (rate.isDisabledCheckbox) {
+            return;
+        }
+        if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
+            toggleRate(rate);
+            return;
+        }
+        openRateDetails(rate);
+    };
+
     const getCustomListHeader = () => {
         return (
             <CustomListHeader
@@ -378,7 +388,7 @@ function PolicyDistanceRatesPage({
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        goBackFromWorkspaceCentralScreen(policyID);
+                        Navigation.popToSidebar();
                     }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}
@@ -411,9 +421,10 @@ function PolicyDistanceRatesPage({
                             turnOnSelectionModeOnLongPress
                             onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                             sections={[{data: filteredDistanceRatesList, isDisabled: false}]}
+                            shouldUseDefaultRightHandSideCheckmark={false}
                             selectedItemKeys={selectedDistanceRates}
                             onCheckboxPress={toggleRate}
-                            onSelectRow={openRateDetails}
+                            onSelectRow={toggleOrNavigate}
                             onSelectAll={toggleAllRates}
                             onDismissError={dismissError}
                             ListItem={TableListItem}

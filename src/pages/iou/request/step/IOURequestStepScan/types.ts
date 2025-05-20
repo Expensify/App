@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {FileObject} from '@components/AttachmentModal';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import type SCREENS from '@src/SCREENS';
@@ -16,4 +17,11 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
         onLayout: (setTestReceiptAndNavigate: () => void) => void;
     };
 
+type ReceiptFile = {
+    source: string;
+    file: FileObject;
+    transactionID: string;
+};
+
 export default IOURequestStepScanProps;
+export type {ReceiptFile};
