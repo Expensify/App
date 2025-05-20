@@ -48,6 +48,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
                     isSelected={isSelected}
                     shouldShowTooltip={false}
                     dateColumnSize="normal"
+                    amountColumnSize="normal"
                     onCheckboxPress={() => {
                         onSelectRow(item);
                         setIsSelected((val) => !val);

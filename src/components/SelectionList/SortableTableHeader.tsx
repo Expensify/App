@@ -22,12 +22,13 @@ type SearchTableHeaderProps = {
     sortOrder?: SortOrder;
     shouldShowSorting: boolean;
     dateColumnSize: TableColumnSize;
+    amountColumnSize: TableColumnSize;
     containerStyles?: StyleProp<ViewStyle>;
     shouldShowColumn: (columnName: SortableColumnName) => boolean;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
 };
 
-function SortableTableHeader({columns, sortBy, sortOrder, shouldShowColumn, dateColumnSize, containerStyles, shouldShowSorting, onSortPress}: SearchTableHeaderProps) {
+function SortableTableHeader({columns, sortBy, sortOrder, shouldShowColumn, dateColumnSize, containerStyles, shouldShowSorting, onSortPress, amountColumnSize}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -51,7 +52,13 @@ function SortableTableHeader({columns, sortBy, sortOrder, shouldShowColumn, date
                             textStyle={textStyle}
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
                             isActive={isActive}
-                            containerStyle={[StyleUtils.getReportTableColumnStyles(columnName, dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE)]}
+                            containerStyle={[
+                                StyleUtils.getReportTableColumnStyles(
+                                    columnName,
+                                    dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                ),
+                            ]}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(columnName, order)}
                         />

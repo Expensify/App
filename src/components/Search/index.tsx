@@ -26,6 +26,7 @@ import {generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getListItem,
+    getSearchTableYearAndAmountWidth,
     getSections,
     getSortedSections,
     isReportActionListItemType,
@@ -35,7 +36,6 @@ import {
     isTaskListItemType,
     isTransactionListItemType,
     shouldShowEmptyState,
-    shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {isOnHold} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
@@ -535,7 +535,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         navigation.setParams({q: newQuery});
     };
 
-    const shouldShowYear = shouldShowYearUtil(searchResults?.data);
+    const tableYearAndAmountWidth = getSearchTableYearAndAmountWidth(searchResults?.data);
     const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
 
@@ -559,7 +559,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                             onSortPress={onSortPress}
                             sortOrder={sortOrder}
                             sortBy={sortBy}
-                            shouldShowYear={shouldShowYear}
+                            shouldShowYear={tableYearAndAmountWidth.shouldShowYear}
+                            isAmountColumnWide={tableYearAndAmountWidth.isLongAmountLength}
                             shouldShowSorting={shouldShowSorting}
                         />
                     )

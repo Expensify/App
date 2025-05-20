@@ -26,7 +26,7 @@ import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {generateReportID, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
-import {compareValues} from '@libs/SearchUIUtils';
+import {compareValues, isAmountLengthLong} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -185,6 +185,11 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     }, [transactions]);
 
+    const amountColumnSize = useMemo(() => {
+        const shouldShowYearForSomeTransaction = transactions.some((transaction) => isAmountLengthLong(transaction));
+        return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    }, [transactions]);
+
     const pressableStyle = [styles.overflowHidden];
 
     const listHorizontalPadding = styles.ph5;
@@ -213,6 +218,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             sortBy={sortBy}
                             sortOrder={sortOrder}
                             dateColumnSize={dateColumnSize}
+                            amountColumnSize={amountColumnSize}
                             onSortPress={(selectedSortBy, selectedSortOrder) => {
                                 if (!isSortableColumnName(selectedSortBy)) {
                                     return;
@@ -266,6 +272,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 transactionItem={transaction}
                                 isSelected={isTransactionSelected(transaction.transactionID)}
                                 dateColumnSize={dateColumnSize}
+                                amountColumnSize={amountColumnSize}
                                 shouldShowTooltip
                                 shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
                                 shouldShowCheckbox={!!selectionMode?.isEnabled || isMediumScreenWidth}

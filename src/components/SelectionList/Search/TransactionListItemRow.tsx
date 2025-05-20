@@ -445,7 +445,7 @@ function TransactionListItemRow({
                     </View>
                 )}
 
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, undefined, item.isAmountColumnWide)]}>
                     <TotalCell
                         showTooltip={showTooltip}
                         transactionItem={item}
