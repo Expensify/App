@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -45,7 +46,7 @@ function CategorySettingsPage({
     },
     navigation,
 }: CategorySettingsPageProps) {
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
@@ -62,12 +63,14 @@ function CategorySettingsPage({
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
     };
 
+    const isFocused = useIsFocused();
+
     useEffect(() => {
-        if (policyCategory?.name === categoryName || !policyCategory) {
+        if (policyCategory?.name === categoryName || !isFocused) {
             return;
         }
         navigation.setParams({categoryName: policyCategory?.name});
-    }, [categoryName, navigation, policyCategory]);
+    }, [categoryName, navigation, policyCategory?.name, isFocused]);
 
     const flagAmountsOverText = useMemo(() => {
         if (policyCategory?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policyCategory?.maxExpenseAmount) {
@@ -265,7 +268,7 @@ function CategorySettingsPage({
                                         title={policyCategory?.commentHint}
                                         description={translate('workspace.rules.categoryRules.descriptionHint')}
                                         onPress={() => {
-                                            Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
+                                            Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
                                         }}
                                         shouldShowRightIcon
                                     />
@@ -275,7 +278,7 @@ function CategorySettingsPage({
                                 title={approverText}
                                 description={translate('workspace.rules.categoryRules.approver')}
                                 onPress={() => {
-                                    Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
+                                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
                                 }}
                                 shouldShowRightIcon
                                 // disabled={approverDisabled}
@@ -297,7 +300,7 @@ function CategorySettingsPage({
                                     title={defaultTaxRateText}
                                     description={translate('workspace.rules.categoryRules.defaultTaxRate')}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -308,7 +311,7 @@ function CategorySettingsPage({
                                     title={flagAmountsOverText}
                                     description={translate('workspace.rules.categoryRules.flagAmountsOver')}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.getRoute(policyID, policyCategory.name));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -318,7 +321,7 @@ function CategorySettingsPage({
                                     title={requireReceiptsOverText}
                                     description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
                                     }}
                                     shouldShowRightIcon
                                 />
