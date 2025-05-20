@@ -2,7 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -72,6 +72,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** The personal details of the user paying the request */
     to?: SearchPersonalDetails;
+
+    /** Type of transaction */
+    transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 };
 
 const sortableColumnNames = [
