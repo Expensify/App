@@ -21,6 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
+import {completeTestDriveTask} from '@libs/actions/Task';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isLocalFile as isLocalFileFileUtils, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
@@ -458,6 +459,12 @@ function IOURequestStepConfirmation({
             transactions.forEach((item, index) => {
                 const receipt = receiptFiles[item.transactionID];
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
+                const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
+
+                if (isTestDriveReceipt) {
+                    completeTestDriveTask();
+                }
+
                 requestMoneyIOUActions({
                     report,
                     participantParams: {

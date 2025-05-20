@@ -16,16 +16,13 @@ import ScrollView from '@components/ScrollView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
-import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
-import {setSelfTourViewed} from '@libs/actions/Welcome';
+import {completeTestDriveTask} from '@libs/actions/Task';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
@@ -129,14 +126,19 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
-    const viewTourTaskReportID = introSelected?.viewTour;
-    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`, {canBeMissing: true});
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isReportArchived = useReportIsArchived(viewTourTaskReport?.parentReportID);
-    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isReportArchived);
-    const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const content = useMemo(() => {
+        const startTestDrive = () => {
+            InteractionManager.runAfterInteractions(() => {
+                if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
+                    completeTestDriveTask();
+                    Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                } else {
+                    Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT);
+                }
+            });
+        };
+
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
@@ -158,15 +160,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
-                                          buttonAction: () => {
-                                              InteractionManager.runAfterInteractions(() => {
-                                                  Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
-                                              });
-                                              setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
-                                                  completeTask(viewTourTaskReport);
-                                              }
-                                          },
+                                          buttonAction: startTestDrive,
                                       },
                                   ]
                                 : []),
@@ -200,15 +194,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
-                                          buttonAction: () => {
-                                              InteractionManager.runAfterInteractions(() => {
-                                                  Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
-                                              });
-                                              setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
-                                                  completeTask(viewTourTaskReport);
-                                              }
-                                          },
+                                          buttonAction: startTestDrive,
                                       },
                                   ]
                                 : []),
@@ -253,9 +239,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         hasSeenTour,
         shouldRedirectToExpensifyClassic,
         hasResults,
-        viewTourTaskReport,
-        canModifyTheTask,
-        canActionTheTask,
+        introSelected?.choice,
     ]);
 
     return (

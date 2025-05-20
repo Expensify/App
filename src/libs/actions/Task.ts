@@ -25,6 +25,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction} from './Report';
+import {setSelfTourViewed} from './Welcome';
 
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'pendingFields' | 'participants'>;
 type Assignee = {
@@ -1286,8 +1287,11 @@ function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected
 
     return {};
 }
-function completeTestDriveTask() {
-    getFinishOnboardingTaskOnyxData('viewTour');
+function completeTestDriveTask(shouldUpdateSelfTourViewedOnlyLocally = false) {
+    const taskReportID = introSelected?.viewTour;
+    const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+    setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
+    completeTask(taskReport, taskReportID);
 }
 
 export {
