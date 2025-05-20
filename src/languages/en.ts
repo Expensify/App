@@ -557,6 +557,7 @@ const translations = {
         comments: 'Comments',
         sharedIn: 'Shared in',
         unreported: 'Unreported',
+        reschedule: 'Reschedule',
         general: 'General',
         workspacesTabTitle: 'Workspaces',
     },
@@ -4947,11 +4948,11 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
-                alcohol: 'Alcohol',
-                hotelIncidentals: 'Hotel incidentals',
-                gambling: 'Gambling',
-                tobacco: 'Tobacco',
-                adultEntertainment: 'Adult entertainment',
+                alcohol: 'alcohol',
+                hotelIncidentals: 'hotel incidentals',
+                gambling: 'gambling',
+                tobacco: 'tobacco',
+                adultEntertainment: 'adult entertainment',
             },
             expenseReportRules: {
                 examples: 'Examples:',
@@ -5751,15 +5752,15 @@ const translations = {
             const preMessage = 'Prohibited expense:';
             switch (prohibitedExpenseType) {
                 case 'alcohol':
-                    return `${preMessage} Alcohol`;
+                    return `${preMessage} alcohol`;
                 case 'gambling':
-                    return `${preMessage} Gambling`;
+                    return `${preMessage} gambling`;
                 case 'tobacco':
-                    return `${preMessage} Tobacco`;
+                    return `${preMessage} tobacco`;
                 case 'adultEntertainment':
-                    return `${preMessage} Adult entertainment`;
+                    return `${preMessage} adult entertainment`;
                 case 'hotelIncidentals':
-                    return `${preMessage} Hotel incidentals`;
+                    return `${preMessage} hotel incidentals`;
                 default:
                     return `${preMessage}${prohibitedExpenseType}`;
             }
@@ -6328,10 +6329,6 @@ const translations = {
             part1: 'Filter for expenses\nthat ',
             part2: 'need approval',
         },
-        workspacesSettings: {
-            part1: 'View your ',
-            part2: 'workspaces',
-        },
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
@@ -6358,6 +6355,7 @@ const translations = {
             dateTime: 'Date & time',
             minutes: '30 minutes',
         },
+        callScheduled: 'Call scheduled',
     },
     testDrive: {
         quickAction: {
