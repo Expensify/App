@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment} from '@src/types/onyx/Transaction';
 import {getLinkedTransactionID} from './ReportActionsUtils';
-import {getReasonAndReportActionThatRequiresAttention, getReportNameValuePairs, isArchivedReport, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
+import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
 import {getTransactionID as TransactionUtilsGetTransactionID} from './TransactionUtils';
 
@@ -226,7 +226,7 @@ function onyxDataToDraftData(data: OnyxEntry<Record<string, unknown>>) {
 /**
  * Whether a string representation is an empty value
  *
- * @param value - string representantion
+ * @param value - string representation
  * @returns whether the value is an empty value
  */
 function isEmptyValue(value: string): boolean {
@@ -566,6 +566,12 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 endDate: 'string',
                 tripID: 'string',
             });
+        case 'calendlySchedule':
+            return validateObject<ObjectElement<ReportNameValuePairs, 'calendlySchedule'>>(value, {
+                isLoading: 'boolean',
+                data: 'object',
+                errors: 'object',
+            });
         case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
@@ -630,6 +636,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 exportFailedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                calendlySchedule: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
@@ -1361,13 +1368,8 @@ type RBRReasonAndReportAction = {
 /**
  * Gets the report action that is causing the RBR to show up in LHN
  */
-function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean): RBRReasonAndReportAction | null {
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
-    const {reason, reportAction} =
-        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isArchivedReport(reportNameValuePairs)) ?? {};
+function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean, isArchivedReport = false): RBRReasonAndReportAction | null {
+    const {reason, reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isArchivedReport) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

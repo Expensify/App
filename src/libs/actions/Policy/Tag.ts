@@ -5,7 +5,7 @@ import * as API from '@libs/API';
 import type {
     EnablePolicyTagsParams,
     OpenPolicyTagsPageParams,
-    RenamePolicyTaglistParams,
+    RenamePolicyTagListParams,
     RenamePolicyTagsParams,
     SetPolicyTagApproverParams,
     SetPolicyTagsEnabled,
@@ -90,7 +90,7 @@ Onyx.connect({
 
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
-        Log.warn('openPolicyTasgPage invalid params', {policyID});
+        Log.warn('openPolicyTagsPage invalid params', {policyID});
         return;
     }
 
@@ -132,8 +132,8 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: translateLocal('spreadsheet.importSuccessfullTitle'),
-                        prompt: translateLocal('spreadsheet.importTagsSuccessfullDescription', {tags: tagsLength}),
+                        title: translateLocal('spreadsheet.importSuccessfulTitle'),
+                        prompt: translateLocal('spreadsheet.importTagsSuccessfulDescription', {tags: tagsLength}),
                     },
                 },
             },
@@ -691,7 +691,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
     }
 }
 
-function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
+function renamePolicyTagList(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
     const oldPolicyTags = policyTags?.[oldName] ?? {};
@@ -731,7 +731,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
             },
         ],
     };
-    const parameters: RenamePolicyTaglistParams = {
+    const parameters: RenamePolicyTagListParams = {
         policyID,
         oldName,
         newName,
@@ -1035,6 +1035,20 @@ function downloadTagsCSV(policyID: string, onDownloadFailed: () => void) {
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+function downloadMultiLevelIndependentTagsCSV(policyID: string, onDownloadFailed: () => void) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV, {
+        policyID,
+    });
+    const fileName = 'MultiLevelTags.csv';
+
+    const formData = new FormData();
+    Object.entries(finalParameters).forEach(([key, value]) => {
+        formData.append(key, String(value));
+    });
+
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+}
+
 function getPolicyTagsData(policyID: string | undefined) {
     return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
@@ -1051,11 +1065,12 @@ export {
     enablePolicyTags,
     openPolicyTagsPage,
     renamePolicyTag,
-    renamePolicyTaglist,
+    renamePolicyTagList,
     setWorkspaceTagEnabled,
     setPolicyTagGLCode,
     setPolicyTagApprover,
     importPolicyTags,
     downloadTagsCSV,
     getPolicyTagsData,
+    downloadMultiLevelIndependentTagsCSV,
 };
