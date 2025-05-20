@@ -151,7 +151,7 @@ function ReportListItem<TItem extends ListItem>({
                                     transactionItem={transaction}
                                     isSelected={!!transaction.isSelected}
                                     dateColumnSize={dateColumnSize}
-                                    shouldShowTooltip
+                                    shouldShowTooltip={showTooltip}
                                     shouldUseNarrowLayout={!isLargeScreenWidth}
                                     shouldShowCheckbox={!!canSelectMultiple}
                                     onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
