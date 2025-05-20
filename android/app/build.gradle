@@ -1,7 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-apply from: "${rootDir}/../gradleUtils/PatchedArtifactsBuild.gradle"
 apply plugin: "com.google.firebase.firebase-perf"
 apply plugin: "fullstory"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
@@ -210,6 +209,24 @@ afterEvaluate {
 
                 if (bundleTask != null) {
                     bundleTask.dependsOn(hermesCTask)
+                }
+            }
+        }
+    }
+
+    // If we are not building from source, we need to substitute the react-native and react-android dependencies with our patched versions
+    if(!patchedArtifactsConfig.buildFromSource) {
+        def group = "com.expensify.${patchedArtifactsConfig.packageName}"
+        project.rootProject.allprojects { eachProject ->
+                eachProject.configurations.all { configuration ->
+                    configuration.resolutionStrategy {
+                        dependencySubstitution {
+                            substitute(module('com.facebook.react:react-native'))
+                                .using(module("${group}:react-android:${patchedArtifactsConfig.version}"))
+                            substitute(module('com.facebook.react:react-android'))
+                                .using(module("${group}:react-android:${patchedArtifactsConfig.version}"))
+                        }
+                    force "${group}:react-android:${patchedArtifactsConfig.version}"
                 }
             }
         }

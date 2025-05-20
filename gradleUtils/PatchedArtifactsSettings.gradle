@@ -139,10 +139,12 @@ settings.extensions.configure(PatchedArtifactsConfig) { config ->
         config.version = findMatchingArtifactsVersion(config.packageName, config.githubToken)
     }
 
-    if(config.version == null || config.packageName == null || config.githubUsername == null || config.githubToken == null) { 
+    if(config.version == null || config.packageName == null || config.githubUsername == null || config.githubToken == null) {
+        config.buildFromSource = true
         lifecycle("No matching artifacts version found for ${config.packageName}. Buillding react-native from source.")
     }
     else {
+        config.buildFromSource = false
         lifecycle("Using patched react-native artifacts: ${config.packageName}:${config.version}")
     }
 }
