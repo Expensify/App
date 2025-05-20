@@ -2924,7 +2924,7 @@ const translations = {
         },
         publicDomainError: {
             title: 'Comienza con Expensify Travel',
-            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com)',
+            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com).',
         },
         blockedFeatureModal: {
             title: 'Expensify Travel ha sido deshabilitado',
@@ -6821,9 +6821,9 @@ const translations = {
         },
         GBRRBRChat: {
             part1: 'Verás 🟢 en ',
-            part2: 'las acciones a realizar',
-            part3: '\ny 🔴 en ',
-            part4: 'los errores que debes revisar.',
+            part2: 'acciones a realizar',
+            part3: ',\ny 🔴 en ',
+            part4: 'elementos para revisar.',
         },
         accountSwitcher: {
             part1: 'Accede a tus ',

@@ -1,4 +1,4 @@
-import {generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
+import {generateIsEmptyReport, generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import hasKeyTriggeredCompute from '@userActions/OnyxDerived/utils';
@@ -65,7 +65,25 @@ export default createOnyxDerivedValueConfig({
 
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
-        const updates = [...Object.keys(reportUpdates), ...Object.keys(reportMetadataUpdates), ...Object.keys(reportActionsUpdates), ...Object.keys(reportNameValuePairsUpdates)];
+
+        const reportUpdatesRelatedToReportActions: string[] = [];
+
+        Object.keys(reportActionsUpdates).forEach((reportKey) => {
+            Object.keys(reportActionsUpdates[reportKey] ?? {}).forEach((reportActionKey) => {
+                const reportAction = reportActions?.[reportKey]?.[reportActionKey];
+                if (reportAction?.childReportID) {
+                    reportUpdatesRelatedToReportActions.push(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
+                }
+            });
+        });
+
+        const updates = [
+            ...Object.keys(reportUpdates),
+            ...Object.keys(reportMetadataUpdates),
+            ...Object.keys(reportActionsUpdates),
+            ...Object.keys(reportNameValuePairsUpdates),
+            ...reportUpdatesRelatedToReportActions,
+        ];
 
         if (isFullyComputed) {
             // if there are report-related updates, iterate over the updates
@@ -111,6 +129,7 @@ export default createOnyxDerivedValueConfig({
 
             acc[report.reportID] = {
                 reportName: generateReportName(report),
+                isEmpty: generateIsEmptyReport(report),
                 brickRoadStatus,
             };
 
