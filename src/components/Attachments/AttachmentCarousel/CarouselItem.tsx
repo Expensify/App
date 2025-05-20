@@ -10,7 +10,7 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
+import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import CONST from '@src/CONST';
 
 type CarouselItemProps = {
@@ -33,7 +33,7 @@ type CarouselItemProps = {
 function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: CarouselItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
+    const {isAttachmentHidden} = useContext(AttachmentModalContext);
     const [isHidden, setIsHidden] = useState(() => (item.reportActionID && isAttachmentHidden(item.reportActionID)) ?? item.hasBeenFlagged);
 
     const renderButton = (style: StyleProp<ViewStyle>) => (

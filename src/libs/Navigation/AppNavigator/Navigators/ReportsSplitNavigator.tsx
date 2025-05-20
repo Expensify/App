@@ -16,7 +16,7 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 const loadReportScreen = () => require<ReactComponentModule>('@pages/home/ReportScreen').default;
 const loadSidebarScreen = () => require<ReactComponentModule>('@pages/home/sidebar/BaseSidebarScreen').default;
-
+const loadAttachmentScreen = () => require<ReactComponentModule>('@pages/media/AttachmentModalScreen').default;
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
 /**
@@ -58,6 +58,11 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
                     name={SCREENS.REPORT}
                     initialParams={{reportID: initialReportID, openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined}}
                     getComponent={loadReportScreen}
+                />
+                <Split.Screen
+                    name={SCREENS.ATTACHMENTS}
+                    initialParams={{reportID: initialReportID}}
+                    getComponent={loadAttachmentScreen}
                 />
             </Split.Navigator>
         </FreezeWrapper>
