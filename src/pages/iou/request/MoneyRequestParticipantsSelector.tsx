@@ -513,7 +513,7 @@ function MoneyRequestParticipantsSelector({
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
 
-    const listFooterComponent = useMemo(() => {
+    const footerContentAbovePaginationComponent = useMemo(() => {
         if (!showImportContacts) {
             return null;
         }
@@ -557,7 +557,7 @@ function MoneyRequestParticipantsSelector({
                 }
                 footerContent={footerContent}
                 listEmptyContent={EmptySelectionListContentWithPermission}
-                listFooterContent={listFooterComponent}
+                footerContentAbovePagination={footerContentAbovePaginationComponent}
                 headerMessage={header}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
