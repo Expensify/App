@@ -18,7 +18,7 @@ function QRShareWithDownload(props: QRShareProps, ref: ForwardedRef<QRShareWithD
     useImperativeHandle(
         ref,
         () => ({
-            download: () => qrCodeScreenshotRef.current?.capture?.().then((uri) => fileDownload(uri, getQrCodeFileName(props.title), translate('fileDownload.success.qrMessage'))),
+            download: () => qrCodeScreenshotRef.current?.capture?.().then((uri) => fileDownload(uri, getQrCodeFileName(props.title ?? ''), translate('fileDownload.success.qrMessage'))),
         }),
         [props.title, translate],
     );

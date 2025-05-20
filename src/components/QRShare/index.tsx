@@ -52,7 +52,7 @@ function QRShare(
         const containerWidth = event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2 || 0;
         setQrCodeSize(Math.max(1, containerWidth));
     };
-    
+
     return (
         <View
             style={[styles.shareCodeContainer, additionalStyles, isFromDownloadPage ? styles.shareCodeContainerDownloadPadding : styles.shareCodeContainerPadding]}
