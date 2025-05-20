@@ -7,8 +7,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
+import DropZoneUI from '@components/DropZoneUI';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
@@ -20,6 +22,7 @@ import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLen
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -120,6 +123,9 @@ function ReportActionCompose({
     const personalDetails = usePersonalDetails();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
+
+    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
+    const {canUseMultiFilesDragAndDrop} = usePermissions();
 
     /**
      * Updates the Highlight state of the composer
@@ -488,18 +494,39 @@ function ReportActionCompose({
                             onValueChange={onValueChange}
                             didHideComposerInput={didHideComposerInput}
                         />
-                        <ReportDropUI
-                            onDrop={(event: DragEvent) => {
-                                if (isAttachmentPreviewActive) {
-                                    return;
-                                }
-                                const data = event.dataTransfer?.files[0];
-                                if (data) {
-                                    data.uri = URL.createObjectURL(data);
-                                    showAttachmentModal(data);
-                                }
-                            }}
-                        />
+                        {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
+                        {canUseMultiFilesDragAndDrop ? (
+                            <DropZoneUI
+                                onDrop={(event: DragEvent) => {
+                                    if (isAttachmentPreviewActive) {
+                                        return;
+                                    }
+                                    const data = event.dataTransfer?.files[0];
+                                    if (data) {
+                                        data.uri = URL.createObjectURL(data);
+                                        showAttachmentModal(data);
+                                    }
+                                }}
+                                icon={Expensicons.MessageInABottle}
+                                dropTitle={translate('dropzone.addAttachments')}
+                                dropStyles={styles.attachmentDropOverlay}
+                                dropTextStyles={styles.attachmentDropText}
+                                dropInnerWrapperStyles={styles.attachmentDropInnerWrapper}
+                            />
+                        ) : (
+                            <ReportDropUI
+                                onDrop={(event: DragEvent) => {
+                                    if (isAttachmentPreviewActive) {
+                                        return;
+                                    }
+                                    const data = event.dataTransfer?.files[0];
+                                    if (data) {
+                                        data.uri = URL.createObjectURL(data);
+                                        showAttachmentModal(data);
+                                    }
+                                }}
+                            />
+                        )}
                         {canUseTouchScreen() && isMediumScreenWidth ? null : (
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge || disabled}

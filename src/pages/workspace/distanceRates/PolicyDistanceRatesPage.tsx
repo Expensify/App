@@ -35,7 +35,6 @@ import {
 } from '@libs/actions/Policy/DistanceRate';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -187,7 +186,6 @@ function PolicyDistanceRatesPage({
     }, []);
     const sortRates = useCallback((rates: RateForList[]) => rates.sort((a, b) => (a.rate ?? 0) - (b.rate ?? 0)), []);
     const [inputValue, setInputValue, filteredDistanceRatesList] = useSearchResults(distanceRatesList, filterRate, sortRates);
-    const sections = useMemo(() => [{data: filteredDistanceRatesList, key: 'distanceRatesList'}], [filteredDistanceRatesList]);
 
     const addRate = () => {
         Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
@@ -265,6 +263,17 @@ function PolicyDistanceRatesPage({
                     .map(([key]) => key),
             );
         }
+    };
+
+    const toggleOrNavigate = (rate: RateForList) => {
+        if (rate.isDisabledCheckbox) {
+            return;
+        }
+        if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
+            toggleRate(rate);
+            return;
+        }
+        openRateDetails(rate);
     };
 
     const getCustomListHeader = () => {
@@ -379,7 +388,7 @@ function PolicyDistanceRatesPage({
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        goBackFromWorkspaceCentralScreen(policyID);
+                        Navigation.popToSidebar();
                     }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}
@@ -411,9 +420,11 @@ function PolicyDistanceRatesPage({
                             canSelectMultiple={canSelectMultiple}
                             turnOnSelectionModeOnLongPress
                             onTurnOnSelectionMode={(item) => item && toggleRate(item)}
-                            sections={sections}
+                            sections={[{data: filteredDistanceRatesList, isDisabled: false}]}
+                            shouldUseDefaultRightHandSideCheckmark={false}
+                            selectedItemKeys={selectedDistanceRates}
                             onCheckboxPress={toggleRate}
-                            onSelectRow={openRateDetails}
+                            onSelectRow={toggleOrNavigate}
                             onSelectAll={toggleAllRates}
                             onDismissError={dismissError}
                             ListItem={TableListItem}

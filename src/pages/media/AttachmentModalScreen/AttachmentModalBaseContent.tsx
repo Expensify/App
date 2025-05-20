@@ -9,6 +9,7 @@ import type {ValueOf} from 'type-fest';
 import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentView from '@components/Attachments/AttachmentView';
+import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -212,20 +213,35 @@ function AttachmentModalBaseContent({
     onValidateFile,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
-
-    const [isAuthTokenRequiredState, setIsAuthTokenRequiredState] = useState(isAuthTokenRequired);
-    const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
-    const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-    const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const nope = useSharedValue(false);
+
+    const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
+    const sourceForAttachmentView = sourceState || source;
+    useEffect(() => {
+        setSourceState(() => source);
+    }, [source]);
+
+    const [isAuthTokenRequiredState, setIsAuthTokenRequiredState] = useState(isAuthTokenRequired);
+    useEffect(() => {
+        setIsAuthTokenRequiredState(isAuthTokenRequired);
+    }, [isAuthTokenRequired]);
+
+    const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
+    const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const iouType = useMemo(() => iouTypeProp ?? (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction, iouTypeProp]);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
+
+    const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
+    useEffect(() => {
+        return () => {
+            clearAttachmentErrors();
+        };
+    }, [clearAttachmentErrors]);
 
     const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
     const [file, setFile] = useState<FileObject | undefined>(() => fileProp ?? fallbackFile);
@@ -320,16 +336,6 @@ function AttachmentModalBaseContent({
         onClose();
     }, [onClose, onDeleteReceipt, transaction?.transactionID]);
 
-    useEffect(() => {
-        setSourceState(() => source);
-    }, [source]);
-
-    useEffect(() => {
-        setIsAuthTokenRequiredState(isAuthTokenRequired);
-    }, [isAuthTokenRequired]);
-
-    const sourceForAttachmentView = sourceState || source;
-
     const threeDotsMenuItems = useMemo(() => {
         if (!isReceiptAttachment) {
             return [];
@@ -385,11 +391,11 @@ function AttachmentModalBaseContent({
     const headerTitle = useMemo(() => headerTitleProp ?? translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment'), [headerTitleProp, isReceiptAttachment, translate]);
     const shouldShowThreeDotsButton = useMemo(() => isReceiptAttachment && threeDotsMenuItems.length !== 0, [isReceiptAttachment, threeDotsMenuItems.length]);
     const shouldShowDownloadButton = useMemo(() => {
-        if (!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) {
+        if ((!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) && !isErrorInAttachment(sourceState)) {
             return allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
         }
         return false;
-    }, [allowDownload, isDownloadButtonReadyToBeShown, isLocalSource, isOffline, isReceiptAttachment, report, shouldShowNotFoundPage, type]);
+    }, [allowDownload, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, isReceiptAttachment, report, shouldShowNotFoundPage, sourceState, type]);
 
     const isPDFLoadError = useRef(false);
     const onPdfLoadError = useCallback(() => {
@@ -404,6 +410,7 @@ function AttachmentModalBaseContent({
         isPDFLoadError.current = false;
     }, [isPDFLoadError]);
 
+    const nope = useSharedValue(false);
     const context = useMemo(
         () => ({
             pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
@@ -414,8 +421,9 @@ function AttachmentModalBaseContent({
             onTap: () => {},
             onScaleChanged: () => {},
             onSwipeDown: onClose,
+            onAttachmentError: setAttachmentError,
         }),
-        [onClose, nope, sourceForAttachmentView],
+        [onClose, nope, sourceForAttachmentView, setAttachmentError],
     );
 
     return (
@@ -470,6 +478,7 @@ function AttachmentModalBaseContent({
                                 source={source}
                                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                                 attachmentLink={currentAttachmentLink}
+                                onAttachmentError={setAttachmentError}
                             />
                         ) : (
                             !!sourceForAttachmentView &&
