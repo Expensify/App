@@ -12,6 +12,9 @@ const {
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
+    OUTSANDING_FILTER,
+    GBR_RBR_CHAT,
+    ACCOUNT_SWITCHER,
     EXPENSE_REPORTS_FILTER,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
@@ -36,8 +39,8 @@ type TooltipData = {
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     [CONCIERGE_LHN_GBR]: {
         content: [
-            {text: 'productTrainingTooltip.conciergeLHNGbr.part1', isBold: false},
-            {text: 'productTrainingTooltip.conciergeLHNGbr.part2', isBold: true},
+            {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
+            {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCIERGE_LHN_GBR, isDismissedUsingCloseButton),
         name: CONCIERGE_LHN_GBR,
@@ -90,6 +93,29 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         priority: 1800,
         shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
     },
+    [GBR_RBR_CHAT]: {
+        content: [
+            {text: 'productTrainingTooltip.GBRRBRChat.part1', isBold: false},
+            {text: 'productTrainingTooltip.GBRRBRChat.part2', isBold: true},
+            {text: 'productTrainingTooltip.GBRRBRChat.part3', isBold: false},
+            {text: 'productTrainingTooltip.GBRRBRChat.part4', isBold: true},
+        ],
+        onHideTooltip: () => dismissProductTraining(GBR_RBR_CHAT),
+        name: GBR_RBR_CHAT,
+        priority: 1900,
+        shouldShow: () => true,
+    },
+    [ACCOUNT_SWITCHER]: {
+        content: [
+            {text: 'productTrainingTooltip.accountSwitcher.part1', isBold: false},
+            {text: 'productTrainingTooltip.accountSwitcher.part2', isBold: true},
+            {text: 'productTrainingTooltip.accountSwitcher.part3', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(ACCOUNT_SWITCHER),
+        name: ACCOUNT_SWITCHER,
+        priority: 1600,
+        shouldShow: () => true,
+    },
     [EXPENSE_REPORTS_FILTER]: {
         content: [
             {text: 'productTrainingTooltip.expenseReportsFilter.part1', isBold: false},
@@ -134,6 +160,16 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: SCAN_TEST_CONFIRMATION,
         priority: 1100,
         shouldShow: () => true,
+    },
+    [OUTSANDING_FILTER]: {
+        content: [
+            {text: 'productTrainingTooltip.outstandingFilter.part1', isBold: false},
+            {text: 'productTrainingTooltip.outstandingFilter.part2', isBold: true},
+        ],
+        onHideTooltip: () => dismissProductTraining(OUTSANDING_FILTER),
+        name: OUTSANDING_FILTER,
+        priority: 1925,
+        shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
     },
 };
 

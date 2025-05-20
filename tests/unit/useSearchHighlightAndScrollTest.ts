@@ -1,323 +1,278 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {SearchQueryJSON} from '@components/Search/types';
-import * as usePreviousModule from '@hooks/usePrevious';
+import {renderHook} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchResults} from '@src/types/onyx';
+import {search} from '@libs/actions/Search';
 
-// Mock the usePrevious hook
-jest.mock('@hooks/usePrevious', () => ({
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    default: jest.fn((value) => value),
-}));
-
+jest.mock('@libs/actions/Search');
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
-const mockUsePrevious = jest.mocked(usePreviousModule.default);
+afterEach(() => {
+    jest.clearAllMocks();
+});
 
 describe('useSearchHighlightAndScroll', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-        mockUsePrevious.mockImplementation(() => undefined);
-        jest.useFakeTimers();
+    it('should trigger Search when transactionIDs list change', () => {
+        const initialProps: UseSearchHighlightAndScroll = {
+            searchResults: {
+                data: {personalDetailsList: {}},
+                search: {
+                    columnsToShow: {
+                        shouldShowCategoryColumn: true,
+                        shouldShowTagColumn: true,
+                        shouldShowTaxColumn: true,
+                    },
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    status: 'all',
+                    type: 'expense',
+                    isLoading: false,
+                },
+            },
+            transactions: {
+                transactions_1: {
+                    amount: -100,
+                    bank: '',
+                    billable: false,
+                    cardID: 0,
+                    cardName: 'Cash Expense',
+                    cardNumber: '',
+                    category: '',
+                    comment: {
+                        comment: '',
+                    },
+                    created: '2025-01-08',
+                    currency: 'ETB',
+                    filename: 'w_c989c343d834d48a4e004c38d03c90bff9434768.png',
+                    inserted: '2025-01-08 15:35:32',
+                    managedCard: false,
+                    merchant: 'g',
+                    modifiedAmount: 0,
+                    modifiedCreated: '',
+                    modifiedCurrency: '',
+                    modifiedMerchant: '',
+                    originalAmount: 0,
+                    originalCurrency: '',
+                    parentTransactionID: '',
+                    posted: '',
+                    receipt: {
+                        receiptID: 7409094723954473,
+                        state: 'SCANCOMPLETE',
+                        source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
+                    },
+                    reimbursable: true,
+                    reportID: '2309609540437471',
+                    status: 'Posted',
+                    tag: '',
+                    transactionID: '1',
+                    hasEReceipt: false,
+                },
+            },
+            previousTransactions: {
+                transactions_1: {
+                    amount: -100,
+                    bank: '',
+                    billable: false,
+                    cardID: 0,
+                    cardName: 'Cash Expense',
+                    cardNumber: '',
+                    category: '',
+                    comment: {
+                        comment: '',
+                    },
+                    created: '2025-01-08',
+                    currency: 'ETB',
+                    filename: 'w_c989c343d834d48a4e004c38d03c90bff9434768.png',
+                    inserted: '2025-01-08 15:35:32',
+                    managedCard: false,
+                    merchant: 'g',
+                    modifiedAmount: 0,
+                    modifiedCreated: '',
+                    modifiedCurrency: '',
+                    modifiedMerchant: '',
+                    originalAmount: 0,
+                    originalCurrency: '',
+                    parentTransactionID: '',
+                    posted: '',
+                    receipt: {
+                        receiptID: 7409094723954473,
+                        state: 'SCANCOMPLETE',
+                        source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
+                    },
+                    reimbursable: true,
+                    reportID: '2309609540437471',
+                    status: 'Posted',
+                    tag: '',
+                    transactionID: '1',
+                    hasEReceipt: false,
+                },
+            },
+            reportActions: {
+                reportActions_209647397999267: {
+                    1: {
+                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        reportActionID: '1',
+                        created: '',
+                    },
+                },
+            },
+            previousReportActions: {
+                reportActions_209647397999267: {
+                    1: {
+                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        reportActionID: '1',
+                        created: '',
+                    },
+                },
+            },
+            queryJSON: {
+                type: 'expense',
+                status: 'all',
+                sortBy: 'date',
+                sortOrder: 'desc',
+                filters: {operator: 'and', left: 'tag', right: ''},
+                inputQuery: 'type:expense status:all sortBy:date sortOrder:desc',
+                flatFilters: [],
+                hash: 243428839,
+                recentSearchHash: 422547233,
+            },
+            offset: 0,
+        };
+        const changedProp: UseSearchHighlightAndScroll = {
+            ...initialProps,
+            transactions: {
+                transactions_2: {
+                    amount: -100,
+                    bank: '',
+                    billable: false,
+                    cardID: 0,
+                    cardName: 'Cash Expense',
+                    cardNumber: '',
+                    category: '',
+                    comment: {
+                        comment: '',
+                    },
+                    created: '2025-01-08',
+                    currency: 'ETB',
+                    filename: 'w_c989c343d834d48a4e004c38d03c90bff9434768.png',
+                    inserted: '2025-01-08 15:35:32',
+                    managedCard: false,
+                    merchant: 'g',
+                    modifiedAmount: 0,
+                    modifiedCreated: '',
+                    modifiedCurrency: '',
+                    modifiedMerchant: '',
+                    originalAmount: 0,
+                    originalCurrency: '',
+                    parentTransactionID: '',
+                    posted: '',
+                    receipt: {
+                        receiptID: 7409094723954473,
+                        state: 'SCANCOMPLETE',
+                        source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
+                    },
+                    reimbursable: true,
+                    reportID: '2309609540437471',
+                    status: 'Posted',
+                    tag: '',
+                    transactionID: '2',
+                    hasEReceipt: false,
+                },
+            },
+        };
+
+        const {rerender} = renderHook((prop: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(prop), {
+            initialProps,
+        });
+        expect(search).not.toHaveBeenCalled();
+
+        // When the transaction ids list change though it has the same length as previous value
+        rerender(changedProp);
+
+        // Then Search will be triggerred.
+        expect(search).toHaveBeenCalled();
     });
 
-    afterEach(() => {
-        jest.useRealTimers();
-    });
-
-    describe('Transaction search', () => {
-        const transactionQueryJSON = {
-            type: 'expense',
-            status: 'all',
-            sortBy: 'date',
-            sortOrder: 'desc',
-            filters: {operator: 'and', left: 'tag', right: ''},
-            inputQuery: 'type:expense status:all sortBy:date sortOrder:desc',
-            flatFilters: [],
-            hash: 243428839,
-            recentSearchHash: 422547233,
-        } as SearchQueryJSON;
-
-        it('should initialize with null newSearchResultKey when searchResults is empty', () => {
-            const initialProps: UseSearchHighlightAndScroll = {
-                searchResults: {
-                    data: {personalDetailsList: {}},
-                    search: {
-                        columnsToShow: {
-                            shouldShowCategoryColumn: true,
-                            shouldShowTagColumn: true,
-                            shouldShowTaxColumn: true,
-                        },
-                        hasMoreResults: false,
-                        hasResults: true,
-                        offset: 0,
-                        status: 'all',
-                        type: 'expense',
-                        isLoading: false,
+    it('should trigger Search when report actions change', () => {
+        const initialProps: UseSearchHighlightAndScroll = {
+            searchResults: {
+                data: {personalDetailsList: {}},
+                search: {
+                    columnsToShow: {
+                        shouldShowCategoryColumn: true,
+                        shouldShowTagColumn: true,
+                        shouldShowTaxColumn: true,
+                    },
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    status: 'all',
+                    type: 'expense',
+                    isLoading: false,
+                },
+            },
+            transactions: {},
+            previousTransactions: {},
+            reportActions: {
+                reportActions_209647397999267: {
+                    1: {
+                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        reportActionID: '1',
+                        created: '',
                     },
                 },
-                queryJSON: transactionQueryJSON,
-            };
+            },
+            previousReportActions: {
+                reportActions_209647397999267: {
+                    1: {
+                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        reportActionID: '1',
+                        created: '',
+                    },
+                },
+            },
+            queryJSON: {
+                type: 'expense',
+                status: 'all',
+                sortBy: 'date',
+                sortOrder: 'desc',
+                filters: {operator: 'and', left: 'tag', right: ''},
+                inputQuery: 'type:expense status:all sortBy:date sortOrder:desc',
+                flatFilters: [],
+                hash: 243428839,
+                recentSearchHash: 422547233,
+            },
+            offset: 0,
+        };
 
-            const {result} = renderHook(() => useSearchHighlightAndScroll(initialProps));
-            expect(result.current.newSearchResultKey).toBeNull();
+        const changedProps: UseSearchHighlightAndScroll = {
+            ...initialProps,
+            reportActions: {
+                reportActions_209647397999268: {
+                    1: {
+                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        reportActionID: '1',
+                        created: '',
+                    },
+                    2: {
+                        actionName: 'ADDCOMMENT',
+                        reportActionID: '2',
+                        created: '',
+                    },
+                },
+            },
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            initialProps,
         });
+        expect(search).not.toHaveBeenCalled();
 
-        it('should detect new transactions and set newSearchResultKey', () => {
-            // Initial search results with transaction1
-            const initialSearchResults = {
-                data: {
-                    transaction1: {transactionID: 'transaction1'},
-                    personalDetailsList: {},
-                },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            };
+        // When report actions change
+        rerender(changedProps);
 
-            // Updated search results with transaction2 added
-            const updatedSearchResults = {
-                data: {
-                    transaction1: {transactionID: 'transaction1'},
-                    transaction2: {transactionID: 'transaction2'},
-                    personalDetailsList: {},
-                },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            };
-
-            // Mock usePrevious to return the initial search results data
-            mockUsePrevious.mockImplementation(() => initialSearchResults.data);
-
-            const initialProps: UseSearchHighlightAndScroll = {
-                searchResults: initialSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            };
-
-            const updatedProps: UseSearchHighlightAndScroll = {
-                searchResults: updatedSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            };
-
-            const {result, rerender} = renderHook((props) => useSearchHighlightAndScroll(props), {
-                initialProps,
-            });
-
-            // Rerender with updated search results
-            rerender(updatedProps);
-
-            // Check if newSearchResultKey is set correctly
-            expect(result.current.newSearchResultKey).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION}transaction2`);
-
-            // Reset timer to verify it clears newSearchResultKey
-            act(() => {
-                jest.runAllTimers();
-            });
-
-            expect(result.current.newSearchResultKey).toBeNull();
-        });
-
-        it('should not highlight already highlighted transactions', () => {
-            // Initial search results
-            const initialSearchResults = {
-                data: {
-                    transaction1: {transactionID: 'transaction1'},
-                    personalDetailsList: {},
-                },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            };
-
-            // Updated search results with transaction2 added
-            const updatedSearchResults = {
-                data: {
-                    transaction1: {transactionID: 'transaction1'},
-                    transaction2: {transactionID: 'transaction2'},
-                    personalDetailsList: {},
-                },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            };
-
-            // Another update adding transaction3
-            const furtherUpdatedSearchResults = {
-                data: {
-                    transaction1: {transactionID: 'transaction1'},
-                    transaction2: {transactionID: 'transaction2'},
-                    transaction3: {transactionID: 'transaction3'},
-                    personalDetailsList: {},
-                },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            };
-
-            // Mock usePrevious to return the initial search results data
-            mockUsePrevious.mockImplementation(() => initialSearchResults.data);
-
-            const initialProps: UseSearchHighlightAndScroll = {
-                searchResults: initialSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            };
-
-            const {result, rerender} = renderHook((props) => useSearchHighlightAndScroll(props), {
-                initialProps,
-            });
-
-            // Rerender with updated search results
-            rerender({
-                searchResults: updatedSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            });
-
-            // Check if newSearchResultKey is set correctly for transaction2
-            expect(result.current.newSearchResultKey).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION}transaction2`);
-
-            // Run timers to clear highlight
-            act(() => {
-                jest.runAllTimers();
-            });
-
-            // Update previous search results mock
-            mockUsePrevious.mockImplementation(() => updatedSearchResults.data);
-
-            // Rerender with further updated search results
-            rerender({
-                searchResults: furtherUpdatedSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            });
-
-            // Check if newSearchResultKey is set correctly for transaction3
-            expect(result.current.newSearchResultKey).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION}transaction3`);
-        });
-
-        it('should handle nested transactions in report items', () => {
-            // Initial search results with nested transactions
-            const initialSearchResults = {
-                data: {
-                    report1: {
-                        reportID: 'report1',
-                        transactions: [{transactionID: 'transaction1'}],
-                    },
-                    personalDetailsList: {},
-                },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            };
-
-            // Updated search results with a new nested transaction
-            const updatedSearchResults = {
-                data: {
-                    report1: {
-                        reportID: 'report1',
-                        transactions: [{transactionID: 'transaction1'}, {transactionID: 'transaction2'}],
-                    },
-                    personalDetailsList: {},
-                },
-                search: {
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
-                    hasMoreResults: false,
-                    hasResults: true,
-                    offset: 0,
-                    status: 'all',
-                    type: 'expense',
-                    isLoading: false,
-                },
-            };
-
-            // Mock usePrevious to return the initial search results data
-            mockUsePrevious.mockImplementation(() => initialSearchResults.data);
-
-            const initialProps: UseSearchHighlightAndScroll = {
-                searchResults: initialSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            };
-
-            const {result, rerender} = renderHook((props) => useSearchHighlightAndScroll(props), {
-                initialProps,
-            });
-
-            // Rerender with updated search results
-            rerender({
-                searchResults: updatedSearchResults as OnyxEntry<SearchResults>,
-                queryJSON: transactionQueryJSON,
-            });
-
-            // Check if newSearchResultKey is set correctly
-            expect(result.current.newSearchResultKey).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION}transaction2`);
-        });
+        // Then Search will be triggered
+        expect(search).toHaveBeenCalled();
     });
 });

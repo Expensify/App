@@ -69,6 +69,9 @@ const INVALID_TOKEN = 'pizza';
 
 let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
+
+let hasSwitchedAccountInHybridMode = false;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -138,7 +141,7 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
         accountID,
         creationDate: new Date().getTime(),
     }).then(() => {
-        Log.info('[Supportal] Authtoken set');
+        Log.info('[Supportal] Auth token set');
     });
     Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
 }
@@ -288,7 +291,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     }
 
     // If this is a supportal token, and we've received the parameters to stashSession as true, and
-    // we already have a stashedSession, that means we are supportaled, currently supportaling
+    // we already have a stashedSession, that means we are supportal-ed, currently supportal-ing
     // into another account and we want to keep the stashed data from the original account.
     if (isSupportal && shouldStashSession && hasStashedSession()) {
         onyxSetParams = {
@@ -308,6 +311,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 policyID: activePolicyID ?? '',
                 accountID: session.accountID ? String(session.accountID) : '',
             });
+            hasSwitchedAccountInHybridMode = true;
         }
 
         onyxSetParams = {
@@ -335,6 +339,10 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             } else {
                 redirectToSignIn().then(() => {
                     Onyx.multiSet(onyxSetParams);
+
+                    if (hasSwitchedAccountInHybridMode) {
+                        openApp();
+                    }
                 });
             }
         })
@@ -1030,7 +1038,7 @@ function unlinkLogin(accountID: number, validateCode: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: 'unlinkLoginForm.succesfullyUnlinkedLogin',
+                message: 'unlinkLoginForm.successfullyUnlinkedLogin',
             },
         },
         {

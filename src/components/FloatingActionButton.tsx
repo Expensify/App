@@ -5,11 +5,9 @@ import type {GestureResponderEvent, Role, Text, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import useIsHomeRouteActive from '@navigation/helpers/useIsHomeRouteActive';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -48,26 +46,22 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const platform = getPlatform();
-    const isNarrowScreenOnWeb = shouldUseNarrowLayout && platform === CONST.PLATFORM.WEB;
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false});
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false, canBeMissing: true});
     const isHomeRouteActive = useIsHomeRouteActive(shouldUseNarrowLayout);
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP,
         // On Home screen, We need to wait for the sidebar to load before showing the tooltip because there is the Concierge tooltip which is higher priority
         isTooltipAllowed && (!isHomeRouteActive || isSidebarLoaded),
     );
-    const {canUseLeftHandBar} = usePermissions();
+    const isLHBVisible = !shouldUseNarrowLayout;
 
-    const shouldDisplaySmallFAB = canUseLeftHandBar && !shouldUseNarrowLayout;
-    const fabSize = shouldDisplaySmallFAB ? variables.iconSizeSmall : variables.iconSizeNormal;
+    const fabSize = isLHBVisible ? variables.iconSizeSmall : variables.iconSizeNormal;
 
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
 
-    const isLhbVisible = canUseLeftHandBar && !shouldUseNarrowLayout;
-    const tooltipHorizontalAnchorAlignment = isLhbVisible ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT;
-    const tooltipShiftHorizontal = isLhbVisible ? variables.lhbFabTooltipShiftHorizontal : variables.fabTooltipShiftHorizontal;
+    const tooltipHorizontalAnchorAlignment = isLHBVisible ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT;
+    const tooltipShiftHorizontal = isLHBVisible ? variables.lhbFabTooltipShiftHorizontal : variables.fabTooltipShiftHorizontal;
 
     useEffect(() => {
         sharedValue.set(
@@ -98,10 +92,10 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
         <EducationalTooltip
             shouldRender={shouldShowProductTrainingTooltip}
             anchorAlignment={{
-                horizontal: isNarrowScreenOnWeb ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : tooltipHorizontalAnchorAlignment,
+                horizontal: shouldUseNarrowLayout ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : tooltipHorizontalAnchorAlignment,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
-            shiftHorizontal={isNarrowScreenOnWeb ? 0 : tooltipShiftHorizontal}
+            shiftHorizontal={shouldUseNarrowLayout ? 0 : tooltipShiftHorizontal}
             renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shouldHideOnNavigate={false}
@@ -122,13 +116,13 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
                 shouldUseHapticsOnLongPress={false}
                 testID="floating-action-button"
             >
-                <Animated.View style={[styles.floatingActionButton, {borderRadius}, shouldDisplaySmallFAB && styles.floatingActionButtonSmall, animatedStyle]}>
+                <Animated.View style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle]}>
                     <Svg
                         width={fabSize}
                         height={fabSize}
                     >
                         <AnimatedPath
-                            d={shouldDisplaySmallFAB ? SMALL_FAB_PATH : FAB_PATH}
+                            d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
                             fill={textLight}
                         />
                     </Svg>
