@@ -160,6 +160,10 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
+    if (report.isWaitingOnBankAccount) {
+        return false;
+    }
+
     return (isApproved || isReimbursed || isClosed) && !hasAnyViolations;
 }
 
