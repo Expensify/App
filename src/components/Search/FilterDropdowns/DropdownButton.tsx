@@ -101,7 +101,6 @@ function DropdownButton({label, value, PopoverComponent}: DropdownButtonProps) {
 
             {/* Dropdown overlay */}
             <PopoverWithMeasuredContent
-                shouldUseNewModal
                 anchorRef={triggerRef}
                 isVisible={isOverlayVisible}
                 onClose={toggleOverlay}
