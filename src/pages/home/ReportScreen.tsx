@@ -452,7 +452,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const fetchReport = useCallback(() => {
-        if (reportMetadata.isOptimisticReport) {
+        if (reportMetadata.isOptimisticReport && transactionThreadReportID !== CONST.FAKE_REPORT_ID) {
             return;
         }
 
