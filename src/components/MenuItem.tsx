@@ -350,6 +350,9 @@ type MenuItemBaseProps = {
     /** Callback to fire when the education tooltip is pressed */
     onEducationTooltipPress?: () => void;
 
+    /** Whether the tooltip should hide on scroll */
+    shouldHideOnScroll?: boolean;
+
     shouldShowLoadingSpinnerIcon?: boolean;
 
     /** Should selected item be marked with checkmark */
@@ -474,6 +477,7 @@ function MenuItem(
         onBlur,
         avatarID,
         shouldRenderTooltip = false,
+        shouldHideOnScroll = false,
         tooltipAnchorAlignment,
         tooltipWrapperStyle = {},
         tooltipShiftHorizontal = 0,
@@ -525,6 +529,7 @@ function MenuItem(
         styles.textLabelSupporting,
         icon && !Array.isArray(icon) ? styles.ml3 : {},
         title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
+        title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
         (descriptionTextStyle as TextStyle) || styles.breakWord,
         isDeleted ? styles.offlineFeedback.deleted : {},
     ]);
@@ -546,7 +551,7 @@ function MenuItem(
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
         if (shouldRenderAsHTML) {
-            titleToWrap = title ? convertToLTR(title) : '';
+            titleToWrap = title ?? '';
         }
 
         if (shouldParseTitle) {
@@ -639,6 +644,7 @@ function MenuItem(
                 shiftVertical={tooltipShiftVertical}
                 shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                 onTooltipPress={onEducationTooltipPress}
+                shouldHideOnScroll={shouldHideOnScroll}
             >
                 <View>
                     <Hoverable>
