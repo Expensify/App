@@ -10,6 +10,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -27,16 +28,7 @@ function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
 
-    const annualVolumeRangeListOptions = useMemo(() => {
-        if (!corpayOnboardingFields?.picklists.AnnualVolumeRange) {
-            return {};
-        }
-
-        return corpayOnboardingFields.picklists.AnnualVolumeRange.reduce((accumulator, currentValue) => {
-            accumulator[currentValue.name] = currentValue.stringValue;
-            return accumulator;
-        }, {} as Record<string, string>);
-    }, [corpayOnboardingFields]);
+    const annualVolumeRangeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange), [corpayOnboardingFields]);
 
     const annualVolumeDefaultValue = reimbursementAccount?.achData?.corpay?.[ANNUAL_VOLUME] ?? '';
 
