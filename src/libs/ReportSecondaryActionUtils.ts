@@ -31,6 +31,7 @@ import {
     isPayer as isPayerUtils,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
+    isReportManager as isReportManagerUtils,
     isSettled,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
@@ -308,8 +309,9 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
 
     const isOpenReport = isOpenReportUtils(report);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportManager = isReportManagerUtils(report);
 
-    if (isOpenReport && isSubmitter) {
+    if (isOpenReport && (isSubmitter || isReportManager)) {
         return true;
     }
 
