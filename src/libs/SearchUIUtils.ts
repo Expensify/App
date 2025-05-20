@@ -321,7 +321,7 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], policy: SearchPolicy): TransactionListItemType[] {
+function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
@@ -339,6 +339,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
     for (const key of transactionKeys) {
         const transactionItem = data[key];
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+        const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const shouldShowBlankTo = isOpenExpenseReport(report);
 
         // Use Map.get() for faster lookups with default values
