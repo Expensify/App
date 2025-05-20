@@ -1157,6 +1157,12 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: Routes;
     };
+    [SCREENS.MONEY_REQUEST.EDIT_REPORT]: {
+        action: IOUAction;
+        iouType: IOUType;
+        reportID: string;
+        backTo: Routes;
+    };
     [SCREENS.MONEY_REQUEST.STEP_REPORT]: {
         action: IOUAction;
         iouType: IOUType;
@@ -1807,7 +1813,9 @@ type OnboardingModalNavigatorParamList = {
 };
 
 type WelcomeVideoModalNavigatorParamList = {
-    [SCREENS.WELCOME_VIDEO.ROOT]: undefined;
+    [SCREENS.WELCOME_VIDEO.ROOT]: {
+        isFromRoot?: string;
+    };
 };
 
 type ExplanationModalNavigatorParamList = {
