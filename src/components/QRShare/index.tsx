@@ -75,7 +75,7 @@ function QRShare(
                 svgLogoFillColor={svgLogoFillColor}
                 logoBackgroundColor={logoBackgroundColor}
                 logo={logo}
-                size={isFromDownloadPage ? 200 : qrCodeSize}
+                size={isFromDownloadPage ? 172 : qrCodeSize}
                 logoRatio={logoRatio}
                 logoMarginRatio={logoMarginRatio}
             />
