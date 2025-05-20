@@ -972,6 +972,16 @@ const formatToReadableString = (date: string): string => {
     return format(parsedDate, 'MMMM d, yyyy');
 };
 
+const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, formatStr, options?) => {
+    try {
+        return formatInTimeZone(date, timeZone, formatStr, options);
+        // On macOs and iOS devices some platform use deprecated old timezone values which results in invalid time string error.
+        // Try with backward timezone values on error.
+    } catch {
+        return formatInTimeZone(date, timezoneBackwardMap[timeZone], formatStr, options);
+    }
+};
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -1030,6 +1040,7 @@ const DateUtils = {
     isFutureDay,
     getFormattedDateRangeForPerDiem,
     isCurrentTimeWithinRange,
+    formatInTimeZoneWithFallback,
 };
 
 export default DateUtils;

@@ -560,6 +560,7 @@ const translations = {
         on: 'El',
         before: 'Antes',
         after: 'Después',
+        reschedule: 'Reprogramar',
         general: 'General',
         never: 'Nunca',
         workspacesTabTitle: 'Espacios',
@@ -6912,6 +6913,7 @@ const translations = {
             dateTime: 'Fecha y hora',
             minutes: '30 minutos',
         },
+        callScheduled: 'Llamada programada',
     },
     testDrive: {
         quickAction: {

@@ -569,6 +569,7 @@ const translations = {
         on: 'On',
         before: 'Before',
         after: 'After',
+        reschedule: 'Reschedule',
         general: 'General',
         never: 'Never',
         workspacesTabTitle: 'Workspaces',
@@ -6387,6 +6388,7 @@ const translations = {
             dateTime: 'Date & time',
             minutes: '30 minutes',
         },
+        callScheduled: 'Call scheduled',
     },
     testDrive: {
         quickAction: {
