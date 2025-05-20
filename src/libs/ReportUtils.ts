@@ -10163,7 +10163,6 @@ function prepareOnboardingOnyxData(
         guidedSetupData.push({type: 'message', ...textMessage});
     }
 
-
     let selfDMParameters: SelfDMParameters = {};
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         const selfDMReportID = findSelfDMReportID();
