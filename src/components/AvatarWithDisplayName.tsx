@@ -59,7 +59,7 @@ type AvatarWithDisplayNameProps = {
     shouldEnableDetailPageNavigation?: boolean;
 
     /** Whether the avatar is pressable to open the actor details */
-    shouldEnableAvatarNavigation: boolean;
+    shouldEnableAvatarNavigation?: boolean;
 
     /** Whether we should enable custom title logic designed for search lis */
     shouldUseCustomSearchTitleName?: boolean;
