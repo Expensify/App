@@ -1,7 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText} from 'react-native';
-import {Linking, View} from 'react-native';
+import type {GestureResponderEvent, ImageStyle, Text as RNText, ViewStyle} from 'react-native';
+import {InteractionManager, Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
@@ -17,24 +17,24 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
-import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
+import {openOldDotLink} from '@libs/actions/Link';
 import {canActionTask, completeTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
-import {getNavatticURL} from '@libs/TourUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -124,9 +124,6 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     }, [styles, translate]);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const onboardingPurpose = introSelected?.choice;
-    const {environment} = useEnvironment();
-    const navatticURL = getNavatticURL(environment, onboardingPurpose);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
         canBeMissing: true,
@@ -141,11 +138,11 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
                     headerMedia: LottieAnimations.TripsEmptyState,
-                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
+                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     children: tripViewChildren,
-                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
+                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
                 if (!hasResults) {
@@ -159,7 +156,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
-                                              openExternalLink(navatticURL);
+                                              InteractionManager.runAfterInteractions(() => {
+                                                  Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                                              });
                                               setSelfTourViewed();
                                               // Even if the viewTourTaskReport doesn't exist in onyx we will still call completeTask without checking
                                               // canActionTheTask as we don't want to avoid completing the test drive task due to its unavailabilty
@@ -202,7 +201,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
                                           buttonAction: () => {
-                                              openExternalLink(navatticURL);
+                                              InteractionManager.runAfterInteractions(() => {
+                                                  Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+                                              });
                                               setSelfTourViewed();
                                               if (viewTourTaskReportID && (!viewTourTaskReport || canActionTheTask)) {
                                                   completeTask(viewTourTaskReport);
@@ -247,9 +248,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         translate,
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
+        styles.tripEmptyStateLottieWebView,
         tripViewChildren,
         hasSeenTour,
-        navatticURL,
         shouldRedirectToExpensifyClassic,
         hasResults,
         viewTourTaskReport,
@@ -272,7 +273,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     titleStyles={content.titleStyles}
                     subtitle={content.subtitle}
                     buttons={content.buttons}
-                    headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
+                    headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles] as Array<ViewStyle & ImageStyle>}
                     lottieWebViewStyles={content.lottieWebViewStyles}
                 >
                     {content.children}

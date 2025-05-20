@@ -548,7 +548,9 @@ const translations = {
         comments: 'Comentarios',
         sharedIn: 'Compartido en',
         unreported: 'No reportado',
+        reschedule: 'Reprogramar',
         general: 'General',
+        workspacesTabTitle: 'Espacios',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1214,6 +1216,7 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+        moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
     },
     share: {
         shareToExpensify: 'Compartir para Expensify',
@@ -2921,7 +2924,7 @@ const translations = {
         },
         publicDomainError: {
             title: 'Comienza con Expensify Travel',
-            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com)',
+            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com).',
         },
         blockedFeatureModal: {
             title: 'Expensify Travel ha sido deshabilitado',
@@ -6818,9 +6821,9 @@ const translations = {
         },
         GBRRBRChat: {
             part1: 'Verás 🟢 en ',
-            part2: 'las acciones a realizar',
-            part3: '\ny 🔴 en ',
-            part4: 'los errores que debes revisar.',
+            part2: 'acciones a realizar',
+            part3: ',\ny 🔴 en ',
+            part4: 'elementos para revisar.',
         },
         accountSwitcher: {
             part1: 'Accede a tus ',
@@ -6847,10 +6850,6 @@ const translations = {
         outstandingFilter: {
             part1: 'Filtra los gastos\nque ',
             part2: 'necesitan aprobación',
-        },
-        settingsTab: {
-            part1: 'Explora ',
-            part2: 'tu espacio de trabajo\ny la configuración de tu cuenta',
         },
         workspacesSettings: {
             part1: 'Ver tus ',
@@ -6882,6 +6881,7 @@ const translations = {
             dateTime: 'Fecha y hora',
             minutes: '30 minutos',
         },
+        callScheduled: 'Llamada programada',
     },
     testDrive: {
         quickAction: {

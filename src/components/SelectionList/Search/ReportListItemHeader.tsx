@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
@@ -127,7 +127,7 @@ function FirstHeaderRow<TItem extends ListItem>({
                     />
                 </View>
             </View>
-            <View style={[styles.flexShrink0, styles.mr3]}>
+            <View style={[styles.flexShrink0, shouldShowAction && styles.mr3]}>
                 <TotalCell
                     showTooltip
                     isLargeScreenWidth={false}
@@ -161,14 +161,17 @@ function ReportListItemHeader<TItem extends ListItem>({
     const reportItem = item as unknown as ReportListItemType;
     const {currentSearchHash} = useSearchContext();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
-    const showArrowComponent = reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo;
-
+    const showArrowComponent = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
+    const shouldShowToRecipient = useMemo(
+        () => thereIsFromAndTo && reportItem?.from?.accountID !== reportItem?.to?.accountID,
+        [thereIsFromAndTo, reportItem?.from?.accountID, reportItem?.to?.accountID],
+    );
     const handleOnButtonPress = () => {
         handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
     };
-    return shouldUseNarrowLayout ? (
+    return !isLargeScreenWidth ? (
         <View>
             <FirstHeaderRow
                 item={item}
@@ -178,19 +181,33 @@ function ReportListItemHeader<TItem extends ListItem>({
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
             />
-            <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, showArrowComponent ? styles.justifyContentBetween : styles.justifyContentEnd, styles.pr3, styles.pl3]}>
-                {showArrowComponent && (
-                    <UserInfoCellsWithArrow
-                        shouldDisplayArrowIcon
-                        participantFrom={reportItem?.from}
-                        participantFromDisplayName={reportItem?.from?.displayName ?? reportItem?.from?.login ?? translate('common.hidden')}
-                        participantToDisplayName={reportItem?.to?.displayName ?? reportItem?.to?.login ?? translate('common.hidden')}
-                        participantTo={reportItem?.to}
-                        avatarSize="mid-subscript"
-                        infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
-                        infoCellsAvatarStyle={styles.pr1}
-                    />
-                )}
+            <View
+                style={[
+                    styles.pt0,
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    showArrowComponent ? styles.justifyContentBetween : styles.justifyContentEnd,
+                    styles.pr3,
+                    styles.pl3,
+                    styles.gap2,
+                ]}
+            >
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                    {showArrowComponent && (
+                        <UserInfoCellsWithArrow
+                            shouldDisplayArrowIcon={shouldShowToRecipient}
+                            shouldShowToRecipient={shouldShowToRecipient}
+                            participantFrom={reportItem?.from}
+                            participantFromDisplayName={reportItem?.from?.displayName ?? reportItem?.from?.login ?? translate('common.hidden')}
+                            participantToDisplayName={reportItem?.to?.displayName ?? reportItem?.to?.login ?? translate('common.hidden')}
+                            participantTo={reportItem?.to}
+                            avatarSize="mid-subscript"
+                            infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                            infoCellsAvatarStyle={styles.pr1}
+                            fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
+                        />
+                    )}
+                </View>
                 <View>
                     <ActionCell
                         action={reportItem.action}

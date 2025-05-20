@@ -17,6 +17,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getGuideCallAvailabilitySchedule, saveBookingDraft} from '@libs/actions/ScheduleCall';
+import DateUtils from '@libs/DateUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -25,7 +26,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AvailableBookingDay from './AvailableBookingDay';
 
@@ -42,7 +42,7 @@ function ScheduleCallPage() {
     const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK>>();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
+    const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
 
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
     const reportID = route.params?.reportID;
@@ -93,14 +93,14 @@ function ScheduleCallPage() {
 
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         allTimeSlots.forEach((timeSlot) => {
-            const timeSlotDate = format(new Date(timeSlot?.startTime), CONST.DATE.FNS_FORMAT_STRING);
+            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
             if (!timeSlotMap[timeSlotDate]) {
                 timeSlotMap[timeSlotDate] = [];
             }
             timeSlotMap[timeSlotDate].push(timeSlot);
         });
         return timeSlotMap;
-    }, [calendlySchedule]);
+    }, [calendlySchedule, userTimezone]);
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate = selectableDates.at(0);
@@ -165,7 +165,7 @@ function ScheduleCallPage() {
                         </View>
                         <MenuItemWithTopDescription
                             interactive={false}
-                            title={timezone.selected}
+                            title={userTimezone}
                             description={translate('timezonePage.timezone')}
                             style={[styles.mt3, styles.mb3]}
                         />
@@ -187,7 +187,7 @@ function ScheduleCallPage() {
                                         <Button
                                             key={`time-slot-${timeSlot.startTime}`}
                                             large
-                                            success={scheduleCallDraft?.timeSlot === timeSlot?.startTime}
+                                            success={scheduleCallDraft?.timeSlot === timeSlot.startTime}
                                             onPress={() => {
                                                 saveBookingDraft({
                                                     timeSlot: timeSlot.startTime,
@@ -198,11 +198,11 @@ function ScheduleCallPage() {
                                                     },
                                                     reportID,
                                                 });
-                                                Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATON.getRoute(reportID));
+                                                Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATION.getRoute(reportID));
                                             }}
                                             shouldEnableHapticFeedback
                                             style={styles.twoColumnLayoutCol}
-                                            text={format(timeSlot.startTime, 'p')}
+                                            text={DateUtils.formatInTimeZoneWithFallback(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)}
                                         />
                                     ))}
                                     {timeFillerItem}
