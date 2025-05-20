@@ -2349,9 +2349,14 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
  * Return true if:
  * - report is a non-settled IOU
  * - report is a draft
+ * - report is a processing expense report and its policy has Instant reporting frequency
  */
 function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
     if (!isMoneyRequestReport(moneyRequestReport)) {
+        return false;
+    }
+
+    if (isReportInGroupPolicy(moneyRequestReport) && isProcessingReport(moneyRequestReport) && !isInstantSubmitEnabled(getPolicy(moneyRequestReport?.policyID))) {
         return false;
     }
 
@@ -9372,7 +9377,7 @@ function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID:
  * Create a new report if:
  * - we don't have an iouReport set in the chatReport
  * - we have one, but it's waiting on the payee adding a bank account
- * - we have one, but we can't add more transactions to it due to: report is approved or settled
+ * - we have one, but we can't add more transactions to it due to: report is approved or settled, or report is processing and policy isn't on Instant submit reporting frequency
  */
 function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxInputOrEntry<Report> | undefined, chatReport: OnyxInputOrEntry<Report>): boolean {
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddTransaction(existingIOUReport);
