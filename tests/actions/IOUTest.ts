@@ -16,6 +16,7 @@ import {
     initMoneyRequest,
     payMoneyRequest,
     putOnHold,
+    replaceReceipt,
     requestMoney,
     resolveDuplicates,
     sendInvoice,
@@ -58,7 +59,7 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {Policy, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -114,6 +115,13 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.
 
 // This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
 jest.mock('@components/ConfirmedRoute.tsx');
+
+jest.mock('@src/libs/SearchQueryUtils', () => ({
+    getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
+        hash: 12345,
+        query: 'test',
+    })),
+}));
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
@@ -2019,7 +2027,7 @@ describe('actions/IOU', () => {
                                     vitTransaction = Object.values(allTransactions ?? {}).find(
                                         (transaction) => vitIOUAction && transaction?.transactionID === getOriginalMessage(vitIOUAction)?.IOUTransactionID,
                                     );
-                                    groupTransaction = Object.values(allTransactions ?? {}).find((transaction) => transaction?.reportID === CONST.REPORT.SPLIT_REPORTID);
+                                    groupTransaction = Object.values(allTransactions ?? {}).find((transaction) => transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID);
 
                                     expect(carlosTransaction?.reportID).toBe(carlosIOUReport?.reportID);
                                     expect(julesTransaction?.reportID).toBe(julesIOUReport?.reportID);
@@ -3774,9 +3782,9 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('chatReportID');
             expect(iouReport?.total).toBe(30000);
 
-            const ioupreview = chatReport?.reportID && iouReport?.reportID ? getReportPreviewAction(chatReport.reportID, iouReport.reportID) : undefined;
-            expect(ioupreview).toBeTruthy();
-            expect(getReportActionText(ioupreview)).toBe('rory@expensifail.com owes $300.00');
+            const iouPreview = chatReport?.reportID && iouReport?.reportID ? getReportPreviewAction(chatReport.reportID, iouReport.reportID) : undefined;
+            expect(iouPreview).toBeTruthy();
+            expect(getReportActionText(iouPreview)).toBe('rory@expensifail.com owes $300.00');
 
             // When we delete the first expense
             mockFetch?.pause?.();
@@ -5186,7 +5194,7 @@ describe('actions/IOU', () => {
                 modifiedAmount: 0,
                 receipt: {
                     source: 'test',
-                    state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 modifiedMerchant: undefined,
@@ -5198,7 +5206,7 @@ describe('actions/IOU', () => {
                 modifiedAmount: 0,
                 receipt: {
                     source: 'test',
-                    state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
                 merchant: 'test merchant',
                 modifiedMerchant: undefined,
@@ -5247,7 +5255,7 @@ describe('actions/IOU', () => {
                 modifiedAmount: 0,
                 receipt: {
                     source: 'test',
-                    state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
                 merchant: 'test merchant',
                 modifiedMerchant: undefined,
@@ -5292,7 +5300,7 @@ describe('actions/IOU', () => {
                 amount: 0,
                 receipt: {
                     source: 'test',
-                    state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 modifiedMerchant: undefined,
@@ -5757,7 +5765,7 @@ describe('actions/IOU', () => {
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
                 callback: (allReportActions) => {
-                    const action = Object.values(allReportActions ?? {}).find((a) => a?.actionName === 'REIMBURSEMENTDEQUEUED');
+                    const action = Object.values(allReportActions ?? {}).find((a) => a?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED);
                     expect(action?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 },
             });
@@ -5844,6 +5852,134 @@ describe('actions/IOU', () => {
                     expect(action?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 },
             });
+        });
+    });
+
+    describe('replaceReceipt', () => {
+        it('should replace the receipt of the transaction', async () => {
+            const transactionID = '123';
+            const file = new File([new Blob(['test'])], 'test.jpg', {type: 'image/jpeg'});
+            file.source = 'test';
+            const source = 'test';
+
+            const transaction = {
+                transactionID,
+                receipt: {
+                    source: 'test1',
+                },
+            };
+
+            // Given a transaction with a receipt
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+            const searchQueryJSON = {
+                hash: 12345,
+                query: 'test',
+            };
+
+            // Given a snapshot of the transaction
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {
+                // @ts-expect-error: Allow partial record in snapshot update
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When the receipt is replaced
+            replaceReceipt({transactionID, file, source});
+            await waitForBatchedUpdates();
+
+            // Then the transaction should have the new receipt source
+            const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                        resolve(newTransaction);
+                    },
+                });
+            });
+            expect(updatedTransaction?.receipt?.source).toBe(source);
+
+            // Then the snapshot should have the new receipt source
+            const updatedSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+                    waitForCollectionCallback: true,
+                    callback: (snapshots) => {
+                        Onyx.disconnect(connection);
+                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`];
+                        resolve(newSnapshot);
+                    },
+                });
+            });
+
+            expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+        });
+
+        it('should add receipt if it does not exist', async () => {
+            const transactionID = '123';
+            const file = new File([new Blob(['test'])], 'test.jpg', {type: 'image/jpeg'});
+            file.source = 'test';
+            const source = 'test';
+
+            const transaction = {
+                transactionID,
+            };
+
+            // Given a transaction without a receipt
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            const searchQueryJSON = {
+                hash: 12345,
+                query: 'test',
+            };
+
+            // Given a snapshot of the transaction
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {
+                // @ts-expect-error: Allow partial record in snapshot update
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When the receipt is replaced
+            replaceReceipt({transactionID, file, source});
+            await waitForBatchedUpdates();
+
+            // Then the transaction should have the new receipt source
+            const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                        resolve(newTransaction);
+                    },
+                });
+            });
+            expect(updatedTransaction?.receipt?.source).toBe(source);
+
+            // Then the snapshot should have the new receipt source
+            const updatedSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+                    waitForCollectionCallback: true,
+                    callback: (snapshots) => {
+                        Onyx.disconnect(connection);
+                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`];
+                        resolve(newSnapshot);
+                    },
+                });
+            });
+
+            expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
         });
     });
 });
