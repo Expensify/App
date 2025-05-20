@@ -532,7 +532,6 @@ function MoneyRequestParticipantsSelector({
         if (debouncedSearchTerm.length || isSearchingForReports) {
             return;
         }
-        console.log('ClickableImportContactTextComponent', translate('contact.importContactsTitle'));
         return (
             <ImportContactButton
                 showImportContacts={showImportContacts}
@@ -571,7 +570,7 @@ function MoneyRequestParticipantsSelector({
                     <ImportContactButton
                         showImportContacts={showImportContacts}
                         inputHelperText={inputHelperText}
-                        isInSearch={true}
+                        isInSearch
                     />
                 }
                 footerContent={footerContent}
