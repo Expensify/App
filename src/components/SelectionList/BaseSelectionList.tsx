@@ -926,7 +926,12 @@ function BaseSelectionList<TItem extends ListItem>(
                             )
                         }
                         scrollEnabled={scrollEnabled}
-                        ListFooterComponent={<>{footerContentAbovePagination}{ShowMoreButtonInstance}</>}
+                        ListFooterComponent={
+                            <>
+                                {footerContentAbovePagination}
+                                {ShowMoreButtonInstance}
+                            </>
+                        }
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}

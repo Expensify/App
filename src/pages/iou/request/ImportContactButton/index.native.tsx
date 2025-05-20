@@ -8,16 +8,17 @@ import goToSettings from '@pages/iou/request/goToSettings';
 type ImportContactButtonProps = {
     showImportContacts?: boolean;
     inputHelperText?: string;
+    isInSearch?: boolean;
 };
 
-function ImportContactButton({showImportContacts, inputHelperText}: ImportContactButtonProps) {
+function ImportContactButton({showImportContacts, inputHelperText, isInSearch = false}: ImportContactButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return showImportContacts && inputHelperText ? (
         <View style={[styles.ph5, styles.pb5, styles.flexRow]}>
             <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>
-                {`${translate('common.noResultsFound')}. `}
+                {isInSearch ? `${translate('common.noResultsFound')}. ` : null}
                 <Text
                     style={[styles.textLabel, styles.minHeight5, styles.link]}
                     onPress={goToSettings}

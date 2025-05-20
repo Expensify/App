@@ -528,9 +528,27 @@ function MoneyRequestParticipantsSelector({
         );
     }, [showImportContacts, styles.mb3, translate]);
 
+    const ClickableImportContactTextComponent = useMemo(() => {
+        if (debouncedSearchTerm.length || isSearchingForReports) {
+            return;
+        }
+        console.log('ClickableImportContactTextComponent', translate('contact.importContactsTitle'));
+        return (
+            <ImportContactButton
+                showImportContacts={showImportContacts}
+                inputHelperText={translate('contact.importContactsTitle')}
+                isInSearch={false}
+            />
+        );
+    }, [debouncedSearchTerm, isSearchingForReports, showImportContacts, translate]);
     const EmptySelectionListContentWithPermission = useMemo(() => {
-        return <EmptySelectionListContent contentType={iouType} />;
-    }, [iouType]);
+        return (
+            <>
+                {ClickableImportContactTextComponent}
+                <EmptySelectionListContent contentType={iouType} />;
+            </>
+        );
+    }, [iouType, ClickableImportContactTextComponent]);
 
     return (
         <>
@@ -553,6 +571,7 @@ function MoneyRequestParticipantsSelector({
                     <ImportContactButton
                         showImportContacts={showImportContacts}
                         inputHelperText={inputHelperText}
+                        isInSearch={true}
                     />
                 }
                 footerContent={footerContent}
