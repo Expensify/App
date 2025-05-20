@@ -15,7 +15,7 @@ type SelectedTransactionInfo = {
     canHold: boolean;
 
     /** If the transaction can be moved to other report */
-    canBeMoved: boolean;
+    canChangeReport: boolean;
 
     /** Whether the transaction is currently held */
     isHeld: boolean;

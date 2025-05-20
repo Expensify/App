@@ -70,7 +70,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, report
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
-            canBeMoved: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActions, item.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
+            canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActions, item.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
@@ -123,7 +123,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             canHold: item.canHold,
             isHeld: isOnHold(item),
             canUnhold: item.canUnhold,
-            canBeMoved: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActions, item.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
+            canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActions, item.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
@@ -165,8 +165,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const reportActionsArray = useMemo(
         () =>
             Object.values(reportActions ?? {})
-                .filter((a) => !!a)
-                .flatMap((x) => Object.values(x ?? {})),
+                .filter((reportAction) => !!reportAction)
+                .flatMap((fillteredReportActions) => Object.values(fillteredReportActions ?? {})),
         [reportActions],
     );
     const {translate} = useLocalize();
@@ -267,7 +267,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     canHold: transaction.canHold,
                     isHeld: isOnHold(transaction),
                     canUnhold: transaction.canUnhold,
-                    canBeMoved: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
+                    canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
                     canDelete: transaction.canDelete,
@@ -290,7 +290,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         canHold: transaction.canHold,
                         isHeld: isOnHold(transaction),
                         canUnhold: transaction.canUnhold,
-                        canBeMoved: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
+                        canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
                         canDelete: transaction.canDelete,
@@ -375,7 +375,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             setSelectedTransactions(
                 {
                     ...selectedTransactions,
-                    ...Object.fromEntries(item.transactions.map((i) => mapTransactionItemToSelectedEntry(i, reportActionsArray))),
+                    ...Object.fromEntries(item.transactions.map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
                 },
                 data,
             );
@@ -537,14 +537,19 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
         if (areItemsOfReportType) {
             setSelectedTransactions(
-                Object.fromEntries((data as ReportListItemType[]).flatMap((item) => item.transactions.map((i) => mapTransactionItemToSelectedEntry(i, reportActionsArray)))),
+                Object.fromEntries(
+                    (data as ReportListItemType[]).flatMap((item) => item.transactions.map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
+                ),
                 data,
             );
 
             return;
         }
 
-        setSelectedTransactions(Object.fromEntries((data as TransactionListItemType[]).map((i) => mapTransactionItemToSelectedEntry(i, reportActionsArray))), data);
+        setSelectedTransactions(
+            Object.fromEntries((data as TransactionListItemType[]).map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray))),
+            data,
+        );
     };
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
