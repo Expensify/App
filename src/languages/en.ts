@@ -4959,11 +4959,11 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
-                alcohol: 'Alcohol',
-                hotelIncidentals: 'Hotel incidentals',
-                gambling: 'Gambling',
-                tobacco: 'Tobacco',
-                adultEntertainment: 'Adult entertainment',
+                alcohol: 'alcohol',
+                hotelIncidentals: 'hotel incidentals',
+                gambling: 'gambling',
+                tobacco: 'tobacco',
+                adultEntertainment: 'adult entertainment',
             },
             expenseReportRules: {
                 examples: 'Examples:',
@@ -5781,15 +5781,15 @@ const translations = {
             const preMessage = 'Prohibited expense:';
             switch (prohibitedExpenseType) {
                 case 'alcohol':
-                    return `${preMessage} Alcohol`;
+                    return `${preMessage} alcohol`;
                 case 'gambling':
-                    return `${preMessage} Gambling`;
+                    return `${preMessage} gambling`;
                 case 'tobacco':
-                    return `${preMessage} Tobacco`;
+                    return `${preMessage} tobacco`;
                 case 'adultEntertainment':
-                    return `${preMessage} Adult entertainment`;
+                    return `${preMessage} adult entertainment`;
                 case 'hotelIncidentals':
-                    return `${preMessage} Hotel incidentals`;
+                    return `${preMessage} hotel incidentals`;
                 default:
                     return `${preMessage}${prohibitedExpenseType}`;
             }
