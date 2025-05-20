@@ -30,9 +30,13 @@ function HybridAppSignIn({url, hybridAppSettings}: AppProps) {
     const {setSplashScreenState} = useContext(SplashScreenStateContext);
 
     useEffect(() => {
-        Linking.addEventListener('url', (state) => {
+        const listener = Linking.addEventListener('url', (state) => {
             handleHybridUrlNavigation(state.url as Route);
         });
+
+        return () => {
+            listener.remove()
+        }
     }, []);
 
     if (!url || !hybridAppSettings || signInHandled) {

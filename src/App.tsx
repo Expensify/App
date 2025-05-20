@@ -112,13 +112,13 @@ function App({url, hybridAppSettings}: AppProps) {
                         >
                             <CustomStatusBarAndBackground />
                             <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                                {CONFIG.IS_HYBRID_APP && (
+                                    <HybridAppSignIn
+                                        url={url}
+                                        hybridAppSettings={hybridAppSettings}
+                                    />
+                                )}
                                 <ColorSchemeWrapper>
-                                    {CONFIG.IS_HYBRID_APP && (
-                                        <HybridAppSignIn
-                                            url={url}
-                                            hybridAppSettings={hybridAppSettings}
-                                        />
-                                    )}
                                     <Expensify />
                                 </ColorSchemeWrapper>
                             </ErrorBoundary>
