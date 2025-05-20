@@ -7451,7 +7451,7 @@ function isEmptyReport(report: OnyxEntry<Report>): boolean {
     }
 
     // Get the `isEmpty` state from cached report attributes
-    const attributes = reportAttributes?.[report.reportID];
+    const attributes = reportAttributesDerivedValue?.[report.reportID];
     if (attributes) {
         return attributes.isEmpty;
     }
