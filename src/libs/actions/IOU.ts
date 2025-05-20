@@ -7524,9 +7524,13 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
     ];
 
     if (transactionViolations) {
-        removeSettledAndApprovedTransactions(
-            transactionViolations.filter((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION).flatMap((violation) => violation?.data?.duplicates ?? []),
-        ).forEach((duplicateID) => {
+        const duplicates = transactionViolations
+            .filter((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+            .flatMap((violation) => violation?.data?.duplicates ?? [])
+            .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
+
+        removeSettledAndApprovedTransactions(duplicates).forEach((duplicate) => {
+            const duplicateID = duplicate?.transactionID;
             const duplicateTransactionsViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`];
             if (!duplicateTransactionsViolations) {
                 return;
@@ -8931,10 +8935,9 @@ function canSubmitReport(
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const transactionIDList = transactions.map((transaction) => transaction.transactionID);
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
-    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactionIDList, allViolations);
+    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations);
     const hasOnlyPendingCardOrScanFailTransactions =
         transactions.length > 0 &&
         transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || isReceiptBeingScannedTransactionUtils(t));
@@ -9159,7 +9162,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     // Remove duplicates violations if we approve the report
     if (hasDuplicates) {
-        const transactions = getReportTransactions(expenseReport.reportID).filter((transaction) => isDuplicate(transaction.transactionID, true));
+        const transactions = getReportTransactions(expenseReport.reportID).filter((transaction) => isDuplicate(transaction, true));
         if (!full) {
             transactions.filter((transaction) => !isOnHold(transaction));
         }

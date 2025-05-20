@@ -19,7 +19,7 @@ import {
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
 } from '@libs/ReportUtils';
-import {getAmount, getTransaction, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {getAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, RecentWaypoint, Report, ReportAction, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
@@ -497,15 +497,15 @@ function getLastModifiedExpense(reportID?: string): OriginalMessageModifiedExpen
     return getOriginalMessage(modifiedExpenseActions.at(-1));
 }
 
-function revert(transactionID?: string, originalMessage?: OriginalMessageModifiedExpense | undefined) {
-    const transaction = getTransaction(transactionID);
-
-    if (transaction && originalMessage?.oldAmount && originalMessage.oldCurrency && 'amount' in originalMessage && 'currency' in originalMessage) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-            modifiedAmount: transaction?.amount && transaction?.amount < 0 ? -Math.abs(originalMessage.oldAmount) : originalMessage.oldAmount,
-            modifiedCurrency: originalMessage.oldCurrency,
-        });
+function revert(transaction?: OnyxEntry<Transaction>, originalMessage?: OriginalMessageModifiedExpense | undefined) {
+    if (!(transaction && originalMessage?.oldAmount && originalMessage.oldCurrency && 'amount' in originalMessage && 'currency' in originalMessage)) {
+        return;
     }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, {
+        modifiedAmount: transaction?.amount && transaction?.amount < 0 ? -Math.abs(originalMessage.oldAmount) : originalMessage.oldAmount,
+        modifiedCurrency: originalMessage.oldCurrency,
+    });
 }
 
 function markAsCash(transactionID: string | undefined, transactionThreadReportID: string | undefined) {

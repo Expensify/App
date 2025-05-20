@@ -102,7 +102,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const isProcessingReport = isProcessingReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction));
 
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -117,7 +117,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
 
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
 
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
 
     if (hasAllPendingRTERViolations) {
         return true;

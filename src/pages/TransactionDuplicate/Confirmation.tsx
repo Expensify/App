@@ -22,6 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import * as IOU from '@src/libs/actions/IOU';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -40,18 +41,38 @@ function Confirmation() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: true});
-    const transaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
+    const newTransaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID);
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: (allTransactionsViolations) => allTransactionsViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`],
+        canBeMissing: false,
+    });
+    const allDuplicateIDs = useMemo(
+        () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
+        [transactionViolations],
+    );
+    const [allDuplicates] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {
+        selector: (allTransactions) => allDuplicateIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
+        canBeMissing: true,
+    });
+
+    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicates?.reportID);
     const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: true});
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`, {canBeMissing: true});
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newTransaction?.reportID}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newTransaction?.reportID}`, {canBeMissing: true});
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
-
-    const transactionsMergeParams = useMemo(() => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
+    const [duplicates] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {
+        selector: (allTransactions) => reviewDuplicates?.duplicates.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
+        canBeMissing: true,
+    });
+    const transactionsMergeParams = useMemo(
+        () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
+        [duplicates, reviewDuplicates, newTransaction],
+    );
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const mergeDuplicates = useCallback(() => {
@@ -103,9 +124,9 @@ function Confirmation() {
         isEmptyObject(report) ||
         !ReportUtils.isValidReport(report) ||
         ReportUtils.isReportNotFound(report) ||
-        (reviewDuplicatesResult.status === 'loaded' && (!transaction?.transactionID || !doesTransactionBelongToReport));
+        (reviewDuplicatesResult.status === 'loaded' && (!newTransaction?.transactionID || !doesTransactionBelongToReport));
 
-    if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult) || !transaction?.transactionID) {
+    if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult) || !newTransaction?.transactionID) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -138,7 +159,7 @@ function Confirmation() {
                                 shouldShowAnimatedBackground={false}
                                 readonly
                                 isFromReviewDuplicates
-                                updatedTransaction={transaction as OnyxEntry<Transaction>}
+                                updatedTransaction={newTransaction as OnyxEntry<Transaction>}
                             />
                         </ShowContextMenuContext.Provider>
                     </ScrollView>

@@ -194,7 +194,8 @@ function useSelectedTransactionsActions({
         }
 
         const canAllSelectedTransactionsBeRemoved = selectedTransactionsID.every((transactionID) => {
-            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transactionID);
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transaction);
             const action = getIOUActionForTransactionID(reportActions, transactionID);
             const isActionDeleted = isDeletedAction(action);
             const isIOUActionOwner = typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
@@ -213,7 +214,19 @@ function useSelectedTransactionsActions({
             });
         }
         return options;
-    }, [selectedTransactionsID, report, selectedTransactions, translate, reportActions, setSelectedTransactionsID, onExportFailed, iouType, session?.accountID, showDeleteModal]);
+    }, [
+        selectedTransactionsID,
+        report,
+        selectedTransactions,
+        allTransactions,
+        translate,
+        reportActions,
+        setSelectedTransactionsID,
+        onExportFailed,
+        iouType,
+        session?.accountID,
+        showDeleteModal,
+    ]);
 
     return {
         options: computedOptions,

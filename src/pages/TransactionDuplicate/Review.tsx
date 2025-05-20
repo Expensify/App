@@ -17,7 +17,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils';
 import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
-import {getTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -38,14 +37,19 @@ function TransactionDuplicateReview() {
     );
     const transactionIDs = transactionID ? [transactionID, ...duplicateTransactionIDs] : duplicateTransactionIDs;
 
-    const transactions = transactionIDs.map((item) => getTransaction(item)).sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
+    const [transactions] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {
+        selector: (allTransactions) =>
+            transactionIDs
+                .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
+                .sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime()),
+    });
 
     const keepAll = () => {
         dismissDuplicateTransactionViolation(transactionIDs, currentPersonalDetails);
         Navigation.goBack();
     };
 
-    const hasSettledOrApprovedTransaction = transactions.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
+    const hasSettledOrApprovedTransaction = transactions?.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
 
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
@@ -61,7 +65,7 @@ function TransactionDuplicateReview() {
                     />
                     {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mt3]}>{translate('iou.someDuplicatesArePaid')}</Text>}
                 </View>
-                <DuplicateTransactionsList transactions={transactions} />
+                <DuplicateTransactionsList transactions={transactions ?? []} />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

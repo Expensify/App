@@ -75,9 +75,6 @@ type TransactionPreviewContentProps = {
     /** Handles the UI response and data clean-up when the transaction goes offline. */
     offlineWithFeedbackOnClose: () => void;
 
-    /** Navigates the user to a separate view or component for reviewing or editing transaction fields. */
-    navigateToReviewFields: () => void;
-
     /** Whether the transaction is whisper. */
     isWhisper?: boolean;
 

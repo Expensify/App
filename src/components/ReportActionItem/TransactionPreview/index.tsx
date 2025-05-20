@@ -11,9 +11,8 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getOriginalTransactionIfBillIsSplit, getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
+import {getOriginalTransactionIfBillIsSplit} from '@libs/TransactionPreviewUtils';
 import {isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
-import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
 import {clearWalletTermsError} from '@userActions/PaymentMethods';
@@ -43,7 +42,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
@@ -54,10 +52,14 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
-    const allDuplicates = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
-    const duplicates = useMemo(() => removeSettledAndApprovedTransactions(allDuplicates), [allDuplicates]);
+    const allDuplicateIDs = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
+    const [allDuplicates] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {
+        selector: (allTransactions) => allDuplicateIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
+        canBeMissing: true,
+    });
+    const duplicates = useMemo(() => removeSettledAndApprovedTransactions(allDuplicates ?? []), [allDuplicates]);
     const sessionAccountID = session?.accountID;
-    const areThereDuplicates = allDuplicates.length > 0 && duplicates.length > 0 && allDuplicates.length === duplicates.length;
+    const areThereDuplicates = allDuplicateIDs.length > 0 && duplicates.length > 0 && allDuplicateIDs.length === duplicates.length;
 
     const transactionDetails = useMemo(() => getTransactionDetails(transaction), [transaction]);
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails ?? {};
@@ -74,11 +76,10 @@ function TransactionPreview(props: TransactionPreviewProps) {
         clearIOUError(chatReportID);
     }, [chatReportID]);
 
-    const navigateToReviewFields = useCallback(() => {
-        Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
-    }, [duplicates, report, route, transaction]);
+    const {originalTransactionID} = transaction?.comment ?? {};
+    const [originalTransactionOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {canBeMissing: true});
 
-    const {originalTransaction, isBillSplit} = getOriginalTransactionIfBillIsSplit(transaction);
+    const {isBillSplit, originalTransaction} = getOriginalTransactionIfBillIsSplit(transaction, originalTransactionOnyx);
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);
@@ -105,7 +106,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     iouReport={iouReport}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
-                    navigateToReviewFields={navigateToReviewFields}
                     areThereDuplicates={areThereDuplicates}
                     sessionAccountID={sessionAccountID}
                     walletTermsErrors={walletTerms?.errors}
@@ -126,7 +126,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
             iouReport={iouReport}
             violations={violations}
             offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
-            navigateToReviewFields={navigateToReviewFields}
             areThereDuplicates={areThereDuplicates}
             sessionAccountID={sessionAccountID}
             walletTermsErrors={walletTerms?.errors}

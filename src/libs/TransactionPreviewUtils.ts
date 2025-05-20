@@ -2,22 +2,16 @@ import truncate from 'lodash/truncate';
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './actions/Transaction';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import type {PlatformStackRouteProp} from './Navigation/PlatformStackNavigation/types';
-import type {TransactionDuplicateNavigatorParamList} from './Navigation/types';
-import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
+import {getOriginalMessage, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
 import {hasActionsWithErrors, hasReportViolations, isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isReportOwner, isSettled} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
-    compareDuplicateTransactionFields,
     getFormattedCreated,
-    getTransaction,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
@@ -60,48 +54,6 @@ function getIOUData(managerID: number, ownerAccountID: number, isIOUReport: bool
         : undefined;
 }
 
-const getReviewNavigationRoute = (
-    route: PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, 'Transaction_Duplicate_Review'>,
-    report: OnyxEntry<OnyxTypes.Report>,
-    transaction: OnyxEntry<OnyxTypes.Transaction>,
-    duplicates: string[],
-) => {
-    const backTo = route.params.backTo;
-
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const reviewingTransactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
-
-    // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
-    // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
-    abandonReviewDuplicateTransactions();
-    const comparisonResult = compareDuplicateTransactionFields(reviewingTransactionID, transaction?.reportID, transaction?.transactionID ?? reviewingTransactionID);
-    setReviewDuplicatesKey({...comparisonResult.keep, duplicates, transactionID: transaction?.transactionID, reportID: transaction?.reportID});
-
-    if (comparisonResult.change.merchant) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(route.params?.threadReportID, backTo);
-    }
-    if (comparisonResult.change.category) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(route.params?.threadReportID, backTo);
-    }
-    if (comparisonResult.change.tag) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(route.params?.threadReportID, backTo);
-    }
-    if (comparisonResult.change.description) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(route.params?.threadReportID, backTo);
-    }
-    if (comparisonResult.change.taxCode) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(route.params?.threadReportID, backTo);
-    }
-    if (comparisonResult.change.billable) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(route.params?.threadReportID, backTo);
-    }
-    if (comparisonResult.change.reimbursable) {
-        return ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(route.params?.threadReportID, backTo);
-    }
-
-    return ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(route.params?.threadReportID, backTo);
-};
-
 type TranslationPathOrText = {
     translationPath?: TranslationPaths;
     text?: string;
@@ -109,18 +61,16 @@ type TranslationPathOrText = {
 
 const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
 
-const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
+const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<OnyxTypes.Transaction>, originalTransaction: OnyxEntry<OnyxTypes.Transaction>) => {
     const {originalTransactionID, source, splits} = transaction?.comment ?? {};
 
     if (splits && splits.length > 0) {
-        return {isBillSplit: true, originalTransaction: getTransaction(originalTransactionID) ?? transaction};
+        return {isBillSplit: true, originalTransaction: originalTransaction ?? transaction};
     }
 
     if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
         return {isBillSplit: false, originalTransaction: transaction};
     }
-
-    const originalTransaction = getTransaction(originalTransactionID);
 
     return {isBillSplit: !!originalTransaction, originalTransaction: originalTransaction ?? transaction};
 };
@@ -154,6 +104,7 @@ function getUniqueActionErrors(reportActions: OnyxTypes.ReportActions) {
 function getTransactionPreviewTextAndTranslationPaths({
     iouReport,
     transaction,
+    originalTransaction,
     action,
     violations,
     transactionDetails,
@@ -164,6 +115,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
+    originalTransaction: OnyxEntry<OnyxTypes.Transaction>;
     action: OnyxEntry<OnyxTypes.ReportAction>;
     violations: OnyxTypes.TransactionViolations;
     transactionDetails: Partial<TransactionDetails>;
@@ -184,7 +136,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
     const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction?.transactionID, violations, true) && isPaidGroupPolicy(iouReport);
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, true) && isPaidGroupPolicy(iouReport);
     const hasActionWithErrors = hasActionsWithErrors(iouReport?.reportID);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
@@ -268,7 +220,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    const amount = isBillSplit ? getOriginalTransactionIfBillIsSplit(transaction).originalTransaction?.amount : requestAmount;
+    const amount = isBillSplit ? getOriginalTransactionIfBillIsSplit(transaction, originalTransaction).originalTransaction?.amount : requestAmount;
     let displayAmountText: TranslationPathOrText = isScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
@@ -315,7 +267,7 @@ function createTransactionPreviewConditionals({
     const isApproved = isReportApproved({report: iouReport});
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
 
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction?.transactionID, violations, true) && iouReport && isPaidGroupPolicy(iouReport);
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, true) && iouReport && isPaidGroupPolicy(iouReport);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
@@ -329,7 +281,7 @@ function createTransactionPreviewConditionals({
     const shouldShowCategory = !!category && isReportAPolicyExpenseChat;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const hasAnyViolations = hasViolationsOfTypeNotice || hasWarningTypeViolation(transaction?.transactionID, violations, true) || hasViolation(transaction, violations, true);
+    const hasAnyViolations = hasViolationsOfTypeNotice || hasWarningTypeViolation(transaction, violations, true) || hasViolation(transaction, violations, true);
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionsWithErrors(iouReport?.reportID);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors;
@@ -364,7 +316,6 @@ function createTransactionPreviewConditionals({
 }
 
 export {
-    getReviewNavigationRoute,
     getIOUData,
     getTransactionPreviewTextAndTranslationPaths,
     createTransactionPreviewConditionals,

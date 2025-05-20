@@ -94,15 +94,19 @@ function TransactionPreviewContent({
     const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction);
     const violationMessage = firstViolation ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit) : undefined;
 
+    const {originalTransactionID} = transaction?.comment ?? {};
+    const [originalTransactionOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {canBeMissing: true});
+
     const previewText = useMemo(
         () =>
             getTransactionPreviewTextAndTranslationPaths({
                 ...transactionPreviewCommonArguments,
+                originalTransaction: originalTransactionOnyx,
                 shouldShowRBR,
                 violationMessage,
                 reportActions,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransactionOnyx],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? '');
 

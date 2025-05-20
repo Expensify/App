@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {PartialPolicyForSidebar} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportNameValuePairs, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type Policy from '@src/types/onyx/Policy';
@@ -27,7 +27,6 @@ import {
     getCardIssuedMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
-    getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -60,7 +59,6 @@ import {
     isRenamedAction,
     isTagModificationAction,
     isTaskAction,
-    isTransactionThread,
     shouldReportActionBeVisibleAsLastAction,
 } from './ReportActionsUtils';
 import type {OptionData} from './ReportUtils';
@@ -117,7 +115,6 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
-import {getTransaction, getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; phrase4?: string; messageText?: string; messageHtml?: string};
 
@@ -348,6 +345,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     hasViolations: boolean,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
+    transaction?: OnyxEntry<Transaction>,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
     const errors = getAllReportErrors(report, reportActions);
@@ -375,20 +373,8 @@ function getReasonAndReportActionThatHasRedBrickRoad(
             reason: CONST.RBR_REASONS.HAS_VIOLATIONS,
         };
     }
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
-    if (transactionThreadReportID) {
-        const transactionID = getTransactionID(transactionThreadReportID);
-        const transaction = getTransaction(transactionID);
-        if (hasReceiptError(transaction)) {
-            return {
-                reason: CONST.RBR_REASONS.HAS_ERRORS,
-            };
-        }
-    }
-    const transactionID = getTransactionID(report.reportID);
-    const transaction = getTransaction(transactionID);
-    if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
+
+    if (transaction && hasReceiptError(transaction)) {
         return {
             reason: CONST.RBR_REASONS.HAS_ERRORS,
         };
@@ -403,8 +389,9 @@ function shouldShowRedBrickRoad(
     hasViolations: boolean,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
+    transaction?: OnyxEntry<Transaction>,
 ) {
-    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isReportArchived);
+    return !!getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isReportArchived, transaction);
 }
 
 /**

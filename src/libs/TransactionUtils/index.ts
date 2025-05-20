@@ -836,12 +836,15 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>): 
 /**
  * Get all transaction violations of the transaction with given transactionID.
  */
-function getTransactionViolations(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | undefined): TransactionViolations | undefined {
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    if (!transactionID || !transactionViolations) {
+function getTransactionViolations(
+    transaction: Transaction | SearchTransaction | undefined,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+): TransactionViolations | undefined {
+    if (!transaction || !transactionViolations) {
         return undefined;
     }
-    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.filter((violation) => !isViolationDismissed(transaction, violation));
+
+    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.filter((violation) => !isViolationDismissed(transaction, violation));
 }
 
 /**
@@ -860,8 +863,8 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 /**
  * Check if there is broken connection violation.
  */
-function hasBrokenConnectionViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
-    const violations = getTransactionViolations(transactionID, transactionViolations);
+function hasBrokenConnectionViolation(transaction: Transaction | SearchTransaction, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
+    const violations = getTransactionViolations(transaction, transactionViolations);
     return !!violations?.find((violation) => isBrokenConnectionViolation(violation));
 }
 
@@ -916,9 +919,16 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
-function allHavePendingRTERViolation(transactionIds: string[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
-    const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
-        const filteredTransactionViolations = getTransactionViolations(transactionId, transactionViolations);
+function allHavePendingRTERViolation(
+    transactions: OnyxEntry<Transaction[]> | OnyxEntry<SearchTransaction[]>,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+): boolean {
+    if (!transactions) {
+        return false;
+    }
+
+    const transactionsWithRTERViolations = transactions.map((transaction) => {
+        const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations);
         return hasPendingRTERViolation(filteredTransactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
@@ -936,11 +946,11 @@ function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, sho
 /**
  * Check if there is any transaction without RTER violation within the given transactionIDs.
  */
-function hasAnyTransactionWithoutRTERViolation(transactionIds: string[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
+function hasAnyTransactionWithoutRTERViolation(transactions: Transaction[] | SearchTransaction[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
     return (
-        transactionIds.length > 0 &&
-        transactionIds.some((transactionId) => {
-            return !hasBrokenConnectionViolation(transactionId, transactionViolations);
+        transactions.length > 0 &&
+        transactions.some((transaction) => {
+            return !hasBrokenConnectionViolation(transaction, transactionViolations);
         })
     );
 }
@@ -1029,12 +1039,11 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * @param transactionID - the transaction to check
  * @param checkDismissed - whether to check if the violation has already been dismissed as well
  */
-function isDuplicate(transactionID: string | undefined, checkDismissed = false): boolean {
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+function isDuplicate(transaction: OnyxEntry<Transaction>, checkDismissed = false): boolean {
     if (!transaction) {
         return false;
     }
-    const duplicateViolation = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.find(
+    const duplicateViolation = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]?.find(
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
     const hasDuplicatedViolation = !!duplicateViolation;
@@ -1113,18 +1122,21 @@ function hasDuplicateTransactions(iouReportID?: string, allReportTransactions?: 
     const transactionsByIouReportID = getReportTransactions(iouReportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
 
-    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction?.transactionID, true));
+    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, true));
 }
 
 /**
  * Checks if any violations for the provided transaction are of type 'notice'
  */
-function hasNoticeTypeViolation(transactionID: string | undefined, transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+function hasNoticeTypeViolation(
+    transaction: OnyxEntry<Transaction>,
+    transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>,
+    showInReview?: boolean,
+): boolean {
     if (!doesTransactionSupportViolations(transaction)) {
         return false;
     }
-    const violations = Array.isArray(transactionViolations) ? transactionViolations : transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID];
+    const violations = Array.isArray(transactionViolations) ? transactionViolations : transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
 
     return !!violations?.some(
         (violation: TransactionViolation) =>
@@ -1137,12 +1149,15 @@ function hasNoticeTypeViolation(transactionID: string | undefined, transactionVi
 /**
  * Checks if any violations for the provided transaction are of type 'warning'
  */
-function hasWarningTypeViolation(transactionID: string | undefined, transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+function hasWarningTypeViolation(
+    transaction: OnyxEntry<Transaction>,
+    transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>,
+    showInReview?: boolean,
+): boolean {
     if (!doesTransactionSupportViolations(transaction)) {
         return false;
     }
-    const violations = Array.isArray(transactionViolations) ? transactionViolations : transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID];
+    const violations = Array.isArray(transactionViolations) ? transactionViolations : transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
     const warningTypeViolations =
         violations?.filter(
             (violation: TransactionViolation) =>
@@ -1262,13 +1277,6 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
-/**
- * @deprecated Get the data straight from Onyx
- */
-function getTransaction(transactionID: string | number | undefined): OnyxEntry<Transaction> {
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-}
-
 function getTransactionOrDraftTransaction(transactionID: string): OnyxEntry<Transaction> {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
 }
@@ -1284,12 +1292,8 @@ type FieldsToChange = {
     reimbursable?: Array<boolean | undefined>;
 };
 
-function removeSettledAndApprovedTransactions(transactionIDs: string[]): string[] {
-    return transactionIDs.filter(
-        (transactionID) =>
-            !isSettled(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID) &&
-            !isReportIDApproved(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID),
-    );
+function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Array<OnyxEntry<Transaction>> {
+    return transactions.filter((transaction) => !isSettled(transaction?.reportID) && !isReportIDApproved(transaction?.reportID));
 }
 
 /**
@@ -1311,10 +1315,12 @@ function removeSettledAndApprovedTransactions(transactionIDs: string[]): string[
  */
 
 function compareDuplicateTransactionFields(
-    reviewingTransactionID?: string | undefined,
+    reviewingTransaction?: OnyxEntry<Transaction>,
+    duplicates?: Array<OnyxEntry<Transaction>>,
     reportID?: string | undefined,
     selectedTransactionID?: string,
 ): {keep: Partial<ReviewDuplicates>; change: FieldsToChange} {
+    const reviewingTransactionID = reviewingTransaction?.transactionID;
     if (!reviewingTransactionID || !reportID) {
         return {change: {}, keep: {}};
     }
@@ -1326,9 +1332,7 @@ function compareDuplicateTransactionFields(
     if (!reviewingTransactionID || !reportID) {
         return {keep, change};
     }
-    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reviewingTransactionID}`];
-    const duplicates = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
-    const transactions = removeSettledAndApprovedTransactions([reviewingTransactionID, ...duplicates]).map((item) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item}`]);
+    const transactions = removeSettledAndApprovedTransactions([reviewingTransaction, ...(duplicates ?? [])]);
 
     const fieldsToCompare: FieldsToCompare = {
         merchant: ['modifiedMerchant', 'merchant'],
@@ -1488,7 +1492,11 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
     };
 }
 
-function buildMergeDuplicatesParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): MergeDuplicatesParams {
+function buildMergeDuplicatesParams(
+    reviewDuplicates: OnyxEntry<ReviewDuplicates>,
+    duplicates: Array<OnyxEntry<Transaction>>,
+    originalTransaction: Partial<Transaction>,
+): MergeDuplicatesParams {
     return {
         amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
         reportID: originalTransaction?.reportID,
@@ -1496,7 +1504,9 @@ function buildMergeDuplicatesParams(reviewDuplicates: OnyxEntry<ReviewDuplicates
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
         created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
         transactionID: reviewDuplicates?.transactionID,
-        transactionIDList: removeSettledAndApprovedTransactions(reviewDuplicates?.duplicates ?? []),
+        transactionIDList: removeSettledAndApprovedTransactions(duplicates ?? [])
+            .filter((transaction) => !!transaction)
+            .map((transaction) => transaction?.transactionID),
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',
@@ -1542,7 +1552,7 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
 }
 
 function shouldShowRTERViolationMessage(transactions?: Transaction[]) {
-    return transactions?.length === 1 && hasPendingUI(transactions?.at(0), getTransactionViolations(transactions?.at(0)?.transactionID, allTransactionViolations));
+    return transactions?.length === 1 && hasPendingUI(transactions?.at(0), getTransactionViolations(transactions?.at(0), allTransactionViolations));
 }
 
 export {
@@ -1620,7 +1630,6 @@ export {
     hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
-    getTransaction,
     compareDuplicateTransactionFields,
     getTransactionID,
     buildNewTransactionAfterReviewingDuplicates,
