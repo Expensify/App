@@ -88,7 +88,7 @@ function IOURequestStepAmount({
     const isEditingSplitBill = isEditing && isSplitBill;
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const allowNegative = shouldEnableNegative(report, policy, iouType);
-    const {amount: transactionAmount} = getTransactionDetails(currentTransaction, undefined, allowNegative) ?? {amount: 0};
+    const {amount: transactionAmount} = getTransactionDetails(currentTransaction, undefined, undefined, allowNegative) ?? {amount: 0};
     const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
