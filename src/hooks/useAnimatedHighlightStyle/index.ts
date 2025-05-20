@@ -68,19 +68,6 @@ export default function useAnimatedHighlightStyle({
     const highlightBackgroundStyle = useAnimatedStyle(() => {
         'worklet';
 
-        // This code runs both on the JS thread (once for setup) and on the UI thread (for actual animation).
-        // To avoid accessing Reanimated shared values (like .value) on the JS thread,
-        // we guard the JS execution path with `_WORKLET`. This ensures we return a safe fallback style
-        // during the JS pass and avoid any crashes or unexpected behavior.
-        if (!_WORKLET) {
-            return {
-                backgroundColor: backgroundColor ?? theme.appBG,
-                height: height ?? 'auto',
-                opacity: 0,
-                borderRadius,
-            };
-        }
-
         const repeatableValue = repeatableProgress.get();
         const nonRepeatableValue = nonRepeatableProgress.get();
 
