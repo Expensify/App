@@ -323,6 +323,9 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         Log.info('No stashed session found, clearing the session');
     }
 
+    // Navigate to the signing out page immediately
+    Navigation.navigate(ROUTES.SIGNING_OUT);
+
     // Wait for signOut (if called), then redirect and update Onyx.
     signOutPromise
         .then(() => {

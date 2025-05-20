@@ -6356,6 +6356,10 @@ const translations = {
             minutes: '30 minutes',
         },
     },
+    signingOutPage: {
+        title: 'Hold on...',
+        subtitle: 'We’re signing you out. This will take a moment.',
+    },
     testDrive: {
         quickAction: {
             takeATwoMinuteTestDrive: 'Take a 2-minute test drive',
