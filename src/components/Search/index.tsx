@@ -205,8 +205,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         }
 
         // If we're not in search mode, only allow the search when:
-        // 1. It's a filter tab change (status: 'done', 'outstanding', etc.)
-        // 2. It's a sort or other search parameter change
+        // - it's a filter tab change (status: 'done', 'outstanding', etc.)
+        // - it's a sort or other search parameter change
         const isFilterTabChange = !!queryJSON.status;
 
         if (!isOnSearch && !isFilterTabChange) {
