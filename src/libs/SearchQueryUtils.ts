@@ -62,6 +62,7 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     taxRate: 'tax-rate',
     cardID: 'card',
     feed: 'feed',
+    // cspell:disable-next-line
     reportID: 'reportid',
     keyword: 'keyword',
     in: 'in',
@@ -77,7 +78,6 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     billable: 'billable',
     reimbursable: 'reimbursable',
 };
-
 /**
  * @private
  * Returns string value wrapped in quotes "", if the value contains space or &nbsp; (no-breaking space).
@@ -797,7 +797,7 @@ function getQueryWithUpdatedValues(query: string) {
     const queryJSON = buildSearchQueryJSON(query);
 
     if (!queryJSON) {
-        Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, {}, false);
+        Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} user query failed to parse`, {}, false);
         return;
     }
 
@@ -825,6 +825,25 @@ function getCurrentSearchQueryJSON() {
     }
 
     return queryJSON;
+}
+
+/**
+ * Extracts the query text without the filter parts.
+ * This is used to determine if a user's core search terms have changed,
+ * ignoring any filter modifications.
+ *
+ * @param searchQuery - The complete search query string
+ * @returns The query without filters (core search terms only)
+ */
+function getQueryWithoutFilters(searchQuery: string) {
+    const queryJSON = buildSearchQueryJSON(searchQuery);
+    if (!queryJSON) {
+        return '';
+    }
+
+    const keywordFilter = queryJSON.flatFilters.find((filter) => filter.key === 'keyword');
+
+    return keywordFilter?.filters.map((filter) => filter.value).join(' ') ?? '';
 }
 
 /**
@@ -869,6 +888,7 @@ export {
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
     getCurrentSearchQueryJSON,
+    getQueryWithoutFilters,
     getUserFriendlyKey,
     isDefaultExpensesQuery,
     shouldHighlight,

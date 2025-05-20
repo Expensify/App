@@ -29,6 +29,7 @@ import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -38,10 +39,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {clearPolicyTagErrors, deletePolicyTags, downloadTagsCSV, openPolicyTagsPage, setPolicyTagsRequired, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
+import {
+    clearPolicyTagErrors,
+    deletePolicyTags,
+    downloadMultiLevelIndependentTagsCSV,
+    downloadTagsCSV,
+    openPolicyTagsPage,
+    setPolicyTagsRequired,
+    setWorkspaceTagEnabled,
+} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -52,6 +60,8 @@ import {
     getCurrentConnectionName,
     getTagLists,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
+    hasDependentTags as hasDependentTagsPolicyUtils,
+    hasIndependentTags as hasIndependentTagsPolicyUtils,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
@@ -93,12 +103,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const [policyTagLists, isMultiLevelTags] = useMemo(() => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags)], [policyTags]);
+    const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
+        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
+        [policy, policyTags],
+    );
     const canSelectMultiple = !isMultiLevelTags && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = !!backTo;
+    const {canUseMultiLevelTags} = usePermissions();
 
     const tagsList = useMemo(() => {
         if (isMultiLevelTags) {
@@ -436,16 +450,22 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     close(() => {
-                        downloadTagsCSV(policyID, () => {
-                            setIsDownloadFailureModalVisible(true);
-                        });
+                        if (hasIndependentTags && canUseMultiLevelTags) {
+                            downloadMultiLevelIndependentTagsCSV(policyID, () => {
+                                setIsDownloadFailureModalVisible(true);
+                            });
+                        } else {
+                            downloadTagsCSV(policyID, () => {
+                                setIsDownloadFailureModalVisible(true);
+                            });
+                        }
                     });
                 },
             });
         }
 
         return menuItems;
-    }, [policy, hasVisibleTags, translate, isOffline, isQuickSettingsFlow, policyID, backTo]);
+    }, [policy, hasVisibleTags, translate, isOffline, isQuickSettingsFlow, policyID, backTo, canUseMultiLevelTags, hasIndependentTags]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -480,9 +500,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 return;
                             }
 
-                            goBackFromWorkspaceCentralScreen(policyID);
+                            Navigation.popToSidebar();
                         }}
-                        shouldShowThreeDotsButton={!policy?.hasMultipleTagLists}
+                        shouldShowThreeDotsButton={canUseMultiLevelTags ? !hasDependentTags : !policy?.hasMultipleTagLists}
                         threeDotsMenuItems={threeDotsMenuItems}
                         threeDotsAnchorPosition={threeDotsAnchorPosition}
                     >
@@ -530,6 +550,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 turnOnSelectionModeOnLongPress={!isMultiLevelTags}
                                 onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                                 sections={[{data: filteredTagList, isDisabled: false}]}
+                                shouldUseDefaultRightHandSideCheckmark={false}
                                 selectedItemKeys={selectedTags}
                                 onCheckboxPress={toggleTag}
                                 onSelectRow={navigateToTagSettings}
