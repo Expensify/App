@@ -339,7 +339,7 @@ function WorkspacesListPage() {
 
         return (
             <View style={[styles.flexRow, styles.gap5, styles.p5, styles.pl10, styles.appBG]}>
-                <View style={[styles.flexRow, styles.flex4]}>
+                <View style={[styles.flexRow, styles.flex3]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.flexGrow1, styles.textLabelSupporting]}
@@ -347,7 +347,7 @@ function WorkspacesListPage() {
                         {translate('workspace.common.workspaceName')}
                     </Text>
                 </View>
-                <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle]}>
+                <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle, styles.workspaceOwnerMinWidth]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.flexGrow1, styles.textLabelSupporting]}
@@ -355,7 +355,7 @@ function WorkspacesListPage() {
                         {translate('workspace.common.workspaceOwner')}
                     </Text>
                 </View>
-                <View style={[styles.flexRow, styles.flex1, styles.workspaceTypeSectionTitle]}>
+                <View style={[styles.flexRow, styles.workspaceTypeSectionTitle, styles.workspaceTypeWidth]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.flexGrow1, styles.textLabelSupporting]}
