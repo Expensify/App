@@ -23,7 +23,12 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import {getLastVisitedWorkspacesTabPath, getLastVisitedWorkspaceTabScreen, getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/getLastVisitedWorkspaceTabScreen';
+import {
+    getLastVisitedTabPath,
+    getLastVisitedWorkspaceTabScreen,
+    getSettingsTabStateFromSessionStorage,
+    getWorkspacesTabStateFromSessionStorage,
+} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -121,9 +126,17 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             return;
         }
         interceptAnonymousUser(() => {
+            const settingsTabState = getSettingsTabStateFromSessionStorage();
+            if (settingsTabState && !shouldUseNarrowLayout) {
+                const lastVisitedSettingsRoute = getLastVisitedTabPath(settingsTabState);
+                if (lastVisitedSettingsRoute) {
+                    Navigation.navigate(lastVisitedSettingsRoute);
+                    return;
+                }
+            }
             Navigation.navigate(ROUTES.SETTINGS);
         });
-    }, [selectedTab]);
+    }, [selectedTab, shouldUseNarrowLayout]);
 
     /**
      * The settings tab is related to SettingsSplitNavigator and WorkspaceSplitNavigator.
@@ -185,7 +198,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             // If the path stored in the session storage leads to a settings screen, we just navigate to it on a wide layout.
             // On a small screen, we want to go to the page containing the bottom tab bar (ROUTES.SETTINGS or ROUTES.SETTINGS_WORKSPACES) when changing tabs
             if (workspacesTabState && !shouldUseNarrowLayout) {
-                const lastVisitedSettingsRoute = getLastVisitedWorkspacesTabPath(workspacesTabState);
+                const lastVisitedSettingsRoute = getLastVisitedTabPath(workspacesTabState);
                 if (lastVisitedSettingsRoute) {
                     Navigation.navigate(lastVisitedSettingsRoute);
                     return;

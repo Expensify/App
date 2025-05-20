@@ -2050,7 +2050,7 @@ type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName;
 type WorkspacesTabScreenName = typeof NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
 type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
-
+type SettingsTabScreenName = typeof NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace ReactNavigation {
@@ -2131,6 +2131,7 @@ export type {
     ScheduleCallParamList,
     TestDriveModalNavigatorParamList,
     WorkspaceScreenName,
+    SettingsTabScreenName,
     TestDriveDemoNavigatorParamList,
     WorkspacesTabScreenName,
 };
