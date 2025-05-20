@@ -128,8 +128,8 @@ function TripRoomPreview({
 }: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`, {canBeMissing: true});
     const tripTransactions = useTripTransactions(chatReportID);
 
     const reservationsData: ReservationData[] = getReservationsFromTripTransactions(tripTransactions);
@@ -151,7 +151,7 @@ function TripRoomPreview({
         );
     }, [currency, totalDisplaySpend, tripTransactions]);
 
-    const navigateToTrip = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID));
+    const navigateToTrip = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     const renderItem = ({item}: ListRenderItemInfo<ReservationData>) => (
         <ReservationView
             reservation={item.reservation}
