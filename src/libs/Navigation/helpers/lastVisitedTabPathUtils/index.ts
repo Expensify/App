@@ -5,7 +5,7 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
-type SessionStorageKey = ValueOf<typeof CONST.SESSION_STORAGE_KEYS.LAST_VISITED_TAB_PATH>;
+type LastVisitedTabPathKey = ValueOf<typeof CONST.SESSION_STORAGE_KEYS.LAST_VISITED_TAB_PATH>;
 
 /**
  * Clears all session storage data.
@@ -17,14 +17,14 @@ function clearSessionStorage() {
 /**
  * Generic function to save a path to session storage by key
  */
-function saveTabPathToSessionStorage(key: SessionStorageKey, url: string) {
+function saveTabPathToSessionStorage(key: LastVisitedTabPathKey, url: string) {
     sessionStorage.setItem(key, url);
 }
 
 /**
  * Converts stored path to navigation state
  */
-function getTabStateFromSessionStorage(key: SessionStorageKey) {
+function getTabStateFromSessionStorage(key: LastVisitedTabPathKey) {
     const path = sessionStorage.getItem(key) as Route | undefined;
     if (!path) {
         return undefined;
@@ -35,8 +35,12 @@ function getTabStateFromSessionStorage(key: SessionStorageKey) {
 /**
  * Generic function to extract the path from currently focused route
  */
-function getLastVisitedTabPath(state: NavigationState | PartialState<NavigationState>): Route | undefined {
-    return findFocusedRoute(state)?.path as Route | undefined;
+function getLastVisitedTabPath(state: NavigationState | PartialState<NavigationState>) {
+    const focusedRoute = findFocusedRoute(state);
+    if (!focusedRoute) {
+        return undefined;
+    }
+    return focusedRoute.path as Route;
 }
 
 function saveWorkspacesTabPathToSessionStorage(url: string) {
