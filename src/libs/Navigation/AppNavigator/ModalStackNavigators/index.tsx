@@ -37,6 +37,7 @@ import type {
     TeachersUniteNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
     TravelNavigatorParamList,
+    EventNavigatorParamList,
     WalletStatementNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
 } from '@navigation/types';
@@ -136,6 +137,10 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
     [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: () => require<ReactComponentModule>('../../../../pages/Travel/DomainPermissionInfoPage').default,
     [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: () => require<ReactComponentModule>('../../../../pages/Travel/PublicDomainErrorPage').default,
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/Travel/WorkspaceAddressForTravelPage').default,
+});
+
+const EventModalStackNavigator = createModalStackNavigator<EventNavigatorParamList>({
+    [SCREENS.EVENT]: () => require<ReactComponentModule>('../../../../pages/Event/EventsPage').default,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
@@ -787,6 +792,7 @@ export {
     ProfileModalStackNavigator,
     ReferralModalStackNavigator,
     TravelModalStackNavigator,
+    EventModalStackNavigator,
     NewReportWorkspaceSelectionModalStackNavigator,
     ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,

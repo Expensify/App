@@ -119,6 +119,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type EventItem from './Event'
 
 export type {
     TryNewDot,
@@ -137,6 +138,7 @@ export type {
     CorpayOnboardingFields,
     Currency,
     CurrencyList,
+    EventItem,
     CustomStatusDraft,
     DismissedReferralBanners,
     Download,

@@ -529,6 +529,7 @@ const ONYXKEYS = {
 
     /** Collection Keys */
     COLLECTION: {
+        EVENTS: 'events_',
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
         POLICY_DRAFTS: 'policyDrafts_',
@@ -932,6 +933,7 @@ type OnyxFormDraftValuesMapping = {
 
 type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
+    [ONYXKEYS.COLLECTION.EVENTS]: OnyxTypes.EventItem;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategories;

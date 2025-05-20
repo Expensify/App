@@ -1453,6 +1453,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: ROUTES.TRAVEL_WORKSPACE_ADDRESS.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.EVENT]: {
+                    screens: {
+                        [SCREENS.EVENT]: ROUTES.EVENT,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
                     screens: {
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,

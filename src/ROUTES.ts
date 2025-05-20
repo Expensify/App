@@ -1890,6 +1890,7 @@ const ROUTES = {
         route: 'change-workspace-educational',
         getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
     },
+    EVENT: 'event',
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: {
         route: 'travel/terms/:domain/accept',

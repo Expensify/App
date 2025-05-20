@@ -137,6 +137,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         canBeMissing: true,
     });
 
+    // TODO: Implement permissions
+    const canBookEvents = true;
+
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
@@ -409,6 +412,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         }
     }, [activePolicy, isTravelEnabled]);
 
+    const openEvents = useCallback(() => {
+        Navigation.navigate(ROUTES.EVENT);
+    }, []);
+
     const menuItems = [
         ...expenseMenuItems,
         ...(shouldShowCreateReportOption
@@ -489,6 +496,15 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       text: translate('travel.bookTravel'),
                       rightIcon: isTravelEnabled ? Expensicons.NewWindow : undefined,
                       onSelected: () => interceptAnonymousUser(() => openTravel()),
+                  },
+              ]
+            : []),
+        ...(canBookEvents
+            ? [
+                  {
+                      icon: Expensicons.Users,
+                      text: translate('event.bookEvent'),
+                      onSelected: () =>  openEvents(),
                   },
               ]
             : []),

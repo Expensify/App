@@ -1606,6 +1606,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: NavigatorScreenParams<TransactionDuplicateNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.EVENT]: NavigatorScreenParams<EventNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
@@ -1615,6 +1616,10 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
 };
+
+type EventNavigatorParamList = {
+    [SCREENS.EVENT]: undefined;
+}
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
@@ -2120,6 +2125,7 @@ export type {
     TeachersUniteNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
     TravelNavigatorParamList,
+    EventNavigatorParamList,
     WalletStatementNavigatorParamList,
     WelcomeVideoModalNavigatorParamList,
     WorkspaceHubSplitNavigatorParamList,

@@ -202,6 +202,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.TravelModalStackNavigator}
                         />
                         <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.EVENT}
+                            component={ModalStackNavigators.EventModalStackNavigator}
+                        />
+                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
                             component={ModalStackNavigators.SearchReportModalStackNavigator}
                         />

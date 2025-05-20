@@ -2815,6 +2815,9 @@ const translations = {
     session: {
         offlineMessageRetry: 'Parece que estás desconectado. Por favor, comprueba tu conexión e inténtalo de nuevo.',
     },
+    event: {
+        bookEvent: 'Evento de libros'
+    },
     travel: {
         header: 'Reservar viajes',
         title: 'Viaja de forma inteligente',
