@@ -557,6 +557,7 @@ const translations = {
         comments: 'Comments',
         sharedIn: 'Shared in',
         unreported: 'Unreported',
+        reschedule: 'Reschedule',
         general: 'General',
         workspacesTabTitle: 'Workspaces',
     },
@@ -2900,7 +2901,7 @@ const translations = {
         },
         publicDomainError: {
             title: 'Get started with Expensify Travel',
-            message: `You'll need to use your work email (e.g., name@company.com) with Expensify Travel, not your personal email (e.g., name@gmail.com)`,
+            message: `You'll need to use your work email (e.g., name@company.com) with Expensify Travel, not your personal email (e.g., name@gmail.com).`,
         },
         blockedFeatureModal: {
             title: 'Expensify Travel has been disabled',
@@ -6355,6 +6356,7 @@ const translations = {
             dateTime: 'Date & time',
             minutes: '30 minutes',
         },
+        callScheduled: 'Call scheduled',
     },
     testDrive: {
         quickAction: {

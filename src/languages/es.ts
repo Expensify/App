@@ -548,6 +548,7 @@ const translations = {
         comments: 'Comentarios',
         sharedIn: 'Compartido en',
         unreported: 'No reportado',
+        reschedule: 'Reprogramar',
         general: 'General',
         workspacesTabTitle: 'Espacios',
     },
@@ -2923,7 +2924,7 @@ const translations = {
         },
         publicDomainError: {
             title: 'Comienza con Expensify Travel',
-            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com)',
+            message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com).',
         },
         blockedFeatureModal: {
             title: 'Expensify Travel ha sido deshabilitado',
@@ -6880,6 +6881,7 @@ const translations = {
             dateTime: 'Fecha y hora',
             minutes: '30 minutos',
         },
+        callScheduled: 'Llamada programada',
     },
     testDrive: {
         quickAction: {
