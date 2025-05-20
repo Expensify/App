@@ -6491,6 +6491,7 @@ const CONST = {
             CASH: 'cash',
             CARD: 'card',
             DISTANCE: 'distance',
+            PER_DIEM: 'perDiem',
         },
         SORT_ORDER: {
             ASC: 'asc',

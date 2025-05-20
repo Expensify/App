@@ -8531,7 +8531,7 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
             ROUTES.SEARCH_REPORT.getRoute({
                 reportID: ancestor.report.reportID,
                 reportActionID: ancestor.reportAction.reportActionID,
-                backTo: Navigation.getActiveRoute(),
+                backTo: SCREENS.SEARCH.REPORT_RHP,
             }),
         );
         return;
@@ -9501,7 +9501,7 @@ function getReportActionActorAccountID(
 
 function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: string, actionName: IOUAction): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
-    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace();
+    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(currentUserEmail);
     setMoneyRequestParticipants(transactionID, [
         {
             selected: true,
