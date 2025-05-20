@@ -125,6 +125,20 @@ function IOURequestStepScan({
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
+    const [lastIOSLogin] = useOnyx(ONYXKEYS.NVP_LAST_ECASH_IOS_LOGIN, {canBeMissing: true});
+    const [lastAndroidLogin] = useOnyx(ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN, {canBeMissing: true});
+    const [isLastAppLoginLoaded, setIsLastAppLoginLoaded] = useState(false);
+    
+    const hasInstalledApp = !!lastIOSLogin || !!lastAndroidLogin;
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsLastAppLoginLoaded(true);
+        }, 200);
+
+        return () => clearTimeout(timer);
+    }, []);
+
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const isTabActive = useIsFocused();
 
@@ -961,7 +975,7 @@ function IOURequestStepScan({
                                 receiptImageTopPosition={receiptImageTopPosition}
                             />
                         )}
-                        {!isMobile() && (
+                        {!isMobile() && isLastAppLoginLoaded && !hasInstalledApp && (
                             <View style={[styles.ph2, styles.mb2, styles.stickToBottom]}>
                                 <BillingBanner
                                     icon={ExpensifyMobileApp}

@@ -527,6 +527,12 @@ const ONYXKEYS = {
     /** Set this gets redirected from global reimbursements flow */
     IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW: 'isComingFromGlobalReimbursementsFlow',
 
+    /** Timestamp of the last login on iOS */
+    NVP_LAST_ECASH_IOS_LOGIN: 'nvp_lastECashIOSLogin',
+
+    /** Timestamp of the last login on Android */
+    NVP_LAST_ECASH_ANDROID_LOGIN: 'nvp_lastECashAndroidLogin',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1163,6 +1169,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft;
     [ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY]: boolean | undefined;
     [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
+    [ONYXKEYS.NVP_LAST_ECASH_IOS_LOGIN]: string;
+    [ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN]: string;
 };
 
 type OnyxDerivedValuesMapping = {
