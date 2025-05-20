@@ -203,7 +203,7 @@ function TransactionItemRow({
         }),
         [StyleUtils, createdAt, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
     );
-    const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3];
+    const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius];
     return (
         <View
             style={[styles.flex1]}
@@ -300,7 +300,7 @@ function TransactionItemRow({
                 </Animated.View>
             ) : (
                 <Animated.View style={[animatedHighlightStyle]}>
-                    <View style={[...safeColumnWrapperStyle, styles.gap2, styles.expenseWidgetRadius, bgActiveStyles]}>
+                    <View style={[...safeColumnWrapperStyle, styles.gap2, bgActiveStyles]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             <View style={[styles.mr1]}>
                                 <Checkbox
