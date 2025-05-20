@@ -55,7 +55,7 @@ Each patch must be listed and explained in the `details.md` file within the same
 ### [<patch-name>.patch](<patch-name>.patch)
 
 - Reason: <Why this patch is needed>
-- Upstream PR/issue: <link or 🛑 if not raised>
+- Upstream PR/issue: <link or 🛑 if not raised. If no upstream issue or PR exists, explain why>
 - E/App issue: <link or 🛑 if none>
 - PR Introducing Patch: <link to internal PR that added the patch>
 ```
