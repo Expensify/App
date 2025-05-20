@@ -83,14 +83,12 @@ const ROUTES = {
             backTo,
             moneyRequestReportActionID,
             transactionID,
-            iouReportID,
         }: {
             reportID: string | undefined;
             reportActionID?: string;
             backTo?: string;
             moneyRequestReportActionID?: string;
             transactionID?: string;
-            iouReportID?: string;
         }) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
@@ -105,10 +103,6 @@ const ROUTES = {
             }
             if (moneyRequestReportActionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
-            }
-
-            if (iouReportID) {
-                queryParams.push(`iouReportID=${iouReportID}`);
             }
 
             const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
@@ -382,19 +376,10 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (
-            reportID: string | undefined,
-            reportActionID?: string,
-            referrer?: string,
-            moneyRequestReportActionID?: string,
-            transactionID?: string,
-            backTo?: string,
-            iouReportID?: string,
-        ) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
             }
-
             const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
 
             const queryParams: string[] = [];
@@ -406,10 +391,6 @@ const ROUTES = {
             if (moneyRequestReportActionID && transactionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
                 queryParams.push(`transactionID=${transactionID}`);
-            }
-
-            if (iouReportID) {
-                queryParams.push(`iouReportID=${iouReportID}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
@@ -593,15 +574,10 @@ const ROUTES = {
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?/:searchHash?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string | undefined, backTo: string, searchHash?: number) => {
-            let route = searchHash
-                ? (`${type as string}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}` as const)
-                : (`${type as string}/edit/reason/${transactionID}/?backTo=${backTo}` as const);
-
-            if (reportID) {
-                route = `${route}&reportID=${reportID}` as const;
-            }
-
+        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string, searchHash?: number) => {
+            const route = searchHash
+                ? (`${type as string}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}&reportID=${reportID}` as const)
+                : (`${type as string}/edit/reason/${transactionID}/?backTo=${backTo}&reportID=${reportID}` as const);
             return route;
         },
     },
@@ -628,11 +604,11 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_AMOUNT: {
         route: ':action/:iouType/amount/:transactionID/:reportID/:pageIndex?/:backToReport?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, pageIndex: string, backToReport?: string, backTo = '') => {
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, pageIndex: string, backTo = '') => {
             if (!transactionID || !reportID) {
                 Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_AMOUNT route');
             }
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/amount/${transactionID}/${reportID}/${pageIndex}/${backToReport ?? ''}`, backTo);
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/amount/${transactionID}/${reportID}/${pageIndex}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_TAX_RATE: {
@@ -719,6 +695,15 @@ const ROUTES = {
         route: ':action/:iouType/report/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${transactionID}/${reportID}`, backTo),
+    },
+    MONEY_REQUEST_EDIT_REPORT: {
+        route: ':action/:iouType/report/:reportID/edit',
+        getRoute: (action: IOUAction, iouType: IOUType, reportID?: string, backTo = '') => {
+            if (!reportID) {
+                Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
+            }
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit`, backTo);
+        },
     },
     SETTINGS_TAGS_ROOT: {
         route: 'settings/:policyID/tags',
@@ -979,6 +964,7 @@ const ROUTES = {
             return `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const;
         },
     },
+    WORKSPACE_HUB_INITIAL: 'settings/workspace-menu',
     WORKSPACE_INVITE: {
         route: 'settings/workspaces/:policyID/invite',
         getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite`, backTo)}` as const,
@@ -1983,7 +1969,10 @@ const ROUTES = {
         route: 'workspace/confirmation',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
     },
-    MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',
+    MIGRATED_USER_WELCOME_MODAL: {
+        route: 'onboarding/migrated-user-welcome',
+        getRoute: (isFromRoot?: boolean) => getUrlWithBackToParam(`onboarding/migrated-user-welcome?${isFromRoot ? 'isFromRoot=true' : ''}`, undefined, false),
+    },
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
@@ -2443,8 +2432,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
     },
     ADD_UNREPORTED_EXPENSE: {
-        route: 'search/r/:reportID/add-unreported-expense',
-        getRoute: (reportID: string | undefined) => `search/r/${reportID}/add-unreported-expense` as const,
+        route: 'search/r/:reportID/add-unreported-expense/:backToReport?',
+        getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-unreported-expense/${backToReport ?? ''}` as const,
     },
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',
@@ -2532,9 +2521,9 @@ const ROUTES = {
         route: 'r/:reportID/schedule-call/book',
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/book` as const,
     },
-    SCHEDULE_CALL_CONFIRMATON: {
-        route: 'r/:reportID/schedule-call/confimation',
-        getRoute: (reportID: string) => `r/${reportID}/schedule-call/confimation` as const,
+    SCHEDULE_CALL_CONFIRMATION: {
+        route: 'r/:reportID/schedule-call/confirmation',
+        getRoute: (reportID: string) => `r/${reportID}/schedule-call/confirmation` as const,
     },
 } as const;
 
