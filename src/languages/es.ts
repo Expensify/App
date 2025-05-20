@@ -5014,11 +5014,11 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Marque cualquier recibo donde aparezcan alcohol, apuestas u otros artículos restringidos. Los gastos con recibos que incluyan estos conceptos requerirán una revisión manual.',
                 prohibitedExpenses: 'Gastos prohibidos',
-                alcohol: 'Alcohol',
-                hotelIncidentals: 'Gastos incidentales de hotel',
-                gambling: 'Juegos de azar',
-                tobacco: 'Tabaco',
-                adultEntertainment: 'Entretenimiento para adultos',
+                alcohol: 'alcohol',
+                hotelIncidentals: 'gastos adicionales de hotel',
+                gambling: 'juegos de apuestas',
+                tobacco: 'tabaco',
+                adultEntertainment: 'entretenimiento para adultos',
             },
             expenseReportRules: {
                 examples: 'Ejemplos:',
@@ -6268,15 +6268,15 @@ const translations = {
             const preMessage = 'Gasto prohibido:';
             switch (prohibitedExpenseType) {
                 case 'alcohol':
-                    return `${preMessage} Alcohol`;
+                    return `${preMessage} alcohol`;
                 case 'gambling':
-                    return `${preMessage} Juego de apuestas`;
+                    return `${preMessage} juegos de apuestas`;
                 case 'tobacco':
-                    return `${preMessage} Tobacco`;
+                    return `${preMessage} tabaco`;
                 case 'adultEntertainment':
-                    return `${preMessage} Entretenimiento para adultos`;
+                    return `${preMessage} entretenimiento para adultos`;
                 case 'hotelIncidentals':
-                    return `${preMessage} Gastos adicionales de hotel`;
+                    return `${preMessage} gastos adicionales de hotel`;
                 default:
                     return `${preMessage}${prohibitedExpenseType}`;
             }
@@ -6850,10 +6850,6 @@ const translations = {
         outstandingFilter: {
             part1: 'Filtra los gastos\nque ',
             part2: 'necesitan aprobación',
-        },
-        workspacesSettings: {
-            part1: 'Ver tus ',
-            part2: 'espacios de trabajo',
         },
     },
     discardChangesConfirmation: {
