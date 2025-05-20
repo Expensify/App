@@ -1640,8 +1640,8 @@ type TravelNavigatorParamList = {
 type ReportsSplitNavigatorParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.REPORT]: {
-        reportActionID: string;
         reportID: string;
+        reportActionID?: string;
         openOnAdminRoom?: boolean;
         referrer?: string;
         backTo?: Routes;
