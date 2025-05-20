@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -33,6 +33,7 @@ import viewRef from '@src/types/utils/viewRef';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentView from './Attachments/AttachmentView';
+import useAttachmentErrors from './Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from './Attachments/types';
 import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
@@ -100,6 +101,9 @@ type AttachmentModalProps = {
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report>;
 
+    /** The ID of the current report */
+    reportID?: string;
+
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
 
@@ -162,6 +166,7 @@ function AttachmentModal({
     allowDownload = false,
     isTrackExpenseAction = false,
     report,
+    reportID,
     onModalShow = () => {},
     onModalHide = () => {},
     onCarouselAttachmentChange = () => {},
@@ -207,8 +212,9 @@ function AttachmentModal({
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
+    const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -241,7 +247,7 @@ function AttachmentModal({
     );
 
     /**
-     * If our attachment is a PDF, return the unswipeablge Modal type.
+     * If our attachment is a PDF, return the unswipeable Modal type.
      */
     const getModalType = useCallback(
         (sourceURL: string, fileObject: FileObject) =>
@@ -483,15 +489,11 @@ function AttachmentModal({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isReceiptAttachment, transaction, file, sourceState, iouType]);
 
-    // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
-    // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
-    let headerTitleNew = headerTitle;
+    const headerTitleNew = headerTitle ?? translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
+    const shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     let shouldShowDownloadButton = false;
-    let shouldShowThreeDotsButton = false;
-    if (!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) {
-        headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
+    if ((!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) && !isErrorInAttachment(sourceState)) {
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
-        shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
     const context = useMemo(
         () => ({
@@ -503,8 +505,9 @@ function AttachmentModal({
             onTap: () => {},
             onScaleChanged: () => {},
             onSwipeDown: closeModal,
+            onAttachmentError: setAttachmentError,
         }),
-        [closeModal, nope, sourceForAttachmentView],
+        [closeModal, setAttachmentError, nope, sourceForAttachmentView],
     );
 
     const submitRef = useRef<View | HTMLElement>(null);
@@ -524,6 +527,7 @@ function AttachmentModal({
                         onModalHide();
                     }
                     setShouldLoadAttachment(false);
+                    clearAttachmentErrors();
                     if (isPDFLoadError.current) {
                         setIsAttachmentInvalid(true);
                         setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
@@ -532,15 +536,17 @@ function AttachmentModal({
                     }
 
                     if (isReplaceReceipt.current) {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                iouAction ?? CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                draftTransactionID ?? transaction?.transactionID,
-                                report?.reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
-                        );
+                        InteractionManager.runAfterInteractions(() => {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                    iouAction ?? CONST.IOU.ACTION.EDIT,
+                                    iouType,
+                                    draftTransactionID ?? transaction?.transactionID,
+                                    report?.reportID,
+                                    Navigation.getActiveRoute(),
+                                ),
+                            );
+                        });
                     }
                 }}
                 propagateSwipe
@@ -601,6 +607,7 @@ function AttachmentModal({
                                     source={source}
                                     setDownloadButtonVisibility={setDownloadButtonVisibility}
                                     attachmentLink={currentAttachmentLink}
+                                    onAttachmentError={setAttachmentError}
                                 />
                             ) : (
                                 !!sourceForAttachmentView &&
@@ -623,7 +630,7 @@ function AttachmentModal({
                                             isUsedInAttachmentModal
                                             transactionID={transaction?.transactionID}
                                             isUploaded={!isEmptyObject(report)}
-                                            reportID={!isEmptyObject(report) ? report.reportID : undefined}
+                                            reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
                                         />
                                     </AttachmentCarouselPagerContext.Provider>
                                 )
@@ -699,4 +706,4 @@ AttachmentModal.displayName = 'AttachmentModal';
 
 export default memo(AttachmentModal);
 
-export type {Attachment, FileObject, ImagePickerResponse};
+export type {FileObject, ImagePickerResponse};

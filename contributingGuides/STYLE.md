@@ -1096,7 +1096,7 @@ type ComponentProps = {
 
 #### Important Note:
 
-In React Native, one **must not** attempt to falsey-check a string for an inline ternary. Even if it's in curly braces, React Native will try to render it as a `<Text>` node and most likely throw an error about trying to render text outside of a `<Text>` component. Use `!!` instead.
+In React Native, one **must not** attempt to falsy-check a string for an inline ternary. Even if it's in curly braces, React Native will try to render it as a `<Text>` node and most likely throw an error about trying to render text outside of a `<Text>` component. Use `!!` instead.
 
 ```tsx
 // Bad! This will cause a breaking an error on native platforms

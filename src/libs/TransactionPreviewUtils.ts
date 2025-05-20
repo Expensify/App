@@ -11,12 +11,13 @@ import DateUtils from './DateUtils';
 import type {PlatformStackRouteProp} from './Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from './Navigation/types';
 import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
-import {isIOUReport, isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isSettled} from './ReportUtils';
+import {hasActionsWithErrors, hasReportViolations, isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isReportOwner, isSettled} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
     getFormattedCreated,
+    getTransaction,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
@@ -42,19 +43,16 @@ const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     login: undefined,
 };
 
-const chooseIDBasedOnAmount = (amount: number, negativeId: number, positiveId: number) => (amount < 0 ? negativeId : positiveId);
+function getIOUData(managerID: number, ownerAccountID: number, isIOUReport: boolean, personalDetails: OnyxTypes.PersonalDetailsList | undefined, amount: number) {
+    let fromID = ownerAccountID;
+    let toID = managerID;
 
-function getIOUData(
-    managerID: number,
-    ownerAccountID: number,
-    reportOrID: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | string | undefined,
-    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    amount: number,
-) {
-    const fromID = chooseIDBasedOnAmount(amount, managerID, ownerAccountID);
-    const toID = chooseIDBasedOnAmount(amount, ownerAccountID, managerID);
+    if (amount < 0) {
+        fromID = managerID;
+        toID = ownerAccountID;
+    }
 
-    return reportOrID && isIOUReport(reportOrID)
+    return fromID && toID && isIOUReport
         ? {
               from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
               to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,
@@ -111,6 +109,48 @@ type TranslationPathOrText = {
 
 const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
 
+const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
+    const {originalTransactionID, source, splits} = transaction?.comment ?? {};
+
+    if (splits && splits.length > 0) {
+        return {isBillSplit: true, originalTransaction: getTransaction(originalTransactionID) ?? transaction};
+    }
+
+    if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
+        return {isBillSplit: false, originalTransaction: transaction};
+    }
+
+    const originalTransaction = getTransaction(originalTransactionID);
+
+    return {isBillSplit: !!originalTransaction, originalTransaction: originalTransaction ?? transaction};
+};
+
+function getViolationTranslatePath(violations: OnyxTypes.TransactionViolations, hasFieldErrors: boolean, violationMessage: string, isTransactionOnHold: boolean): TranslationPathOrText {
+    const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
+
+    const hasViolationsAndHold = violationsCount > 0 && isTransactionOnHold;
+    const isTooLong = violationsCount > 1 || violationMessage.length > CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW;
+    const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
+
+    return isTooLong || hasViolationsAndHold || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
+}
+
+/**
+ * Extracts unique error messages from report actions. If no report or actions are found,
+ * it returns an empty array. It identifies the latest error in each action and filters out duplicates to
+ * ensure only unique error messages are returned.
+ */
+function getUniqueActionErrors(reportActions: OnyxTypes.ReportActions) {
+    const reportErrors = Object.values(reportActions).map((reportAction) => {
+        const errors = reportAction.errors ?? {};
+        const key = Object.keys(errors).sort().reverse().at(0) ?? '';
+        const error = errors[key];
+        return typeof error === 'string' ? error : '';
+    });
+
+    return [...new Set(reportErrors)].filter((err) => err.length);
+}
+
 function getTransactionPreviewTextAndTranslationPaths({
     iouReport,
     transaction,
@@ -120,6 +160,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     isBillSplit,
     shouldShowRBR,
     violationMessage,
+    reportActions,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -129,6 +170,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     isBillSplit: boolean;
     shouldShowRBR: boolean;
     violationMessage?: string;
+    reportActions?: OnyxTypes.ReportActions;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -143,6 +185,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
     const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction?.transactionID, violations, true) && isPaidGroupPolicy(iouReport);
+    const hasActionWithErrors = hasActionsWithErrors(iouReport?.reportID);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
 
@@ -156,12 +199,9 @@ function getTransactionPreviewTextAndTranslationPaths({
         RBRMessage = {translationPath: 'iou.expenseWasPutOnHold'};
     }
 
-    if (violationMessage && RBRMessage === undefined) {
-        const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
-        const isTooLong = violationsCount > 1 || violationMessage.length > 15;
-        const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
-
-        RBRMessage = isTooLong || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
+    const path = getViolationTranslatePath(violations, hasFieldErrors, violationMessage ?? '', isTransactionOnHold);
+    if (path.translationPath === 'violations.reviewRequired' || (RBRMessage === undefined && violationMessage)) {
+        RBRMessage = path;
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
@@ -174,6 +214,11 @@ function getTransactionPreviewTextAndTranslationPaths({
         } else if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
+    }
+
+    if (RBRMessage === undefined && hasActionWithErrors && !!reportActions) {
+        const actionsWithErrors = getUniqueActionErrors(reportActions);
+        RBRMessage = actionsWithErrors.length > 1 ? {translationPath: 'violations.reviewRequired'} : {text: actionsWithErrors.at(0)};
     }
 
     RBRMessage ??= {text: ''};
@@ -211,10 +256,6 @@ function getTransactionPreviewTextAndTranslationPaths({
         isPreviewHeaderTextComplete = true;
     }
 
-    if (shouldShowRBR && transaction) {
-        isPreviewHeaderTextComplete = true;
-    }
-
     if (!isPreviewHeaderTextComplete) {
         if (hasViolationsOfTypeNotice && transaction && !isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID)) {
             previewHeaderText.push(dotSeparator, {translationPath: 'violations.reviewRequired'});
@@ -227,7 +268,8 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    let displayAmountText: TranslationPathOrText = isScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(requestAmount, requestCurrency)};
+    const amount = isBillSplit ? getOriginalTransactionIfBillIsSplit(transaction).originalTransaction?.amount : requestAmount;
+    let displayAmountText: TranslationPathOrText = isScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
     }
@@ -240,7 +282,6 @@ function getTransactionPreviewTextAndTranslationPaths({
         displayAmountText,
         displayDeleteAmountText,
         previewHeaderText,
-        showCashOrCard,
     };
 }
 
@@ -283,7 +324,6 @@ function createTransactionPreviewConditionals({
     const isFullySettled = isMoneyRequestSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
-    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
     const shouldShowCategory = !!category && isReportAPolicyExpenseChat;
@@ -291,7 +331,8 @@ function createTransactionPreviewConditionals({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const hasAnyViolations = hasViolationsOfTypeNotice || hasWarningTypeViolation(transaction?.transactionID, violations, true) || hasViolation(transaction, violations, true);
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
-    const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold;
+    const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionsWithErrors(iouReport?.reportID);
+    const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors;
 
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = areThereDuplicates;
@@ -311,7 +352,6 @@ function createTransactionPreviewConditionals({
     const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning;
 
     return {
-        shouldDisableOnPress,
         shouldShowSkeleton,
         shouldShowTag,
         shouldShowRBR,
@@ -323,5 +363,13 @@ function createTransactionPreviewConditionals({
     };
 }
 
-export {getReviewNavigationRoute, getIOUData, getTransactionPreviewTextAndTranslationPaths, createTransactionPreviewConditionals};
+export {
+    getReviewNavigationRoute,
+    getIOUData,
+    getTransactionPreviewTextAndTranslationPaths,
+    createTransactionPreviewConditionals,
+    getOriginalTransactionIfBillIsSplit,
+    getViolationTranslatePath,
+    getUniqueActionErrors,
+};
 export type {TranslationPathOrText};

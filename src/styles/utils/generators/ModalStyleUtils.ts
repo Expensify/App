@@ -64,6 +64,12 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         let shouldAddTopSafeAreaPadding = false;
 
         switch (type) {
+            case CONST.MODAL.MODAL_TYPE.FULLSCREEN:
+                modalContainerStyle = {};
+                swipeDirection = 'down';
+                animationIn = 'slideInUp';
+                animationOut = 'slideOutDown';
+                break;
             case CONST.MODAL.MODAL_TYPE.CONFIRM:
                 // A confirm modal is one that has a visible backdrop
                 // and can be dismissed by clicking outside of the modal.
@@ -116,7 +122,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 shouldAddTopSafeAreaPadding = isSmallScreenWidth;
                 shouldAddBottomSafeAreaPadding = false;
                 break;
-            case CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT:
+            case CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT:
                 // A centered modal is one that has a visible backdrop
                 // and can be dismissed by clicking outside of the modal.
                 // This modal should take up the entire visible area when
@@ -207,6 +213,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     borderTopLeftRadius: variables.componentBorderRadiusLarge,
                     borderTopRightRadius: variables.componentBorderRadiusLarge,
                     paddingTop: variables.componentBorderRadiusLarge,
+                    paddingBottom: variables.componentBorderRadiusLarge,
                     justifyContent: 'center',
                     overflow: 'hidden',
                     boxShadow: theme.shadow,

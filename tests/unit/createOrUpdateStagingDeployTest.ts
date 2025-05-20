@@ -58,7 +58,9 @@ beforeAll(() => {
                 list: jest.fn().mockResolvedValue([]),
             },
         },
-        paginate: jest.fn().mockImplementation((objectMethod: () => Promise<{data: unknown}>) => objectMethod().then(({data}) => data)),
+        paginate: jest
+            .fn()
+            .mockImplementation((objectMethod: (args: Record<string, unknown>) => Promise<{data: unknown}>, args: Record<string, unknown>) => objectMethod(args).then(({data}) => data)),
     } as unknown as InternalOctokit;
     GithubUtils.internalOctokit = moctokit;
 
@@ -173,7 +175,7 @@ describe('createOrUpdateStagingDeployCash', () => {
         });
 
         mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-            if (fromRef === '1.0.1-0' && toRef === '1.0.2-1-staging') {
+            if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                 return [...baseNewPullRequests];
             }
             return [];
@@ -181,10 +183,10 @@ describe('createOrUpdateStagingDeployCash', () => {
 
         mockListIssues.mockImplementation((args: Arguments) => {
             if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                return {data: [closedStagingDeployCash]};
+                return Promise.resolve({data: [closedStagingDeployCash]});
             }
 
-            return {data: []};
+            return Promise.resolve({data: []});
         });
 
         const result = await run();
@@ -270,7 +272,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             // New pull requests to add to open StagingDeployCash
             const newPullRequests = [9, 10];
             mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-                if (fromRef === '1.0.1-0' && toRef === '1.0.2-2-staging') {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-2-staging') {
                     return [...baseNewPullRequests, ...newPullRequests];
                 }
                 return [];
@@ -278,11 +280,11 @@ describe('createOrUpdateStagingDeployCash', () => {
 
             mockListIssues.mockImplementation((args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
+                    return Promise.resolve({data: [openStagingDeployCashBefore, closedStagingDeployCash]});
                 }
 
                 if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return {
+                    return Promise.resolve({
                         data: [
                             ...currentDeployBlockers,
                             {
@@ -298,10 +300,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                         ],
-                    };
+                    });
                 }
 
-                return {data: []};
+                return Promise.resolve({data: []});
             });
 
             const result = await run();
@@ -347,18 +349,18 @@ describe('createOrUpdateStagingDeployCash', () => {
                 return 'fake_token';
             });
             mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-                if (fromRef === '1.0.1-0' && toRef === '1.0.2-1-staging') {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                     return [...baseNewPullRequests];
                 }
                 return [];
             });
             mockListIssues.mockImplementation((args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
-                    return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
+                    return Promise.resolve({data: [openStagingDeployCashBefore, closedStagingDeployCash]});
                 }
 
                 if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
-                    return {
+                    return Promise.resolve({
                         data: [
                             // Suppose the first deploy blocker is demoted, it should not be removed from the checklist and instead just be checked off
                             ...currentDeployBlockers.slice(1),
@@ -375,10 +377,10 @@ describe('createOrUpdateStagingDeployCash', () => {
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                         ],
-                    };
+                    });
                 }
 
-                return {data: []};
+                return Promise.resolve({data: []});
             });
 
             const result = await run();

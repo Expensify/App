@@ -226,7 +226,7 @@ function onyxDataToDraftData(data: OnyxEntry<Record<string, unknown>>) {
 /**
  * Whether a string representation is an empty value
  *
- * @param value - string representantion
+ * @param value - string representation
  * @returns whether the value is an empty value
  */
 function isEmptyValue(value: string): boolean {
@@ -480,6 +480,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'isWaitingOnBankAccount':
         case 'isCancelledIOU':
             return validateBoolean(value);
+        case 'exportFailedTime':
         case 'lastReadSequenceNumber':
         case 'managerID':
         case 'lastActorAccountID':
@@ -565,6 +566,12 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 endDate: 'string',
                 tripID: 'string',
             });
+        case 'calendlySchedule':
+            return validateObject<ObjectElement<ReportNameValuePairs, 'calendlySchedule'>>(value, {
+                isLoading: 'boolean',
+                data: 'object',
+                errors: 'object',
+            });
         case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
@@ -628,6 +635,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 welcomeMessage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                exportFailedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                calendlySchedule: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
@@ -1050,6 +1059,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1086,6 +1096,11 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
                 splits: 'array',
                 dismissedViolations: 'object',
+            });
+        case 'accountant':
+            return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
+                accountID: 'number',
+                login: 'string',
             });
         case 'modifiedAttendees':
             return validateArray<ArrayElement<Comment, 'attendees'>>(value, {
@@ -1353,8 +1368,8 @@ type RBRReasonAndReportAction = {
 /**
  * Gets the report action that is causing the RBR to show up in LHN
  */
-function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>): RBRReasonAndReportAction | null {
-    const {reason, reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, transactionViolations) ?? {};
+function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, isArchivedReport = false): RBRReasonAndReportAction | null {
+    const {reason, reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, transactionViolations, isArchivedReport) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

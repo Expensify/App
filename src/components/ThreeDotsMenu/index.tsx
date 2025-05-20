@@ -1,9 +1,10 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -38,8 +39,9 @@ function ThreeDotsMenu({
     renderProductTrainingTooltipContent,
     shouldShowProductTrainingTooltip = false,
     isNested = false,
+    threeDotsMenuRef,
 }: ThreeDotsMenuProps) {
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -53,9 +55,17 @@ function ThreeDotsMenu({
         setPopupMenuVisible(true);
     };
 
-    const hidePopoverMenu = () => {
+    const hidePopoverMenu = (selectedItem?: PopoverMenuItem) => {
+        if (selectedItem && selectedItem.shouldKeepModalOpen) {
+            return;
+        }
         setPopupMenuVisible(false);
     };
+
+    useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}> | undefined, () => ({
+        isPopupMenuVisible,
+        hidePopoverMenu,
+    }));
 
     useEffect(() => {
         if (!isBehindModal || !isPopupMenuVisible) {

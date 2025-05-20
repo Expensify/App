@@ -1,8 +1,9 @@
-import {addCardToAppleWallet, checkWalletAvailability, getCardStatus} from '@expensify/react-native-wallet';
-import type {IOSCardData} from '@expensify/react-native-wallet/lib/typescript/src/NativeWallet';
+import {addCardToAppleWallet, checkWalletAvailability, getCardStatusByIdentifier, getCardStatusBySuffix} from '@expensify/react-native-wallet';
+import type {IOSCardData} from '@expensify/react-native-wallet';
 import {Alert} from 'react-native';
 import {issuerEncryptPayloadCallback} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
 
 function checkIfWalletIsAvailable(): Promise<boolean> {
@@ -11,7 +12,7 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
 
 function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescription: string, onFinished?: () => void) {
     const data = {
-        network: 'VISA',
+        network: CONST.COMPANY_CARDS.CARD_TYPE.VISA,
         lastDigits: card.lastFourPAN,
         cardDescription,
         cardHolderName,
@@ -29,8 +30,19 @@ function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescripti
 }
 
 function isCardInWallet(card: Card): Promise<boolean> {
-    if (card.lastFourPAN) {
-        return getCardStatus(card.lastFourPAN)
+    if (card.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
+        return Promise.resolve(false);
+    }
+
+    let callback = null;
+    if (card.token) {
+        callback = getCardStatusByIdentifier(card.token, CONST.COMPANY_CARDS.CARD_TYPE.VISA);
+    } else if (card.lastFourPAN) {
+        callback = getCardStatusBySuffix(card.lastFourPAN);
+    }
+
+    if (callback) {
+        return callback
             .then((status) => {
                 Log.info(`Card status: ${status}`);
                 return status === 'active';

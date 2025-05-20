@@ -83,6 +83,10 @@ class DynamicArrayBuffer<T extends TypedArray> {
         return this;
     }
 
+    clear(): void {
+        this.truncate(0);
+    }
+
     [Symbol.iterator](): Iterator<number> {
         let index = 0;
         return {

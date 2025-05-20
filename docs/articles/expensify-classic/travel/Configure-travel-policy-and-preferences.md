@@ -59,7 +59,7 @@ Flight preferences include multiple sections with different settings:
 - **Booking window:**  Add a time limit to prevent employees from booking less than a certain number of days in advance to prohibit bookings too close to the flight time.
 - **Cancellation policy:** Allow your employees to book fully or partially refundable rooms. To allow all options, you can leave this as the default option. 
 - **Experience:** Set hotel ratings that are in and out of policy.
-- **Nightly median rate:** Determine which hotels to consider when calculating the median price. You can set a radius around the search location and include/disclude hotels above or below a certain rating.
+- **Nightly median rate:** Determine which hotels to consider when calculating the median price. You can set a radius around the search location and include/exclude hotels above or below a certain rating.
 - **Out of policy reason codes:** If enabled, travelers will be asked to enter a reason code for an out-of-policy hotel booking. This gives them a way to provide context for why the booking is still being placed. You can also modify the reason codes by clicking Manage reason codes below the toggle.
 
 # Car

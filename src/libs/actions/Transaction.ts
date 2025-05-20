@@ -22,7 +22,7 @@ import {
 import {getAmount, getTransaction, waypointHasValidAddress} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, RecentWaypoint, Report, ReportAction, ReportActions, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, RecentWaypoint, Report, ReportAction, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -55,6 +55,15 @@ Onyx.connect({
     },
 });
 
+let allTransactionDrafts: OnyxCollection<Transaction> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allTransactionDrafts = value ?? {};
+    },
+});
+
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -84,34 +93,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     callback: (val) => (allTransactionViolations = val ?? []),
 });
-
-function createInitialWaypoints(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        comment: {
-            waypoints: {
-                waypoint0: {},
-                waypoint1: {},
-            },
-        },
-    });
-}
-
-/**
- * Add a stop to the transaction
- */
-function addStop(transactionID: string) {
-    const transaction = allTransactions?.[transactionID] ?? {};
-    const existingWaypoints = transaction?.comment?.waypoints ?? {};
-    const newLastIndex = Object.keys(existingWaypoints).length;
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        comment: {
-            waypoints: {
-                [`waypoint${newLastIndex}`]: {},
-            },
-        },
-    });
-}
 
 function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isDraft = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -307,11 +288,15 @@ function getOnyxDataForRouteRequest(transactionID: string, transactionState: Tra
  * @returns The sanitized collection of waypoints.
  */
 function sanitizeRecentWaypoints(waypoints: WaypointCollection): WaypointCollection {
-    return Object.entries(waypoints).reduce((acc, [key, waypoint]) => {
-        const {pendingAction, ...rest} = waypoint as RecentWaypoint;
-        acc[key] = rest;
+    return Object.entries(waypoints).reduce((acc: WaypointCollection, [key, waypoint]) => {
+        if ('pendingAction' in waypoint) {
+            const {pendingAction, ...rest} = waypoint;
+            acc[key] = rest;
+        } else {
+            acc[key] = waypoint;
+        }
         return acc;
-    }, {} as WaypointCollection);
+    }, {});
 }
 
 /**
@@ -382,11 +367,11 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
  * Dismisses the duplicate transaction violation for the provided transactionIDs
  * and updates the transaction to include the dismissed violation in the comment.
  */
-function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails) {
+function dismissDuplicateTransactionViolation(transactionIDs: string[], dismissedPersonalDetails: PersonalDetails) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
     const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction.reportID, transaction.transactionID));
-    const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() => {
+    const optimisticDismissedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
     });
 
@@ -394,13 +379,13 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const failureData: OnyxUpdate[] = [];
 
     const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
-        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+        const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
-            value: optimisticDissmidedViolationReportAction
+            value: optimisticDismissedViolationReportAction
                 ? {
-                      [optimisticDissmidedViolationReportAction.reportActionID]: optimisticDissmidedViolationReportAction as ReportAction,
+                      [optimisticDismissedViolationReportAction.reportActionID]: optimisticDismissedViolationReportAction as ReportAction,
                   }
                 : undefined,
         };
@@ -423,7 +408,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
                 ...transaction.comment,
                 dismissedViolations: {
                     duplicatedTransaction: {
-                        [dissmissedPersonalDetails.login ?? '']: getUnixTime(new Date()),
+                        [dismissedPersonalDetails.login ?? '']: getUnixTime(new Date()),
                     },
                 },
             },
@@ -447,13 +432,13 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     }));
 
     const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
-        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+        const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
-            value: optimisticDissmidedViolationReportAction
+            value: optimisticDismissedViolationReportAction
                 ? {
-                      [optimisticDissmidedViolationReportAction.reportActionID]: null,
+                      [optimisticDismissedViolationReportAction.reportActionID]: null,
                   }
                 : undefined,
         };
@@ -464,13 +449,13 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     failureData.push(...failureReportActions);
 
     const successData: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
-        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+        const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
-            value: optimisticDissmidedViolationReportAction
+            value: optimisticDismissedViolationReportAction
                 ? {
-                      [optimisticDissmidedViolationReportAction.reportActionID]: null,
+                      [optimisticDismissedViolationReportAction.reportActionID]: null,
                   }
                 : undefined,
         };
@@ -482,7 +467,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const params: DismissViolationParams = {
         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
         transactionIDList: transactionIDs.join(','),
-        reportActionIDList: optimisticDissmidedViolationReportActions.map(() => NumberUtils.rand64()).join(','),
+        reportActionIDList: optimisticDismissedViolationReportActions.map(() => NumberUtils.rand64()).join(','),
     };
 
     API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {
@@ -546,7 +531,7 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: optimisticReportActions as ReportActions,
+                value: optimisticReportActions,
             },
         ],
         failureData: [
@@ -601,6 +586,13 @@ function getAllTransactions() {
     return Object.keys(allTransactions ?? {}).length;
 }
 
+/**
+ * Returns a client generated 16 character hexadecimal value for the transactionID
+ */
+function generateTransactionID(): string {
+    return NumberUtils.generateHexadecimalValue(16);
+}
+
 function setTransactionReport(transactionID: string, reportID: string, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reportID});
 }
@@ -621,7 +613,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
 
     transactions.forEach((transaction) => {
         const oldIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-        if (!oldIOUAction?.reportActionID || !transaction.reportID) {
+        if (!transaction.reportID) {
             return;
         }
 
@@ -656,35 +648,47 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
 
         // 3. Optimistically update the IOU action reportID
         const optimisticMoneyRequestReportActionID = rand64();
-        const newIOUAction = {...oldIOUAction, reportActionID: optimisticMoneyRequestReportActionID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
-        optimisticData.push(
-            {
+
+        const newIOUAction = {
+            ...oldIOUAction,
+            reportActionID: optimisticMoneyRequestReportActionID,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            actionName: oldIOUAction?.actionName ?? CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+            created: oldIOUAction?.created ?? DateUtils.getDBTime(),
+        };
+
+        if (oldIOUAction) {
+            optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 value: {
                     [newIOUAction.reportActionID]: newIOUAction,
                 },
-            },
-            {
+            });
+
+            optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`,
                 value: {
                     [oldIOUAction.reportActionID]: {
-                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                        originalMessage: {
-                            deleted: DateUtils.getDBTime(),
-                        },
+                        previousMessage: oldIOUAction.message,
                         message: [
                             {
-                                deleted: DateUtils.getDBTime(),
-                                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                                html: '',
                                 text: '',
+                                isEdited: true,
+                                isDeletedParentAction: false,
                             },
                         ],
+                        originalMessage: {
+                            IOUTransactionID: null,
+                        },
+                        errors: undefined,
                     },
                 },
-            },
-        );
+            });
+        }
 
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -693,21 +697,22 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                 [newIOUAction.reportActionID]: {pendingAction: null},
             },
         });
-
-        failureData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {
-                    [newIOUAction.reportActionID]: null,
+        if (oldIOUAction) {
+            failureData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                    value: {
+                        [newIOUAction.reportActionID]: null,
+                    },
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`,
-                value: {[oldIOUAction.reportActionID]: oldIOUAction},
-            },
-        );
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`,
+                    value: {[oldIOUAction.reportActionID]: oldIOUAction},
+                },
+            );
+        }
 
         // 4. Optimistically update the transaction thread and all threads in the transaction thread
         optimisticData.push({
@@ -716,19 +721,21 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             value: {
                 parentReportID: reportID,
                 parentReportActionID: optimisticMoneyRequestReportActionID,
-                policyID: reportID !== CONST.REPORT.UNREPORTED_REPORTID ? newReport.policyID : CONST.POLICY.ID_FAKE,
+                policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? newReport.policyID : CONST.POLICY.ID_FAKE,
             },
         });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.childReportID}`,
-            value: {
-                parentReportID: oldReportID,
-                optimisticMoneyRequestReportActionID: oldIOUAction.reportActionID,
-                policyID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`]?.policyID,
-            },
-        });
+        if (oldIOUAction) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.childReportID}`,
+                value: {
+                    parentReportID: oldReportID,
+                    optimisticMoneyRequestReportActionID: oldIOUAction.reportActionID,
+                    policyID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`]?.policyID,
+                },
+            });
+        }
 
         // 5. (Optional) Create transactionThread if it doesn't exist
         let transactionThreadReportID = newIOUAction.childReportID;
@@ -790,9 +797,9 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             );
         }
 
-        // 6. Add MOVEDTRANSACTION or UNREPORTEDTRANSACTION report actions
+        // 6. Add MOVED_TRANSACTION or UNREPORTED_TRANSACTION report actions
         const movedAction =
-            reportID === CONST.REPORT.UNREPORTED_REPORTID
+            reportID === CONST.REPORT.UNREPORTED_REPORT_ID
                 ? buildOptimisticUnreportedTransactionAction(transactionThreadReportID, transaction.reportID)
                 : buildOptimisticMovedTransactionAction(transactionThreadReportID, reportID);
 
@@ -817,12 +824,12 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         transactionIDToReportActionAndThreadData[transaction.transactionID] = {
             movedReportActionID: movedAction.reportActionID,
             moneyRequestPreviewReportActionID: newIOUAction.reportActionID,
-            ...(oldIOUAction.childReportID
-                ? {}
-                : {
+            ...(oldIOUAction && !oldIOUAction.childReportID
+                ? {
                       transactionThreadReportID,
                       transactionThreadCreatedReportActionID,
-                  }),
+                  }
+                : {}),
         };
     });
 
@@ -854,9 +861,11 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     });
 }
 
+function getDraftTransactions(): Transaction[] {
+    return Object.values(allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
+}
+
 export {
-    addStop,
-    createInitialWaypoints,
     saveWaypoint,
     removeWaypoint,
     getRoute,
@@ -864,6 +873,8 @@ export {
     clearError,
     markAsCash,
     dismissDuplicateTransactionViolation,
+    getDraftTransactions,
+    generateTransactionID,
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
