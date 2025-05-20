@@ -278,7 +278,9 @@ function IOURequestStepParticipants({
             });
             numberOfParticipants.current = 0;
         }
-    }, [isFocused, action, transactions]);
+        // We don't want to clear out participants every time the transactions change
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isFocused, action, initialTransactionID]);
 
     return (
         <StepScreenWrapper
@@ -295,13 +297,15 @@ function IOURequestStepParticipants({
                     message={translate('quickAction.noLongerHaveReportAccess')}
                 />
             )}
-            <MoneyRequestParticipantsSelector
-                participants={isSplitRequest ? participants : []}
-                onParticipantsAdded={addParticipant}
-                onFinish={goToNextStep}
-                iouType={iouType}
-                action={action}
-            />
+            {transactions.length > 0 && (
+                <MoneyRequestParticipantsSelector
+                    participants={isSplitRequest ? participants : []}
+                    onParticipantsAdded={addParticipant}
+                    onFinish={goToNextStep}
+                    iouType={iouType}
+                    action={action}
+                />
+            )}
         </StepScreenWrapper>
     );
 }
