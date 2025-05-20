@@ -15,6 +15,7 @@ function ReportSearchHeader({report, policy, style, transactions}: ReportSearchH
                 transactions={transactions}
                 shouldUseCustomSearchTitleName
                 shouldEnableDetailPageNavigation={false}
+                shouldEnableAvatarNavigation={false}
             />
         );
     }, [report, policy, transactions]);
