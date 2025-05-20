@@ -17,7 +17,6 @@ import type {
     OriginalMessageIOU,
     OriginalMessageModifiedExpense,
     OriginalMessageMovedTransaction,
-    OriginalMessageUnreportedTransaction,
 } from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';

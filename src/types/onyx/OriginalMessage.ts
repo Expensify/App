@@ -557,12 +557,6 @@ type OriginalMessageChangePolicy = {
     toPolicy: string;
 };
 
-/** Model of `UNREPORTED_TRANSACTION` report action */
-type OriginalMessageUnreportedTransaction = {
-    /** ID of the old report */
-    fromReportID: string;
-};
-
 /** Model of MOVED_TRANSACTION report action */
 type OriginalMessageMovedTransaction = {
     /** ID of the new report */
@@ -787,7 +781,6 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
     [CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION]: OriginalMessageMovedTransaction;
-    [CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION]: OriginalMessageUnreportedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE]: never;
@@ -855,6 +848,5 @@ export type {
     OriginalMessageExportIntegration,
     IssueNewCardOriginalMessage,
     OriginalMessageChangePolicy,
-    OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
 };
