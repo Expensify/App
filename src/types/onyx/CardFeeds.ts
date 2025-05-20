@@ -117,7 +117,7 @@ type AddNewCardFeedData = {
     publicToken?: string;
 
     /** Bank from Plaid connection */
-    plaidConnectedBank?: string
+    plaidConnectedBank?: string;
 };
 
 /** Issue new card flow steps */
