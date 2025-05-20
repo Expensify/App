@@ -120,7 +120,7 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
-import {getTransaction, getTransactionID} from './TransactionUtils';
+import {getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; phrase4?: string; messageText?: string; messageHtml?: string};
 
@@ -411,7 +411,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
     if (transactionThreadReportID) {
         const transactionID = getTransactionID(transactionThreadReportID);
-        const transaction = getTransaction(transactionID);
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (hasReceiptError(transaction)) {
             return {
                 reason: CONST.RBR_REASONS.HAS_ERRORS,
@@ -419,7 +419,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         }
     }
     const transactionID = getTransactionID(report.reportID);
-    const transaction = getTransaction(transactionID);
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
         return {
             reason: CONST.RBR_REASONS.HAS_ERRORS,
