@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import React, {useContext, useMemo} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
@@ -52,8 +51,10 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const internalExpensifyPath = getInternalExpensifyPath(attrHref);
     const isVideo = attrHref && Str.isVideo(attrHref);
     const linkHasImage = tnode.tagName === 'a' && tnode.children.some((child) => child.tagName === 'img');
+
     const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
+
     const textDecorationLineStyle = isDeleted ? styles.underlineLineThrough : {};
 
     const isInConciergeTaskView = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && report?.type === CONST.REPORT.TYPE.TASK && report.ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE;
@@ -81,23 +82,9 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
         // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
-
-        // Define link style based on context
-        let linkStyle: StyleProp<TextStyle> = styles.link;
-
-        // Special handling for links in alert-text to maintain consistent font size
-        if (HTMLEngineUtils.isChildOfAlertText(tnode)) {
-            linkStyle = [
-                styles.link,
-                {
-                    fontSize: styles.formError.fontSize,
-                    textDecorationLine: 'underline',
-                },
-            ];
-        }
         return (
             <Text
-                style={linkStyle}
+                style={styles.link}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
                 suppressHighlighting
             >

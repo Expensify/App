@@ -5,19 +5,6 @@ type Predicate = (node: TNode) => boolean;
 const MAX_IMG_DIMENSIONS = 512;
 
 /**
- * @returns Whether the node is a child of alert-text
- */
-function isChildOfAlertText(tnode: TNode): boolean {
-    if (!tnode.parent) {
-        return false;
-    }
-    if (tnode.parent.tagName === 'alert-text') {
-        return true;
-    }
-    return isChildOfAlertText(tnode.parent);
-}
-
-/**
  * Compute embedded maximum width from the available screen width. This function
  * is used by the HTML component in the default renderer for img tags to scale
  * down images that would otherwise overflow horizontally.
@@ -84,4 +71,4 @@ function isDeletedNode(tnode: TNode): boolean {
     return 'textDecorationLine' in parentStyle && parentStyle.textDecorationLine === 'line-through';
 }
 
-export {computeEmbeddedMaxWidth, isChildOfComment, isCommentTag, isChildOfH1, isDeletedNode, isChildOfTaskTitle, isChildOfAlertText};
+export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle};
