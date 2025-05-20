@@ -638,7 +638,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         return getSecondaryExportReportActions(moneyRequestReport, policy, reportActions);
     }, [moneyRequestReport, policy, reportActions]);
-    console.log('secondaryExportActions', secondaryExportActions);
+
     const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
