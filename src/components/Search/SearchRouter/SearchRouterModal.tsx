@@ -6,7 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isMobileChrome, isMobileIOS} from '@libs/Browser';
+import {isMobileIOS} from '@libs/Browser';
 import CONST from '@src/CONST';
 import SearchRouter from './SearchRouter';
 import {useSearchRouterContext} from './SearchRouterContext';

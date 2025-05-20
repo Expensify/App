@@ -1,5 +1,5 @@
 import throttle from 'lodash/throttle';
-import * as Modal from '@libs/actions/Modal';
+import {close} from '@libs/actions/Modal';
 import {getBrowser, isChromeIOS} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -16,7 +16,7 @@ const throttledToggle = throttle(
             Navigation.goBack();
         } else {
             // Dismiss any current modal before showing test tools modal
-            Modal.close(() => {
+            close(() => {
                 Navigation.dismissModal();
             });
             Navigation.navigate(ROUTES.TEST_TOOLS_MODAL);
