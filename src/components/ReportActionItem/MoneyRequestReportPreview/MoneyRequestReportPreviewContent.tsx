@@ -59,7 +59,8 @@ import {
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
-import {getMerchant, hasPendingUI, isCardTransaction, isPartialMerchant, isPending} from '@libs/TransactionUtils';
+import shouldAdjustScroll from '@libs/shouldAdjustScroll';
+import {hasPendingUI, isCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, startMoneyRequest, submitReport} from '@userActions/IOU';
@@ -184,12 +185,6 @@ function MoneyRequestReportPreviewContent({
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
-
-    let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : undefined;
-
-    if (isPartialMerchant(formattedMerchant ?? '')) {
-        formattedMerchant = undefined;
-    }
 
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
@@ -336,6 +331,14 @@ function MoneyRequestReportPreviewContent({
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     const carouselTransactions = transactions.slice(0, 11);
+    const prevCarouselTransactionLength = useRef(0);
+
+    useEffect(() => {
+        return () => {
+            prevCarouselTransactionLength.current = carouselTransactions.length;
+        };
+    }, [carouselTransactions.length]);
+
     const [currentIndex, setCurrentIndex] = useState(0);
     const [currentVisibleItems, setCurrentVisibleItems] = useState([0]);
     const [footerWidth, setFooterWidth] = useState(0);
@@ -495,7 +498,7 @@ function MoneyRequestReportPreviewContent({
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
             <Button
-                text={translate('iou.approve')}
+                text={translate('iou.approve', {formattedAmount: getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)})}
                 success
                 onPress={() => confirmApproval()}
             />
@@ -575,6 +578,18 @@ function MoneyRequestReportPreviewContent({
             />
         ),
     };
+
+    const adjustScroll = useCallback(() => {
+        // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
+        // When the FlatList is scrolled to the end and the last item is deleted, a blank space is left behind.
+        // To fix this, we detect when onEndReached is triggered due to an item deletion,
+        // and programmatically scroll to the end to fill the space.
+        if (carouselTransactions.length >= prevCarouselTransactionLength.current || !shouldAdjustScroll) {
+            return;
+        }
+        prevCarouselTransactionLength.current = carouselTransactions.length;
+        carouselRef.current?.scrollToEnd();
+    }, [carouselTransactions.length]);
 
     return (
         <View onLayout={onWrapperLayout}>
@@ -704,6 +719,7 @@ function MoneyRequestReportPreviewContent({
                                             showsHorizontalScrollIndicator={false}
                                             renderItem={renderFlatlistItem}
                                             onViewableItemsChanged={onViewableItemsChanged}
+                                            onEndReached={adjustScroll}
                                             viewabilityConfig={viewabilityConfig}
                                             ListFooterComponent={<View style={styles.pl2} />}
                                             ListHeaderComponent={<View style={styles.pr2} />}
