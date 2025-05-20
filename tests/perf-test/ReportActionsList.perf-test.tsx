@@ -120,6 +120,7 @@ function ReportActionsListWrapper() {
                         listID={1}
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}
+                        hasNewerActions={false}
                         transactionThreadReport={report}
                     />
                 </ActionListContext.Provider>

@@ -267,6 +267,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
         floatingMessageVisibleInitialValue: false,
         readActionSkippedRef: readActionSkipped,
         hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
+        hasNewerActions,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
             const fullContentHeight = contentSize.height;
