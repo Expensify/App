@@ -174,6 +174,7 @@ function BottomDockedModal({
 
     const backdropView = (
         <Backdrop
+            isBackdropVisible={isVisible}
             style={backdropStyle}
             customBackdrop={customBackdrop}
             onBackdropPress={onBackdropPress}
@@ -190,16 +191,14 @@ function BottomDockedModal({
                 pointerEvents="box-none"
                 style={[styles.modalBackdrop, styles.modalContainerBox]}
             >
-                {isVisibleState && (
-                    <>
-                        {hasBackdrop && backdropView}
-                        {containerView}
-                    </>
-                )}
+                <>
+                    {hasBackdrop && backdropView}
+                    {containerView}
+                </>
             </View>
         );
     }
-
+    const isBackdropMounted = isVisibleState || ((isTransitioning || isContainerOpen !== isVisibleState) && getPlatform() === CONST.PLATFORM.WEB);
     return (
         <LayoutAnimationConfig skipExiting={getPlatform() !== CONST.PLATFORM.WEB}>
             <Modal
@@ -219,7 +218,7 @@ function BottomDockedModal({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
-                {isVisibleState && hasBackdrop && backdropView}
+                {isBackdropMounted && hasBackdrop && backdropView}
                 {avoidKeyboard ? (
                     <KeyboardAvoidingView
                         behavior="padding"
