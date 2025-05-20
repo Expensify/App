@@ -211,6 +211,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             reportActions={reportActions}
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
+                            isLoadingReportActions={isLoadingInitialReportActions}
                         />
                     ) : (
                         <ReportActionsView
