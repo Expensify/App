@@ -709,7 +709,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
-    const listHeaderContent = (
+    const headerContent = (
         <>
             {shouldUseNarrowLayout && data.length > 0 && <View style={[styles.pr5]}>{getHeaderContent()}</View>}
             {!shouldUseNarrowLayout && (
@@ -815,7 +815,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         onSelectAll={() => toggleAllUsers(filteredData)}
                         onDismissError={dismissError}
                         showLoadingPlaceholder={isLoading}
-                        listHeaderContent={listHeaderContent}
+                        headerContent={headerContent}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         textInputRef={textInputRef}
                         customListHeader={getCustomListHeader()}

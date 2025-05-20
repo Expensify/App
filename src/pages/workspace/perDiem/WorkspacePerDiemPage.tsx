@@ -365,6 +365,30 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
+    const headerContent = (
+        <>
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.perDiem.subtitle')}</Text>
+                    <TextLink
+                        style={[styles.textNormal, styles.link]}
+                        onPress={() => openExternalLink(CONST.DEEP_DIVE_PER_DIEM)}
+                    >
+                        {translate('workspace.common.learnMore')}
+                    </TextLink>
+                </Text>
+            </View>
+            {subRatesList.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.perDiem.findPerDiemRate')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={hasVisibleSubRates && !isLoading && filteredSubRatesList.length === 0}
+                />
+            )}
+        </>
+    );
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -414,84 +438,61 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     danger
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <ScrollView
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
-                >
-                    <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        <Text>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.perDiem.subtitle')}</Text>
-                            <TextLink
-                                style={[styles.textNormal, styles.link]}
-                                onPress={() => openExternalLink(CONST.DEEP_DIVE_PER_DIEM)}
-                            >
-                                {translate('workspace.common.learnMore')}
-                            </TextLink>
-                        </Text>
-                    </View>
-                    {isLoading && (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                            color={theme.spinner}
-                        />
-                    )}
-                    {subRatesList.length > CONST.SEARCH_ITEM_LIMIT && (
-                        <SearchBar
-                            label={translate('workspace.perDiem.findPerDiemRate')}
-                            inputValue={inputValue}
-                            onChangeText={setInputValue}
-                            shouldShowEmptyState={hasVisibleSubRates && !isLoading && filteredSubRatesList.length === 0}
-                        />
-                    )}
-                    {hasVisibleSubRates && !isLoading && (
-                        <SelectionListWithModal
-                            addBottomSafeAreaPadding
-                            canSelectMultiple={canSelectMultiple}
-                            turnOnSelectionModeOnLongPress
-                            onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
-                            sections={[{data: filteredSubRatesList, isDisabled: false}]}
-                            shouldUseDefaultRightHandSideCheckmark={false}
-                            selectedItems={selectedPerDiem.map((item) => item.subRateID)}
-                            onCheckboxPress={toggleSubRate}
-                            onSelectRow={openSubRateDetails}
-                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                            onSelectAll={toggleAllSubRates}
-                            ListItem={TableListItem}
-                            customListHeader={getCustomListHeader()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            listItemTitleContainerStyles={styles.flex3}
-                            showScrollIndicator={false}
-                        />
-                    )}
-                    {!hasVisibleSubRates && !isLoading && (
-                        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                            <EmptyStateComponent
-                                SkeletonComponent={TableListItemSkeleton}
-                                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                                headerMedia={LottieAnimations.GenericEmptyState}
-                                title={translate('workspace.perDiem.emptyList.title')}
-                                subtitle={translate('workspace.perDiem.emptyList.subtitle')}
-                                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                                headerContentStyles={styles.emptyStateFolderWebStyles}
-                                buttons={[
-                                    {
-                                        buttonText: translate('spreadsheet.importSpreadsheet'),
-                                        buttonAction: () => {
-                                            if (isOffline) {
-                                                setIsOfflineModalVisible(true);
-                                                return;
-                                            }
-                                            Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
-                                        },
-                                        success: true,
+                {isLoading && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={theme.spinner}
+                    />
+                )}
+                {hasVisibleSubRates && !isLoading && (
+                    <SelectionListWithModal
+                        addBottomSafeAreaPadding
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress
+                        onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
+                        sections={[{data: filteredSubRatesList, isDisabled: false}]}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        selectedItems={selectedPerDiem.map((item) => item.subRateID)}
+                        onCheckboxPress={toggleSubRate}
+                        onSelectRow={openSubRateDetails}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        onSelectAll={toggleAllSubRates}
+                        ListItem={TableListItem}
+                        headerContent={headerContent}
+                        customListHeader={getCustomListHeader()}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        listItemTitleContainerStyles={styles.flex3}
+                        showScrollIndicator={false}
+                    />
+                )}
+                {!hasVisibleSubRates && !isLoading && (
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                        <EmptyStateComponent
+                            SkeletonComponent={TableListItemSkeleton}
+                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                            headerMedia={LottieAnimations.GenericEmptyState}
+                            title={translate('workspace.perDiem.emptyList.title')}
+                            subtitle={translate('workspace.perDiem.emptyList.subtitle')}
+                            headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                            headerContentStyles={styles.emptyStateFolderWebStyles}
+                            buttons={[
+                                {
+                                    buttonText: translate('spreadsheet.importSpreadsheet'),
+                                    buttonAction: () => {
+                                        if (isOffline) {
+                                            setIsOfflineModalVisible(true);
+                                            return;
+                                        }
+                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
                                     },
-                                ]}
-                            />
-                        </ScrollView>
-                    )}
-                </ScrollView>
+                                    success: true,
+                                },
+                            ]}
+                        />
+                    </ScrollView>
+                )}
                 <ConfirmModal
                     isVisible={isOfflineModalVisible}
                     onConfirm={() => setIsOfflineModalVisible(false)}

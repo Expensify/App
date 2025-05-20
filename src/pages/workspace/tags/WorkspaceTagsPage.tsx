@@ -437,6 +437,35 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
+    const headerContent = (
+        <>
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                {!hasSyncError && isConnectionVerified ? (
+                    <Text>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
+                        <TextLink
+                            style={[styles.textNormal, styles.link]}
+                            href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                        >
+                            {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                        </TextLink>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                    </Text>
+                ) : (
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+                )}
+            </View>
+            {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.tags.findTag')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={hasVisibleTags && !isLoading && !filteredTagList.length}
+                />
+            )}
+        </>
+    );
+
     return (
         <>
             <AccessOrNotFoundWrapper
@@ -476,79 +505,51 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     >
                         {!shouldUseNarrowLayout && getHeaderButtons()}
                     </HeaderWithBackButton>
-                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                    <ScrollView
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
-                    >
-                        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                            {!hasSyncError && isConnectionVerified ? (
-                                <Text>
-                                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
-                                    <TextLink
-                                        style={[styles.textNormal, styles.link]}
-                                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                                    >
-                                        {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                                    </TextLink>
-                                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                                </Text>
-                            ) : (
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
-                            )}
-                        </View>
-                        {isLoading && (
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                style={[styles.flex1]}
-                                color={theme.spinner}
+                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}=
+                    {isLoading && (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                            color={theme.spinner}
+                        />
+                    )}
+                    {hasVisibleTags && !isLoading && (
+                        <SelectionListWithModal
+                            canSelectMultiple={canSelectMultiple}
+                            turnOnSelectionModeOnLongPress={!isMultiLevelTags}
+                            onTurnOnSelectionMode={(item) => item && toggleTag(item)}
+                            sections={[{data: filteredTagList, isDisabled: false}]}
+                            shouldUseDefaultRightHandSideCheckmark={false}
+                            selectedItems={selectedTags}
+                            isSelected={isTagSelected}
+                            onCheckboxPress={toggleTag}
+                            onSelectRow={navigateToTagSettings}
+                            shouldSingleExecuteRowSelect={!canSelectMultiple}
+                            onSelectAll={toggleAllTags}
+                            ListItem={TableListItem}
+                            headerContent={headerContent}
+                            customListHeader={getCustomListHeader()}
+                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            onDismissError={(item) => !isMultiLevelTags && clearPolicyTagErrors(policyID, item.value, 0)}
+                            showScrollIndicator={false}
+                            addBottomSafeAreaPadding
+                        />
+                    )}
+                    {!hasVisibleTags && !isLoading && (
+                        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                            <EmptyStateComponent
+                                SkeletonComponent={TableListItemSkeleton}
+                                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                                headerMedia={LottieAnimations.GenericEmptyState}
+                                title={translate('workspace.tags.emptyTags.title')}
+                                subtitle={translate('workspace.tags.emptyTags.subtitle')}
+                                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                                headerContentStyles={styles.emptyStateFolderWebStyles}
                             />
-                        )}
-                        {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
-                            <SearchBar
-                                label={translate('workspace.tags.findTag')}
-                                inputValue={inputValue}
-                                onChangeText={setInputValue}
-                                shouldShowEmptyState={hasVisibleTags && !isLoading && !filteredTagList.length}
-                            />
-                        )}
-                        {hasVisibleTags && !isLoading && (
-                            <SelectionListWithModal
-                                canSelectMultiple={canSelectMultiple}
-                                turnOnSelectionModeOnLongPress={!isMultiLevelTags}
-                                onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                                sections={[{data: filteredTagList, isDisabled: false}]}
-                                shouldUseDefaultRightHandSideCheckmark={false}
-                                selectedItems={selectedTags}
-                                isSelected={isTagSelected}
-                                onCheckboxPress={toggleTag}
-                                onSelectRow={navigateToTagSettings}
-                                shouldSingleExecuteRowSelect={!canSelectMultiple}
-                                onSelectAll={toggleAllTags}
-                                ListItem={TableListItem}
-                                customListHeader={getCustomListHeader()}
-                                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                                onDismissError={(item) => !isMultiLevelTags && clearPolicyTagErrors(policyID, item.value, 0)}
-                                showScrollIndicator={false}
-                                addBottomSafeAreaPadding
-                            />
-                        )}
-                        {!hasVisibleTags && !isLoading && (
-                            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                                <EmptyStateComponent
-                                    SkeletonComponent={TableListItemSkeleton}
-                                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                                    headerMedia={LottieAnimations.GenericEmptyState}
-                                    title={translate('workspace.tags.emptyTags.title')}
-                                    subtitle={translate('workspace.tags.emptyTags.subtitle')}
-                                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                                    lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                                    headerContentStyles={styles.emptyStateFolderWebStyles}
-                                />
-                            </ScrollView>
-                        )}
-                    </ScrollView>
+                        </ScrollView>
+                    )}
                 </ScreenWrapper>
             </AccessOrNotFoundWrapper>
             <ConfirmModal

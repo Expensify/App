@@ -9,7 +9,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -339,6 +338,35 @@ function WorkspaceTaxesPage({
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
+    const headerContent = (
+        <>
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                {!hasSyncError && isConnectionVerified ? (
+                    <Text>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
+                        <TextLink
+                            style={[styles.textNormal, styles.link]}
+                            href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                        >
+                            {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                        </TextLink>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                    </Text>
+                ) : (
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
+                )}
+            </View>
+            {taxesList.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('workspace.taxes.findTaxRate')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={filteredTaxesList.length === 0}
+                />
+            )}
+        </>
+    );
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -368,60 +396,32 @@ function WorkspaceTaxesPage({
                     {!shouldUseNarrowLayout && headerButtons}
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
-                <ScrollView
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
-                >
-                    <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        {!hasSyncError && isConnectionVerified ? (
-                            <Text>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
-                                <TextLink
-                                    style={[styles.textNormal, styles.link]}
-                                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                                >
-                                    {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                                </TextLink>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                            </Text>
-                        ) : (
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.taxes.subtitle')}</Text>
-                        )}
-                    </View>
-                    {isLoading && (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                            color={theme.spinner}
-                        />
-                    )}
-                    {taxesList.length > CONST.SEARCH_ITEM_LIMIT && (
-                        <SearchBar
-                            label={translate('workspace.taxes.findTaxRate')}
-                            inputValue={inputValue}
-                            onChangeText={setInputValue}
-                            shouldShowEmptyState={filteredTaxesList.length === 0}
-                        />
-                    )}
-                    <SelectionListWithModal
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
-                        onTurnOnSelectionMode={(item) => item && toggleTax(item)}
-                        sections={[{data: filteredTaxesList, isDisabled: false}]}
-                        shouldUseDefaultRightHandSideCheckmark={false}
-                        selectedItems={selectedTaxesIDs}
-                        onCheckboxPress={toggleTax}
-                        onSelectRow={navigateToEditTaxRate}
-                        onSelectAll={toggleAllTaxes}
-                        ListItem={TableListItem}
-                        customListHeader={getCustomListHeader()}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
-                        showScrollIndicator={false}
-                        addBottomSafeAreaPadding
+                {isLoading && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={theme.spinner}
                     />
-                </ScrollView>
+                )}
+                <SelectionListWithModal
+                    canSelectMultiple={canSelectMultiple}
+                    turnOnSelectionModeOnLongPress
+                    onTurnOnSelectionMode={(item) => item && toggleTax(item)}
+                    sections={[{data: filteredTaxesList, isDisabled: false}]}
+                    shouldUseDefaultRightHandSideCheckmark={false}
+                    selectedItems={selectedTaxesIDs}
+                    onCheckboxPress={toggleTax}
+                    onSelectRow={navigateToEditTaxRate}
+                    onSelectAll={toggleAllTaxes}
+                    ListItem={TableListItem}
+                    headerContent={headerContent}
+                    customListHeader={getCustomListHeader()}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                    onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
+                    showScrollIndicator={false}
+                    addBottomSafeAreaPadding
+                />
                 <ConfirmModal
                     title={translate('workspace.taxes.actions.delete')}
                     isVisible={isDeleteModalVisible}
