@@ -4477,13 +4477,26 @@ const styles = (theme: ThemeColors) =>
         shareCodeContainer: {
             width: '100%',
             alignItems: 'center',
-            paddingHorizontal: variables.qrShareHorizontalPadding,
-            paddingVertical: 20,
             borderRadius: 20,
             overflow: 'hidden',
             borderColor: theme.borderFocus,
             borderWidth: 2,
             backgroundColor: theme.highlightBG,
+        },
+
+        shareCodeContainerPadding: {
+            paddingHorizontal: variables.qrShareHorizontalPadding,
+            paddingVertical: 20,
+        },
+
+        shareCodeContainerDownloadPadding: {
+            padding: 12,
+        },
+
+        qrCodeAdditionalStyles: {
+            width: 200,
+            height: 200,
+            margin: 'auto',
         },
 
         splashScreenHider: {

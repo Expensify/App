@@ -1,5 +1,5 @@
 import type React from 'react';
-import type {ImageSourcePropType} from 'react-native';
+import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import type {Svg, SvgProps} from 'react-native-svg';
 import type {QRCodeLogoMarginRatio, QRCodeLogoRatio} from '@components/QRCode';
 
@@ -12,7 +12,7 @@ type QRShareProps = {
     /**
      * The title that is displayed below the QR Code (usually the user or report name)
      */
-    title: string;
+    title?: string;
 
     /**
      * The subtitle which will be shown below the title (usually user email or workspace name)
@@ -49,6 +49,21 @@ type QRShareProps = {
      * The size ratio of margin around logo to QR code
      */
     logoMarginRatio?: QRCodeLogoMarginRatio;
+
+    /**
+     * If true, the Expensify logo will be displayed
+     */
+    shouldShowExpensifyLogo?: boolean;
+
+    /**
+     * Additional styles to be applied to the QR code
+     */
+    additionalStyles?: StyleProp<ViewStyle>;
+
+    /**
+     * If true, the QR code will be displayed in a different size
+     */
+    isFromDownloadPage?: boolean;
 };
 
 type QRShareHandle = {
