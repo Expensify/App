@@ -13,6 +13,10 @@ export default {
         height: '100%',
     },
 
+    h10: {
+        height: 40,
+    },
+
     h68: {
         height: 272,
     },
@@ -60,6 +64,10 @@ export default {
         minHeight: 0,
     },
 
+    mnh13: {
+        minHeight: 52,
+    },
+
     mnw0: {
         minWidth: 0,
     },
@@ -78,6 +86,13 @@ export default {
 
     mnw100: {
         minWidth: '100%',
+    },
+    mnw64p: {
+        minWidth: 64,
+    },
+
+    mnw100p: {
+        minWidth: 100,
     },
 
     mnw120: {

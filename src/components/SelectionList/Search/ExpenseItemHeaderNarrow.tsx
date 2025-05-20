@@ -1,6 +1,7 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -9,10 +10,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
-import UserInfoCell from './UserInfoCell';
+import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
 type ExpenseItemHeaderNarrowProps = {
     text?: string;
@@ -60,7 +60,7 @@ function ExpenseItemHeaderNarrow({
                 {!!canSelectMultiple && (
                     <PressableWithFeedback
                         accessibilityLabel={text ?? ''}
-                        role={CONST.ROLE.BUTTON}
+                        role={getButtonRole(true)}
                         disabled={isDisabled}
                         onPress={() => handleCheckboxPress?.()}
                         style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
@@ -77,26 +77,13 @@ function ExpenseItemHeaderNarrow({
                         </View>
                     </PressableWithFeedback>
                 )}
-                <View style={[styles.mw50]}>
-                    <UserInfoCell
-                        participant={participantFrom}
-                        displayName={participantFromDisplayName}
-                    />
-                </View>
-                {!!shouldDisplayArrowIcon && (
-                    <Icon
-                        src={Expensicons.ArrowRightLong}
-                        width={variables.iconSizeXXSmall}
-                        height={variables.iconSizeXXSmall}
-                        fill={theme.icon}
-                    />
-                )}
-                <View style={[styles.flex1, styles.mw50]}>
-                    <UserInfoCell
-                        participant={participantTo}
-                        displayName={participantToDisplayName}
-                    />
-                </View>
+                <UserInfoCellsWithArrow
+                    shouldDisplayArrowIcon={!!shouldDisplayArrowIcon}
+                    participantFrom={participantFrom}
+                    participantFromDisplayName={participantFromDisplayName}
+                    participantTo={participantTo}
+                    participantToDisplayName={participantToDisplayName}
+                />
             </View>
             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
                 <ActionCell

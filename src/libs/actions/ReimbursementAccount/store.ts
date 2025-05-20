@@ -12,10 +12,6 @@ Onyx.connect({
     },
 });
 
-function getBankAccountList(): OnyxEntry<OnyxTypes.BankAccountList> {
-    return bankAccountList;
-}
-
 function hasCreditBankAccount(): boolean {
     if (!bankAccountList) {
         return false;
@@ -27,4 +23,5 @@ function hasCreditBankAccount(): boolean {
     });
 }
 
-export {getBankAccountList, hasCreditBankAccount};
+export default {hasCreditBankAccount};
+export {hasCreditBankAccount};

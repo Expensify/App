@@ -1,13 +1,18 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type {Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
+import EReceiptWithSizeCalculation from './EReceiptWithSizeCalculation';
+import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
+import type {TransactionListItemType} from './SelectionList/types';
 import ThumbnailImage from './ThumbnailImage';
 
 type Style = {height: number; borderRadius: number; margin: number};
@@ -69,6 +74,12 @@ type ReceiptImageProps = (
     /** number of images displayed in the same parent container */
     iconSize?: IconSize;
 
+    /** The size of the loading indicator */
+    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
+
+    /** The style of the loading indicator */
+    loadingIndicatorStyles?: StyleProp<ViewStyle>;
+
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
 
@@ -85,6 +96,15 @@ type ReceiptImageProps = (
 
     /** Callback to be called on pressing the image */
     onPress?: () => void;
+
+    /** Whether the receipt is a per diem request */
+    isPerDiemRequest?: boolean;
+
+    /** The transaction data in search */
+    transactionItem?: TransactionListItemType | Transaction;
+
+    /** Whether the receipt empty state should extend to the full height of the container. */
+    shouldUseFullHeight?: boolean;
 };
 
 function ReceiptImage({
@@ -98,6 +118,7 @@ function ReceiptImage({
     style,
     fileExtension,
     iconSize,
+    loadingIconSize,
     fallbackIcon,
     fallbackIconSize,
     shouldUseInitialObjectPosition = false,
@@ -105,6 +126,10 @@ function ReceiptImage({
     fallbackIconBackground,
     isEmptyReceipt = false,
     onPress,
+    transactionItem,
+    isPerDiemRequest,
+    shouldUseFullHeight,
+    loadingIndicatorStyles,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -114,6 +139,7 @@ function ReceiptImage({
                 isThumbnail
                 onPress={onPress}
                 disabled={!onPress}
+                shouldUseFullHeight={shouldUseFullHeight}
             />
         );
     }
@@ -127,12 +153,21 @@ function ReceiptImage({
         );
     }
 
-    if (isEReceipt || isThumbnail) {
+    if (isEReceipt && !isPerDiemRequest) {
+        return (
+            <EReceiptWithSizeCalculation
+                transactionID={transactionID}
+                transactionItem={transactionItem}
+            />
+        );
+    }
+
+    if (isThumbnail || (isEReceipt && isPerDiemRequest)) {
         const props = isThumbnail && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
         return (
             <View style={style ?? [styles.w100, styles.h100]}>
                 <EReceiptThumbnail
-                    transactionID={transactionID ?? '-1'}
+                    transactionID={transactionID}
                     iconSize={iconSize}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
@@ -162,6 +197,8 @@ function ReceiptImage({
             source={{uri: source}}
             style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
             isAuthTokenRequired={isAuthTokenRequired}
+            loadingIconSize={loadingIconSize}
+            loadingIndicatorStyles={loadingIndicatorStyles}
         />
     );
 }

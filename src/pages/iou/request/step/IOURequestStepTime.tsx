@@ -13,11 +13,12 @@ import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPerDiemCustomUnits} from '@libs/PolicyUtils';
 import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestTimeForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -26,7 +27,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TIME> & {
+type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TIME | typeof SCREENS.MONEY_REQUEST.STEP_TIME_EDIT> & {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
@@ -37,25 +38,48 @@ type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.
 function IOURequestStepTime({
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
+        name,
     },
     transaction,
     report,
 }: IOURequestStepTimeProps) {
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, report)}`);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
+    const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
+
+    const perDiemCustomUnits = getPerDiemCustomUnits(allPolicies, session?.email);
+    const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
 
     const navigateBack = () => {
+        if (isEditPage) {
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID));
+            return;
+        }
+
         if (backTo) {
             Navigation.goBack(backTo);
             return;
         }
-        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID));
+
+        if (transaction?.isFromGlobalCreate) {
+            if (moreThanOnePerDiemExist) {
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID));
+                return;
+            }
+
+            // If there is only one per diem policy, we can't override the reportID that is already on the stack to make sure we go back to the right screen.
+            Navigation.goBack();
+        }
+
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.getRoute(action, iouType, transactionID, reportID));
     };
 
     const validate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_TIME_FORM>) => {
@@ -78,7 +102,7 @@ function IOURequestStepTime({
 
         setMoneyRequestDateAttribute(transactionID, newStart, newEnd);
 
-        if (backTo) {
+        if (isEditPage) {
             navigateBack();
         } else {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID));

@@ -2,6 +2,6 @@ import type {BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps} 
 
 type BankAccountCompanyInformation = BankAccountStepProps & CompanyStepProps & ReimbursementAccountProps;
 
-type UpdateCompanyInformationForBankAccountParams = Partial<BankAccountCompanyInformation> & {bankAccountID: number; policyID: string; confirm: boolean};
+type UpdateCompanyInformationForBankAccountParams = Partial<BankAccountCompanyInformation> & {bankAccountID: number; policyID: string | undefined; confirm: boolean};
 
 export default UpdateCompanyInformationForBankAccountParams;

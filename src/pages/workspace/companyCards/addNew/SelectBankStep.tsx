@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -10,18 +11,27 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {getBankCardDetailsImage, getCorrectStepForSelectedBank} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {clearAddNewCardFlow, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 
 function SelectBankStep() {
     const {translate} = useLocalize();
+    const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const illustrations = useThemeIllustrations();
+    const {canUsePlaidCompanyCards} = usePermissions();
+
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>>();
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
@@ -31,10 +41,10 @@ function SelectBankStep() {
             setHasError(true);
         } else {
             if (addNewCard?.data.selectedBank !== bankSelected) {
-                CompanyCards.clearAddNewCardFlow();
+                clearAddNewCardFlow();
             }
-            CompanyCards.setAddNewCompanyCardStepAndData({
-                step: CardUtils.getCorrectStepForSelectedBank(bankSelected),
+            setAddNewCompanyCardStepAndData({
+                step: getCorrectStepForSelectedBank(bankSelected),
                 data: {
                     selectedBank: bankSelected,
                     cardTitle: !isOtherBankSelected ? bankSelected : undefined,
@@ -50,7 +60,15 @@ function SelectBankStep() {
     }, [addNewCard?.data.selectedBank]);
 
     const handleBackButtonPress = () => {
-        Navigation.goBack();
+        if (route?.params?.backTo) {
+            Navigation.navigate(route.params.backTo);
+            return;
+        }
+        if (canUsePlaidCompanyCards) {
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
+        } else {
+            Navigation.goBack();
+        }
     };
 
     const data = Object.values(CONST.COMPANY_CARDS.BANKS).map((bank) => ({
@@ -60,7 +78,7 @@ function SelectBankStep() {
         isSelected: bankSelected === bank,
         leftElement: (
             <Icon
-                src={CardUtils.getBankCardDetailsImage(bank)}
+                src={getBankCardDetailsImage(bank, illustrations)}
                 height={variables.iconSizeExtraLarge}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={styles.mr3}
@@ -71,7 +89,7 @@ function SelectBankStep() {
     return (
         <ScreenWrapper
             testID={SelectBankStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -94,10 +112,11 @@ function SelectBankStep() {
                 showConfirmButton
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
-                confirmButtonStyles={styles.mt5}
+                confirmButtonStyles={!hasError && styles.mt5}
+                addBottomSafeAreaPadding
             >
                 {hasError && (
-                    <View style={[styles.ph5, styles.mb3]}>
+                    <View style={[styles.ph3, styles.mb3]}>
                         <FormHelpMessage
                             isError={hasError}
                             message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBank')}

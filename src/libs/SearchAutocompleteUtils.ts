@@ -1,9 +1,13 @@
+import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {SearchAutocompleteResult} from '@components/Search/types';
+import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
+import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteResult} from '@components/Search/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
-import * as autocompleteParser from './SearchParser/autocompleteParser';
+import {parse} from './SearchParser/autocompleteParser';
 
 /**
  * Parses given query using the autocomplete parser.
@@ -11,10 +15,10 @@ import * as autocompleteParser from './SearchParser/autocompleteParser';
  */
 function parseForAutocomplete(text: string) {
     try {
-        const parsedAutocomplete = autocompleteParser.parse(text) as SearchAutocompleteResult;
+        const parsedAutocomplete = parse(text) as SearchAutocompleteResult;
         return parsedAutocomplete;
     } catch (e) {
-        console.error(`Error when parsing autocopmlete query"`, e);
+        console.error(`Error when parsing autocomplete query"`, e);
     }
 }
 
@@ -131,6 +135,94 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
     return newQuery;
 }
 
+/**
+ * @private
+ */
+function filterOutRangesWithCorrectValue(
+    range: SearchAutocompleteQueryRange,
+    substitutionMap: SubstitutionMap,
+    userLogins: SharedValue<string[]>,
+    currencyList: SharedValue<string[]>,
+    categoryList: SharedValue<string[]>,
+    tagList: SharedValue<string[]>,
+) {
+    'worklet';
+
+    const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
+    const expenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE) as string[];
+    const statusList = Object.values({
+        ...CONST.SEARCH.STATUS.EXPENSE,
+        ...CONST.SEARCH.STATUS.INVOICE,
+        ...CONST.SEARCH.STATUS.CHAT,
+        ...CONST.SEARCH.STATUS.TRIP,
+        ...CONST.SEARCH.STATUS.TASK,
+    }) as string[];
+    const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
+    const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
+
+    switch (range.key) {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID:
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined;
+
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY:
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value);
+
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
+            return currencyList.get().includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
+            return typeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE:
+            return expenseTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
+            return statusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
+            return categoryList.get().includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
+            return tagList.get().includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
+            return groupByList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+            return booleanList.includes(range.value);
+        default:
+            return false;
+    }
+}
+
+/**
+ * Parses input string using the autocomplete parser and returns array of markdown ranges that can be used by RNMarkdownTextInput.
+ * It is a simpler version of search parser that can be run on UI thread.
+ */
+function parseForLiveMarkdown(
+    input: string,
+    currentUserName: string,
+    map: SubstitutionMap,
+    userLogins: SharedValue<string[]>,
+    currencyList: SharedValue<string[]>,
+    categoryList: SharedValue<string[]>,
+    tagList: SharedValue<string[]>,
+): MarkdownRange[] {
+    'worklet';
+
+    const parsedAutocomplete = parse(input) as SearchAutocompleteResult;
+    const ranges = parsedAutocomplete.ranges;
+    return ranges
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList))
+        .map((range) => {
+            const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName;
+            const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
+
+            return {start: range.start, type, length: range.length};
+        });
+}
+
 export {
     parseForAutocomplete,
     getAutocompleteTags,
@@ -140,4 +232,5 @@ export {
     getAutocompleteTaxList,
     getQueryWithoutAutocompletedPart,
     getAutocompleteQueryWithComma,
+    parseForLiveMarkdown,
 };

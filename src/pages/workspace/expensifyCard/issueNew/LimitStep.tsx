@@ -77,6 +77,7 @@ function LimitStep({policyID}: LimitStepProps) {
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={3}
             stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.setLimit')}</Text>
             <FormProvider
@@ -90,6 +91,7 @@ function LimitStep({policyID}: LimitStepProps) {
                 disablePressOnEnter={false}
                 validate={validate}
                 enabledWhenOffline
+                addBottomSafeAreaPadding
             >
                 <InputWrapper
                     InputComponent={AmountForm}

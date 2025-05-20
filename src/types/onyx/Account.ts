@@ -3,9 +3,6 @@ import type CONST from '@src/CONST';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Two factor authentication steps */
-type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
-
 /** The role of the delegate */
 type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
 
@@ -67,9 +64,6 @@ type SMSDeliveryFailureStatus = {
 
     /** The message associated with the SMS delivery failure */
     message: string;
-
-    /** Indicates whether the SMS delivery failure status has been reset by an API call */
-    isReset?: boolean;
 
     /** Whether a sign is loading */
     isLoading?: boolean;
@@ -140,14 +134,14 @@ type Account = {
     /** Authentication failure errors */
     errors?: OnyxCommon.Errors | null;
 
+    /** Errors related to specific account fields */
+    errorFields?: OnyxCommon.ErrorFields;
+
     /** Authentication success message */
     success?: string;
 
     /** Whether the two factor authentication codes were copied */
     codesAreCopied?: boolean;
-
-    /** Current two factor authentication step */
-    twoFactorAuthStep?: TwoFactorAuthStep;
 
     /** Referral banners that the user dismissed */
     dismissedReferralBanners?: DismissedReferralBanners;
@@ -180,7 +174,64 @@ type Account = {
         /** The calendar link of the guide details */
         calendarLink: string;
     };
+
+    /** Model of the getValidateCodeForAccountMerge API call */
+    getValidateCodeForAccountMerge?: {
+        /** Whether the validation code was sent */
+        isLoading?: boolean;
+
+        /** Whether the user validation code was sent */
+        validateCodeSent?: boolean;
+
+        /** Whether the user validation code was re-sent */
+        validateCodeResent?: boolean;
+
+        /** Errors while requesting the validation code */
+        errors: OnyxCommon.Errors;
+    };
+
+    /** Model of the mergeWithValidateCode API call */
+    mergeWithValidateCode?: {
+        /** Whether the API call is loading */
+        isLoading?: boolean;
+
+        /** Whether the account was merged successfully */
+        isAccountMerged?: boolean;
+
+        /** Errors while merging the account */
+        errors: OnyxCommon.Errors;
+    };
+
+    /** Whether or not the user is subscribed to news updates */
+    isSubscribedToNewsletter?: boolean;
+
+    /** Whether we should use the staging version of the secure API server */
+    shouldUseStagingServer?: boolean;
+
+    /** Whether or not the user is on a public domain email account or not */
+    isFromPublicDomain?: boolean;
+
+    /** Whether or not the user uses expensify card */
+    isUsingExpensifyCard?: boolean;
+
+    /** Whether Expensify Card approval flow is ongoing - checking loginList for private domains */
+    isCheckingDomain?: boolean;
+
+    /** Whether or not the user has lounge access */
+    hasLoungeAccess?: boolean;
+
+    /** error associated with adding a secondary login */
+    error?: string;
+
+    /** Whether the user is an Expensify Guide */
+    isGuide?: boolean;
+
+    /** Whether the debug mode is currently enabled */
+    isDebugModeEnabled?: boolean;
+
+    /** If user has accesible policies on a private domain */
+    hasAccessibleDomainPolicies?: boolean;
 };
 
 export default Account;
-export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess, Delegate};
+export type {DelegateRole, DelegatedAccess, Delegate};

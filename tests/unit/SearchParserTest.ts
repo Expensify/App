@@ -1,5 +1,5 @@
 import type {SearchQueryJSON} from '@components/Search/types';
-import * as searchParser from '@libs/SearchParser/searchParser';
+import {parse} from '@libs/SearchParser/searchParser';
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
 const tests = [
@@ -564,18 +564,40 @@ const keywordTests = [
             },
         },
     },
+    {
+        query: 'from:““Rag” Dog”,"Bag ”Dog“",email@gmail.com,1605423 to:"""Unruly"" “““Glad””” """Dog"""',
+        expected: {
+            type: 'expense',
+            status: 'all',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'and',
+                left: {
+                    operator: 'eq',
+                    left: 'from',
+                    right: ['“Rag” Dog', 'Bag ”Dog“', 'email@gmail.com', '1605423'],
+                },
+                right: {
+                    operator: 'eq',
+                    left: 'to',
+                    right: '""Unruly"" “““Glad””” """Dog""',
+                },
+            },
+        },
+    },
 ];
 
 describe('search parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
-        const result = searchParser.parse(query) as SearchQueryJSON;
+        const result = parse(query) as SearchQueryJSON;
         expect(result).toEqual(expected);
     });
 });
 
 describe('Testing search parser with special characters and wrapped in quotes.', () => {
     test.each(keywordTests)(`parsing: $query`, ({query, expected}) => {
-        const result = searchParser.parse(query) as SearchQueryJSON;
+        const result = parse(query) as SearchQueryJSON;
         expect(result).toEqual(expected);
     });
 });

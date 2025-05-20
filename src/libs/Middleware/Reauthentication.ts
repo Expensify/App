@@ -15,27 +15,28 @@ let isAuthenticating: Promise<void> | null = null;
 
 const reauthThrottle = new RequestThrottle('Re-authentication');
 
-function reauthenticate(commandName?: string): Promise<void> {
+function reauthenticate(commandName?: string): Promise<void> | null {
     if (isAuthenticating) {
         return isAuthenticating;
     }
 
-    isAuthenticating = retryReauthenticate(commandName)
-        .then((response) => {
-            return response;
-        })
-        .catch((error) => {
-            throw error;
-        })
-        .finally(() => {
-            isAuthenticating = null;
-        });
+    isAuthenticating =
+        retryReauthenticate(commandName)
+            ?.then((response) => {
+                return response;
+            })
+            .catch((error) => {
+                throw error;
+            })
+            .finally(() => {
+                isAuthenticating = null;
+            }) ?? null;
 
     return isAuthenticating;
 }
 
-function retryReauthenticate(commandName?: string): Promise<void> {
-    return reauthenticateLibs(commandName).catch((error: RequestError) => {
+function retryReauthenticate(commandName?: string): Promise<void> | undefined {
+    return reauthenticateLibs(commandName)?.catch((error: RequestError) => {
         return reauthThrottle
             .sleep(error, 'Authenticate')
             .then(() => retryReauthenticate(commandName))
@@ -99,7 +100,7 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                 }
 
                 return reauthenticate(request?.commandName)
-                    .then((authenticateResponse) => {
+                    ?.then((authenticateResponse) => {
                         if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
                             return processWithMiddleware(request, isFromSequentialQueue);
                         }

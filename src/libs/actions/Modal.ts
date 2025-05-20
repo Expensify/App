@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type ModalType from '@src/types/utils/ModalType';
 
 const closeModals: Array<(isNavigating?: boolean) => void> = [];
 
@@ -69,12 +70,12 @@ function onModalDidClose() {
 /**
  * Allows other parts of the app to know when a modal has been opened or closed
  */
-function setModalVisibility(isVisible: boolean) {
-    Onyx.merge(ONYXKEYS.MODAL, {isVisible});
+function setModalVisibility(isVisible: boolean, type: ModalType | null = null) {
+    Onyx.merge(ONYXKEYS.MODAL, {isVisible, type});
 }
 
 /**
- * Allows other parts of the app to set whether modals should be dismissable using the Escape key
+ * Allows other parts of the app to set whether modals should be dismissible using the Escape key
  */
 function setDisableDismissOnEscape(disableDismissOnEscape: boolean) {
     Onyx.merge(ONYXKEYS.MODAL, {disableDismissOnEscape});

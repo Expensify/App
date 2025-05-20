@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -42,8 +42,13 @@ function WorkspaceTaxesSettingsCustomTaxName({
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME> = {};
             const customTaxName = values[INPUT_IDS.NAME];
 
-            if (!ValidationUtils.isRequiredFulfilled(customTaxName)) {
+            if (!isRequiredFulfilled(customTaxName)) {
                 errors.name = translate('workspace.taxes.error.customNameRequired');
+            } else if (customTaxName.length > CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH) {
+                errors.name = translate('common.error.characterLimitExceedCounter', {
+                    length: customTaxName.length,
+                    limit: CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH,
+                });
             }
 
             return errors;
@@ -63,7 +68,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceTaxesSettingsCustomTaxName.displayName}
                 style={styles.defaultModalContainer}
@@ -78,6 +83,8 @@ function WorkspaceTaxesSettingsCustomTaxName({
                     enabledWhenOffline
                     validate={validate}
                     onSubmit={submit}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -87,7 +94,6 @@ function WorkspaceTaxesSettingsCustomTaxName({
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                             defaultValue={policy?.taxRates?.name}
-                            maxLength={CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH}
                             multiline={false}
                             ref={inputCallbackRef}
                         />

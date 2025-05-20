@@ -10,6 +10,9 @@ type LocationPermissionModalProps = {
 
     /** Reset the permission flow */
     resetPermissionFlow: () => void;
+
+    /** A callback to call when the initial get location is completed */
+    onInitialGetLocationCompleted?: () => void;
 };
 
 export default {};

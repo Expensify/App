@@ -1,3 +1,4 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Platform} from 'react-native';
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
@@ -92,6 +93,7 @@ export default {
         REDIRECT_URI: `${newExpensifyURL}appleauth`,
     },
     GOOGLE_SIGN_IN: {
+        // cspell:disable-next-line
         WEB_CLIENT_ID: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
         IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
     },
@@ -105,4 +107,6 @@ export default {
     USE_REACT_STRICT_MODE_IN_DEV: false,
     ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
     IS_TEST_ENV: process.env.NODE_ENV === 'test',
+    // eslint-disable-next-line no-restricted-properties
+    IS_HYBRID_APP: HybridAppModule.isHybridApp(),
 } as const;

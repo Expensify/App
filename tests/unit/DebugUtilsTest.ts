@@ -786,7 +786,6 @@ describe('DebugUtils', () => {
         });
         it('returns correct reason when report is archived', async () => {
             const reportNameValuePairs = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: DateUtils.getDBTime(),
             };
             await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
@@ -1068,6 +1067,12 @@ describe('DebugUtils', () => {
                 [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                     type: CONST.POLICY.TYPE.CORPORATE,
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
+                    amount: -100,
+                    currency: CONST.CURRENCY.USD,
+                    reportID: '2',
+                    merchant: 'test merchant',
                 },
                 [ONYXKEYS.SESSION]: {
                     accountID: 12345,
@@ -1542,7 +1547,19 @@ describe('DebugUtils', () => {
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasViolations');
             });
-            it('returns correct reason when there are reports on the workspace chat with violations', async () => {
+            it('returns an undefined reason when the report is archived', () => {
+                const {reason} =
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                        {
+                            reportID: '1',
+                        },
+                        undefined,
+                        true,
+                        true,
+                    ) ?? {};
+                expect(reason).toBe(undefined);
+            });
+            it('returns correct reason when there are reports on the expense chat with violations', async () => {
                 const report: Report = {
                     reportID: '0',
                     type: CONST.REPORT.TYPE.CHAT,
@@ -1572,6 +1589,7 @@ describe('DebugUtils', () => {
                         {
                             type: CONST.VIOLATION_TYPES.VIOLATION,
                             name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                            showInReview: true,
                         },
                     ],
                 });

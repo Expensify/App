@@ -9,6 +9,12 @@ import 'setimmediate';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
+// Needed for tests to have the necessary environment variables set
+if (!('GITHUB_REPOSITORY' in process.env)) {
+    process.env.GITHUB_REPOSITORY_OWNER = 'Expensify';
+    process.env.GITHUB_REPOSITORY = 'Expensify/App';
+}
+
 setupMockImages();
 mockFSLibrary();
 
@@ -72,15 +78,22 @@ jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     createAnimatedPropAdapter: jest.fn,
     useReducedMotion: jest.fn,
+    LayoutAnimationConfig: jest.fn,
 }));
 
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
 
 jest.mock('react-native-app-logs', () => require<typeof RNAppLogs>('react-native-app-logs/jest'));
 
+jest.mock('@libs/runOnLiveMarkdownRuntime', () => {
+    const runOnLiveMarkdownRuntime = <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue) => worklet;
+    return runOnLiveMarkdownRuntime;
+});
+
 jest.mock('@src/libs/actions/Timing', () => ({
     start: jest.fn(),
     end: jest.fn(),
+    clearData: jest.fn(),
 }));
 
 jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({
@@ -88,11 +101,18 @@ jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () =
     onBackgroundTaskExecution: jest.fn(),
 }));
 
+jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
+    isHybridApp: jest.fn(),
+    closeReactNativeApp: jest.fn(),
+    completeOnboarding: jest.fn(),
+    switchAccount: jest.fn(),
+}));
+
 // This makes FlatList render synchronously for easier testing.
 jest.mock(
     '@react-native/virtualized-lists/Interaction/Batchinator',
     () =>
-        class SyncBachinator {
+        class SyncBatchinator {
             #callback: () => void;
 
             constructor(callback: () => void) {

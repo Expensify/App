@@ -1,5 +1,6 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import React from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -9,7 +10,8 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Session from '@userActions/Session';
+import {clearSignInData} from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
 
 function SessionExpiredPage() {
     const styles = useThemeStyles();
@@ -32,12 +34,12 @@ function SessionExpiredPage() {
                         {translate('deeplinkWrapper.expired')}{' '}
                         <TextLink
                             onPress={() => {
-                                if (!NativeModules.HybridAppModule) {
-                                    Session.clearSignInData();
+                                if (!CONFIG.IS_HYBRID_APP) {
+                                    clearSignInData();
                                     Navigation.goBack();
                                     return;
                                 }
-                                NativeModules.HybridAppModule.closeReactNativeApp(true, false);
+                                HybridAppModule.closeReactNativeApp({shouldSignOut: true, shouldSetNVP: false});
                             }}
                         >
                             {translate('deeplinkWrapper.signIn')}

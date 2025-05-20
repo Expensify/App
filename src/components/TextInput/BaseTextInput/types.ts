@@ -1,8 +1,10 @@
-import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib/typescript/src/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+type InputType = 'markdown' | 'mask' | 'default';
 type CustomBaseTextInputProps = {
     /** Input label */
     label?: string;
@@ -50,7 +52,7 @@ type CustomBaseTextInputProps = {
     disableKeyboard?: boolean;
 
     /**
-     * Autogrow input container length based on the entered text.
+     *   input container length based on the entered text.
      */
     autoGrow?: boolean;
 
@@ -58,7 +60,13 @@ type CustomBaseTextInputProps = {
     autoGrowExtraSpace?: number;
 
     /**
-     * Autogrow input container height based on the entered text
+     * Specifies the side ('left' or 'right') where the autoGrow margin should be applied.
+     * This determines which side of the input container will expand when autoGrow is enabled.
+     */
+    autoGrowMarginSide?: 'left' | 'right';
+
+    /**
+     * Auto grow input container height based on the entered text
      */
     autoGrowHeight?: boolean;
 
@@ -92,9 +100,6 @@ type CustomBaseTextInputProps = {
     /** Callback to update the value on Form when input is used in the Form component. */
     onInputChange?: (value: string) => void;
 
-    /** Whether we should wait before focusing the TextInput, useful when using transitions  */
-    shouldDelayFocus?: boolean;
-
     /** Indicate whether input is multiline */
     multiline?: boolean;
 
@@ -116,11 +121,14 @@ type CustomBaseTextInputProps = {
     /** Type of autocomplete */
     autoCompleteType?: string;
 
-    /** Should live markdown be enabled. Changes RNTextInput component to RNMarkdownTextInput */
-    isMarkdownEnabled?: boolean;
-
     /** List of markdowns that won't be styled as a markdown */
     excludedMarkdownStyles?: Array<keyof MarkdownStyle>;
+
+    /** A set of styles for markdown elements (such as link, h1, emoji etc.) */
+    markdownStyle?: MarkdownStyle;
+
+    /** Custom parser function for RNMarkdownTextInput */
+    parser?: (input: string) => MarkdownRange[];
 
     /** Whether the clear button should be displayed */
     shouldShowClearButton?: boolean;
@@ -143,12 +151,36 @@ type CustomBaseTextInputProps = {
     /** Style for the loading spinner */
     loadingSpinnerStyle?: StyleProp<ViewStyle>;
 
+    /** Style for the icon container */
+    iconContainerStyle?: StyleProp<ViewStyle>;
+
     /** The width of inner content */
     contentWidth?: number;
+
+    /** The type (internal implementation) of input. Can be one of: `default`, `mask`, `markdown` */
+    type?: InputType;
+
+    /** The mask of the masked input */
+    mask?: MaskedTextInputOwnProps['mask'];
+
+    /** A set of permitted characters for the input */
+    allowedKeys?: MaskedTextInputOwnProps['allowedKeys'];
+
+    /** A regular expression to validate the input before proceeding to masking stage */
+    validationRegex?: MaskedTextInputOwnProps['validationRegex'];
+
+    /** Whether the input should be enforced to be uncontrolled. Default is `false` */
+    uncontrolled?: boolean;
+
+    /** Whether the clear button should always be displayed */
+    shouldHideClearButton?: boolean;
+
+    /** Callback when the input is cleared using the clear button */
+    onClearInput?: () => void;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
 
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 
-export type {BaseTextInputProps, BaseTextInputRef, CustomBaseTextInputProps};
+export type {BaseTextInputProps, BaseTextInputRef, InputType};

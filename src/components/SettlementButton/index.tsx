@@ -1,13 +1,17 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {PaymentType} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+import {formatPaymentMethods} from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {
     doesReportBelongToWorkspace,
@@ -21,6 +25,7 @@ import {approveMoneyRequest, savePreferredPaymentMethod as savePreferredPaymentM
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {LastPaymentMethodType} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -29,6 +34,8 @@ import type SettlementButtonProps from './types';
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
 type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => void;
+
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function SettlementButton({
     addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -66,20 +73,42 @@ function SettlementButton({
     onlyShowPayElsewhere,
     wrapperStyle,
 }: SettlementButtonProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
-    const [lastPaymentMethod = '-1', lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {selector: (paymentMethod) => paymentMethod?.[policyIDKey]});
+    const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+        canBeMissing: true,
+        selector: (paymentMethod) => {
+            if (typeof paymentMethod?.[policyIDKey] === 'string') {
+                return paymentMethod?.[policyIDKey];
+            }
+            return (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed;
+        },
+    });
 
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const lastPaymentMethodRef = useRef(lastPaymentMethod);
+
+    useEffect(() => {
+        if (isLoadingLastPaymentMethod) {
+            return;
+        }
+        lastPaymentMethodRef.current = lastPaymentMethod;
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isLoadingLastPaymentMethod]);
+
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
-    const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions;
+    const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
@@ -102,7 +131,7 @@ function SettlementButton({
             },
         };
         const approveButtonOption = {
-            text: translate('iou.approve'),
+            text: translate('iou.approve', {formattedAmount}),
             icon: Expensicons.ThumbsUp,
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
@@ -122,7 +151,7 @@ function SettlementButton({
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
-        if (isExpenseReport && shouldShowPaywithExpensifyOption) {
+        if (isExpenseReport && shouldShowPayWithExpensifyOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
         if (shouldShowPayElsewhereOption) {
@@ -130,6 +159,19 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
+            const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
+            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
+            const getPaymentSubitems = (payAsBusiness: boolean) =>
+                formattedPaymentMethods.map((formattedPaymentMethod) => ({
+                    text: formattedPaymentMethod?.title ?? '',
+                    description: formattedPaymentMethod?.description ?? '',
+                    icon: formattedPaymentMethod?.icon,
+                    onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType),
+                    iconStyles: formattedPaymentMethod?.iconStyles,
+                    iconHeight: formattedPaymentMethod?.iconSize,
+                    iconWidth: formattedPaymentMethod?.iconSize,
+                }));
+
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
@@ -137,6 +179,12 @@ function SettlementButton({
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: [
+                        ...(isCurrencySupported ? getPaymentSubitems(false) : []),
+                        {
+                            text: translate('workspace.invoices.paymentMethods.addBankAccount'),
+                            icon: Expensicons.Bank,
+                            onSelected: () => Navigation.navigate(addBankAccountRoute),
+                        },
                         {
                             text: translate('iou.payElsewhere', {formattedAmount: ''}),
                             icon: Expensicons.Cash,
@@ -153,6 +201,12 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 backButtonText: translate('iou.business'),
                 subMenuItems: [
+                    ...(isCurrencySupported ? getPaymentSubitems(true) : []),
+                    {
+                        text: translate('workspace.invoices.paymentMethods.addBankAccount'),
+                        icon: Expensicons.Bank,
+                        onSelected: () => Navigation.navigate(addBankAccountRoute),
+                    },
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: Expensicons.Cash,
@@ -168,7 +222,7 @@ function SettlementButton({
         }
 
         // Put the preferred payment method to the front of the array, so it's shown as default. We assume their last payment method is their preferred.
-        if (lastPaymentMethod) {
+        if (lastPaymentMethodRef.current) {
             return buttonOptions.sort((method) => (method.value === lastPaymentMethod ? -1 : 0));
         }
         return buttonOptions;
@@ -185,7 +239,7 @@ function SettlementButton({
         currency,
         shouldHidePaymentOptions,
         shouldShowApproveButton,
-        shouldShowPaywithExpensifyOption,
+        shouldShowPayWithExpensifyOption,
         shouldShowPayElsewhereOption,
         chatReport,
         onPress,
@@ -221,7 +275,7 @@ function SettlementButton({
     };
 
     const savePreferredPaymentMethod = (id: string, value: PaymentMethodType) => {
-        savePreferredPaymentMethodIOU(id, value);
+        savePreferredPaymentMethodIOU(id, value, undefined);
     };
 
     return (

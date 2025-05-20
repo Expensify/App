@@ -23,13 +23,13 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 - Identifying functions with heavy calculations.
 - Targeting functions that are frequently used throughout the app.
 
-## Running tests locally 
+## Running tests locally
 
 - Checkout your base environment, eg. `git checkout main`.
-- Collect baseline metrics with `npx reassure --baseline`.
+- Collect baseline metrics with `npm run perf-test -- --baseline`.
 - Apply any desired changes (for testing purposes you can eg. try to slow down a list).
-- Collect current metrics with `npx reassure`.
-- Open up the resulting `output.md` / `output.json` (see console output) to compare the results.
+- Collect current metrics with `npm run perf-test`.
+- Open up the resulting `output1.md` (and possibly consecutive output files) / `output.json` (see console output) to compare the results.
 - With all that information, Reassure can present the render duration times as statistically significant or meaningless.
 
 ## Metrics for Regression Detection
@@ -65,7 +65,7 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 
     - Investigate the code changes that might be causing this and address them to maintain a stable render count. More info [here](https://github.com/Expensify/App/blob/fe9e9e3e31bae27c2398678aa632e808af2690b5/tests/perf-test/README.md?plain=1#L32).
     - It is important to run Reassure tests locally and see if our changes caused a regression.
-    - One of the potential factors that may influence variation in the number of renders is adding unnecesary providers to the component we want to test using ```<ComposeProviders>``` . Ensure that all providers are necessary for running the test.
+    - One of the potential factors that may influence variation in the number of renders is adding unnecessary providers to the component we want to test using ```<ComposeProviders>``` . Ensure that all providers are necessary for running the test.
 
 ## What can be tested (scenarios)
 

@@ -2,10 +2,10 @@ import type {ReactElement} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -21,7 +21,7 @@ import {
     isMoneyRequestAction,
     isThreadParentMessage,
 } from '@libs/ReportActionsUtils';
-import {getIOUReportActionDisplayMessage, hasMissingInvoiceBankAccount, isSettled} from '@libs/ReportUtils';
+import {getIOUReportActionDisplayMessage, getReportName, hasMissingInvoiceBankAccount, isSettled} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -56,7 +56,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     const isIOUReport = isMoneyRequestAction(action);
 
     if (isMemberChangeAction(action)) {
-        const fragment = getMemberChangeMessageFragment(action);
+        const fragment = getMemberChangeMessageFragment(action, getReportName);
 
         return (
             <View style={[styles.chatItemMessage, style]}>
@@ -109,6 +109,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
             <ReportActionItemFragment
                 /* eslint-disable-next-line react/no-array-index-key */
                 key={`actionFragment-${action.reportActionID}-${index}`}
+                reportActionID={action.reportActionID}
                 fragment={fragment}
                 iouMessage={iouMessage}
                 isThreadParentMessage={isThreadParentMessage(action, reportID)}

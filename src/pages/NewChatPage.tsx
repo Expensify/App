@@ -4,9 +4,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import ImportedStateIndicator from '@components/ImportedStateIndicator';
-import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
-import OfflineIndicator from '@components/OfflineIndicator';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -20,10 +17,8 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -45,16 +40,22 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
+import KeyboardUtils from '@src/utils/keyboard';
 
 const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
+type SelectedOption = ListItem &
+    Omit<OptionData, 'reportID'> & {
+        reportID?: string;
+    };
+
 function useOptions() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<Array<ListItem & OptionData>>([]);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+    const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const personalData = useCurrentUserPersonalDetails();
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -143,12 +144,10 @@ function NewChatPage() {
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
-    const {insets, safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const selectionListRef = useRef<SelectionListHandle>(null);
 
     const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
@@ -158,7 +157,7 @@ function NewChatPage() {
         const sectionsList: Section[] = [];
         let firstKey = '';
 
-        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails);
+        const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions as OptionData[], recentReports, personalDetails);
         sectionsList.push(formatResults.section);
 
         if (!firstKey) {
@@ -204,17 +203,19 @@ function NewChatPage() {
         (option: ListItem & Partial<OptionData>) => {
             const isOptionInList = !!option.isSelected;
 
-            let newSelectedOptions;
+            let newSelectedOptions: SelectedOption[];
 
             if (isOptionInList) {
                 newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
             } else {
-                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`}];
+                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID}];
+                selectionListRef?.current?.scrollToIndex(0, true);
             }
 
             selectionListRef?.current?.clearInputAfterSelect?.();
-            selectionListRef.current?.focusTextInput();
-            selectionListRef?.current?.scrollToIndex(Math.max(newSelectedOptions.length - 1, 0), true);
+            if (!canUseTouchScreen()) {
+                selectionListRef.current?.focusTextInput();
+            }
             setSelectedOptions(newSelectedOptions);
         },
         [selectedOptions, setSelectedOptions],
@@ -228,10 +229,18 @@ function NewChatPage() {
     const selectOption = useCallback(
         (option?: Option) => {
             if (option?.isSelfDM) {
-                Navigation.dismissModal(option.reportID);
+                if (!option.reportID) {
+                    Navigation.dismissModal();
+                    return;
+                }
+                Navigation.dismissModalWithReport({reportID: option.reportID});
                 return;
             }
             if (selectedOptions.length && option) {
+                // Prevent excluded emails from being added to groups
+                if (option?.login && excludedGroupEmails.includes(option.login)) {
+                    return;
+                }
                 toggleOption(option);
                 return;
             }
@@ -247,7 +256,7 @@ function NewChatPage() {
                 Log.warn('Tried to create chat with empty login');
                 return;
             }
-            navigateToAndOpenReport([login]);
+            KeyboardUtils.dismiss().then(() => navigateToAndOpenReport([login]));
         },
         [selectedOptions, toggleOption],
     );
@@ -292,7 +301,7 @@ function NewChatPage() {
         if (!personalData || !personalData.login || !personalData.accountID) {
             return;
         }
-        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({
+        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option) => ({
             login: option?.login,
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
         }));
@@ -305,7 +314,7 @@ function NewChatPage() {
 
     const footerContent = useMemo(
         () =>
-            !isDismissed || selectedOptions.length ? (
+            (!isDismissed || selectedOptions.length > 0) && (
                 <>
                     <ReferralProgramCTA
                         referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
@@ -322,56 +331,43 @@ function NewChatPage() {
                         />
                     )}
                 </>
-            ) : null,
+            ),
         [createGroup, selectedOptions.length, styles.mb5, translate, isDismissed],
     );
 
     return (
         <ScreenWrapper
-            shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom
-            shouldShowOfflineIndicator={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
-            testID={NewChatPage.displayName}
+            disableOfflineIndicatorSafeAreaPadding
+            shouldShowOfflineIndicator={false}
+            keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
+            testID={NewChatPage.displayName}
         >
-            <KeyboardAvoidingView
-                style={styles.flex1}
-                behavior="padding"
-                // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
-                // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
-            >
-                <SelectionList<Option & ListItem>
-                    ref={selectionListRef}
-                    ListItem={UserListItem}
-                    sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-                    textInputValue={searchTerm}
-                    textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
-                    onChangeText={setSearchTerm}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                    headerMessage={headerMessage}
-                    onSelectRow={selectOption}
-                    shouldSingleExecuteRowSelect
-                    onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option))}
-                    rightHandSideComponent={itemRightSideComponent}
-                    footerContent={footerContent}
-                    showLoadingPlaceholder={!areOptionsInitialized}
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    isLoadingNewOptions={!!isSearchingForReports}
-                    initiallyFocusedOptionKey={firstKeyForList}
-                    shouldTextInputInterceptSwipe
-                    confirmButtonStyles={insets.bottom ? [safeAreaPaddingBottomStyle, styles.mb5] : undefined}
-                />
-                {isSmallScreenWidth && (
-                    <>
-                        <OfflineIndicator />
-                        <ImportedStateIndicator />
-                    </>
-                )}
-            </KeyboardAvoidingView>
+            <SelectionList<Option & ListItem>
+                ref={selectionListRef}
+                ListItem={UserListItem}
+                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+                textInputValue={searchTerm}
+                textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
+                onChangeText={setSearchTerm}
+                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                headerMessage={headerMessage}
+                onSelectRow={selectOption}
+                shouldSingleExecuteRowSelect
+                onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option))}
+                rightHandSideComponent={itemRightSideComponent}
+                footerContent={footerContent}
+                showLoadingPlaceholder={!areOptionsInitialized}
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                isLoadingNewOptions={!!isSearchingForReports}
+                initiallyFocusedOptionKey={firstKeyForList}
+                shouldTextInputInterceptSwipe
+                addBottomSafeAreaPadding
+            />
         </ScreenWrapper>
     );
 }

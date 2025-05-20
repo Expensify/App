@@ -1,5 +1,5 @@
 import React from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import Header from '@components/Header';
 import HeaderGap from '@components/HeaderGap';
@@ -12,7 +12,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as AppUpdate from '@libs/actions/AppUpdate';
+import {updateApp} from '@userActions/AppUpdate';
+import CONFIG from '@src/CONFIG';
 
 function UpdateRequiredView() {
     const insets = useSafeAreaInsets();
@@ -22,10 +23,10 @@ function UpdateRequiredView() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {isProduction} = useEnvironment();
-    const isStandaloneNewAppProduction = isProduction && !NativeModules.HybridAppModule;
+    const isStandaloneNewAppProduction = isProduction && !CONFIG.IS_HYBRID_APP;
 
     return (
-        <View style={[styles.appBG, styles.h100, StyleUtils.getSafeAreaPadding(insets)]}>
+        <View style={[styles.appBG, styles.h100, StyleUtils.getPlatformSafeAreaPadding(insets)]}>
             <HeaderGap />
             <View style={[styles.pt5, styles.ph5, styles.updateRequiredViewHeader]}>
                 <Header title={translate('updateRequiredView.updateRequired')} />
@@ -56,7 +57,7 @@ function UpdateRequiredView() {
                 <Button
                     success
                     large
-                    onPress={() => AppUpdate.updateApp(isProduction)}
+                    onPress={() => updateApp(isProduction)}
                     text={translate('common.update')}
                     style={styles.updateRequiredViewTextContainer}
                 />

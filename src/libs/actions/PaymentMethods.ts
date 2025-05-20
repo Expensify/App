@@ -14,16 +14,17 @@ import type {
     TransferWalletBalanceParams,
     UpdateBillingCurrencyParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 import type {BankAccountList, FundList} from '@src/types/onyx';
-import type {AccountData} from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -272,8 +273,11 @@ function addSubscriptionPaymentCard(
             failureData,
         });
     }
-
-    GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+    if (getCardForSubscriptionBilling()) {
+        Log.info(`[GTM] Not logging ${CONST.ANALYTICS.EVENT.PAID_ADOPTION} because a card was already added`);
+    } else {
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+    }
 }
 
 /**
@@ -281,14 +285,7 @@ function addSubscriptionPaymentCard(
  * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
  */
 function addPaymentCardGBP(params: AddPaymentCardParams, onyxData: OnyxData = {}) {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, params, onyxData).then((response) => {
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return;
-        }
-        // We are using this onyx key to open Modal and preview iframe. Potentially we can save the whole object which come from side effect
-        Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
-    });
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_GBP, params, onyxData);
 }
 
 /**
@@ -400,7 +397,7 @@ function resetWalletTransferData() {
     });
 }
 
-function saveWalletTransferAccountTypeAndID(selectedAccountType: string, selectedAccountID: string) {
+function saveWalletTransferAccountTypeAndID(selectedAccountType: string | undefined, selectedAccountID: string | undefined) {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {selectedAccountType, selectedAccountID});
 }
 
@@ -539,21 +536,6 @@ function updateBillingCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRE
 }
 
 /**
- * Set payment card form with API data
- *
- */
-function setPaymentCardForm(values: AccountData) {
-    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
-        [INPUT_IDS.CARD_NUMBER]: values.cardNumber,
-        [INPUT_IDS.EXPIRATION_DATE]: `${values.cardMonth}${values.cardYear?.toString()?.substring(2)}`,
-        [INPUT_IDS.ADDRESS_STREET]: values.addressStreet,
-        [INPUT_IDS.ADDRESS_ZIP_CODE]: values.addressZip?.toString(),
-        [INPUT_IDS.ADDRESS_STATE]: values.addressState,
-        [INPUT_IDS.CURRENCY]: values.currency,
-    });
-}
-
-/**
  *  Sets the default bank account to use for receiving payouts from
  *
  */
@@ -619,7 +601,6 @@ export {
     setPaymentMethodCurrency,
     clearPaymentCard3dsVerification,
     clearWalletTermsError,
-    setPaymentCardForm,
     verifySetupIntent,
     addPaymentCardGBP,
     setInvoicingTransferBankAccount,

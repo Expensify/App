@@ -235,7 +235,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 borderRadius: variables.componentBorderRadiusSmall,
                 ...tooltipVerticalPadding,
                 ...spacing.ph2,
-                zIndex: variables.tooltipzIndex,
+                zIndex: variables.tooltipZIndex,
                 width: tooltipWidth,
                 maxWidth,
                 top: rootWrapperTop,
@@ -287,7 +287,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         const tooltipHorizontalPadding = spacing.ph2.paddingHorizontal * 2;
         const tooltipWidth = props.tooltipContentWidth && props.tooltipContentWidth + tooltipHorizontalPadding + 1;
         const isTooltipSizeReady = tooltipWidth !== undefined && props.tooltipWrapperHeight !== undefined;
-        let scale = 1;
+        let scale = 0;
         if (isTooltipSizeReady) {
             scale = props.currentSize.get();
         }

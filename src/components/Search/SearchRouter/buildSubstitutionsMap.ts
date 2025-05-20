@@ -1,9 +1,10 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+import type {CardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
-import type {CardList, PersonalDetailsList, Report} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
 const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
@@ -30,11 +31,12 @@ function buildSubstitutionsMap(
     reports: OnyxCollection<Report>,
     allTaxRates: Record<string, string[]>,
     cardList: CardList,
+    cardFeedNamesWithType: CardFeedNamesWithType,
+    policies: OnyxCollection<Policy>,
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
     const searchAutocompleteQueryRanges = parsedQuery.ranges;
-
     if (searchAutocompleteQueryRanges.length === 0) {
         return {};
     }
@@ -61,9 +63,13 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CREATED_BY ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE
         ) {
-            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList);
+            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeedNamesWithType, policies);
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {
@@ -75,7 +81,6 @@ function buildSubstitutionsMap(
 
         return map;
     }, {} as SubstitutionMap);
-
     return substitutionsMap;
 }
 

@@ -1,6 +1,6 @@
 import deburr from 'lodash/deburr';
 import CONST from '@src/CONST';
-import * as Browser from './Browser';
+import {isSafari} from './Browser';
 
 /**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
@@ -38,7 +38,7 @@ function removeInvisibleCharacters(value: string): string {
     // - \u2060: word joiner
     result = result.replace(/[\u200B\u2060]/g, '');
 
-    const invisibleCharacterRegex = Browser.isSafari() ? /([\uD800-\uDBFF][\uDC00-\uDFFF])|[\p{Cc}\p{Co}\p{Cn}]/gu : /[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu;
+    const invisibleCharacterRegex = isSafari() ? /([\uD800-\uDBFF][\uDC00-\uDFFF])|[\p{Cc}\p{Co}\p{Cn}]/gu : /[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu;
 
     // The control unicode (Cc) regex removes all newlines,
     // so we first split the string by newline and rejoin it afterward to retain the original line breaks.
@@ -75,6 +75,22 @@ function normalizeAccents(text: string) {
 }
 
 /**
+ * Normalize a string by:
+ * - removing diacritical marks
+ * - Removing non-alphabetic and non-latin characters from a string
+ * - Removing invisible characters
+ * - normalizing space-like characters into normal spaces
+ * - collapsing whitespaces
+ * - trimming
+ */
+function normalize(text: string): string {
+    return removeInvisibleCharacters(text)
+        .replace(/[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, ' ') // space-like -> ' '
+        .replace(/\s+/g, ' ') // collapse spaces
+        .trim();
+}
+
+/**
  *  Replace all CRLF with LF
  *  @param value - The input string
  *  @returns The string with all CRLF replaced with LF
@@ -86,8 +102,8 @@ function normalizeCRLF(value?: string): string | undefined {
 /**
  * Replace all line breaks with white spaces
  */
-function lineBreaksToSpaces(text = '') {
-    return text.replace(CONST.REGEX.LINE_BREAK, ' ');
+function lineBreaksToSpaces(text = '', useNonBreakingSpace = false) {
+    return text.replace(CONST.REGEX.LINE_BREAK, useNonBreakingSpace ? '\u00A0' : ' ');
 }
 
 /**
@@ -99,4 +115,38 @@ function getFirstLine(text = '') {
     return lines.at(0);
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, lineBreaksToSpaces, getFirstLine};
+/**
+ * Remove double quotes from the string
+ */
+function removeDoubleQuotes(text = '') {
+    return text.replace(/"/g, '');
+}
+
+/**
+ * Sort an array of strings by their length.
+ * The longest strings will be at the end of the array.
+ */
+function sortStringArrayByLength(arr: string[]): string[] {
+    return arr.sort((a, b) => a.length - b.length);
+}
+
+/**
+ * Remove pre tag from the html
+ */
+function removePreCodeBlock(text = '') {
+    return text.replace(/<pre[^>]*>|<\/pre>/g, '');
+}
+
+export default {
+    sanitizeString,
+    isEmptyString,
+    removeInvisibleCharacters,
+    normalize,
+    normalizeAccents,
+    normalizeCRLF,
+    lineBreaksToSpaces,
+    getFirstLine,
+    removeDoubleQuotes,
+    removePreCodeBlock,
+    sortStringArrayByLength,
+};

@@ -4,7 +4,6 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import {hasReportViolations, isReportOwner, isSettled, shouldDisplayViolationsRBRInLHN} from '@src/libs/ReportUtils';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -17,6 +16,8 @@ import type {OptionRowLHNDataProps} from './types';
 function OptionRowLHNData({
     isFocused = false,
     fullReport,
+    reportAttributes,
+    oneTransactionThreadReport,
     reportNameValuePairs,
     reportActions,
     personalDetails = {},
@@ -36,25 +37,20 @@ function OptionRowLHNData({
     const currentReportIDValue = useCurrentReportID();
     const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
 
-    const optionItemRef = useRef<OptionData>();
-
-    const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(fullReport, transactionViolations);
-    const isReportSettled = isSettled(fullReport);
-    const shouldDisplayReportViolations = !isReportSettled && isReportOwner(fullReport) && hasReportViolations(reportID);
-
+    const optionItemRef = useRef<OptionData | undefined>(undefined);
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
             report: fullReport,
+            reportAttributes,
+            oneTransactionThreadReport,
             reportNameValuePairs,
             reportActions,
             personalDetails,
             preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            hasViolations: !!shouldDisplayViolations || shouldDisplayReportViolations,
             lastMessageTextFromReport,
-            transactionViolations,
             invoiceReceiverPolicy,
         });
         // eslint-disable-next-line react-compiler/react-compiler
@@ -72,6 +68,9 @@ function OptionRowLHNData({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
         fullReport,
+        reportAttributes?.brickRoadStatus,
+        reportAttributes?.reportName,
+        oneTransactionThreadReport,
         reportNameValuePairs,
         lastReportActionTransaction,
         reportActions,
@@ -81,11 +80,10 @@ function OptionRowLHNData({
         parentReportAction,
         iouReportReportActions,
         transaction,
-        transactionViolations,
         receiptTransactions,
         invoiceReceiverPolicy,
-        shouldDisplayReportViolations,
         lastMessageTextFromReport,
+        reportAttributes,
     ]);
 
     return (

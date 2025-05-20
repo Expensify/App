@@ -1,8 +1,9 @@
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
+import {getBrowser, isChromeIOS} from '@libs/Browser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as Modal from './Modal';
+import {close} from './Modal';
 
 let isTestToolsModalOpen = false;
 Onyx.connect({
@@ -20,7 +21,7 @@ function toggleTestToolsModal() {
             Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, !isTestToolsModalOpen);
         };
         if (!isTestToolsModalOpen) {
-            Modal.close(toggleIsTestToolsModalOpen);
+            close(toggleIsTestToolsModalOpen);
             return;
         }
         toggleIsTestToolsModalOpen();
@@ -29,4 +30,15 @@ function toggleTestToolsModal() {
     throttledToggle();
 }
 
+function shouldShowProfileTool() {
+    const browser = getBrowser();
+    const isSafariOrFirefox = browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.FIREFOX;
+
+    if (isSafariOrFirefox || isChromeIOS()) {
+        return false;
+    }
+    return true;
+}
+
+export {shouldShowProfileTool};
 export default toggleTestToolsModal;

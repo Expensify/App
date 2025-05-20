@@ -9,21 +9,23 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ValidSkeletons = typeof SearchRowSkeleton | typeof TableRowSkeleton;
 type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
-type Button = {buttonText?: string; buttonAction?: () => void; success?: boolean; icon?: IconAsset; isDisabled?: boolean};
+type Button = {buttonText?: string; buttonAction?: () => void; success?: boolean; icon?: IconAsset; isDisabled?: boolean; style?: StyleProp<ViewStyle>};
 
 type SharedProps<T> = {
-    SkeletonComponent: ValidSkeletons;
+    SkeletonComponent?: ValidSkeletons;
     title: string;
     titleStyles?: StyleProp<TextStyle>;
-    subtitle: string | React.ReactNode;
+    subtitle?: string;
+    children?: React.ReactNode;
     buttons?: Button[];
     containerStyles?: StyleProp<ViewStyle>;
+    cardStyles?: StyleProp<ViewStyle>;
+    cardContentStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: T;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
     lottieWebViewStyles?: React.CSSProperties | undefined;
     minModalHeight?: number;
-    showsVerticalScrollIndicator?: boolean;
 };
 
 type MediaType<HeaderMedia, T extends MediaTypes> = SharedProps<T> & {

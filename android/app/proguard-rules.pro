@@ -46,3 +46,4 @@
 -dontwarn org.jmrtd.protocol.BACResult
 -dontwarn org.jmrtd.protocol.PACEResult
 -dontwarn org.spongycastle.jce.provider.BouncyCastleProvider
+-dontwarn org.slf4j.impl.StaticLoggerBinder

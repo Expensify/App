@@ -1,8 +1,4 @@
-import CONST from '@src/CONST';
-import getPlatform from './getPlatform';
-
-const platform = getPlatform();
-const isNativePlatform = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
+import isFileUploadable from './isFileUploadable';
 
 /**
  * Ensures no value of type `object` other than null, Blob, its subclasses, or {uri: string} (native platforms only) is passed to XMLHttpRequest.
@@ -19,10 +15,7 @@ function validateFormDataParameter(command: string, key: string, value: unknown)
             return value.every((element) => isValid(element, false));
         }
         if (isTopLevel) {
-            // Native platforms only require the value to include the `uri` property.
-            // Optionally, it can also have a `name` and `type` props.
-            // On other platforms, the value must be an instance of `Blob`.
-            return isNativePlatform ? 'uri' in value && !!value.uri : value instanceof Blob;
+            return isFileUploadable(value);
         }
         return false;
     };

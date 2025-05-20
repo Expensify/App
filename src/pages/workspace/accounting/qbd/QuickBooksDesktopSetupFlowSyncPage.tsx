@@ -23,7 +23,7 @@ function QuickBooksDesktopSetupFlowSyncPage({route}: QuickBooksDesktopSetupFlowS
 
         const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
         if (!isSyncInProgress) {
-            syncConnection(policyID, CONST.POLICY.CONNECTIONS.NAME.QBD, true);
+            syncConnection(policy, CONST.POLICY.CONNECTIONS.NAME.QBD, true);
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));

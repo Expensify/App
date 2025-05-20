@@ -1,6 +1,6 @@
+import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as API from '@libs/API';
 import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAssigneeParams, EditTaskParams, ReopenTaskParams} from '@libs/API/parameters';
@@ -22,6 +22,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction} from './Report';
 
@@ -38,7 +39,6 @@ type ShareDestination = {
     displayNamesWithTooltips: ReportUtils.DisplayNameWithTooltips;
     shouldUseFullTitleToDisplay: boolean;
 };
-type PolicyValue = ValueOf<typeof CONST.POLICY.ROLE>;
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -87,6 +87,12 @@ Onyx.connect({
     },
 });
 
+let introSelected: OnyxEntry<OnyxTypes.IntroSelected> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (val) => (introSelected = val),
+});
+
 /**
  * Clears out the task info from the store
  */
@@ -114,7 +120,7 @@ function clearOutTaskInfo(skipConfirmation = false) {
  * 3b. The TaskReportAction on the assignee chat report
  */
 function createTaskAndNavigate(
-    parentReportID: string,
+    parentReportID: string | undefined,
     title: string,
     description: string,
     assigneeEmail: string,
@@ -123,6 +129,10 @@ function createTaskAndNavigate(
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     isCreatedUsingMarkdown = false,
 ) {
+    if (!parentReportID) {
+        return;
+    }
+
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, parentReportID, assigneeAccountID, title, description, policyID);
 
     const assigneeChatReportID = assigneeChatReport?.reportID;
@@ -320,7 +330,7 @@ function createTaskAndNavigate(
         parentReportID,
         taskReportID: optimisticTaskReport.reportID,
         createdTaskReportActionID: optimisticTaskCreatedAction.reportActionID,
-        title: optimisticTaskReport.reportName,
+        htmlTitle: optimisticTaskReport.reportName,
         description: optimisticTaskReport.description,
         assignee: assigneeEmail,
         assigneeAccountID,
@@ -332,8 +342,10 @@ function createTaskAndNavigate(
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     if (!isCreatedUsingMarkdown) {
-        clearOutTaskInfo();
-        Navigation.dismissModal(parentReportID);
+        InteractionManager.runAfterInteractions(() => {
+            clearOutTaskInfo();
+        });
+        Navigation.dismissModalWithReport({reportID: parentReportID});
     }
     notifyNewAction(parentReportID, currentUserAccountID);
 }
@@ -352,7 +364,7 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
             reportAction.childType === CONST.REPORT.TYPE.TASK &&
             reportAction?.childStateNum === CONST.REPORT.STATE_NUM.OPEN &&
             reportAction?.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN &&
-            ReportActionsUtils.getReportActionMessage(reportAction)?.isDeletedParentAction
+            !ReportActionsUtils.getReportActionMessage(reportAction)?.isDeletedParentAction
         ) {
             return true;
         }
@@ -364,11 +376,11 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 /**
  * Complete a task
  */
-function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string) {
+function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string): OnyxData {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
     if (!taskReportID) {
-        return;
+        return {};
     }
 
     const message = `marked as complete`;
@@ -449,6 +461,7 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromActio
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
+    return {optimisticData, successData, failureData};
 }
 
 /**
@@ -541,8 +554,10 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description});
 
-    // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
-    const reportName = (title ?? report?.reportName)?.trim();
+    // Ensure title is defined before parsing it with getParsedComment. If title is undefined, fall back to reportName from report.
+    // Trim the final parsed title for consistency.
+    const reportName = title ? ReportUtils.getParsedComment(title, undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]) : report?.reportName ?? '';
+    const parsedTitle = (reportName ?? '').trim();
 
     // Description can be unset, so we default to an empty string if so
     const newDescription = typeof description === 'string' ? ReportUtils.getParsedComment(description) : report.description;
@@ -558,7 +573,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
-                reportName,
+                reportName: parsedTitle,
                 description: reportDescription,
                 pendingFields: {
                     ...(title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
@@ -579,6 +594,8 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
+                reportName: parsedTitle,
+                description: reportDescription,
                 pendingFields: {
                     ...(title && {reportName: null}),
                     ...(description && {description: null}),
@@ -605,7 +622,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
 
     const parameters: EditTaskParams = {
         taskReportID: report.reportID,
-        title: reportName,
+        htmlTitle: parsedTitle,
         description: reportDescription,
         editedTaskReportActionID: editTaskReportAction.reportActionID,
     };
@@ -622,7 +639,7 @@ function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, as
     const assigneeChatReportID = assigneeChatReport?.reportID;
     const assigneeChatReportMetadata = ReportUtils.getReportMetadata(assigneeChatReportID);
     const parentReport = getParentReport(report);
-    const taskOwnerAccountID = getTaskOwnerAccountID(report);
+    const taskOwnerAccountID = report?.ownerAccountID;
     const optimisticReport: OptimisticReport = {
         reportName,
         managerID: assigneeAccountID ?? report.managerID,
@@ -800,18 +817,13 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report, isOptimisticReport 
 }
 
 function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: number) {
-    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport(
-        [assigneeAccountID, currentUserAccountID],
-        '',
-        undefined,
-        CONST.POLICY.OWNER_EMAIL_FAKE,
-        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
-        false,
-        '',
-        undefined,
-        undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-    );
+    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport({
+        participantList: [assigneeAccountID, currentUserAccountID],
+        reportName: '',
+        policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
+        ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    });
 
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
@@ -921,7 +933,11 @@ function startOutCreateTaskQuickAction(reportID: string, targetAccountID: number
 /**
  * Get the assignee data
  */
-function getAssignee(assigneeAccountID: number, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): Assignee {
+function getAssignee(assigneeAccountID: number | undefined, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): Assignee | undefined {
+    if (!assigneeAccountID) {
+        return;
+    }
+
     const details = personalDetails?.[assigneeAccountID];
 
     if (!details) {
@@ -1200,36 +1216,18 @@ function getTaskAssigneeAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): numb
 }
 
 /**
- * Returns Task owner accountID
- */
-function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number | undefined {
-    return taskReport?.ownerAccountID;
-}
-
-/**
  * Check if you're allowed to modify the task - only the author can modify the task
  */
-function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, taskOwnerAccountID?: number): boolean {
-    const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
-    if (ownerAccountID !== sessionAccountID) {
-        return false;
-    }
-
+function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, isParentReportArchived = false): boolean {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
 
-    const parentReport = getParentReport(taskReport);
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
-    if (ReportUtils.isArchivedReport(reportNameValuePairs)) {
+    if (isParentReportArchived) {
         return false;
     }
 
-    if (sessionAccountID === ownerAccountID) {
-        return true;
-    }
-
-    return false;
+    return sessionAccountID === taskReport?.ownerAccountID;
 }
 
 /**
@@ -1241,12 +1239,15 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
     }
 
     const parentReport = getParentReport(taskReport);
+
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
     if (ReportUtils.isArchivedNonExpenseReport(parentReport, reportNameValuePairs)) {
         return false;
     }
 
-    const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
+    const ownerAccountID = taskReport?.ownerAccountID ?? taskOwnerAccountID;
     const assigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? taskAssigneeAccountID;
     return sessionAccountID === ownerAccountID || sessionAccountID === assigneeAccountID;
 }
@@ -1270,6 +1271,23 @@ function clearTaskErrors(reportID: string | undefined) {
         pendingFields: null,
         errorFields: null,
     });
+}
+
+function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected): OnyxData {
+    const taskReportID = introSelected?.[taskName];
+    const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+    if (taskReportID && canActionTask(taskReport, currentUserAccountID)) {
+        if (taskReport) {
+            if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
+                return completeTask(taskReport);
+            }
+        }
+    }
+
+    return {};
+}
+function completeTestDriveTask() {
+    getFinishOnboardingTaskOnyxData('viewTour');
 }
 
 export {
@@ -1297,6 +1315,6 @@ export {
     setNewOptimisticAssignee,
     getNavigationUrlOnTaskDelete,
     canActionTask,
+    getFinishOnboardingTaskOnyxData,
+    completeTestDriveTask,
 };
-
-export type {PolicyValue, Assignee, ShareDestination};

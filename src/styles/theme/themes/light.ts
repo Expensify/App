@@ -22,6 +22,8 @@ const lightTheme = {
     textSupporting: colors.productLight800,
     text: colors.productLight900,
     textColorfulBackground: colors.ivory,
+    textReceiptDropZone: colors.green700,
+    textAttachmentDropZone: colors.blue700,
     syntax: colors.productLight800,
     link: colors.blue600,
     linkHover: colors.blue500,
@@ -43,7 +45,7 @@ const lightTheme = {
     // Additional keys
     overlay: colors.productLight400,
     inverse: colors.productLight900,
-    shadow: colors.black,
+    shadow: '0px 4px 12px 0px rgba(2,18,4,0.06)',
     componentBG: colors.productLight100,
     messageHighlightBG: colors.yellow100,
     hoverComponentBG: colors.productLight300,
@@ -68,7 +70,12 @@ const lightTheme = {
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.productLight200,
     dropUIBG: 'rgba(252, 251, 249, 0.92)',
+    dropWrapperBG: 'rgba(235, 230, 223, 0.72)',
     fileDropUIBG: 'rgba(3, 212, 124, 0.84)',
+    attachmentDropUIBG: 'rgba(90, 176, 255, 0.9)',
+    attachmentDropBorderColor: colors.blue100,
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.9)',
+    receiptDropBorderColor: colors.green100,
     checkBox: colors.green400,
     imageCropBackgroundColor: colors.productLight700,
     fallbackIconColor: colors.green700,
@@ -118,7 +125,7 @@ const lightTheme = {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.SETTINGS.WORKSPACES]: {
+        [SCREENS.WORKSPACE_HUB.WORKSPACES]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
@@ -154,6 +161,7 @@ const lightTheme = {
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
     navigationBarButtonsStyle: CONST.NAVIGATION_BAR_BUTTONS_STYLE.DARK,
+    translucentNavigationBarBackgroundColor: `${colors.productLight100}CD`, // CD is 80% opacity (80% of 0xFF)
     colorScheme: CONST.COLOR_SCHEME.LIGHT,
 } satisfies ThemeColors;
 

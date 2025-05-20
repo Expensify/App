@@ -11529,6 +11529,7 @@ function getTestBuildMessage() {
     const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
+| Android :robot::arrows_counterclockwise:  | iOS :apple::arrows_counterclockwise: |
 | ${result.ANDROID.link}  | ${result.IOS.link}  |
 | ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
 | Desktop :computer: | Web :spider_web: |
@@ -11542,11 +11543,11 @@ function getTestBuildMessage() {
     return message;
 }
 /** Comment on a single PR */
-async function commentPR(PR, message) {
+async function commentPR(REPO, PR, message) {
     console.log(`Posting test build comment on #${PR}`);
     try {
-        await GithubUtils_1.default.createComment(github_1.context.repo.repo, PR, message);
-        console.log(`Comment created on #${PR} successfully 🎉`);
+        await GithubUtils_1.default.createComment(REPO, PR, message);
+        console.log(`Comment created on #${PR} (${REPO}) successfully 🎉`);
     }
     catch (err) {
         console.log(`Unable to write comment on #${PR} 😞`);
@@ -11557,9 +11558,14 @@ async function commentPR(PR, message) {
 }
 async function run() {
     const PR_NUMBER = Number(core.getInput('PR_NUMBER', { required: true }));
+    const REPO = String(core.getInput('REPO', { required: true }));
+    if (REPO !== CONST_1.default.APP_REPO && REPO !== CONST_1.default.MOBILE_EXPENSIFY_REPO) {
+        core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
+        return;
+    }
     const comments = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listComments, {
         owner: CONST_1.default.GITHUB_OWNER,
-        repo: CONST_1.default.APP_REPO,
+        repo: REPO,
         // eslint-disable-next-line @typescript-eslint/naming-convention
         issue_number: PR_NUMBER,
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -11578,7 +11584,7 @@ async function run() {
             }
         `);
     }
-    await commentPR(PR_NUMBER, getTestBuildMessage());
+    await commentPR(REPO, PR_NUMBER, getTestBuildMessage());
 }
 if (require.main === require.cache[eval('__filename')]) {
     run();
@@ -11596,8 +11602,9 @@ exports["default"] = run;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const GIT_CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
+    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER,
+    APP_REPO: process.env.GITHUB_REPOSITORY.split('/').at(1) ?? '',
+    MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
 };
 const CONST = {
     ...GIT_CONST,
@@ -11786,7 +11793,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const tag = issue.body?.match(versionRegex)?.[0].replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
             return {
                 title: issue.title,
                 url: issue.url,
@@ -11798,7 +11805,8 @@ class GithubUtils {
                 isTimingDashboardChecked: issue.body ? /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body) : false,
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
-                tag,
+                version,
+                tag: `${version}-staging`,
             };
         }
         catch (exception) {
@@ -11886,7 +11894,7 @@ class GithubUtils {
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n`;
+                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
                 // PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
@@ -11924,9 +11932,9 @@ class GithubUtils {
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isTimingDashboardChecked ? 'x' : ' '}] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
                 // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
                 // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/android:org.me.mobiexpensifyg/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';

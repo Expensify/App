@@ -23,7 +23,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {
     createDistanceRequest,
     getIOURequestPolicyID,
+    getMoneyRequestParticipantsFromReport,
     resetSplitShares,
+    setCustomUnitRateID,
     setMoneyRequestAmount,
     setMoneyRequestMerchant,
     setMoneyRequestParticipantsFromReport,
@@ -39,13 +41,14 @@ import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransac
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getPersonalPolicy, getPolicy} from '@libs/PolicyUtils';
-import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
+import {getPersonalPolicy, getPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {getDistanceInMeters, getRateID, getRequestType, getValidWaypoints, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getDistanceInMeters, getRateID, getRequestType, getValidWaypoints, hasRoute, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -68,7 +71,7 @@ type IOURequestStepDistanceProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepDistance({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo, backToReport},
     },
     transaction,
     currentUserPersonalDetails,
@@ -76,12 +79,14 @@ function IOURequestStepDistance({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: false});
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: false});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const waypoints = useMemo(
         () =>
@@ -131,7 +136,7 @@ function IOURequestStepDistance({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const transactionWasSaved = useRef(false);
     const isCreatingNewRequest = !(backTo || isEditing);
-    const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
     const iouRequestType = getRequestType(transaction);
     const customUnitRateID = getRateID(transaction);
 
@@ -232,7 +237,7 @@ function IOURequestStepDistance({
         createBackupTransaction(transaction, isDraft);
 
         return () => {
-            // If the user cancels out of the modal without without saving changes, then the original transaction
+            // If the user cancels out of the modal without saving changes, then the original transaction
             // needs to be restored from the backup so that all changes are removed.
             if (transactionWasSaved.current) {
                 removeBackupTransaction(transaction?.transactionID);
@@ -241,7 +246,7 @@ function IOURequestStepDistance({
             restoreOriginalTransactionFromBackup(transaction?.transactionID, isDraft);
 
             // If the user opens IOURequestStepDistance in offline mode and then goes online, re-open the report to fill in missing fields from the transaction backup
-            if (!transaction?.reportID) {
+            if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
             openReport(transaction?.reportID);
@@ -266,31 +271,18 @@ function IOURequestStepDistance({
         [action, transactionID, report?.reportID, reportID],
     );
 
-    const navigateToParticipantPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-        }
-    }, [iouType, reportID, transactionID]);
-
     const navigateToConfirmationPage = useCallback(() => {
         switch (iouType) {
             case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
                 break;
             case CONST.IOU.TYPE.SEND:
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
                 break;
             default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
         }
-    }, [iouType, reportID, transactionID]);
+    }, [backToReport, iouType, reportID, transactionID]);
 
     const navigateToNextStep = useCallback(() => {
         if (transaction?.splitShares) {
@@ -308,7 +300,7 @@ function IOURequestStepDistance({
         // to the confirm step.
         // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
         if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
-            const selectedParticipants = setMoneyRequestParticipantsFromReport(transactionID, report);
+            const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
@@ -320,34 +312,29 @@ function IOURequestStepDistance({
                 const participant = participants.at(0);
                 if (iouType === CONST.IOU.TYPE.TRACK && participant) {
                     playSound(SOUNDS.DONE);
-                    trackExpense(
+                    trackExpense({
                         report,
-                        0,
-                        transaction?.currency ?? 'USD',
-                        transaction?.created ?? '',
-                        translate('iou.fieldPending'),
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
-                        participant,
-                        '',
-                        false,
-                        {},
-                        '',
-                        '',
-                        '',
-                        0,
-                        false,
-                        policy,
-                        undefined,
-                        undefined,
-                        undefined,
-                        getValidWaypoints(waypoints, true),
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        customUnitRateID,
-                    );
+                        isDraftPolicy: false,
+                        participantParams: {
+                            payeeEmail: currentUserPersonalDetails.login,
+                            payeeAccountID: currentUserPersonalDetails.accountID,
+                            participant,
+                        },
+                        policyParams: {
+                            policy,
+                        },
+                        transactionParams: {
+                            amount: 0,
+                            currency: transaction?.currency ?? 'USD',
+                            created: transaction?.created ?? '',
+                            merchant: translate('iou.fieldPending'),
+                            receipt: {},
+                            billable: false,
+                            validWaypoints: getValidWaypoints(waypoints, true),
+                            customUnitRateID,
+                            attendees: transaction?.comment?.attendees,
+                        },
+                    });
                     return;
                 }
 
@@ -369,35 +356,57 @@ function IOURequestStepDistance({
                         validWaypoints: getValidWaypoints(waypoints, true),
                         customUnitRateID: DistanceRequestUtils.getCustomUnitRateID(report.reportID),
                         splitShares: transaction?.splitShares,
+                        attendees: transaction?.comment?.attendees,
                     },
+                    backToReport,
                 });
                 return;
             }
-            setMoneyRequestParticipantsFromReport(transactionID, report);
-            navigateToConfirmationPage();
+            setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+                navigateToConfirmationPage();
+            });
             return;
         }
 
         // If there was no reportID, then that means the user started this flow from the global menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-        navigateToParticipantPage();
+        if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
+            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            const rateID = DistanceRequestUtils.getCustomUnitRateID(activePolicyExpenseChat?.reportID);
+            setCustomUnitRateID(transactionID, rateID);
+            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                        CONST.IOU.ACTION.CREATE,
+                        iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+                        transactionID,
+                        activePolicyExpenseChat?.reportID,
+                    ),
+                );
+            });
+        } else {
+            navigateToParticipantPage(iouType, transactionID, reportID);
+        }
     }, [
-        report,
-        iouType,
-        transactionID,
-        backTo,
-        waypoints,
-        currentUserPersonalDetails,
-        personalDetails,
-        shouldSkipConfirmation,
         transaction,
-        translate,
-        navigateToParticipantPage,
-        navigateToConfirmationPage,
-        policy,
+        backTo,
+        report,
+        reportID,
         reportNameValuePairs,
-        customUnitRateID,
+        iouType,
+        activePolicy,
         setDistanceRequestData,
+        shouldSkipConfirmation,
+        transactionID,
+        personalDetails,
+        translate,
+        currentUserPersonalDetails.login,
+        currentUserPersonalDetails.accountID,
+        policy,
+        waypoints,
+        backToReport,
+        customUnitRateID,
+        navigateToConfirmationPage,
     ]);
 
     const getError = () => {
@@ -519,6 +528,7 @@ function IOURequestStepDistance({
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepDistance.displayName}
+            shouldShowNotFoundPage={isEditing && !transaction?.comment?.waypoints}
             shouldShowWrapper={!isCreatingNewRequest}
         >
             <>
@@ -526,7 +536,6 @@ function IOURequestStepDistance({
                     <DraggableList
                         data={waypointsList}
                         keyExtractor={(item) => (waypoints[item]?.keyForList ?? waypoints[item]?.address ?? '') + item}
-                        shouldUsePortal
                         onDragEnd={updateWaypoints}
                         ref={scrollViewRef}
                         renderItem={renderItem}
@@ -535,6 +544,7 @@ function IOURequestStepDistance({
                                 waypoints={waypoints}
                                 navigateToWaypointEditPage={navigateToWaypointEditPage}
                                 transaction={transaction}
+                                policy={policy}
                             />
                         }
                     />
@@ -553,7 +563,7 @@ function IOURequestStepDistance({
                         allowBubble
                         pressOnEnter
                         large
-                        style={[styles.w100, styles.mb5, styles.ph4, styles.flexShrink0]}
+                        style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
                         onPress={submitWaypoints}
                         text={buttonText}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}

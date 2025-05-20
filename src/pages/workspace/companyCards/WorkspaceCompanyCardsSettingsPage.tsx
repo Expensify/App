@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,11 +9,13 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteWorkspaceCompanyCardFeed, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
-import {getCompanyFeeds, getCustomOrFormattedFeedName, getSelectedFeed} from '@libs/CardUtils';
+import {getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -38,31 +40,36 @@ function WorkspaceCompanyCardsSettingsPage({
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [deleteCompanyCardConfirmModalVisible, setDeleteCompanyCardConfirmModalVisible] = useState(false);
 
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we want to run the hook only once to escape unexpected feed change
-    const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), []);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+
+    const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
+
+    const [cardsList] = useCardsList(policyID, selectedFeed);
     const feedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const liabilityType = selectedFeed && companyFeeds[selectedFeed]?.liabilityType;
+    const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
+    const liabilityType = selectedFeedData?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));
     };
 
     const deleteCompanyCardFeed = () => {
+        setDeleteCompanyCardConfirmModalVisible(false);
+        Navigation.goBack();
         if (selectedFeed) {
             const {cardList, ...cards} = cardsList ?? {};
             const cardIDs = Object.keys(cards);
             const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[])
                 .filter((feed) => feed !== selectedFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
                 .at(0);
-            deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, selectedFeed, cardIDs, feedToOpen);
+            InteractionManager.runAfterInteractions(() => {
+                deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, selectedFeed, cardIDs, feedToOpen);
+            });
         }
-        setDeleteCompanyCardConfirmModalVisible(false);
-        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
     const onToggleLiability = (isOn: boolean) => {
@@ -70,7 +77,7 @@ function WorkspaceCompanyCardsSettingsPage({
             return;
         }
         setWorkspaceCompanyCardTransactionLiability(
-            workspaceAccountID,
+            domainOrWorkspaceAccountID,
             policyID,
             selectedFeed,
             isOn ? CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW : CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.RESTRICT,
@@ -85,8 +92,12 @@ function WorkspaceCompanyCardsSettingsPage({
             <ScreenWrapper
                 testID={WorkspaceCompanyCardsSettingsPage.displayName}
                 style={styles.defaultModalContainer}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    addBottomSafeAreaPadding
+                >
                     <HeaderWithBackButton title={translate('common.settings')} />
                     <View style={styles.flex1}>
                         <MenuItemWithTopDescription

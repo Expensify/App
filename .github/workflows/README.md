@@ -80,14 +80,6 @@ git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fet
 
 ## Secrets
 The GitHub workflows require a large list of secrets to deploy, notify and test the code:
-1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository. To create updated versions of these encrypted files, refer to steps 1-4 of [this encrypted secrets help page](https://docs.github.com/en/actions/reference/encrypted-secrets#limits-for-secrets) using the `LARGE_SECRET_PASSPHRASE`.
-   1. `android/app/my-upload-key.keystore.gpg`
-   1. `android/app/android-fastlane-json-key.json.gpg`
-   1. `ios/NewApp_AdHoc.mobileprovision`
-   1. `ios/NewApp_AdHoc_Notification_Service.mobileprovision`
-   1. `ios/NewApp_AppStore.mobileprovision.gpg`
-   1. `ios/NewApp_AppStore_Notification_Service.mobileprovision.gpg`
-   1. `ios/Certificates.p12.gpg`
 1. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
 1. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
 1. `CLA_BOTIFY_TOKEN` - Personal access token for @CLABotify user in GitHub
@@ -105,10 +97,15 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
 1. `BROWSERSTACK` - Used to access Browserstack's API
 
+We use 1Password for many secrets and in general use two different actions from 1Password to fetch secrets:
+
+1. `1password/install-cli-action` - This action is used to install 1Password cli `op` and is used to grab **files** using the `op read` command.
+1. `1password/load-secrets-action` - This action is used to fetch **strings** from 1Password.
+
 ### Important note about Secrets
 Secrets are available by default in most workflows. The exception to the rule is callable workflows. If a workflow is triggered by the `workflow_call` event, it will only have access to repo secrets if the workflow that called it passed in the secrets explicitly (for example, using `secrets: inherit`).
 
-Furthermore, secrets are not accessible in actions. If you need to access a secret in an action, you must declare it as an input and pass it in. GitHub _should_ still obfuscate the value of the secret in workflow run logs.
+Furthermore, secrets are not accessible in actions. If you need to access a secret in an action, _you must declare it as an input and pass it in_. GitHub _should_ still obfuscate the value of the secret in workflow run logs.
 
 ## Actions
 

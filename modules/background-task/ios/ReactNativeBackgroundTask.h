@@ -1,5 +1,5 @@
 #ifdef RCT_NEW_ARCH_ENABLED
-#import "RNReactNativeBackgroundTaskSpec.h"
+#import <ReactCodegen/RNReactNativeBackgroundTaskSpec/RNReactNativeBackgroundTaskSpec.h>
 #import <BackgroundTasks/BackgroundTasks.h>
 
 @interface ReactNativeBackgroundTask : NativeReactNativeBackgroundTaskSpecBase <NativeReactNativeBackgroundTaskSpec>

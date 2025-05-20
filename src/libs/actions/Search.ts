@@ -19,17 +19,9 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
+import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
-import {openReport} from './Report';
-
-let currentUserEmail: string;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        currentUserEmail = val?.email ?? '';
-    },
-});
+import type Nullable from '@src/types/utils/Nullable';
 
 let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
 Onyx.connect({
@@ -77,8 +69,22 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
     }
 }
 
+function getLastPolicyPaymentMethod(policyID: string | undefined, lastPaymentMethods: OnyxEntry<LastPaymentMethod>) {
+    if (!policyID) {
+        return null;
+    }
+    let lastPolicyPaymentMethod = null;
+    if (typeof lastPaymentMethods?.[policyID] === 'string') {
+        lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    } else {
+        lastPolicyPaymentMethod = (lastPaymentMethods?.[policyID] as LastPaymentMethodType)?.lastUsed as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    }
+
+    return lastPolicyPaymentMethod;
+}
+
 function getPayActionCallback(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
-    const lastPolicyPaymentMethod = item.policyID ? (lastPaymentMethod?.[item.policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) : null;
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod);
 
     if (!lastPolicyPaymentMethod) {
         goToItem();
@@ -114,6 +120,13 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                errors: null,
+            },
+        },
     ];
 
     const finallyData: OnyxUpdate[] = [
@@ -138,6 +151,7 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                     status: queryJSON?.status,
                     type: queryJSON?.type,
                 },
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
@@ -248,9 +262,7 @@ function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: numbe
  * It's possible that we return legacy transactions that don't have a transaction thread created yet.
  * In that case, when users select the search result row, we need to create the transaction thread on the fly and update the search result with the new transactionThreadReport
  */
-function createTransactionThread(hash: number, transactionID: string, reportID: string, moneyRequestReportActionID: string) {
-    openReport(reportID, '', [currentUserEmail], undefined, moneyRequestReportActionID);
-
+function updateSearchResultsWithTransactionThreadReportID(hash: number, transactionID: string, reportID: string) {
     const onyxUpdate: Record<string, Record<string, Partial<SearchTransaction>>> = {
         data: {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
@@ -312,6 +324,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
     const failureData: OnyxUpdate[] = createOnyxData({errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
     const finallyData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
 
+    playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, finallyData});
 }
 
@@ -379,10 +392,21 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
     fileDownload(getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, policyIDs}: ExportSearchItemsToCSVParams) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
+        query,
+        jsonQuery,
+        reportIDList,
+        transactionIDList,
+        policyIDs,
+    }) as ExportSearchItemsToCSVParams;
+
+    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters);
+}
 /**
  * Updates the form values for the advanced filters search form.
  */
-function updateAdvancedFilters(values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) {
+function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>>) {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
@@ -396,7 +420,7 @@ function clearAllFilters() {
 function clearAdvancedFilters() {
     const values: Partial<Record<ValueOf<typeof FILTER_KEYS>, null>> = {};
     Object.values(FILTER_KEYS)
-        .filter((key) => key !== FILTER_KEYS.TYPE && key !== FILTER_KEYS.STATUS)
+        .filter((key) => !([FILTER_KEYS.TYPE, FILTER_KEYS.STATUS, FILTER_KEYS.GROUP_BY] as string[]).includes(key))
         .forEach((key) => {
             values[key] = null;
         });
@@ -407,11 +431,12 @@ function clearAdvancedFilters() {
 export {
     saveSearch,
     search,
-    createTransactionThread,
+    updateSearchResultsWithTransactionThreadReportID,
     deleteMoneyRequestOnSearch,
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
     exportSearchItemsToCSV,
+    queueExportSearchItemsToCSV,
     updateAdvancedFilters,
     clearAllFilters,
     clearAdvancedFilters,
@@ -421,4 +446,5 @@ export {
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
     openSearchFiltersCardPage,
+    getLastPolicyPaymentMethod,
 };

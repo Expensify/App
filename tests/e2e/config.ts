@@ -8,6 +8,7 @@ const TEST_NAMES = {
     ReportTyping: 'Report typing',
     ChatOpening: 'Chat opening',
     Linking: 'Linking',
+    MoneyRequest: 'Money request',
 };
 
 /**
@@ -100,6 +101,9 @@ export default {
             reportID: '8268282951170052',
             linkedReportID: '5421294415618529',
             linkedReportActionID: '2845024374735019929',
+        },
+        [TEST_NAMES.MoneyRequest]: {
+            name: TEST_NAMES.MoneyRequest,
         },
     },
 };

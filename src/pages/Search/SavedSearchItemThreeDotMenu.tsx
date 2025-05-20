@@ -1,8 +1,10 @@
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 
 type SavedSearchItemThreeDotMenuProps = {
@@ -12,10 +14,26 @@ type SavedSearchItemThreeDotMenuProps = {
     renderTooltipContent: () => React.JSX.Element;
     shouldRenderTooltip: boolean;
 };
+
 function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrainingTooltip, renderTooltipContent, shouldRenderTooltip}: SavedSearchItemThreeDotMenuProps) {
     const threeDotsMenuContainerRef = useRef<View>(null);
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState({horizontal: 0, vertical: 0});
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+
+    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
+        if (shouldUseNarrowLayout) {
+            return Promise.resolve({horizontal: 0, vertical: 0});
+        }
+        return new Promise<AnchorPosition>((resolve) => {
+            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width) => {
+                resolve({
+                    horizontal: x + width,
+                    vertical: y,
+                });
+            });
+        });
+    }, [shouldUseNarrowLayout]);
+
     return (
         <View
             ref={threeDotsMenuContainerRef}
@@ -23,15 +41,7 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrai
         >
             <ThreeDotsMenu
                 menuItems={menuItems}
-                onIconPress={() => {
-                    threeDotsMenuContainerRef.current?.measureInWindow((x, y, width) => {
-                        setThreeDotsMenuPosition({
-                            horizontal: x + width,
-                            vertical: y,
-                        });
-                    });
-                }}
-                anchorPosition={threeDotsMenuPosition}
+                getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
                 renderProductTrainingTooltipContent={renderTooltipContent}
                 shouldShowProductTrainingTooltip={shouldRenderTooltip}
                 anchorAlignment={{

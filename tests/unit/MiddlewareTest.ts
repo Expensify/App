@@ -114,5 +114,66 @@ describe('Middleware', () => {
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
             TestHelper.assertFormDataMatchesObject({reportID: '1234'}, ((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1)?.body);
         });
+
+        test('Request with preexistingReportID and no reportID in params', async () => {
+            Request.use(handleUnusedOptimisticID);
+            const requests = [
+                {
+                    command: 'RequestMoney',
+                    data: {authToken: 'testToken'},
+                },
+                {
+                    command: 'AddComment',
+                    data: {authToken: 'testToken', reportID: '1234', reportActionID: '5678'},
+                },
+                {
+                    command: 'OpenReport',
+                    data: {authToken: 'testToken', reportID: '2345', reportActionID: undefined, parentReportActionID: undefined},
+                },
+            ];
+            for (const request of requests) {
+                SequentialQueue.push(request);
+            }
+
+            // eslint-disable-next-line @typescript-eslint/require-await
+            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
+                ok: true,
+                // eslint-disable-next-line @typescript-eslint/require-await
+                json: async () => ({
+                    jsonCode: 200,
+                    onyxData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                            value: {
+                                preexistingReportID: '5555',
+                            },
+                        },
+                    ],
+                }),
+            }));
+
+            SequentialQueue.unpause();
+            await waitForNetworkPromises();
+
+            expect(global.fetch).toHaveBeenCalledTimes(3);
+            expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/OpenReport?', expect.anything());
+            TestHelper.assertFormDataMatchesObject(
+                {
+                    reportID: '5555',
+                },
+                ((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[]).at(1)?.body,
+            );
+            const formData = ((global.fetch as jest.Mock).mock.calls.at(2) as FormDataObject[]).at(1)?.body;
+            expect(formData).not.toBeUndefined();
+            if (formData) {
+                const formDataObject = Array.from(formData.entries()).reduce((acc, [key, val]) => {
+                    acc[key] = val;
+                    return acc;
+                }, {} as Record<string, string | Blob | undefined>);
+                expect(formDataObject.reportActionID).toBeUndefined();
+                expect(formDataObject.parentReportActionID).toBeUndefined();
+            }
+        });
     });
 });

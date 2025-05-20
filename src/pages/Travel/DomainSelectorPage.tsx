@@ -10,10 +10,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {provisionDomain} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
+import Navigation from '@libs/Navigation/Navigation';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type DomainItem = ListItem & {
     value: string;
@@ -43,6 +46,17 @@ function DomainSelectorPage() {
         });
     }, [domains, recommendedDomain, selectedDomain]);
 
+    const provisionTravelForDomain = () => {
+        const domain = selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+        if (isEmptyObject(policy?.address)) {
+            // Spotnana requires an address anytime an entity is created for a policy
+            Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain));
+        } else {
+            cleanupTravelProvisioningSession();
+            Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+        }
+    };
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -62,7 +76,7 @@ function DomainSelectorPage() {
                         success
                         large
                         style={[styles.w100]}
-                        onPress={() => provisionDomain(selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN)}
+                        onPress={provisionTravelForDomain}
                         text={translate('common.continue')}
                     />
                 }

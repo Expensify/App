@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {getButtonRole} from '@components/Button/utils';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -9,24 +10,27 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReceiptImage from '@components/ReceiptImage';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import DateUtils from '@libs/DateUtils';
 import {getFileName} from '@libs/fileDownload/FileUtils';
 import Parser from '@libs/Parser';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import StringUtils from '@libs/StringUtils';
 import {
+    getCreated,
     getTagForDisplay,
     getTaxAmount,
-    getCreated as getTransactionCreated,
     getCurrency as getTransactionCurrency,
     getDescription as getTransactionDescription,
     hasReceipt,
+    hasReceiptSource,
+    isExpensifyCardTransaction,
+    isPending,
     isReceiptBeingScanned,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -34,6 +38,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
+import DateCell from './DateCell';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TextWithIconCell from './TextWithIconCell';
 import UserInfoCell from './UserInfoCell';
@@ -91,7 +96,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
     const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
 
     let source = transactionItem?.receipt?.source ?? '';
-    if (source) {
+    if (source && typeof source === 'string') {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
         const isReceiptPDF = Str.isPDF(filename);
@@ -109,7 +114,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
         >
             <ReceiptImage
                 source={source}
-                isEReceipt={transactionItem.hasEReceipt}
+                isEReceipt={transactionItem.hasEReceipt && !hasReceiptSource(transactionItem)}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
@@ -118,23 +123,11 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={transactionItem.isSelected ? theme.buttonHoveredBG : undefined}
                 iconSize="x-small"
+                loadingIconSize="small"
+                loadingIndicatorStyles={styles.bgTransparent}
+                transactionItem={transactionItem}
             />
         </View>
-    );
-}
-
-function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionCellProps) {
-    const styles = useThemeStyles();
-
-    const created = getTransactionCreated(transactionItem);
-    const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-
-    return (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={date}
-            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
-        />
     );
 }
 
@@ -144,9 +137,9 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
     const description = getTransactionDescription(transactionItem);
     let merchantOrDescriptionToDisplay = transactionItem.formattedMerchant;
     if (!merchantOrDescriptionToDisplay && !isLargeScreenWidth) {
-        merchantOrDescriptionToDisplay = Parser.htmlToText(Parser.replace(description));
+        merchantOrDescriptionToDisplay = Parser.htmlToText(description);
     }
-    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(Parser.replace(description));
+    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
 
     if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
@@ -182,15 +175,23 @@ function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCell
 
 function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
     const theme = useTheme();
-    const typeIcon = getTypeIcon(transactionItem.transactionType);
+    const {translate} = useLocalize();
+    const isPendingExpensifyCardTransaction = isExpensifyCardTransaction(transactionItem) && isPending(transactionItem);
+    const typeIcon = isPendingExpensifyCardTransaction ? Expensicons.CreditCardHourglass : getTypeIcon(transactionItem.transactionType);
+
+    const tooltipText = isPendingExpensifyCardTransaction ? translate('iou.pending') : '';
 
     return (
-        <Icon
-            src={typeIcon}
-            fill={theme.icon}
-            height={isLargeScreenWidth ? 20 : 12}
-            width={isLargeScreenWidth ? 20 : 12}
-        />
+        <Tooltip text={tooltipText}>
+            <View>
+                <Icon
+                    src={typeIcon}
+                    fill={theme.icon}
+                    height={isLargeScreenWidth ? 20 : 12}
+                    width={isLargeScreenWidth ? 20 : 12}
+                />
+            </View>
+        </Tooltip>
     );
 }
 
@@ -273,6 +274,8 @@ function TransactionListItemRow({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
+    const created = getCreated(item);
+
     if (!isLargeScreenWidth) {
         return (
             <View style={containerStyle}>
@@ -298,9 +301,10 @@ function TransactionListItemRow({
                     {canSelectMultiple && !!shouldShowTransactionCheckbox && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
-                            role={CONST.ROLE.BUTTON}
+                            role={getButtonRole(true)}
                             disabled={isDisabled}
                             onPress={onCheckboxPress}
+                            isNested
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
                         >
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!isDisabled)]}>
@@ -350,7 +354,7 @@ function TransactionListItemRow({
                                 showTooltip={false}
                             />
                             <DateCell
-                                transactionItem={item}
+                                created={created}
                                 showTooltip={showTooltip}
                                 isLargeScreenWidth={false}
                             />
@@ -373,48 +377,50 @@ function TransactionListItemRow({
                 />
             )}
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, canSelectMultiple && styles.pl4]}>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                     <ReceiptCell
                         transactionItem={item}
                         isLargeScreenWidth
                         showTooltip={false}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
                     <TypeCell
                         transactionItem={item}
                         isLargeScreenWidth={isLargeScreenWidth}
                         showTooltip={false}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
-                        transactionItem={item}
+                        created={created}
                         showTooltip={showTooltip}
                         isLargeScreenWidth
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
                     <MerchantCell
                         transactionItem={item}
                         showTooltip={showTooltip}
                         isLargeScreenWidth
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
-                        participant={item.from}
+                        accountID={item.from.accountID}
+                        avatar={item.from.avatar}
                         displayName={item.formattedFrom}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
-                        participant={item.to}
+                        accountID={item.to.accountID}
+                        avatar={item.to.avatar}
                         displayName={item.formattedTo}
                     />
                 </View>
                 {item.shouldShowCategory && (
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
                         <CategoryCell
                             isLargeScreenWidth
                             showTooltip={showTooltip}
@@ -423,7 +429,7 @@ function TransactionListItemRow({
                     </View>
                 )}
                 {item.shouldShowTag && (
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
                         <TagCell
                             isLargeScreenWidth
                             showTooltip={showTooltip}
@@ -432,7 +438,7 @@ function TransactionListItemRow({
                     </View>
                 )}
                 {item.shouldShowTax && (
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}>
                         <TaxCell
                             transactionItem={item}
                             isLargeScreenWidth
@@ -441,7 +447,7 @@ function TransactionListItemRow({
                     </View>
                 )}
 
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
                     <TotalCell
                         showTooltip={showTooltip}
                         transactionItem={item}
@@ -449,7 +455,7 @@ function TransactionListItemRow({
                         isChildListItem={isChildListItem}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         action={item.action}
                         isSelected={isButtonSelected}

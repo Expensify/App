@@ -4,6 +4,7 @@ import type {TextInput as TextInputType} from 'react-native';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,11 +13,23 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TextSelectorModalProps} from './types';
 
-function TextSelectorModal({value, description = '', subtitle, onValueSelected, isVisible, onClose, shouldClearOnClose, ...rest}: TextSelectorModalProps) {
+function TextSelectorModal({
+    value,
+    description = '',
+    subtitle,
+    onValueSelected,
+    isVisible,
+    onClose,
+    shouldClearOnClose,
+    maxLength = CONST.CATEGORY_NAME_LIMIT,
+    required = false,
+    ...rest
+}: TextSelectorModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -36,6 +49,24 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
             setValue('');
         }
     }, [onClose, shouldClearOnClose]);
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM>) => {
+            let errors: FormInputErrors<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM> = {};
+            const formValue = values[rest.inputID];
+
+            if (required) {
+                errors = getFieldRequiredErrors(values, [rest.inputID]);
+            }
+
+            if (formValue.length > maxLength) {
+                errors[rest.inputID] = translate('common.error.characterLimitExceedCounter', {length: formValue.length, limit: maxLength});
+            }
+
+            return errors;
+        },
+        [maxLength, rest.inputID, required, translate],
+    );
 
     // In TextPicker, when the modal is hidden, it is not completely unmounted, so when it is shown again, the currentValue is not updated with the value prop.
     // Therefore, we need to update the currentValue with the value prop when the modal is shown. This is done once when the modal is shown again.
@@ -68,6 +99,20 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
         }, [isVisible]),
     );
 
+    const handleSubmit = useCallback(
+        (data: FormOnyxValues<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM>) => {
+            const submittedValue = data[rest.inputID] ?? '';
+
+            if (required && !submittedValue.trim()) {
+                return;
+            }
+
+            Keyboard.dismiss();
+            onValueSelected?.(submittedValue);
+        },
+        [onValueSelected, rest.inputID, required],
+    );
+
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
@@ -77,10 +122,11 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
                 includePaddingTop
-                includeSafeAreaPaddingBottom
                 testID={TextSelectorModal.displayName}
                 shouldEnableMaxHeight
             >
@@ -90,27 +136,24 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM}
-                    onSubmit={(data) => {
-                        Keyboard.dismiss();
-                        onValueSelected?.(data[rest.inputID ?? ''] ?? '');
-                    }}
+                    validate={validate}
+                    onSubmit={handleSubmit}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.pb4}>{!!subtitle && <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>}</View>
-                    {!!rest.inputID && (
-                        <InputWrapper
-                            ref={inputCallbackRef}
-                            InputComponent={TextInput}
-                            maxLength={CONST.CATEGORY_NAME_LIMIT}
-                            value={currentValue}
-                            onValueChange={(changedValue) => setValue(changedValue.toString())}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...rest}
-                            inputID={rest.inputID}
-                        />
-                    )}
+                    <InputWrapper
+                        ref={inputCallbackRef}
+                        InputComponent={TextInput}
+                        value={currentValue}
+                        onValueChange={(changedValue) => setValue(changedValue.toString())}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...rest}
+                        inputID={rest.inputID}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </Modal>

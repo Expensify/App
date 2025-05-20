@@ -1,10 +1,13 @@
 import {screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
@@ -20,7 +23,7 @@ describe('ReportActionItemSingle', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
 
@@ -42,7 +45,7 @@ describe('ReportActionItemSingle', () => {
             const fakeReport = LHNTestUtils.getFakeReportWithPolicy([1, 2]);
             const fakeReportAction = LHNTestUtils.getFakeAdvancedReportAction();
             const fakePolicy = LHNTestUtils.getFakePolicy(fakeReport.policyID);
-            const faceAccountId = fakeReportAction.actorAccountID ?? -1;
+            const faceAccountId = fakeReportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
             const fakePersonalDetails: PersonalDetailsList = {
                 [faceAccountId]: {
                     accountID: faceAccountId,
@@ -54,16 +57,18 @@ describe('ReportActionItemSingle', () => {
             };
 
             function setup() {
-                LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
                 const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [fakePolicy], (item) => item.id);
-
-                return waitForBatchedUpdates().then(() =>
-                    Onyx.multiSet({
-                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
-                        [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-                        ...policyCollectionDataSet,
-                    }),
-                );
+                return waitForBatchedUpdates()
+                    .then(() =>
+                        Onyx.multiSet({
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            ...policyCollectionDataSet,
+                        }),
+                    )
+                    .then(() => {
+                        LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
+                    });
             }
 
             it('renders secondary Avatar properly', async () => {
@@ -75,10 +80,11 @@ describe('ReportActionItemSingle', () => {
                 });
             });
 
-            it('renders Person information', () => {
+            it('renders Person information', async () => {
                 const [expectedPerson] = fakeReportAction.person ?? [];
 
-                return setup().then(() => {
+                await setup();
+                await waitFor(() => {
                     expect(screen.getByText(expectedPerson.text ?? '')).toBeOnTheScreen();
                 });
             });

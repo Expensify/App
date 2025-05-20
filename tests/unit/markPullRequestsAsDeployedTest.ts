@@ -80,9 +80,7 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
         case 'DEPLOY_VERSION':
             return version;
         case 'IOS':
-        case 'IOS_HYBRID':
         case 'ANDROID':
-        case 'ANDROID_HYBRID':
         case 'DESKTOP':
         case 'WEB':
             return 'success';
@@ -157,7 +155,6 @@ beforeAll(() => {
 
     // Set GH runner environment variables
     process.env.GITHUB_SERVER_URL = 'https://github.com';
-    process.env.GITHUB_REPOSITORY = 'Expensify/App';
     process.env.GITHUB_RUN_ID = '1234';
     workflowRunURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 });
@@ -195,15 +192,13 @@ describe('markPullRequestsAsDeployed', () => {
 
 platform | result
 ---|---
-🤖 android 🤖|success ✅
 🖥 desktop 🖥|success ✅
-🍎 iOS 🍎|success ✅
 🕸 web 🕸|success ✅
-🤖🔄 android HybridApp 🤖🔄|success ✅
-🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
+🤖 android 🤖|success ✅
+🍎 iOS 🍎|success ✅`,
                 issue_number: PR.issue_number,
-                owner: 'Expensify',
-                repo: 'App',
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
             });
         }
     });
@@ -227,15 +222,13 @@ platform | result
 
 platform | result
 ---|---
-🤖 android 🤖|success ✅
 🖥 desktop 🖥|success ✅
-🍎 iOS 🍎|success ✅
 🕸 web 🕸|success ✅
-🤖🔄 android HybridApp 🤖🔄|success ✅
-🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
+🤖 android 🤖|success ✅
+🍎 iOS 🍎|success ✅`,
                 issue_number: PRList[i + 1].issue_number,
-                owner: 'Expensify',
-                repo: 'App',
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
             });
         }
     });
@@ -272,10 +265,7 @@ platform | result
             if (commit_sha === 'xyz') {
                 return {
                     data: {
-                        message: `Merge pull request #3 blahblahblah
-(cherry picked from commit dagdag)
-(CP triggered by freyja)`,
-                        committer: {name: 'freyja'},
+                        message: `Merge pull request #3 blahblahblah\\n(cherry picked from commit dagdag)\\n(cherry-picked to staging by freyja)`,
                     },
                 };
             }
@@ -291,17 +281,15 @@ platform | result
 
 platform | result
 ---|---
-🤖 android 🤖|success ✅
 🖥 desktop 🖥|success ✅
-🍎 iOS 🍎|success ✅
 🕸 web 🕸|success ✅
-🤖🔄 android HybridApp 🤖🔄|success ✅
-🍎🔄 iOS HybridApp 🍎🔄|success ✅
+🤖 android 🤖|success ✅
+🍎 iOS 🍎|success ✅
 
 @Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.`,
             issue_number: 3,
-            owner: 'Expensify',
-            repo: 'App',
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
         });
     });
 
@@ -330,15 +318,13 @@ platform | result
 
 platform | result
 ---|---
-🤖 android 🤖|skipped 🚫
 🖥 desktop 🖥|cancelled 🔪
-🍎 iOS 🍎|failed ❌
 🕸 web 🕸|success ✅
-🤖🔄 android HybridApp 🤖🔄|success ✅
-🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
+🤖 android 🤖|skipped 🚫
+🍎 iOS 🍎|failed ❌`,
                 issue_number: PR.issue_number,
-                owner: 'Expensify',
-                repo: 'App',
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
             });
         }
     });

@@ -3,20 +3,23 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {BrokenMagnifyingGlass} from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getBankName, getCardFeedIcon, getFilteredCardList, maskCardNumber} from '@libs/CardUtils';
+import {getBankName, getCardFeedIcon, getFilteredCardList, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,19 +35,19 @@ type CardSelectionStepProps = {
 };
 
 function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
-
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const {environmentURL} = useEnvironment();
     const [searchText, setSearchText] = useState('');
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
+    const [list] = useCardsList(policyID, feed);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
+    const [cardFeeds] = useCardFeeds(policyID);
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -87,10 +90,11 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         keyForList: encryptedCardNumber,
         value: encryptedCardNumber,
         text: maskCardNumber(cardNumber, feed),
+        alternateText: lastFourNumbersFromCardName(cardNumber),
         isSelected: cardSelected === encryptedCardNumber,
         leftElement: (
             <Icon
-                src={getCardFeedIcon(feed)}
+                src={getCardFeedIcon(feed, illustrations)}
                 height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -102,17 +106,20 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         return cardListOptions.filter((option) => option.text.toLowerCase().includes(searchText));
     }, [searchText, cardListOptions]);
 
+    const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
+
     return (
         <InteractiveStepWrapper
             wrapperID={CardSelectionStep.displayName}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={assigneeDisplayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {!cardListOptions.length ? (
-                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9, safeAreaPaddingBottomStyle]}>
                     <Icon
-                        src={Illustrations.BrokenMagnifyingGlass}
+                        src={BrokenMagnifyingGlass}
                         width={116}
                         height={168}
                     />
@@ -129,47 +136,49 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                     </Text>
                 </View>
             ) : (
-                <>
-                    <SelectionList
-                        sections={[{data: searchedListOptions}]}
-                        shouldShowTextInput={cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
-                        textInputLabel={translate('common.search')}
-                        textInputValue={searchText}
-                        onChangeText={setSearchText}
-                        ListItem={RadioListItem}
-                        onSelectRow={({value}) => handleSelectCard(value)}
-                        initiallyFocusedOptionKey={cardSelected}
-                        listHeaderContent={
-                            <View>
-                                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                                    <InteractiveStepSubHeader
-                                        startStepIndex={1}
-                                        stepNames={CONST.COMPANY_CARD.STEP_NAMES}
-                                    />
-                                </View>
-                                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
-                                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
-                                    {translate('workspace.companyCards.chooseCardFor', {
-                                        assignee: assigneeDisplayName,
-                                        feed: getBankName(feed),
-                                    })}
-                                </Text>
+                <SelectionList
+                    sections={[{data: searchedListOptions}]}
+                    headerMessage={searchedListOptions.length ? undefined : translate('common.noResultsFound')}
+                    shouldShowTextInput={cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
+                    textInputLabel={translate('common.search')}
+                    textInputValue={searchText}
+                    onChangeText={setSearchText}
+                    ListItem={RadioListItem}
+                    onSelectRow={({value}) => handleSelectCard(value)}
+                    initiallyFocusedOptionKey={cardSelected}
+                    listHeaderContent={
+                        <View>
+                            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                                <InteractiveStepSubHeader
+                                    startStepIndex={1}
+                                    stepNames={CONST.COMPANY_CARD.STEP_NAMES}
+                                />
                             </View>
-                        }
-                        shouldShowTextInputAfterHeader
-                        includeSafeAreaPaddingBottom={false}
-                        shouldShowListEmptyContent={false}
-                        shouldUpdateFocusedIndex
-                    />
-                    <FormAlertWithSubmitButton
-                        buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-                        onSubmit={submit}
-                        isAlertVisible={shouldShowError}
-                        containerStyles={styles.ph5}
-                        message={translate('common.error.pleaseSelectOne')}
-                        buttonStyles={styles.mb5}
-                    />
-                </>
+                            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
+                            <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
+                                {translate('workspace.companyCards.chooseCardFor', {
+                                    assignee: assigneeDisplayName,
+                                    feed: getBankName(feed),
+                                })}
+                            </Text>
+                        </View>
+                    }
+                    shouldShowTextInputAfterHeader
+                    shouldShowHeaderMessageAfterHeader
+                    addBottomSafeAreaPadding
+                    shouldShowListEmptyContent={false}
+                    shouldScrollToFocusedIndex={false}
+                    shouldUpdateFocusedIndex
+                    footerContent={
+                        <FormAlertWithSubmitButton
+                            buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                            onSubmit={submit}
+                            isAlertVisible={shouldShowError}
+                            containerStyles={[!shouldShowError && styles.mt5]}
+                            message={translate('common.error.pleaseSelectOne')}
+                        />
+                    }
+                />
             )}
         </InteractiveStepWrapper>
     );

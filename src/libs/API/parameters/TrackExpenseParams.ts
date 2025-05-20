@@ -28,6 +28,7 @@ type TrackExpenseParams = {
     waypoints?: string;
     actionableWhisperReportActionID?: string;
     customUnitRateID?: string;
+    description?: string;
 };
 
 export default TrackExpenseParams;

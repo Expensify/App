@@ -8,16 +8,17 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Performance from '@libs/Performance';
-import * as Session from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import {useSearchRouterContext} from './SearchRouterContext';
 
 type SearchButtonProps = {
     style?: StyleProp<ViewStyle>;
+    shouldUseAutoHitSlop?: boolean;
 };
 
-function SearchButton({style}: SearchButtonProps) {
+function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -28,11 +29,12 @@ function SearchButton({style}: SearchButtonProps) {
         <Tooltip text={translate('common.search')}>
             <PressableWithoutFeedback
                 ref={pressableRef}
-                nativeID="searchButton"
+                testID="searchButton"
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
+                shouldUseAutoHitSlop={shouldUseAutoHitSlop}
                 // eslint-disable-next-line react-compiler/react-compiler
-                onPress={Session.checkIfActionIsAllowed(() => {
+                onPress={callFunctionIfActionIsAllowed(() => {
                     pressableRef?.current?.blur();
 
                     Timing.start(CONST.TIMING.OPEN_SEARCH);

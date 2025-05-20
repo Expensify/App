@@ -8,9 +8,9 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
 import {EnvironmentProvider} from '@components/withEnvironment';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
-import {ReportIDsContextProvider} from '@hooks/useReportIDs';
+import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import DateUtils from '@libs/DateUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
@@ -38,6 +38,7 @@ jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
+        useNavigationState: () => true,
         useRoute: jest.fn(),
         useFocusEffect: jest.fn(),
         useIsFocused: () => true,
@@ -63,6 +64,7 @@ const fakePersonalDetails: PersonalDetailsList = {
         displayName: 'Email Two',
         avatar: 'none',
         firstName: 'Two',
+        pronouns: '__predefined_sheHerHers',
     },
     3: {
         accountID: 3,
@@ -132,7 +134,7 @@ let lastFakeTransactionID = 0;
 function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false, adminIDs: number[] = []): Report {
     const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
 
-    const participants = ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs);
+    const participants = buildParticipantsFromAccountIDs(participantAccountIDs);
 
     adminIDs.forEach((id) => {
         participants[id] = {
@@ -284,7 +286,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
              * So this is a work around to have currentReportID available
              * only in testing environment.
              *  */}
-            <ReportIDsContextProvider currentReportIDForTests={currentReportID}>
+            <SidebarOrderedReportsContextProvider currentReportIDForTests={currentReportID}>
                 <SidebarLinksData
                     insets={{
                         top: 0,
@@ -293,7 +295,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
                         bottom: 0,
                     }}
                 />
-            </ReportIDsContextProvider>
+            </SidebarOrderedReportsContextProvider>
         </ComposeProviders>
     );
 }

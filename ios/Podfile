@@ -3,7 +3,6 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 # This value is used by $RNMapboxMaps
 $RNMapboxMapsImpl = 'mapbox'
 $VCDisableFrameProcessors = true
-ENV['PROJECT_ROOT_PATH'] = "./";
 
 def node_require(script)
   # Resolve script with node to allow for hoisting
@@ -49,6 +48,16 @@ def __apply_Xcode_14_3_RC_post_install_workaround(installer)
   end
 end
 
+# Pods does not derive :debug type from NewExpensify's debug configurations so we need to set it manually before react-native-post-install. 
+# Based on this value react-native-post-install will set the correct GCC_PREPROCESSOR_DEFINITIONS e.g. ENABLE_HERMES_DEBUGGER
+def __set_debug_type_for_debug_configurations(installer)
+  installer.pods_project.build_configurations.each do |config|
+    if config.name.downcase.include?("debug")
+      installer.pods_project.add_build_configuration(config.name, :debug)
+    end
+  end
+end
+
 # Configure Mapbox before installing dependencies
 pre_install do |installer|
   $RNMapboxMaps.pre_install(installer)
@@ -74,7 +83,7 @@ target 'NewExpensify' do
     'ReleaseProduction' => :release,
     'Debug' => :debug
 
-  config = use_native_modules!
+  config = use_native_modules!(['npx', 'rnef', 'config', '-p', 'ios'])
 
   # Flags change depending on the env values.
   flags = get_default_flags()
@@ -89,16 +98,11 @@ target 'NewExpensify' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-
-  target 'NewExpensifyTests' do
-    inherit! :complete
-    # Pods for testing
-  end
-
   post_install do |installer|
     # Configure Mapbox after installation
     $RNMapboxMaps.post_install(installer)
 
+    __set_debug_type_for_debug_configurations(installer)
     # https://github.com/facebook/react-native/blob/main/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
@@ -120,6 +124,7 @@ end
 
 target 'NotificationServiceExtension' do
   pod 'AirshipServiceExtension'
+  pod 'GzipSwift'
   pod 'AppLogs', :path => '../node_modules/react-native-app-logs/AppLogsPod'
 end
 

@@ -1,8 +1,12 @@
-import {useMemo} from 'react';
+import deburr from 'lodash/deburr';
+import {useCallback, useEffect, useState} from 'react';
 import FastSearch from '@libs/FastSearch';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
+import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 
-type AllOrSelectiveOptions = OptionsListUtils.ReportAndPersonalDetailOptions | OptionsListUtils.Options;
+type AllOrSelectiveOptions = ReportAndPersonalDetailOptions | OptionsListType;
 
 type Options = {
     includeUserToInvite: boolean;
@@ -14,12 +18,9 @@ const emptyResult = {
 };
 
 // You can either use this to search within report and personal details options
-function useFastSearchFromOptions(
-    options: OptionsListUtils.ReportAndPersonalDetailOptions,
-    config?: {includeUserToInvite: false},
-): (searchInput: string) => OptionsListUtils.ReportAndPersonalDetailOptions;
+function useFastSearchFromOptions(options: ReportAndPersonalDetailOptions, config?: {includeUserToInvite: false}): (searchInput: string) => ReportAndPersonalDetailOptions;
 // Or you can use this to include the user invite option. This will require passing all options
-function useFastSearchFromOptions(options: OptionsListUtils.Options, config?: {includeUserToInvite: true}): (searchInput: string) => OptionsListUtils.Options;
+function useFastSearchFromOptions(options: OptionsListType, config?: {includeUserToInvite: true}): (searchInput: string) => OptionsListType;
 
 /**
  * Hook for making options from OptionsListUtils searchable with FastSearch.
@@ -31,16 +32,18 @@ function useFastSearchFromOptions(options: OptionsListUtils.Options, config?: {i
  * const filterOptions = useFastSearchFromOptions(options);
  */
 function useFastSearchFromOptions(
-    options: OptionsListUtils.ReportAndPersonalDetailOptions | OptionsListUtils.Options,
+    options: ReportAndPersonalDetailOptions | OptionsListType,
     {includeUserToInvite}: Options = {includeUserToInvite: false},
 ): (searchInput: string) => AllOrSelectiveOptions {
-    const findInSearchTree = useMemo(() => {
-        const fastSearch = FastSearch.createFastSearch([
+    const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
+
+    useEffect(() => {
+        const newFastSearch = FastSearch.createFastSearch([
             {
                 data: options.personalDetails,
                 toSearchableString: (option) => {
                     const displayName = option.participantsList?.[0]?.displayName ?? '';
-                    return [option.login ?? '', option.login !== displayName ? displayName : ''].join();
+                    return deburr([option.login ?? '', option.login !== displayName ? displayName : ''].join());
                 },
                 uniqueId: (option) => option.login,
             },
@@ -59,14 +62,24 @@ function useFastSearchFromOptions(
                         }
                     }
 
-                    return searchStringForTree.join();
+                    return deburr(searchStringForTree.join());
                 },
             },
         ]);
+        setFastSearch(newFastSearch);
 
-        function search(searchInput: string): AllOrSelectiveOptions {
-            const searchWords = searchInput.split(' ').sort(); // asc sorted
-            const longestSearchWord = searchWords.at(searchWords.length - 1); // longest word is the last element
+        return () => newFastSearch.dispose();
+    }, [options]);
+
+    const findInSearchTree = useCallback(
+        (searchInput: string): AllOrSelectiveOptions => {
+            if (!fastSearch) {
+                return emptyResult;
+            }
+            const deburredInput = deburr(searchInput);
+            const searchWords = deburredInput.split(/\s+/);
+            const searchWordsSorted = StringUtils.sortStringArrayByLength(searchWords);
+            const longestSearchWord = searchWordsSorted.at(searchWordsSorted.length - 1); // longest word is the last element
             if (!longestSearchWord) {
                 return emptyResult;
             }
@@ -77,12 +90,12 @@ function useFastSearchFromOptions(
             let [personalDetails, recentReports] = fastSearch.search(longestSearchWord);
 
             if (searchWords.length > 1) {
-                personalDetails = personalDetails.filter((pd) => OptionsListUtils.isSearchStringMatch(searchInput, pd.text));
-                recentReports = recentReports.filter((rr) => OptionsListUtils.isSearchStringMatch(searchInput, rr.text));
+                personalDetails = personalDetails.filter((pd) => isSearchStringMatch(deburredInput, deburr(pd.text)));
+                recentReports = recentReports.filter((rr) => isSearchStringMatch(deburredInput, deburr(rr.text)));
             }
 
             if (includeUserToInvite && 'currentUserOption' in options) {
-                const userToInvite = OptionsListUtils.filterUserToInvite(
+                const userToInvite = filterUserToInvite(
                     {
                         ...options,
                         personalDetails,
@@ -102,10 +115,9 @@ function useFastSearchFromOptions(
                 personalDetails,
                 recentReports,
             };
-        }
-
-        return search;
-    }, [includeUserToInvite, options]);
+        },
+        [includeUserToInvite, options, fastSearch],
+    );
 
     return findInSearchTree;
 }

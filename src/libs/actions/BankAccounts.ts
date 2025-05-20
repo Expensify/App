@@ -7,11 +7,14 @@ import type {
     BankAccountHandlePlaidErrorParams,
     ConnectBankAccountParams,
     DeletePaymentBankAccountParams,
+    FinishCorpayBankAccountOnboardingParams,
     OpenReimbursementAccountPageParams,
+    SaveCorpayOnboardingBeneficialOwnerParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
+import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
@@ -32,31 +35,18 @@ export {
     goToWithdrawalAccountSetupStep,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
-    resetFreePlanBankAccount,
+    resetUSDBankAccount,
+    resetNonUSDBankAccount,
     hideBankAccountErrors,
     setBankAccountSubStep,
     updateReimbursementAccountDraft,
-    requestResetFreePlanBankAccount,
-    cancelResetFreePlanBankAccount,
+    requestResetBankAccount,
+    cancelResetBankAccount,
 } from './ReimbursementAccount';
 export {openPlaidBankAccountSelector, openPlaidBankLogin} from './Plaid';
 export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTerms} from './Wallet';
 
 type AccountFormValues = typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM;
-
-type BusinessAddress = {
-    addressStreet?: string;
-    addressCity?: string;
-    addressState?: string;
-    addressZipCode?: string;
-};
-
-type PersonalAddress = {
-    requestorAddressStreet?: string;
-    requestorAddressCity?: string;
-    requestorAddressState?: string;
-    requestorAddressZipCode?: string;
-};
 
 function clearPlaid(): Promise<void | void[]> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
@@ -93,9 +83,10 @@ function openPersonalBankAccountSetupView(exitReportID?: string, policyID?: stri
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {source});
         }
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
+            return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
+        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(Navigation.getActiveRoute()));
     });
 }
 
@@ -308,7 +299,10 @@ function deletePaymentBankAccount(bankAccountID: number) {
  * @param policyID - ID of the policy we're setting the bank account on
  * @param isConfirmPage - If we're submitting from the confirmation substep, to trigger all external checks
  */
-function updatePersonalInformationForBankAccount(bankAccountID: number, params: RequestorStepProps, policyID: string, isConfirmPage: boolean) {
+function updatePersonalInformationForBankAccount(bankAccountID: number, params: RequestorStepProps, policyID: string | undefined, isConfirmPage: boolean) {
+    if (!policyID) {
+        return;
+    }
     API.write(
         WRITE_COMMANDS.UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT,
         {
@@ -407,12 +401,13 @@ function getCorpayBankAccountFields(country: string, currency: string) {
     return API.read(READ_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS, parameters, onyxData);
 }
 
-function createCorpayBankAccount(fields: ReimbursementAccountForm) {
+function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: string | undefined) {
     const parameters = {
         type: 1,
         isSavings: false,
         isWithdrawal: true,
         inputs: JSON.stringify(fields),
+        policyID,
     };
 
     const onyxData: OnyxData = {
@@ -433,6 +428,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm) {
                 value: {
                     isLoading: false,
                     isCreateCorpayBankAccount: false,
+                    errors: null,
                     isSuccess: true,
                 },
             },
@@ -445,7 +441,6 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm) {
                     isLoading: false,
                     isCreateCorpayBankAccount: false,
                     isSuccess: false,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         ],
@@ -501,8 +496,122 @@ function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingComp
     return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS, formattedParams, onyxData);
 }
 
-function clearReimbursementAccount() {
-    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
+function saveCorpayOnboardingBeneficialOwners(parameters: SaveCorpayOnboardingBeneficialOwnerParams) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingBeneficialOwnersFields: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingBeneficialOwnersFields: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingBeneficialOwnersFields: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER, parameters, onyxData);
+}
+
+function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardingDirectorInformationParams) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingDirectorInformation: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingDirectorInformation: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingDirectorInformation: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION, parameters, onyxData);
+}
+
+function finishCorpayBankAccountOnboarding(parameters: FinishCorpayBankAccountOnboardingParams) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isFinishingCorpayBankAccountOnboarding: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isFinishingCorpayBankAccountOnboarding: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isFinishingCorpayBankAccountOnboarding: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING, parameters, onyxData);
+}
+
+function clearCorpayBankAccountFields() {
+    Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
 }
 
 function clearReimbursementAccountBankCreation() {
@@ -511,6 +620,18 @@ function clearReimbursementAccountBankCreation() {
 
 function clearReimbursementAccountSaveCorpayOnboardingCompanyDetails() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSavingCorpayOnboardingCompanyFields: null});
+}
+
+function clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSavingCorpayOnboardingBeneficialOwnersFields: null});
+}
+
+function clearReimbursementAccountSaveCorpayOnboardingDirectorInformation() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSavingCorpayOnboardingDirectorInformation: null});
+}
+
+function clearReimbursementAccountFinishCorpayBankAccountOnboarding() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isFinishingCorpayBankAccountOnboarding: null});
 }
 
 /**
@@ -567,7 +688,7 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
  * @param policyID - ID of the policy we're setting the bank account on
  * @param isConfirmPage - If we're submitting from the confirmation substep, to trigger all external checks
  */
-function updateCompanyInformationForBankAccount(bankAccountID: number, params: Partial<CompanyStepProps>, policyID: string, isConfirmPage: boolean) {
+function updateCompanyInformationForBankAccount(bankAccountID: number, params: Partial<CompanyStepProps>, policyID: string | undefined, isConfirmPage: boolean) {
     API.write(
         WRITE_COMMANDS.UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT,
         {
@@ -584,7 +705,7 @@ function updateCompanyInformationForBankAccount(bankAccountID: number, params: P
  * Add beneficial owners for the bank account and verify the accuracy of the information provided
  * @param params - Beneficial Owners step form params
  */
-function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Partial<BeneficialOwnersStepProps>, policyID: string) {
+function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Partial<BeneficialOwnersStepProps>, policyID: string | undefined) {
     API.write(
         WRITE_COMMANDS.UPDATE_BENEFICIAL_OWNERS_FOR_BANK_ACCOUNT,
         {
@@ -644,7 +765,7 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
 }
 
-function openWorkspaceView(policyID: string) {
+function openWorkspaceView(policyID: string | undefined) {
     API.read(
         READ_COMMANDS.OPEN_WORKSPACE_VIEW,
         {
@@ -766,7 +887,6 @@ export {
     addPersonalBankAccount,
     clearOnfidoToken,
     clearPersonalBankAccount,
-    clearPlaid,
     setPlaidEvent,
     openPlaidView,
     connectBankAccountManually,
@@ -776,7 +896,6 @@ export {
     handlePlaidError,
     setPersonalBankAccountContinueKYCOnSuccess,
     openPersonalBankAccountSetupView,
-    clearReimbursementAccount,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
@@ -796,6 +915,11 @@ export {
     getCorpayOnboardingFields,
     saveCorpayOnboardingCompanyDetails,
     clearReimbursementAccountSaveCorpayOnboardingCompanyDetails,
+    saveCorpayOnboardingBeneficialOwners,
+    saveCorpayOnboardingDirectorInformation,
+    clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners,
+    clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
+    clearCorpayBankAccountFields,
+    finishCorpayBankAccountOnboarding,
+    clearReimbursementAccountFinishCorpayBankAccountOnboarding,
 };
-
-export type {BusinessAddress, PersonalAddress};

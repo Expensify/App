@@ -38,11 +38,21 @@ type InteractiveStepWrapperProps = {
     // Should enable picker avoiding
     shouldEnablePickerAvoiding?: boolean;
 
-    // Call task ID for the guides
-    guidesCallTaskID?: string;
-
     // Offline indicator style
     offlineIndicatorStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * Whether the KeyboardAvoidingView should compensate for the bottom safe area padding.
+     * The KeyboardAvoidingView will use a negative keyboardVerticalOffset.
+     */
+    shouldKeyboardOffsetBottomSafeAreaPadding?: boolean;
+
+    /**
+     * Temporary flag to disable safe area bottom spacing in the ScreenWrapper and to allow edge-to-edge content
+     * The ScreenWrapper should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
+     * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
+     */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 };
 
 function InteractiveStepWrapper(
@@ -57,8 +67,9 @@ function InteractiveStepWrapper(
         shouldEnableMaxHeight,
         shouldShowOfflineIndicator,
         shouldEnablePickerAvoiding = false,
-        guidesCallTaskID,
         offlineIndicatorStyle,
+        shouldKeyboardOffsetBottomSafeAreaPadding,
+        enableEdgeToEdgeBottomSafeAreaPadding,
     }: InteractiveStepWrapperProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -69,16 +80,17 @@ function InteractiveStepWrapper(
             ref={ref}
             testID={wrapperID}
             includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
             shouldEnablePickerAvoiding={shouldEnablePickerAvoiding}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
             offlineIndicatorStyle={offlineIndicatorStyle}
+            shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
         >
             <HeaderWithBackButton
                 title={headerTitle}
                 subtitle={headerSubtitle}
                 onBackButtonPress={handleBackButtonPress}
-                guidesCallTaskID={guidesCallTaskID}
             />
             {!!stepNames && (
                 <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>

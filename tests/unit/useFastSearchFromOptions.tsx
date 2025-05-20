@@ -2,6 +2,26 @@ import {renderHook} from '@testing-library/react-native';
 import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import type {Options} from '@libs/OptionsListUtils';
 
+const nonLatinOptions = {
+    currentUserOption: null,
+    userToInvite: null,
+    personalDetails: [
+        {
+            text: 'Fábio John',
+            participantsList: [
+                {
+                    displayName: 'Fábio John',
+                },
+            ],
+        },
+    ],
+    recentReports: [
+        {
+            text: 'Fábio, John (Report)',
+        },
+    ],
+} as Options;
+
 describe('useFastSearchFromOptions', () => {
     it('should return sub word matches', () => {
         const options = {
@@ -45,5 +65,23 @@ describe('useFastSearchFromOptions', () => {
 
         expect(personalDetails).toEqual([expect.objectContaining({text: 'Ahmed Gaber'})]);
         expect(recentReports).toEqual([{text: 'Ahmed Gaber (Report)'}]);
+    });
+    it('should return reports/personalDetails with non-latin characters', () => {
+        const {result} = renderHook(() => useFastSearchFromOptions(nonLatinOptions));
+        const search = result.current;
+
+        const {personalDetails, recentReports} = search('Fabio');
+
+        expect(personalDetails).toEqual([expect.objectContaining({text: 'Fábio John'})]);
+        expect(recentReports).toEqual([{text: 'Fábio, John (Report)'}]);
+    });
+    it('should return reports/personalDetails with multiple word query and non-latin character', () => {
+        const {result} = renderHook(() => useFastSearchFromOptions(nonLatinOptions));
+        const search = result.current;
+
+        const {recentReports, personalDetails} = search('John Fabio');
+
+        expect(personalDetails).toEqual([expect.objectContaining({text: 'Fábio John'})]);
+        expect(recentReports).toEqual([{text: 'Fábio, John (Report)'}]);
     });
 });

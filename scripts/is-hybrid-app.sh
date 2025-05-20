@@ -1,11 +1,18 @@
 #!/bin/bash
-set -e
+
+source scripts/shellUtils.sh
+
+# Check if jq is installed
+if ! jq --version > /dev/null 2>&1; then
+  error 'jq is not installed. Please install jq and try again' >&2
+  exit 1
+fi
 
 if [[ ! -d Mobile-Expensify ]]; then
     echo false
     exit 0
 else
-    cd Mobile-Expensify
+    cd Mobile-Expensify || exit 1
 fi
 
 # Check if 'package.json' exists
@@ -16,6 +23,10 @@ if [[ -f package.json ]]; then
     # Check if the 'name' field is 'mobile-expensify'
     if [[ "$package_name" == "mobile-expensify" ]]; then
         echo true
+        exit 0
+    else
+        echo "The package name is incorrect. It should be 'mobile-expensify'. Script will assume the standalone NewDot app."
+        echo false
         exit 0
     fi
 else

@@ -1,9 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import StatsCounter from '@libs/actions/StatsCounter';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
@@ -43,6 +46,18 @@ type FullPageNotFoundViewProps = {
 
     /** Whether we should force the full page view */
     shouldForceFullScreen?: boolean;
+
+    /** The style of the subtitle message */
+    subtitleStyle?: StyleProp<TextStyle>;
+
+    /** Whether we should display the button that opens new SearchRouter */
+    shouldDisplaySearchRouter?: boolean;
+
+    /** Whether to add bottom safe area padding to the view. */
+    addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -56,18 +71,25 @@ function FullPageNotFoundView({
     onBackButtonPress = () => Navigation.goBack(),
     shouldShowLink = true,
     shouldShowBackButton = true,
-    onLinkPress = () => Navigation.dismissModal(),
+    onLinkPress = () => Navigation.goBackToHome(),
     shouldForceFullScreen = false,
+    subtitleStyle,
+    shouldDisplaySearchRouter,
+    addBottomSafeAreaPadding = true,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
+    const {isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
 
     if (shouldShow) {
+        StatsCounter('FullPageNotFoundView');
         return (
             <ForceFullScreenView shouldForceFullScreen={shouldForceFullScreen}>
                 <HeaderWithBackButton
                     onBackButtonPress={onBackButtonPress}
                     shouldShowBackButton={shouldShowBackButton}
+                    shouldDisplaySearchRouter={shouldDisplaySearchRouter && (isMediumScreenWidth || isLargeScreenWidth)}
                 />
                 <View
                     style={[styles.flex1, styles.blockingViewContainer]}
@@ -82,6 +104,10 @@ function FullPageNotFoundView({
                         linkKey={linkKey}
                         shouldShowLink={shouldShowLink}
                         onLinkPress={onLinkPress}
+                        subtitleStyle={subtitleStyle}
+                        addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                        addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
+                        testID={FullPageNotFoundView.displayName}
                     />
                 </View>
             </ForceFullScreenView>

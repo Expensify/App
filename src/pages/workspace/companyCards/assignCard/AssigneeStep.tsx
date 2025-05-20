@@ -9,17 +9,19 @@ import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -39,12 +41,10 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const workspaceAccountID = policy?.id ? PolicyUtils.getWorkspaceAccountID(policy.id) : CONST.DEFAULT_NUMBER_ID;
-
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const filteredCardList = CardUtils.getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
+    const [list] = useCardsList(policy?.id, feed);
+    const [cardFeeds] = useCardFeeds(policy?.id);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
 
     const isEditing = assignCard?.isEditing;
 
@@ -59,26 +59,34 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     };
 
     const submit = () => {
+        let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
+        if (selectedMember === assignCard?.data?.email) {
+            setAssignCardStepAndData({
+                currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
+                isEditing: false,
+            });
+            return;
+        }
+
         if (!selectedMember) {
             setShouldShowError(true);
             return;
         }
 
-        let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
-        const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(selectedMember);
+        const personalDetail = getPersonalDetailByEmail(selectedMember);
         const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
         const data: Partial<AssignCardData> = {
             email: selectedMember,
-            cardName: CardUtils.getDefaultCardName(memberName),
+            cardName: getDefaultCardName(memberName),
         };
 
-        if (CardUtils.hasOnlyOneCardToAssign(filteredCardList)) {
+        if (hasOnlyOneCardToAssign(filteredCardList)) {
             nextStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
             data.cardNumber = Object.keys(filteredCardList).at(0);
             data.encryptedCardNumber = Object.values(filteredCardList).at(0);
         }
 
-        CompanyCards.setAssignCardStepAndData({
+        setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
             data,
             isEditing: false,
@@ -87,7 +95,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            CompanyCards.setAssignCardStepAndData({
+            setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
@@ -106,11 +114,11 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         }
 
         Object.entries(policy.employeeList ?? {}).forEach(([email, policyEmployee]) => {
-            if (PolicyUtils.isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+            if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 return;
             }
 
-            const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+            const personalDetail = getPersonalDetailByEmail(email);
             membersList.push({
                 keyForList: email,
                 text: personalDetail?.displayName,
@@ -129,7 +137,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             });
         });
 
-        membersList = OptionsListUtils.sortAlphabetically(membersList, 'text');
+        membersList = sortAlphabetically(membersList, 'text');
 
         return membersList;
     }, [isOffline, policy?.employeeList, selectedMember]);
@@ -144,7 +152,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             ];
         }
 
-        const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
+        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
         const filteredOptions = membersDetails.filter((option) => !!option.text?.toLowerCase().includes(searchValue) || !!option.alternateText?.toLowerCase().includes(searchValue));
 
         return [
@@ -159,7 +167,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
 
-        return OptionsListUtils.getHeaderMessage(sections[0].data.length !== 0, false, searchValue);
+        return getHeaderMessage(sections[0].data.length !== 0, false, searchValue);
     }, [debouncedSearchTerm, sections]);
 
     return (
@@ -169,6 +177,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             startStepIndex={0}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
             <SelectionList
@@ -181,14 +190,17 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 onSelectRow={selectMember}
                 initiallyFocusedOptionKey={selectedMember}
                 shouldUpdateFocusedIndex
-            />
-            <FormAlertWithSubmitButton
-                buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-                onSubmit={submit}
-                isAlertVisible={shouldShowError}
-                containerStyles={styles.ph5}
-                message={translate('common.error.pleaseSelectOne')}
-                buttonStyles={styles.mb5}
+                addBottomSafeAreaPadding
+                footerContent={
+                    <FormAlertWithSubmitButton
+                        buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                        onSubmit={submit}
+                        isAlertVisible={shouldShowError}
+                        containerStyles={[!shouldShowError && styles.mt5]}
+                        addButtonBottomPadding={false}
+                        message={translate('common.error.pleaseSelectOne')}
+                    />
+                }
             />
         </InteractiveStepWrapper>
     );

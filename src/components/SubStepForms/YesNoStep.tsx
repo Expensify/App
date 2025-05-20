@@ -23,9 +23,12 @@ type YesNoStepProps = {
 
     /** The style of the submit button */
     submitButtonStyles?: StyleProp<ViewStyle>;
+
+    /** Indicates if button should be in isLoading state */
+    isLoading?: boolean;
 };
 
-function YesNoStep({title, description, defaultValue, onSelectedValue, submitButtonStyles}: YesNoStepProps) {
+function YesNoStep({title, description, defaultValue, onSelectedValue, submitButtonStyles, isLoading = false}: YesNoStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(defaultValue);
@@ -55,6 +58,8 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={submitButtonStyles}
+            isLoading={isLoading}
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{title}</Text>
             <Text style={[styles.pv3, styles.textSupporting]}>{description}</Text>

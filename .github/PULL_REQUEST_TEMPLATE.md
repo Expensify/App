@@ -23,9 +23,9 @@ PROPOSAL:
 
 
 <!--- 
-If you want to trigger adhoc build of hybrid app from specific Mobile-Expensify PR please specify it like follows:
+If you want to trigger adhoc build of hybrid app from specific Mobile-Expensify PR please link it like this:
 
-MOBILE-EXPENSIFY: PR number
+MOBILE-EXPENSIFY: https://github.com/Expensify/Mobile-Expensify/pull/<PR-number>
 
 --->
 
@@ -87,6 +87,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] MacOS: Chrome / Safari
     - [ ] MacOS: Desktop
 - [ ] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
+- [ ] I verified there are no new alerts related to the `canBeMissing` param for `useOnyx`
 - [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`)
     - [ ] I verified that comments were added to code that is not self explanatory

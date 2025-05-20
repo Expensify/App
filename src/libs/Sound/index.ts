@@ -1,12 +1,19 @@
 import {Howl} from 'howler';
 import type {ValueOf} from 'type-fest';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import {getIsMuted, SOUNDS, withMinimalExecutionTime} from './BaseSound';
 import config from './config';
 
 function cacheSoundAssets() {
     // Exit early if the Cache API is not available in the current browser.
     if (!('caches' in window)) {
+        return;
+    }
+
+    // If this is Desktop app, Cache API wont work with app scheme
+    if (getPlatform() === CONST.PLATFORM.DESKTOP) {
         return;
     }
 
@@ -90,5 +97,17 @@ function clearSoundAssetsCache() {
 // Cache sound assets on load
 cacheSoundAssets();
 
-export {SOUNDS, clearSoundAssetsCache};
+const playStreamSound = (stream: MediaStream) => {
+    if (getIsMuted()) {
+        return;
+    }
+
+    const audio = new Audio();
+    audio.srcObject = stream;
+    audio.play().catch((error) => {
+        Log.alert('[sound] Play error:', {message: (error as Error).message});
+    });
+};
+
+export {SOUNDS, clearSoundAssetsCache, playStreamSound};
 export default withMinimalExecutionTime(playSound, 300);

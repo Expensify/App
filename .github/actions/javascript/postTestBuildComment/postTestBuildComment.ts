@@ -38,6 +38,7 @@ function getTestBuildMessage(): string {
     const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
+| Android :robot::arrows_counterclockwise:  | iOS :apple::arrows_counterclockwise: |
 | ${result.ANDROID.link}  | ${result.IOS.link}  |
 | ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
 | Desktop :computer: | Web :spider_web: |
@@ -53,11 +54,11 @@ function getTestBuildMessage(): string {
 }
 
 /** Comment on a single PR */
-async function commentPR(PR: number, message: string) {
+async function commentPR(REPO: string, PR: number, message: string) {
     console.log(`Posting test build comment on #${PR}`);
     try {
-        await GithubUtils.createComment(context.repo.repo, PR, message);
-        console.log(`Comment created on #${PR} successfully 🎉`);
+        await GithubUtils.createComment(REPO, PR, message);
+        console.log(`Comment created on #${PR} (${REPO}) successfully 🎉`);
     } catch (err) {
         console.log(`Unable to write comment on #${PR} 😞`);
 
@@ -69,11 +70,18 @@ async function commentPR(PR: number, message: string) {
 
 async function run() {
     const PR_NUMBER = Number(core.getInput('PR_NUMBER', {required: true}));
+    const REPO = String(core.getInput('REPO', {required: true}));
+
+    if (REPO !== CONST.APP_REPO && REPO !== CONST.MOBILE_EXPENSIFY_REPO) {
+        core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
+        return;
+    }
+
     const comments = await GithubUtils.paginate(
         GithubUtils.octokit.issues.listComments,
         {
             owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
+            repo: REPO,
             // eslint-disable-next-line @typescript-eslint/naming-convention
             issue_number: PR_NUMBER,
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -94,7 +102,7 @@ async function run() {
             }
         `);
     }
-    await commentPR(PR_NUMBER, getTestBuildMessage());
+    await commentPR(REPO, PR_NUMBER, getTestBuildMessage());
 }
 
 if (require.main === module) {

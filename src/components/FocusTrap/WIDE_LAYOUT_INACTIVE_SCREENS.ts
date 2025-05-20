@@ -1,12 +1,10 @@
-import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 /**
- * Screens displayed in the BottomTab and CentralPane displayed side by side that should not have active
+ * Screens displayed in the NavigationTab and CentralPane displayed side by side that should not have active
  * focus trap when rendered on a wide screen to allow navigation between them using the keyboard
  */
 const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
-    NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
     SCREENS.HOME,
     SCREENS.SETTINGS.ROOT,
     SCREENS.REPORT,
@@ -15,8 +13,8 @@ const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
     SCREENS.SETTINGS.SECURITY,
     SCREENS.SETTINGS.WALLET.ROOT,
     SCREENS.SETTINGS.ABOUT,
-    SCREENS.SETTINGS.WORKSPACES,
-    SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
+    SCREENS.WORKSPACE_HUB.WORKSPACES,
+    SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT,
     SCREENS.WORKSPACE.ACCOUNTING.ROOT,
     SCREENS.WORKSPACE.INITIAL,
     SCREENS.WORKSPACE.PROFILE,
@@ -31,7 +29,7 @@ const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
     SCREENS.WORKSPACE.EXPENSIFY_CARD,
     SCREENS.WORKSPACE.COMPANY_CARDS,
     SCREENS.WORKSPACE.DISTANCE_RATES,
-    SCREENS.SEARCH.CENTRAL_PANE,
+    SCREENS.SEARCH.ROOT,
     SCREENS.SETTINGS.TROUBLESHOOT,
     SCREENS.SETTINGS.SAVE_THE_WORLD,
     SCREENS.WORKSPACE.RULES,

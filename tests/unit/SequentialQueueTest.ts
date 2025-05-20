@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import {waitForActiveRequestsToBeEmpty} from '@libs/E2E/utils/NetworkInterceptor';
 import {getAll, getLength, getOngoingRequest} from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,18 +14,16 @@ const request: Request = {
     successData: [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}],
     failureData: [{key: 'userMetadata', onyxMethod: 'set', value: {}}],
 };
-
+beforeAll(() => {
+    Onyx.init({
+        keys: ONYXKEYS,
+    });
+});
+beforeEach(() => {
+    global.fetch = TestHelper.getGlobalFetchMock();
+    return Onyx.clear().then(waitForBatchedUpdates);
+});
 describe('SequentialQueue', () => {
-    beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-        });
-    });
-    beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        return Onyx.clear().then(waitForBatchedUpdates);
-    });
-
     it('should push one request and persist one', () => {
         SequentialQueue.push(request);
         expect(getLength()).toBe(1);
@@ -256,5 +255,19 @@ describe('SequentialQueue', () => {
 
         expect(persistedRequest).toEqual(getOngoingRequest());
         expect(getAll().length).toBe(1);
+    });
+});
+
+describe('SequentialQueue - QueueFlushedData', () => {
+    it('should add to queueFlushedData', async () => {
+        const updates: OnyxUpdate[] = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}];
+        await SequentialQueue.saveQueueFlushedData(...updates);
+        expect(SequentialQueue.getQueueFlushedData()).toEqual([{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}]);
+    });
+    it('should clear queueFlushedData', async () => {
+        const updates: OnyxUpdate[] = [{key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}}];
+        await SequentialQueue.saveQueueFlushedData(...updates);
+        await SequentialQueue.clearQueueFlushedData();
+        expect(SequentialQueue.getQueueFlushedData()).toEqual([]);
     });
 });

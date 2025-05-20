@@ -9,6 +9,7 @@ type FileDownload = (
     formData?: FormData,
     requestType?: RequestType,
     onDownloadFailed?: () => void,
+    shouldUnlink?: boolean,
 ) => Promise<void>;
 type ImageResolution = {width: number; height: number};
 type GetImageResolution = (url: File | Asset) => Promise<ImageResolution>;

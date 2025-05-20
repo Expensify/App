@@ -1,22 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
+import React, {useEffect} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import type {CompanyCardFeed} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 
 type ConfirmationStepProps = {
@@ -32,26 +35,41 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
+    const feed = assignCard?.data?.bankName as CompanyCardFeed | undefined;
+    const [cardFeeds] = useCardFeeds(policyID);
 
     const data = assignCard?.data;
-    const cardholderName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+    const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+
+    useEffect(() => {
+        if (!assignCard?.isAssigned) {
+            return;
+        }
+        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
+    }, [assignCard, backTo, policyID]);
 
     const submit = () => {
         if (!policyID) {
             return;
         }
-        CompanyCards.assignWorkspaceCompanyCard(policyID, data);
-        Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-        CompanyCards.clearAssignCardStepAndData();
+
+        const isFeedExpired = isSelectedFeedExpired(feed ? cardFeeds?.settings?.oAuthAccountDetails?.[feed] : undefined);
+
+        if (isFeedExpired) {
+            setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
+            return;
+        }
+        assignWorkspaceCompanyCard(policyID, data);
     };
 
     const editStep = (step: AssignCardStep) => {
-        CompanyCards.setAssignCardStepAndData({currentStep: step, isEditing: true});
+        setAssignCardStepAndData({currentStep: step, isEditing: true});
     };
 
     const handleBackButtonPress = () => {
-        CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
+        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE});
     };
 
     return (
@@ -62,10 +80,12 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={cardholderName}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScrollView
                 style={styles.pt0}
                 contentContainerStyle={styles.flexGrow1}
+                addBottomSafeAreaPadding
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.letsDoubleCheck')}</Text>
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
@@ -77,7 +97,8 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={CardUtils.maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
+                    title={maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
+                    hintText={lastFourNumbersFromCardName(data?.cardNumber)}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD)}
                 />
@@ -94,14 +115,22 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
                 />
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
-                    <Button
-                        isDisabled={isOffline}
-                        success
-                        large
-                        style={styles.w100}
-                        onPress={submit}
-                        text={translate('workspace.companyCards.assignCard')}
-                    />
+                    <OfflineWithFeedback
+                        shouldDisplayErrorAbove
+                        errors={assignCard?.errors}
+                        errorRowStyles={styles.mv2}
+                        canDismissError={false}
+                    >
+                        <Button
+                            isDisabled={isOffline}
+                            success
+                            large
+                            isLoading={assignCard?.isAssigning}
+                            style={styles.w100}
+                            onPress={submit}
+                            text={translate('workspace.companyCards.assignCard')}
+                        />
+                    </OfflineWithFeedback>
                 </View>
             </ScrollView>
         </InteractiveStepWrapper>

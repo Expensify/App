@@ -7,11 +7,11 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -23,10 +23,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-
-    const customReportNamesUnavailable = !policy?.areReportFieldsEnabled;
-    // Auto-approvals and self-approvals are unavailable due to the policy workflows settings
-    const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
+    const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
@@ -48,44 +45,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
         );
     };
 
-    const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
     const optionItems = [
-        {
-            title: translate('workspace.rules.expenseReportRules.customReportNamesTitle'),
-            subtitle: customReportNamesUnavailable
-                ? renderFallbackSubtitle({featureName: translate('workspace.common.reportFields').toLowerCase(), variant: 'enable'})
-                : translate('workspace.rules.expenseReportRules.customReportNamesSubtitle'),
-            switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.customReportNamesTitle'),
-            isActive: policy?.shouldShowCustomReportTitleOption,
-            disabled: customReportNamesUnavailable,
-            showLockIcon: customReportNamesUnavailable,
-            pendingAction: policy?.pendingFields?.shouldShowCustomReportTitleOption,
-            onToggle: (isEnabled: boolean) => PolicyActions.enablePolicyDefaultReportTitle(policyID, isEnabled),
-            subMenuItems: [
-                <OfflineWithFeedback
-                    pendingAction={!policy?.pendingFields?.shouldShowCustomReportTitleOption && reportTitlePendingFields.defaultValue ? reportTitlePendingFields.defaultValue : null}
-                    key="customName"
-                >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.expenseReportRules.customNameTitle')}
-                        title={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue}
-                        shouldShowRightIcon
-                        style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                        onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM_NAME.getRoute(policyID))}
-                    />
-                </OfflineWithFeedback>,
-                <ToggleSettingOptionRow
-                    pendingAction={!policy?.pendingFields?.shouldShowCustomReportTitleOption && reportTitlePendingFields.deletable ? reportTitlePendingFields.deletable : null}
-                    key="preventMembersFromChangingCustomNames"
-                    title={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
-                    switchAccessibilityLabel={translate('workspace.rules.expenseReportRules.preventMembersFromChangingCustomNamesTitle')}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                    titleStyle={styles.pv2}
-                    isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
-                    onToggle={(isEnabled) => PolicyActions.setPolicyPreventMemberCreatedTitle(policyID, isEnabled)}
-                />,
-            ],
-        },
         {
             title: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
             subtitle: workflowApprovalsUnavailable
@@ -96,7 +56,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             disabled: workflowApprovalsUnavailable,
             showLockIcon: workflowApprovalsUnavailable,
             pendingAction: policy?.pendingFields?.preventSelfApproval,
-            onToggle: (isEnabled: boolean) => PolicyActions.setPolicyPreventSelfApproval(policyID, isEnabled),
+            onToggle: (isEnabled: boolean) => setPolicyPreventSelfApproval(policyID, isEnabled),
         },
         {
             title: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
@@ -109,7 +69,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             showLockIcon: workflowApprovalsUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowAutoApprovalOptions,
             onToggle: (isEnabled: boolean) => {
-                PolicyActions.enableAutoApprovalOptions(policyID, isEnabled);
+                enableAutoApprovalOptions(policyID, isEnabled);
             },
             subMenuItems: [
                 <OfflineWithFeedback
@@ -118,10 +78,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
-                        title={CurrencyUtils.convertToDisplayString(
-                            policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS,
-                            policy?.outputCurrency ?? CONST.CURRENCY.USD,
-                        )}
+                        title={convertToDisplayString(policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                         shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))}
@@ -150,7 +107,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 : translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
             onToggle: (isEnabled: boolean) => {
-                PolicyActions.enablePolicyAutoReimbursementLimit(policyID, isEnabled);
+                enablePolicyAutoReimbursementLimit(policyID, isEnabled);
             },
             disabled: autoPayApprovedReportsUnavailable,
             showLockIcon: autoPayApprovedReportsUnavailable,
@@ -167,10 +124,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
-                        title={CurrencyUtils.convertToDisplayString(
-                            policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS,
-                            policy?.outputCurrency ?? CONST.CURRENCY.USD,
-                        )}
+                        title={convertToDisplayString(policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                         shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))}

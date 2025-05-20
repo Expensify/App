@@ -142,9 +142,9 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
                         firstName: legalFirstName,
                         lastName: legalLastName,
                     }),
+                    firstName: legalFirstName,
+                    lastName: legalLastName,
                 },
-                firstName: legalFirstName,
-                lastName: legalLastName,
             },
         });
     }
@@ -175,7 +175,7 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
     Navigation.goBack();
 }
 
-function updatePhoneNumber(phoneNumber: string, currenPhoneNumber: string) {
+function updatePhoneNumber(phoneNumber: string, currentPhoneNumber: string) {
     const parameters: UpdatePhoneNumberParams = {phoneNumber};
     API.write(WRITE_COMMANDS.UPDATE_PHONE_NUMBER, parameters, {
         optimisticData: [
@@ -192,7 +192,7 @@ function updatePhoneNumber(phoneNumber: string, currenPhoneNumber: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
-                    phoneNumber: currenPhoneNumber,
+                    phoneNumber: currentPhoneNumber,
                     errorFields: {
                         phoneNumber: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('privatePersonalDetails.error.invalidPhoneNumber'),
                     },
@@ -260,9 +260,9 @@ function updateAutomaticTimezone(timezone: Timezone) {
         return;
     }
 
-    const formatedTimezone = DateUtils.formatToSupportedTimezone(timezone);
+    const formattedTimezone = DateUtils.formatToSupportedTimezone(timezone);
     const parameters: UpdateAutomaticTimezoneParams = {
-        timezone: JSON.stringify(formatedTimezone),
+        timezone: JSON.stringify(formattedTimezone),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE, parameters, {
@@ -272,7 +272,7 @@ function updateAutomaticTimezone(timezone: Timezone) {
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
                     [currentUserAccountID]: {
-                        timezone: formatedTimezone,
+                        timezone: formattedTimezone,
                     },
                 },
             },
@@ -481,6 +481,15 @@ function clearAvatarErrors() {
     });
 }
 
+/**
+ * Clear errors for the current user's personal details
+ */
+function clearPersonalDetailsErrors() {
+    Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+        errors: null,
+    });
+}
+
 function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string) {
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         legalFirstName: values.legalFirstName?.trim() ?? '',
@@ -502,21 +511,16 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
-                    addresses: [
-                        ...(privatePersonalDetails?.addresses ?? []),
-                        {
-                            street: PersonalDetailsUtils.getFormattedStreet(parameters.addressStreet, parameters.addressStreet2),
-                            city: parameters.addressCity,
-                            state: parameters.addressState,
-                            zip: parameters.addressZip,
-                            country: parameters.addressCountry as Country | '',
-                            current: true,
-                        },
-                    ],
-                    legalFirstName: parameters.legalFirstName,
-                    legalLastName: parameters.legalLastName,
-                    dob: parameters.dob,
-                    phoneNumber: parameters.phoneNumber,
+                    isLoading: true,
+                },
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: false,
                 },
             },
         ],
@@ -539,4 +543,5 @@ export {
     updatePronouns,
     updateSelectedTimezone,
     updatePersonalDetailsAndShipExpensifyCards,
+    clearPersonalDetailsErrors,
 };

@@ -2,10 +2,10 @@ import {fireEvent, screen} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {ConnectOptions} from 'react-native-onyx/dist/types';
+import type {ConnectOptions, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
-import * as Localize from '@libs/Localize';
-import * as Pusher from '@libs/Pusher/pusher';
+import {translateLocal} from '@libs/Localize';
+import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -13,7 +13,6 @@ import * as Session from '@src/libs/actions/Session';
 import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
@@ -149,7 +148,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                         },
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.USER,
+                            key: ONYXKEYS.ACCOUNT,
                             value: {
                                 isUsingExpensifyCard: false,
                             },
@@ -329,9 +328,13 @@ function assertFormDataMatchesObject(obj: Report, formData?: FormData) {
     }
 }
 
+function getNavigateToChatHintRegex(): RegExp {
+    const hintTextPrefix = translateLocal('accessibilityHints.navigatesToChat');
+    return new RegExp(hintTextPrefix, 'i');
+}
+
 async function navigateToSidebarOption(index: number): Promise<void> {
-    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-    const optionRow = screen.queryAllByAccessibilityHint(hintText).at(index);
+    const optionRow = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex()).at(index);
     if (!optionRow) {
         return;
     }
@@ -354,4 +357,5 @@ export {
     setupGlobalFetchMock,
     navigateToSidebarOption,
     getOnyxData,
+    getNavigateToChatHintRegex,
 };

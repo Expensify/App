@@ -1,6 +1,7 @@
-import type {ImageSource} from 'expo-image';
-import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp} from 'react-native';
+import type {ImagePrefetchOptions, ImageSource} from 'expo-image';
+import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
 import type CONST from '@src/CONST';
 
 type ExpoImageSource = ImageSource | number | ImageSource[];
@@ -23,6 +24,9 @@ type BaseImageProps = {
 
     /** Styles for the Image */
     style?: StyleProp<ImageStyle>;
+
+    /** The image cache policy */
+    cachePolicy?: ImagePrefetchOptions['cachePolicy'];
 };
 
 type ImageOwnProps = BaseImageProps & {
@@ -31,6 +35,12 @@ type ImageOwnProps = BaseImageProps & {
 
     /** How should the image fit within its container */
     resizeMode?: ImageResizeMode;
+
+    /** The size of the loading indicator */
+    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
+
+    /** The style of the loading indicator */
+    loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
     /** Event for when the image begins loading */
     onLoadStart?: () => void;
@@ -57,4 +67,4 @@ type ImageOwnProps = BaseImageProps & {
 
 type ImageProps = ImageOwnProps;
 
-export type {BaseImageProps, ImageOwnProps, ImageProps, ExpoImageSource, ImageOnLoadEvent, ImageObjectPosition};
+export type {BaseImageProps, ImageProps, ImageOnLoadEvent, ImageObjectPosition};

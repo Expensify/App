@@ -1,41 +1,53 @@
 ---
-title: Automatically submit employee reports
-description: Use Expensify's Scheduled Submit feature to have your employees' expenses submitted automatically for them
+title: Automatically Submit Employee Reports
+description: Set a schedule to automatically gather and submit employee expenses using Delay Submissions.
+keywords: [Expensify Classic, automate report submission, automatic report approval, delay submissions, employee expense schedule]
 ---
+
 <div id="expensify-classic" markdown="1">
 
-Scheduled Submit automatically adds expenses to a report and sends them for approval so that your employees do not have to remember to manually submit their reports each week. This allows you to automatically collect employee expenses on a schedule of your choosing.
+By setting a submission schedule for your workspace, expenses are automatically added to a report and submitted for approval based on the schedule you choose. This ensures employee expenses are collected without requiring manual submission each time.
 
-With Scheduled Submit, an employee's expenses are automatically gathered onto a report as soon as they create them. If there is not an existing report, a new one is created. The report is then automatically submitted at the cadence you choose—daily, weekly, monthly, twice per month, or by trip. 
+When an employee creates an expense, it's automatically added to a report. If no report exists, a new one is created. Expense reports are submitted at the cadence you select—daily, weekly, monthly, twice per month, or by trip.
 
-{% include info.html %}
-If an expense has a violation, Scheduled Submit will not automatically submit it until the violations are corrected. In the meantime, the expense will be removed from the report and added to an open report. 
-{% include end-info.html %}
+**Note:** If you are using Delayed Submissions and an expense has a violation, it won’t be submitted until the issue is resolved. The expense is removed from the report and added to a new open report.
 
-# Enable Scheduled Submit
+---
 
-1. Hover over Settings, then click **Workspaces**.
-2. Click the **Group** tab on the left (or click the Individual tab to enable Scheduled Submit for your individual workspace).  
-3. Click the desired workspace name. 
-4. Click the **Reports** tab on the left. 
-5. Click the Scheduled Submit toggle to enable it. 
-6. Click the “How often expenses submit” dropdown and select the submission schedule:
-   - **Daily**: Expenses are submitted every evening. Expenses with violations are submitted the day after the violations are corrected.
-   - **Weekly**: Expenses are submitted once a week. Expenses with violations are submitted the following Sunday after the violations are corrected. 
-   - **Twice a month**: Expenses are submitted on the 15th and the last day of each month. Expenses with violations are submitted at the next cycle (either on the 15th or the last day of the month, whichever is closest).
-   - **Monthly**: Expenses are submitted once per month. If you select Monthly, you will also select which day of the month the reports will be submitted. Expenses with violations are submitted on the next monthly submission date. 
-   - **By trip**: All expenses that occur in a similar time frame are grouped together. The trip report is created after no new expenses have been submitted for two calendar days. Then the report is submitted the second day, and any new expenses are added to a new trip report. 
-   - **Manually**: Expenses are automatically added to an open report, but the report will require manual submission—it will not be submitted automatically. This is a great option for automatically gathering an employee’s expenses on a report while still requiring the employee to review and submit their report.
+# Set an Expense Report Submission Schedule
 
-{% include info.html %}
-- All submission times are in the evening PDT. 
-- If you enable Scheduled Submit for your individual workspace and one of your group workspaces also has Scheduled Submit enabled, the group’s submission settings will override your individual workspace settings. 
-{% include end-info.html %}
+1. Go to **Settings > Workspace > [Workspace Name] > Workflows**.
+2. Click the **Delay Submissions** toggle to enable it.
+3. Click **Submission frequency** and choose from:
+   - **Daily** – Submitted every evening. Violations are submitted once corrected.
+   - **Weekly** – Submitted once a week. Violations are submitted the following Sunday after correction.
+   - **Twice a month** – Submitted on the 15th and the last day of the month. Violations are submitted at the next applicable date.
+   - **Monthly** – Submitted once per month. You'll select which day. Violations are submitted the following month.
+   - **By trip** – A report is submitted when no new expenses are added for two full days. A new trip report begins after that.
+   - **Manually** – Expenses are auto-added to a report, but employees must submit manually. This helps organize expenses without submitting automatically.
 
-# FAQs
+---
 
-**I disabled Scheduled Submit. Why do I still get reports submitted by Concierge?**
+# FAQ
 
-Although an Admin can disable scheduled submit for a workspace, employees have the ability to activate schedule submit for their account. If you disable Scheduled Submit but still receive reports from Concierge, the employee has Schedule Submit activated for their individual workspace. 
+## I turned off Delay Submissions. Why do I still get reports submitted by Concierge?
+
+Turning off **Delay Submissions** for a Workspace doesn’t override an employee’s Individual Workspace settings. If reports are still submitted automatically, the employee likely has Delay Submissions enabled on their Individual Workspace.
+
+## What time of day are reports submitted via Delay Submissions?
+
+All automatic report submissions happen in the evening PST (Pacific Standard Time).
+
+## What happens if Delay Submissions is used on both my Individual and Company Workspace?
+
+The submission settings from the Company Workspace override those from the Individual Workspace.
+
+## Does using Delay Submissions automatically create separate reports for each of my credit cards?
+
+No, setting a submission schedule via **Delay Submissions** collects all expenses into a single report and submits them based on your selected frequency.
+
+If you need reports organized by card:
+- Create separate reports for each card and manually assign expenses.
+- Use filters to group expenses by card and assign them to the correct report.
 
 </div>

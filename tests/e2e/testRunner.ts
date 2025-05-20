@@ -357,7 +357,7 @@ const runTests = async (): Promise<void> => {
     // Calculate statistics and write them to our work file
     Logger.info('Calculating statics and writing results');
     await compare(results.main, results.delta, {
-        outputFile: `${config.OUTPUT_DIR}/output.md`,
+        outputDir: config.OUTPUT_DIR,
         outputFormat: 'all',
         metricForTest,
         skippedTests,

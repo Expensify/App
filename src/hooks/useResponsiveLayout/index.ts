@@ -33,10 +33,11 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
     const onboardingIsMediumOrLargerScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint;
     const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
+    const isExtraLargeScreenWidth = windowWidth > variables.sidePanelResponsiveWidthBreakpoint;
     const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
 
-    const lowerScreenDimmension = Math.min(windowWidth, windowHeight);
-    const isSmallScreen = lowerScreenDimmension <= variables.mobileResponsiveWidthBreakpoint;
+    const lowerScreenDimension = Math.min(windowWidth, windowHeight);
+    const isSmallScreen = lowerScreenDimension <= variables.mobileResponsiveWidthBreakpoint;
 
     // Note: activeModalType refers to our react-native-modal component wrapper, not react-navigation's modal stack navigators.
     // This means it will only be defined if the component calling this hook is a child of a modal component. See BaseModal for the provider.
@@ -76,6 +77,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         isMediumScreenWidth,
         onboardingIsMediumOrLargerScreenWidth,
         isLargeScreenWidth,
+        isExtraLargeScreenWidth,
         isSmallScreen,
     };
 }

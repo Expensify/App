@@ -2,7 +2,6 @@
 title: Track Travel Analytics
 description: Get insight into company travel bookings to ensure real-time duty of care reporting and travel policy compliance. 
 ---
-<div id="expensify-classic" markdown="1">
 
 Expensify Travel provides insights into company travel bookings to ensure real-time duty of care reporting and travel policy compliance. These analytics help Workspace Admins:
 
@@ -13,8 +12,8 @@ Expensify Travel provides insights into company travel bookings to ensure real-t
 
 To view your analytics, 
 
-1. Click the + icon in the bottom left menu and select **Book travel**.
-2. Click **Book travel**. 
+1. Click Travel in the left menu.
+2. Click **Book or Manage Travel**. 
 3. Click the **Analytics** tab at the top of the screen. 
 
 From here, you can see a variety of reports, including the Duty of Care report, Spend, and ESG metrics. 
@@ -41,5 +40,3 @@ Expensify Travel provides various ESG metrics, including carbon footprint analys
 1. Click the **Analytics** tab at the top and select Company Reports.
 2. Click **Air Manifest** in the left menu. 
 3. Review the CO2 Emissions column in the table.
-
-</div>

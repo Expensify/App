@@ -1,19 +1,31 @@
-import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import DecisionModal from '@components/DecisionModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import * as Illustrations from '@components/Icon/Illustrations';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getFilteredCardList, getSelectedFeed, hasOnlyOneCardToAssign, isSelectedFeedExpired} from '@libs/CardUtils';
+import {
+    checkIfFeedConnectionIsBroken,
+    getCompanyFeeds,
+    getDomainOrWorkspaceAccountID,
+    getFilteredCardList,
+    getSelectedFeed,
+    hasOnlyOneCardToAssign,
+    isCustomFeed,
+    isSelectedFeedExpired,
+} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkspaceAccountID, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage, setAssignCardStepAndData} from '@userActions/CompanyCards';
@@ -28,23 +40,23 @@ import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPen
 import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
 import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
 
-type WorkspaceCompanyCardPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
+type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
-function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
+function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const policyID = route.params.policyID;
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+    const [cardFeeds] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+    const [cardsList] = useCardsList(policyID, selectedFeed);
 
     const {cardList, ...cards} = cardsList ?? {};
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const filteredCardList = getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
@@ -54,25 +66,28 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const isNoFeed = !selectedFeedData;
     const isPending = !!selectedFeedData?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
-    const isFeedExpired = isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
     const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(cards);
-
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
     const fetchCompanyCards = useCallback(() => {
-        openPolicyCompanyCardsPage(policyID, workspaceAccountID);
-    }, [policyID, workspaceAccountID]);
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
+    }, [policyID, domainOrWorkspaceAccountID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
-    const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && !cardsList));
+    const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
 
-    useFocusEffect(fetchCompanyCards);
+    useEffect(() => {
+        fetchCompanyCards();
+    }, [fetchCompanyCards]);
 
     useEffect(() => {
         if (isLoading || !selectedFeed || isPending) {
             return;
         }
 
-        openPolicyCompanyCardsFeed(policyID, selectedFeed);
-    }, [selectedFeed, isLoading, policyID, isPending]);
+        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, selectedFeed);
+    }, [selectedFeed, isLoading, policyID, isPending, domainOrWorkspaceAccountID]);
 
     const handleAssignCard = () => {
         if (isActingAsDelegate) {
@@ -82,12 +97,23 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
         if (!selectedFeed) {
             return;
         }
+
+        const isCommercialFeed = isCustomFeed(selectedFeed);
+
+        // If the feed is a direct feed (not a commercial feed) and the user is offline,
+        // show the offline alert modal to inform them of the connectivity issue.
+        if (!isCommercialFeed && isOffline) {
+            setShouldShowOfflineModal(true);
+            return;
+        }
+
         const data: Partial<AssignCardData> = {
             bankName: selectedFeed,
         };
 
         let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
         const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
+        const isFeedExpired = isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
 
         if (employeeList.length === 1) {
             const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
@@ -130,10 +156,9 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     icon={Illustrations.CompanyCard}
                     headerText={translate('workspace.common.companyCards')}
                     route={route}
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
                     shouldShowOfflineIndicatorInWideScreen
-                    includeSafeAreaPaddingBottom
                     showLoadingAsFirstRender={false}
+                    addBottomSafeAreaPadding
                 >
                     {(isFeedAdded || isPending) && !!selectedFeed && (
                         <WorkspaceCompanyCardsListHeaderButtons
@@ -159,10 +184,20 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
             />
+
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('common.offlinePrompt')}
+                isSmallScreenWidth={shouldUseNarrowLayout}
+                onSecondOptionSubmit={() => setShouldShowOfflineModal(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={shouldShowOfflineModal}
+                onClose={() => setShouldShowOfflineModal(false)}
+            />
         </AccessOrNotFoundWrapper>
     );
 }
 
-WorkspaceCompanyCardPage.displayName = 'WorkspaceCompanyCardPage';
+WorkspaceCompanyCardsPage.displayName = 'WorkspaceCompanyCardsPage';
 
-export default WorkspaceCompanyCardPage;
+export default WorkspaceCompanyCardsPage;

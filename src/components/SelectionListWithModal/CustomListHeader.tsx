@@ -24,9 +24,9 @@ function CustomListHeader({canSelectMultiple, leftHeaderText = '', rightHeaderTe
                 canSelectMultiple && styles.pl3,
             ]}
         >
-            <Text style={styles.searchInputStyle}>{leftHeaderText}</Text>
+            <Text style={styles.textMicroSupporting}>{leftHeaderText}</Text>
             <View style={[StyleUtils.getMinimumWidth(60)]}>
-                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{rightHeaderText}</Text>
+                <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{rightHeaderText}</Text>
             </View>
         </View>
     );

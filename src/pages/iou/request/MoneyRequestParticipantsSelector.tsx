@@ -17,11 +17,12 @@ import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {Section} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
@@ -33,7 +34,6 @@ import {
     isCurrentUser,
     orderOptions,
 } from '@libs/OptionsListUtils';
-import type {Section} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
@@ -49,7 +49,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
-    onFinish: (value?: string) => void;
+    onFinish?: (value?: string) => void;
 
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
@@ -64,21 +64,28 @@ type MoneyRequestParticipantsSelectorProps = {
     action: IOUAction;
 };
 
-function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onFinish, onParticipantsAdded, iouType, action}: MoneyRequestParticipantsSelectorProps) {
+function MoneyRequestParticipantsSelector({
+    participants = CONST.EMPTY_ARRAY,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onFinish = (_value?: string) => {},
+    onParticipantsAdded,
+    iouType,
+    action,
+}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const referralContentType = iouType === CONST.IOU.TYPE.PAY ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
+    const referralContentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
-    const {options, areOptionsInitialized} = useOptionsList({
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (session) => session?.email});
+    const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
@@ -91,6 +98,12 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
+
+    useEffect(() => {
+        // This is necessary to ensure the options list is always up to date
+        // e.g. if the approver was changed in the policy, we need to update the options list
+        initializeOptions();
+    }, [initializeOptions]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
@@ -114,9 +127,11 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
 
                 // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-                // sees the option to submit an expense from their admin on their own Workspace Chat.
-                includeOwnedWorkspaceChats:
-                    (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
+                // sees the option to submit an expense from their admin on their own Expense Chat.
+                includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
+
+                // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
+                excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
 
                 includeP2P: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
@@ -124,6 +139,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
                 shouldSeparateWorkspaceChat: true,
                 includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
+                canShowManagerMcTest: action !== CONST.IOU.ACTION.SUBMIT,
             },
         );
 

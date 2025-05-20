@@ -1,7 +1,7 @@
 import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
-import {AppState, Linking, NativeModules, Platform} from 'react-native';
+import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
@@ -9,27 +9,32 @@ import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import FocusModeNotification from './components/FocusModeNotification';
 import GrowlNotification from './components/GrowlNotification';
-import RequireTwoFactorAuthenticationModal from './components/RequireTwoFactorAuthenticationModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
+import TestToolsModal from './components/TestToolsModal';
 import UpdateAppModal from './components/UpdateAppModal';
-import * as CONFIG from './CONFIG';
+import CONFIG from './CONFIG';
 import CONST from './CONST';
+import useDebugShortcut from './hooks/useDebugShortcut';
+import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import {updateLastRoute} from './libs/actions/App';
+import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
+import {isSafari} from './libs/Browser';
+import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
-import * as Growl from './libs/Growl';
+import Growl, {growlRef} from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
-import './libs/Notification/PushNotification/subscribePushNotification';
+import './libs/Notification/PushNotification/subscribeToPushNotifications';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -39,18 +44,24 @@ import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {Route} from './ROUTES';
-import ROUTES from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 
-Onyx.registerLogger(({level, message}) => {
+Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
-        Log.alert(message);
+        Log.alert(message, parameters);
         console.error(message);
+
+        // useOnyx() calls with "canBeMissing" config set to false will display a visual alert in dev environment
+        // when they don't return data.
+        const shouldShowAlert = typeof parameters === 'object' && !Array.isArray(parameters) && 'showAlert' in parameters && 'key' in parameters;
+        if (Environment.isDevelopment() && shouldShowAlert) {
+            Growl.error(`${message} Key: ${parameters.key as string}`, 10000);
+        }
     } else if (level === 'hmmm') {
-        Log.hmmm(message);
+        Log.hmmm(message, parameters);
     } else {
-        Log.info(message);
+        Log.info(message, undefined, parameters);
     }
 });
 
@@ -83,25 +94,19 @@ function Expensify() {
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
-    const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
-    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED);
-    const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
-    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false});
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
+    const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, {canBeMissing: true});
+    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false, canBeMissing: true});
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false, canBeMissing: true});
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
+    const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
+    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false, canBeMissing: true});
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
-    useEffect(() => {
-        if (!account?.needsTwoFactorAuthSetup || account.requiresTwoFactorAuth) {
-            return;
-        }
-        setShouldShowRequire2FAModal(true);
-    }, [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth]);
+    useDebugShortcut();
 
     const [initialUrl, setInitialUrl] = useState<string | null>(null);
 
@@ -112,20 +117,27 @@ function Expensify() {
         setAttemptedToOpenPublicRoom(true);
     }, [isCheckingPublicRoom]);
 
-    const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
+    const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
-    const shouldHideSplash =
-        shouldInit &&
-        (NativeModules.HybridAppModule ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
+    const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
+    const isHybridAppReady = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated;
+    const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isHybridAppReady : isSplashVisible);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
             return;
         }
 
-        ActiveClientManager.init();
+        // Delay client init to avoid issues with delayed Onyx events on iOS. All iOS browsers use WebKit, which suspends events in background tabs.
+        // Events are flushed only when the tab becomes active again causing issues with client initialization.
+        // See: https://stackoverflow.com/questions/54095584/page-becomes-inactive-when-switching-tabs-on-ios
+        if (isSafari()) {
+            setTimeout(ActiveClientManager.init, 400);
+        } else {
+            ActiveClientManager.init();
+        }
     };
 
     const setNavigationReady = useCallback(() => {
@@ -234,8 +246,18 @@ function Expensify() {
         if (!isAuthenticated) {
             return;
         }
-        setCrashlyticsUserId(session?.accountID ?? -1);
+        setCrashlyticsUserId(session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     }, [isAuthenticated, session?.accountID]);
+
+    useEffect(() => {
+        if (!account?.delegatedAccess?.delegate) {
+            return;
+        }
+        if (account?.delegatedAccess?.delegates?.some((d) => d.email === account?.delegatedAccess?.delegate)) {
+            return;
+        }
+        disconnect();
+    }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
@@ -254,7 +276,7 @@ function Expensify() {
         >
             {shouldInit && (
                 <>
-                    <GrowlNotification ref={Growl.growlRef} />
+                    <GrowlNotification ref={growlRef} />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
@@ -271,16 +293,6 @@ function Expensify() {
                         />
                     ) : null}
                     {focusModeNotification ? <FocusModeNotification /> : null}
-                    {shouldShowRequire2FAModal ? (
-                        <RequireTwoFactorAuthenticationModal
-                            onSubmit={() => {
-                                setShouldShowRequire2FAModal(false);
-                                Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.HOME));
-                            }}
-                            isVisible
-                            description={translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsDescription')}
-                        />
-                    ) : null}
                 </>
             )}
 
@@ -291,10 +303,10 @@ function Expensify() {
                     authenticated={isAuthenticated}
                     lastVisitedPath={lastVisitedPath as Route}
                     initialUrl={initialUrl}
-                    shouldShowRequire2FAModal={shouldShowRequire2FAModal}
                 />
             )}
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            <TestToolsModal />
         </DeeplinkWrapper>
     );
 }

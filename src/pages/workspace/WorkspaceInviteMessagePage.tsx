@@ -1,19 +1,18 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
-import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import ValuePicker from '@components/ValuePicker';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -22,12 +21,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
-import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
+import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
-import Parser from '@libs/Parser';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -50,17 +49,21 @@ type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
 function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
-    const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(CONST.POLICY.ROLE.USER);
+    const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
 
     const viewportOffsetTop = useViewportOffsetTop();
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
-    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
-    const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`);
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {
+        canBeMissing: true,
+    });
+    const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`, {
+        canBeMissing: true,
+    });
+    const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
 
     const welcomeNoteSubject = useMemo(
@@ -75,14 +78,9 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
             // workspaceInviteMessageDraft can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             workspaceInviteMessageDraft ??
-            // policy?.description can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (Parser.htmlToMarkdown(policy?.description ?? '') ||
-                translate('workspace.common.welcomeNote', {
-                    workspaceName: policy?.name ?? '',
-                }))
+            translate('workspace.common.welcomeNote')
         );
-    }, [workspaceInviteMessageDraft, policy, translate, formData]);
+    }, [workspaceInviteMessageDraft, translate, formData]);
 
     useEffect(() => {
         if (isOnyxLoading) {
@@ -95,7 +93,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         if (isEmptyObject(policy)) {
             return;
         }
-        Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, route.params.backTo), true);
+        Navigation.goBack(route.params.backTo);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOnyxLoading]);
 
@@ -103,15 +101,25 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         Keyboard.dismiss();
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-        addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs, role);
+        addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs, workspaceInviteRoleDraft);
         setWorkspaceInviteMessageDraft(route.params.policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
         if ((route.params?.backTo as string)?.endsWith('members')) {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
-
             return;
         }
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID)));
+
+        if (getIsNarrowLayout()) {
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID), {forceReplace: true});
+            return;
+        }
+
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.dismissModal();
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
+            });
+        });
     };
 
     /** Opens privacy url as an external link */
@@ -130,22 +138,11 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
 
     const policyName = policy?.name;
 
-    const roleItems = useMemo(() => {
-        return Object.values(CONST.POLICY.ROLE).map((roleValue) => {
-            let label = '';
-            if (roleValue === CONST.POLICY.ROLE.USER) {
-                label = translate('common.member');
-            } else if (roleValue === CONST.POLICY.ROLE.ADMIN) {
-                label = translate('common.admin');
-            } else {
-                label = translate('common.auditor');
-            }
-            return {
-                label,
-                value: roleValue,
-            };
-        });
-    }, [translate]);
+    useEffect(() => {
+        return () => {
+            clearWorkspaceInviteRoleDraft(route.params.policyID);
+        };
+    }, [route.params.policyID]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -154,7 +151,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={WorkspaceInviteMessagePage.displayName}
                 shouldEnableMaxHeight
                 style={{marginTop: viewportOffsetTop}}
@@ -162,11 +159,9 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                 <HeaderWithBackButton
                     title={translate('workspace.inviteMessage.confirmDetails')}
                     subtitle={policyName}
-                    shouldShowGetAssistanceButton
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, route.params.backTo))}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
@@ -175,6 +170,8 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     onSubmit={sendInvitation}
                     submitButtonText={translate('common.invite')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                     footerContent={
                         <PressableWithoutFeedback
                             onPress={openPrivacyURL}
@@ -203,13 +200,13 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     </View>
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>
-                            <InputWrapper
-                                inputID={INPUT_IDS.ROLE}
-                                InputComponent={ValuePicker}
-                                label={translate('common.role')}
-                                items={roleItems}
-                                value={role}
-                                onValueChange={(value) => setRole(value as typeof role)}
+                            <MenuItemWithTopDescription
+                                title={translate(`workspace.common.roleName`, {role: workspaceInviteRoleDraft})}
+                                description={translate('common.role')}
+                                shouldShowRightIcon
+                                onPress={() => {
+                                    Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
+                                }}
                             />
                         </View>
                         <InputWrapper

@@ -1,6 +1,7 @@
 import type {RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -33,6 +34,8 @@ type DropdownOption<TValueType> = {
     numberOfLinesTitle?: number;
     titleStyle?: ViewStyle;
     shouldCloseModalOnSelect?: boolean;
+    displayInDefaultIconColor?: boolean;
+    subMenuItems?: PopoverMenuItem[];
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -79,6 +82,14 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** The anchor alignment of the popover menu */
     anchorAlignment?: AnchorAlignment;
 
+    /**
+     * Determines how the popover menu should be horizontally positioned relative to the button.
+     * - 'right': Anchors to the right edge of the button (default)
+     * - 'left': Anchors to the left edge of the button
+     * - 'center': Anchors to the center of the button
+     */
+    popoverHorizontalOffsetType?: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
+
     /* ref for the button */
     buttonRef?: RefObject<View>;
 
@@ -111,6 +122,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Used to locate the component in the tests */
     testID?: string;
+
+    /** The second line text displays under the first line */
+    secondLineText?: string;
 };
 
 export type {

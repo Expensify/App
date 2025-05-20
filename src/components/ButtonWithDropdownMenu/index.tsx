@@ -32,6 +32,7 @@ function ButtonWithDropdownMenu<IValueType>({
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
+    popoverHorizontalOffsetType,
     buttonRef,
     onPress,
     options,
@@ -45,6 +46,7 @@ function ButtonWithDropdownMenu<IValueType>({
     defaultSelectedIndex = 0,
     shouldShowSelectedItemCheck = false,
     testID,
+    secondLineText = '',
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -73,8 +75,16 @@ function ButtonWithDropdownMenu<IValueType>({
         }
         if ('measureInWindow' in dropdownAnchor.current) {
             dropdownAnchor.current.measureInWindow((x, y, w, h) => {
+                let horizontalPosition = x + w;
+
+                if (popoverHorizontalOffsetType === 'left') {
+                    horizontalPosition = x;
+                } else if (popoverHorizontalOffsetType === 'center') {
+                    horizontalPosition = x + w / 2;
+                }
+
                 setPopoverAnchorPosition({
-                    horizontal: x + w,
+                    horizontal: horizontalPosition,
                     vertical:
                         anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP
                             ? y + h + CONST.MODAL.POPOVER_MENU_PADDING // if vertical anchorAlignment is TOP, menu will open below the button and we need to add the height of button and padding
@@ -82,7 +92,7 @@ function ButtonWithDropdownMenu<IValueType>({
                 });
             });
         }
-    }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
+    }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical, popoverHorizontalOffsetType]);
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
@@ -144,6 +154,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         shouldShowRightIcon={!isSplitButton}
                         isSplitButton={isSplitButton}
                         testID={testID}
+                        secondLineText={secondLineText}
                     />
 
                     {isSplitButton && (
@@ -193,6 +204,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                     innerStyles={[innerStyleDropButton]}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                    secondLineText={secondLineText}
                 />
             )}
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (

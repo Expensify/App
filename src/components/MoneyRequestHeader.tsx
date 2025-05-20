@@ -1,21 +1,23 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
+import {deleteMoneyRequest, getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isCurrentUserSubmitter} from '@libs/ReportUtils';
+import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
+import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
+import {changeMoneyRequestHoldStatus, isSelfDM, navigateBackOnDeleteTransaction, navigateToDetailsPage} from '@libs/ReportUtils';
 import {
-    allHavePendingRTERViolation,
-    getTransactionViolations,
-    hasPendingRTERViolation,
+    hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     hasReceipt,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
@@ -35,12 +37,17 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+import ConfirmModal from './ConfirmModal';
+import DecisionModal from './DecisionModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import LoadingBar from './LoadingBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 
 type MoneyRequestHeaderProps = {
     /** The report currently being looked at */
@@ -61,15 +68,21 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
+        canBeMissing: false,
+    });
     const [transaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${
             isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID
         }`,
+        {canBeMissing: true},
     );
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const transactionViolations = useTransactionViolations(transaction?.transactionID);
+
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
+    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: false});
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -79,13 +92,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const reportID = report?.reportID;
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
-    const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
-    const transactionIDList = transaction ? [transaction.transactionID] : [];
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList);
+    const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, parentReport, policy);
+    const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
 
-    const shouldShowMarkAsCashButton = hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(parentReport?.reportID)));
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations);
+
+    // If the parent report is a selfDM, it should always be opened in the Inbox tab
+    const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
 
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID);
@@ -104,7 +118,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isOnHold) {
-            return {icon: getStatusIcon(Expensicons.Stopwatch), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold')};
+            return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expenseOnHold')};
+        }
+
+        if (isDuplicate) {
+            return {icon: getStatusIcon(Expensicons.Flag), description: translate('iou.expenseDuplicate')};
         }
 
         if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
@@ -116,13 +134,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 description: (
                     <BrokenConnectionDescription
                         transactionID={transaction?.transactionID}
-                        report={report}
+                        report={parentReport}
                         policy={policy}
                     />
                 ),
             };
         }
-        if (hasPendingRTERViolation(getTransactionViolations(transaction?.transactionID, transactionViolations))) {
+        if (hasPendingRTERViolation) {
             return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
         if (isScanning) {
@@ -140,12 +158,89 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
+    const primaryAction = useMemo(() => {
+        if (!report || !parentReport || !transaction) {
+            return '';
+        }
+        return getTransactionThreadPrimaryAction(report, parentReport, transaction, transactionViolations, policy);
+    }, [parentReport, policy, report, transaction, transactionViolations]);
+
+    const primaryActionImplementation = {
+        [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD]: (
+            <Button
+                success
+                text={translate('iou.unhold')}
+                onPress={() => {
+                    changeMoneyRequestHoldStatus(parentReportAction);
+                }}
+            />
+        ),
+        [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES]: (
+            <Button
+                success
+                text={translate('iou.reviewDuplicates')}
+                onPress={() => {
+                    if (!reportID) {
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
+                }}
+            />
+        ),
+        [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH]: (
+            <Button
+                success
+                text={translate('iou.markAsCash')}
+                onPress={markAsCash}
+            />
+        ),
+    };
+
+    const secondaryActions = useMemo(() => {
+        if (!parentReport || !transaction) {
+            return [];
+        }
+        return getSecondaryTransactionThreadActions(parentReport, transaction);
+    }, [parentReport, transaction]);
+
+    const secondaryActionsImplementation: Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>> = {
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
+            text: translate('iou.hold'),
+            icon: Expensicons.Stopwatch,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD,
+            onSelected: () => {
+                if (!parentReportAction) {
+                    throw new Error('Parent action does not exist');
+                }
+
+                changeMoneyRequestHoldStatus(parentReportAction);
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
+            value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
+            text: translate('iou.viewDetails'),
+            icon: Expensicons.Info,
+            onSelected: () => {
+                navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute());
+            },
+        },
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
+            text: translate('common.delete'),
+            icon: Expensicons.Trashcan,
+            value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
+            onSelected: () => {
+                setIsDeleteModalVisible(true);
+            },
+        },
+    };
+
+    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
+
     return (
         <View style={[styles.pl0, styles.borderBottom]}>
             <HeaderWithBackButton
                 shouldShowBorderBottom={false}
                 shouldShowReportAvatarWithDisplay
-                shouldEnableDetailPageNavigation
                 shouldShowPinButton={false}
                 report={
                     reportID
@@ -158,54 +253,43 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 }
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter={shouldDisplaySearchRouter}
+                shouldDisplaySearchRouter={!isReportInRHP}
+                shouldDisplayHelpButton={!isReportInRHP}
                 onBackButtonPress={onBackButtonPress}
+                shouldEnableDetailPageNavigation
+                openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
-                {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
-                    <Button
-                        success
-                        text={translate('iou.markAsCash')}
-                        style={[styles.p0]}
-                        onPress={markAsCash}
-                    />
+                {!shouldUseNarrowLayout && (
+                    <View style={[styles.flexRow, styles.gap2]}>
+                        {!!primaryAction && primaryActionImplementation[primaryAction]}
+                        {!!applicableSecondaryActions.length && (
+                            <ButtonWithDropdownMenu
+                                success={false}
+                                onPress={() => {}}
+                                shouldAlwaysShowDropdownMenu
+                                customText={translate('common.more')}
+                                options={applicableSecondaryActions}
+                                isSplitButton={false}
+                            />
+                        )}
+                    </View>
                 )}
-                {isDuplicate && !shouldUseNarrowLayout && (
-                    <Button
-                        success
-                        text={translate('iou.reviewDuplicates')}
-                        style={[styles.p0, styles.ml2]}
-                        onPress={() => {
-                            if (!reportID) {
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
-                        }}
-                    />
-                )}
+                {shouldDisplayTransactionNavigation && <MoneyRequestReportTransactionsNavigation currentReportID={reportID} />}
             </HeaderWithBackButton>
-            {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
-                <View style={[styles.ph5, styles.pb3]}>
-                    <Button
-                        success
-                        text={translate('iou.markAsCash')}
-                        style={[styles.w100, styles.pr0]}
-                        onPress={markAsCash}
-                    />
-                </View>
-            )}
-            {isDuplicate && shouldUseNarrowLayout && (
-                <View style={[styles.ph5, styles.pb3]}>
-                    <Button
-                        success
-                        text={translate('iou.reviewDuplicates')}
-                        style={[styles.w100, styles.pr0]}
-                        onPress={() => {
-                            if (!reportID) {
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
-                        }}
-                    />
+            {shouldUseNarrowLayout && (
+                <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    {!!primaryAction && <View style={[styles.flexGrow4]}>{primaryActionImplementation[primaryAction]}</View>}
+                    {!!applicableSecondaryActions.length && (
+                        <ButtonWithDropdownMenu
+                            success={false}
+                            onPress={() => {}}
+                            shouldAlwaysShowDropdownMenu
+                            customText={translate('common.more')}
+                            options={applicableSecondaryActions}
+                            isSplitButton={false}
+                            wrapperStyle={[!primaryAction && styles.flexGrow4]}
+                        />
+                    )}
                 </View>
             )}
             {!!statusBarProps && (
@@ -217,6 +301,36 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 </View>
             )}
             <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={downloadErrorModalVisible}
+                onClose={() => setDownloadErrorModalVisible(false)}
+            />
+            <ConfirmModal
+                title={translate('iou.deleteExpense', {count: 1})}
+                isVisible={isDeleteModalVisible}
+                onConfirm={() => {
+                    setIsDeleteModalVisible(false);
+                    if (!parentReportAction || !transaction) {
+                        throw new Error('Data missing');
+                    }
+
+                    deleteMoneyRequest(transaction?.transactionID, parentReportAction);
+
+                    const goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, parentReportAction, true);
+                    navigateBackOnDeleteTransaction(goBackRoute);
+                }}
+                onCancel={() => setIsDeleteModalVisible(false)}
+                prompt={translate('iou.deleteConfirmation', {count: 1})}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+                shouldEnableNewFocusManagement
+            />
         </View>
     );
 }

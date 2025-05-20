@@ -60,7 +60,7 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
     /** Function to check whether composer is covered up or not */
     checkComposerVisibility?: () => boolean;
 
-    /** Whether the sull composer is open */
+    /** Whether the full composer is open */
     isComposerFullSize?: boolean;
 
     /** Should make the input only scroll inside the element avoid scroll out to parent */
@@ -68,9 +68,6 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
 
     /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
     isGroupPolicyReport?: boolean;
-
-    /** Whether to show the keyboard on focus */
-    showSoftInputOnFocus?: boolean;
 };
 
 export type {TextSelection, ComposerProps, CustomSelectionChangeEvent};

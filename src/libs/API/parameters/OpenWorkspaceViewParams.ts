@@ -1,5 +1,5 @@
 type OpenWorkspaceViewParams = {
-    policyID: string;
+    policyID: string | undefined;
 };
 
 export default OpenWorkspaceViewParams;

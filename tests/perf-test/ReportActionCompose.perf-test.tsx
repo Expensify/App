@@ -1,5 +1,4 @@
 import {fireEvent, screen} from '@testing-library/react-native';
-import type {EffectCallback} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
@@ -22,6 +21,9 @@ jest.mock('@gorhom/portal');
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     useAnimatedRef: jest.fn(),
+    LayoutAnimationConfig: () => {
+        return ({children}: {children: React.ReactNode}) => children;
+    },
 }));
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
@@ -39,7 +41,7 @@ jest.mock('@react-navigation/native', () => {
         }),
         useIsFocused: () => true,
         useNavigationState: () => {},
-        useFocusEffect: (cb: EffectCallback) => cb(),
+        useFocusEffect: jest.fn(),
     };
 });
 
@@ -57,11 +59,12 @@ jest.mock('@src/libs/actions/EmojiPickerAction', () => {
         isActive: () => true,
     };
 });
+jest.mock('@components/ConfirmedRoute.tsx');
 
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
-        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
     }),
 );
 
@@ -79,8 +82,6 @@ function ReportActionComposeWrapper() {
                 disabled={false}
                 report={LHNTestUtils.getFakeReport()}
                 isComposerFullSize
-                showSoftInputOnFocus={false}
-                setShowSoftInputOnFocus={() => {}}
             />
         </ComposeProviders>
     );

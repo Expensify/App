@@ -11,18 +11,18 @@ import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {requestValidateCodeAction} from '@libs/actions/User';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {setErrors} from '@libs/actions/FormActions';
+import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import {clearCardListErrors, requestReplacementExpensifyCard} from '@userActions/Card';
 import type {ReplacementReason} from '@userActions/Card';
-import * as CardActions from '@userActions/Card';
-import * as FormActions from '@userActions/FormActions';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -62,11 +62,10 @@ function ReportCardLostPage({
 
     const {translate} = useLocalize();
 
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
 
     const [reason, setReason] = useState<Option>();
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
@@ -74,14 +73,14 @@ function ReportCardLostPage({
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
 
     const physicalCard = cardList?.[cardID];
-    const validateError = ErrorUtils.getLatestErrorMessageField(physicalCard);
+    const validateError = getLatestErrorMessageField(physicalCard);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const prevIsLoading = usePrevious(formData?.isLoading);
 
-    const {paddingBottom} = useStyledSafeAreaInsets();
+    const {paddingBottom} = useSafeAreaPaddings();
 
-    const formattedAddress = PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails ?? {});
+    const formattedAddress = getFormattedAddress(privatePersonalDetails ?? {});
     const primaryLogin = account?.primaryLogin ?? '';
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
@@ -91,15 +90,19 @@ function ReportCardLostPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
     }, [formData?.isLoading, prevIsLoading, physicalCard?.errors, cardID]);
+
+    useEffect(() => {
+        resetValidateActionCodeSent();
+    }, []);
 
     useEffect(() => {
         if (formData?.isLoading && isEmptyObject(physicalCard?.errors)) {
             return;
         }
 
-        FormActions.setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, physicalCard?.errors ?? {});
+        setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, physicalCard?.errors ?? {});
     }, [formData?.isLoading, physicalCard?.errors]);
 
     const handleValidateCodeEntered = useCallback(
@@ -107,7 +110,7 @@ function ReportCardLostPage({
             if (!physicalCard) {
                 return;
             }
-            CardActions.requestReplacementExpensifyCard(physicalCard.cardID, reason?.key as ReplacementReason, validateCode);
+            requestReplacementExpensifyCard(physicalCard.cardID, reason?.key as ReplacementReason, validateCode);
         },
         [physicalCard, reason?.key],
     );
@@ -135,14 +138,6 @@ function ReportCardLostPage({
         setIsValidateCodeActionModalVisible(true);
     };
 
-    const sendValidateCode = () => {
-        if (loginList?.[primaryLogin]?.validateCodeSent) {
-            return;
-        }
-
-        requestValidateCodeAction();
-    };
-
     const handleOptionSelect = (option: Option) => {
         setReason(option);
         setShouldShowReasonError(false);
@@ -168,11 +163,11 @@ function ReportCardLostPage({
                 title={translate('reportCardLostOrDamaged.screenTitle')}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <View style={[styles.flex1, styles.justifyContentBetween, styles.pt3, styles.mh5, !paddingBottom ? styles.pb5 : null]}>
+            <View style={[styles.flex1, styles.justifyContentBetween, styles.pt3, !paddingBottom ? styles.pb5 : null]}>
                 {isReasonConfirmed ? (
                     <>
                         <View>
-                            <Text style={[styles.textHeadline, styles.mb3]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
+                            <Text style={[styles.textHeadline, styles.mb3, styles.mh5]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
                             <MenuItemWithTopDescription
                                 title={formattedAddress}
                                 description={translate('reportCardLostOrDamaged.address')}
@@ -181,25 +176,26 @@ function ReportCardLostPage({
                                 numberOfLinesTitle={2}
                             />
                             {isDamaged ? (
-                                <Text style={[styles.mt3]}>{translate('reportCardLostOrDamaged.cardDamagedInfo')}</Text>
+                                <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardDamagedInfo')}</Text>
                             ) : (
-                                <Text style={[styles.mt3]}>{translate('reportCardLostOrDamaged.cardLostOrStolenInfo')}</Text>
+                                <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardLostOrStolenInfo')}</Text>
                             )}
                         </View>
-                        <FormAlertWithSubmitButton
-                            isAlertVisible={shouldShowAddressError}
-                            onSubmit={handleSubmitSecondStep}
-                            message={translate('reportCardLostOrDamaged.addressError')}
-                            isLoading={formData?.isLoading}
-                            buttonText={isDamaged ? translate('reportCardLostOrDamaged.shipNewCardButton') : translate('reportCardLostOrDamaged.deactivateCardButton')}
-                        />
+                        <View style={[styles.mh5]}>
+                            <FormAlertWithSubmitButton
+                                isAlertVisible={shouldShowAddressError}
+                                onSubmit={handleSubmitSecondStep}
+                                message={translate('reportCardLostOrDamaged.addressError')}
+                                isLoading={formData?.isLoading}
+                                buttonText={isDamaged ? translate('reportCardLostOrDamaged.shipNewCardButton') : translate('reportCardLostOrDamaged.deactivateCardButton')}
+                            />
+                        </View>
                         <ValidateCodeActionModal
                             handleSubmitForm={handleValidateCodeEntered}
-                            sendValidateCode={sendValidateCode}
+                            sendValidateCode={requestValidateCodeAction}
+                            validateCodeActionErrorField="replaceLostCard"
                             validateError={validateError}
-                            clearError={() => {
-                                CardActions.clearCardListErrors(physicalCard.cardID);
-                            }}
+                            clearError={() => clearCardListErrors(physicalCard.cardID)}
                             onClose={() => setIsValidateCodeActionModalVisible(false)}
                             isVisible={isValidateCodeActionModalVisible}
                             title={translate('cardPage.validateCardTitle')}
@@ -208,7 +204,7 @@ function ReportCardLostPage({
                     </>
                 ) : (
                     <>
-                        <View>
+                        <View style={[styles.mh5]}>
                             <Text style={[styles.textHeadline, styles.mr5]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
                             <SingleOptionSelector
                                 options={OPTIONS}
@@ -216,12 +212,14 @@ function ReportCardLostPage({
                                 onSelectOption={handleOptionSelect}
                             />
                         </View>
-                        <FormAlertWithSubmitButton
-                            isAlertVisible={shouldShowReasonError}
-                            onSubmit={handleSubmitFirstStep}
-                            message={translate('reportCardLostOrDamaged.reasonError')}
-                            buttonText={translate('reportCardLostOrDamaged.nextButtonLabel')}
-                        />
+                        <View style={[styles.mh5]}>
+                            <FormAlertWithSubmitButton
+                                isAlertVisible={shouldShowReasonError}
+                                onSubmit={handleSubmitFirstStep}
+                                message={translate('reportCardLostOrDamaged.reasonError')}
+                                buttonText={translate('reportCardLostOrDamaged.nextButtonLabel')}
+                            />
+                        </View>
                     </>
                 )}
             </View>

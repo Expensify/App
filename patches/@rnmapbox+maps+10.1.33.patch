@@ -1,0 +1,200 @@
+diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/images/RNMBXImagesManager.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/images/RNMBXImagesManager.kt
+index fb2147f..241d789 100644
+--- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/images/RNMBXImagesManager.kt
++++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/images/RNMBXImagesManager.kt
+@@ -249,10 +249,10 @@ class RNMBXImagesManager(private val mContext: ReactApplicationContext) :
+                     Logger.e("RNMBXImages", "each element of strech should be an array but was: ${array.getDynamic(i)}")
+                 } else {
+                     val pair = array.getArray(i)
+-                    if (pair.size() != 2 || pair.getType(0) != ReadableType.Number || pair.getType(1) != ReadableType.Number) {
++                    if (pair?.size() != 2 || pair.getType(0) != ReadableType.Number || pair.getType(1) != ReadableType.Number) {
+                         Logger.e("RNMBXImages", "each element of stretch should be pair of 2 integers but was ${pair}")
+                     }
+-                    result.add(ImageStretches(pair.getDouble(0).toFloat(), pair.getDouble(1).toFloat()))
++                    result.add(ImageStretches(pair!!.getDouble(0).toFloat(), pair.getDouble(1).toFloat()))
+                 }
+             }
+             return result;
+diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/mapview/RNMBXMapView.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/mapview/RNMBXMapView.kt
+index 688f3a6..0627519 100644
+--- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/mapview/RNMBXMapView.kt
++++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/mapview/RNMBXMapView.kt
+@@ -15,7 +15,7 @@ import android.widget.FrameLayout
+ import androidx.lifecycle.Lifecycle
+ import androidx.lifecycle.LifecycleOwner
+ import androidx.lifecycle.LifecycleRegistry
+-import androidx.lifecycle.ViewTreeLifecycleOwner
++import androidx.lifecycle.setViewTreeLifecycleOwner
+ import com.facebook.react.bridge.*
+ import com.mapbox.android.gestures.*
+ import com.mapbox.bindgen.Value
+@@ -131,12 +131,13 @@ class RNMBXLifeCycle {
+                     }
+                 }
+ 
+-                override fun getLifecycle(): Lifecycle {
+-                    return lifecycleRegistry
++                override val lifecycle: Lifecycle
++                    get() = lifecycleRegistry
++
+                 }
+             }
+-            ViewTreeLifecycleOwner.set(view, lifecycleOwner);
+-        }
++        view.setViewTreeLifecycleOwner(lifecycleOwner)
++
+         lifecycleOwner?.handleLifecycleEvent(Lifecycle.Event.ON_START)
+     }
+ 
+diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/mapview/RNMBXMapViewManager.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/mapview/RNMBXMapViewManager.kt
+index 220cf54..3e026c7 100644
+--- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/mapview/RNMBXMapViewManager.kt
++++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/mapview/RNMBXMapViewManager.kt
+@@ -34,13 +34,13 @@ import java.util.HashMap
+ 
+ fun ReadableArray.forEachString(action: (String) -> Unit) {
+     for (i in 0 until size()) {
+-        action(getString(i))
++        action(getString(i)!!)
+     }
+ }
+ 
+ fun ReadableArray.asArrayString(): Array<String> {
+     val result = Array<String>(size()) {
+-        getString(it)
++        getString(it)!!
+     }
+     return result
+ }
+diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/RNMBXStyleValue.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/RNMBXStyleValue.kt
+index db13128..99fd5c8 100644
+--- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/RNMBXStyleValue.kt
++++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/RNMBXStyleValue.kt
+@@ -82,7 +82,7 @@ class RNMBXStyleValue(config: ReadableMap) {
+         val result = ArrayList<Double>(arr!!.size())
+         for (i in 0 until arr.size()) {
+             val item = arr.getMap(i)
+-            result.add(item.getDouble("value"))
++            result.add(item!!.getDouble("value"))
+         }
+         return result
+     }
+@@ -104,7 +104,7 @@ class RNMBXStyleValue(config: ReadableMap) {
+         val result = ArrayList<String>(arr!!.size())
+         for (i in 0 until arr.size()) {
+             val item = arr.getMap(i)
+-            val value = item.getString("value")
++            val value = item!!.getString("value")
+             if (value != null) {
+                 result.add(value)
+             } else {
+@@ -121,9 +121,9 @@ class RNMBXStyleValue(config: ReadableMap) {
+                 val result = WritableNativeMap()
+                 for (i in 0 until keyValues!!.size()) {
+                     val keyValue = keyValues.getArray(i)
+-                    val stringKey = keyValue.getMap(0).getString("value")
++                    val stringKey = keyValue!!.getMap(0)!!.getString("value")
+                     val value = WritableNativeMap()
+-                    value.merge(keyValue.getMap(1))
++                    value.merge(keyValue.getMap(1)!!)
+                     result.putMap(stringKey!!, value)
+                 }
+                 return result
+diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/sources/RNMBXShapeSourceManager.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/sources/RNMBXShapeSourceManager.kt
+index 637372d..da3bf91 100644
+--- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/sources/RNMBXShapeSourceManager.kt
++++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/sources/RNMBXShapeSourceManager.kt
+@@ -119,7 +119,7 @@ class RNMBXShapeSourceManager(private val mContext: ReactApplicationContext, val
+                     )
+                     ReadableType.Boolean -> Expression.literal(expressions.getBoolean(iExp))
+                     ReadableType.Number -> Expression.literal(expressions.getDouble(iExp))
+-                    else -> Expression.literal(expressions.getString(iExp))
++                    else -> Expression.literal(expressions.getString(iExp)!!)
+                 }
+                 builder.add(argument)
+             }
+diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/sources/RNMBXTileSourceManager.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/sources/RNMBXTileSourceManager.kt
+index 3b0a072..2530916 100644
+--- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/sources/RNMBXTileSourceManager.kt
++++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/styles/sources/RNMBXTileSourceManager.kt
+@@ -41,7 +41,7 @@ abstract class RNMBXTileSourceManager<T : RNMBXTileSource<*>> internal construct
+         val urls: MutableList<String> = ArrayList()
+         for (i in 0 until tileUrlTemplates.asArray().size()) {
+             if (tileUrlTemplates.asArray().getType(0) == ReadableType.String) {
+-                urls.add(tileUrlTemplates.asArray().getString(i))
++                urls.add(tileUrlTemplates.asArray().getString(i)!!)
+             }
+         }
+         source!!.tileUrlTemplates = urls
+diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/shapeAnimators/RNMBXChangeLineOffsetsShapeAnimatorModule.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/shapeAnimators/RNMBXChangeLineOffsetsShapeAnimatorModule.kt
+index 28d1020..41f80d5 100644
+--- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/shapeAnimators/RNMBXChangeLineOffsetsShapeAnimatorModule.kt
++++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/shapeAnimators/RNMBXChangeLineOffsetsShapeAnimatorModule.kt
+@@ -210,7 +210,7 @@ private fun buildLineString(_coordinates: ReadableArray): LineString {
+ 
+     for (i in 0 until _coordinates.size()) {
+         val arr = _coordinates.getArray(i)
+-        val coord = Point.fromLngLat(arr.getDouble(0), arr.getDouble(1))
++        val coord = Point.fromLngLat(arr!!.getDouble(0), arr.getDouble(1))
+         coordinates = coordinates.plus(coord)
+     }
+ 
+diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/Dynamic.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/Dynamic.kt
+index d52fa21..1a17410 100644
+--- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/Dynamic.kt
++++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/Dynamic.kt
+@@ -38,9 +38,9 @@ fun ReadableArray.toValue(): Value {
+             ReadableType.Null -> Value.nullValue()
+             ReadableType.Boolean -> Value.valueOf(getBoolean(i))
+             ReadableType.Number -> Value.valueOf(getDouble(i))
+-            ReadableType.String -> Value.valueOf(getString(i))
+-            ReadableType.Array -> getArray(i).toValue()
+-            ReadableType.Map -> getMap(i).toValue()
++            ReadableType.String -> Value.valueOf(getString(i)!!)
++            ReadableType.Array -> getArray(i)!!.toValue()
++            ReadableType.Map -> getMap(i)!!.toValue()
+         })
+     }
+     return Value.valueOf(result)
+diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/ReadableArray.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/ReadableArray.kt
+index 83a78bc..b27dce1 100644
+--- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/ReadableArray.kt
++++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/ReadableArray.kt
+@@ -46,8 +46,8 @@ fun ReadableArray.toJsonArray() : JsonArray {
+     val result = JsonArray(size())
+     for (i in 0 until size()) {
+         when (getType(i)) {
+-            ReadableType.Map -> result.add(getMap(i).toJsonObject())
+-            ReadableType.Array -> result.add(getArray(i).toJsonArray())
++            ReadableType.Map -> result.add(getMap(i)?.toJsonObject())
++            ReadableType.Array -> result.add(getArray(i)?.toJsonArray())
+             ReadableType.Null -> result.add(null as JsonElement?)
+             ReadableType.Number -> result.add(getDouble(i))
+             ReadableType.String -> result.add(getString(i))
+diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/ReadableMap.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/ReadableMap.kt
+index c69ef8c..912601f 100644
+--- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/ReadableMap.kt
++++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/utils/extensions/ReadableMap.kt
+@@ -25,7 +25,7 @@ fun ReadableMap.forEach(action: (String, Any) -> Unit) {
+     val iterator = this.entryIterator
+     while (iterator.hasNext()) {
+         val next = iterator.next()
+-        action(next.key, next.value)
++        action(next.key, next.value!!)
+     }
+ }
+ fun ReadableMap.getIfDouble(key: String): Double? {
+diff --git a/node_modules/@rnmapbox/maps/android/src/main/rn-compat/rn75/com/rnmapbox/rnmbx/rncompat/ReadableMap.kt b/node_modules/@rnmapbox/maps/android/src/main/rn-compat/rn75/com/rnmapbox/rnmbx/rncompat/ReadableMap.kt
+index fee7f22..194e630 100644
+--- a/node_modules/@rnmapbox/maps/android/src/main/rn-compat/rn75/com/rnmapbox/rnmbx/rncompat/ReadableMap.kt
++++ b/node_modules/@rnmapbox/maps/android/src/main/rn-compat/rn75/com/rnmapbox/rnmbx/rncompat/ReadableMap.kt
+@@ -1,7 +1,7 @@
+ package com.rnmapbox.rnmbx.rncompat.readable_map
+ import com.facebook.react.bridge.ReadableMap
+ 
+-fun ReadableMap.getEntryIterator():  Iterator<Map. Entry<String, Any>>
++fun ReadableMap.getEntryIterator(): Iterator<Map.Entry<String, Any?>>
+ {
+     return this.entryIterator
+ }
+\ No newline at end of file

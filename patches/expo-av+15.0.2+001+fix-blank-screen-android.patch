@@ -1,0 +1,221 @@
+diff --git a/node_modules/expo-av/android/src/main/java/expo/modules/av/player/SimpleExoPlayerData.java b/node_modules/expo-av/android/src/main/java/expo/modules/av/player/SimpleExoPlayerData.java
+index 8835a39..87e1964 100644
+--- a/node_modules/expo-av/android/src/main/java/expo/modules/av/player/SimpleExoPlayerData.java
++++ b/node_modules/expo-av/android/src/main/java/expo/modules/av/player/SimpleExoPlayerData.java
+@@ -2,6 +2,7 @@ package expo.modules.av.player;
+ 
+ import android.content.Context;
+ import android.net.Uri;
++import android.os.Build;
+ import android.os.Bundle;
+ import android.os.Looper;
+ 
+@@ -63,6 +64,8 @@ class SimpleExoPlayerData extends PlayerData
+   private boolean mIsLoading = true;
+   private final Context mReactContext;
+ 
++  private Surface mSurface = null;
++
+   SimpleExoPlayerData(final AVManagerInterface avModule, final Context context, final Uri uri, final String overridingExtension, final Map<String, Object> requestHeaders) {
+     super(avModule, uri, requestHeaders);
+     mReactContext = context;
+@@ -228,6 +231,13 @@ class SimpleExoPlayerData extends PlayerData
+ 
+   @Override
+   public void tryUpdateVideoSurface(final Surface surface) {
++    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
++      if (mSimpleExoPlayer != null && mSurface != surface) {
++        mSimpleExoPlayer.setVideoSurface(surface);
++        mSurface = surface;
++      }
++      return;
++    }
+     if (mSimpleExoPlayer != null) {
+       mSimpleExoPlayer.setVideoSurface(surface);
+     }
+diff --git a/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoTextureView.java b/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoTextureView.java
+index 41a5979..b378bf4 100644
+--- a/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoTextureView.java
++++ b/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoTextureView.java
+@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
+ import android.content.Context;
+ import android.graphics.Matrix;
+ import android.graphics.SurfaceTexture;
++import android.os.Build;
+ import android.util.Pair;
+ import android.util.Size;
+ import android.view.Surface;
+@@ -20,6 +21,10 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
+   private boolean mIsAttachedToWindow = false;
+   private Surface mSurface = null;
+   private boolean mVisible = true;
++  private int mBufferWidth = 0;
++  private int mBufferHeight = 0;
++  private int mPositionX = 0;
++  private int mPositionY = 0;
+ 
+   public VideoTextureView(final Context themedReactContext, VideoView videoView) {
+     super(themedReactContext, null, 0);
+@@ -55,6 +60,15 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
+         setTransform(matrix);
+         invalidate();
+       }
++      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
++        float[] values = new float[9];
++        matrix.getValues(values);
++        mBufferWidth = (int)(getWidth() * values[Matrix.MSCALE_X]);
++        mBufferHeight = (int)(getHeight() * values[Matrix.MSCALE_Y]);
++        mPositionX = (int)(values[Matrix.MTRANS_X]);
++        mPositionY = (int)(values[Matrix.MTRANS_Y]);
++        mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
++      }
+     }
+   }
+ 
+@@ -69,6 +83,9 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
+       onVisibilityChanged(this, View.INVISIBLE);
+       onVisibilityChanged(this, View.VISIBLE);
+     }
++    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
++      mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
++    }
+   }
+ 
+   // TextureView
+@@ -76,7 +93,12 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
+   @Override
+   public void onSurfaceTextureAvailable(final SurfaceTexture surfaceTexture, final int width, final int height) {
+     mSurface = new Surface(surfaceTexture);
+-    mVideoView.tryUpdateVideoSurface(mSurface);
++    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
++      mVideoView.tryUpdateVideoSurface();
++      mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
++    } else {
++      mVideoView.tryUpdateVideoSurface(mSurface);
++    }
+   }
+ 
+   @Override
+@@ -86,13 +108,17 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
+ 
+   @Override
+   public void onSurfaceTextureUpdated(final SurfaceTexture surfaceTexture) {
+-    // no-op
++    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
++      mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
++    }
+   }
+ 
+   @Override
+   public boolean onSurfaceTextureDestroyed(final SurfaceTexture surfaceTexture) {
+     mSurface = null;
+-    mVideoView.tryUpdateVideoSurface(null);
++    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
++      mVideoView.tryUpdateVideoSurface(null);
++    }
+     return true;
+   }
+ 
+@@ -108,11 +134,19 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
+   protected void onAttachedToWindow() {
+     super.onAttachedToWindow();
+     mIsAttachedToWindow = true;
+-    mVideoView.tryUpdateVideoSurface(mSurface);
++    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
++      mVideoView.tryUpdateVideoSurface();
++      mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
++    } else {
++      mVideoView.tryUpdateVideoSurface(mSurface);
++    }
+   }
+ 
+   protected void onVisibilityChanged(View changedView, int visibility) {
+     super.onVisibilityChanged(changedView, visibility);
+     mVisible = visibility == View.VISIBLE;
++    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
++      mVideoView.updateSurfaceView(mVisible, mBufferWidth, mBufferHeight, mPositionX, mPositionY);
++    }
+   }
+ }
+diff --git a/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoView.java b/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoView.java
+index 1acb32b..6bac2bf 100644
+--- a/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoView.java
++++ b/node_modules/expo-av/android/src/main/java/expo/modules/av/video/VideoView.java
+@@ -2,10 +2,14 @@ package expo.modules.av.video;
+ 
+ import android.annotation.SuppressLint;
+ import android.content.Context;
++import android.os.Build;
+ import android.os.Bundle;
+ import android.util.Pair;
++import android.view.Gravity;
+ import android.view.MotionEvent;
+ import android.view.Surface;
++import android.view.SurfaceControl;
++import android.view.SurfaceView;
+ import android.widget.FrameLayout;
+ 
+ import androidx.annotation.NonNull;
+@@ -62,6 +66,10 @@ public class VideoView extends FrameLayout implements AudioEventHandler, Fullscr
+   private boolean mShouldShowFullscreenPlayerOnLoad = false;
+   private FullscreenVideoPlayerPresentationChangeProgressListener mFullscreenVideoPlayerPresentationOnLoadChangeListener = null;
+ 
++  private Surface mSurface;
++  private SurfaceControl mSurfaceControl;
++  private SurfaceView mSurfaceView;
++
+   public VideoView(@NonNull Context context, VideoViewWrapper videoViewWrapper, AppContext appContext) {
+     super(context);
+ 
+@@ -70,6 +78,13 @@ public class VideoView extends FrameLayout implements AudioEventHandler, Fullscr
+     mAVModule = appContext.getLegacyModuleRegistry().getModule(AVManagerInterface.class);
+     mAVModule.registerVideoViewForAudioLifecycle(this);
+ 
++    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
++      mSurfaceView = new SurfaceView(context);
++      mSurfaceControl = new SurfaceControl.Builder().setName("ExpoAVSurfaceControl").setBufferSize(0, 0).build();
++      mSurface = new Surface(mSurfaceControl);
++      addView(mSurfaceView);
++    }
++
+     mVideoTextureView = new VideoTextureView(context, this);
+     addView(mVideoTextureView, generateDefaultLayoutParams());
+ 
+@@ -387,7 +402,11 @@ public class VideoView extends FrameLayout implements AudioEventHandler, Fullscr
+         mVideoTextureView.scaleVideoSize(mPlayerData.getVideoWidthHeight(), mResizeMode);
+ 
+         if (mVideoTextureView.isAttachedToWindow()) {
+-          mPlayerData.tryUpdateVideoSurface(mVideoTextureView.getSurface());
++          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
++            mPlayerData.tryUpdateVideoSurface(mSurface);
++          } else {
++            mPlayerData.tryUpdateVideoSurface(mVideoTextureView.getSurface());
++          }
+         }
+ 
+         if (promise != null) {
+@@ -477,6 +496,24 @@ public class VideoView extends FrameLayout implements AudioEventHandler, Fullscr
+     }
+   }
+ 
++  public void tryUpdateVideoSurface() {
++    if (mPlayerData != null) {
++      mPlayerData.tryUpdateVideoSurface(mSurface);
++    }
++  }
++
++  public void updateSurfaceView(boolean visible, int bufferWidth, int bufferHeight, int positionX, int positionY) {
++    new SurfaceControl.Transaction()
++      .reparent(mSurfaceControl, mSurfaceView.getSurfaceControl())
++      .setBufferSize(mSurfaceControl, bufferWidth, bufferHeight)
++      .setPosition(mSurfaceControl, 0, 0)
++      .setVisibility(mSurfaceControl, visible && bufferWidth > 0 && bufferHeight > 0)
++      .apply();
++    mSurfaceView.layout(positionX, positionY, positionX + Math.max(bufferWidth, 1), positionY + Math.max(bufferHeight, 1));
++    mSurfaceView.setLayoutParams(new FrameLayout.LayoutParams(Math.max(bufferWidth, 1), Math.max(bufferHeight, 1), Gravity.CENTER));
++    mSurfaceView.requestLayout();
++  }
++
+   // AudioEventHandler
+ 
+   @Override

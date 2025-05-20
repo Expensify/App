@@ -56,7 +56,7 @@ function AddressSearch(
         errorText = '',
         hint = '',
         inputID,
-        isLimitedToUSA = false,
+        limitSearchesToCountry,
         label,
         maxInputLength,
         onFocus,
@@ -78,6 +78,7 @@ function AddressSearch(
         shouldSaveDraft = false,
         value,
         locationBias,
+        caretHidden,
     }: AddressSearchProps,
     ref: ForwardedRef<HTMLElement>,
 ) {
@@ -100,10 +101,10 @@ function AddressSearch(
         () => ({
             language: preferredLocale,
             types: resultTypes,
-            components: isLimitedToUSA ? 'country:us' : undefined,
+            components: limitSearchesToCountry ? `country:${limitSearchesToCountry.toLocaleLowerCase()}` : undefined,
             ...(locationBias && {locationbias: locationBias}),
         }),
-        [preferredLocale, resultTypes, isLimitedToUSA, locationBias],
+        [preferredLocale, resultTypes, limitSearchesToCountry, locationBias],
     );
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
     const saveLocationDetails = (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {
@@ -180,7 +181,7 @@ function AddressSearch(
             // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
             // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is
             // returned, the sublocality will be a city subdivision so shouldn't take precedence (e.g.
-            // Salagatan, Upssala, Sweden).
+            // Salagatan, Uppsala, Sweden).
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
 
@@ -444,6 +445,7 @@ function AddressSearch(
                             maxLength: maxInputLength,
                             spellCheck: false,
                             selectTextOnFocus: true,
+                            caretHidden,
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
