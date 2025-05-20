@@ -6851,10 +6851,6 @@ const translations = {
             part1: 'Filtra los gastos\nque ',
             part2: 'necesitan aprobación',
         },
-        workspacesSettings: {
-            part1: 'Ver tus ',
-            part2: 'espacios de trabajo',
-        },
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
