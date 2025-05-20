@@ -40,8 +40,8 @@ import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
-    getIOUActionForReportID,
     getFilteredReportActionsForReportView,
+    getIOUActionForReportID,
     getOneTransactionThreadReportID,
     getReportAction,
     isCreatedAction,
