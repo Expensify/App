@@ -6,10 +6,9 @@ import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
     arePaymentsEnabled,
-    getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getSubmitToAccountID,
-    hasAccountingConnections,
+    getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isPolicyAdmin,
     isPreferredExporter,
@@ -142,13 +141,12 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
     const isReimbursed = isSettled(report);
     const isClosed = isClosedReport(report);
     const isApproved = isReportApproved({report});
-    const hasAccountingConnection = hasAccountingConnections(policy);
-    const connectedIntegration = getConnectedIntegration(policy);
+    const connectedIntegration = getValidConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
     const hasAnyViolations =
         hasViolations(report.reportID, violations) || hasNoticeTypeViolations(report.reportID, violations, true) || hasWarningTypeViolations(report.reportID, violations, true);
 
-    if (!hasAccountingConnection || !isExpense || !isExporter) {
+    if (!connectedIntegration || !isExpense || !isExporter) {
         return false;
     }
 
