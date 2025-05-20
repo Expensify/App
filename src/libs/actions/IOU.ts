@@ -4143,7 +4143,7 @@ function getUpdateMoneyRequestParams(
                 },
             });
         }
-        if (violationsOnyxData && (iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN) {
+        if (violationsOnyxData) {
             const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? {};
             const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
             optimisticData.push({
