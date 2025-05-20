@@ -11,11 +11,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          fetch-depth: 1
 
       - name: Fetch main branch
         run: git fetch origin --depth=1 main
 
       - name: Run patch validator
-        run: ./.github/scripts/validatePatchDetails.sh
+        run: ./scripts/validatePatches.sh
