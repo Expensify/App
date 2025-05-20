@@ -15,7 +15,6 @@ import DecisionModal from '@components/DecisionModal';
 import {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} from '@components/Icon/Expensicons';
 import {ReceiptWrangler} from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
-import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -396,6 +395,19 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
 
+    const toggleOrNavigate = useCallback(
+        (item: MemberOption) => {
+            if (item.isDisabledCheckbox) {
+                return;
+            }
+            if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
+                toggleUser(item.accountID);
+                return;
+            }
+            openMemberDetails(item);
+        },
+        [shouldUseNarrowLayout, selectionMode, openMemberDetails, toggleUser],
+    );
     /**
      * Dismisses the errors on one item
      */
@@ -697,6 +709,30 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
+    const listHeaderContent = (
+        <>
+            {shouldUseNarrowLayout && data.length > 0 && <View style={[styles.pr5]}>{getHeaderContent()}</View>}
+            {!shouldUseNarrowLayout && (
+                <>
+                    {!!headerMessage && (
+                        <View style={[styles.ph5, styles.pb5]}>
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                        </View>
+                    )}
+                    {getHeaderContent()}
+                </>
+            )}
+            {data.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    label={translate('workspace.people.findMember')}
+                    shouldShowEmptyState={!filteredData.length}
+                />
+            )}
+        </>
+    );
+
     return (
         <WorkspacePageWithSections
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
@@ -761,55 +797,32 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         isVisible={isDownloadFailureModalVisible}
                         onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
-                    <ScrollView
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
-                    >
-                        {shouldUseNarrowLayout && data.length > 0 && <View style={[styles.pr5]}>{getHeaderContent()}</View>}
-                        {!shouldUseNarrowLayout && (
-                            <>
-                                {!!headerMessage && (
-                                    <View style={[styles.ph5, styles.pb5]}>
-                                        <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
-                                    </View>
-                                )}
-                                {getHeaderContent()}
-                            </>
-                        )}
-                        {data.length > CONST.SEARCH_ITEM_LIMIT && (
-                            <SearchBar
-                                inputValue={inputValue}
-                                onChangeText={setInputValue}
-                                label={translate('workspace.people.findMember')}
-                                shouldShowEmptyState={!filteredData.length}
-                            />
-                        )}
-                        <SelectionListWithModal
-                            ref={selectionListRef}
-                            canSelectMultiple={canSelectMultiple}
-                            sections={[{data: filteredData, isDisabled: false}]}
-                            selectedItems={selectedEmployees.map(String)}
-                            ListItem={TableListItem}
-                            shouldUseDefaultRightHandSideCheckmark={false}
-                            turnOnSelectionModeOnLongPress={isPolicyAdmin}
-                            onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
-                            shouldUseUserSkeletonView
-                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                            headerMessage={shouldUseNarrowLayout ? headerMessage : undefined}
-                            onSelectRow={openMemberDetails}
-                            shouldSingleExecuteRowSelect={!isPolicyAdmin}
-                            onCheckboxPress={(item) => toggleUser(item.accountID)}
-                            onSelectAll={() => toggleAllUsers(filteredData)}
-                            onDismissError={dismissError}
-                            showLoadingPlaceholder={isLoading}
-                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                            textInputRef={textInputRef}
-                            customListHeader={getCustomListHeader()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            showScrollIndicator={false}
-                            addBottomSafeAreaPadding
-                        />
-                    </ScrollView>
+                    <SelectionListWithModal
+                        ref={selectionListRef}
+                        canSelectMultiple={canSelectMultiple}
+                        sections={[{data: filteredData, isDisabled: false}]}
+                        selectedItems={selectedEmployees.map(String)}
+                        ListItem={TableListItem}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        turnOnSelectionModeOnLongPress={isPolicyAdmin}
+                        onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
+                        shouldUseUserSkeletonView
+                        disableKeyboardShortcuts={removeMembersConfirmModalVisible}
+                        headerMessage={shouldUseNarrowLayout ? headerMessage : undefined}
+                        onSelectRow={toggleOrNavigate}
+                        shouldSingleExecuteRowSelect={!isPolicyAdmin}
+                        onCheckboxPress={(item) => toggleUser(item.accountID)}
+                        onSelectAll={() => toggleAllUsers(filteredData)}
+                        onDismissError={dismissError}
+                        showLoadingPlaceholder={isLoading}
+                        listHeaderContent={listHeaderContent}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        textInputRef={textInputRef}
+                        customListHeader={getCustomListHeader()}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        showScrollIndicator={false}
+                        addBottomSafeAreaPadding
+                    />
                 </>
             )}
         </WorkspacePageWithSections>
