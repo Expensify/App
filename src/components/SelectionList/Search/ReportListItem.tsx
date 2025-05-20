@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -86,6 +87,23 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
+    const sampleTransaction = reportItem.transactions.at(0);
+    const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
+
+    const columns = [
+        COLUMNS.RECEIPT,
+        COLUMNS.TYPE,
+        COLUMNS.DATE,
+        COLUMNS.MERCHANT,
+        COLUMNS.FROM,
+        COLUMNS.TO,
+        ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
+        ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
+        ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
+        COLUMNS.TOTAL_AMOUNT,
+        COLUMNS.ACTION,
+    ] as Array<ValueOf<typeof COLUMNS>>;
+
     return (
         <BaseListItem
             item={item}
@@ -137,17 +155,7 @@ function ReportListItem<TItem extends ListItem>({
                                     shouldUseNarrowLayout={!isLargeScreenWidth}
                                     shouldShowCheckbox={!!canSelectMultiple}
                                     onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                    columns={[
-                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
-                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
-                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
-                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
-                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM,
-                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO,
-                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY,
-                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
-                                        CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION,
-                                    ]}
+                                    columns={columns}
                                     onButtonPress={() => {
                                         openReportInRHP(transaction);
                                     }}

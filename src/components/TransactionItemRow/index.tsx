@@ -23,6 +23,7 @@ import ChatBubbleCell from './DataCells/ChatBubbleCell';
 import MerchantCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
 import TagCell from './DataCells/TagCell';
+import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import TransactionItemRowRBR from './TransactionItemRowRBR';
@@ -191,10 +192,17 @@ function TransactionItemRow({
                     />
                 </View>
             ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}>
+                    <TaxCell
+                        transactionItem={transactionItem}
+                        shouldShowTooltip={shouldShowTooltip}
+                    />
+                </View>
+            ),
         }),
         [StyleUtils, createdAt, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
     );
-
     const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3];
     return (
         <View

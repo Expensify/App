@@ -1420,6 +1420,7 @@ const CONST = {
                 TOTAL_AMOUNT: 'amount',
                 TYPE: 'type',
                 ACTION: 'action',
+                TAX: 'tax',
             },
         },
         CANCEL_PAYMENT_REASONS: {
