@@ -1,4 +1,5 @@
 import Performance, { PERFORMANCE_METRICS } from '@libs/Performance';
+import {setShouldForceOffline} from '@libs/actions/Network';
 /* eslint-disable import/newline-after-import,import/first */
 
 /**
@@ -10,7 +11,7 @@ import canCapturePerformanceMetrics from '@libs/Metrics';
 import Config from 'react-native-config';
 import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
-import installNetworkInterceptor from './utils/NetworkInterceptor';
+import { disableNetworkRequests } from './utils/NetworkInterceptor';
 import LaunchArgs from './utils/LaunchArgs';
 import type {TestModule, Tests} from './types';
 
@@ -50,12 +51,9 @@ const appReady = new Promise<void>((resolve) => {
     });
 });
 
-// Install the network interceptor
-installNetworkInterceptor(
-    () => E2EClient.getNetworkCache(appInstanceId),
-    (networkCache) => E2EClient.updateNetworkCache(appInstanceId, networkCache),
-    LaunchArgs.mockNetwork ?? false
-)
+const disableNetwork = LaunchArgs.mockNetwork ?? false;
+disableNetworkRequests(disableNetwork);
+setShouldForceOffline(disableNetwork);
 
 E2EClient.getTestConfig()
     .then((config): Promise<void> | undefined => {
