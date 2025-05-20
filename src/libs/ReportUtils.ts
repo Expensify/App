@@ -660,6 +660,7 @@ type TransactionDetails = {
     customUnitRateID?: string;
     comment: string;
     category: string;
+    reimbursable: boolean;
     billable: boolean;
     tag: string;
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -705,7 +706,6 @@ type OptionData = {
     alternateText?: string;
     allReportErrors?: Errors;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null;
-    shouldShowGreenDot?: boolean;
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
@@ -1057,14 +1057,14 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
-let reportAttributes: ReportAttributesDerivedValue['reports'];
+let reportAttributesDerivedValue: ReportAttributesDerivedValue['reports'];
 Onyx.connect({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
         if (!value) {
             return;
         }
-        reportAttributes = value.reports;
+        reportAttributesDerivedValue = value.reports;
     },
 });
 
@@ -3734,6 +3734,7 @@ function getTransactionDetails(
         waypoints: getWaypoints(transaction),
         customUnitRateID: getRateID(transaction),
         category: getCategory(transaction),
+        reimbursable: getReimbursable(transaction),
         billable: getBillable(transaction),
         tag: getTag(transaction),
         mccGroup: getMCCGroup(transaction),
@@ -3837,6 +3838,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
         CONST.EDIT_REQUEST_FIELD.RECEIPT,
         CONST.EDIT_REQUEST_FIELD.DISTANCE,
         CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
+        CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
     ];
 
@@ -4378,6 +4380,12 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.currency = getCurrency(oldTransaction);
     }
 
+    if ('reimbursable' in transactionChanges) {
+        const oldReimbursable = getReimbursable(oldTransaction);
+        originalMessage.oldReimbursable = oldReimbursable ? translateLocal('common.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+        originalMessage.reimbursable = transactionChanges?.reimbursable ? translateLocal('common.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+    }
+
     if ('billable' in transactionChanges) {
         const oldBillable = getBillable(oldTransaction);
         originalMessage.oldBillable = oldBillable ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
@@ -4640,11 +4648,11 @@ function getReportName(
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
-    reportAttributesParam?: ReportAttributesDerivedValue['reports'],
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
-    const attributes = reportAttributesParam ?? reportAttributes;
+    const attributes = reportAttributes ?? reportAttributesDerivedValue;
     const derivedNameExists = report && !!attributes?.[report.reportID]?.reportName;
     if (canUseDerivedValue && derivedNameExists) {
         return attributes[report.reportID].reportName;
@@ -7445,7 +7453,7 @@ function isEmptyReport(report: OnyxEntry<Report>): boolean {
     }
 
     // Get the `isEmpty` state from cached report attributes
-    const attributes = reportAttributes?.[report.reportID];
+    const attributes = reportAttributesDerivedValue?.[report.reportID];
     if (attributes) {
         return attributes.isEmpty;
     }
@@ -9502,7 +9510,7 @@ function getReportActionActorAccountID(
 
 function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: string, actionName: IOUAction): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
-    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace();
+    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(currentUserEmail);
     setMoneyRequestParticipants(transactionID, [
         {
             selected: true,
@@ -10768,6 +10776,15 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
+function getReportAttributes(reportID: string | undefined, reportAttributes?: ReportAttributesDerivedValue['reports']) {
+    const attributes = reportAttributes ?? reportAttributesDerivedValue;
+
+    if (!reportID || !attributes?.[reportID]) {
+        return;
+    }
+    return attributes[reportID];
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11145,6 +11162,7 @@ export {
     getReportPersonalDetailsParticipants,
     isAllowedToSubmitDraftExpenseReport,
     isWorkspaceEligibleForReportChange,
+    getReportAttributes,
 };
 
 export type {
