@@ -191,6 +191,7 @@ function CalendarPicker({
                     style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentStart]}
                     wrapperStyle={[themeStyles.alignItemsCenter]}
                     hoverDimmingValue={1}
+                    disabled={years.length <= 1}
                     testID="currentYearButton"
                     accessibilityLabel={translate('common.currentYear')}
                 >
@@ -201,7 +202,7 @@ function CalendarPicker({
                     >
                         {currentYearView}
                     </Text>
-                    <ArrowIcon />
+                    <ArrowIcon disabled={years.length <= 1} />
                 </PressableWithFeedback>
                 <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentEnd, themeStyles.mrn2]}>
                     <Text
