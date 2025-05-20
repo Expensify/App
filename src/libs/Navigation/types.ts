@@ -1814,7 +1814,9 @@ type OnboardingModalNavigatorParamList = {
 };
 
 type WelcomeVideoModalNavigatorParamList = {
-    [SCREENS.WELCOME_VIDEO.ROOT]: undefined;
+    [SCREENS.WELCOME_VIDEO.ROOT]: {
+        isFromRoot?: string;
+    };
 };
 
 type ExplanationModalNavigatorParamList = {

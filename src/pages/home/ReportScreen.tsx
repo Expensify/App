@@ -41,6 +41,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
     getIOUActionForReportID,
+    getFilteredReportActionsForReportView,
     getOneTransactionThreadReportID,
     getReportAction,
     isCreatedAction,
@@ -272,14 +273,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID, canBeMissing: false});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const {
-        reportActions: reportActionsWithDeletedExpenses,
-        linkedAction,
-        sortedAllReportActions,
-        hasNewerActions,
-        hasOlderActions,
-    } = usePaginatedReportActions(reportID, reportActionIDFromRoute);
-    const reportActions = reportActionsWithDeletedExpenses.filter((value) => !isDeletedParentAction(value));
+    const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
