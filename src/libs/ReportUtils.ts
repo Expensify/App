@@ -5807,17 +5807,6 @@ function getMovedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getUnreportedTransactionMessage(action: ReportAction) {
-    const unreportedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>) ?? {};
-    const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
-    const {reportName, reportUrl} = getReportDetails(fromReportID);
-    const message = translateLocal('iou.unreportedTransaction', {
-        reportUrl,
-        reportName,
-    });
-    return message;
-}
-
 function getPolicyChangeMessage(action: ReportAction) {
     const PolicyChangeOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
     const {fromPolicy: fromPolicyID, toPolicy: toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
@@ -11119,7 +11108,6 @@ export {
     getReportSubtitlePrefix,
     getPolicyChangeMessage,
     getMovedTransactionMessage,
-    getUnreportedTransactionMessage,
     getExpenseReportStateAndStatus,
     generateReportName,
     navigateToLinkedReportAction,
