@@ -2914,7 +2914,7 @@ const translations = {
         },
         publicDomainError: {
             title: 'Get started with Expensify Travel',
-            message: `You'll need to use your work email (e.g., name@company.com) with Expensify Travel, not your personal email (e.g., name@gmail.com)`,
+            message: `You'll need to use your work email (e.g., name@company.com) with Expensify Travel, not your personal email (e.g., name@gmail.com).`,
         },
         blockedFeatureModal: {
             title: 'Expensify Travel has been disabled',

@@ -1968,7 +1968,10 @@ const ROUTES = {
         route: 'workspace/confirmation',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
     },
-    MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',
+    MIGRATED_USER_WELCOME_MODAL: {
+        route: 'onboarding/migrated-user-welcome',
+        getRoute: (isFromRoot?: boolean) => getUrlWithBackToParam(`onboarding/migrated-user-welcome?${isFromRoot ? 'isFromRoot=true' : ''}`, undefined, false),
+    },
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
@@ -2428,8 +2431,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
     },
     ADD_UNREPORTED_EXPENSE: {
-        route: 'search/r/:reportID/add-unreported-expense',
-        getRoute: (reportID: string | undefined) => `search/r/${reportID}/add-unreported-expense` as const,
+        route: 'search/r/:reportID/add-unreported-expense/:backToReport?',
+        getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-unreported-expense/${backToReport ?? ''}` as const,
     },
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',

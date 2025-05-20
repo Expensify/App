@@ -32,7 +32,7 @@ import type {
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {hasSynchronizationErrorMessage} from './actions/connections';
+import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
@@ -485,7 +485,7 @@ function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy> | SearchPolicy)
  *
  * Note that "daily" and "manual" only exist as options for the API, not in the database or Onyx.
  */
-function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES> | undefined {
+function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy> | SearchPolicy): ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES> | undefined {
     if (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE) {
         return policy?.autoReportingFrequency;
     }
@@ -1156,6 +1156,12 @@ function getConnectedIntegration(policy: Policy | undefined, accountingIntegrati
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
 }
 
+function getValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
+    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find(
+        (integration) => !!policy?.connections?.[integration] && !isAuthenticationError(policy, integration),
+    );
+}
+
 function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
     return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
 }
@@ -1413,6 +1419,7 @@ export {
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,
+    getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,

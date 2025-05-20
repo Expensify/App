@@ -60,7 +60,10 @@ const searchResults: OnyxTypes.SearchResults = {
             },
             autoReimbursementLimit: 0,
             autoReporting: true,
-            autoReportingFrequency: 'instant',
+            autoReportingFrequency: 'immediate',
+            harvesting: {
+                enabled: false,
+            },
             preventSelfApproval: false,
             owner: adminEmail,
             reimbursementChoice: 'reimburseManual',
