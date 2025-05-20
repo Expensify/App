@@ -127,7 +127,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const {sortBy, sortOrder} = sortConfig;
 
     const newTransactionsID = useMemo(() => {
-        if (!prevTransactions || transactions.length === prevTransactions.length) {
+        if (!prevTransactions || transactions.length <= prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as string[];
         }
 

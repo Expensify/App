@@ -6358,10 +6358,6 @@ const translations = {
             part1: 'Filter for expenses\nthat ',
             part2: 'need approval',
         },
-        workspacesSettings: {
-            part1: 'View your ',
-            part2: 'workspaces',
-        },
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
