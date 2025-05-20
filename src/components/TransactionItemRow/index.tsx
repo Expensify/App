@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
@@ -41,6 +42,7 @@ function TransactionItemRow({
     columns,
     onButtonPress = () => {},
     isParentHovered,
+    columnWrapperStyles,
 }: {
     transactionItem: TransactionWithOptionalSearchFields;
     shouldUseNarrowLayout: boolean;
@@ -52,6 +54,7 @@ function TransactionItemRow({
     columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
     onButtonPress?: () => void;
     isParentHovered?: boolean;
+    columnWrapperStyles?: ViewStyle[];
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -192,6 +195,7 @@ function TransactionItemRow({
         [StyleUtils, createdAt, isDateColumnWide, isSelected, onButtonPress, shouldShowTooltip, shouldUseNarrowLayout, transactionItem],
     );
 
+    const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3];
     return (
         <View
             style={[styles.flex1]}
@@ -288,7 +292,7 @@ function TransactionItemRow({
                 </Animated.View>
             ) : (
                 <Animated.View style={[animatedHighlightStyle]}>
-                    <View style={[styles.p3, styles.gap2, styles.expenseWidgetRadius, bgActiveStyles]}>
+                    <View style={[...safeColumnWrapperStyle, styles.gap2, styles.expenseWidgetRadius, bgActiveStyles]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             <View style={[styles.mr1]}>
                                 <Checkbox

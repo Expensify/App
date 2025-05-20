@@ -152,6 +152,7 @@ function ReportListItem<TItem extends ListItem>({
                                         openReportInRHP(transaction);
                                     }}
                                     isParentHovered={hovered}
+                                    columnWrapperStyles={[styles.ph3, styles.pv1half]}
                                 />
                             </View>
                         ))
