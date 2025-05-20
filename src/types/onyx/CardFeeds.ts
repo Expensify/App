@@ -112,6 +112,12 @@ type AddNewCardFeedData = {
 
     /** Selected country */
     selectedCountry?: string;
+
+    /** Public token from Plaid connection */
+    publicToken?: string;
+
+    /** Bank from Plaid connection */
+    plaidConnectedBank?: string
 };
 
 /** Issue new card flow steps */

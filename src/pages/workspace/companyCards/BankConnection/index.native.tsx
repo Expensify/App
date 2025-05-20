@@ -20,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
-import getCompanyCardBankConnection from '@userActions/getCompanyCardBankConnection';
+import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
