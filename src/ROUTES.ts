@@ -2522,6 +2522,8 @@ const ROUTES = {
         route: 'r/:reportID/schedule-call/confimation',
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/confimation` as const,
     },
+
+    TEST_TOOLS_MODAL: 'test-tools',
 } as const;
 
 /**

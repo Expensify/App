@@ -729,6 +729,10 @@ const SCREENS = {
         BOOK: 'ScheduleCall_Book',
         CONFIRMATION: 'ScheduleCall_Confirmation',
     },
+
+    TEST_TOOLS_MODAL: {
+        ROOT: 'TestToolsModal_Root',
+    },
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

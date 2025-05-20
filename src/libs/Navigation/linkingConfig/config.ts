@@ -1751,6 +1751,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.SHARE.SUBMIT_DETAILS]: {path: ROUTES.SHARE_SUBMIT_DETAILS.route},
             },
         },
+        [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
+                    path: ROUTES.TEST_TOOLS_MODAL,
+                    exact: true,
+                },
+            },
+        },
     },
 };
 
