@@ -159,7 +159,7 @@ function MoneyRequestParticipantsSelector({
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
 
                 // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-                // sees the option to submit an expense from their admin on their own Workspace Chat.
+                // sees the option to submit an expense from their admin on their own Expense Chat.
                 includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
 
                 // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
