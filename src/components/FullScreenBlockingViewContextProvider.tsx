@@ -57,5 +57,3 @@ function FullScreenBlockingViewContextProvider({children}: FullScreenBlockingVie
 export default FullScreenBlockingViewContextProvider;
 
 export {FullScreenBlockingViewContext};
-
-export type {FullScreenBlockingViewContextProviderProps, FullScreenBlockingViewContextValue};

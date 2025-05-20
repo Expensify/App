@@ -3,17 +3,18 @@ title: Changing Your Workspace Plan
 description: How to change your Expensify plan or subscription
 keywords: [Expensify Classic, workspace plan, subscription]
 ---
+
 <div id="expensify-classic" markdown="1">
 
-Expensify offers several plans based on your needs: **Track, Submit, Collect, Control,** and **Free**. Your choice depends on whether you manage expenses individually or for a group or company. You may need to upgrade if you hire employees who need access to a **Group Workspace** or require features exclusive to paid plans.
+Expensify offers several plans based on your needs: **Track, Submit, Collect, Control,** and **Free**. Your choice depends on whether you manage expenses individually, for a group, or for a company. You may need to upgrade if you hire employees who need access to a **Group Workspace** or require features exclusive to paid plans.
 
 ---
 
-# Changing a Subscription on an Individual Plan
+# Change a Subscription on an Individual Plan
 
 **Web:**
-1. Go to **Settings > Workspaces > Individual > [Your Individual Workspace]**.
-2. Click **Plan** and select **Switch** under your desired plan.
+1. Go to **Settings > Workspaces > Individual > [Workspace Name]**.
+2. Click **Overview** and select **Switch** under your desired plan.
 
 **Mobile:**
 1. Open the Expensify app.
@@ -21,10 +22,10 @@ Expensify offers several plans based on your needs: **Track, Submit, Collect, Co
 3. Tap **Settings**.
 4. Tap **View All** under your Workspace.
 5. Select the Workspace under the **Individual** tab.
-6. Tap **Current Plan** under **Plan**.
-7. Tap **Switch** under the plan you're not currently using.
+6. Tap **Current Plan**.
+7. Tap **Switch** to change plans.
 
-## Upgrade to a Group Plan
+## Upgrade to a Group Workspace
 1. Go to **Settings > Workspaces > Group**.
 2. Select a **Collect** or **Control** plan.
 
@@ -34,7 +35,7 @@ Expensify offers several plans based on your needs: **Track, Submit, Collect, Co
 
 **Web:**
 1. Go to **Settings > Workspaces > Group > [Your Group Workspace]**.
-2. Click **Plan** and select **Switch** under your desired plan.
+2. Click **Overview** and select **Switch** under your desired plan.
 
 **Mobile:**
 1. Open the Expensify app.
@@ -104,6 +105,7 @@ Once downgraded, your Workspace will be deleted, and a refund line item will app
 Yes, monthly subscriptions are prepaid and not usage-based, so you will be charged regardless of activity.
 
 ## I'm in a Group Workspace. Do I need the monthly subscription too?
+
 No, Group Workspace members already have unlimited **SmartScans**. However, you can keep a subscription for personal use if you leave your company's Workspace.
 
 </div>

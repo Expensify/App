@@ -1,5 +1,5 @@
 ---
-title: add-an-expense.md
+title: Add an Expense
 description: Learn how to add, edit, and manage expenses in Expensify, including SmartScans, per diems, mileage, and group expenses.
 keywords: [Expensify Classic, add expense, add expense to a report, SmartScan, per diem, mileage, group expense, receipts, upload receipts, distance tracking, bulk expense upload]
 ---

@@ -33,7 +33,6 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const [onboardingEmail] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {canBeMissing: true});
     const workEmail = onboardingEmail?.onboardingWorkEmail;
 
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -45,7 +44,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
-
+        setOnboardingErrorMessage('');
         if (onboardingValues?.shouldRedirectToClassicAfterMerge) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
             return;
@@ -83,7 +82,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         >
             <HeaderWithBackButton
                 shouldShowBackButton={!onboardingValues?.isMergingAccountBlocked}
-                progressBarPercentage={40}
+                progressBarPercentage={15}
                 onBackButtonPress={() => {
                     updateOnboardingValuesAndNavigation(onboardingValues);
                 }}
@@ -118,9 +117,9 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                     <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmailValidation.title')}</Text>
                     <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.magicCodeSent', {workEmail})}</Text>
                     <ValidateCodeForm
-                        validateCodeAction={validateCodeAction}
                         handleSubmitForm={validateAccountAndMerge}
                         sendValidateCode={sendValidateCode}
+                        validateCodeActionErrorField="mergeIntoAccountAndLogIn"
                         clearError={() => setOnboardingErrorMessage('')}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd, styles.mb5]}
                         shouldShowSkipButton

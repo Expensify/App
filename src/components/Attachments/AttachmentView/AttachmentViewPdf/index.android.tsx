@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
 import type AttachmentViewPdfProps from './types';
 
-// If the user pans less than this threshold, we'll not enable/disable the pager scroll, since the thouch will most probably be a tap.
+// If the user pans less than this threshold, we'll not enable/disable the pager scroll, since the touch will most probably be a tap.
 // If the user moves their finger more than this threshold in the X direction, we'll enable the pager scroll. Otherwise if in the Y direction, we'll disable it.
 const SCROLL_THRESHOLD = 10;
 

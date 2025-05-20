@@ -10,17 +10,16 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubstitutionsMap';
-import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
-import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
+import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,14 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {
-    buildUserReadableQueryString,
-    buildUserReadableQueryStringWithPolicyID,
-    getQueryWithUpdatedValues,
-    isDefaultExpensesQuery,
-    isDefaultExpensesQueryWithPolicyIDCheck,
-    sanitizeSearchValue,
-} from '@libs/SearchQueryUtils';
+import {buildUserReadableQueryString, getQueryWithUpdatedValues, isDefaultExpensesQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -58,31 +50,29 @@ type SearchPageHeaderInputProps = {
     onSearchRouterFocus?: () => void;
     searchName?: string;
     inputRightComponent: React.ReactNode;
+    handleSearch: (value: string) => void;
 };
 
-function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, searchName, inputRightComponent}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, searchName, inputRightComponent, handleSearch}: SearchPageHeaderInputProps) {
     const {translate} = useLocalize();
-    const {canUseLeftHandBar} = usePermissions();
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const taxRates = useMemo(() => getAllTaxRates(), []);
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const cardFeedNamesWithType = useMemo(() => {
         return getCardFeedNamesWithType({workspaceCardFeeds, translate});
     }, [translate, workspaceCardFeeds]);
     const {inputQuery: originalInputQuery} = queryJSON;
-    const isDefaultQuery = canUseLeftHandBar ? isDefaultExpensesQueryWithPolicyIDCheck(queryJSON) : isDefaultExpensesQuery(queryJSON);
+    const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
     const [shouldUseAnimation, setShouldUseAnimation] = useState(false);
-    const queryText = canUseLeftHandBar
-        ? buildUserReadableQueryStringWithPolicyID(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies)
-        : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies);
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
@@ -94,8 +84,13 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [isAutocompleteListVisible, setIsAutocompleteListVisible] = useState(false);
     const listRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
+    const hasMountedRef = useRef(false);
     const isFocused = useIsFocused();
     const {registerSearchPageInput} = useSearchRouterContext();
+
+    useEffect(() => {
+        hasMountedRef.current = true;
+    }, []);
 
     // useEffect for blurring TextInput when we cancel SearchRouter interaction on narrow layout
     useEffect(() => {
@@ -121,9 +116,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [isDefaultQuery, queryText]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies);
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [cardFeedNamesWithType, allCards, originalInputQuery, personalDetails, reports, taxRates]);
+    }, [cardFeedNamesWithType, allCards, originalInputQuery, personalDetails, reports, taxRates, policies]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
@@ -143,6 +138,16 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const handleSearchAction = useCallback(
+        (value: string) => {
+            // Skip calling handleSearch on the initial mount
+            if (!hasMountedRef.current) {
+                return;
+            }
+            handleSearch(value);
+        },
+        [handleSearch],
+    );
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
             const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
@@ -167,7 +172,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, queryJSON.policyID);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions);
 
             if (!updatedQuery) {
                 return;
@@ -182,7 +187,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 setAutocompleteQueryValue('');
             }
         },
-        [autocompleteSubstitutions, hideSearchRouterList, originalInputQuery, queryJSON.policyID],
+        [autocompleteSubstitutions, hideSearchRouterList, originalInputQuery],
     );
 
     const onListItemPress = useCallback(
@@ -258,6 +263,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             <SearchInputSelectionWrapper
                                 value={textInputValue}
                                 substitutionMap={autocompleteSubstitutions}
+                                selection={selection}
                                 onSearchQueryChange={onSearchQueryChange}
                                 isFullWidth
                                 onSubmit={() => {
@@ -289,9 +295,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         <View style={[styles.flex1]}>
                             <SearchAutocompleteList
                                 autocompleteQueryValue={autocompleteQueryValue}
+                                handleSearch={handleSearchAction}
                                 searchQueryItem={searchQueryItem}
                                 onListItemPress={onListItemPress}
-                                setTextQuery={setTextInputValue}
+                                setTextQuery={setTextAndUpdateSelection}
                                 updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                                 ref={listRef}
                             />
@@ -355,6 +362,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     <View style={[styles.mh65vh, !isAutocompleteListVisible && styles.dNone]}>
                         <SearchAutocompleteList
                             autocompleteQueryValue={autocompleteQueryValue}
+                            handleSearch={handleSearchAction}
                             searchQueryItem={searchQueryItem}
                             onListItemPress={onListItemPress}
                             setTextQuery={setTextAndUpdateSelection}

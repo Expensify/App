@@ -20,12 +20,9 @@ type OfflineIndicatorProps = {
 
     /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to make the indicator translucent. */
-    isTranslucent?: boolean;
 };
 
-function OfflineIndicator({style, containerStyles: containerStylesProp, addBottomSafeAreaPadding = false, isTranslucent = false}: OfflineIndicatorProps) {
+function OfflineIndicator({style, containerStyles: containerStylesProp, addBottomSafeAreaPadding = false}: OfflineIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -34,6 +31,7 @@ function OfflineIndicator({style, containerStyles: containerStylesProp, addBotto
     const fallbackStyle = useMemo(() => [styles.offlineIndicatorContainer, containerStylesProp], [styles.offlineIndicatorContainer, containerStylesProp]);
     const containerStyles = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
         style: fallbackStyle,
     });
 
@@ -42,7 +40,7 @@ function OfflineIndicator({style, containerStyles: containerStylesProp, addBotto
     }
 
     return (
-        <View style={[containerStyles, isTranslucent && styles.navigationBarBG, styles.flexRow, styles.alignItemsCenter, style]}>
+        <View style={[containerStyles, styles.flexRow, styles.alignItemsCenter, style]}>
             <Icon
                 fill={theme.icon}
                 src={Expensicons.OfflineCloud}
