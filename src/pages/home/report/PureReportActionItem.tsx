@@ -648,7 +648,6 @@ function PureReportActionItem({
                     onPress: () => {
                         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
                     },
-                    isMediumSized: true,
                     isPrimary: true,
                 },
             ];
@@ -686,7 +685,6 @@ function PureReportActionItem({
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                     },
-                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.categorize',
@@ -694,7 +692,6 @@ function PureReportActionItem({
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
                     },
-                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.share',
@@ -702,7 +699,6 @@ function PureReportActionItem({
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
                     },
-                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.nothing',
@@ -710,7 +706,6 @@ function PureReportActionItem({
                     onPress: () => {
                         dismissTrackExpenseActionableWhisper(reportID, action);
                     },
-                    isMediumSized: true,
                 },
             ];
         }

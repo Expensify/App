@@ -1596,6 +1596,11 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
+    if (isConciergeCategoryOptions(action)) {
+        const message = getReportActionMessageText(action);
+        return [{text: message, html: message, type: 'COMMENT'}];
+    }
+
     const actionMessage = action.previousMessage ?? action.message;
     if (Array.isArray(actionMessage)) {
         return actionMessage.filter((item): item is Message => !!item);
