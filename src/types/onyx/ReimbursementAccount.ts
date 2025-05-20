@@ -106,6 +106,8 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
     /** Stringified array of owners data */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
+    /** Indicates that the PDS and FSD document has been downloaded */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.DOWNLOADED_PDS_AND_FSG]?: boolean;
 };
 
 /** Model of ACH data */
