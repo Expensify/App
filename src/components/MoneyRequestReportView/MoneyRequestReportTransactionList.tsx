@@ -21,21 +21,20 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {generateReportID, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
@@ -74,8 +73,6 @@ type SortedTransactions = {
     sortBy: SortableColumnName;
     sortOrder: SortOrder;
 };
-
-type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
 
 const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key);
 
@@ -129,18 +126,17 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
     const {sortBy, sortOrder} = sortConfig;
 
-    const newTransactionID = useMemo(() => {
+    const newTransactionsID = useMemo(() => {
         if (!prevTransactions || transactions.length === prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as string[];
         }
 
-        return transactions
-            .filter((transaction) => !prevTransactions.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID))
-            .reduce((latest, t) => {
-                const inserted = t?.inserted ?? 0;
-                const latestInserted = latest?.inserted ?? 0;
-                return inserted > latestInserted ? t : latest;
-            }, transactions.at(0))?.transactionID;
+        return transactions.reduce((acc, t) => {
+            if (!prevTransactions.some((prevTransaction) => prevTransaction.transactionID === t.transactionID)) {
+                acc.push(t.transactionID);
+            }
+            return acc;
+        }, [] as string[]);
     }, [prevTransactions, transactions]);
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
@@ -148,34 +144,26 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
             .sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy))
             .map((transaction) => ({
                 ...transaction,
-                shouldBeHighlighted: newTransactionID === transaction.transactionID,
+                shouldBeHighlighted: newTransactionsID?.includes(transaction.transactionID),
             }));
-    }, [newTransactionID, sortBy, sortOrder, transactions]);
+    }, [newTransactionsID, sortBy, sortOrder, transactions]);
 
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransaction.transactionID);
-            const reportIDToNavigate = iouAction?.childReportID ?? generateReportID();
+            const reportIDToNavigate = iouAction?.childReportID;
+            if (!reportIDToNavigate) {
+                return;
+            }
 
-            const backTo = Navigation.getActiveRoute() as Route;
+            const backTo = Navigation.getActiveRoute();
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigating between transactions
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs);
 
-            const routeParams = {
-                reportID: reportIDToNavigate,
-                backTo,
-            } as ReportScreenNavigationProps;
-
-            if (!iouAction?.childReportID) {
-                routeParams.moneyRequestReportActionID = iouAction?.reportActionID;
-                routeParams.transactionID = activeTransaction.transactionID;
-                routeParams.iouReportID = activeTransaction.reportID;
-            }
-
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
         },
         [reportActions, sortedTransactions],
     );
@@ -250,6 +238,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             id={transaction.transactionID}
                             style={[pressableStyle]}
                             onMouseLeave={handleMouseLeave}
+                            onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                            onPressOut={() => ControlSelection.unblock()}
                             onLongPress={() => {
                                 if (!shouldUseNarrowLayout) {
                                     return;

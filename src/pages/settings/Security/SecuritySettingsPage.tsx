@@ -52,7 +52,7 @@ function SecuritySettingsPage() {
     const personalDetails = usePersonalDetails();
     const {canUseMergeAccounts} = usePermissions();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = account?.validated;
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
@@ -266,7 +266,7 @@ function SecuritySettingsPage() {
                     <HeaderWithBackButton
                         title={translate('initialSettingsPage.security')}
                         shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={() => Navigation.goBack(undefined, {shouldPopToTop: true})}
+                        onBackButtonPress={Navigation.popToSidebar}
                         icon={Illustrations.LockClosed}
                         shouldUseHeadlineHeader
                         shouldDisplaySearchRouter
