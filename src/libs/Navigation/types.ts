@@ -2009,6 +2009,7 @@ type SplitExpenseParamList = {
 type AddUnreportedExpensesParamList = {
     [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: {
         reportID: string;
+        backToReport?: string;
     };
 };
 
