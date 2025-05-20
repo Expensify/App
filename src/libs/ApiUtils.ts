@@ -16,7 +16,7 @@ getEnvironment().then((envName) => {
 
     // We connect here, so we have the updated ENV_NAME when Onyx callback runs
     Onyx.connect({
-        key: ONYXKEYS.USER,
+        key: ONYXKEYS.ACCOUNT,
         callback: (value) => {
             // Toggling between APIs is not allowed on production and internal dev environment
             if (ENV_NAME === CONST.ENVIRONMENT.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB) {

@@ -10,6 +10,7 @@ import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
+    isReportTransactionThread,
 } from './ReportUtils';
 
 /**
@@ -39,7 +40,6 @@ function isActionVisibleOnMoneyRequestReport(action: ReportAction) {
  * function will return a list of reportIDs for the threads for the IOU parent action of every transaction.
  * It is used in UI to allow for navigation to "sibling" transactions when opening a single transaction (report) view.
  */
-
 function getThreadReportIDsForTransactions(reportActions: ReportAction[], transactions: Transaction[]) {
     return transactions
         .map((transaction) => {
@@ -67,59 +67,29 @@ function selectAllTransactionsForReport(transactions: OnyxCollection<Transaction
     });
 }
 
-/* This function is a legacy used for old version of MoneyReportHeader & ReportPreview, do not use it in new versions or anywhere else */
 /**
- * Determines the appropriate button type for the IOU Report Preview based on the given flags.
+ * Given a list of transaction, this function checks if a given report has exactly one transaction
  *
- * @param flags - An object containing boolean flags indicating button visibility options.
- * @param flags.shouldShowSubmitButton - Flag indicating if the submit button should be shown.
- * @param flags.shouldShowExportIntegrationButton - Flag indicating if the export integration button should be shown.
- * @param flags.shouldShowRBR - Flag indicating if the RBR button should be shown.
- * @param flags.shouldShowSettlementButton - Flag indicating if the settlement button should be shown.
- * @param flags.shouldShowPayButton - Flag indicating if the pay button should be shown.
- * @param flags.shouldShowApproveButton - Flag indicating if the approve button should be shown.
- * @returns - Returns the type of button that should be displayed based on the input flags.
+ * Note: this function may seem a bit trivial, but it's used as a guarantee that the same logic of checking for report
+ * is used in context of Search and Inbox
  */
-const getIOUReportPreviewButtonType = ({
-    shouldShowSubmitButton,
-    shouldShowExportIntegrationButton,
-    shouldShowApproveButton,
-    shouldShowSettlementButton,
-    shouldShowPayButton,
-    shouldShowRBR,
-}: {
-    shouldShowSubmitButton: boolean;
-    shouldShowExportIntegrationButton: boolean;
-    shouldShowRBR: boolean;
-    shouldShowSettlementButton: boolean;
-    shouldShowPayButton: boolean;
-    shouldShowApproveButton: boolean;
-}): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> => {
-    const shouldShowSettlementWithoutRBR = shouldShowSettlementButton && !shouldShowRBR;
-    const shouldShowSettlementOrRBR = shouldShowSettlementButton || shouldShowRBR;
-    const shouldShowSettlementOrExport = shouldShowSettlementButton || shouldShowExportIntegrationButton;
-
-    if (shouldShowSettlementWithoutRBR && shouldShowPayButton) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
-    }
-    if (shouldShowSettlementWithoutRBR && shouldShowApproveButton) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
+function isSingleTransactionReport(report: OnyxEntry<Report>, transactions: Transaction[]) {
+    if (transactions.length !== 1) {
+        return false;
     }
 
-    if (!shouldShowSettlementOrRBR && shouldShowExportIntegrationButton) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
-    }
+    return transactions.at(0)?.reportID === report?.reportID;
+}
 
-    if (shouldShowRBR && !shouldShowSubmitButton && shouldShowSettlementOrExport) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
-    }
-
-    if (shouldShowSubmitButton) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
-    }
-
-    return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
-};
+/**
+ * Returns whether a "table" ReportView/MoneyRequestReportView should be used for the report.
+ *
+ * If report is a special "transaction thread" we want to use other Report views.
+ * Likewise, if report has only 1 connected transaction, then we also use other views.
+ */
+function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: Transaction[]) {
+    return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
+}
 
 /**
  * Determines the total amount to be displayed based on the selected button type in the IOU Report Preview.
@@ -157,4 +127,11 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
     return convertToDisplayString(totalDisplaySpend, report?.currency);
 };
 
-export {isActionVisibleOnMoneyRequestReport, getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton, selectAllTransactionsForReport, getIOUReportPreviewButtonType};
+export {
+    isActionVisibleOnMoneyRequestReport,
+    getThreadReportIDsForTransactions,
+    getTotalAmountForIOUReportPreviewButton,
+    selectAllTransactionsForReport,
+    isSingleTransactionReport,
+    shouldDisplayReportTableView,
+};

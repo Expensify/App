@@ -171,12 +171,12 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (loginData?.validatedDate || prevPendingDeletedLogin) {
+        if (!loginData || loginData?.validatedDate || prevPendingDeletedLogin) {
             return;
         }
         resetContactMethodValidateCodeSentState(contactMethod);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
-    }, [contactMethod, loginData?.validatedDate]);
+    }, [contactMethod, loginData]);
 
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
@@ -212,6 +212,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const hasMagicCodeBeenSent = !!loginData.validateCodeSent;
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
+    const shouldSkipInitialValidation = route.params?.shouldSkipInitialValidation === 'true';
 
     const getDeleteConfirmationModal = () => (
         <ConfirmModal
@@ -347,6 +348,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}
                         descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                         forwardedRef={validateCodeFormRef}
+                        shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />
                 )}
 

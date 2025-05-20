@@ -42,6 +42,7 @@ import {canSendInvoice, getPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
     getIcons,
+    getPersonalDetailsForAccountID,
     getReportName,
     getReportOrDraftReport,
     getSearchReportName,
@@ -49,6 +50,7 @@ import {
     hasOnlyHeldExpenses,
     hasViolations,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
+    isArchivedReport,
     isClosedReport,
     isInvoiceReport,
     isMoneyRequestReport,
@@ -132,14 +134,17 @@ function getTransactionItemCommonFormattedProperties(
     transactionItem: SearchTransaction,
     from: SearchPersonalDetails,
     to: SearchPersonalDetails,
+    policy: SearchPolicy,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
     const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
 
     const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(from));
-    const formattedTo = formatPhoneNumber(getDisplayNameOrDefault(to));
+    // Sometimes the search data personal detail for the 'to' account might not hold neither the display name nor the login
+    // so for those cases we fallback to the display name of the personal detail data from onyx.
+    const formattedTo = formatPhoneNumber(getDisplayNameOrDefault(to, '', false) || getDisplayNameOrDefault(getPersonalDetailsForAccountID(to?.accountID)));
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
-    const merchant = getTransactionMerchant(transactionItem);
+    const merchant = getTransactionMerchant(transactionItem, policy as OnyxTypes.Policy);
     const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
 
     return {
@@ -286,7 +291,9 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
  */
 function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchReport) {
     const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
-    const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
+    // For cases where the data personal detail for manager ID do not exist in search data.personalDetailsList
+    // we fallback to the display name of the personal detail data from onyx.
+    const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? getDisplayNameOrDefault(getPersonalDetailsForAccountID(reportItem.managerID));
     const formattedAmount = convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAID) {
         return translateLocal('iou.payerPaidAmount', {
@@ -317,10 +324,11 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             const transactionItem = data[key];
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
             const shouldShowBlankTo = isOpenExpenseReport(report);
+            const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
             return {
                 ...transactionItem,
@@ -375,7 +383,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
-    // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcircuit the logic for performance reasons
+    // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcut the logic for performance reasons
     if (!isMoneyRequestReport(report)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
@@ -423,13 +431,15 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
+    const reportNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`] ?? undefined;
+    const isArchived = isArchivedReport(reportNVP);
+
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (canSubmitReport(report, policy, allReportTransactions, allViolations) && isAllowedToApproveExpenseReport) {
+    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isArchived) && isAllowedToApproveExpenseReport) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
-    const reportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`] ?? undefined;
-    if (reportRNVP?.exportFailedTime) {
+    if (reportNVP?.exportFailedTime) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
@@ -443,52 +453,57 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
  * Do not use directly, use only via `getSections()` facade.
  */
 function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemType[] {
-    return Object.keys(data)
-        .filter(isReportEntry)
-        .map((key) => {
-            const taskItem = data[key] as SearchTask;
-            const personalDetails = data.personalDetailsList;
+    return (
+        Object.keys(data)
+            .filter(isReportEntry)
+            // Ensure that the reports that were passed are tasks, and not some other
+            // type of report that was sent as the parent
+            .filter((key) => isTaskListItemType(data[key] as SearchListItem))
+            .map((key) => {
+                const taskItem = data[key] as SearchTask;
+                const personalDetails = data.personalDetailsList;
 
-            const assignee = personalDetails?.[taskItem.managerID] ?? emptyPersonalDetails;
-            const createdBy = personalDetails?.[taskItem.accountID] ?? emptyPersonalDetails;
-            const formattedAssignee = formatPhoneNumber(getDisplayNameOrDefault(assignee));
-            const formattedCreatedBy = formatPhoneNumber(getDisplayNameOrDefault(createdBy));
+                const assignee = personalDetails?.[taskItem.managerID] ?? emptyPersonalDetails;
+                const createdBy = personalDetails?.[taskItem.accountID] ?? emptyPersonalDetails;
+                const formattedAssignee = formatPhoneNumber(getDisplayNameOrDefault(assignee));
+                const formattedCreatedBy = formatPhoneNumber(getDisplayNameOrDefault(createdBy));
 
-            const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
-            const parentReport = getReportOrDraftReport(taskItem.parentReportID);
+                const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
+                const parentReport = getReportOrDraftReport(taskItem.parentReportID);
 
-            const doesDataContainAPastYearTransaction = shouldShowYear(data);
-            const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName));
-            const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description));
+                const doesDataContainAPastYearTransaction = shouldShowYear(data);
+                const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName));
+                const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description));
 
-            const result: TaskListItemType = {
-                ...taskItem,
-                reportName,
-                description,
-                assignee,
-                formattedAssignee,
-                createdBy,
-                formattedCreatedBy,
-                keyForList: taskItem.reportID,
-                shouldShowYear: doesDataContainAPastYearTransaction,
-            };
+                const result: TaskListItemType = {
+                    ...taskItem,
+                    reportName,
+                    description,
+                    assignee,
+                    formattedAssignee,
+                    createdBy,
+                    formattedCreatedBy,
+                    keyForList: taskItem.reportID,
+                    shouldShowYear: doesDataContainAPastYearTransaction,
+                };
 
-            if (parentReport && personalDetails) {
-                const policy = getPolicy(parentReport.policyID);
-                const parentReportName = getReportName(parentReport, policy, undefined, undefined);
-                const icons = getIcons(parentReport, personalDetails, null, '', -1, policy);
-                const parentReportIcon = icons?.at(0);
+                if (parentReport && personalDetails) {
+                    const policy = getPolicy(parentReport.policyID);
+                    const parentReportName = getReportName(parentReport, policy, undefined, undefined);
+                    const icons = getIcons(parentReport, personalDetails, null, '', -1, policy);
+                    const parentReportIcon = icons?.at(0);
 
-                result.parentReportName = parentReportName;
-                result.parentReportIcon = parentReportIcon;
-            }
+                    result.parentReportName = parentReportName;
+                    result.parentReportIcon = parentReportIcon;
+                }
 
-            if (report) {
-                result.report = report;
-            }
+                if (report) {
+                    result.report = report;
+                }
 
-            return result;
-        });
+                return result;
+            })
+    );
 }
 
 /**
@@ -563,7 +578,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
-        if (isReportEntry(key)) {
+        if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
             const reportItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
@@ -585,12 +600,13 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const transactionItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+            const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = isOpenExpenseReport(report);
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
             const transaction = {
                 ...transactionItem,
@@ -617,8 +633,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
         }
     }
 
-    // Filter out reports with no transactions to prevent the wrong number of the selected options
-    return Object.values(reportIDToTransactions).filter((report) => report.transactions.length);
+    return Object.values(reportIDToTransactions);
 }
 
 /**

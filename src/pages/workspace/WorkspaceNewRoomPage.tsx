@@ -33,6 +33,33 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
+function EmptyWorkspaceView() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, additionalPaddingBottom: styles.mb5.marginBottom, styleProperty: 'marginBottom'});
+
+    return (
+        <>
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.emptyWorkspace.notFound')}
+                subtitle={translate('workspace.emptyWorkspace.description')}
+                shouldShowLink={false}
+                addBottomSafeAreaPadding
+            />
+            <Button
+                success
+                large
+                text={translate('footer.learnMore')}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.getRoute(Navigation.getActiveRoute()))}
+                style={[styles.mh5, bottomSafeAreaPaddingStyle]}
+            />
+        </>
+    );
+}
+
 function WorkspaceNewRoomPage() {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -42,7 +69,6 @@ function WorkspaceNewRoomPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {top} = useSafeAreaInsets();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
@@ -189,33 +215,11 @@ function WorkspaceNewRoomPage() {
 
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, additionalPaddingBottom: styles.mb5.marginBottom, styleProperty: 'marginBottom'});
-
-    const renderEmptyWorkspaceView = () => (
-        <>
-            <BlockingView
-                icon={Illustrations.TeleScope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.emptyWorkspace.notFound')}
-                subtitle={translate('workspace.emptyWorkspace.description')}
-                shouldShowLink={false}
-                addBottomSafeAreaPadding
-            />
-            <Button
-                success
-                large
-                text={translate('footer.learnMore')}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route)}
-                style={[styles.mh5, bottomSafeAreaPaddingStyle]}
-            />
-        </>
-    );
-
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             includePaddingTop={false}
+            shouldShowOfflineIndicator
             shouldEnablePickerAvoiding={false}
             shouldEnableKeyboardAvoidingView={workspaceOptions.length !== 0}
             keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top}
@@ -224,7 +228,7 @@ function WorkspaceNewRoomPage() {
             testID={WorkspaceNewRoomPage.displayName}
         >
             {workspaceOptions.length === 0 ? (
-                renderEmptyWorkspaceView()
+                <EmptyWorkspaceView />
             ) : (
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}

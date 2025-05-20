@@ -33,7 +33,7 @@ type SelectedTransactionInfo = {
     amount: number;
 };
 
-/** Model of selected transactons */
+/** Model of selected transactions */
 type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
 /** Model of selected reports */
@@ -154,6 +154,11 @@ type SearchAutocompleteQueryRange = {
     value: string;
 };
 
+type SearchParams = {
+    queryJSON: SearchQueryJSON;
+    offset: number;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -178,6 +183,7 @@ export type {
     SearchAutocompleteResult,
     PaymentData,
     SearchAutocompleteQueryRange,
+    SearchParams,
     TableColumnSize,
     SearchGroupBy,
 };

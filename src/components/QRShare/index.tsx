@@ -22,7 +22,7 @@ function QRShare({url, title, subtitle, logo, svgLogo, svgLogoFillColor, logoBac
     const qrCodeContainerWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
 
     const [qrCodeSize, setQrCodeSize] = useState<number>(qrCodeContainerWidth - styles.ph5.paddingHorizontal * 2 - variables.qrShareHorizontalPadding * 2);
-    const svgRef = useRef<Svg>();
+    const svgRef = useRef<Svg | undefined>(undefined);
 
     useImperativeHandle(
         ref,

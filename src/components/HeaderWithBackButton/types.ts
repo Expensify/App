@@ -73,10 +73,10 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should show a pin button */
     shouldShowPinButton?: boolean;
 
-    /** Whether we should show a more options (threedots) button */
+    /** Whether we should show a more options (three dots) button */
     shouldShowThreeDotsButton?: boolean;
 
-    /** Whether we should disable threedots button */
+    /** Whether we should disable three dots button */
     shouldDisableThreeDotsButton?: boolean;
 
     /** Whether we should set modal visibility when three dot menu opens */
@@ -156,6 +156,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** The URL link associated with the attachment's subtitle, if available */
     subTitleLink?: string;
+
+    /** Whether to open the parent report link in the current tab if possible */
+    openParentReportInCurrentTab?: boolean;
 };
 
 export type {ThreeDotsMenuItem};

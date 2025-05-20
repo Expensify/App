@@ -208,7 +208,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
 
             // Determine if we need to shift the tooltip horizontally to prevent it
             // from displaying too near to the edge of the screen.
-            horizontalShift = computeHorizontalShift(windowWidth, rootWrapperLeft, tooltipWidth);
+            horizontalShift = computeHorizontalShift(windowWidth, rootWrapperLeft, tooltipWidth, xOffset, tooltipTargetWidth);
             // Add the horizontal shift (left or right) computed above to keep it out of the gutters.
             rootWrapperLeft += horizontalShift;
 
@@ -235,7 +235,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 borderRadius: variables.componentBorderRadiusSmall,
                 ...tooltipVerticalPadding,
                 ...spacing.ph2,
-                zIndex: variables.tooltipzIndex,
+                zIndex: variables.tooltipZIndex,
                 width: tooltipWidth,
                 maxWidth,
                 top: rootWrapperTop,

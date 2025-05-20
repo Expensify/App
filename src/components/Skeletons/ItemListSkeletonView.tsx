@@ -14,6 +14,7 @@ type ListItemSkeletonProps = {
     itemViewStyle?: StyleProp<ViewStyle>;
     itemViewHeight?: number;
     speed?: number;
+    style?: StyleProp<ViewStyle>;
 };
 
 const getVerticalMargin = (style: StyleProp<ViewStyle>): number => {
@@ -37,6 +38,7 @@ function ItemListSkeletonView({
     itemViewStyle = {},
     itemViewHeight = CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT,
     speed,
+    style,
 }: ListItemSkeletonProps) {
     const theme = useTheme();
     const themeStyles = useThemeStyles();
@@ -83,7 +85,7 @@ function ItemListSkeletonView({
 
     return (
         <View
-            style={[themeStyles.flex1]}
+            style={[themeStyles.flex1, style]}
             onLayout={handleLayout}
         >
             {skeletonViewItems}

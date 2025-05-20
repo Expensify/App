@@ -120,9 +120,9 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             return;
         }
         // We need to have image sizes in shared values to properly calculate position/size/animation
-        ImageSize.getSize(imageUri).then(({width, height, rotation: orginalRotation}) => {
+        ImageSize.getSize(imageUri).then(({width, height, rotation: originalRotation}) => {
             // On Android devices ImageSize library returns also rotation parameter.
-            if (orginalRotation === 90 || orginalRotation === 270) {
+            if (originalRotation === 90 || originalRotation === 270) {
                 originalImageHeight.set(width);
                 originalImageWidth.set(height);
             } else {
@@ -351,11 +351,12 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             onModalHide={resetState}
             shouldUseCustomBackdrop
             shouldHandleNavigationBack
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
                 testID={AvatarCropModal.displayName}
             >

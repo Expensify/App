@@ -39,7 +39,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
             type === CONST.MODAL.MODAL_TYPE.CENTERED ||
             type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
             type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED ||
-            type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT;
+            type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT;
 
         if (statusBarColor) {
             setPreviousStatusBarColor(statusBarColor);

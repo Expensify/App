@@ -25,7 +25,7 @@ jobs:
     if: ${{ always() }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
 
       - name: Announce failed workflow in Slack
         if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' }}
@@ -47,7 +47,7 @@ jobs:
       SHOULD_DEPLOY: ${{ fromJSON(steps.shouldDeploy.outputs.SHOULD_DEPLOY) }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
 
       - name: Get merged pull request
         id: getMergedPullRequest
