@@ -53,6 +53,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
+import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 /**
@@ -82,6 +83,9 @@ type MoneyRequestReportListProps = {
 
     /** If the report has older actions to load */
     hasOlderActions: boolean;
+
+    /** If the report has older actions to load */
+    isLoadingReportActions?: boolean;
 };
 
 function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
@@ -91,7 +95,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function MoneyRequestReportActionsList({report, policy, reportActions = [], transactions = [], hasNewerActions, hasOlderActions}: MoneyRequestReportListProps) {
+function MoneyRequestReportActionsList({report, policy, reportActions = [], transactions = [], hasNewerActions, hasOlderActions, isLoadingReportActions}: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {preferredLocale} = useLocalize();
@@ -516,12 +520,14 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                                     transactions={transactions}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}
+                                    isLoadingReportActions={isLoadingReportActions && !reportHasComments}
                                 />
                             </>
                         }
                         keyboardShouldPersistTaps="handled"
                         onScroll={trackVerticalScrolling}
                         ref={reportScrollManager.ref}
+                        ListEmptyComponent={isLoadingReportActions ? <ReportActionsListLoadingSkeleton /> : undefined} // this empty component is only used for loading state, real empty state is handled by SearchMoneyRequestReportEmptyState
                     />
                 )}
             </View>

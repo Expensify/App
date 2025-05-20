@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import Checkbox from '@components/Checkbox';
@@ -52,6 +53,9 @@ type MoneyRequestReportTransactionListProps = {
 
     /** Whether the report that these transactions belong to has any chat comments */
     hasComments: boolean;
+
+    /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
+    isLoadingReportActions?: boolean;
 };
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
@@ -81,7 +85,7 @@ const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColu
     return key === CONST.SEARCH.TABLE_COLUMNS.DATE ? dateKey : key;
 };
 
-function MoneyRequestReportTransactionList({report, transactions, reportActions, hasComments}: MoneyRequestReportTransactionListProps) {
+function MoneyRequestReportTransactionList({report, transactions, reportActions, hasComments, isLoadingReportActions}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -289,7 +293,13 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                 </View>
             )}
             <View style={[styles.dFlex, styles.flexRow, listHorizontalPadding, styles.justifyContentBetween, styles.mb2]}>
-                <Text style={[styles.textLabelSupporting]}>{hasComments ? translate('common.comments') : ''}</Text>
+                <Animated.Text
+                    style={[styles.textLabelSupporting]}
+                    entering={FadeIn}
+                    exiting={FadeOut}
+                >
+                    {hasComments || isLoadingReportActions ? translate('common.comments') : ''}
+                </Animated.Text>
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}>
                     <Text style={[styles.mr3, styles.textLabelSupporting]}>{translate('common.total')}</Text>
                     <Text style={[shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight, styles.textBold]}>
