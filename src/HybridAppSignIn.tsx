@@ -35,8 +35,8 @@ function HybridAppSignIn({url, hybridAppSettings}: AppProps) {
         });
 
         return () => {
-            listener.remove()
-        }
+            listener.remove();
+        };
     }, []);
 
     if (!url || !hybridAppSettings || signInHandled) {
