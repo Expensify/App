@@ -172,7 +172,7 @@ function ScheduleCallPage() {
                         {!isEmptyObject(adminReportNameValuePairs?.calendlySchedule?.errors) && (
                             <DotIndicatorMessage
                                 type="error"
-                                style={[styles.mt6, styles.flex0]}
+                                style={[styles.ph5, styles.mt6, styles.flex0]}
                                 messages={getLatestError(adminReportNameValuePairs?.calendlySchedule?.errors)}
                             />
                         )}
