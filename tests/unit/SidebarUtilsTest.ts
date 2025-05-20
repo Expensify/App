@@ -383,7 +383,6 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.shouldShowRedBrickRoad(
                 MOCK_REPORT,
                 MOCK_REPORT_ACTIONS,
-                false,
                 MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>,
                 isReportArchived.current,
             );
