@@ -33,7 +33,6 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -199,7 +198,6 @@ function WorkspaceTaxesPage({
         });
     }, []);
     const [inputValue, setInputValue, filteredTaxesList] = useSearchResults(taxesList, filterTax, sortTaxes);
-    const sections = useMemo(() => [{data: filteredTaxesList, isDisabled: false}], [filteredTaxesList]);
 
     const isLoading = !isOffline && taxesList === undefined;
 
@@ -365,7 +363,7 @@ function WorkspaceTaxesPage({
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        goBackFromWorkspaceCentralScreen(policyID);
+                        Navigation.popToSidebar();
                     }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}
@@ -410,7 +408,9 @@ function WorkspaceTaxesPage({
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleTax(item)}
-                        sections={sections}
+                        sections={[{data: filteredTaxesList, isDisabled: false}]}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        selectedItemKeys={selectedTaxesIDs}
                         onCheckboxPress={toggleTax}
                         onSelectRow={navigateToEditTaxRate}
                         onSelectAll={toggleAllTaxes}
