@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {PartialPolicyForSidebar} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -116,7 +116,7 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
-import {getTransaction, getTransactionID} from './TransactionUtils';
+import {getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; phrase4?: string; messageText?: string; messageHtml?: string};
 
@@ -161,6 +161,18 @@ Onyx.connect({
             return;
         }
         visibleReportActionItems[reportID] = reportAction;
+    },
+});
+
+let allTransactions: OnyxCollection<Transaction> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => !!transaction));
     },
 });
 
@@ -379,7 +391,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
     if (transactionThreadReportID) {
         const transactionID = getTransactionID(transactionThreadReportID);
-        const transaction = getTransaction(transactionID);
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (hasReceiptError(transaction)) {
             return {
                 reason: CONST.RBR_REASONS.HAS_ERRORS,
@@ -387,7 +399,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         }
     }
     const transactionID = getTransactionID(report.reportID);
-    const transaction = getTransaction(transactionID);
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
         return {
             reason: CONST.RBR_REASONS.HAS_ERRORS,
