@@ -12,7 +12,7 @@ const {
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
-    OUTSANDING_FILTER,
+    OUTSTANDING_FILTER,
     GBR_RBR_CHAT,
     ACCOUNT_SWITCHER,
     EXPENSE_REPORTS_FILTER,
@@ -162,13 +162,13 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         priority: 1100,
         shouldShow: () => true,
     },
-    [OUTSANDING_FILTER]: {
+    [OUTSTANDING_FILTER]: {
         content: [
             {text: 'productTrainingTooltip.outstandingFilter.part1', isBold: false},
             {text: 'productTrainingTooltip.outstandingFilter.part2', isBold: true},
         ],
-        onHideTooltip: () => dismissProductTraining(OUTSANDING_FILTER),
-        name: OUTSANDING_FILTER,
+        onHideTooltip: () => dismissProductTraining(OUTSTANDING_FILTER),
+        name: OUTSTANDING_FILTER,
         priority: 1925,
         shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
     },

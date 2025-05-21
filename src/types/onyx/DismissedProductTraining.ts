@@ -9,7 +9,7 @@ const {
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
-    OUTSANDING_FILTER,
+    OUTSTANDING_FILTER,
     ACCOUNT_SWITCHER,
     GBR_RBR_CHAT,
     EXPENSE_REPORTS_FILTER,
@@ -80,7 +80,7 @@ type DismissedProductTraining = {
     /**
      * When user dismisses the outstanding filter product training tooltip, we store the timestamp here.
      */
-    [OUTSANDING_FILTER]: DismissedProductTrainingElement;
+    [OUTSTANDING_FILTER]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the accountSwitcher product training tooltip, we store the timestamp here.
