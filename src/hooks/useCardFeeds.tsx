@@ -31,8 +31,8 @@ const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, Res
         const defaultFeed = allFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
         const {companyCards = {}, companyCardNicknames = {}, oAuthAccountDetails = {}} = defaultFeed?.settings ?? {};
 
-        return Object.values(allFeeds).reduce<CardFeeds & {settings: Required<CardFeeds['settings']>}>(
-            (acc, feed) => {
+        return Object.entries(allFeeds).reduce<CardFeeds & {settings: Required<CardFeeds['settings']>}>(
+            (acc, [onyxKey, feed]) => {
                 if (!feed?.settings?.companyCards) {
                     return acc;
                 }
@@ -46,7 +46,9 @@ const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, Res
                         return;
                     }
 
-                    acc.settings.companyCards[feedName] = feedSettings;
+                    const domainID = onyxKey.split('_').at(-1);
+
+                    acc.settings.companyCards[feedName] = {...feedSettings, domainID: domainID ? Number(domainID) : undefined};
 
                     if (feedOAuthAccountDetails) {
                         acc.settings.oAuthAccountDetails[feedName] = feedOAuthAccountDetails;
