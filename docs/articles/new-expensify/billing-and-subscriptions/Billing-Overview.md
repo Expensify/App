@@ -43,7 +43,7 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
 ## 🧾 Receipts
 
 - Your billing receipts show: `X Collect members @ $5.00`
-- View them in **Settings > Account > Subscription > Billing History**
+- View them in **Workspaces > [Workspace Name] > Subscription**
 
 ---
 
@@ -92,7 +92,7 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
 
 ## 🧾 Receipts
 
-- View billing receipts under **Settings > Account > Subscription > Billing History**
+- View billing receipts under **Workspaces > [Workspace Name] > Subscription**
 - Each workspace should have **one billing owner**
 
 ---
@@ -102,10 +102,10 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
 To transfer billing ownership of a workspace:
 
 1. Make sure the new billing owner is a **Workspace Admin**
-2. Use the **left-hand navigation bar (LHB)** to go to: **Settings > Workspaces > [Workspace Name] > Members**
+2. Use the **left-hand navigation bar (LHB)** to go to: **Workspaces > [Workspace Name] > Members**
 3. Click the current billing owner’s name
 4. Select **Transfer Ownership**
-5. The new owner will need to add a payment card and will be billed starting the 1st of the next month
+5. The new owner will need to add a payment card and will be billed starting on the 1st of the next month
 
 ---
 
