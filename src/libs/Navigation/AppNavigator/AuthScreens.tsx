@@ -62,12 +62,7 @@ import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import createRootStackNavigator from './createRootStackNavigator';
-import {
-    reportsSplitsWithEnteringAnimation,
-    searchFullscreenWithEnteringAnimation,
-    settingsSplitWithEnteringAnimation,
-    workspaceSplitsWithoutEnteringAnimation,
-} from './createRootStackNavigator/GetStateForActionHandlers';
+import {screensWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
@@ -477,7 +472,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             }
             // On the narrow screen, we want to animate this navigator if pushed SplitNavigator includes desired screen
             const animationEnabled = routesWithEnteringAnimation.has(route.key);
-
             return {
                 ...defaultOptions,
                 animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
@@ -485,13 +479,16 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         };
 
     // Animation is enabled when navigating to the report screen
-    const getReportsSplitNavigatorOptions = getFullScreenNavigatorOptions(reportsSplitsWithEnteringAnimation, rootNavigatorScreenOptions.splitNavigator);
+    const getReportsSplitNavigatorOptions = getFullScreenNavigatorOptions(screensWithEnteringAnimation, rootNavigatorScreenOptions.splitNavigator);
 
     // Animation is enabled when navigating to any screen different than SCREENS.SETTINGS.ROOT
-    const getSettingsSplitNavigatorOptions = getFullScreenNavigatorOptions(settingsSplitWithEnteringAnimation, rootNavigatorScreenOptions.splitNavigator);
+    const getSettingsSplitNavigatorOptions = getFullScreenNavigatorOptions(screensWithEnteringAnimation, rootNavigatorScreenOptions.splitNavigator);
+
+    // Animation is enabled when navigating to any screen different than SCREENS.WORKSPACE_HUB.ROOT
+    const getWorkspaceHubSplitNavigatorOptions = getFullScreenNavigatorOptions(screensWithEnteringAnimation, rootNavigatorScreenOptions.splitNavigator);
 
     // Animation is enabled when navigating to SCREENS.SEARCH.MONEY_REQUEST_REPORT
-    const getSearchFullscreenNavigatorOptions = getFullScreenNavigatorOptions(searchFullscreenWithEnteringAnimation, rootNavigatorScreenOptions.fullScreen);
+    const getSearchFullscreenNavigatorOptions = getFullScreenNavigatorOptions(screensWithEnteringAnimation, rootNavigatorScreenOptions.fullScreen);
 
     const clearStatus = () => {
         User.clearCustomStatus();
@@ -547,7 +544,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.splitNavigator}
+                    options={getWorkspaceHubSplitNavigatorOptions}
                     getComponent={loadWorkspaceHubSplitNavigator}
                 />
                 <RootStack.Screen
