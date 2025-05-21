@@ -2026,55 +2026,17 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
-        switch (updatedField) {
-            case 'Payroll Code':
-                return translateLocal('workspaceActions.updatedPayrollCode', {
-                    oldValue,
-                    newValue,
-                    categoryName,
-                });
-            case 'GL Code':
-                return translateLocal('workspaceActions.updatedGlCode', {
-                    oldValue,
-                    newValue,
-                    categoryName,
-                });
-            case 'commentHint':
-                return translateLocal('workspaceActions.updatedDescriptionHint', {
-                    oldValue,
-                    newValue,
-                    categoryName,
-                });
-            case 'areCommentsRequired':
-                return translateLocal('workspaceActions.updatedAreCommentsRequired', {
-                    newValue,
-                    categoryName,
-                });
-            case 'expenseLimitType':
-                return translateLocal('workspaceActions.updatedExpenseLimitType', {
-                    oldValue: Object.values(CONST.POLICY.EXPENSE_LIMIT_TYPES).some((value) => value === oldValue)
-                        ? translateLocal(`workspace.rules.categoryRules.expenseLimitTypes.${oldValue as ValueOf<typeof CONST.POLICY.EXPENSE_LIMIT_TYPES>}`)
-                        : oldValue,
-                    newValue: Object.values(CONST.POLICY.EXPENSE_LIMIT_TYPES).some((value) => value === newValue)
-                        ? translateLocal(`workspace.rules.categoryRules.expenseLimitTypes.${newValue as ValueOf<typeof CONST.POLICY.EXPENSE_LIMIT_TYPES>}`)
-                        : newValue,
-                    categoryName,
-                });
-            case 'maxExpenseAmount':
-                return translateLocal('workspaceActions.updatedMaxExpenseAmount', {oldValue, newValue, categoryName});
-            case 'maxAmountNoReceipt':
-                return translateLocal('workspaceActions.updatedMaxAmountNoReceipt', {
-                    oldValue,
-                    newValue,
-                    categoryName,
-                });
-
-            default:
-                return translateLocal('workspaceActions.updateCategory', {
-                    oldValue: !!oldValue,
-                    categoryName,
-                });
+        if (updatedField === 'commentHint') {
+            return translateLocal('workspaceActions.updatedDescriptionHint', {
+                oldValue,
+                newValue,
+                categoryName,
+            });
         }
+        return translateLocal('workspaceActions.updateCategory', {
+            oldValue: !!oldValue,
+            categoryName,
+        });
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {

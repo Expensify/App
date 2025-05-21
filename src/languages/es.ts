@@ -5199,45 +5199,6 @@ const translations = {
                 ? `actualizó la categoría "${categoryName}" añadiendo una sugerencia de descripción de "${newValue}"`
                 : `actualizó la categoría "${categoryName}" cambiando la sugerencia de descripción a "${newValue}" (anteriormente "${oldValue}")`;
         },
-        updatedMaxExpenseAmount: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
-            if (!newValue) {
-                return `actualizó la categoría "${categoryName}" eliminando el importe máximo (anteriormente "${oldValue}")`;
-            }
-
-            return !oldValue
-                ? `actualizó la categoría "${categoryName}" añadiendo un importe máximo de "${newValue}"`
-                : `actualizó la categoría "${categoryName}" cambiando el importe máximo a "${newValue}" (anteriormente "${oldValue}")`;
-        },
-        updatedMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
-            const [oldValueText, newValueText] = [oldValue, newValue].map((value) => {
-                switch (value) {
-                    case 0:
-                        return 'Requerido';
-                    case CONST.DISABLED_MAX_EXPENSE_VALUE:
-                        return 'No requerido';
-                    default:
-                        return 'Por defecto';
-                }
-            });
-            return `actualizó la categoría "${categoryName}" cambiando los requisitos de recibos a "${newValueText}" (anteriormente "${oldValueText}")`;
-        },
-
-        updatedExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
-            if (!newValue) {
-                return `actualizó la categoría "${categoryName}" eliminando el tipo de límite (anteriormente "${oldValue}")`;
-            }
-
-            return !oldValue
-                ? `actualizó la categoría "${categoryName}" añadiendo un tipo de límite de "${newValue}"`
-                : `actualizó la categoría "${categoryName}" cambiando el tipo de límite a "${newValue}" (anteriormente "${oldValue}")`;
-        },
-        updatedAreCommentsRequired: ({categoryName, newValue}: UpdatedPolicyCategoryParams) => {
-            if (newValue) {
-                return `actualizó la categoría "${categoryName}" cambiando la descripción de No requerida a Requerida`;
-            }
-
-            return `actualizó la categoría "${categoryName}" cambiando la descripción de Requerida a No requerida`;
-        },
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
