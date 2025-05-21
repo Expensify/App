@@ -154,7 +154,8 @@ const WRITE_COMMANDS = {
     IMPORT_PER_DIEM_RATES: 'ImportPerDiemRates',
     EXPORT_CATEGORIES_CSV: 'ExportCategoriesCSV',
     EXPORT_MEMBERS_CSV: 'ExportMembersCSV',
-    EXPORT_TAGS_CSV: 'ExportTagsCSV',
+    EXPORT_TAGS_CSV: 'ExportSingleLevelTagsCSV',
+    EXPORT_MULTI_LEVEL_TAGS_CSV: 'ExportMultiLevelTagsCSV',
     EXPORT_PER_DIEM_CSV: 'ExportPerDiemCSV',
     EXPORT_REPORT_TO_CSV: 'ExportReportToCSV',
     MOVE_IOU_REPORT_TO_EXISTING_POLICY: 'MoveIOUReportToExistingPolicy',
@@ -187,6 +188,7 @@ const WRITE_COMMANDS = {
     COMPLETE_SPLIT_BILL: 'CompleteSplitBill',
     UPDATE_MONEY_REQUEST_ATTENDEES: 'UpdateMoneyRequestAttendees',
     UPDATE_MONEY_REQUEST_DATE: 'UpdateMoneyRequestDate',
+    UPDATE_MONEY_REQUEST_REIMBURSABLE: 'UpdateMoneyRequestReimbursable',
     UPDATE_MONEY_REQUEST_BILLABLE: 'UpdateMoneyRequestBillable',
     UPDATE_MONEY_REQUEST_MERCHANT: 'UpdateMoneyRequestMerchant',
     UPDATE_MONEY_REQUEST_TAG: 'UpdateMoneyRequestTag',
@@ -622,6 +624,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.EXPORT_CATEGORIES_CSV]: Parameters.ExportCategoriesSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_MEMBERS_CSV]: Parameters.ExportMembersSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_TAGS_CSV]: Parameters.ExportTagsSpreadsheetParams;
+    [WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV]: Parameters.ExportMultiLevelTagsSpreadSheetParams;
     [WRITE_COMMANDS.EXPORT_PER_DIEM_CSV]: Parameters.ExportPerDiemCSVParams;
     [WRITE_COMMANDS.EXPORT_REPORT_TO_PDF]: Parameters.ExportReportPDFParams;
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
@@ -653,6 +656,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT]: Parameters.UpdateMoneyRequestParams;
+    [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT]: Parameters.UpdateMoneyRequestParams;

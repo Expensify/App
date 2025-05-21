@@ -31,11 +31,10 @@ import type BaseModalProps from './types';
 
 type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
-    shouldUseNewModal: boolean;
 };
 
-function ModalComponent({type, shouldUseNewModal, ...props}: ModalComponentProps) {
-    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && shouldUseNewModal) {
+function ModalComponent({type, ...props}: ModalComponentProps) {
+    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED) {
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <BottomDockedModal {...(props as ModalProps)} />;
     }
@@ -54,6 +53,8 @@ function BaseModal(
         innerContainerStyle = {},
         outerStyle,
         onModalShow = () => {},
+        onModalWillShow,
+        onModalWillHide,
         propagateSwipe,
         fullscreen = true,
         animationIn,
@@ -70,7 +71,6 @@ function BaseModal(
         avoidKeyboard = false,
         children,
         shouldUseCustomBackdrop = false,
-        shouldUseNewModal = false,
         onBackdropPress,
         modalId,
         shouldEnableNewFocusManagement = false,
@@ -278,7 +278,11 @@ function BaseModal(
                         onModalShow={handleShowModal}
                         propagateSwipe={propagateSwipe}
                         onModalHide={hideModal}
-                        onModalWillShow={saveFocusState}
+                        onModalWillShow={() => {
+                            saveFocusState();
+                            onModalWillShow?.();
+                        }}
+                        onModalWillHide={onModalWillHide}
                         onDismiss={handleDismissModal}
                         onSwipeComplete={() => onClose?.()}
                         swipeDirection={swipeDirection}
@@ -306,7 +310,6 @@ function BaseModal(
                         avoidKeyboard={avoidKeyboard}
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
-                        shouldUseNewModal={shouldUseNewModal}
                     >
                         <ModalContent
                             onModalWillShow={saveFocusState}

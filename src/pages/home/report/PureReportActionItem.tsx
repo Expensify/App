@@ -28,7 +28,6 @@ import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
-import ReportPreviewOld from '@components/ReportActionItem/ReportPreviewOld';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
@@ -124,15 +123,10 @@ import {
     getDisplayNamesWithTooltips,
     getDowngradeWorkspaceMessage,
     getIconsForParticipants,
-    getIOUApprovedMessage,
     getIOUForwardedMessage,
-    getIOUSubmittedMessage,
-    getIOUUnapprovedMessage,
     getMovedTransactionMessage,
     getPolicyChangeMessage,
     getRejectedReportMessage,
-    getReportAutomaticallyApprovedMessage,
-    getReportAutomaticallySubmittedMessage,
     getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getWhisperDisplayNames,
@@ -650,7 +644,6 @@ function PureReportActionItem({
                     onPress: () => {
                         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
                     },
-                    isMediumSized: true,
                     isPrimary: true,
                 },
             ];
@@ -688,7 +681,6 @@ function PureReportActionItem({
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                     },
-                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.categorize',
@@ -696,7 +688,6 @@ function PureReportActionItem({
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
                     },
-                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.share',
@@ -704,7 +695,6 @@ function PureReportActionItem({
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
                     },
-                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.nothing',
@@ -712,7 +702,6 @@ function PureReportActionItem({
                     onPress: () => {
                         dismissTrackExpenseActionableWhisper(reportID, action);
                     },
-                    isMediumSized: true,
                 },
             ];
         }
@@ -877,23 +866,8 @@ function PureReportActionItem({
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-            children = canUseTableReportView ? (
+            children = (
                 <ReportPreview
-                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                    chatReportID={reportID}
-                    policyID={report?.policyID}
-                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
-                    action={action}
-                    isHovered={hovered}
-                    contextMenuAnchor={popoverAnchorRef.current}
-                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                    onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
-                    onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
-                    isWhisper={isWhisper}
-                    shouldDisplayContextMenu={shouldDisplayContextMenu}
-                />
-            ) : (
-                <ReportPreviewOld
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     chatReportID={reportID}
                     policyID={report?.policyID}
@@ -979,25 +953,25 @@ function PureReportActionItem({
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action, report)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallySubmitted')}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={getIOUSubmittedMessage(action, report)} />;
+                children = <ReportActionItemBasicMessage message={translate('iou.submitted')} />;
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoApproved) {
                 children = (
                     <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallyApprovedMessage(action, report)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyApproved')}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={getIOUApprovedMessage(action, report)} />;
+                children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
             }
         } else if (isUnapprovedAction(action)) {
-            children = <ReportActionItemBasicMessage message={getIOUUnapprovedMessage(action, report)} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
             const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoForwarded) {

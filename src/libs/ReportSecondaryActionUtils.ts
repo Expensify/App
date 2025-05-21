@@ -14,9 +14,10 @@ import {
     hasIntegrationAutoSync,
     isPreferredExporter,
 } from './PolicyUtils';
-import {getIOUActionForReportID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
+import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {
     canAddTransaction,
+    canEditFieldOfMoneyRequest,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -28,6 +29,7 @@ import {
     isPayer as isPayerUtils,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
+    isReportManager as isReportManagerUtils,
     isSettled,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
@@ -78,7 +80,8 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    if (isAdmin) {
+    const isManager = report.managerID === getCurrentUserAccountID();
+    if (isAdmin || isManager) {
         return true;
     }
 
@@ -304,8 +307,9 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
 
     const isOpenReport = isOpenReportUtils(report);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportManager = isReportManagerUtils(report);
 
-    if (isOpenReport && isSubmitter) {
+    if (isOpenReport && (isSubmitter || isReportManager)) {
         return true;
     }
 
@@ -318,6 +322,20 @@ function isChangeWorkspaceAction(report: Report, policy?: Policy): boolean {
     const policies = getAllPolicies();
     const session = getSession();
     return policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session, policy)).length > 0;
+}
+
+function isMoveTransactionAction(reportTransactions: Transaction[], reportActions?: ReportAction[]) {
+    const transaction = reportTransactions.at(0);
+
+    if (reportTransactions.length !== 1 || !transaction || !reportActions) {
+        return false;
+    }
+
+    const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+
+    const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
+
+    return canMoveExpense;
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
@@ -422,6 +440,10 @@ function getSecondaryReportActions(
 
     if (isChangeWorkspaceAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
+    }
+
+    if (isMoveTransactionAction(reportTransactions, reportActions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);

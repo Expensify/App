@@ -14,6 +14,9 @@ type SelectedTransactionInfo = {
     /** If the transaction can be put on hold */
     canHold: boolean;
 
+    /** If the transaction can be moved to other report */
+    canChangeReport: boolean;
+
     /** Whether the transaction is currently held */
     isHeld: boolean;
 
@@ -154,6 +157,11 @@ type SearchAutocompleteQueryRange = {
     value: string;
 };
 
+type SearchParams = {
+    queryJSON: SearchQueryJSON;
+    offset: number;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -178,6 +186,7 @@ export type {
     SearchAutocompleteResult,
     PaymentData,
     SearchAutocompleteQueryRange,
+    SearchParams,
     TableColumnSize,
     SearchGroupBy,
 };

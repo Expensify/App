@@ -415,6 +415,7 @@ const CONST = {
     ANIMATION_THUMBS_UP_DELAY: 200,
     ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
+    IMAGE_SVG_TRANSITION_DURATION: 200,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
     MAX_IMAGE_CANVAS_AREA: 16777216,
@@ -702,6 +703,7 @@ const CONST = {
         TOTAL_FILES_SIZE_LIMIT: 5242880,
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         CURRENT_USER_KEY: 'currentUser',
+        CORPAY_UNDEFINED_OPTION_VALUE: 'Undefined',
         STEP: {
             COUNTRY: 'CountryStep',
             BANK_INFO: 'BankInfoStep',
@@ -816,6 +818,7 @@ const CONST = {
         RETRACT_NEWDOT: 'retractNewDot',
         PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
+        MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
     },
@@ -1101,8 +1104,9 @@ const CONST = {
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
+    CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
+    SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
-    DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
@@ -1207,6 +1211,7 @@ const CONST = {
             DELETE: 'delete',
             ADD_EXPENSE: 'addExpense',
             REOPEN: 'reopen',
+            MOVE_EXPENSE: 'moveExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1407,6 +1412,17 @@ const CONST = {
         TRANSACTION_LIST: {
             COLUMNS: {
                 COMMENTS: 'comments',
+                RECEIPT: 'receipt',
+                DATE: 'date',
+                MERCHANT: 'merchant',
+                FROM: 'from',
+                TO: 'to',
+                CATEGORY: 'category',
+                TAG: 'tag',
+                TOTAL_AMOUNT: 'amount',
+                TYPE: 'type',
+                ACTION: 'action',
+                TAX: 'tax',
             },
         },
         CANCEL_PAYMENT_REASONS: {
@@ -2873,6 +2889,9 @@ const CONST = {
             TAX: 'tax',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
+        DEFAULT_FIELD_LIST_TYPE: 'formula',
+        DEFAULT_FIELD_LIST_TARGET: 'expense',
+        DEFAULT_FIELD_LIST_NAME: 'title',
         ROLE: {
             ADMIN: 'admin',
             AUDITOR: 'auditor',
@@ -3175,6 +3194,7 @@ const CONST = {
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
         SMALL_NORMAL: 'small-normal',
+        LARGE_NORMAL: 'large-normal',
     },
     COMPANY_CARD: {
         FEED_BANK_NAME: {
@@ -3265,6 +3285,7 @@ const CONST = {
             BANK_CONNECTION: 'BankConnection',
             AMEX_CUSTOM_FEED: 'AmexCustomFeed',
             SELECT_COUNTRY: 'SelectCountry',
+            PLAID_CONNECTION: 'PlaidConnection',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -3714,6 +3735,7 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
+        REIMBURSABLE: 'reimbursable',
         REPORT: 'report',
     },
     FOOTER: {
@@ -6403,7 +6425,10 @@ const CONST = {
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
-        LAST_VISITED_SETTINGS_TAB_PATH: 'LAST_VISITED_SETTINGS_TAB_PATH',
+        LAST_VISITED_TAB_PATH: {
+            WORKSPACES: 'LAST_VISITED_WORKSPACES_TAB_PATH',
+            SETTINGS: 'LAST_VISITED_SETTINGS_TAB_PATH',
+        },
     },
 
     RESERVATION_TYPE: {
@@ -6481,11 +6506,13 @@ const CONST = {
             HOLD: 'hold',
             UNHOLD: 'unhold',
             DELETE: 'delete',
+            CHANGE_REPORT: 'changeReport',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
             CARD: 'card',
             DISTANCE: 'distance',
+            PER_DIEM: 'perDiem',
         },
         SORT_ORDER: {
             ASC: 'asc',
@@ -7029,8 +7056,6 @@ const CONST = {
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
         OUTSTANDING_FILTER: 'outstandingFilter',
-        SETTINGS_TAB: 'settingsTab',
-        WORKSPACES_SETTINGS: 'workspacesSettings',
         GBR_RBR_CHAT: 'chatGBRRBR',
         ACCOUNT_SWITCHER: 'accountSwitcher',
         EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
@@ -7083,6 +7108,12 @@ const CONST = {
         ONBOARDING_TASK_NAME: getTestDriveTaskName(),
         EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
         EMBEDDED_DEMO_IFRAME_TITLE: 'Test Drive',
+    },
+
+    SCHEDULE_CALL_STATUS: {
+        CREATED: 'created',
+        RESCHEDULED: 'rescheduled',
+        CANCELLED: 'cancelled',
     },
 } as const;
 
