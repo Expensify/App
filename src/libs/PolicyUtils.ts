@@ -32,7 +32,7 @@ import type {
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {hasSynchronizationErrorMessage} from './actions/connections';
+import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
@@ -425,8 +425,20 @@ function escapeTagName(tag: string) {
 /**
  * Gets a count of enabled tags of a policy
  */
-function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
+function getCountOfEnabledTagsOfList(policyTags: PolicyTags | undefined): number {
+    if (!policyTags) {
+        return 0;
+    }
     return Object.values(policyTags).filter((policyTag) => policyTag.enabled).length;
+}
+/**
+ * Gets count of required tag lists of a policy
+ */
+function getCountOfRequiredTagLists(policyTagLists: OnyxEntry<PolicyTagLists>): number {
+    if (!policyTagLists) {
+        return 0;
+    }
+    return Object.values(policyTagLists).filter((tagList) => tagList.required).length;
 }
 
 /**
@@ -485,7 +497,7 @@ function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy> | SearchPolicy)
  *
  * Note that "daily" and "manual" only exist as options for the API, not in the database or Onyx.
  */
-function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES> | undefined {
+function getCorrectedAutoReportingFrequency(policy: OnyxInputOrEntry<Policy> | SearchPolicy): ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES> | undefined {
     if (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE) {
         return policy?.autoReportingFrequency;
     }
@@ -596,7 +608,7 @@ function getDefaultApprover(policy: OnyxEntry<Policy> | SearchPolicy): string {
 }
 
 function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>) {
-    const categoryAppovers: string[] = [];
+    const categoryApprovers: string[] = [];
     const tagApprovers: string[] = [];
     const allReportTransactions = getAllSortedTransactions(expenseReport?.reportID);
 
@@ -606,10 +618,10 @@ function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseRepor
         const transaction = allReportTransactions.at(i);
         const tag = getTag(transaction);
         const category = getCategory(transaction);
-        const categoryAppover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
+        const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
         const tagApprover = getTagApproverRule(policy, tag)?.approver;
-        if (categoryAppover) {
-            categoryAppovers.push(categoryAppover);
+        if (categoryApprover) {
+            categoryApprovers.push(categoryApprover);
         }
 
         if (tagApprover) {
@@ -617,7 +629,7 @@ function getRuleApprovers(policy: OnyxEntry<Policy> | SearchPolicy, expenseRepor
         }
     }
 
-    return [...categoryAppovers, ...tagApprovers];
+    return [...categoryApprovers, ...tagApprovers];
 }
 
 function getManagerAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>) {
@@ -761,6 +773,13 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
         return false;
     }
     return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
+}
+
+function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
+    if (!policy?.hasMultipleTagLists) {
+        return false;
+    }
+    return Object.values(policyTagList ?? {}).every((tagList) => Object.values(tagList.tags).every((tag) => !tag.rules?.parentTagsFilter && !tag.parentTagsFilter));
 }
 
 /** Get the Xero organizations connected to the policy */
@@ -1149,6 +1168,12 @@ function getConnectedIntegration(policy: Policy | undefined, accountingIntegrati
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
 }
 
+function getValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
+    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find(
+        (integration) => !!policy?.connections?.[integration] && !isAuthenticationError(policy, integration),
+    );
+}
+
 function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
     return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
 }
@@ -1370,7 +1395,7 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
-function isPrefferedExporter(policy: Policy) {
+function isPreferredExporter(policy: Policy) {
     const user = getCurrentUserEmail();
     const exporters = [
         policy.connections?.intacct?.config?.export?.exporter,
@@ -1402,6 +1427,7 @@ export {
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,
+    getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
@@ -1532,11 +1558,13 @@ export {
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
-    isPrefferedExporter,
+    isPreferredExporter,
     areAllGroupPoliciesExpenseChatDisabled,
+    getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
     isUserInvitedToWorkspace,
     getPolicyRole,
+    hasIndependentTags,
 };
 
 export type {MemberEmailsToAccountIDs};

@@ -1,4 +1,4 @@
-import {generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
+import {generateIsEmptyReport, generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import hasKeyTriggeredCompute from '@userActions/OnyxDerived/utils';
@@ -47,7 +47,7 @@ export default createOnyxDerivedValueConfig({
             };
         }
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
-        // we need to recompute all report attributes on locale change becuase the report names are locale dependent
+        // we need to recompute all report attributes on locale change because the report names are locale dependent
         if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues)) {
             isFullyComputed = false;
         }
@@ -65,7 +65,25 @@ export default createOnyxDerivedValueConfig({
 
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
-        const updates = [...Object.keys(reportUpdates), ...Object.keys(reportMetadataUpdates), ...Object.keys(reportActionsUpdates), ...Object.keys(reportNameValuePairsUpdates)];
+
+        const reportUpdatesRelatedToReportActions: string[] = [];
+
+        Object.keys(reportActionsUpdates).forEach((reportKey) => {
+            Object.keys(reportActionsUpdates[reportKey] ?? {}).forEach((reportActionKey) => {
+                const reportAction = reportActions?.[reportKey]?.[reportActionKey];
+                if (reportAction?.childReportID) {
+                    reportUpdatesRelatedToReportActions.push(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
+                }
+            });
+        });
+
+        const updates = [
+            ...Object.keys(reportUpdates),
+            ...Object.keys(reportMetadataUpdates),
+            ...Object.keys(reportActionsUpdates),
+            ...Object.keys(reportNameValuePairsUpdates),
+            ...reportUpdatesRelatedToReportActions,
+        ];
 
         if (isFullyComputed) {
             // if there are report-related updates, iterate over the updates
@@ -73,13 +91,13 @@ export default createOnyxDerivedValueConfig({
                 dataToIterate = prepareReportKeys(updates);
                 recentlyUpdated = updates;
             } else if (!!transactionsUpdates || !!transactionViolationsUpdates) {
-                let transactionReportIds: string[] = [];
+                let transactionReportIDs: string[] = [];
                 if (transactionsUpdates) {
-                    transactionReportIds = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+                    transactionReportIDs = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
                 }
                 // if transactions are updated, they might not be directly related to the reports yet (e.g. transaction is optimistically created)
                 // so we use report keys that were updated before to recompute the reports
-                const recentReportKeys = prepareReportKeys([...recentlyUpdated, ...transactionReportIds]);
+                const recentReportKeys = prepareReportKeys([...recentlyUpdated, ...transactionReportIDs]);
                 dataToIterate = recentReportKeys;
             }
         }
@@ -111,12 +129,14 @@ export default createOnyxDerivedValueConfig({
 
             acc[report.reportID] = {
                 reportName: generateReportName(report),
+                isEmpty: generateIsEmptyReport(report),
                 brickRoadStatus,
+                requiresAttention,
             };
 
             return acc;
         }, currentValue?.reports ?? {});
-        // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputations on all objects
+        // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
         if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
             isFullyComputed = true;
         }

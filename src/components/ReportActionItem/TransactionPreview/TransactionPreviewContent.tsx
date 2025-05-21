@@ -12,6 +12,7 @@ import UserInfoCellsWithArrow from '@components/SelectionList/Search/UserInfoCel
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -20,7 +21,7 @@ import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportActions, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isIOUReport, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -30,6 +31,7 @@ import {hasReceipt as hasReceiptTransactionUtils, isReceiptBeingScanned} from '@
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -58,11 +60,13 @@ function TransactionPreviewContent({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`, {canBeMissing: true});
+    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, policy) ?? {}, [transaction, policy]);
     const managerID = iouReport?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = iouReport?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const {amount: requestAmount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
+    const reportActions = useMemo(() => (iouReport ? getReportActions(iouReport) ?? {} : {}), [iouReport]);
 
     const transactionPreviewCommonArguments = useMemo(
         () => ({
@@ -99,8 +103,9 @@ function TransactionPreviewContent({
                 ...transactionPreviewCommonArguments,
                 shouldShowRBR,
                 violationMessage,
+                reportActions,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? '');
 

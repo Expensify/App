@@ -1,7 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
@@ -18,7 +18,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {selectAllTransactionsForReport, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
@@ -95,11 +95,13 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {initialValue: false, canBeMissing: true});
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
 
-    const {reportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
+    const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
+    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
 
-    const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions): OnyxTypes.Transaction[] => selectAllTransactionsForReport(allTransactions, reportID, reportActions),
+    const [transactions = undefined] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (allTransactions: OnyxCollection<OnyxTypes.Transaction>) => selectAllTransactionsForReport(allTransactions, reportID, reportActions),
         canBeMissing: true,
     });
 
@@ -120,7 +122,9 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     // Special case handling a report that is a transaction thread
     // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
     const isTransactionThreadView = isReportTransactionThread(report);
-    const shouldDisplayMoneyRequestActionsList = shouldDisplayReportTableView(report, transactions);
+
+    const isEmptyTransactionReport = transactions && transactionThreadReportID === undefined && !isLoadingInitialReportActions;
+    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport && shouldDisplayReportTableView(report, transactions);
 
     const reportHeaderView = useMemo(
         () =>
@@ -156,7 +160,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         [activeWorkspaceID, backToRoute, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
-    if (isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) {
+    if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || !transactions) {
         return <InitialLoadingSkeleton styles={styles} />;
     }
 

@@ -137,7 +137,7 @@ function FeatureTrainingModal({
     illustrationAspectRatio: illustrationAspectRatioProp,
     image,
     contentFitImage,
-    width = variables.featureTrainingModalWidth,
+    width = variables.onboardingModalWidth,
     title = '',
     description = '',
     secondaryDescription = '',
@@ -328,7 +328,6 @@ function FeatureTrainingModal({
                     : {}),
                 ...modalInnerContainerStyle,
             }}
-            shouldUseNewModal
         >
             <View
                 style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}

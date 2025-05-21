@@ -8,7 +8,7 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
-import {clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
+import {clearReimbursementAccountSaveCorpayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,15 +73,15 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         if (reimbursementAccount?.isSuccess) {
             if (currency === CONST.CURRENCY.AUD) {
                 setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
-                clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation();
+                clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
                 return;
             }
             onSubmit();
-            clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation();
+            clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
         }
 
         return () => {
-            clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation();
+            clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
         };
     }, [reimbursementAccount, onSubmit, currency]);
 
