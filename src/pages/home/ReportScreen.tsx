@@ -312,6 +312,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const prevTransactions = usePrevious(reportTransactions);
 
     const newTransactions = useMemo(() => {
+        if (!prevTransactions || reportTransactions.length <= prevTransactions.length) {
+            return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
+        }
         return reportTransactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
         // Depending only on transactions is enough because prevTransactions is a helper object.
         // eslint-disable-next-line react-compiler/react-compiler
@@ -335,6 +338,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(() => {
+        if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
+            Navigation.dismissModal();
+            return;
+        }
         if (Navigation.getShouldPopToSidebar()) {
             Navigation.popToSidebar();
             return;
@@ -344,7 +351,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         Navigation.goBack();
-    }, [backTo]);
+    }, [isInNarrowPaneModal, backTo]);
 
     let headerView = (
         <HeaderView

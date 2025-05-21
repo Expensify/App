@@ -25,6 +25,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/home/report/ReportActionsView';
 import ReportFooter from '@pages/home/report/ReportFooter';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -109,11 +110,21 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const prevTransactions = usePrevious(transactions);
 
     const newTransactions = useMemo(() => {
+        if (!prevTransactions || transactions.length <= prevTransactions.length) {
+            return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
+        }
         return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
         // Depending only on transactions is enough because prevTransactions is a helper object.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactions]);
+
+    // const newTransactions = useMemo(() => {
+    //     return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
+    //     // Depending only on transactions is enough because prevTransactions is a helper object.
+    //     // eslint-disable-next-line react-compiler/react-compiler
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [transactions]);
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
