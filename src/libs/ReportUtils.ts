@@ -10769,15 +10769,6 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
-function getReportAttributes(reportID: string | undefined, reportAttributes?: ReportAttributesDerivedValue['reports']) {
-    const attributes = reportAttributes ?? reportAttributesDerivedValue;
-
-    if (!reportID || !attributes?.[reportID]) {
-        return;
-    }
-    return attributes[reportID];
-}
-
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11155,7 +11146,6 @@ export {
     getReportPersonalDetailsParticipants,
     isAllowedToSubmitDraftExpenseReport,
     isWorkspaceEligibleForReportChange,
-    getReportAttributes,
 };
 
 export type {
