@@ -265,17 +265,6 @@ function PolicyDistanceRatesPage({
         }
     };
 
-    const toggleOrNavigate = (rate: RateForList) => {
-        if (rate.isDisabledCheckbox) {
-            return;
-        }
-        if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
-            toggleRate(rate);
-            return;
-        }
-        openRateDetails(rate);
-    };
-
     const getCustomListHeader = () => {
         return (
             <CustomListHeader
@@ -424,7 +413,7 @@ function PolicyDistanceRatesPage({
                             shouldUseDefaultRightHandSideCheckmark={false}
                             selectedItemKeys={selectedDistanceRates}
                             onCheckboxPress={toggleRate}
-                            onSelectRow={toggleOrNavigate}
+                            onSelectRow={openRateDetails}
                             onSelectAll={toggleAllRates}
                             onDismissError={dismissError}
                             ListItem={TableListItem}
