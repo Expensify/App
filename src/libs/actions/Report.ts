@@ -4678,107 +4678,96 @@ function deleteAppReport(reportID: string | undefined) {
 
     // 1. Get all report transactions
     const reportActionsForReport = allReportActions?.[reportID];
-    const transactionIDs = [];
-    for (const reportAction of Object.values(reportActionsForReport ?? {})) {
-        if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-            transactionIDs.push(ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
-        }
-    }
-
-    // 2. Set transaction's reportID to 0
-    [...new Set(transactionIDs)].forEach((transactionID) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {reportID: 0},
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {reportID: transaction?.reportID},
-        });
-
-        const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: null,
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations,
-        });
-    });
-
     const transactionIDToMoneyRequestReportActionIDMap: Record<string, string> = {};
 
-    Object.values(reportActionsForReport ?? {})
-        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
-        .reverse()
-        .forEach((reportAction) => {
-            // 3. Move the IOU reportActions to the selfDM
-            const newReportActionID = rand64();
-            const updatedReportAction = {
-                ...reportAction,
-                originalMessage: {
-                    // eslint-disable-next-line deprecation/deprecation
-                    ...reportAction.originalMessage,
-                    IOUReportID: 0,
-                    type: CONST.IOU.TYPE.TRACK,
-                },
-                childReportID: reportAction.childReportID,
-                reportActionID: newReportActionID,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            };
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
-                value: {
-                    [newReportActionID]: updatedReportAction,
-                },
-            });
+    [...Object.values(reportActionsForReport ?? {})].reverse().forEach((reportAction) => {
+        if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+            return;
+        }
 
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
-                value: {
-                    [newReportActionID]: {
-                        pendingAction: null,
-                    },
+        const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
+        const childReportID = reportAction.childReportID;
+        const newReportActionID = rand64();
+
+        // 1. Update the transaction and its violations
+        if (transactionID) {
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {reportID: 0},
                 },
-            });
-
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
-                value: {
-                    [newReportActionID]: null,
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    value: null,
                 },
-            });
+            );
 
-            const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
-            if (transactionID) {
-                transactionIDToMoneyRequestReportActionIDMap[transactionID] = newReportActionID;
-            }
+            failureData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                    value: {reportID: transaction?.reportID},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    value: transactionViolations,
+                },
+            );
 
-            // 4. Get transaction thread
-            optimisticData.push({
+            transactionIDToMoneyRequestReportActionIDMap[transactionID] = newReportActionID;
+        }
+
+        // 2. Move the report action to self DM
+        const updatedReportAction = {
+            ...reportAction,
+            originalMessage: {
+                ...reportAction.originalMessage,
+                IOUReportID: 0,
+                type: CONST.IOU.TYPE.TRACK,
+            },
+            reportActionID: newReportActionID,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+            value: {[newReportActionID]: updatedReportAction},
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+            value: {[newReportActionID]: {pendingAction: null}},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+            value: {[newReportActionID]: null},
+        });
+
+        // 3. Update transaction thread
+        optimisticData.push(
+            {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
                 value: {
                     parentReportActionID: newReportActionID,
                     parentReportID: selfDMReportID,
                     chatReportID: selfDMReportID,
-                    policyID: '_FAKE_',
+                    policyID: CONST.POLICY.ID_FAKE,
                 },
-            });
-
-            optimisticData.push({
+            },
+            {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
                 value: {
                     [newReportActionID]: {
                         originalMessage: {
@@ -4786,19 +4775,18 @@ function deleteAppReport(reportID: string | undefined) {
                         },
                     },
                 },
-            });
+            },
+        );
 
-            // 5. Add UNREPORTEDTRANSACTION report actions
-            const unreportedAction = buildOptimisticUnreportedTransactionAction(reportAction.childReportID, reportID);
+        // 4. Add UNREPORTEDTRANSACTION report action
+        const unreportedAction = buildOptimisticUnreportedTransactionAction(childReportID, reportID);
 
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`,
-                value: {
-                    [unreportedAction.reportActionID]: unreportedAction,
-                },
-            });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+            value: {[unreportedAction.reportActionID]: unreportedAction},
         });
+    });
 
     // 6. Delete report actions on the report
     optimisticData.push({
@@ -4827,16 +4815,16 @@ function deleteAppReport(reportID: string | undefined) {
     });
 
     // 8. Delete chat report preview
-    const reportactionID = report?.parentReportActionID;
-    const reportaction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+    const reportActionID = report?.parentReportActionID;
+    const reportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
     const parentReportID = report?.parentReportID;
 
-    if (reportactionID) {
+    if (reportActionID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {
-                [reportactionID]: null,
+                [reportActionID]: null,
             },
         });
 
@@ -4844,7 +4832,7 @@ function deleteAppReport(reportID: string | undefined) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {
-                [reportactionID]: reportaction,
+                [reportActionID]: reportAction,
             },
         });
     }
@@ -4856,7 +4844,7 @@ function deleteAppReport(reportID: string | undefined) {
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
 /**
