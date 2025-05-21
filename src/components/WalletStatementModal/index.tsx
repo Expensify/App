@@ -5,7 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
-import * as Report from '@userActions/Report';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,7 +29,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
         }
 
         if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-            Report.navigateToConciergeChat(true);
+            navigateToConciergeChat(true);
         }
 
         if (type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && url) {
