@@ -581,6 +581,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     ) : undefined
                 }
                 queryJSONHash={hash}
+                queryJSONHType={type}
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
             />

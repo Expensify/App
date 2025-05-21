@@ -75,6 +75,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** The hash of the queryJSON */
     queryJSONHash: number;
 
+    /** The type of the queryJSON */
+    queryJSONHType: string;
+
     /** Whether to group the list by reports */
     shouldGroupByReports?: boolean;
 
@@ -110,6 +113,7 @@ function SearchList(
         onViewableItemsChanged,
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         onLayout,
+        queryJSONHType,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -311,6 +315,9 @@ function SearchList(
                 const isReportAction = isReportActionListItemType(reportActionListItem);
 
                 if (isTransaction || isReportAction) {
+                    if (queryJSONHType === CONST.SEARCH.DATA_TYPES.CHAT) {
+                        return reportListItem?.childReportID ? variables.searchListItemHeightChat : variables.searchListItemHeightChatCompact;
+                    }
                     const itemAction = transactionListItem?.action;
                     // VIEW is the only action type that should be compact
                     const isItemActionView = isTransaction && itemAction === CONST.SEARCH.ACTION_TYPES.VIEW;
@@ -331,18 +338,20 @@ function SearchList(
 
                     return heightConstants;
                 }
-
                 if (isReportListItemType(reportListItem)) {
                     if (!reportListItem.transactions || reportListItem.transactions.length === 0) {
                         return Math.max(ITEM_HEIGHTS.HEADER, 1);
                     }
-                    const baseReportItemHeight = isLargeScreenWidth ? variables.optionRowHeight : variables.listItemHeightNormal + 30;
-                    const transactionHeight = isLargeScreenWidth ? variables.optionRowHeightCompact : variables.listItemHeightNormal;
-                    const calculatedHeight = baseReportItemHeight + reportListItem.transactions.length * transactionHeight + variables.optionRowListItemPadding;
+                    const baseReportItemHeight = isLargeScreenWidth
+                        ? variables.searchOptionRowMargin + variables.searchOptionRowBaseHeight + variables.searchOptionRowLargeFooterHeight
+                        : variables.searchOptionRowMargin + variables.searchOptionRowBaseHeight + variables.searchOptionRowSmallFooterHeight;
+                    const transactionHeight = variables.searchOptionRowTransactionHeight;
+                    const calculatedHeight =
+                        baseReportItemHeight + reportListItem.transactions.length * transactionHeight + variables.optionRowListItemPadding + variables.searchOptionRowMargin;
                     return Math.max(calculatedHeight, ITEM_HEIGHTS.HEADER, 1);
                 }
 
-                return estimatedItemSize;
+                return isLargeScreenWidth ? variables.searchListItemHeightLargeScreen : variables.searchListItemHeightSmallScreen;
             } catch (error) {
                 console.error('SearchList: Error calculating item height, returning estimated size.', error, item);
                 return estimatedItemSize;

@@ -179,6 +179,9 @@ type SearchReport = {
 
     /** The policy name to use for an archived report */
     oldPolicyName?: string;
+
+    /** The ID of the chat report associated with this report item, if any */
+    childReportID?: string;
 };
 
 /** Model of report action search result */
