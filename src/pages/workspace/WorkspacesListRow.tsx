@@ -219,7 +219,7 @@ function WorkspacesListRow({
     return (
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.p5]}>
             <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex3, isNarrow && styles.mb3, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
                     <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
                         <Avatar
                             imageStyles={[styles.alignSelfCenter]}
