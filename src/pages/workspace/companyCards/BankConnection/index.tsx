@@ -64,7 +64,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
-    const {canUsePlaidCompanyCards} = usePermissions();
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {

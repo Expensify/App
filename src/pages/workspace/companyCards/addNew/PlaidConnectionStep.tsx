@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import PlaidLink from '@components/PlaidLink';
 import Text from '@components/Text';
@@ -114,21 +115,13 @@ function PlaidConnectionStep() {
                             step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
                             data: {
                                 publicToken,
-                                plaidConnectedBank: metadata?.institution?.name ?? '',
+                                plaidConnectedBank: (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? '',
                             },
                         });
                     }}
                     onError={handlePlaidLinkError}
-                    onEvent={(event, metadata) => {
+                    onEvent={(event) => {
                         setPlaidEvent(event);
-                        // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
-                        if (event === 'ERROR') {
-                            Log.hmmm('[PlaidLink] Error: ', {...metadata});
-                            if (metadata && 'error_code' in metadata) {
-                                // TODO where we should send errors?
-                            }
-                        }
-
                         // Limit the number of times a user can submit Plaid credentials
                         if (event === 'SUBMIT_CREDENTIALS') {
                             handleRestrictedEvent(event);
