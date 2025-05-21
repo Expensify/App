@@ -18,6 +18,7 @@ import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransaction
 import {
     canAddTransaction,
     canEditFieldOfMoneyRequest,
+    getTransactionDetails,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -34,7 +35,15 @@ import {
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, isPending, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import {
+    allHavePendingRTERViolation,
+    hasReceipt as hasReceiptTransactionUtils,
+    isDuplicate,
+    isOnHold as isOnHoldTransactionUtils,
+    isPending,
+    isReceiptBeingScanned,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
+} from './TransactionUtils';
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -52,7 +61,14 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     }
 
     const reportTransaction = reportTransactions.at(0);
-    if (isPending(reportTransaction) || !!reportTransaction?.errors) {
+
+    const isScanning = hasReceiptTransactionUtils(reportTransaction) && isReceiptBeingScanned(reportTransaction);
+    if (isPending(reportTransaction) || isScanning || !!reportTransaction?.errors) {
+        return false;
+    }
+
+    const {amount} = getTransactionDetails(reportTransaction) ?? {};
+    if (!amount) {
         return false;
     }
 
