@@ -127,7 +127,6 @@ import {
     getMovedTransactionMessage,
     getPolicyChangeMessage,
     getRejectedReportMessage,
-    getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getWhisperDisplayNames,
     getWorkspaceNameUpdatedMessage,

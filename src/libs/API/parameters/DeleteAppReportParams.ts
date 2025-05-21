@@ -1,6 +1,6 @@
 type DeleteAppReportParams = {
     reportID: string;
-    transactionIDToMoneyRequestReportActionIDMap?: string;
+    transactionIDToReportActionAndThreadData?: string;
     selfDMReportID?: string;
     selfDMCreatedReportActionID?: string;
 };

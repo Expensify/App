@@ -43,6 +43,7 @@ import type {
     SearchForReportsParams,
     SearchForRoomsToMentionParams,
     TogglePinnedChatParams,
+    TransactionThreadInfo,
     UpdateChatNameParams,
     UpdateCommentParams,
     UpdateGroupChatAvatarParams,
@@ -4679,8 +4680,9 @@ function deleteAppReport(reportID: string | undefined) {
     // 1. Get all report transactions
     const reportActionsForReport = allReportActions?.[reportID];
     const transactionIDToMoneyRequestReportActionIDMap: Record<string, string> = {};
+    const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
 
-    [...Object.values(reportActionsForReport ?? {})].reverse().forEach((reportAction) => {
+    [...Object.values(reportActionsForReport ?? {})].forEach((reportAction) => {
         if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
             return;
         }
@@ -4727,6 +4729,7 @@ function deleteAppReport(reportID: string | undefined) {
         const updatedReportAction = {
             ...reportAction,
             originalMessage: {
+                // eslint-disable-next-line deprecation/deprecation
                 ...reportAction.originalMessage,
                 IOUReportID: 0,
                 type: CONST.IOU.TYPE.TRACK,
@@ -4786,6 +4789,13 @@ function deleteAppReport(reportID: string | undefined) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
             value: {[unreportedAction.reportActionID]: unreportedAction},
         });
+
+        if (transactionID) {
+            transactionIDToReportActionAndThreadData[transactionID] = {
+                moneyRequestPreviewReportActionID: newReportActionID,
+                movedReportActionID: unreportedAction?.reportActionID,
+            };
+        }
     });
 
     // 6. Delete report actions on the report
@@ -4839,7 +4849,7 @@ function deleteAppReport(reportID: string | undefined) {
 
     const parameters: DeleteAppReportParams = {
         reportID,
-        transactionIDToMoneyRequestReportActionIDMap: JSON.stringify(transactionIDToMoneyRequestReportActionIDMap),
+        transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
         selfDMReportID: selfDMParameters.reportID,
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
