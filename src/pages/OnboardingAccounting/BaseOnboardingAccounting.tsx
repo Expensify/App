@@ -29,6 +29,7 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/acti
 import getPlatform from '@libs/getPlatform';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
@@ -80,12 +81,18 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     }, [paidGroupPolicy, onboardingPolicyID]);
 
     useEffect(() => {
-        if (!!isLoading || !prevIsLoading || !CONFIG.IS_HYBRID_APP) {
+        if (!!isLoading || !prevIsLoading) {
             return;
         }
 
-        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-        setRootStatusBarEnabled(false);
+        if (CONFIG.IS_HYBRID_APP) {
+            HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+            setRootStatusBarEnabled(false);
+            return;
+        }
+        waitForIdle().then(() => {
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        });
     }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
@@ -201,10 +208,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     });
 
                     if (onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP) {
-                        if (CONFIG.IS_HYBRID_APP) {
-                            return;
-                        }
-                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                        return;
                     }
                     // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
                     InteractionManager.runAfterInteractions(() => {
@@ -228,7 +232,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     });
                 }}
                 isLoading={isLoading}
-                isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
+                isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP}
                 pressOnEnter
             />
         </>
@@ -236,7 +240,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             testID="BaseOnboardingAccounting"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
@@ -259,6 +262,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 footerContent={footerContent}
                 shouldShowTooltips={false}
                 listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
+                includeSafeAreaPaddingBottom={false}
             />
         </ScreenWrapper>
     );

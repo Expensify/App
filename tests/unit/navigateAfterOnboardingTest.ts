@@ -38,6 +38,11 @@ jest.mock('@libs/ReportUtils', () => ({
     generateReportName: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportName,
     getAllPolicyReports: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllPolicyReports,
     isValidReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isValidReport,
+    generateReportAttributes: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportAttributes,
+    getAllReportActionsErrorsAndReportActionThatRequiresAttention: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllReportActionsErrorsAndReportActionThatRequiresAttention,
+    getAllReportErrors: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllReportErrors,
+    shouldDisplayViolationsRBRInLHN: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').shouldDisplayViolationsRBRInLHN,
+    generateIsEmptyReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateIsEmptyReport,
 }));
 
 jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
@@ -90,7 +95,7 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).not.toHaveBeenCalled();
     });
 
-    it('should navigate to LHN if it is onboarding workspace chat on small screens', () => {
+    it('should navigate to LHN if it is onboarding expense chat on small screens', () => {
         const lastAccessedReport = {reportID: REPORT_ID, policyID: ONBOARDING_POLICY_ID};
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);

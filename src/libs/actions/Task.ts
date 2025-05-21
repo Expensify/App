@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -1276,8 +1275,8 @@ function clearTaskErrors(reportID: string | undefined) {
 
 function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected): OnyxData {
     const taskReportID = introSelected?.[taskName];
-    if (taskReportID) {
-        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+    const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+    if (taskReportID && canActionTask(taskReport, currentUserAccountID)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
                 return completeTask(taskReport);
@@ -1288,24 +1287,7 @@ function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected
     return {};
 }
 function completeTestDriveTask() {
-    const onboardingReport = ReportUtils.getChatUsedForOnboarding();
-    if (!onboardingReport) {
-        return;
-    }
-
-    const onboardingReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${onboardingReport.reportID}`];
-    if (!onboardingReportActions) {
-        return;
-    }
-
-    const testDriveTaskParentReport = Object.values(onboardingReportActions).find(
-        (reportAction) => reportAction.childType === CONST.REPORT.TYPE.TASK && Str.stripHTML(reportAction.childReportName ?? '') === CONST.TEST_DRIVE.ONBOARDING_TASK_NAME,
-    );
-
-    const testDriveTaskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${testDriveTaskParentReport?.childReportID}`];
-    if (testDriveTaskReport?.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || testDriveTaskReport?.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-        completeTask(testDriveTaskReport);
-    }
+    getFinishOnboardingTaskOnyxData('viewTour');
 }
 
 export {

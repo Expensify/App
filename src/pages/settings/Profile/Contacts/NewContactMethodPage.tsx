@@ -15,6 +15,7 @@ import TextInput from '@components/TextInput';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage, getLatestErrorField} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
@@ -23,7 +24,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getContactMethod} from '@libs/UserUtils';
-import VerifyAccountPage from '@pages/settings/Wallet/VerifyAccountPage';
 import {
     addNewContactMethod as addNewContactMethodUser,
     addPendingContactMethod,
@@ -42,7 +42,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type NewContactMethodPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
-function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
+function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const contactMethod = getContactMethod();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -52,7 +52,6 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
 
     const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE.getRoute();
 
@@ -72,6 +71,7 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
         },
         [pendingContactAction?.contactMethod],
     );
+    const prevPendingContactAction = usePrevious(pendingContactAction);
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
@@ -80,9 +80,9 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
             return;
         }
 
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(addSMSDomainIfPhoneNumber(prevPendingContactAction?.contactMethod ?? ''), navigateBackTo, true));
         clearUnvalidatedNewContactMethodAction();
-    }, [pendingContactAction?.actionVerified]);
+    }, [pendingContactAction?.actionVerified, prevPendingContactAction?.contactMethod, navigateBackTo]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
@@ -109,7 +109,7 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
             }
 
             if (!!values.phoneOrEmail && loginList?.[validateIfnumber || values.phoneOrEmail.toLowerCase()]) {
-                addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited'));
+                addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmitted'));
             }
 
             return errors;
@@ -128,15 +128,6 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
         }
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
     }, [navigateBackTo]);
-
-    if (!isUserValidated) {
-        return (
-            <VerifyAccountPage
-                route={route}
-                navigation={navigation}
-            />
-        );
-    }
 
     return (
         <ScreenWrapper
