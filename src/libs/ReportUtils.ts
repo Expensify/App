@@ -1,4 +1,4 @@
-import {findFocusedRoute, getActionFromState} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import lodashEscape from 'lodash/escape';
@@ -97,7 +97,6 @@ import {isEmailPublicDomain} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
-import getMinimalAction from './Navigation/helpers/linkTo/getMinimalAction';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
@@ -5103,38 +5102,16 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number, b
 }
 
 function navigateOnDeleteExpense(backToRoute: Route) {
-    const stateFromPath = getStateFromPath(backToRoute);
-    const action = getActionFromState(stateFromPath, linkingConfig.config);
-    if (!action) {
-        Log.hmmm(`[Navigation] Unable to go up. Action is undefined.`);
-        return;
-    }
-
     const rootState = navigationRef.current?.getRootState();
     if (rootState) {
-        const lastFullScreenRoute = rootState.routes.at(-1);
-        // Check if it started from the search route
-        if (lastFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && lastFullScreenRoute?.state?.routes.some((route) => route.name === SCREENS.SEARCH.ROOT)) {
-            Navigation.goBack();
-            return;
-        }
-
-        // Check if it is now in RHP
-        if (lastFullScreenRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-            Navigation.dismissModal();
-            return;
-        }
-
-        // Check if the current navigation state includes backToRoute
-        // If it does, then we will go back to it
-        const {action: minimalAction} = getMinimalAction(action, rootState);
-        if (minimalAction.target) {
-            Navigation.goBack(backToRoute);
+        const focusedRoute = findFocusedRoute(rootState);
+        if (focusedRoute?.params && 'backTo' in focusedRoute.params) {
+            Navigation.goBack(focusedRoute.params.backTo as Route);
             return;
         }
     }
 
-    Navigation.navigate(backToRoute, {forceReplace: true});
+    Navigation.goBack(backToRoute);
 }
 
 /**
