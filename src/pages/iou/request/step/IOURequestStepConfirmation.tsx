@@ -33,7 +33,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import type {GpsPoint} from '@userActions/IOU';
@@ -699,7 +698,6 @@ function IOURequestStepConfirmation({
             }
 
             formHasBeenSubmitted.current = true;
-            playSound(SOUNDS.DONE);
 
             if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense) {
                 createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants, trimmedComment);
@@ -1104,7 +1102,6 @@ function IOURequestStepConfirmation({
                         shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         action={action}
                         payeePersonalDetails={payeePersonalDetails}
-                        shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
                         iouIsReimbursable={transaction?.reimbursable}
