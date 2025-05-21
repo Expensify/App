@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook} from '@testing-library/react-native';
+import {renderHook, act} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
 import {search} from '@libs/actions/Search';
 
 jest.mock('@libs/actions/Search');
 jest.mock('@src/components/ConfirmedRoute.tsx');
+
+// Mock the timer functions
+jest.useFakeTimers();
 
 afterEach(() => {
     jest.clearAllMocks();
@@ -190,6 +193,11 @@ describe('useSearchHighlightAndScroll', () => {
         // When the transaction ids list change though it has the same length as previous value
         rerender(changedProp);
 
+        // Fast-forward timers to execute debounced function
+        act(() => {
+            jest.advanceTimersByTime(150);
+        });
+
         // Then Search will be triggerred.
         expect(search).toHaveBeenCalled();
     });
@@ -271,6 +279,11 @@ describe('useSearchHighlightAndScroll', () => {
 
         // When report actions change
         rerender(changedProps);
+
+        // Fast-forward timers to execute debounced function
+        act(() => {
+            jest.advanceTimersByTime(150);
+        });
 
         // Then Search will be triggered
         expect(search).toHaveBeenCalled();
