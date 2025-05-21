@@ -540,7 +540,7 @@ describe('PolicyUtils', () => {
             expect(getPolicyNameByID('1')).toBe('testName');
         });
 
-        it('should return the policyID if the name is not set', async () => {
+        it('should return the empty if the name is not set', async () => {
             const policy: Policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -549,7 +549,7 @@ describe('PolicyUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            expect(getPolicyNameByID('1')).toBe('1');
+            expect(getPolicyNameByID('1')).toBe('');
         });
     });
 
