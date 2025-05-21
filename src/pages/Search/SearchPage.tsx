@@ -423,7 +423,11 @@ function SearchPage({route}: SearchPageProps) {
                 // Store the receipt on the transaction object in Onyx
                 const source = URL.createObjectURL(resizedFile as Blob);
                 const newReportID = generateReportID();
-                initMoneyRequest(newReportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.SCAN);
+                initMoneyRequest({
+                    reportID: newReportID,
+                    isFromGlobalCreate: true,
+                    newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                });
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, resizedFile.name || '', true);
                 navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);

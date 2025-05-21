@@ -238,6 +238,15 @@ type BaseTransactionParams = {
     customUnitRateID?: string;
 };
 
+type InitMoneyRequestParams = {
+    reportID: string;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    isFromGlobalCreate?: boolean;
+    isFromReportsPageDragAndDrop?: boolean;
+    currentIouRequestType?: IOURequestType | undefined;
+    newIouRequestType: IOURequestType;
+};
+
 type MoneyRequestInformation = {
     payerAccountID: number;
     payerEmail: string;
@@ -843,13 +852,7 @@ function getReportPreviewAction(chatReportID: string | undefined, iouReportID: s
  * @param isFromGlobalCreate
  * @param iouRequestType one of manual/scan/distance
  */
-function initMoneyRequest(
-    reportID: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    isFromGlobalCreate: boolean,
-    currentIouRequestType: IOURequestType | undefined,
-    newIouRequestType: IOURequestType,
-) {
+function initMoneyRequest({reportID, policy, isFromGlobalCreate, isFromReportsPageDragAndDrop, currentIouRequestType, newIouRequestType}: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     const personalPolicy = getPolicy(getPersonalPolicy()?.id);
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
@@ -866,6 +869,7 @@ function initMoneyRequest(
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
             reportID,
             isFromGlobalCreate,
+            isFromReportsPageDragAndDrop,
             created,
             currency,
             transactionID: newTransactionID,
@@ -918,6 +922,7 @@ function initMoneyRequest(
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
+        isFromReportsPageDragAndDrop,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         splitPayerAccountIDs: currentUserPersonalDetails ? [currentUserPersonalDetails.accountID] : undefined,
     });
@@ -10561,6 +10566,7 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
     const currentReportID = getDisplayedReportID(reportID);
     notifyNewAction(currentReportID, userAccountID);
 }
+
 // eslint-disable-next-line rulesdir/no-negated-variables
 function navigateToStartStepIfScanFileCannotBeRead(
     receiptFilename: string | undefined,

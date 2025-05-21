@@ -62,7 +62,12 @@ function SubmitDetailsPage({
     }, [errorTitle, errorMessage]);
 
     useEffect(() => {
-        initMoneyRequest(reportOrAccountID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
+        initMoneyRequest({
+            reportID: reportOrAccountID,
+            policy,
+            currentIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        });
     }, [reportOrAccountID, policy]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
