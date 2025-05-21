@@ -1,5 +1,8 @@
 import React from 'react';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import SessionExpiredPage from '@pages/ErrorPage/SessionExpiredPage';
@@ -15,12 +18,15 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import PublicRightModalNavigator from './Navigators/PublicRightModalNavigator';
+import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 
 const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
 
 function PublicScreens() {
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     return (
         <RootStack.Navigator screenOptions={defaultScreenOptions}>
             {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is REPORTS_SPLIT_NAVIGATOR. */}
@@ -66,6 +72,19 @@ function PublicScreens() {
                 name={NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR}
                 component={PublicRightModalNavigator}
                 options={rootNavigatorScreenOptions.rightModalNavigator}
+            />
+            <RootStack.Screen
+                name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
+                options={{
+                    ...rootNavigatorScreenOptions.basicModalNavigator,
+                    native: {
+                        contentStyle: {
+                            ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
+                        },
+                        animation: InternalPlatformAnimations.FADE,
+                    },
+                }}
+                component={TestToolsModalNavigator}
             />
         </RootStack.Navigator>
     );
