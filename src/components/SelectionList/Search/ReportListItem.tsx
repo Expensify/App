@@ -133,6 +133,8 @@ function ReportListItem<TItem extends ListItem>({
                         onSelectRow={onSelectRow}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
+                        isHovered={hovered}
+                        isFocused={isFocused}
                         canSelectMultiple={canSelectMultiple}
                     />
                     {isEmptyReport ? (
