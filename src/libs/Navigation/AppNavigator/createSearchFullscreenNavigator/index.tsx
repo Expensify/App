@@ -1,5 +1,5 @@
 import type {ParamListBase} from '@react-navigation/native';
-import {createNavigatorFactory, StackRouter} from '@react-navigation/native';
+import {createNavigatorFactory} from '@react-navigation/native';
 import SearchSidebar from '@components/Navigation/SearchSidebar';
 import usePreserveNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
