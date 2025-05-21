@@ -744,7 +744,17 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
  * Determines the date of the newest transaction within a report for sorting purposes.
  */
 function getReportNewestTransactionDate(report: ReportListItemType) {
-    return report.transactions?.reduce((max, curr) => (curr.modifiedCreated ?? curr.created > (max?.created ?? '') ? curr : max), report.transactions.at(0))?.created;
+    if (!report.transactions?.length) {
+        return undefined;
+    }
+
+    const mostRecent = report.transactions.reduce((latest, transaction) => {
+        const latestDate = latest.modifiedCreated ?? latest.created;
+        const transactionDate = transaction.modifiedCreated ?? transaction.created;
+        return transactionDate > latestDate ? transaction : latest;
+    });
+
+    return mostRecent.modifiedCreated ?? mostRecent.created;
 }
 
 function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
