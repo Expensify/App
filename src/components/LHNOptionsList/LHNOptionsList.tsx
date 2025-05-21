@@ -23,7 +23,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, getReportAttributes, requiresAttentionFromCurrentUser} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, getReportAttributes} from '@libs/ReportUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -70,21 +70,19 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             return undefined;
         }
         const firstReportWithGBRorRBR = data.find((report) => {
-            const itemReportErrors = getReportAttributes(report.reportID, reportAttributes)?.reportErrors;
+            const itemReportErrors = reportAttributes?.[report.reportID]?.reportErrors;
             if (!report) {
                 return false;
             }
             if (!isEmptyObject(itemReportErrors)) {
                 return true;
             }
-            const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
-            const itemParentReportAction = report?.parentReportActionID ? itemParentReportActions?.[report?.parentReportActionID] : undefined;
-            const hasGBR = requiresAttentionFromCurrentUser(report, itemParentReportAction);
+            const hasGBR = reportAttributes?.[report.reportID]?.requiresAttention;
             return hasGBR;
         });
 
         return firstReportWithGBRorRBR?.reportID;
-    }, [isGBRorRBRTooltipDismissed, data, reportAttributes, reportActions]);
+    }, [isGBRorRBRTooltipDismissed, data, reportAttributes]);
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.

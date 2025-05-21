@@ -11,9 +11,17 @@ type ReportAttributes = {
      */
     reportName: string;
     /**
+     * Whether the report is empty (has no visible messages).
+     */
+    isEmpty: boolean;
+    /**
      * The status of the brick road.
      */
     brickRoadStatus: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+    /**
+     * Whether the report requires attention from current user.
+     */
+    requiresAttention: boolean;
     /**
      * The errors of the report.
      */

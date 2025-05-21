@@ -13,6 +13,7 @@ import UserInfoCell from './UserInfoCell';
 
 function UserInfoCellsWithArrow({
     shouldDisplayArrowIcon,
+    shouldShowToRecipient = true,
     participantFrom,
     participantFromDisplayName,
     participantTo,
@@ -20,8 +21,10 @@ function UserInfoCellsWithArrow({
     avatarSize,
     infoCellsTextStyle,
     infoCellsAvatarStyle,
+    fromRecipientStyle,
 }: {
     shouldDisplayArrowIcon: boolean;
+    shouldShowToRecipient?: boolean;
     participantFrom: SearchPersonalDetails | PersonalDetails;
     participantFromDisplayName: string;
     participantTo: SearchPersonalDetails | PersonalDetails;
@@ -29,13 +32,14 @@ function UserInfoCellsWithArrow({
     avatarSize?: AvatarSizeName;
     infoCellsTextStyle?: TextStyle;
     infoCellsAvatarStyle?: ViewStyle;
+    fromRecipientStyle?: ViewStyle;
 }) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
     return (
         <>
-            <View style={[styles.mw50]}>
+            <View style={[styles.mw50, fromRecipientStyle]}>
                 <UserInfoCell
                     accountID={participantFrom.accountID}
                     avatar={participantFrom.avatar}
@@ -53,16 +57,18 @@ function UserInfoCellsWithArrow({
                     fill={theme.icon}
                 />
             )}
-            <View style={[styles.flex1, styles.mw50]}>
-                <UserInfoCell
-                    accountID={participantTo.accountID}
-                    avatar={participantTo.avatar}
-                    displayName={participantToDisplayName}
-                    avatarSize={avatarSize}
-                    textStyle={infoCellsTextStyle}
-                    avatarStyle={infoCellsAvatarStyle}
-                />
-            </View>
+            {shouldShowToRecipient && (
+                <View style={[styles.flex1, styles.mw50]}>
+                    <UserInfoCell
+                        accountID={participantTo.accountID}
+                        avatar={participantTo.avatar}
+                        displayName={participantToDisplayName}
+                        avatarSize={avatarSize}
+                        textStyle={infoCellsTextStyle}
+                        avatarStyle={infoCellsAvatarStyle}
+                    />
+                </View>
+            )}
         </>
     );
 }
