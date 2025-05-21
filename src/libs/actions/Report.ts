@@ -157,6 +157,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    Account,
     DismissedProductTraining,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -313,6 +314,14 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         allPersonalDetails = value ?? {};
+    },
+});
+
+let account: OnyxEntry<Account> = {};
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value ?? {};
     },
 });
 
@@ -3352,7 +3361,12 @@ function openReportFromDeepLink(url: string) {
                         }
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
-                            onNotCompleted: () => startOnboardingFlow(undefined, val),
+                            onNotCompleted: () =>
+                                startOnboardingFlow({
+                                    onboardingValuesParam: val,
+                                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                                }),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });
