@@ -157,8 +157,8 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** The URL link associated with the attachment's subtitle, if available */
     subTitleLink?: string;
 
-    /** Whether the component is used in attachment modal */
-    isAttachmentModal?: boolean;
+    /** If true, display the option directly instead of showing the menu button */
+    shouldMinimizeMenuButton?: boolean;
     /** Whether to open the parent report link in the current tab if possible */
     openParentReportInCurrentTab?: boolean;
 };

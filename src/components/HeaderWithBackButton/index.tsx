@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {ActivityIndicator, Keyboard, StyleSheet, View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import Avatar from '@components/Avatar';
@@ -73,7 +73,7 @@ function HeaderWithBackButton({
     progressBarPercentage,
     style,
     subTitleLink = '',
-    isAttachmentModal = false,
+    shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
@@ -139,10 +139,10 @@ function HeaderWithBackButton({
         translate,
         openParentReportInCurrentTab,
     ]);
-    const ThreeDotMenuButton = useCallback(() => {
+    const ThreeDotMenuButton = useMemo(() => {
         if (shouldShowThreeDotsButton) {
             const firstMenuButton = threeDotsMenuItems.at(0);
-            return threeDotsMenuItems.length === 1 && firstMenuButton && isAttachmentModal ? (
+            return threeDotsMenuItems.length === 1 && firstMenuButton && shouldMinimizeMenuButton ? (
                 <Tooltip text={threeDotsMenuItems.at(0)?.text}>
                     <PressableWithoutFeedback
                         onPress={threeDotsMenuItems.at(0)?.onSelected}
@@ -184,7 +184,7 @@ function HeaderWithBackButton({
         threeDotsMenuIcon,
         threeDotsMenuIconFill,
         threeDotsMenuItems,
-        isAttachmentModal,
+        shouldMinimizeMenuButton,
     ]);
 
     return (
@@ -288,7 +288,7 @@ function HeaderWithBackButton({
                             ))}
                         {shouldShowPinButton && !!report && <PinButton report={report} />}
                     </View>
-                    <ThreeDotMenuButton />
+                    {ThreeDotMenuButton}
                     {shouldShowCloseButton && (
                         <Tooltip text={translate('common.close')}>
                             <PressableWithoutFeedback
