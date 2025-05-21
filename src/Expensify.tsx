@@ -4,6 +4,7 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
+import RequestNotificationPermision from '@components/RequestNotificationPermision';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -307,6 +308,7 @@ function Expensify() {
             )}
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
             <TestToolsModal />
+            <RequestNotificationPermision />
         </DeeplinkWrapper>
     );
 }

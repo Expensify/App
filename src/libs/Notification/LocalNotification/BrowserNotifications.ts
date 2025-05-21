@@ -1,17 +1,35 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
 import {Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
+import Onyx from 'react-native-onyx';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as AppUpdate from '@libs/actions/AppUpdate';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
 import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
 
 const notificationCache: Record<string, Notification> = {};
+
+export function showRequestNotificationPermissionModal(isShow: boolean = true) {
+    Onyx.update([
+        {
+            key: `${ONYXKEYS.IS_REQUEST_NOTIFICATION_PERMISSION_SHOW}`,
+            onyxMethod: Onyx.METHOD.SET,
+            value: isShow,
+        },
+    ]);
+}
+
+let resolveRequestPermision: Array<(status: NotificationPermission) => void> = [];
+export function resolveRequestNotificationPermision(status: NotificationPermission) {
+    resolveRequestPermision.forEach((resolve) => resolve(status));
+    resolveRequestPermision = [];
+}
 
 /**
  * Checks if the user has granted permission to show browser notifications
@@ -32,8 +50,10 @@ function canUseBrowserNotifications(): Promise<boolean> {
             return;
         }
 
-        // Check their global preferences for browser notifications and ask permission if they have none
-        Notification.requestPermission().then((status) => {
+        return new Promise((resolveRequest: (status: NotificationPermission) => void) => {
+            resolveRequestPermision.push(resolveRequest);
+            showRequestNotificationPermissionModal(true);
+        }).then((status) => {
             resolve(status === 'granted');
         });
     });
