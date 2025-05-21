@@ -31,7 +31,7 @@ describe('libs/NextStepUtils', () => {
             type: 'team',
             outputCurrency: CONST.CURRENCY.USD,
             isPolicyExpenseChatEnabled: true,
-            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
         };
         const optimisticNextStep: ReportNextStep = {
             type: 'neutral',

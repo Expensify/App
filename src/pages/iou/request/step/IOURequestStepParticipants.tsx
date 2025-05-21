@@ -228,7 +228,11 @@ function IOURequestStepParticipants({
                     },
                 ]);
             });
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID));
+            if (isCategorizing) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID));
+            } else {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID, undefined, true));
+            }
             return;
         }
 
@@ -274,7 +278,9 @@ function IOURequestStepParticipants({
             });
             numberOfParticipants.current = 0;
         }
-    }, [isFocused, action, transactions]);
+        // We don't want to clear out participants every time the transactions change
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isFocused, action]);
 
     return (
         <StepScreenWrapper
@@ -291,13 +297,15 @@ function IOURequestStepParticipants({
                     message={translate('quickAction.noLongerHaveReportAccess')}
                 />
             )}
-            <MoneyRequestParticipantsSelector
-                participants={isSplitRequest ? participants : []}
-                onParticipantsAdded={addParticipant}
-                onFinish={goToNextStep}
-                iouType={iouType}
-                action={action}
-            />
+            {transactions.length > 0 && (
+                <MoneyRequestParticipantsSelector
+                    participants={isSplitRequest ? participants : []}
+                    onParticipantsAdded={addParticipant}
+                    onFinish={goToNextStep}
+                    iouType={iouType}
+                    action={action}
+                />
+            )}
         </StepScreenWrapper>
     );
 }

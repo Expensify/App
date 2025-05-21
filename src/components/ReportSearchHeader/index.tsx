@@ -4,7 +4,7 @@ import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ReportSearchHeaderProps from './types';
 
-function ReportSearchHeader({report, policy, style, transactions}: ReportSearchHeaderProps) {
+function ReportSearchHeader({report, policy, style, transactions, avatarBorderColor}: ReportSearchHeaderProps) {
     const styles = useThemeStyles();
 
     const middleContent = useMemo(() => {
@@ -15,9 +15,10 @@ function ReportSearchHeader({report, policy, style, transactions}: ReportSearchH
                 transactions={transactions}
                 shouldUseCustomSearchTitleName
                 shouldEnableDetailPageNavigation={false}
+                avatarBorderColor={avatarBorderColor}
             />
         );
-    }, [report, policy, transactions]);
+    }, [report, policy, transactions, avatarBorderColor]);
 
     return (
         <View
