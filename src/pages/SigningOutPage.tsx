@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -6,6 +6,36 @@ import useLocalize from '@hooks/useLocalize';
 
 function SigningOutPage() {
     const {translate} = useLocalize();
+
+    // Load for half a second to avoid flashing the content if the sign out process is fast.
+    // The half second loading delay is shown only once per sign out by using sessionStorage. It has to be tracked outside of the component because the component hierarchy will be completely
+    // remounted when the user is signed out and the AuthScreens are replaced by the public screens.
+    const [isLoading, setIsLoading] = useState(() => {
+        return !sessionStorage.getItem('signingOutContentShown');
+    });
+    useEffect(() => {
+        if (!isLoading) {
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+            sessionStorage.setItem('signingOutContentShown', 'true');
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [isLoading]);
+
+    if (isLoading) {
+        return (
+            <ScreenWrapper
+                shouldEnableMaxHeight
+                testID={SigningOutPage.displayName}
+            >
+                {null}
+            </ScreenWrapper>
+        );
+    }
 
     return (
         <ScreenWrapper

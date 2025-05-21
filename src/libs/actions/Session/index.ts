@@ -246,6 +246,9 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
+    // Reset storage related to the signing out loading state
+    sessionStorage.removeItem('signingOutContentShown');
+
     // Navigate to signing out page immediately
     Navigation.navigate(ROUTES.SIGNING_OUT);
 
