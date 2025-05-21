@@ -425,7 +425,7 @@ function SearchPage({route}: SearchPageProps) {
                 const newReportID = generateReportID();
                 initMoneyRequest({
                     reportID: newReportID,
-                    isFromGlobalCreate: true,
+                    isFromReportsPageDragAndDrop: true,
                     newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 });
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

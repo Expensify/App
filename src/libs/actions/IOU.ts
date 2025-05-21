@@ -815,11 +815,11 @@ Onyx.connect({
  * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
  * It is a helper function used only in this file.
  */
-function dismissModalAndOpenReportInInboxTab(reportID?: string) {
+function dismissModalAndOpenReportInInboxTab(reportID?: string, shouldResetSearchPageTab?: boolean) {
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
     if (isSearchPageTopmostFullScreenRoute || !reportID) {
         Navigation.dismissModal();
-        if (isSearchPageTopmostFullScreenRoute) {
+        if (isSearchPageTopmostFullScreenRoute && shouldResetSearchPageTab) {
             const query = buildCannedSearchQuery();
             InteractionManager.runAfterInteractions(() => {
                 Navigation.setParams({q: query});
@@ -5201,7 +5201,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     if (shouldHandleNavigation) {
         InteractionManager.runAfterInteractions(() => removeDraftTransactions());
         if (!requestMoneyInformation.isRetry) {
-            dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
+            dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID, !!transaction.isFromReportsPageDragAndDrop);
         }
 
         const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
