@@ -4,10 +4,8 @@ import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/M
 import type {ListItem} from '@components/SelectionList/types';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {findSelfDMReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -24,7 +22,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID} = route.params;
 
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
-    const selfDMReportID = findSelfDMReportID();
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
 
     const selectReport = (item: ReportListItem) => {
@@ -43,7 +40,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
         changeTransactionsReport(selectedTransactionsID, CONST.REPORT.UNREPORTED_REPORT_ID);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(selfDMReportID));
+        Navigation.navigate(backTo);
     };
 
     return (
