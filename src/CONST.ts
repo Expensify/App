@@ -1410,6 +1410,17 @@ const CONST = {
         TRANSACTION_LIST: {
             COLUMNS: {
                 COMMENTS: 'comments',
+                RECEIPT: 'receipt',
+                DATE: 'date',
+                MERCHANT: 'merchant',
+                FROM: 'from',
+                TO: 'to',
+                CATEGORY: 'category',
+                TAG: 'tag',
+                TOTAL_AMOUNT: 'amount',
+                TYPE: 'type',
+                ACTION: 'action',
+                TAX: 'tax',
             },
         },
         CANCEL_PAYMENT_REASONS: {
@@ -3178,6 +3189,7 @@ const CONST = {
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
         SMALL_NORMAL: 'small-normal',
+        LARGE_NORMAL: 'large-normal',
     },
     COMPANY_CARD: {
         FEED_BANK_NAME: {
@@ -3268,6 +3280,7 @@ const CONST = {
             BANK_CONNECTION: 'BankConnection',
             AMEX_CUSTOM_FEED: 'AmexCustomFeed',
             SELECT_COUNTRY: 'SelectCountry',
+            PLAID_CONNECTION: 'PlaidConnection',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -3717,6 +3730,7 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
+        REIMBURSABLE: 'reimbursable',
         REPORT: 'report',
     },
     FOOTER: {
@@ -6492,6 +6506,7 @@ const CONST = {
             CASH: 'cash',
             CARD: 'card',
             DISTANCE: 'distance',
+            PER_DIEM: 'perDiem',
         },
         SORT_ORDER: {
             ASC: 'asc',
@@ -7041,7 +7056,6 @@ const CONST = {
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
         SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
         OUTSANDING_FILTER: 'outstandingFilter',
-        WORKSPACES_SETTINGS: 'workspacesSettings',
         GBR_RBR_CHAT: 'chatGBRRBR',
         ACCOUNT_SWITCHER: 'accountSwitcher',
         EXPENSE_REPORTS_FILTER: 'expenseReportsFilter',
@@ -7094,6 +7108,12 @@ const CONST = {
         ONBOARDING_TASK_NAME: getTestDriveTaskName(),
         EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
         EMBEDDED_DEMO_IFRAME_TITLE: 'Test Drive',
+    },
+
+    SCHEDULE_CALL_STATUS: {
+        CREATED: 'created',
+        RESCHEDULED: 'rescheduled',
+        CANCELLED: 'cancelled',
     },
 } as const;
 

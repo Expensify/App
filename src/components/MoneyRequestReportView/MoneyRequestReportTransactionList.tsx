@@ -67,6 +67,17 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
 ];
 
+const allReportColumns = [
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
+];
+
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
 
 type SortedTransactions = {
@@ -127,7 +138,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const {sortBy, sortOrder} = sortConfig;
 
     const newTransactionsID = useMemo(() => {
-        if (!prevTransactions || transactions.length === prevTransactions.length) {
+        if (!prevTransactions || transactions.length <= prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as string[];
         }
 
@@ -260,6 +271,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
                                 shouldShowCheckbox={!!selectionMode?.isEnabled || isMediumScreenWidth}
                                 onCheckboxPress={toggleTransaction}
+                                columns={allReportColumns}
                             />
                         </PressableWithFeedback>
                     );

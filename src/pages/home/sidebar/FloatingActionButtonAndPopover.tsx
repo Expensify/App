@@ -496,7 +496,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       iconStyles: styles.popoverIconCircle,
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
-                      description: translate('testDrive.quickAction.exploreExpensify'),
                       onSelected: () => {
                           openExternalLink(navatticURL);
                           setSelfTourViewed(isAnonymousUser());
