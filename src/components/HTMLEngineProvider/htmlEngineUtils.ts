@@ -72,7 +72,7 @@ function isDeletedNode(tnode: TNode): boolean {
 }
 
 /**
- * @returns Whether the node is a child of alert-text
+ * @returns Whether the node is a child of RBR
  */
 function isChildOfRBR(tnode: TNode): boolean {
     if (!tnode.parent) {

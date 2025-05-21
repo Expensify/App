@@ -87,7 +87,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         // Define link style based on context
         let linkStyle: StyleProp<TextStyle> = styles.link;
 
-        // Special handling for links in alert-text to maintain consistent font size
+        // Special handling for links in RBR to maintain consistent font size
         if (HTMLEngineUtils.isChildOfRBR(tnode)) {
             linkStyle = [
                 styles.link,
