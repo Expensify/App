@@ -56,6 +56,9 @@ type ValidateCodeActionModalProps = {
 
     /** Method to trigger when pressing more options button of the header */
     onThreeDotsButtonPress?: () => void;
+
+    /** Method to trigger when pressing back button of the header */
+    onBackButtonPress?: () => void;
 };
 
 // eslint-disable-next-line import/prefer-default-export
