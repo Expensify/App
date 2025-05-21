@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
-import {changeMoneyRequestHoldStatus, navigateToDetailsPage} from '@libs/ReportUtils';
+import {changeMoneyRequestHoldStatus, isSelfDM, navigateToDetailsPage} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     hasReceipt,
@@ -97,6 +97,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations);
+
+    // If the parent report is a selfDM, it should always be opened in the Inbox tab
+    const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
 
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID);
@@ -254,7 +257,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 shouldDisplayHelpButton={!isReportInRHP}
                 onBackButtonPress={onBackButtonPress}
                 shouldEnableDetailPageNavigation
-                openParentReportInCurrentTab
+                openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
                 {!shouldUseNarrowLayout && (
                     <View style={[styles.flexRow, styles.gap2]}>
