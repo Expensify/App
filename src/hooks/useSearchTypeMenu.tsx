@@ -53,8 +53,9 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
 
     const isCannedQuery = isCannedSearchQuery(queryJSON);
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
-    const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);
 
+    // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
+    const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);
     useEffect(() => {
         setTimeout(() => {
             setDelayPopoverMenuFirstRender(false);
@@ -95,7 +96,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
                 text: translate(item.translationPath),
                 onSelected: singleExecution(() => {
                     clearAllFilters();
-                    Navigation.navigate(item.getRoute(item.getRoute()));
+                    Navigation.navigate(item.getRoute());
                 }),
                 isSelected,
                 icon: item.icon,
@@ -132,7 +133,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
             return;
         }
 
-        const items: PopoverMenuItem[] = [];
+        const items = [];
         items.push(...popoverMenuItems);
 
         const savedSearchItems = Object.entries(savedSearches).map(([key, item], index) => {
@@ -147,7 +148,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
             const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, savedSearchTitle, isItemFocused);
 
             return {
-                text: savedSearchTitle,
+                ...baseMenuItem,
                 onSelected: () => {
                     clearAllFilters();
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
@@ -163,28 +164,26 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON, searchName
                         disabled={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                     />
                 ),
-                style: [styles.textSupporting],
+                styles: [styles.textSupporting],
                 isSelected: false,
                 shouldCallAfterModalHide: true,
                 icon: Expensicons.Bookmark,
                 iconWidth: variables.iconSizeNormal,
                 iconHeight: variables.iconSizeNormal,
                 shouldIconUseAutoWidthStyle: false,
-                shouldShowRightComponent: true,
-                hash: key,
             };
         });
 
         if (savedSearchItems.length > 0) {
             items.push({
                 text: translate('search.savedSearchesMenuItemTitle'),
-                style: [styles.textSupporting],
+                styles: [styles.textSupporting],
                 disabled: true,
             });
             items.push(...savedSearchItems);
         }
 
-        setProcessedMenuItems(items);
+        setProcessedMenuItems(items as PopoverMenuItem[]);
     }, [savedSearches, popoverMenuItems, hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies, translate]);
 
     const openMenu = useCallback(() => {

@@ -33,6 +33,7 @@ import viewRef from '@src/types/utils/viewRef';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentView from './Attachments/AttachmentView';
+import useAttachmentErrors from './Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from './Attachments/types';
 import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
@@ -213,6 +214,7 @@ function AttachmentModal({
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
+    const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -490,7 +492,7 @@ function AttachmentModal({
     const headerTitleNew = headerTitle ?? translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
     const shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     let shouldShowDownloadButton = false;
-    if (!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) {
+    if ((!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) && !isErrorInAttachment(sourceState)) {
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
     }
     const context = useMemo(
@@ -503,8 +505,9 @@ function AttachmentModal({
             onTap: () => {},
             onScaleChanged: () => {},
             onSwipeDown: closeModal,
+            onAttachmentError: setAttachmentError,
         }),
-        [closeModal, nope, sourceForAttachmentView],
+        [closeModal, setAttachmentError, nope, sourceForAttachmentView],
     );
 
     const submitRef = useRef<View | HTMLElement>(null);
@@ -524,6 +527,7 @@ function AttachmentModal({
                         onModalHide();
                     }
                     setShouldLoadAttachment(false);
+                    clearAttachmentErrors();
                     if (isPDFLoadError.current) {
                         setIsAttachmentInvalid(true);
                         setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
@@ -578,7 +582,7 @@ function AttachmentModal({
                         shouldDisplayHelpButton={false}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
-                        {isLoading && <FullScreenLoadingIndicator />}
+                        {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
                         {shouldShowNotFoundPage && !isLoading && (
                             <BlockingView
                                 icon={Illustrations.ToddBehindCloud}
@@ -592,6 +596,7 @@ function AttachmentModal({
                             />
                         )}
                         {!shouldShowNotFoundPage &&
+                            !isLoading &&
                             // We shouldn't show carousel arrow in search result attachment
                             (!isEmptyObject(report) && !isReceiptAttachment && type !== CONST.ATTACHMENT_TYPE.SEARCH ? (
                                 <AttachmentCarousel
@@ -604,11 +609,11 @@ function AttachmentModal({
                                     source={source}
                                     setDownloadButtonVisibility={setDownloadButtonVisibility}
                                     attachmentLink={currentAttachmentLink}
+                                    onAttachmentError={setAttachmentError}
                                 />
                             ) : (
                                 !!sourceForAttachmentView &&
-                                shouldLoadAttachment &&
-                                !isLoading && (
+                                shouldLoadAttachment && (
                                     <AttachmentCarouselPagerContext.Provider value={context}>
                                         <AttachmentView
                                             containerStyles={[styles.mh5]}

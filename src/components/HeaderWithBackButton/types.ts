@@ -159,6 +159,8 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether the component is used in attachment modal */
     isAttachmentModal?: boolean;
+    /** Whether to open the parent report link in the current tab if possible */
+    openParentReportInCurrentTab?: boolean;
 };
 
 export type {ThreeDotsMenuItem};

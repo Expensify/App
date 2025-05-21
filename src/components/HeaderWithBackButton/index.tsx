@@ -74,6 +74,7 @@ function HeaderWithBackButton({
     style,
     subTitleLink = '',
     isAttachmentModal = false,
+    openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -103,6 +104,7 @@ function HeaderWithBackButton({
                     report={report}
                     policy={policy}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
+                    openParentReportInCurrentTab={openParentReportInCurrentTab}
                 />
             );
         }
@@ -135,6 +137,7 @@ function HeaderWithBackButton({
         title,
         titleColor,
         translate,
+        openParentReportInCurrentTab,
     ]);
     const ThreeDotMenuButton = useCallback(() => {
         if (shouldShowThreeDotsButton) {
