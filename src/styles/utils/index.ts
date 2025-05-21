@@ -117,6 +117,7 @@ const avatarSizes: Record<AvatarSizeName, AvatarSizeValue> = {
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
     [CONST.AVATAR_SIZE.MENTION_ICON]: variables.avatarSizeMentionIcon,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.avatarSizeSmallNormal,
+    [CONST.AVATAR_SIZE.LARGE_NORMAL]: variables.avatarSizeLargeNormal,
 };
 
 const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
@@ -474,7 +475,7 @@ function getTextColorStyle(color: string): TextColorStyle {
 /**
  * Returns a style with the specified borderColor
  */
-function getBorderColorStyle(borderColor: string): ViewStyle {
+function getBorderColorStyle(borderColor: ColorValue): ViewStyle {
     return {
         borderColor,
     };
@@ -1321,9 +1322,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /*
      * Returns styles for the text input container, with extraSpace allowing overflow without affecting the layout.
      */
-    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number): ViewStyle => {
+    getAutoGrowWidthInputContainerStyles: (width: number, extraSpace: number, marginSide?: 'left' | 'right'): ViewStyle => {
         if (!!width && !!extraSpace) {
-            return {marginRight: -extraSpace, width: width + extraSpace};
+            const marginKey = marginSide === 'left' ? 'marginLeft' : 'marginRight';
+            return {[marginKey]: -extraSpace, width: width + extraSpace};
         }
         return {width};
     },

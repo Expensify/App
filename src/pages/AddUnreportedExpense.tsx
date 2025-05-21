@@ -11,6 +11,7 @@ import type {ListItem, SectionListDataType, SelectionListHandle} from '@componen
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {startMoneyRequest} from '@userActions/IOU';
@@ -23,12 +24,6 @@ import NewChatSelectorPage from './NewChatSelectorPage';
 import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 
 type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpensesParamList, typeof SCREENS.ADD_UNREPORTED_EXPENSES_ROOT>;
-
-type AddUnreportedExpensesParamList = {
-    [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: {
-        reportID: string;
-    };
-};
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {translate} = useLocalize();
@@ -58,7 +53,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     const thereIsNoUnreportedTransaction = !((sections.at(0)?.data.length ?? 0) > 0);
 
-    const reportID = route.params.reportID;
+    const {reportID, backToReport} = route.params;
     const selectedIds = new Set<string>();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     return (
@@ -91,7 +86,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                             buttonText: translate('iou.createExpense'),
                             buttonAction: () => {
                                 interceptAnonymousUser(() => {
-                                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID);
+                                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, undefined, false, backToReport);
                                 });
                             },
                             success: true,

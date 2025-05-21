@@ -20,7 +20,6 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -253,8 +252,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
             return acc;
         }, {}),
     };
-    const shouldDisableRequiredTag = !OptionsListUtils.hasEnabledOptions({...policyTag.tags, ...optimisticPolicyTagsData});
-
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -262,7 +259,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldDisableRequiredTag ? {required: false, pendingFields: {required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
                         tags: optimisticPolicyTagsData,
                     },
                 },
@@ -274,7 +270,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldDisableRequiredTag ? {pendingFields: {required: null}} : {}),
                         tags: {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {
@@ -301,7 +296,6 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        ...(shouldDisableRequiredTag ? {pendingFields: {required: null}, required: policyTag.required} : {}),
                         tags: {
                             ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
                                 acc[key] = {

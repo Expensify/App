@@ -156,6 +156,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    Account,
     DismissedProductTraining,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -315,6 +316,14 @@ Onyx.connect({
     },
 });
 
+let account: OnyxEntry<Account> = {};
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value ?? {};
+    },
+});
+
 const draftNoteMap: OnyxCollection<string> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT,
@@ -466,11 +475,11 @@ function getReportChannelName(reportID: string): string {
     return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
 }
 
-function openUnreportedExpense(reportID: string | undefined) {
+function openUnreportedExpense(reportID: string | undefined, backToReport?: string) {
     if (!reportID) {
         return;
     }
-    Navigation.navigate(ROUTES.ADD_UNREPORTED_EXPENSE.getRoute(reportID));
+    Navigation.navigate(ROUTES.ADD_UNREPORTED_EXPENSE.getRoute(reportID, backToReport));
 }
 
 /**
@@ -3345,7 +3354,12 @@ function openReportFromDeepLink(url: string) {
                         }
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
-                            onNotCompleted: () => startOnboardingFlow(undefined, val),
+                            onNotCompleted: () =>
+                                startOnboardingFlow({
+                                    onboardingValuesParam: val,
+                                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                                }),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });
@@ -4200,7 +4214,7 @@ function setNewRoomFormLoading(isLoading = true) {
 }
 
 function clearNewRoomFormError() {
-    Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
+    return Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
         isLoading: false,
         errorFields: null,
         errors: null,

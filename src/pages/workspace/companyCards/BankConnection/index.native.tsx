@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -58,6 +59,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const {isNewFeedConnected, newFeed} = useMemo(() => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
+    const {canUsePlaidCompanyCards} = usePermissions();
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
@@ -73,7 +75,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             Navigation.goBack(backTo);
             return;
         }
-        if (bankName === CONST.COMPANY_CARDS.BANKS.BREX) {
+        if (bankName === CONST.COMPANY_CARDS.BANKS.BREX || canUsePlaidCompanyCards) {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
         }

@@ -264,6 +264,10 @@ describe('canSubmitReport', () => {
             ownerAccountID: currentUserAccountID,
             areRulesEnabled: true,
             preventSelfApproval: false,
+            autoReportingFrequency: 'immediate',
+            harvesting: {
+                enabled: false,
+            },
         };
         const expenseReport: Report = {
             ...createRandomReport(6),

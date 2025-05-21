@@ -38,17 +38,6 @@ type DismissModalActionType = RootStackNavigatorActionType & {
 
 type RootStackNavigatorRouterOptions = StackRouterOptions;
 
-type SearchFullscreenNavigatorRouterOptions = StackRouterOptions;
-
 type RootStackNavigatorAction = CommonActions.Action | StackActionType | RootStackNavigatorActionType;
 
-export type {
-    OpenWorkspaceSplitActionType,
-    SwitchPolicyIdActionType,
-    PushActionType,
-    ReplaceActionType,
-    DismissModalActionType,
-    RootStackNavigatorAction,
-    RootStackNavigatorRouterOptions,
-    SearchFullscreenNavigatorRouterOptions,
-};
+export type {OpenWorkspaceSplitActionType, SwitchPolicyIdActionType, PushActionType, ReplaceActionType, DismissModalActionType, RootStackNavigatorAction, RootStackNavigatorRouterOptions};

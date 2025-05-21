@@ -1,4 +1,4 @@
-import {generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
+import {generateIsEmptyReport, generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import hasKeyTriggeredCompute from '@userActions/OnyxDerived/utils';
@@ -91,13 +91,13 @@ export default createOnyxDerivedValueConfig({
                 dataToIterate = prepareReportKeys(updates);
                 recentlyUpdated = updates;
             } else if (!!transactionsUpdates || !!transactionViolationsUpdates) {
-                let transactionReportIds: string[] = [];
+                let transactionReportIDs: string[] = [];
                 if (transactionsUpdates) {
-                    transactionReportIds = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+                    transactionReportIDs = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
                 }
                 // if transactions are updated, they might not be directly related to the reports yet (e.g. transaction is optimistically created)
                 // so we use report keys that were updated before to recompute the reports
-                const recentReportKeys = prepareReportKeys([...recentlyUpdated, ...transactionReportIds]);
+                const recentReportKeys = prepareReportKeys([...recentlyUpdated, ...transactionReportIDs]);
                 dataToIterate = recentReportKeys;
             }
         }
@@ -129,7 +129,9 @@ export default createOnyxDerivedValueConfig({
 
             acc[report.reportID] = {
                 reportName: generateReportName(report),
+                isEmpty: generateIsEmptyReport(report),
                 brickRoadStatus,
+                requiresAttention,
             };
 
             return acc;

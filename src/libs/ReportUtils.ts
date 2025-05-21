@@ -240,7 +240,6 @@ import {
     hasWarningTypeViolation,
     isCardTransaction as isCardTransactionTransactionUtils,
     isDistanceRequest,
-    isDuplicate,
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isOnHold as isOnHoldTransactionUtils,
@@ -661,6 +660,7 @@ type TransactionDetails = {
     customUnitRateID?: string;
     comment: string;
     category: string;
+    reimbursable: boolean;
     billable: boolean;
     tag: string;
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -706,7 +706,6 @@ type OptionData = {
     alternateText?: string;
     allReportErrors?: Errors;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null;
-    shouldShowGreenDot?: boolean;
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
@@ -1058,14 +1057,14 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
-let reportAttributes: ReportAttributesDerivedValue['reports'];
+let reportAttributesDerivedValue: ReportAttributesDerivedValue['reports'];
 Onyx.connect({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
         if (!value) {
             return;
         }
-        reportAttributes = value.reports;
+        reportAttributesDerivedValue = value.reports;
     },
 });
 
@@ -3735,6 +3734,7 @@ function getTransactionDetails(
         waypoints: getWaypoints(transaction),
         customUnitRateID: getRateID(transaction),
         category: getCategory(transaction),
+        reimbursable: getReimbursable(transaction),
         billable: getBillable(transaction),
         tag: getTag(transaction),
         mccGroup: getMCCGroup(transaction),
@@ -3838,6 +3838,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
         CONST.EDIT_REQUEST_FIELD.RECEIPT,
         CONST.EDIT_REQUEST_FIELD.DISTANCE,
         CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
+        CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
     ];
 
@@ -3976,7 +3977,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentActionLocal && !isClosed && !isDeletedParentAction(reportAction);
     const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestIOU || canModifyStatus) && !isScanning;
-    const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && !isDuplicate(transaction.transactionID, true) && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
+    const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
 
     return {canHoldRequest, canUnholdRequest};
 }
@@ -4379,6 +4380,12 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.currency = getCurrency(oldTransaction);
     }
 
+    if ('reimbursable' in transactionChanges) {
+        const oldReimbursable = getReimbursable(oldTransaction);
+        originalMessage.oldReimbursable = oldReimbursable ? translateLocal('common.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+        originalMessage.reimbursable = transactionChanges?.reimbursable ? translateLocal('common.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+    }
+
     if ('billable' in transactionChanges) {
         const oldBillable = getBillable(oldTransaction);
         originalMessage.oldBillable = oldBillable ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
@@ -4641,11 +4648,11 @@ function getReportName(
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
-    reportAttributesParam?: ReportAttributesDerivedValue['reports'],
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
-    const attributes = reportAttributesParam ?? reportAttributes;
+    const attributes = reportAttributes ?? reportAttributesDerivedValue;
     const derivedNameExists = report && !!attributes?.[report.reportID]?.reportName;
     if (canUseDerivedValue && derivedNameExists) {
         return attributes[report.reportID].reportName;
@@ -7434,8 +7441,29 @@ function buildOptimisticMoneyRequestEntities({
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
 
-// Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
+/**
+ * Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
+ * Added caching mechanism via derived values.
+ */
 function isEmptyReport(report: OnyxEntry<Report>): boolean {
+    if (!report) {
+        return true;
+    }
+
+    // Get the `isEmpty` state from cached report attributes
+    const attributes = reportAttributesDerivedValue?.[report.reportID];
+    if (attributes) {
+        return attributes.isEmpty;
+    }
+
+    return generateIsEmptyReport(report);
+}
+
+/**
+ * Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
+ * No cache implementation which bypasses derived value check.
+ */
+function generateIsEmptyReport(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return true;
     }
@@ -8510,7 +8538,7 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
             ROUTES.SEARCH_REPORT.getRoute({
                 reportID: ancestor.report.reportID,
                 reportActionID: ancestor.reportAction.reportActionID,
-                backTo: Navigation.getActiveRoute(),
+                backTo: SCREENS.SEARCH.REPORT_RHP,
             }),
         );
         return;
@@ -9480,7 +9508,7 @@ function getReportActionActorAccountID(
 
 function createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID: string, actionName: IOUAction): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
-    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace();
+    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(currentUserEmail);
     setMoneyRequestParticipants(transactionID, [
         {
             selected: true,
@@ -10350,10 +10378,9 @@ function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions) 
 }
 
 function getReportLastVisibleActionCreated(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>) {
+    const lastVisibleReportActionCreated = getLastVisibleActionReportActionsUtils(report?.reportID)?.created ?? report?.lastVisibleActionCreated ?? '';
     const lastVisibleActionCreated =
-        (oneTransactionThreadReport?.lastVisibleActionCreated ?? '') > (report?.lastVisibleActionCreated ?? '')
-            ? oneTransactionThreadReport?.lastVisibleActionCreated
-            : report?.lastVisibleActionCreated;
+        (oneTransactionThreadReport?.lastVisibleActionCreated ?? '') > lastVisibleReportActionCreated ? oneTransactionThreadReport?.lastVisibleActionCreated : lastVisibleReportActionCreated;
 
     return lastVisibleActionCreated;
 }
@@ -10742,6 +10769,15 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
+function getReportAttributes(reportID: string | undefined, reportAttributes?: ReportAttributesDerivedValue['reports']) {
+    const attributes = reportAttributes ?? reportAttributesDerivedValue;
+
+    if (!reportID || !attributes?.[reportID]) {
+        return;
+    }
+    return attributes[reportID];
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -10958,6 +10994,7 @@ export {
     isDefaultRoom,
     isDeprecatedGroupDM,
     isEmptyReport,
+    generateIsEmptyReport,
     isRootGroupChat,
     isExpenseReport,
     isExpenseRequest,
@@ -11118,6 +11155,7 @@ export {
     getReportPersonalDetailsParticipants,
     isAllowedToSubmitDraftExpenseReport,
     isWorkspaceEligibleForReportChange,
+    getReportAttributes,
 };
 
 export type {

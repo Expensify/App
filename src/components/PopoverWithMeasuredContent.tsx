@@ -65,7 +65,6 @@ function PopoverWithMeasuredContent({
     shouldHandleNavigationBack = false,
     shouldEnableNewFocusManagement,
     shouldMeasureAnchorPositionFromTop = false,
-    shouldUseNewModal = true,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();
@@ -172,7 +171,6 @@ function PopoverWithMeasuredContent({
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             anchorPosition={shiftedAnchorPosition}
-            shouldUseNewModal={shouldUseNewModal}
         >
             <View onLayout={measurePopover}>{children}</View>
         </Popover>

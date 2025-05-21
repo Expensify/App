@@ -1,4 +1,4 @@
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import type {Policy, Report} from '@src/types/onyx';
@@ -15,6 +15,9 @@ type ReportSearchHeaderProps = {
 
     /** Transactions inside report */
     transactions?: TransactionListItemType[];
+
+    /** Color of the secondary avatar border, usually should match the container background */
+    avatarBorderColor?: ColorValue;
 };
 
 export default ReportSearchHeaderProps;

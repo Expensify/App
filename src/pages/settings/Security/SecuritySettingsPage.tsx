@@ -53,6 +53,7 @@ function SecuritySettingsPage() {
     const {canUseMergeAccounts} = usePermissions();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isUserValidated = account?.validated;
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
@@ -315,7 +316,13 @@ function SecuritySettingsPage() {
                                         <MenuItem
                                             title={translate('delegate.addCopilot')}
                                             icon={Expensicons.UserPlus}
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
+                                            onPress={() => {
+                                                if (!isUserValidated) {
+                                                    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_DELEGATE));
+                                                    return;
+                                                }
+                                                Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
+                                            }}
                                             shouldShowRightIcon
                                             wrapperStyle={[styles.sectionMenuItemTopDescription, hasDelegators && styles.mb6]}
                                         />

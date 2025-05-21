@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {ColorValue} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import ReportSearchHeader from '@components/ReportSearchHeader';
@@ -9,6 +10,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {handleActionButtonPress} from '@userActions/Search';
@@ -35,6 +37,12 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
+
+    /** Whether the item is hovered */
+    isHovered?: boolean;
+
+    /** Whether the item is focused */
+    isFocused?: boolean;
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
@@ -64,6 +72,9 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 
     /** Whether the action button should be displayed */
     shouldShowAction?: boolean;
+
+    /** Color of the secondary avatar border, usually should match the container background */
+    avatarBorderColor?: ColorValue;
 };
 
 type ReportCellProps = {
@@ -99,6 +110,7 @@ function FirstHeaderRow<TItem extends ListItem>({
     canSelectMultiple,
     handleOnButtonPress = () => {},
     shouldShowAction = false,
+    avatarBorderColor,
 }: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -124,6 +136,7 @@ function FirstHeaderRow<TItem extends ListItem>({
                         policy={policy}
                         style={[{maxWidth: 700}]}
                         transactions={reportItem.transactions}
+                        avatarBorderColor={avatarBorderColor}
                     />
                 </View>
             </View>
@@ -155,15 +168,26 @@ function ReportListItemHeader<TItem extends ListItem>({
     onSelectRow,
     onCheckboxPress,
     isDisabled,
+    isHovered,
+    isFocused,
     canSelectMultiple,
 }: ReportListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const reportItem = item as unknown as ReportListItemType;
     const {currentSearchHash} = useSearchContext();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
-    const showArrowComponent = reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo;
+    const showArrowComponent = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
+    const shouldShowToRecipient = useMemo(
+        () => thereIsFromAndTo && reportItem?.from?.accountID !== reportItem?.to?.accountID,
+        [thereIsFromAndTo, reportItem?.from?.accountID, reportItem?.to?.accountID],
+    );
+    const avatarBorderColor =
+        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
+        theme.highlightBG;
 
     const handleOnButtonPress = () => {
         handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
@@ -177,20 +201,35 @@ function ReportListItemHeader<TItem extends ListItem>({
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
+                avatarBorderColor={avatarBorderColor}
             />
-            <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, showArrowComponent ? styles.justifyContentBetween : styles.justifyContentEnd, styles.pr3, styles.pl3]}>
-                {showArrowComponent && (
-                    <UserInfoCellsWithArrow
-                        shouldDisplayArrowIcon
-                        participantFrom={reportItem?.from}
-                        participantFromDisplayName={reportItem?.from?.displayName ?? reportItem?.from?.login ?? translate('common.hidden')}
-                        participantToDisplayName={reportItem?.to?.displayName ?? reportItem?.to?.login ?? translate('common.hidden')}
-                        participantTo={reportItem?.to}
-                        avatarSize="mid-subscript"
-                        infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
-                        infoCellsAvatarStyle={styles.pr1}
-                    />
-                )}
+            <View
+                style={[
+                    styles.pt0,
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    showArrowComponent ? styles.justifyContentBetween : styles.justifyContentEnd,
+                    styles.pr3,
+                    styles.pl3,
+                    styles.gap2,
+                ]}
+            >
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                    {showArrowComponent && (
+                        <UserInfoCellsWithArrow
+                            shouldDisplayArrowIcon={shouldShowToRecipient}
+                            shouldShowToRecipient={shouldShowToRecipient}
+                            participantFrom={reportItem?.from}
+                            participantFromDisplayName={reportItem?.from?.displayName ?? reportItem?.from?.login ?? translate('common.hidden')}
+                            participantToDisplayName={reportItem?.to?.displayName ?? reportItem?.to?.login ?? translate('common.hidden')}
+                            participantTo={reportItem?.to}
+                            avatarSize="mid-subscript"
+                            infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                            infoCellsAvatarStyle={styles.pr1}
+                            fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
+                        />
+                    )}
+                </View>
                 <View>
                     <ActionCell
                         action={reportItem.action}
@@ -212,6 +251,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 canSelectMultiple={canSelectMultiple}
                 shouldShowAction
                 handleOnButtonPress={handleOnButtonPress}
+                avatarBorderColor={avatarBorderColor}
             />
             <View style={[styles.mr3, styles.ml3, styles.pv2]}>
                 <View style={[styles.borderBottom]} />
