@@ -283,7 +283,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
              */
             scrollingVerticalBottomOffset.current = fullContentHeight - layoutMeasurement.height - contentOffset.y;
 
-            // we additionally track the top offset to be able to scroll to the new transaction when it's added
+            // We additionally track the top offset to be able to scroll to the new transaction when it's added
             scrollingVerticalTopOffset.current = contentOffset.y;
         },
     });
@@ -431,7 +431,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
             wrapperViewRef.current?.measureInWindow((x, y, w, height) => {
-                // if the new transaction is already visible, we don't need to scroll to it
+                // If the new transaction is already visible, we don't need to scroll to it
                 if (pageY > 0 && pageY < height) {
                     return;
                 }

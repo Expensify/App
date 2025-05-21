@@ -46,7 +46,7 @@ type MoneyRequestReportTransactionListProps = {
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
 
-    /** Report that these transactions belong to */
+    /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
     /** Array of report actions for the report that these transactions belong to */

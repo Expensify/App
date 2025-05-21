@@ -2642,7 +2642,7 @@ describe('ReportUtils', () => {
     describe('getParticipantsList', () => {
         it('should exclude hidden participants', () => {
             const report: Report = {
-                ...createRandomReport(123),
+                ...createRandomReport(1),
                 chatType: 'policyRoom',
                 participants: {
                     1: {notificationPreference: 'hidden'},
