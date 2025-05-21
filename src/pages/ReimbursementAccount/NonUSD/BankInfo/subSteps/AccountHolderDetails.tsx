@@ -21,7 +21,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {CorpayFormField} from '@src/types/onyx';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
+const {COUNTRY, ACCOUNT_HOLDER_NAME} = INPUT_IDS.ADDITIONAL_DATA;
 
 function getInputComponent(field: CorpayFormField) {
     if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
@@ -108,6 +108,26 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                             modalHeaderTitle={translate('countryStep.selectCountry')}
                             searchInputTitle={translate('countryStep.findCountry')}
                             inputID={field.id}
+                        />
+                    </View>
+                );
+            }
+
+            if (field.id === ACCOUNT_HOLDER_NAME) {
+                return (
+                    <View
+                        style={styles.mb6}
+                        key={field.id}
+                    >
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={field.id}
+                            label={field.label}
+                            aria-label={field.label}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={String(defaultValues[field.id as keyof typeof defaultValues]) ?? ''}
+                            shouldSaveDraft={!isEditing}
+                            hint={translate('bankInfoStep.accountHolderNameDescription')}
                         />
                     </View>
                 );

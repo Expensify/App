@@ -99,7 +99,6 @@ import type {
     InvalidPropertyParams,
     InvalidValueParams,
     IssueVirtualCardParams,
-    LastFourDigitsParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
     LeftWorkspaceParams,
@@ -2725,9 +2724,7 @@ const translations = {
         letsDoubleCheck: 'Let’s double check that everything looks fine.',
         thisBankAccount: 'This bank account will be used for business payments on your workspace',
         accountNumber: 'Account number',
-        chooseFile: 'Choose file',
-        uploadYourLatest: 'Upload your latest statement',
-        pleaseUpload: ({lastFourDigits}: LastFourDigitsParams) => `Please upload the most recent monthly statement for your business bank account ending in ${lastFourDigits}.`,
+        accountHolderNameDescription: "Authorized signer's full name",
     },
     signerInfoStep: {
         signerInfo: 'Signer info',
