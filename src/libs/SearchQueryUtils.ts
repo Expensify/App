@@ -594,26 +594,6 @@ function buildFilterFormValuesFromQuery(
 }
 
 /**
- * Given a SearchQueryJSON this function will try to find the value of policyID filter saved in query
- * and return just the first policyID value from the filter.
- *
- * Note: `policyID` property can store multiple policy ids (just like many other search filters) as a comma separated value;
- * however there are several places in the app (related to WorkspaceSwitcher) that will accept only a single policyID.
- */
-function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
-    const policyIDFilter = queryJSON.policyID;
-
-    if (!policyIDFilter) {
-        return;
-    }
-
-    // policyID is a comma-separated value
-    const [policyID] = policyIDFilter.split(',');
-
-    return policyID;
-}
-
-/**
  * Returns the human-readable "pretty" string for a specified filter value.
  */
 function getFilterDisplayValue(
@@ -910,7 +890,6 @@ export {
     getFilterDisplayValue,
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
-    getPolicyIDFromSearchQuery,
     buildCannedSearchQuery,
     isCannedSearchQuery,
     sanitizeSearchValue,
