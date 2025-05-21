@@ -32,7 +32,7 @@ type ReportActionItemThreadProps = {
     /** Whether the thread item / message is being hovered */
     isHovered: boolean;
 
-    /** Whether the thread item / message is being actived */
+    /** Whether the thread item / message is active */
     isActive?: boolean;
 
     /** The function that should be called when the thread is LongPressed or right-clicked */
