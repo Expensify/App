@@ -1071,6 +1071,7 @@ const CONST = {
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
+    IMPORT_TAGS_EXPENSIFY_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
     DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL:
         'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense#:~:text=How%20can%20I%20enable%20camera%20permission%20for%20a%20website%20on%20mobile%20browsers%3F',

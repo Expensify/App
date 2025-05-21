@@ -499,6 +499,22 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
+    const subtitleText = useMemo(
+        () => (
+            <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
+                {translate('workspace.tags.emptyTags.subtitle1')}
+                <TextLink
+                    style={[styles.textAlignCenter]}
+                    href={CONST.IMPORT_TAGS_EXPENSIFY_URL}
+                >
+                    {translate('workspace.tags.emptyTags.subtitle2')}
+                </TextLink>
+                {translate('workspace.tags.emptyTags.subtitle3')}
+            </Text>
+        ),
+        [styles.textAlignCenter, styles.textNormal, styles.textSupporting, translate],
+    );
+
     return (
         <>
             <AccessOrNotFoundWrapper
@@ -595,7 +611,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 addBottomSafeAreaPadding
                             />
                         )}
-                        {!hasVisibleTags && !isLoading && (
+                        {!hasVisibleTags && !isLoading && !canUseMultiLevelTags && (
                             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                                 <EmptyStateComponent
                                     SkeletonComponent={TableListItemSkeleton}
@@ -606,6 +622,38 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                     headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                                     lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                                     headerContentStyles={styles.emptyStateFolderWebStyles}
+                                />
+                            </ScrollView>
+                        )}
+                        {/* We need to remove  the above emptyStateComponent and use the below one when we remove the canUseMultiLevelTags beta */}
+                        {!hasVisibleTags && !isLoading && (canUseMultiLevelTags ?? false) && (
+                            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                                <EmptyStateComponent
+                                    SkeletonComponent={TableListItemSkeleton}
+                                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                                    headerMedia={LottieAnimations.GenericEmptyState}
+                                    title={translate('workspace.tags.emptyTags.title')}
+                                    subtitleText={subtitleText}
+                                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                                    lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                                    headerContentStyles={styles.emptyStateFolderWebStyles}
+                                    buttons={[
+                                        {
+                                            buttonText: translate('spreadsheet.importSpreadsheet'),
+                                            success: true,
+                                            buttonAction: () => {
+                                                if (isOffline) {
+                                                    close(() => setIsOfflineModalVisible(true));
+                                                    return;
+                                                }
+                                                Navigation.navigate(
+                                                    isQuickSettingsFlow
+                                                        ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                                        : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                                                );
+                                            },
+                                        },
+                                    ]}
                                 />
                             </ScrollView>
                         )}

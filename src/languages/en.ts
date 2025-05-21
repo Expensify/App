@@ -4203,7 +4203,11 @@ const translations = {
             subtitle: 'Tags add more detailed ways to classify costs.',
             emptyTags: {
                 title: "You haven't created any tags",
+                //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Add a tag to track projects, locations, departments, and more.',
+                subtitle1: 'Import a spreadsheet to add tags for tracking projects, locations, departments, and more.',
+                subtitle2: ' Learn more',
+                subtitle3: ' about formatting tag files.',
             },
             deleteTag: 'Delete tag',
             deleteTags: 'Delete tags',

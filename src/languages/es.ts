@@ -4249,6 +4249,9 @@ const translations = {
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
+                subtitle1: 'Importa una hoja de cálculo para añadir etiquetas y organizar proyectos, ubicaciones, departamentos y más.',
+                subtitle2: ' Obtén más información',
+                subtitle3: ' sobre cómo dar formato a los archivos de etiquetas.',
             },
             deleteTag: 'Eliminar etiqueta',
             deleteTags: 'Eliminar etiquetas',
