@@ -557,7 +557,7 @@ const translations = {
     },
     lockedAccount: {
         title: 'Locked Account',
-        description: 'You\'re not allowed to complete this action as this account has been locked. Please reach out to concierge@expensify.com for next steps',
+        description: "You're not allowed to complete this action as this account has been locked. Please reach out to concierge@expensify.com for next steps",
     },
     connectionComplete: {
         title: 'Conexión completa',

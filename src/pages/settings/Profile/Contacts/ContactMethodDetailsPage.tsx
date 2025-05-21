@@ -5,11 +5,11 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
-import LockedAccountModal from '@components/LockedAccountModal';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Star, Trashcan} from '@components/Icon/Expensicons';
+import LockedAccountModal from '@components/LockedAccountModal';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -248,7 +248,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <MenuItem
                         title={translate('contacts.setAsDefault')}
                         icon={Star}
-                        onPress={() => {isAccountLocked ? setIsLockedAccountModalOpen(true) : setAsDefault}}
+                        onPress={isAccountLocked ? () => setIsLockedAccountModalOpen(true) : setAsDefault}
                     />
                 </OfflineWithFeedback>
             ) : null}
@@ -276,7 +276,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                             if (isActingAsDelegate) {
                                 setIsNoDelegateAccessMenuVisible(true);
                                 return;
-                            } else if (isAccountLocked) {
+                            }
+                            if (isAccountLocked) {
                                 setIsLockedAccountModalOpen(true);
                                 return;
                             }

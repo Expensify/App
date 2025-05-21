@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LockedAccountModal from '@components/LockedAccountModal';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
@@ -42,7 +43,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Delegate} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import LockedAccountModal from '@components/LockedAccountModal';
 
 function SecuritySettingsPage() {
     const styles = useThemeStyles();
@@ -126,7 +126,8 @@ function SecuritySettingsPage() {
                     if (isActingAsDelegate) {
                         showDelegateNoAccessMenu();
                         return;
-                    } else if (isAccountLocked) {
+                    }
+                    if (isAccountLocked) {
                         setIsLockedAccountModalOpen(true);
                         return;
                     }
@@ -239,7 +240,8 @@ function SecuritySettingsPage() {
                 if (isActingAsDelegate) {
                     modalClose(() => setIsNoDelegateAccessMenuVisible(true));
                     return;
-                } else if (isAccountLocked) {
+                }
+                if (isAccountLocked) {
                     modalClose(() => setIsLockedAccountModalOpen(true));
                     return;
                 }
@@ -256,7 +258,8 @@ function SecuritySettingsPage() {
                 if (isActingAsDelegate) {
                     modalClose(() => setIsNoDelegateAccessMenuVisible(true));
                     return;
-                } else if (isAccountLocked) {
+                }
+                if (isAccountLocked) {
                     modalClose(() => setIsLockedAccountModalOpen(true));
                     return;
                 }
@@ -335,7 +338,7 @@ function SecuritySettingsPage() {
                                         <MenuItem
                                             title={translate('delegate.addCopilot')}
                                             icon={Expensicons.UserPlus}
-                                            onPress={() => isAccountLocked ? setIsLockedAccountModalOpen(true) : Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
+                                            onPress={() => (isAccountLocked ? setIsLockedAccountModalOpen(true) : Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE))}
                                             shouldShowRightIcon
                                             wrapperStyle={[styles.sectionMenuItemTopDescription, hasDelegators && styles.mb6]}
                                         />

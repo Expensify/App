@@ -8,7 +8,6 @@ import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
-import LockedAccountModal from '@components/LockedAccountModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -16,6 +15,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
+import LockedAccountModal from '@components/LockedAccountModal';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -588,7 +588,8 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                             if (isActingAsDelegate) {
                                                                 setIsNoDelegateAccessMenuVisible(true);
                                                                 return;
-                                                            } else if (isAccountLocked) {
+                                                            }
+                                                            if (isAccountLocked) {
                                                                 setIsLockedAccountModalOpen(true);
                                                                 return;
                                                             }
@@ -658,7 +659,8 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 setIsNoDelegateAccessMenuVisible(true);
                                             });
                                             return;
-                                        } else if (isAccountLocked) {
+                                        }
+                                        if (isAccountLocked) {
                                             closeModal(() => setIsLockedAccountModalOpen(true));
                                             return;
                                         }
@@ -678,7 +680,8 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                             setIsNoDelegateAccessMenuVisible(true);
                                         });
                                         return;
-                                    } else if (isAccountLocked) {
+                                    }
+                                    if (isAccountLocked) {
                                         closeModal(() => setIsLockedAccountModalOpen(true));
                                         return;
                                     }

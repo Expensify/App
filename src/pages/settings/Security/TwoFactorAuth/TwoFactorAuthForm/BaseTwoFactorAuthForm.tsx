@@ -80,15 +80,15 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
     }));
 
     return (
-            <MagicCodeInput
-                autoComplete={autoComplete}
-                name="twoFactorAuthCode"
-                value={twoFactorAuthCode}
-                onChangeText={onTextInput}
-                onFulfill={validateAndSubmitForm}
-                errorText={formError.twoFactorAuthCode ?? getLatestErrorMessage(account)}
-                ref={inputRef}
-            />
+        <MagicCodeInput
+            autoComplete={autoComplete}
+            name="twoFactorAuthCode"
+            value={twoFactorAuthCode}
+            onChangeText={onTextInput}
+            onFulfill={validateAndSubmitForm}
+            errorText={formError.twoFactorAuthCode ?? getLatestErrorMessage(account)}
+            ref={inputRef}
+        />
     );
 }
 

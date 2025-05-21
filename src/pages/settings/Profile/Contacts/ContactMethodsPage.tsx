@@ -5,9 +5,9 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
-import LockedAccountModal from '@components/LockedAccountModal';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LockedAccountModal from '@components/LockedAccountModal';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -29,12 +29,12 @@ type ContactMethodsPageProps = PlatformStackScreenProps<SettingsNavigatorParamLi
 function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const loginNames = Object.keys(loginList ?? {});
     const navigateBackTo = route?.params?.backTo;
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
