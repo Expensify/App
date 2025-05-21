@@ -406,7 +406,6 @@ function AttachmentPickerWithMenuItems({
                             menuItems={menuItems}
                             withoutOverlay
                             anchorRef={actionButtonRef}
-                            shouldUseNewModal
                         />
                         <DelegateNoAccessModal
                             isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
