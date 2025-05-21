@@ -40,6 +40,7 @@ import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
+    getFilteredReportActionsForReportView,
     getOneTransactionThreadReportID,
     isCreatedAction,
     isDeletedParentAction,
@@ -266,14 +267,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID, canBeMissing: false});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const {
-        reportActions: reportActionsWithDeletedExpenses,
-        linkedAction,
-        sortedAllReportActions,
-        hasNewerActions,
-        hasOlderActions,
-    } = usePaginatedReportActions(reportID, reportActionIDFromRoute);
-    const reportActions = reportActionsWithDeletedExpenses.filter((value) => !isDeletedParentAction(value));
+    const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
@@ -331,6 +326,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(() => {
+        if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
+            Navigation.dismissModal();
+            return;
+        }
         if (Navigation.getShouldPopToSidebar()) {
             Navigation.popToSidebar();
             return;
@@ -340,7 +339,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         Navigation.goBack();
-    }, [backTo]);
+    }, [isInNarrowPaneModal, backTo]);
 
     let headerView = (
         <HeaderView

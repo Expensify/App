@@ -128,7 +128,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const {sortBy, sortOrder} = sortConfig;
 
     const newTransactionsID = useMemo(() => {
-        if (!prevTransactions || transactions.length === prevTransactions.length) {
+        if (!prevTransactions || transactions.length <= prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as string[];
         }
 
@@ -303,7 +303,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={() => setIsModalVisible(false)}
                 shouldPreventScrollOnFocus
-                shouldUseNewModal
             >
                 <MenuItem
                     title={translate('common.select')}
