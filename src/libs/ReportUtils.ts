@@ -7735,7 +7735,7 @@ function hasReportErrorsOtherThanFailedReceipt(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
-    const allReportErrors = getReportAttributes(report.reportID, reportAttributes)?.reportErrors ?? {};
+    const allReportErrors = reportAttributes?.[report?.reportID]?.reportErrors ?? {};
     const transactionReportActions = getAllReportActions(report.reportID);
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, transactionReportActions, undefined);
     let doesTransactionThreadReportHasViolations = false;
@@ -10773,15 +10773,6 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
-function getReportAttributes(reportID: string | undefined, reportAttributes?: ReportAttributesDerivedValue['reports']) {
-    const attributes = reportAttributes ?? reportAttributesDerivedValue;
-
-    if (!reportID || !attributes?.[reportID]) {
-        return;
-    }
-    return attributes[reportID];
-}
-
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11159,7 +11150,6 @@ export {
     getReportPersonalDetailsParticipants,
     isAllowedToSubmitDraftExpenseReport,
     isWorkspaceEligibleForReportChange,
-    getReportAttributes,
 };
 
 export type {

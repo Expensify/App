@@ -27,6 +27,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportAttributesDerivedValue,
     ReportNameValuePairs,
     TransactionViolation,
 } from '@src/types/onyx';
@@ -105,7 +106,6 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
-    getReportAttributes,
     getReportAutomaticallyApprovedMessage,
     getReportAutomaticallyForwardedMessage,
     getReportAutomaticallySubmittedMessage,
@@ -449,6 +449,12 @@ let nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
 Onyx.connect({
     key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
     callback: (value) => (nvpDismissedProductTraining = value),
+});
+
+let reportAttributesDerivedValue: ReportAttributesDerivedValue['reports'] | undefined;
+Onyx.connect({
+    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+    callback: (value) => (reportAttributesDerivedValue = value?.reports),
 });
 
 /**
@@ -915,7 +921,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         result.shouldShowSubscript = shouldReportShowSubscript(report);
         result.isPolicyExpenseChat = reportUtilsIsPolicyExpenseChat(report);
         result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
-        result.allReportErrors = getReportAttributes(report.reportID)?.reportErrors ?? {};
+        result.allReportErrors = reportAttributesDerivedValue?.[report.reportID]?.reportErrors ?? {};
         result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : undefined;
         result.ownerAccountID = report.ownerAccountID;

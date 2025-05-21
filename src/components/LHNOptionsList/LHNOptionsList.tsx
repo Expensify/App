@@ -23,7 +23,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, getReportAttributes} from '@libs/ReportUtils';
+import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
