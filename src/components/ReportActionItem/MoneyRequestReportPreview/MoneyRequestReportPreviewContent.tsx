@@ -458,8 +458,8 @@ function MoneyRequestReportPreviewContent({
         if (isPaidAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
-        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived, reportActions);
-    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions]);
+        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy);
+    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, reportActions, invoiceReceiverPolicy]);
 
     const addExpenseDropdownOptions = useMemo(
         () => [
@@ -479,11 +479,11 @@ function MoneyRequestReportPreviewContent({
                 text: translate('iou.addUnreportedExpense'),
                 icon: Expensicons.ReceiptPlus,
                 onSelected: () => {
-                    openUnreportedExpense(iouReport?.reportID);
+                    openUnreportedExpense(iouReport?.reportID, iouReport?.parentReportID);
                 },
             },
         ],
-        [chatReportID, iouReport?.reportID, translate],
+        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, translate],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -513,6 +513,7 @@ function MoneyRequestReportPreviewContent({
                 formattedAmount={getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction)}
                 currency={iouReport?.currency}
                 chatReportID={chatReportID}
+                policyID={policy?.id}
                 iouReport={iouReport}
                 wrapperStyle={buttonMaxWidth}
                 onPress={confirmPayment}

@@ -1,24 +1,27 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Collapsible from '@components/CollapsibleSection/Collapsible';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import TransactionItemRow from '@components/TransactionItemRow';
 import IconButton from '@components/VideoPlayer/IconButton';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ReportListItemHeader from './ReportListItemHeader';
-import TransactionListItemRow from './TransactionListItemRow';
 
 function ReportListItem<TItem extends ListItem>({
     item,
@@ -42,7 +45,13 @@ function ReportListItem<TItem extends ListItem>({
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
     const isEmptyReport = reportItem.transactions.length === 0;
     const isDisabledOrEmpty = isEmptyReport || isDisabled;
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const src = isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow;
+
+    const dateColumnSize = useMemo(() => {
+        const shouldShowYearForSomeTransaction = reportItem.transactions.some((transaction) => shouldShowTransactionYear(transaction));
+        return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    }, [reportItem.transactions]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -83,6 +92,23 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
+    const sampleTransaction = reportItem.transactions.at(0);
+    const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
+
+    const columns = [
+        COLUMNS.RECEIPT,
+        COLUMNS.TYPE,
+        COLUMNS.DATE,
+        COLUMNS.MERCHANT,
+        COLUMNS.FROM,
+        COLUMNS.TO,
+        ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
+        ...(sampleTransaction?.shouldShowTag ? [COLUMNS.TAG] : []),
+        ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
+        COLUMNS.TOTAL_AMOUNT,
+        COLUMNS.ACTION,
+    ] as Array<ValueOf<typeof COLUMNS>>;
+
     return (
         <BaseListItem
             item={item}
@@ -103,63 +129,65 @@ function ReportListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
-            <View style={[styles.flex1]}>
-                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter]}>
-                    <ReportListItemHeader
-                        report={reportItem}
-                        policy={policy}
-                        item={item}
-                        onSelectRow={onSelectRow}
-                        onCheckboxPress={onCheckboxPress}
-                        isDisabled={isDisabledOrEmpty}
-                        canSelectMultiple={canSelectMultiple}
-                    />
-                    <IconButton
-                        fill={theme.icon}
-                        src={src}
-                        onPress={() => setIsExpanded(!isExpanded)}
-                        style={[styles.p0, styles.pr3]}
-                        hoverStyle={[styles.bgTransparent]}
-                    />
-                </View>
-                {isEmptyReport ? (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
-                        <Text
-                            style={[styles.textLabelSupporting]}
-                            numberOfLines={1}
-                        >
-                            {translate('search.moneyRequestReport.emptyStateTitle')}
-                        </Text>
+            {(hovered) => (
+                <View style={[styles.flex1]}>
+                    <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter]}>
+                        <ReportListItemHeader
+                            report={reportItem}
+                            policy={policy}
+                            item={item}
+                            onSelectRow={onSelectRow}
+                            onCheckboxPress={onCheckboxPress}
+                            isDisabled={isDisabledOrEmpty}
+                            isHovered={hovered}
+                            isFocused={isFocused}
+                            canSelectMultiple={canSelectMultiple}
+                        />
+                        <IconButton
+                            fill={theme.icon}
+                            src={src}
+                            onPress={() => setIsExpanded(!isExpanded)}
+                            style={[styles.p0, styles.pr3]}
+                            hoverStyle={[styles.bgTransparent]}
+                        />
                     </View>
-                ) : (
-                    <>
-                        {isExpanded && <View style={[styles.threadDividerLine, styles.mv2, styles.mr2]} />}
-                        <Collapsible isOpened={isExpanded}>
-                            <View>
+                    {isEmptyReport ? (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
+                            <Text
+                                style={[styles.textLabelSupporting]}
+                                numberOfLines={1}
+                            >
+                                {translate('search.moneyRequestReport.emptyStateTitle')}
+                            </Text>
+                        </View>
+                    ) : (
+                        <>
+                            {isExpanded && <View style={[styles.threadDividerLine, styles.mv2, styles.mr2]} />}
+                            <Collapsible isOpened={isExpanded}>
                                 {reportItem.transactions.map((transaction) => (
-                                    <TransactionListItemRow
-                                        key={transaction.transactionID}
-                                        parentAction={reportItem.action}
-                                        item={transaction}
-                                        showTooltip={showTooltip}
-                                        onButtonPress={() => {
-                                            openReportInRHP(transaction);
-                                        }}
-                                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                        showItemHeaderOnNarrowLayout={false}
-                                        containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
-                                        isChildListItem
-                                        isDisabled={!!isDisabled}
-                                        canSelectMultiple={!!canSelectMultiple}
-                                        isButtonSelected={transaction.isSelected}
-                                        shouldShowTransactionCheckbox
-                                    />
+                                    <View>
+                                        <TransactionItemRow
+                                            transactionItem={transaction}
+                                            isSelected={!!transaction.isSelected}
+                                            dateColumnSize={dateColumnSize}
+                                            shouldShowTooltip={showTooltip}
+                                            shouldUseNarrowLayout={!isLargeScreenWidth}
+                                            shouldShowCheckbox={!!canSelectMultiple}
+                                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                            columns={columns}
+                                            onButtonPress={() => {
+                                                openReportInRHP(transaction);
+                                            }}
+                                            isParentHovered={hovered}
+                                            columnWrapperStyles={[styles.ph3, styles.pv1half]}
+                                        />
+                                    </View>
                                 ))}
-                            </View>
-                        </Collapsible>
-                    </>
-                )}
-            </View>
+                            </Collapsible>
+                        </>
+                    )}
+                </View>
+            )}
         </BaseListItem>
     );
 }
