@@ -35,7 +35,7 @@ function getCustomHistoryEntry(routeName: string) {
 function addCustomHistoryRouterExtension<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     originalRouter: PlatformStackRouterFactory<ParamListBase, RouterOptions>,
 ) {
-    return (options: RouterOptions): Router<PlatformStackNavigationState<ParamListBase>, CommonActions.Action | StackActionType | HistoryStackNavigatorAction> => {
+    return (options: RouterOptions): Router<PlatformStackNavigationState<ParamListBase>, HistoryStackNavigatorAction> => {
         const router = originalRouter(options);
 
         const enhanceStateWithHistory = (state: PlatformStackNavigationState<ParamListBase>) => {
@@ -55,12 +55,16 @@ function addCustomHistoryRouterExtension<RouterOptions extends PlatformStackRout
             const state = router.getRehydratedState(partialState, configOptions);
             const stateWithInitialHistory = enhanceStateWithHistory(state);
 
-            const focusedRoute = findFocusedRoute(state);
+            const focusedRoute = findFocusedRoute(stateWithInitialHistory);
 
             // There always be a focused route in the state. It's for type safety.
             if (!focusedRoute) {
                 return stateWithInitialHistory;
             }
+
+            // @ts-expect-error focusedRoute.key is always defined because it is a route from a rehydrated state. Find focused route isn't correctly typed in this case.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            const customHistoryEntry = getCustomHistoryEntry(focusedRoute.key);
 
             const customHistoryParamName = SCREEN_TO_HISTORY_PARAM[focusedRoute.name as Screen];
 
@@ -74,10 +78,10 @@ function addCustomHistoryRouterExtension<RouterOptions extends PlatformStackRout
                 // The custom history param should be set to true
                 (focusedRoute.params as Record<string, unknown>)[customHistoryParamName] &&
                 // The last history entry should not be the custom history entry for the focused route to avoid duplication
-                stateWithInitialHistory.history.at(-1) !== getCustomHistoryEntry(focusedRoute.name)
+                stateWithInitialHistory.history.at(-1) !== customHistoryEntry
             ) {
                 // Add the custom history entry to the initial history
-                stateWithInitialHistory.history = [...stateWithInitialHistory.history, getCustomHistoryEntry(focusedRoute.name)];
+                stateWithInitialHistory.history = [...stateWithInitialHistory.history, customHistoryEntry];
             }
 
             return stateWithInitialHistory;
@@ -90,6 +94,8 @@ function addCustomHistoryRouterExtension<RouterOptions extends PlatformStackRout
         ) => {
             // We want to set the right param and then update the history
             if (isSetHistoryParamAction(action)) {
+                const customHistoryEntry = getCustomHistoryEntry(action.payload.key);
+
                 // Start with updating the param.
                 const setParamsAction = CommonActions.setParams({[action.payload.key]: action.payload.value});
                 const stateWithUpdatedParams = router.getStateForAction(state, setParamsAction, configOptions);
@@ -100,13 +106,13 @@ function addCustomHistoryRouterExtension<RouterOptions extends PlatformStackRout
                 }
 
                 // If it's set to true, we need to add the history entry if it's not already there.
-                if (action.payload.value && stateWithUpdatedParams.history.at(-1) !== getCustomHistoryEntry(action.payload.key)) {
-                    return {...stateWithUpdatedParams, history: [...stateWithUpdatedParams.history, getCustomHistoryEntry(action.payload.key)]};
+                if (action.payload.value && stateWithUpdatedParams.history.at(-1) !== customHistoryEntry) {
+                    return {...stateWithUpdatedParams, history: [...stateWithUpdatedParams.history, customHistoryEntry]};
                 }
 
                 // If it's set to false, we need to remove the history entry if it's there.
                 if (!action.payload.value) {
-                    return {...stateWithUpdatedParams, history: stateWithUpdatedParams.history.filter((entry) => entry !== getCustomHistoryEntry(action.payload.key))};
+                    return {...stateWithUpdatedParams, history: stateWithUpdatedParams.history.filter((entry) => entry !== customHistoryEntry)};
                 }
 
                 // Else, do not change history.
