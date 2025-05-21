@@ -16,12 +16,12 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
+import DownloadAppBanner from '@components/DownloadAppBanner';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {ExpensifyMobileApp} from '@components/Icon/Illustrations';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -56,7 +56,6 @@ import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 import variables from '@styles/variables';
 import type {GpsPoint} from '@userActions/IOU';
 import {
@@ -140,20 +139,6 @@ function IOURequestStepScan({
         const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
-
-    const [lastIOSLogin] = useOnyx(ONYXKEYS.NVP_LAST_ECASH_IOS_LOGIN, {canBeMissing: true});
-    const [lastAndroidLogin] = useOnyx(ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN, {canBeMissing: true});
-    const [isLastAppLoginLoaded, setIsLastAppLoginLoaded] = useState(false);
-
-    const hasInstalledApp = !!lastIOSLogin || !!lastAndroidLogin;
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsLastAppLoginLoaded(true);
-        }, 200);
-
-        return () => clearTimeout(timer);
-    }, []);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const isTabActive = useIsFocused();
@@ -993,25 +978,7 @@ function IOURequestStepScan({
                                 receiptImageTopPosition={receiptImageTopPosition}
                             />
                         )}
-                        {!isMobile() && isLastAppLoginLoaded && !hasInstalledApp && (
-                            <View style={[styles.ph2, styles.mb2, styles.stickToBottom]}>
-                                <BillingBanner
-                                    icon={ExpensifyMobileApp}
-                                    title={translate('common.getTheApp')}
-                                    subtitle={translate('common.scanReceiptsOnTheGo')}
-                                    subtitleStyle={[styles.mt1, styles.mutedTextLabel]}
-                                    style={[styles.borderRadiusComponentLarge, styles.hoveredComponentBG]}
-                                    rightComponent={
-                                        <Button
-                                            small
-                                            success
-                                            text={translate('common.download')}
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)}
-                                        />
-                                    }
-                                />
-                            </View>
-                        )}
+                        {!isMobile() && <DownloadAppBanner />}
                         <ConfirmModal
                             title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                             onConfirm={hideReceiptModal}
