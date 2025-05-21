@@ -98,47 +98,51 @@ function ReportListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
-            <View style={[styles.flex1]}>
-                <ReportListItemHeader
-                    report={reportItem}
-                    policy={policy}
-                    item={item}
-                    onSelectRow={onSelectRow}
-                    onCheckboxPress={onCheckboxPress}
-                    isDisabled={isDisabledOrEmpty}
-                    canSelectMultiple={canSelectMultiple}
-                />
-                {isEmptyReport ? (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
-                        <Text
-                            style={[styles.textLabelSupporting]}
-                            numberOfLines={1}
-                        >
-                            {translate('search.moneyRequestReport.emptyStateTitle')}
-                        </Text>
-                    </View>
-                ) : (
-                    reportItem.transactions.map((transaction) => (
-                        <TransactionListItemRow
-                            key={transaction.transactionID}
-                            parentAction={reportItem.action}
-                            item={transaction}
-                            showTooltip={showTooltip}
-                            onButtonPress={() => {
-                                openReportInRHP(transaction);
-                            }}
-                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                            showItemHeaderOnNarrowLayout={false}
-                            containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
-                            isChildListItem
-                            isDisabled={!!isDisabled}
-                            canSelectMultiple={!!canSelectMultiple}
-                            isButtonSelected={transaction.isSelected}
-                            shouldShowTransactionCheckbox
-                        />
-                    ))
-                )}
-            </View>
+            {(hovered?: boolean) => (
+                <View style={[styles.flex1]}>
+                    <ReportListItemHeader
+                        report={reportItem}
+                        policy={policy}
+                        item={item}
+                        onSelectRow={onSelectRow}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        isHovered={hovered}
+                        isFocused={isFocused}
+                        canSelectMultiple={canSelectMultiple}
+                    />
+                    {isEmptyReport ? (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
+                            <Text
+                                style={[styles.textLabelSupporting]}
+                                numberOfLines={1}
+                            >
+                                {translate('search.moneyRequestReport.emptyStateTitle')}
+                            </Text>
+                        </View>
+                    ) : (
+                        reportItem.transactions.map((transaction) => (
+                            <TransactionListItemRow
+                                key={transaction.transactionID}
+                                parentAction={reportItem.action}
+                                item={transaction}
+                                showTooltip={showTooltip}
+                                onButtonPress={() => {
+                                    openReportInRHP(transaction);
+                                }}
+                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                showItemHeaderOnNarrowLayout={false}
+                                containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
+                                isChildListItem
+                                isDisabled={!!isDisabled}
+                                canSelectMultiple={!!canSelectMultiple}
+                                isButtonSelected={transaction.isSelected}
+                                shouldShowTransactionCheckbox
+                            />
+                        ))
+                    )}
+                </View>
+            )}
         </BaseListItem>
     );
 }
