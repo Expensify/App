@@ -10,7 +10,7 @@ import MentionReportRenderer from './MentionReportRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
 import PreRenderer from './PreRenderer';
-import RBRRenderer from './RbrRenderer';
+import RBRRenderer from './RBRRenderer';
 import ShortMentionRenderer from './ShortMentionRenderer';
 import TaskTitleRenderer from './TaskTitleRenderer';
 import VideoRenderer from './VideoRenderer';
