@@ -3929,6 +3929,21 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>): bool
     );
 }
 
+/**
+ * This function is needed due to the fact that when we first create an empty report, its preview action has an actorAccountID of '0'.
+ * This is not the case when the report is automatically created by adding expenses to the chat where no open report is available.
+ * Can be simplified by comparing actorAccountID to accountID when mentioned issue is no longer a thing on a BE side.
+ */
+function isActionOrReportPreviewOwner(report: Report) {
+    const parentAction = getReportAction(report.parentReportID, report.parentReportActionID);
+    const {accountID} = currentUserPersonalDetails ?? {};
+    const {actorAccountID, actionName, childOwnerAccountID} = parentAction ?? {};
+    if (typeof accountID === 'number' && typeof actorAccountID === 'number' && accountID === actorAccountID) {
+        return true;
+    }
+    return actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && childOwnerAccountID === accountID;
+}
+
 function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>): {canHoldRequest: boolean; canUnholdRequest: boolean} {
     if (!isMoneyRequestAction(reportAction)) {
         return {canHoldRequest: false, canUnholdRequest: false};
@@ -3961,10 +3976,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     const isHoldActionCreator = isHoldCreator(transaction, reportAction.childReportID);
 
     const isTrackExpenseMoneyReport = isTrackExpenseReport(moneyRequestReport);
-    const isActionOwner =
-        typeof parentReportAction?.actorAccountID === 'number' &&
-        typeof currentUserPersonalDetails?.accountID === 'number' &&
-        parentReportAction.actorAccountID === currentUserPersonalDetails?.accountID;
+    const isActionOwner = isActionOrReportPreviewOwner(moneyRequestReport);
     const isApprover = isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && currentUserPersonalDetails?.accountID === moneyRequestReport?.managerID;
     const isAdmin = isPolicyAdmin(moneyRequestReport.policyID, allPolicies);
     const isOnHold = isOnHoldTransactionUtils(transaction);
