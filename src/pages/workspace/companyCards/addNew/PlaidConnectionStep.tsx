@@ -115,7 +115,7 @@ function PlaidConnectionStep() {
                             step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
                             data: {
                                 publicToken,
-                                plaidConnectedBank: (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? '',
+                                plaidConnectedBank: (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id,
                             },
                         });
                     }}
