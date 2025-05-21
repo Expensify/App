@@ -254,6 +254,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        count: 'Count',
         cancel: 'Cancel',
         dismiss: 'Dismiss',
         yes: 'Yes',
@@ -4229,6 +4230,10 @@ const translations = {
                 title: 'Cannot make all tags optional',
                 description: `At least one tag must remain required because your workspace settings require tags.`,
             },
+            tagCount: () => ({
+                one: '1 Tag',
+                other: (count: number) => `${count} Tags`,
+            }),
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',

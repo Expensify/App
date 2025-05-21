@@ -245,6 +245,7 @@ import type {TranslationDeepObject} from './types';
 /* eslint-disable max-len */
 const translations = {
     common: {
+        count: 'Contar',
         cancel: 'Cancelar',
         dismiss: 'Descartar',
         yes: 'Sí',
@@ -4274,6 +4275,10 @@ const translations = {
                 title: 'No se pueden hacer opcionales todas las etiquetas',
                 description: `Debe haber al menos una etiqueta obligatoria porque la configuración de tu espacio de trabajo requiere etiquetas.`,
             },
+            tagCount: () => ({
+                one: '1 etiqueta',
+                other: (count: number) => `${count} etiquetas`,
+            }),
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
