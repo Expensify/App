@@ -353,6 +353,7 @@ function IOURequestStepDistance({
                         currency: transaction?.currency ?? 'USD',
                         merchant: translate('iou.fieldPending'),
                         billable: !!policy?.defaultBillable,
+                        reimbursable: !!policy?.defaultReimbursable,
                         validWaypoints: getValidWaypoints(waypoints, true),
                         customUnitRateID: DistanceRequestUtils.getCustomUnitRateID(report.reportID),
                         splitShares: transaction?.splitShares,
