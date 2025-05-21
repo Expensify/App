@@ -3,6 +3,7 @@ import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {DotIndicator} from '@components/Icon/Expensicons';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -18,7 +19,34 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 
-function TransactionItemRowRBR({transaction, containerStyles}: {transaction: Transaction; containerStyles?: ViewStyle[]}) {
+type TransactionItemRowRBRProps = {
+    transaction: Transaction;
+    containerStyles?: ViewStyle[];
+};
+
+/**
+ * Extracts unique error messages from errors and actions
+ */
+const extractErrorMessages = (errors: Errors | ReceiptErrors | undefined, errorActions: ReportAction[] | undefined, translate: LocaleContextProps['translate']): string[] => {
+    const uniqueMessages = new Set<string>();
+
+    const addErrorMessages = (rawErrors: unknown) => {
+        const errorValues = Object.values(rawErrors ?? {});
+        for (const error of errorValues) {
+            
+            const message = isReceiptError(error) ? translate('iou.error.receiptFailureMessageShort') : String(error);
+            uniqueMessages.add(message);
+        }
+    };
+
+    addErrorMessages(errors);
+    for (const action of errorActions ?? []) {
+        addErrorMessages(action.errors);
+    }
+
+    return Array.from(uniqueMessages);
+};
+function TransactionItemRowRBR({transaction, containerStyles}: TransactionItemRowRBRProps) {
     const styles = useThemeStyles();
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const {translate} = useLocalize();
@@ -28,23 +56,7 @@ function TransactionItemRowRBR({transaction, containerStyles}: {transaction: Tra
     const transactionThreadId = transactionActions ? getIOUActionForTransactionID(transactionActions, transaction.transactionID)?.childReportID : undefined;
     const {sortedAllReportActions: transactionThreadActions} = usePaginatedReportActions(transactionThreadId);
     const getErrorMessages = useCallback(
-        (errors: Errors | ReceiptErrors | undefined = {}, errorActions: ReportAction[] | undefined = []): string[] => {
-            const uniqueMessages = new Set<string>();
-
-            const addErrorMessages = (rawErrors: unknown) => {
-                const errorValues = Object.values(rawErrors ?? {});
-                for (const error of errorValues) {
-                    const message = isReceiptError(error) ? translate('iou.error.receiptFailureMessageShort') : String(error);
-                    uniqueMessages.add(message);
-                }
-            };
-            addErrorMessages(errors);
-            for (const action of errorActions) {
-                addErrorMessages(action.errors);
-            }
-
-            return Array.from(uniqueMessages);
-        },
+        (errors: Errors | ReceiptErrors | undefined = {}, errorActions: ReportAction[] | undefined = []) => extractErrorMessages(errors, errorActions, translate),
         [translate],
     );
 
