@@ -67,7 +67,7 @@ import {
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
-    getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
     getRemovedConnectionMessage,
     getRemovedFromApprovalChainMessage,
@@ -649,7 +649,6 @@ function PureReportActionItem({
                     onPress: () => {
                         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
                     },
-                    isMediumSized: true,
                     isPrimary: true,
                 },
             ];
@@ -687,7 +686,6 @@ function PureReportActionItem({
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                     },
-                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.categorize',
@@ -695,7 +693,6 @@ function PureReportActionItem({
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
                     },
-                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.share',
@@ -703,7 +700,6 @@ function PureReportActionItem({
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
                     },
-                    isMediumSized: true,
                 },
                 {
                     text: 'actionableMentionTrackExpense.nothing',
@@ -711,7 +707,6 @@ function PureReportActionItem({
                     onPress: () => {
                         dismissTrackExpenseActionableWhisper(reportID, action);
                     },
-                    isMediumSized: true,
                 },
             ];
         }
@@ -1055,7 +1050,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceUpdateFieldMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
-            children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {

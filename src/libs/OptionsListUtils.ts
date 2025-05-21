@@ -66,6 +66,7 @@ import {
     isActionOfType,
     isClosedAction,
     isCreatedTaskReportAction,
+    isDeletedAction,
     isDeletedParentAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
@@ -826,11 +827,15 @@ function getLastMessageTextForReport(
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
-    if (reportID && !isArchivedReport(reportNameValuePairs) && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+    if (
+        reportID &&
+        !isArchivedReport(reportNameValuePairs) &&
+        (report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED || (lastOriginalReportAction?.reportActionID && isDeletedAction(lastOriginalReportAction)))
+    ) {
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
     }
 
-    // When the last report action has unkown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
+    // When the last report action has unknown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
     // so we reconstruct the last message text of the report from the last report action.
     if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction))) {
         lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));

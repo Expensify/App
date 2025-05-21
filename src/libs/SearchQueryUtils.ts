@@ -62,6 +62,7 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     taxRate: 'tax-rate',
     cardID: 'card',
     feed: 'feed',
+    // cspell:disable-next-line
     reportID: 'reportid',
     keyword: 'keyword',
     in: 'in',
@@ -77,7 +78,6 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     billable: 'billable',
     reimbursable: 'reimbursable',
 };
-
 /**
  * @private
  * Returns string value wrapped in quotes "", if the value contains space or &nbsp; (no-breaking space).
@@ -797,7 +797,7 @@ function getQueryWithUpdatedValues(query: string) {
     const queryJSON = buildSearchQueryJSON(query);
 
     if (!queryJSON) {
-        Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} user query failed to parse`, {}, false);
+        Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} user query failed to parse`, {}, false);
         return;
     }
 
