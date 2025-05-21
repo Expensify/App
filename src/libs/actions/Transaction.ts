@@ -819,14 +819,12 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
             value: {[movedAction?.reportActionID]: null},
         });
-        const selfDMReportID = findSelfDMReportID();
-        const currentTime = DateUtils.getDBTime();
-        const selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
-        transactionIDToReportActionAndThreadData[transaction.transactionID] = {
+        const existingSelfDMReportID = findSelfDMReportID();
+
+        // Create base transaction data object
+        const baseTransactionData = {
             movedReportActionID: movedAction.reportActionID,
             moneyRequestPreviewReportActionID: newIOUAction.reportActionID,
-            ...(!selfDMReportID ? {selfDMReportID: selfDMReport.reportID, selfDMCreatedReportActionID: selfDMCreatedReportAction.reportActionID} : {}),
             ...(oldIOUAction && !oldIOUAction.childReportID
                 ? {
                       transactionThreadReportID,
@@ -834,60 +832,74 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                   }
                 : {}),
         };
-        optimisticData.push(
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
-                value: {
-                    ...selfDMReport,
-                    pendingFields: {
-                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
-                value: {
-                    isOptimisticReport: true,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                value: {
-                    [selfDMCreatedReportAction.reportActionID]: selfDMCreatedReportAction,
-                },
-            },
-        );
 
-        successData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
-                value: {
-                    pendingFields: {
-                        createChat: null,
+        if (!existingSelfDMReportID) {
+            const currentTime = DateUtils.getDBTime();
+            const selfDMReport = buildOptimisticSelfDMReport(currentTime);
+            const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+
+            // Add self DM data to transaction data
+            transactionIDToReportActionAndThreadData[transaction.transactionID] = {
+                ...baseTransactionData,
+                selfDMReportID: selfDMReport.reportID,
+                selfDMCreatedReportActionID: selfDMCreatedReportAction.reportActionID,
+            };
+
+            // Add optimistic updates for self DM report
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                    value: {
+                        ...selfDMReport,
+                        pendingFields: {
+                            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
                     },
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
-                value: {
-                    isOptimisticReport: false,
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                    value: {isOptimisticReport: true},
                 },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                value: {
-                    [selfDMCreatedReportAction.reportActionID]: {
-                        pendingAction: null,
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    value: {
+                        [selfDMCreatedReportAction.reportActionID]: selfDMCreatedReportAction,
                     },
                 },
-            },
-        );
+            );
+
+            // Add success data for self DM report
+            successData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                    value: {
+                        pendingFields: {
+                            createChat: null,
+                        },
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                    value: {isOptimisticReport: false},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                    value: {
+                        [selfDMCreatedReportAction.reportActionID]: {
+                            pendingAction: null,
+                        },
+                    },
+                },
+            );
+        } else {
+            transactionIDToReportActionAndThreadData[transaction.transactionID] = baseTransactionData;
+        }
     });
 
     // 7. Update the report totals
