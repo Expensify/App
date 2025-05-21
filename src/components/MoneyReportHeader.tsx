@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -41,6 +41,7 @@ import {
     isProcessingReport,
     isReportOwner,
     isTrackExpenseReport as isTrackExpenseReportUtil,
+    navigateOnDeleteExpense,
     navigateToDetailsPage,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
@@ -195,7 +196,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         () => Object.fromEntries(Object.entries(allViolations ?? {}).filter(([key]) => transactionIDs.includes(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')))),
         [allViolations, transactionIDs],
     );
-    const navigateBackToAfterDelete = useRef<Route>();
 
     const messagePDF = useMemo(() => {
         if (!reportPDFFilename) {
@@ -948,27 +948,23 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 title={translate('iou.deleteExpense', {count: 1})}
                 isVisible={isDeleteModalVisible}
                 onConfirm={() => {
-                    setIsDeleteModalVisible(false);
+                    let goBackRoute: Route | undefined;
                     if (transactionThreadReportID) {
                         if (!requestParentReportAction || !transaction?.transactionID) {
                             throw new Error('Missing data!');
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
-                        deleteMoneyRequest(transaction?.transactionID, requestParentReportAction);
-                        navigateBackToAfterDelete.current = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, false);
+                        // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
+                        InteractionManager.runAfterInteractions(() => deleteMoneyRequest(transaction?.transactionID, requestParentReportAction));
+                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, false);
+                    }
+
+                    setIsDeleteModalVisible(false);
+                    if (goBackRoute) {
+                        Navigation.setNavigationActionToMicrotaskQueue(() => navigateOnDeleteExpense(goBackRoute));
                     }
                 }}
                 onCancel={() => setIsDeleteModalVisible(false)}
-                onModalHide={() => {
-                    const backRoute = navigateBackToAfterDelete.current;
-                    if (!backRoute) {
-                        return;
-                    }
-
-                    Navigation.isNavigationReady().then(() => {
-                        Navigation.goBack(backRoute);
-                    });
-                }}
                 prompt={translate('iou.deleteConfirmation', {count: 1})}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
