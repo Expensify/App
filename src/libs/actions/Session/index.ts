@@ -278,7 +278,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
 
     // The function redirectToSignIn will clear the whole storage, so let's create our onyx params
     // updates for the credentials before we call it
-    let onyxSetParams = {};
+    let onyxSetParams: Record<string, unknown> = {};
 
     // If we are not currently using a support token, and we received stashSession as true, we need to
     // store the credentials so the user doesn't need to login again after they finish their supportal
@@ -323,9 +323,6 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         Log.info('No stashed session found, clearing the session');
     }
 
-    // Navigate to the signing out page immediately
-    Navigation.navigate(ROUTES.SIGNING_OUT);
-
     // Wait for signOut (if called), then redirect and update Onyx.
     signOutPromise
         .then(() => {
@@ -335,6 +332,8 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
 
             // Redirect back to New Expensify after classic sign out so the user is not confused by being redirected to a different site
             oldDotSignOutUrl.searchParams.set('signedOutFromNewExpensify', 'true');
+
+            onyxSetParams[ONYXKEYS.SIGN_OUT_REDIRECT] = ROUTES.SIGNING_OUT;
 
             asyncOpenURL(
                 redirectToSignIn().then(() => {
@@ -1428,6 +1427,10 @@ function resetSMSDeliveryFailureStatus(login: string) {
     API.write(WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE_STATUS, params, {optimisticData, successData, failureData});
 }
 
+function clearSignOutRedirect() {
+    Onyx.set(ONYXKEYS.SIGN_OUT_REDIRECT, null);
+}
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -1470,4 +1473,5 @@ export {
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
+    clearSignOutRedirect,
 };

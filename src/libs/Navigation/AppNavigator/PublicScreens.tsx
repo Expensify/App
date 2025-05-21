@@ -1,4 +1,7 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import {useOnyx} from 'react-native-onyx';
+import * as Session from '@libs/actions/Session';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
@@ -8,10 +11,13 @@ import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
 import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
 import SignInPage from '@pages/signin/SignInPage';
+import SigningOutPage from '@pages/SigningOutPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
 import CONFIG from '@src/CONFIG';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import PublicRightModalNavigator from './Navigators/PublicRightModalNavigator';
@@ -21,6 +27,20 @@ const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
 
 function PublicScreens() {
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
+    const [signOutRedirect] = useOnyx(ONYXKEYS.SIGN_OUT_REDIRECT);
+
+    useEffect(() => {
+        if (!signOutRedirect) {
+            return;
+        }
+
+        // Navigate to the sign out redirect route
+        Navigation.navigate(signOutRedirect as Route);
+
+        // Clear the redirect route after navigation
+        Session.clearSignOutRedirect();
+    }, [signOutRedirect]);
+
     return (
         <RootStack.Navigator screenOptions={defaultScreenOptions}>
             {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is REPORTS_SPLIT_NAVIGATOR. */}
@@ -66,6 +86,10 @@ function PublicScreens() {
                 name={NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR}
                 component={PublicRightModalNavigator}
                 options={rootNavigatorScreenOptions.rightModalNavigator}
+            />
+            <RootStack.Screen
+                name={SCREENS.SIGNING_OUT}
+                component={SigningOutPage}
             />
         </RootStack.Navigator>
     );
