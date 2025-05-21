@@ -43,6 +43,7 @@ function SearchTransactionsChangeReport() {
     return (
         <IOURequestEditReportCommon
             backTo={undefined}
+            isEditing={false}
             transactionsReports={transactionsReports}
             selectReport={selectReport}
         />

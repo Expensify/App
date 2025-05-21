@@ -43,7 +43,7 @@ type Props = {
     backTo: Route | undefined;
     transactionsReports: Report[];
     selectReport: (item: ReportListItem) => void;
-    removeFromReport: () => void;
+    removeFromReport?: () => void;
     isEditing: boolean;
 };
 
