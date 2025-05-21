@@ -84,20 +84,18 @@ Let Expensify automatically import and match card transactions to SmartScanned r
 
 ## Connect a Bank Account
 
-1. Go to **Settings > Workspaces > [Workspace Name]** in the left-hand navigation menu
-2. Click **More features**.
-3. Enable **Workflows**.
-4. From the left-hand menu, click **Workflows**.
-5. Enable **Make or track payments**.
-6. Click **Connect bank account**.
+1. Go to **Workspaces** in the left-hand navigation menu
+2. Click **[Workspace Name] > More features > Enable Workflows**.
+3. From the left-hand menu, click **Workflows**.
+4. Enable **Make or track payments**.
+5. Click **Connect bank account**.
 
 ## Connect a Company Card
 
-1. Go to **Settings > Workspaces > [Workspace Name]**.
-2. Click **More features**.
-3. Enable **Company cards**.
-4. From the left-hand menu, click **Company cards**.
-5. Click **Add cards** and follow the prompts.
+1. Go to **Workspaces** in the left-hand navigation menu
+2. Click **[Workspace Name] > More features > Enable Company Cards**.
+3. From the left-hand menu, click **Company cards**.
+4. Click **Add cards** and follow the prompts.
 
 ---
 
@@ -105,7 +103,7 @@ Let Expensify automatically import and match card transactions to SmartScanned r
 
 Categories help you organize and code expenses. To set these up:
 
-1. Go to **Settings > Workspaces > [Workspace Name]**.
+1. Go to **Workspaces > [Workspace Name]**.
 2. Click **Categories** in the left menu.
 3. To disable a category, click it and toggle it off.
 4. To add a new category:
