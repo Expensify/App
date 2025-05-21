@@ -30,6 +30,7 @@ import {
     getReportOrDraftReport,
     getReportTransactions,
     isCurrentUserSubmitter,
+    isExpenseReport,
     isOpenExpenseReport,
     isProcessingReport,
     isReportApproved,
@@ -1559,10 +1560,11 @@ function shouldShowRTERViolationMessage(transactions?: Transaction[]) {
     return transactions?.length === 1 && hasPendingUI(transactions?.at(0), getTransactionViolations(transactions?.at(0)?.transactionID, allTransactionViolations));
 }
 
-const isSplitTransaction = (transaction: OnyxEntry<Transaction>) => {
+const isSplitExpenseTransaction = (transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>) => {
+    const isExpense = isExpenseReport(report);
     const {originalTransactionID} = transaction?.comment ?? {};
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
-    return !!originalTransaction;
+    return !!originalTransaction && isExpense;
 };
 
 export {
@@ -1662,7 +1664,7 @@ export {
     isPendingCardOrScanningTransaction,
     getTransactionOrDraftTransaction,
     checkIfShouldShowMarkAsCashButton,
-    isSplitTransaction,
+    isSplitExpenseTransaction,
 };
 
 export type {TransactionChanges};
