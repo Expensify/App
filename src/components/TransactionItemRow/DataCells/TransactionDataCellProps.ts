@@ -1,4 +1,4 @@
-import type {TransactionWithOptionalSearchFields} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
+import type {TransactionWithOptionalSearchFields} from '..';
 
 type TransactionDataCellProps = {
     transactionItem: TransactionWithOptionalSearchFields;

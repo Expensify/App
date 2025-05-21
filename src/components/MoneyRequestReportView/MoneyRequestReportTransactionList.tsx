@@ -60,23 +60,6 @@ type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     shouldBeHighlighted?: boolean;
 };
 
-type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
-    /** The action that can be performed for the transaction */
-    action?: SearchTransactionAction;
-
-    /** Function passed to the action button, triggered when the button is pressed */
-    onButtonPress?: () => void;
-
-    /** The personal details of the user requesting money */
-    from?: SearchPersonalDetails;
-
-    /** The personal details of the user paying the request */
-    to?: SearchPersonalDetails;
-
-    /** Type of transaction */
-    transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-};
-
 const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.DATE,
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
@@ -354,4 +337,4 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 MoneyRequestReportTransactionList.displayName = 'MoneyRequestReportTransactionList';
 
 export default memo(MoneyRequestReportTransactionList);
-export type {TransactionWithOptionalHighlight, TransactionWithOptionalSearchFields};
+export type {TransactionWithOptionalHighlight};

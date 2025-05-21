@@ -4,7 +4,7 @@ import type {ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
-import type {TransactionWithOptionalSearchFields} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
+import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import type {TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionList/Search/ActionCell';
 import DateCell from '@components/SelectionList/Search/DateCell';
@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getMerchant, getCreated as getTransactionCreated, isPartialMerchant} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
 import MerchantCell from './DataCells/MerchantCell';
@@ -30,6 +31,23 @@ import TransactionItemRowRBR from './TransactionItemRowRBR';
 
 type ColumnComponents = {
     [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement;
+};
+
+type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
+    /** The action that can be performed for the transaction */
+    action?: SearchTransactionAction;
+
+    /** Function passed to the action button, triggered when the button is pressed */
+    onButtonPress?: () => void;
+
+    /** The personal details of the user requesting money */
+    from?: SearchPersonalDetails;
+
+    /** The personal details of the user paying the request */
+    to?: SearchPersonalDetails;
+
+    /** Type of transaction */
+    transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 };
 
 function TransactionItemRow({
@@ -324,3 +342,4 @@ function TransactionItemRow({
 TransactionItemRow.displayName = 'TransactionItemRow';
 
 export default TransactionItemRow;
+export type {TransactionWithOptionalSearchFields};
