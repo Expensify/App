@@ -26,7 +26,6 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -104,10 +103,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
 
-    // Controls the visibility of the educational tooltip based on user scrolling.
-    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
-    const triggerScrollEvent = useScrollEventEmitter();
-
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
@@ -141,7 +136,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     );
 
     /**
-     * Retuns a list of menu items data for account section
+     * Return a list of menu items data for account section
      * @returns object with translationKey, style and items for the account section
      */
     const accountMenuItemsData: Menu = useMemo(() => {
@@ -184,7 +179,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [loginList, privatePersonalDetails, styles.accountSettingsSectionContainer, walletBrickRoadIndicator, hasActivatedWallet, userWallet?.currentBalance]);
 
     /**
-     * Retuns a list of menu items data for general section
+     * Return a list of menu items data for general section
      * @returns object with translationKey, style and items for the general section
      */
     const generalMenuItemsData: Menu = useMemo(() => {
@@ -257,7 +252,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [styles.pt4, setRootStatusBarEnabled, shouldOpenSurveyReasonPage, signOut]);
 
     /**
-     * Retuns JSX.Element with menu items
+     * Return JSX.Element with menu items
      * @param menuItemsData list with menu items data
      * @returns the menu items for passed data
      */
@@ -321,21 +316,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
                                 shouldIconUseAutoWidthStyle
-                                tooltipAnchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                }}
-                                tooltipShiftHorizontal={variables.workspacesSettingsTooltipShiftHorizontal}
-                                tooltipShiftVertical={variables.workspacesSettingsTooltipShiftVertical}
-                                tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
-                                shouldHideOnScroll
                             />
                         );
                     })}
                 </View>
             );
         },
-        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, focusedRouteName, isExecuting, singleExecution, styles.productTrainingTooltipWrapper],
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, focusedRouteName, isExecuting, singleExecution],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
@@ -380,15 +367,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
         (e) => {
-            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
+            // If the layout measurement is 0, it means the flash list is not displayed but the onScroll may be triggered with offset value 0.
             // We should ignore this case.
             if (e.nativeEvent.layoutMeasurement.height === 0) {
                 return;
             }
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-            triggerScrollEvent();
         },
-        [route, saveScrollOffset, triggerScrollEvent],
+        [route, saveScrollOffset],
     );
 
     useLayoutEffect(() => {

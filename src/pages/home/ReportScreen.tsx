@@ -40,6 +40,7 @@ import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
+    getFilteredReportActionsForReportView,
     getOneTransactionThreadReportID,
     isCreatedAction,
     isDeletedParentAction,
@@ -266,14 +267,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID, canBeMissing: false});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const {
-        reportActions: reportActionsWithDeletedExpenses,
-        linkedAction,
-        sortedAllReportActions,
-        hasNewerActions,
-        hasOlderActions,
-    } = usePaginatedReportActions(reportID, reportActionIDFromRoute);
-    const reportActions = reportActionsWithDeletedExpenses.filter((value) => !isDeletedParentAction(value));
+    const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
@@ -539,7 +534,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const prevReportActions = usePrevious(reportActions);
     useEffect(() => {
         // This function is only triggered when a user is invited to a room after opening the link.
-        // When a user opens a room they are not a member of, and the admin then invites them, only the INVITETOROOM action is available, so the background will be empty and room description is not available.
+        // When a user opens a room they are not a member of, and the admin then invites them, only the INVITE_TO_ROOM action is available, so the background will be empty and room description is not available.
         // See https://github.com/Expensify/App/issues/57769 for more details
         if (prevReportActions.length !== 0 || reportActions.length !== 1 || reportActions.at(0)?.actionName !== CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) {
             return;
@@ -695,13 +690,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        // we want to do this destinguish between normal navigation and delete behavior
+        // we want to do this distinguish between normal navigation and delete behavior
         if (lastReportActionIDFromRoute !== reportActionIDFromRoute) {
             setIsNavigatingToDeletedAction(true);
             return;
         }
 
-        // Clear params when Action gets deleted while heighlighted
+        // Clear params when action gets deleted while highlighting
         if (!isNavigatingToDeletedAction && prevIsLinkedActionDeleted === false) {
             Navigation.setParams({reportActionID: ''});
         }
