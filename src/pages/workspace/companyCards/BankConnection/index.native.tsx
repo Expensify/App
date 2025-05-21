@@ -21,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
-import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
+import {getCompanyCardBankConnection, getCompanyCardPlaidConnection} from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -48,10 +48,15 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const authToken = session?.authToken ?? null;
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const selectedBank = addNewCard?.data?.selectedBank;
     const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
-    const bankName = feed ? getBankName(feed) : bankNameFromRoute ?? addNewCard?.data?.selectedBank;
-    const url = getCompanyCardBankConnection(policyID, bankName);
+    const bankName = feed ? getBankName(feed) : bankNameFromRoute ?? addNewCard?.data?.plaidConnectedBank ?? selectedBank;
+    const {canUsePlaidCompanyCards} = usePermissions();
+    const url =
+        canUsePlaidCompanyCards && addNewCard?.data?.publicToken
+            ? getCompanyCardPlaidConnection(policyID, addNewCard.data.publicToken, addNewCard?.data?.plaidConnectedBank)
+            : getCompanyCardBankConnection(policyID, bankName);
     const [cardFeeds] = useCardFeeds(policyID);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
@@ -59,7 +64,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const {isNewFeedConnected, newFeed} = useMemo(() => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
-    const {canUsePlaidCompanyCards} = usePermissions();
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
