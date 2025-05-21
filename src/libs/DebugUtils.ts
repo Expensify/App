@@ -946,6 +946,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'reimbursable':
         case 'participantsAutoAssigned':
         case 'isFromGlobalCreate':
+        case 'isFromReportsPageDragAndDrop':
         case 'hasEReceipt':
         case 'shouldShowOriginalAmount':
         case 'managedCard':
