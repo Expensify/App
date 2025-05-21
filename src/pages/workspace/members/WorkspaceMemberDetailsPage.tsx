@@ -30,7 +30,6 @@ import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, isExpensifyCa
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
-import {isProcessingReport} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -56,7 +55,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -101,12 +99,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [isCannotRemoveMemberModalOpen, setIsCannotRemoveMemberModalOpen] = useState(false);
-    const hasPendingApproval = Object.values(!reports || isEmptyObject(reports) ? {} : reports).some((report) => {
-        return report?.policyID === policy?.id && report?.managerID === accountID && isProcessingReport(report);
-    });
-    const isAuthorizedPayer = policy?.achAccount?.reimburser === details?.login;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const isUserExporter = qboConfig?.export.exporter === details?.login;
 
@@ -202,11 +194,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [member, prevMember]);
 
     const askForConfirmationToRemove = () => {
-        if (hasPendingApproval || isAuthorizedPayer) {
-            setIsCannotRemoveMemberModalOpen(true);
-            return;
-        }
-
         setIsRemoveMemberConfirmModalVisible(true);
     };
 

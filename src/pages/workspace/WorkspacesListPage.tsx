@@ -51,7 +51,6 @@ import localeCompare from '@libs/LocaleCompare';
 import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import type {WorkspaceHubSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getAllSelfApprovers, getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, isPolicyAuditor, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, isProcessingReport} from '@libs/ReportUtils';
