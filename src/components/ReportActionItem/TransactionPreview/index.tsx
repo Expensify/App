@@ -10,9 +10,9 @@ import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
-import {getTransactionDetails, isExpenseReport} from '@libs/ReportUtils';
-import {getOriginalTransactionIfBillIsSplit, getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
-import {isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
+import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
+import {getOriginalTransactionIfItIsSplit, isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
@@ -78,14 +78,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
     }, [duplicates, report, route, transaction]);
 
-    let transactionPreview = transaction;
-    const {originalTransaction, isBillSplit: isSplit} = getOriginalTransactionIfBillIsSplit(transaction);
-    const isExpense = isExpenseReport(iouReport);
-    const isBillSplit = isSplit && !isExpense;
-
-    if (isBillSplit) {
-        transactionPreview = originalTransaction;
-    }
+    const {originalTransaction, isBillSplit} = getOriginalTransactionIfItIsSplit(transaction);
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);
@@ -108,7 +101,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     isBillSplit={isBillSplit}
                     chatReport={chatReport}
                     personalDetails={personalDetails}
-                    transaction={transactionPreview}
+                    transaction={originalTransaction}
                     iouReport={iouReport}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}

@@ -1559,11 +1559,20 @@ function shouldShowRTERViolationMessage(transactions?: Transaction[]) {
     return transactions?.length === 1 && hasPendingUI(transactions?.at(0), getTransactionViolations(transactions?.at(0)?.transactionID, allTransactionViolations));
 }
 
-const isSplitExpenseTransaction = (transaction: OnyxEntry<Transaction>) => {
-    const {originalTransactionID} = transaction?.comment ?? {};
+const getOriginalTransactionIfItIsSplit = (transaction: OnyxEntry<Transaction>) => {
+    const {originalTransactionID, source, splits} = transaction?.comment ?? {};
+
+    if (splits && splits.length > 0) {
+        return {isBillSplit: true, isExpenseSplit: false, originalTransaction: getTransaction(originalTransactionID) ?? transaction};
+    }
+
+    if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
+        return {isBillSplit: false, isExpenseSplit: false, originalTransaction: transaction};
+    }
+
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
 
-    return !!originalTransaction && !originalTransaction?.comment?.splits;
+    return {isBillSplit: !!originalTransaction?.comment?.splits, isExpenseSplit: !originalTransaction?.comment?.splits, originalTransaction: originalTransaction ?? transaction};
 };
 
 export {
@@ -1663,7 +1672,7 @@ export {
     isPendingCardOrScanningTransaction,
     getTransactionOrDraftTransaction,
     checkIfShouldShowMarkAsCashButton,
-    isSplitExpenseTransaction,
+    getOriginalTransactionIfItIsSplit,
 };
 
 export type {TransactionChanges};

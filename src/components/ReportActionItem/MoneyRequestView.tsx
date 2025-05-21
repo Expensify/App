@@ -52,6 +52,7 @@ import {
     getBillable,
     getDescription,
     getDistanceInMeters,
+    getOriginalTransactionIfItIsSplit,
     getReimbursable,
     getTagForDisplay,
     getTaxName,
@@ -63,7 +64,6 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
-    isSplitExpenseTransaction,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -311,7 +311,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         if (!isDistanceRequest && !isPerDiemRequest) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
-        if (isSplitExpenseTransaction(transaction)) {
+        if (getOriginalTransactionIfItIsSplit(transaction).isExpenseSplit) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
         }
         if (isCancelled) {
