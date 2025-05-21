@@ -31,7 +31,7 @@ const PUBLIC_SCREENS_ROUTES = {
     APPLE_SIGN_IN: 'sign-in-with-apple',
     GOOGLE_SIGN_IN: 'sign-in-with-google',
     SAML_SIGN_IN: 'sign-in-with-saml',
-    SIGNING_OUT: 'signing-out',
+    LOGGING_OUT: 'logging-out',
 } as const;
 
 const ROUTES = {

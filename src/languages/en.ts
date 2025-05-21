@@ -6356,8 +6356,8 @@ const translations = {
             minutes: '30 minutes',
         },
     },
-    signingOutPage: {
-        title: 'Signing out...',
+    loggingOutPage: {
+        title: 'Logging out...',
         subtitle: 'One moment, please.',
     },
     testDrive: {

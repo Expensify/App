@@ -5,14 +5,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import variables from '@styles/variables';
 
-function SigningOutPage() {
+function LoggingOutPage() {
     const {translate} = useLocalize();
 
     // Load for half a second to avoid flashing the content if the sign out process is fast.
     // The half second loading delay is shown only once per sign out by using sessionStorage. It has to be tracked outside of the component because the component hierarchy will be completely
     // remounted when the user is signed out and the AuthScreens are replaced by the public screens.
     const [isLoading, setIsLoading] = useState(() => {
-        return !sessionStorage.getItem('signingOutContentShown');
+        return !sessionStorage.getItem('loggingOutContentShown');
     });
     useEffect(() => {
         if (!isLoading) {
@@ -21,7 +21,7 @@ function SigningOutPage() {
 
         const timer = setTimeout(() => {
             setIsLoading(false);
-            sessionStorage.setItem('signingOutContentShown', 'true');
+            sessionStorage.setItem('loggingOutContentShown', 'true');
         }, 500);
 
         return () => clearTimeout(timer);
@@ -31,7 +31,7 @@ function SigningOutPage() {
         return (
             <ScreenWrapper
                 shouldEnableMaxHeight
-                testID={SigningOutPage.displayName}
+                testID={LoggingOutPage.displayName}
             >
                 {null}
             </ScreenWrapper>
@@ -41,20 +41,20 @@ function SigningOutPage() {
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={SigningOutPage.displayName}
+            testID={LoggingOutPage.displayName}
         >
             <BlockingView
                 icon={Illustrations.Encryption}
                 iconWidth={variables.modalTopIconWidth}
                 iconHeight={variables.modalTopIconHeight}
-                title={translate('signingOutPage.title')}
-                subtitle={translate('signingOutPage.subtitle')}
+                title={translate('loggingOutPage.title')}
+                subtitle={translate('loggingOutPage.subtitle')}
                 shouldShowLink={false}
             />
         </ScreenWrapper>
     );
 }
 
-SigningOutPage.displayName = 'SigningOutPage';
+LoggingOutPage.displayName = 'LoggingOutPage';
 
-export default SigningOutPage;
+export default LoggingOutPage;

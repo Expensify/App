@@ -247,10 +247,10 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     hideContextMenu(false);
 
     // Reset storage related to the signing out loading state
-    sessionStorage.removeItem('signingOutContentShown');
+    sessionStorage.removeItem('loggingOutContentShown');
 
     // Navigate to signing out page immediately
-    Navigation.navigate(ROUTES.SIGNING_OUT);
+    Navigation.navigate(ROUTES.LOGGING_OUT);
 
     if (isAnonymousUser()) {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {

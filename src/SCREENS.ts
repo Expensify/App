@@ -729,7 +729,7 @@ const SCREENS = {
         BOOK: 'ScheduleCall_Book',
         CONFIRMATION: 'ScheduleCall_Confirmation',
     },
-    SIGNING_OUT: 'Signing_Out',
+    LOGGING_OUT: 'Signing_Out',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;
