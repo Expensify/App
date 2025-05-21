@@ -703,7 +703,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             focus: () => {
                                 Modal.setDisableDismissOnEscape(true);
                             },
-                            beforeRemove: () => Modal.setDisableDismissOnEscape(false),
                         }}
                     />
                 )}
