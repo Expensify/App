@@ -337,7 +337,7 @@ function TransactionPreviewContent({
                         <Button
                             text={translate('violations.keepThisOne')}
                             success
-                            style={styles.p4}
+                            style={[styles.ph4, styles.pb4]}
                             onPress={navigateToReviewFields}
                         />
                     )}
