@@ -651,7 +651,7 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
     }
 
     // Comments are only grouped if they happen within 5 minutes of each adjacent
-    if (new Date(currentAction?.created).getTime() - new Date(adjacentAction.created).getTime() > CONST.TIMING.REPORT_ACTIONS_GROUPING_TIME) {
+    if (new Date(currentAction?.created).getTime() - new Date(adjacentAction.created).getTime() > CONST.REPORT.ACTIONS.MAX_GROUPING_TIME) {
         return false;
     }
     // Do not group if adjacent action was a created action
