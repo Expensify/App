@@ -1410,7 +1410,7 @@ function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
     });
 }
 
-function isPrefferedExporter(policy: Policy) {
+function isPreferredExporter(policy: Policy) {
     const user = getCurrentUserEmail();
     const exporters = [
         policy.connections?.intacct?.config?.export?.exporter,
