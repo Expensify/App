@@ -91,7 +91,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
                 shouldDisplayHelpButton={false}
             />
             {currentState === undefined ? (
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
                 <ScrollView
                     style={[styles.ph5, styles.pb5]}
