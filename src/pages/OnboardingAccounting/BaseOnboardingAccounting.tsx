@@ -29,6 +29,7 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/acti
 import getPlatform from '@libs/getPlatform';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
@@ -89,7 +90,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             setRootStatusBarEnabled(false);
             return;
         }
-        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        waitForIdle().then(() => {
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        });
     }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
