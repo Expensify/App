@@ -396,19 +396,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
 
-    const toggleOrNavigate = useCallback(
-        (item: MemberOption) => {
-            if (item.isDisabledCheckbox) {
-                return;
-            }
-            if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
-                toggleUser(item.accountID);
-                return;
-            }
-            openMemberDetails(item);
-        },
-        [shouldUseNarrowLayout, selectionMode, openMemberDetails, toggleUser],
-    );
     /**
      * Dismisses the errors on one item
      */
@@ -816,7 +803,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                                 shouldUseUserSkeletonView
                                 disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                                 headerMessage={shouldUseNarrowLayout ? headerMessage : undefined}
-                                onSelectRow={toggleOrNavigate}
+                                onSelectRow={openMemberDetails}
                                 shouldSingleExecuteRowSelect={!isPolicyAdmin}
                                 onCheckboxPress={(item) => toggleUser(item.accountID)}
                                 onSelectAll={() => toggleAllUsers(filteredData)}
