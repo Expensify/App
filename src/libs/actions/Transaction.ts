@@ -19,7 +19,7 @@ import {
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
 } from '@libs/ReportUtils';
-import {getAmount, getTransaction, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {getAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, RecentWaypoint, Report, ReportAction, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
@@ -498,7 +498,7 @@ function getLastModifiedExpense(reportID?: string): OriginalMessageModifiedExpen
 }
 
 function revert(transactionID?: string, originalMessage?: OriginalMessageModifiedExpense | undefined) {
-    const transaction = getTransaction(transactionID);
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
 
     if (transaction && originalMessage?.oldAmount && originalMessage.oldCurrency && 'amount' in originalMessage && 'currency' in originalMessage) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
