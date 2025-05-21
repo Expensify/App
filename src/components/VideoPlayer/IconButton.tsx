@@ -15,10 +15,11 @@ type IconButtonProps = {
     style?: StyleProp<ViewStyle>;
     hoverStyle?: StyleProp<ViewStyle>;
     small?: boolean;
+    large?: boolean;
     shouldForceRenderingTooltipBelow?: boolean;
 };
 
-function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipText = '', small = false, shouldForceRenderingTooltipBelow = false}: IconButtonProps) {
+function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipText = '', small = false, large = false, shouldForceRenderingTooltipBelow = false}: IconButtonProps) {
     const styles = useThemeStyles();
     return (
         <Tooltip
@@ -36,6 +37,7 @@ function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipTex
                     src={src}
                     fill={fill}
                     small={small}
+                    large={large}
                 />
             </PressableWithFeedback>
         </Tooltip>
