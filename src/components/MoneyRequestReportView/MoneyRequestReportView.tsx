@@ -158,7 +158,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         [activeWorkspaceID, backToRoute, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
-    if (isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) {
+    if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || !transactions) {
         return <InitialLoadingSkeleton styles={styles} />;
     }
 
