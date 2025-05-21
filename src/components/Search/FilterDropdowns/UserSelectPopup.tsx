@@ -1,3 +1,4 @@
+import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -16,7 +17,6 @@ import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
-import isEmpty from 'lodash/isEmpty';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function getSelectedOptionData(option: Option) {
@@ -84,16 +84,16 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             },
         );
 
-        const { personalDetails: filteredOptionsList, recentReports } = filterAndOrderOptions(optionsList, cleanSearchTerm, {
+        const {personalDetails: filteredOptionsList, recentReports} = filterAndOrderOptions(optionsList, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
         const personalDetailList = filteredOptionsList.map((participant) => ({
             ...participant,
             isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
         }));
-        
+
         return [...(recentReports ?? []), ...(personalDetailList ?? [])];
     }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions]);
 
