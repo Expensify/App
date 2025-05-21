@@ -14,8 +14,12 @@ const componentsSpacing = {
 const NEXT_TRANSACTION_PEEK = 32;
 const TRANSACTION_WIDTH_WIDE = CONST.REPORT.TRANSACTION_PREVIEW_WIDTH_WIDE;
 
+const getPeek = (isSingleTransaction?: boolean) => {
+    return isSingleTransaction ? spacing.p4.padding : NEXT_TRANSACTION_PEEK;
+};
+
 const mobileStyle = (currentWidth: number, isSingleTransaction?: boolean) => {
-    const peek = isSingleTransaction ? spacing.p4.padding : NEXT_TRANSACTION_PEEK;
+    const peek = getPeek(isSingleTransaction);
     const transactionPreviewWidth = currentWidth - spacing.p4.padding - peek;
     return {
         transactionPreviewStyle: {width: transactionPreviewWidth, maxWidth: transactionPreviewWidth},
@@ -25,12 +29,12 @@ const mobileStyle = (currentWidth: number, isSingleTransaction?: boolean) => {
 };
 
 const desktopStyle = (currentWrapperWidth: number, isSingleTransaction?: boolean) => {
-    const peek = isSingleTransaction ? spacing.p4.padding : NEXT_TRANSACTION_PEEK;
+    const peek = getPeek(isSingleTransaction);
+    const minimalWrapperWidth = TRANSACTION_WIDTH_WIDE + spacing.p4.padding + getPeek(isSingleTransaction);
     const transactionPreviewWidth = currentWrapperWidth - spacing.p4.padding - peek;
-    const minimalWrapperWidth = TRANSACTION_WIDTH_WIDE + spacing.p4.padding + peek;
     return {
         transactionPreviewStyle: {width: currentWrapperWidth > minimalWrapperWidth ? TRANSACTION_WIDTH_WIDE : transactionPreviewWidth},
-        componentStyle: [{maxWidth: 'min(680px, 100%)'}, {width: 'min-content'}],
+        componentStyle: [{maxWidth: 'min(680px, 100%)'}, {width: currentWrapperWidth > minimalWrapperWidth ? 'min-content' : '100%'}],
         expenseCountVisible: transactionPreviewWidth >= TRANSACTION_WIDTH_WIDE,
     };
 };

@@ -71,7 +71,6 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
                             action={mockAction}
                             iouReportID={mockIOUReport.iouReportID}
                             chatReportID={mockChatReport.chatReportID}
-                            containerStyles={[]}
                             contextMenuAnchor={contextMenuAnchor}
                             checkIfContextMenuActive={() => {}}
                             onPaymentOptionsShow={() => {}}
