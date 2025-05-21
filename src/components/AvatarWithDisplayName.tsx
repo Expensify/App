@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {TextStyle} from 'react-native';
+import type {ColorValue, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
@@ -69,6 +69,9 @@ type AvatarWithDisplayNameProps = {
 
     /** Whether to open the parent report link in the current tab if possible */
     openParentReportInCurrentTab?: boolean;
+
+    /** Color of the secondary avatar border, usually should match the container background */
+    avatarBorderColor?: ColorValue;
 };
 
 const fallbackIcon: Icon = {
@@ -164,6 +167,7 @@ function AvatarWithDisplayName({
     shouldUseCustomSearchTitleName = false,
     transactions = [],
     openParentReportInCurrentTab = false,
+    avatarBorderColor: avatarBorderColorProp,
 }: AvatarWithDisplayNameProps) {
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false}) ?? CONST.EMPTY_OBJECT;
@@ -185,7 +189,7 @@ function AvatarWithDisplayName({
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = shouldReportShowSubscript(report);
-    const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
+    const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
