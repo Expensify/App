@@ -16,6 +16,7 @@ import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
+import isEmpty from 'lodash/isEmpty';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function getSelectedOptionData(option: Option) {
@@ -75,50 +76,37 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
-            {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT},
+            {
+                selectedOptions,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                includeSelectedOptions: true,
+                includeSelfDM: true,
+            },
         );
 
-        const filteredOptionsList = filterAndOrderOptions(optionsList, cleanSearchTerm, {
+        const { personalDetails: filteredOptionsList, recentReports } = filterAndOrderOptions(optionsList, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW
         });
 
-        const personalDetailList = filteredOptionsList.personalDetails.map((participant) => ({
+        const personalDetailList = filteredOptionsList.map((participant) => ({
             ...participant,
             isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
         }));
-
-        const recentReportList = filteredOptionsList.recentReports.map((report) => ({
-            ...report,
-            isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === report.accountID),
-        }));
-
-        const currentUserOption = filteredOptionsList.currentUserOption
-            ? {
-                  ...filteredOptionsList.currentUserOption,
-                  isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === filteredOptionsList.currentUserOption?.accountID),
-              }
-            : null;
-
-        return {personalDetails: personalDetailList, recentReports: recentReportList, currentUserOption};
+        
+        return [...(recentReports ?? []), ...(personalDetailList ?? [])];
     }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
-            ...(listData.currentUserOption ? [{title: '', data: [listData.currentUserOption], shouldShow: true}] : []),
             {
                 title: '',
-                data: listData.recentReports,
-                shouldShow: listData.recentReports.length > 0,
-            },
-            {
-                title: '',
-                data: listData.personalDetails,
-                shouldShow: listData.personalDetails.length > 0,
+                data: listData,
+                shouldShow: !isEmpty(listData),
             },
         ];
 
-        const noResultsFound = listData.personalDetails.length === 0 && listData.recentReports.length === 0 && !listData.currentUserOption;
+        const noResultsFound = isEmpty(listData);
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {

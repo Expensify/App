@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -24,7 +24,6 @@ import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
@@ -116,7 +115,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const StyleUtils = useStyleUtils();
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -331,7 +329,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
             {shouldShowSelectedDropdown ? (
-                <View style={styles.flexRow}>
+                <View style={[styles.flexRow, styles.gap3]}>
                     <ButtonWithDropdownMenu
                         onPress={() => null}
                         shouldAlwaysShowDropdownMenu
@@ -346,15 +344,14 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                         popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
                     />
                     {!isExportMode && shouldShowExportModeOption && (
-                        <View style={[styles.button, styles.bgTransparent]}>
-                            <Button
-                                link
-                                shouldUseDefaultHover={false}
-                                innerStyles={[styles.p0, StyleUtils.getResetStyle<ViewStyle>(['height', 'minHeight'])]}
-                                onPress={() => setExportMode(true)}
-                                text={translate('search.exportAll.selectAllMatchingItems')}
-                            />
-                        </View>
+                        <Button
+                            link
+                            small
+                            shouldUseDefaultHover={false}
+                            innerStyles={styles.p0}
+                            onPress={() => setExportMode(true)}
+                            text={translate('search.exportAll.selectAllMatchingItems')}
+                        />
                     )}
                 </View>
             ) : (

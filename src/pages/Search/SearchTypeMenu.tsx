@@ -241,7 +241,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 ))}
                 {shouldShowSavedSearchesMenuItemTitle && (
                     <View>
-                        <Text style={[styles.sectionTitle, styles.pb1, styles.mt3]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
+                        <Text style={[styles.sectionTitle, styles.pb1]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
                         {renderSavedSearchesSection(savedSearchesMenuItems)}
                         <DeleteConfirmModal />
                     </View>
