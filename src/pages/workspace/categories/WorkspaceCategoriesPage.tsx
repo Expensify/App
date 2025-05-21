@@ -231,6 +231,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             setSelectedCategories([]);
         });
     };
+    const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
@@ -320,7 +321,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
         return (
             <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                {!hasAccountingConnections(policy) && (
+                {!hasAccountingConnections(policy) && hasVisibleCategories && (
                     <Button
                         success
                         onPress={navigateToCreateCategoryPage}
@@ -349,7 +350,17 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         setSelectedCategories([]);
     }, [setSelectedCategories, selectionMode?.isEnabled]);
 
-    const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+    const navigateToImportSpreadsheet = useCallback(() => {
+        if (isOffline) {
+            close(() => setIsOfflineModalVisible(true));
+            return;
+        }
+        Navigation.navigate(
+            isQuickSettingsFlow
+                ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyId, backTo))
+                : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId),
+        );
+    }, [backTo, isOffline, isQuickSettingsFlow, policyId]);
 
     const threeDotsMenuItems = useMemo(() => {
         const menuItems = [];
@@ -357,17 +368,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             menuItems.push({
                 icon: Expensicons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
-                onSelected: () => {
-                    if (isOffline) {
-                        close(() => setIsOfflineModalVisible(true));
-                        return;
-                    }
-                    Navigation.navigate(
-                        isQuickSettingsFlow
-                            ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyId, backTo))
-                            : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId),
-                    );
-                },
+                onSelected: navigateToImportSpreadsheet,
             });
         }
         if (hasVisibleCategories) {
@@ -389,7 +390,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
 
         return menuItems;
-    }, [policyId, translate, isOffline, hasVisibleCategories, policy, isQuickSettingsFlow, backTo]);
+    }, [policyId, translate, isOffline, hasVisibleCategories, policy, navigateToImportSpreadsheet]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
@@ -508,6 +509,21 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                                 headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                                 lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                                 headerContentStyles={styles.emptyStateFolderWebStyles}
+                                buttons={[
+                                    {
+                                        icon: Expensicons.Plus,
+                                        buttonText: translate('workspace.categories.addCategory'),
+                                        buttonAction: navigateToCreateCategoryPage,
+                                        success: true,
+                                        style: [!shouldUseNarrowLayout && styles.flexBasisAuto],
+                                    },
+                                    {
+                                        icon: Expensicons.Table,
+                                        buttonText: translate('spreadsheet.importSpreadsheet'),
+                                        buttonAction: navigateToImportSpreadsheet,
+                                        style: [!shouldUseNarrowLayout && styles.flexBasisAuto],
+                                    },
+                                ]}
                             />
                         </ScrollView>
                     )}
