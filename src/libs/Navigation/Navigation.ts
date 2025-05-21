@@ -3,6 +3,7 @@ import type {EventArg, NavigationAction, NavigationContainerEventMap} from '@rea
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
+import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
@@ -565,7 +566,9 @@ const dismissModalWithReport = (navigateToReportPayload: DismissModalWithReportP
             return;
         }
         dismissModal();
-        navigate(reportRoute);
+        InteractionManager.runAfterInteractions(() => {
+            navigate(reportRoute);
+        });
     });
 };
 
