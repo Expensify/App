@@ -113,26 +113,6 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                 );
             }
 
-            if (field.id === ACCOUNT_HOLDER_NAME) {
-                return (
-                    <View
-                        style={styles.mb6}
-                        key={field.id}
-                    >
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={field.id}
-                            label={field.label}
-                            aria-label={field.label}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={String(defaultValues[field.id as keyof typeof defaultValues]) ?? ''}
-                            shouldSaveDraft={!isEditing}
-                            hint={translate('bankInfoStep.accountHolderNameDescription')}
-                        />
-                    </View>
-                );
-            }
-
             return (
                 <View
                     style={styles.mb6}
@@ -151,6 +131,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                             street: 'accountHolderAddress1',
                             city: 'accountHolderCity',
                         }}
+                        hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
                     />
                 </View>
             );
