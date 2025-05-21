@@ -12,7 +12,6 @@ import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
@@ -22,7 +21,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import type {WORKSPACE_HUB_TO_RHP} from '@libs/Navigation/linkingConfig/RELATIONS';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
@@ -34,7 +32,6 @@ import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import {openInitialSettingsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -61,9 +58,6 @@ type MenuData = {
     iconRight?: IconAsset;
     badgeText?: string;
     badgeStyle?: ViewStyle;
-    shouldRenderTooltip?: boolean;
-    renderTooltipContent?: () => React.JSX.Element;
-    onEducationTooltipPress?: () => void;
 };
 
 function WorkspaceHubInitialPage() {
@@ -88,15 +82,6 @@ function WorkspaceHubInitialPage() {
 
     const freeTrialText = getFreeTrialText(policies);
 
-    const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
-    const isWorkspacesTabSelected = focusedRouteName === SCREENS.WORKSPACE_HUB.WORKSPACES;
-
-    const {
-        renderProductTrainingTooltip: renderWorkspaceSettingsTooltip,
-        shouldShowProductTrainingTooltip: shouldShowWorkspaceSettingsTooltip,
-        hideProductTrainingTooltip: hideWorkspaceSettingsTooltip,
-    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACES_SETTINGS, isScreenFocused && !isWorkspacesTabSelected);
-
     useEffect(() => {
         openInitialSettingsPage();
         confirmReadyToOpenApp();
@@ -119,11 +104,6 @@ function WorkspaceHubInitialPage() {
         [network.isOffline],
     );
 
-    const navigateToWorkspacesSettings = useCallback(() => {
-        hideWorkspaceSettingsTooltip();
-        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
-    }, [hideWorkspaceSettingsTooltip]);
-
     /**
      * Retuns a list of menu items data for workspace section
      * @returns object with translationKey, style and items for the workspace section
@@ -135,10 +115,7 @@ function WorkspaceHubInitialPage() {
                 icon: Expensicons.Buildings,
                 screenName: SCREENS.WORKSPACE_HUB.WORKSPACES,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, allConnectionSyncProgresses) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                action: navigateToWorkspacesSettings,
-                shouldRenderTooltip: shouldShowWorkspaceSettingsTooltip,
-                renderTooltipContent: renderWorkspaceSettingsTooltip,
-                onEducationTooltipPress: navigateToWorkspacesSettings,
+                action: () => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route),
             },
             {
                 translationKey: 'allSettingsScreen.domains',
@@ -165,17 +142,7 @@ function WorkspaceHubInitialPage() {
         }
 
         return items;
-    }, [
-        allConnectionSyncProgresses,
-        freeTrialText,
-        navigateToWorkspacesSettings,
-        policies,
-        privateSubscription?.errors,
-        renderWorkspaceSettingsTooltip,
-        shouldShowWorkspaceSettingsTooltip,
-        styles.badgeSuccess,
-        subscriptionPlan,
-    ]);
+    }, [allConnectionSyncProgresses, freeTrialText, policies, privateSubscription?.errors, styles.badgeSuccess, subscriptionPlan]);
 
     /**
      * Retuns JSX.Element with menu items
@@ -242,9 +209,6 @@ function WorkspaceHubInitialPage() {
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
                                 shouldIconUseAutoWidthStyle
-                                shouldRenderTooltip={item.shouldRenderTooltip}
-                                renderTooltipContent={item.renderTooltipContent}
-                                onEducationTooltipPress={item.onEducationTooltipPress}
                             />
                         );
                     })}
