@@ -944,6 +944,8 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             return isPolicyApprover || isSubmittedTo;
         }).length > 0;
 
+    // TODO: This option will be enabled soon (removing the && false). We are waiting on BE changes to support this
+    // feature, but lets keep the code here for simplicity
     const showPaySuggestion =
         Object.values(policies).filter<OnyxTypes.Policy>(
             (policy): policy is OnyxTypes.Policy =>
@@ -952,7 +954,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                 policy.type !== CONST.POLICY.TYPE.PERSONAL &&
                 (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ||
                     policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL),
-        ).length > 0;
+        ).length > 0 && false;
 
     const showExportSuggestion =
         Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
@@ -1071,7 +1073,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.DONE],
-                        payer: [`${session.accountID}`],
+                        payer: session.accountID?.toString(),
                     });
                     return queryString;
                 },

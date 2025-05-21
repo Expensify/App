@@ -101,7 +101,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.EXPENSE_TYPE]: string[];
         [FILTER_KEYS.TAG]: string[];
         [FILTER_KEYS.FROM]: string[];
-        [FILTER_KEYS.PAYER]: string[];
+        [FILTER_KEYS.PAYER]: string;
         [FILTER_KEYS.EXPORTER]: string[];
         [FILTER_KEYS.TO]: string[];
         [FILTER_KEYS.IN]: string[];
