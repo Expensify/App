@@ -5113,7 +5113,7 @@ function navigateOnDeleteExpense(backToRoute: Route) {
     const rootState = navigationRef.current?.getRootState();
     if (rootState) {
         const lastFullScreenRoute = rootState.routes.at(-1);
-        //Check if it started from the search route
+        // Check if it started from the search route
         if (lastFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && lastFullScreenRoute?.state?.routes.some((route) => route.name === SCREENS.SEARCH.ROOT)) {
             Navigation.goBack();
             return;
