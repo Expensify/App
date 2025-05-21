@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type CONST from '@src/CONST';
@@ -34,8 +34,12 @@ type DropdownOption<TValueType> = {
     numberOfLinesTitle?: number;
     titleStyle?: ViewStyle;
     shouldCloseModalOnSelect?: boolean;
+    description?: string;
+    descriptionTextStyle?: StyleProp<TextStyle>;
+    wrapperStyle?: StyleProp<ViewStyle>;
     displayInDefaultIconColor?: boolean;
     subMenuItems?: PopoverMenuItem[];
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -128,6 +132,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Callback to execute when a dropdown submenu option is selected */
     onSubitemSelected?: (selectedItem: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
+
+    /** Icon for main button */
+    icon?: IconAsset;
 };
 
 export type {
