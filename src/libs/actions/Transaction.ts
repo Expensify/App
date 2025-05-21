@@ -605,6 +605,10 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
+    const existingSelfDMReportID = findSelfDMReportID();
+    const currentTime = DateUtils.getDBTime();
+    const selfDMReport = buildOptimisticSelfDMReport(currentTime);
+    const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
 
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -657,9 +661,10 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         };
 
         if (oldIOUAction) {
+            const targetReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? existingSelfDMReportID ?? selfDMReport.reportID : reportID;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
                 value: {
                     [newIOUAction.reportActionID]: newIOUAction,
                 },
@@ -819,7 +824,6 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
             value: {[movedAction?.reportActionID]: null},
         });
-        const existingSelfDMReportID = findSelfDMReportID();
 
         // Create base transaction data object
         const baseTransactionData = {
@@ -834,10 +838,6 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         };
 
         if (!existingSelfDMReportID) {
-            const currentTime = DateUtils.getDBTime();
-            const selfDMReport = buildOptimisticSelfDMReport(currentTime);
-            const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
-
             // Add self DM data to transaction data
             transactionIDToReportActionAndThreadData[transaction.transactionID] = {
                 ...baseTransactionData,
