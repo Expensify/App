@@ -275,30 +275,28 @@ function getSearchTableYearAndAmountWidth(data: TransactionListItemType[] | Repo
         }
     } else if (typeof data === 'object') {
         for (const key in data) {
-            if (!Object.prototype.hasOwnProperty.call(data, key)) {
-                continue;
-            }
-
-            if (result.shouldShowYear && result.isLongAmountLength) {
-                return result;
-            }
-
-            if (isTransactionEntry(key)) {
-                const item = data[key];
-                result.isLongAmountLength ||= isFormattedAmountTooLong(item);
-                result.shouldShowYear ||= shouldShowTransactionYear(item);
-            } else if (isReportActionEntry(key)) {
-                const item = data[key];
-                for (const action of Object.values(item)) {
-                    if (DateUtils.doesDateBelongToAPastYear(action.created)) {
-                        result.shouldShowYear = true;
-                        break;
-                    }
+            if (Object.prototype.hasOwnProperty.call(data, key)) {
+                if (result.shouldShowYear && result.isLongAmountLength) {
+                    return result;
                 }
-            } else if (isReportEntry(key)) {
-                const item = data[key];
-                if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
-                    result.shouldShowYear = true;
+
+                if (isTransactionEntry(key)) {
+                    const item = data[key];
+                    result.isLongAmountLength ||= isFormattedAmountTooLong(item);
+                    result.shouldShowYear ||= shouldShowTransactionYear(item);
+                } else if (isReportActionEntry(key)) {
+                    const item = data[key];
+                    for (const action of Object.values(item)) {
+                        if (DateUtils.doesDateBelongToAPastYear(action.created)) {
+                            result.shouldShowYear = true;
+                            break;
+                        }
+                    }
+                } else if (isReportEntry(key)) {
+                    const item = data[key];
+                    if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+                        result.shouldShowYear = true;
+                    }
                 }
             }
         }

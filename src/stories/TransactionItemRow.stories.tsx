@@ -66,6 +66,7 @@ function Template(
                         isSelected={isSelected}
                         shouldShowTooltip={shouldShowTooltip}
                         dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         onCheckboxPress={() => {}}
                         shouldShowCheckbox={shouldShowCheckbox}
                     />
