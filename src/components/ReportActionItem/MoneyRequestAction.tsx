@@ -1,12 +1,14 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -20,6 +22,7 @@ import {
 import {generateReportID} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,11 +84,12 @@ function MoneyRequestAction({
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false, canBeMissing: true});
 
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
-    const [previewWidth, setPreviewWidth] = useState(255);
+    const [previewWidth, setPreviewWidth] = useState(0);
     const containerStyles = useMemo(
         () => [
             {
@@ -147,29 +151,44 @@ function MoneyRequestAction({
 
     // Condition extracted from MoneyRequestPreview
     const renderCondition = lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction);
+    const isLayoutWidthInvalid = (layoutWidth: number) => {
+        const isNarrowLayout = getIsNarrowLayout();
+        return (isNarrowLayout && layoutWidth > variables.mobileResponsiveWidthBreakpoint) || (!isNarrowLayout && layoutWidth > variables.sideBarWidth);
+    };
+
     return renderCondition ? null : (
         <View
             onLayout={(e: LayoutChangeEvent) => {
-                setPreviewWidth(e.nativeEvent.layout.width ?? 255);
+                if (isLayoutWidthInvalid(e.nativeEvent.layout.width)) {
+                    return;
+                }
+                setPreviewWidth(e.nativeEvent.layout.width);
             }}
         >
-            <TransactionPreview
-                iouReportID={requestReportID}
-                chatReportID={chatReportID}
-                reportID={reportID}
-                action={action}
-                transactionPreviewWidth={previewWidth}
-                isBillSplit={isSplitBillAction}
-                isTrackExpense={isTrackExpenseAction}
-                contextMenuAnchor={contextMenuAnchor}
-                checkIfContextMenuActive={checkIfContextMenuActive}
-                shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-                onPreviewPressed={onMoneyRequestPreviewPressed}
-                containerStyles={containerStyles}
-                isHovered={isHovered}
-                isWhisper={isWhisper}
-                shouldDisplayContextMenu={shouldDisplayContextMenu}
-            />
+            {!previewWidth ? (
+                <ActivityIndicator
+                    color={theme.spinner}
+                    size={40}
+                />
+            ) : (
+                <TransactionPreview
+                    iouReportID={requestReportID}
+                    chatReportID={chatReportID}
+                    reportID={reportID}
+                    action={action}
+                    transactionPreviewWidth={previewWidth}
+                    isBillSplit={isSplitBillAction}
+                    isTrackExpense={isTrackExpenseAction}
+                    contextMenuAnchor={contextMenuAnchor}
+                    checkIfContextMenuActive={checkIfContextMenuActive}
+                    shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+                    onPreviewPressed={onMoneyRequestPreviewPressed}
+                    containerStyles={containerStyles}
+                    isHovered={isHovered}
+                    isWhisper={isWhisper}
+                    shouldDisplayContextMenu={shouldDisplayContextMenu}
+                />
+            )}
         </View>
     );
 }
