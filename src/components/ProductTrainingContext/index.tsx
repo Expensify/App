@@ -59,7 +59,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate,canBeMissing: true})
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
 
     const isUserPolicyEmployee = useMemo(() => {
         if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
@@ -199,7 +199,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
             return false;
         },
-        [shouldTooltipBeVisible, determineVisibleTooltip],
+        [isActingAsDelegate, shouldTooltipBeVisible, determineVisibleTooltip],
     );
 
     const contextValue = useMemo(
