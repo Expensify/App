@@ -73,8 +73,8 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
-    const {isExpenseSplit} = getOriginalTransactionIfItIsSplit(reportTransaction);
-    if (isExpenseSplit) {
+    const {isExpenseSplit, isBillSplit} = getOriginalTransactionIfItIsSplit(reportTransaction);
+    if (isExpenseSplit || isBillSplit) {
         return false;
     }
 
