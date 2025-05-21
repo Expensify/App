@@ -1196,6 +1196,7 @@ const CONST = {
         SPLIT_REPORT_ID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
+            REMOVE_HOLD: 'removeHold',
             APPROVE: 'approve',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',

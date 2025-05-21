@@ -706,6 +706,21 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 changeMoneyRequestHoldStatus(requestParentReportAction);
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD]: {
+            text: translate('iou.unhold'),
+            icon: Expensicons.Stopwatch,
+            value: CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD,
+            onSelected: () => {
+                const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
+
+                const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+                if (!moneyRequestAction) {
+                    return;
+                }
+
+                changeMoneyRequestHoldStatus(moneyRequestAction);
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {
             text: translate('iou.changeWorkspace'),
             icon: Expensicons.Buildings,

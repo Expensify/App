@@ -9,9 +9,11 @@ import {
     getAllPolicies,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
+    getPolicy,
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
+    isPolicyAdmin,
     isPreferredExporter,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
@@ -292,6 +294,28 @@ function isHoldAction(report: Report, reportTransactions: Transaction[], reportA
     return isTransactionOnHold;
 }
 
+function isRemoveHoldAction(report: Report, reportTransactions: Transaction[], reportActions?: ReportAction[], policy?: Policy): boolean {
+    const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
+
+    if (!isReportOnHold) {
+        return false;
+    }
+
+    const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions);
+
+    if (!transactionThreadReportID) {
+        return false;
+    }
+
+    const isHolder = reportTransactions.some((transaction) => isHoldCreator(transaction, transactionThreadReportID))
+
+    if (isHolder){
+        return false;
+    }
+
+    return policy?.role === CONST.POLICY.ROLE.ADMIN;
+}
+
 function isHoldActionForTransaction(report: Report, reportTransaction: Transaction): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
@@ -400,6 +424,7 @@ function getSecondaryReportActions(
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
+
     if (canUseTableReportView && isAddExpenseAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
@@ -436,6 +461,10 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
+    if (isRemoveHoldAction(report, reportTransactions, reportActions, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
@@ -466,16 +495,13 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
     return isHoldCreator(reportTransaction, report.reportID) || policy?.role === CONST.POLICY.ROLE.ADMIN
 }
 
-function getSecondaryTransactionThreadActions(parentReport: Report, reportTransaction: Transaction, policy?: Policy): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
+function getSecondaryTransactionThreadActions(parentReport: Report, reportTransaction: Transaction): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
     if (isHoldActionForTransaction(parentReport, reportTransaction)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 
-    if (isRemoveHoldActionForTransaction(parentReport, reportTransaction, policy)) {
-        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
-    }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
