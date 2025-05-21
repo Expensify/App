@@ -19,10 +19,12 @@ import {
     canAddTransaction,
     canEditFieldOfMoneyRequest,
     isArchivedReport,
+    isClosedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
     isExported as isExportedUtils,
+    isHoldCreator,
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
     isOpenReport as isOpenReportUtils,
@@ -455,10 +457,23 @@ function getSecondaryReportActions(
     return options;
 }
 
-function getSecondaryTransactionThreadActions(parentReport: Report, reportTransaction: Transaction): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
+function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Transaction, policy?: Policy): boolean {
+
+    if (!isOnHoldTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    return isHoldCreator(reportTransaction, report.reportID) || policy?.role === CONST.POLICY.ROLE.ADMIN
+}
+
+function getSecondaryTransactionThreadActions(parentReport: Report, reportTransaction: Transaction, policy?: Policy): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
     if (isHoldActionForTransaction(parentReport, reportTransaction)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
+    }
+
+    if (isRemoveHoldActionForTransaction(parentReport, reportTransaction, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 
