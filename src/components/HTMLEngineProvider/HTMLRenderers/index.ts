@@ -10,7 +10,7 @@ import MentionReportRenderer from './MentionReportRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
 import PreRenderer from './PreRenderer';
-import RbrRenderer from './RbrRenderer';
+import RBRRenderer from './RbrRenderer';
 import ShortMentionRenderer from './ShortMentionRenderer';
 import TaskTitleRenderer from './TaskTitleRenderer';
 import VideoRenderer from './VideoRenderer';
@@ -30,7 +30,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     pre: PreRenderer,
     /* eslint-disable @typescript-eslint/naming-convention */
     'task-title': TaskTitleRenderer,
-    rbr: RbrRenderer,
+    rbr: RBRRenderer,
     'mention-user': MentionUserRenderer,
     'mention-report': MentionReportRenderer,
     'mention-here': MentionHereRenderer,

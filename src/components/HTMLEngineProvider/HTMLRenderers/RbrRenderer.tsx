@@ -4,7 +4,7 @@ import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function RbrRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
+function RBRRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
     const htmlAttribs = tnode.attributes;
     const shouldShowEllipsis = htmlAttribs?.shouldshowellipsis !== undefined;
@@ -28,6 +28,6 @@ function RbrRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     );
 }
 
-RbrRenderer.displayName = 'RbrRenderer';
+RBRRenderer.displayName = 'RBRRenderer';
 
-export default RbrRenderer;
+export default RBRRenderer;

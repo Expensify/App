@@ -88,7 +88,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         let linkStyle: StyleProp<TextStyle> = styles.link;
 
         // Special handling for links in alert-text to maintain consistent font size
-        if (HTMLEngineUtils.isChildOfRbr(tnode)) {
+        if (HTMLEngineUtils.isChildOfRBR(tnode)) {
             linkStyle = [
                 styles.link,
                 {
