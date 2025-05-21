@@ -24,6 +24,8 @@ const getTypeIcon = (type?: string) => {
     switch (type) {
         case CONST.SEARCH.TRANSACTION_TYPE.CARD:
             return Expensicons.CreditCard;
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+            return Expensicons.Car;
         case CONST.SEARCH.TRANSACTION_TYPE.CASH:
         default:
             return Expensicons.Cash;
@@ -32,6 +34,8 @@ const getTypeIcon = (type?: string) => {
 
 const getTypeText = (type?: string): TranslationPaths => {
     switch (type) {
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+            return 'common.distance';
         case CONST.SEARCH.TRANSACTION_TYPE.CARD:
             return 'iou.card';
         case CONST.SEARCH.TRANSACTION_TYPE.CASH:
@@ -43,7 +47,7 @@ const getTypeText = (type?: string): TranslationPaths => {
 function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: TransactionDataCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
-    const type = getType(transactionItem.cardName);
+    const type = transactionItem.transactionType ?? getType(transactionItem.cardName);
     const typeIcon = getTypeIcon(type);
     const typeText = getTypeText(type);
     const styles = useThemeStyles();
