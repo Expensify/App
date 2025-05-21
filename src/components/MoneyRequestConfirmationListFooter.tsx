@@ -9,13 +9,14 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
-import {canSendInvoice, getPerDiemCustomUnit, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {canSendInvoice, getPerDiemCustomUnit, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isReportOutstanding, populateOptimisticReportFormula} from '@libs/ReportUtils';
@@ -42,6 +43,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Badge from './Badge';
 import ConfirmedRoute from './ConfirmedRoute';
+import HighlightableIOUMenuItem from './HIghlightableIOUMenuItem';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
@@ -270,6 +272,7 @@ function MoneyRequestConfirmationListFooter({
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
+    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const isMultilevelTags = useMemo(() => isMultiLevelTagsPolicyUtils(policyTags), [policyTags]);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
@@ -549,14 +552,32 @@ function MoneyRequestConfirmationListFooter({
         },
         ...policyTagLists.map(({name, required, tags}, index) => {
             const isTagRequired = required ?? false;
-            const shouldShow = shouldShowTags && (!isMultilevelTags || hasEnabledOptions(tags));
+            let shouldShow = false;
+
+            if (shouldShowTags) {
+                if (hasDependentTags) {
+                    if (index === 0) {
+                        shouldShow = true;
+                    } else {
+                        const prevTagValue = getTagForDisplay(transaction, index - 1);
+                        shouldShow = !!prevTagValue;
+                    }
+                } else {
+                    shouldShow = !isMultilevelTags || hasEnabledOptions(tags);
+                }
+            }
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/rules-of-hooks
+            const previousValue = usePrevious(shouldShow);
             return {
                 item: (
-                    <MenuItemWithTopDescription
+                    <HighlightableIOUMenuItem
+                        highlighted={shouldShow && !getTagForDisplay(transaction, index) && !previousValue}
                         key={name}
                         shouldShowRightIcon={!isReadOnly}
                         title={getTagForDisplay(transaction, index)}
                         description={name}
+                        shouldShowBasicTitle
+                        shouldShowDescriptionOnTop
                         numberOfLinesTitle={2}
                         onPress={() => {
                             if (!transactionID) {
@@ -575,6 +596,7 @@ function MoneyRequestConfirmationListFooter({
                 isSupplementary: !isTagRequired,
             };
         }),
+
         {
             item: (
                 <MenuItemWithTopDescription
