@@ -4268,6 +4268,21 @@ const translations = {
             tagRules: 'Reglas de etiquetas',
             approverDescription: 'Aprobador',
             importTags: 'Importar categorías',
+            importTagsSupportingText: 'Clasifica tus gastos con un tipo de etiqueta o con varios.',
+            tagLevel: {
+                singleLevel: 'Nivel único de etiquetas',
+                multiLevel: 'Etiquetas multinivel',
+            },
+            switchSingleToMultiLevelTagWarning: {
+                title: 'Cambiar niveles de etiquetas',
+                prompt1: 'Cambiar el nivel de etiquetas eliminará todas las etiquetas actuales.',
+                prompt2: ' Te recomendamos primero',
+                prompt3: ' descargar una copia de seguridad',
+                prompt4: ' exportando tus etiquetas.',
+                prompt5: ' Aprende más',
+                prompt6: ' sobre los niveles de etiquetas.',
+            },
+
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
             cannotDeleteOrDisableAllTags: {
@@ -4923,6 +4938,12 @@ const translations = {
                 description:
                     'Expensify Travel es una nueva plataforma corporativa de reserva y gestión de viajes que permite a los miembros reservar alojamientos, vuelos, transporte y mucho más.',
                 onlyAvailableOnPlan: 'Los viajes están disponibles en el plan Recopilar, a partir de ',
+            },
+            multiLevelTags: {
+                title: 'Etiquetas multinivel',
+                description:
+                    'Las etiquetas multinivel te ayudan a llevar un control más preciso de los gastos. Asigna múltiples etiquetas a cada partida, como departamento, cliente o centro de costos, para capturar el contexto completo de cada gasto. Esto permite informes más detallados, flujos de aprobación y exportaciones contables.',
+                onlyAvailableOnPlan: 'Las etiquetas multinivel solo están disponibles en el plan Control, a partir de ',
             },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',

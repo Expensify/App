@@ -461,16 +461,24 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    Navigation.navigate(
-                        isQuickSettingsFlow
-                            ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                            : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                    );
+                    if (canUseMultiLevelTags) {
+                        Navigation.navigate(
+                            isQuickSettingsFlow
+                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
+                        );
+                    } else {
+                        Navigation.navigate(
+                            isQuickSettingsFlow
+                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                        );
+                    }
                 },
             });
         }
 
-        if (hasVisibleTags) {
+        if (hasVisibleTags && !hasDependentTags) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('spreadsheet.downloadCSV'),
@@ -548,7 +556,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
                             Navigation.popToSidebar();
                         }}
-                        shouldShowThreeDotsButton={canUseMultiLevelTags ? !hasDependentTags : !policy?.hasMultipleTagLists}
+                        shouldShowThreeDotsButton={canUseMultiLevelTags ? true : !policy?.hasMultipleTagLists}
                         threeDotsMenuItems={threeDotsMenuItems}
                         threeDotsAnchorPosition={threeDotsAnchorPosition}
                     >
@@ -649,7 +657,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                                 Navigation.navigate(
                                                     isQuickSettingsFlow
                                                         ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                                        : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                                                        : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
                                                 );
                                             },
                                         },

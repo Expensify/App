@@ -685,6 +685,9 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
     }
 }
 
+function TogglePolicyTags(policyID: string) {
+    API.write(WRITE_COMMANDS.TOGGLE_POLICY_TAGS, {policyID});
+}
 function renamePolicyTagList(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagLists>, tagListIndex: number) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
@@ -1067,4 +1070,5 @@ export {
     downloadTagsCSV,
     getPolicyTagsData,
     downloadMultiLevelIndependentTagsCSV,
+    TogglePolicyTags,
 };

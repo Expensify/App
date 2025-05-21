@@ -4224,6 +4224,20 @@ const translations = {
             tagRules: 'Tag rules',
             approverDescription: 'Approver',
             importTags: 'Import tags',
+            importTagsSupportingText: 'Code your expenses with one type of tag or many.',
+            tagLevel: {
+                singleLevel: 'Single level of tags',
+                multiLevel: 'Multi-level tags',
+            },
+            switchSingleToMultiLevelTagWarning: {
+                title: 'Switch Tag Levels',
+                prompt1: 'Switching tag levels will erase all current tags.',
+                prompt2: ' We suggest you first',
+                prompt3: ' download a backup',
+                prompt4: ' by exporting your tags.',
+                prompt5: ' Learn more',
+                prompt6: ' about tag levels.',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
             cannotDeleteOrDisableAllTags: {
@@ -4856,6 +4870,12 @@ const translations = {
                 title: 'Travel',
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
                 onlyAvailableOnPlan: 'Travel is available on the Collect plan, starting at ',
+            },
+            multiLevelTags: {
+                title: 'Multi-level tags',
+                description:
+                    'Multi-Level Tags help you track expenses with greater precision. Assign multiple tags to each line item—such as department, client, or cost center—to capture the full context of every expense. This enables more detailed reporting, approval workflows, and accounting exports.',
+                onlyAvailableOnPlan: 'Multi-level tags are only available on the Control plan, starting at ',
             },
             pricing: {
                 perActiveMember: 'per active member per month.',

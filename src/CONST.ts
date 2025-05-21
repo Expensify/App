@@ -6757,6 +6757,15 @@ const CONST = {
                 description: 'workspace.upgrade.categories.description' as const,
                 icon: 'FolderOpen',
             },
+            multiLevelTags: {
+                id: 'multiLevelTags' as const,
+                alias: 'multiLevelTags',
+                name: 'multiLevelTags',
+                title: 'workspace.upgrade.multiLevelTags.title' as const,
+                description: 'workspace.upgrade.multiLevelTags.description' as const,
+                icon: 'Tag',
+            },
+
             [this.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 id: this.POLICY.CONNECTIONS.NAME.NETSUITE,
                 alias: 'netsuite',

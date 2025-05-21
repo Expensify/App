@@ -536,6 +536,7 @@ const SCREENS = {
         TAGS_SETTINGS: 'Tags_Settings',
         TAGS_EDIT: 'Tags_Edit',
         TAGS_IMPORT: 'Tags_Import',
+        TAGS_IMPORT_OPTIONS: 'Tags_Import_Options',
         TAGS_IMPORTED: 'Tags_Imported',
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',

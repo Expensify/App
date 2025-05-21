@@ -1502,6 +1502,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tags/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/import` as const,
     },
+    WORKSPACE_TAGS_IMPORT_OPTIONS: {
+        route: 'settings/workspaces/:policyID/tags/import-options',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/import-options` as const,
+    },
     WORKSPACE_TAGS_IMPORTED: {
         route: 'settings/workspaces/:policyID/tags/imported',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/imported` as const,
