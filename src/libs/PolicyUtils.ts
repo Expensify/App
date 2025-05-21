@@ -425,20 +425,8 @@ function escapeTagName(tag: string) {
 /**
  * Gets a count of enabled tags of a policy
  */
-function getCountOfEnabledTagsOfList(policyTags: PolicyTags | undefined): number {
-    if (!policyTags) {
-        return 0;
-    }
+function getCountOfEnabledTagsOfList(policyTags: PolicyTags) {
     return Object.values(policyTags).filter((policyTag) => policyTag.enabled).length;
-}
-/**
- * Gets count of required tag lists of a policy
- */
-function getCountOfRequiredTagLists(policyTagLists: OnyxEntry<PolicyTagLists>): number {
-    if (!policyTagLists) {
-        return 0;
-    }
-    return Object.values(policyTagLists).filter((tagList) => tagList.required).length;
 }
 
 /**
@@ -1560,7 +1548,6 @@ export {
     getManagerAccountID,
     isPreferredExporter,
     areAllGroupPoliciesExpenseChatDisabled,
-    getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
     isUserInvitedToWorkspace,
     getPolicyRole,
