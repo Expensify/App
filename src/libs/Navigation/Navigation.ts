@@ -517,8 +517,6 @@ function waitForProtectedRoutes() {
     });
 }
 
-type DismissModalWithReportPayload = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-
 function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navigationRef.getRootState().routes): NavigationRoute | null {
     if (!reportID || !routes?.length) {
         return null;
@@ -549,17 +547,18 @@ const dismissModal = (ref = navigationRef) => {
 /**
  * Dismisses the modal and opens the given report.
  */
-const dismissModalWithReport = (navigateToReportPayload: DismissModalWithReportPayload, ref = navigationRef) => {
+const dismissModalWithReport = (
+    {reportID, reportActionID, referrer, moneyRequestReportActionID, transactionID, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
+    ref = navigationRef,
+) => {
     isNavigationReady().then(() => {
         const topmostReportID = getTopmostReportId();
-        const navigateToReportID = navigateToReportPayload.reportID;
-        const areReportsIDsDefined = !!topmostReportID && !!navigateToReportID;
+        const areReportsIDsDefined = !!topmostReportID && !!reportID;
         const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
-        if (topmostReportID === navigateToReportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
+        if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             dismissModal();
             return;
         }
-        const {reportID, reportActionID, referrer, moneyRequestReportActionID, transactionID, backTo} = navigateToReportPayload;
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, moneyRequestReportActionID, transactionID, backTo);
         if (getIsNarrowLayout()) {
             navigate(reportRoute, {forceReplace: true});
