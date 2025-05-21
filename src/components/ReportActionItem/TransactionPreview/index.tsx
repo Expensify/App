@@ -78,9 +78,14 @@ function TransactionPreview(props: TransactionPreviewProps) {
         Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
     }, [duplicates, report, route, transaction]);
 
+    let transactionPreview = transaction;
     const {originalTransaction, isBillSplit: isSplit} = getOriginalTransactionIfBillIsSplit(transaction);
     const isExpense = isExpenseReport(iouReport);
     const isBillSplit = isSplit && !isExpense;
+
+    if (isBillSplit) {
+        transactionPreview = originalTransaction;
+    }
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);
@@ -103,7 +108,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     isBillSplit={isBillSplit}
                     chatReport={chatReport}
                     personalDetails={personalDetails}
-                    transaction={originalTransaction}
+                    transaction={transactionPreview}
                     iouReport={iouReport}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
