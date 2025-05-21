@@ -191,10 +191,8 @@ function BottomDockedModal({
                 pointerEvents="box-none"
                 style={[styles.modalBackdrop, styles.modalContainerBox]}
             >
-                <>
-                    {hasBackdrop && backdropView}
-                    {containerView}
-                </>
+                {hasBackdrop && backdropView}
+                {containerView}
             </View>
         );
     }
