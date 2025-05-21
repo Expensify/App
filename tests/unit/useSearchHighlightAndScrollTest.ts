@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook, act} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
 import {search} from '@libs/actions/Search';
