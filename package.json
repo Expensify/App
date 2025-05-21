@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.1.46-11",
+  "version": "9.1.49-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -83,7 +83,7 @@
     "@dotlottie/react-player": "^1.6.3",
     "@expensify/react-native-background-task": "file:./modules/background-task",
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
-    "@expensify/react-native-live-markdown": "0.1.276",
+    "@expensify/react-native-live-markdown": "0.1.244",
     "@expensify/react-native-wallet": "file:modules/expensify-react-native-wallet.tgz",
     "@expo/metro-runtime": "^4.0.1",
     "@firebase/app": "^0.10.10",
@@ -396,7 +396,7 @@
     ]
   },
   "engines": {
-    "node": "20.18.1",
+    "node": "20.19.1",
     "npm": "10.8.2"
   }
 }
