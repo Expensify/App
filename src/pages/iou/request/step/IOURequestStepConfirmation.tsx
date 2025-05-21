@@ -281,7 +281,9 @@ function IOURequestStepConfirmation({
                 setMoneyRequestCategory(item.transactionID, '', policy?.id);
             }
         });
-    }, [policy?.id, policyCategories, transactions]);
+        // We don't want to clear out category every time the transactions change
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [policy?.id, policyCategories, transactionIDs]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const defaultCategory = policyDistance?.defaultCategory ?? '';
@@ -440,7 +442,9 @@ function IOURequestStepConfirmation({
             }
             navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
         });
-    }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
+        // We don't want this hook to be triggered every time the transactions change
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [requestType, iouType, initialTransactionID, reportID, action, report, transactionIDs, participants]);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string, gpsPoints?: GpsPoint) => {
