@@ -244,6 +244,14 @@ function isFormattedAmountTooLong(transactionItem: TransactionListItemType | Sea
     return amount.toString().length + (currencyLength ?? 0) >= 11;
 }
 
+/**
+ * Determines whether the year should be shown for items based on their creation date,
+ * and whether the amount display requires extra space due to its length.
+ *
+ * Returns an object with:
+ * - shouldShowYear: true if any item is from a previous year.
+ * - isLongAmountLength: true if any item's formatted amount is too long to fit normally.
+ */
 function getSearchTableYearAndAmountWidth(data: TransactionListItemType[] | ReportListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']) {
     const result = {shouldShowYear: false, isLongAmountLength: false};
     const currentYear = new Date().getFullYear();
