@@ -510,9 +510,6 @@ const ONYXKEYS = {
     /** Set when we are loading bill when downgrade */
     IS_LOADING_BILL_WHEN_DOWNGRADE: 'isLoadingBillWhenDowngrade',
 
-    /** Stores the route to navigate to after sign out */
-    SIGN_OUT_REDIRECT: 'signOutRedirect',
-
     /**
      * Determines whether billing is required when the user downgrades their plan.
      * If true, the "Pay & Downgrade" RHP will be displayed to guide the user
@@ -1166,7 +1163,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft;
     [ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY]: boolean | undefined;
     [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
-    [ONYXKEYS.SIGN_OUT_REDIRECT]: string;
 };
 
 type OnyxDerivedValuesMapping = {
