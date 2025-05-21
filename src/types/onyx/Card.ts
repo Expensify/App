@@ -111,6 +111,10 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Card expiration date */
         expirationDate?: string;
 
+        /** Card's primary account identifier */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        expensifyCard_panReferenceID?: string;
+
         /** List of token reference ids */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         expensifyCard_tokenReferenceIdList?: string[];
@@ -158,7 +162,7 @@ type ProvisioningCardData = {
         /** Name of card holder */
         name: string;
 
-        /** Phone numer of card holder */
+        /** Phone number of card holder */
         phone: string;
 
         /** First line of address */
