@@ -75,12 +75,12 @@ function IOURequestStepDate({
     if (!isValidMoneyRequestType(iouType)) {
         shouldShowNotFound = true;
     } else if (isEditing) {
-        if (!canEditMoneyRequest && !canEditingSplitBill) {
-            shouldShowNotFound = true;
-        } else if (!canEditSplitExpense) {
-            shouldShowNotFound = true;
+        if (isSplitBill) {
+            shouldShowNotFound = !canEditingSplitBill;
+        } else if (isSplitExpense) {
+            shouldShowNotFound = !canEditSplitExpense;
         } else {
-            shouldShowNotFound = false;
+            shouldShowNotFound = !canEditMoneyRequest;
         }
     }
 
