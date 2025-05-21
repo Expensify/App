@@ -448,6 +448,13 @@ function isMultiLevelTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
     return Object.keys(policyTagList ?? {}).length > 1;
 }
 
+/**
+ * Whether the policy has at least one tag
+ */
+function hasAtLeastOneTag(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
+    return Object.keys(policyTagList ?? {}).length > 0;
+}
+
 function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
@@ -1433,6 +1440,7 @@ export {
     getMemberAccountIDsForWorkspace,
     getNumericValue,
     isMultiLevelTags,
+    hasAtLeastOneTag,
     getPathWithoutPolicyID,
     getPersonalPolicy,
     getPolicy,
