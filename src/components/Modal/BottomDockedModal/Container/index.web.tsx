@@ -12,9 +12,7 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
     const isInitiated = useSharedValue(false);
 
     useEffect(
-        () => () => {
-            setTimeout(onCloseCallBack, animationOutTiming);
-        },
+        () => () => onCloseCallBack(),
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
@@ -53,16 +51,12 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
 
     return (
         <Animated.View
-            style={[style, styles.modalContainer]}
+            style={[style, styles.modalContainer, styles.modalAnimatedContainer, animatedStyles]}
+            exiting={Exiting}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
-            <Animated.View
-                style={[styles.modalAnimatedContainer, animatedStyles]}
-                exiting={Exiting}
-            >
-                {props.children}
-            </Animated.View>
+            {props.children}
         </Animated.View>
     );
 }
