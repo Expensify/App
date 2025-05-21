@@ -6357,8 +6357,8 @@ const translations = {
         },
     },
     signingOutPage: {
-        title: 'Hold on...',
-        subtitle: 'We’re signing you out. This will take a moment.',
+        title: 'Signing out...',
+        subtitle: 'One moment, please.',
     },
     testDrive: {
         quickAction: {

@@ -3,6 +3,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import variables from '@styles/variables';
 
 function SigningOutPage() {
     const {translate} = useLocalize();
@@ -43,7 +44,9 @@ function SigningOutPage() {
             testID={SigningOutPage.displayName}
         >
             <BlockingView
-                icon={Illustrations.Mailbox}
+                icon={Illustrations.Encryption}
+                iconWidth={variables.modalTopIconWidth}
+                iconHeight={variables.modalTopIconHeight}
                 title={translate('signingOutPage.title')}
                 subtitle={translate('signingOutPage.subtitle')}
                 shouldShowLink={false}
