@@ -36,7 +36,6 @@ import Permissions from '@libs/Permissions';
 import {getDistanceRateCustomUnitRate, getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
@@ -166,9 +165,6 @@ type MoneyRequestConfirmationListProps = {
     /** The action to take */
     action?: IOUAction;
 
-    /** Should play sound on confirmation */
-    shouldPlaySound?: boolean;
-
     /** Whether the expense is confirmed or not */
     isConfirmed?: boolean;
 
@@ -225,7 +221,6 @@ function MoneyRequestConfirmationList({
     reportActionID,
     action = CONST.IOU.ACTION.CREATE,
     shouldDisplayReceipt = false,
-    shouldPlaySound = true,
     isConfirmed,
     isConfirming,
     onPDFLoadError,
@@ -896,9 +891,6 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                if (shouldPlaySound) {
-                    playSound(SOUNDS.DONE);
-                }
                 onConfirm?.(selectedParticipants);
             } else {
                 if (!paymentMethod) {
@@ -908,9 +900,6 @@ function MoneyRequestConfirmationList({
                     return;
                 }
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-                if (shouldPlaySound) {
-                    playSound(SOUNDS.DONE);
-                }
                 onSendMoney?.(paymentMethod);
             }
         },
@@ -932,7 +921,6 @@ function MoneyRequestConfirmationList({
             isDistanceRequestWithPendingRoute,
             iouAmount,
             onConfirm,
-            shouldPlaySound,
             transactionID,
             reportID,
             policy,

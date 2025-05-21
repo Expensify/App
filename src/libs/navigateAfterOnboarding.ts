@@ -2,6 +2,7 @@ import {InteractionManager} from 'react-native';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
+import {setDisableDismissOnEscape} from './actions/Modal';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport} from './ReportUtils';
@@ -15,6 +16,7 @@ const navigateAfterOnboarding = (
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
 ) => {
+    setDisableDismissOnEscape(false);
     Navigation.dismissModal();
 
     if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {

@@ -123,7 +123,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const isLoading = onboarding?.isLoading;
     const prevIsLoading = usePrevious(isLoading);
 
-    // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signups
+    // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
         if (!paidGroupPolicy || onboardingPolicyID) {
             return;
