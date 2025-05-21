@@ -444,9 +444,7 @@ function IOURequestStepConfirmation({
             }
             navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
         });
-        // We don't want this hook to be triggered every time the transactions change
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [requestType, iouType, initialTransactionID, reportID, action, report, transactionIDs, participants]);
+    }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string, gpsPoints?: GpsPoint) => {
