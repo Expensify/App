@@ -17,8 +17,8 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
             return authenticated;
         }
 
-        return authenticated && (!hybridApp?.useNewDotSignInPage || hybridApp?.readyToShowAuthScreens);
-    }, [hybridApp?.useNewDotSignInPage, hybridApp?.readyToShowAuthScreens, authenticated]);
+        return authenticated && hybridApp?.readyToShowAuthScreens;
+    }, [hybridApp?.readyToShowAuthScreens, authenticated]);
 
     if (shouldShowAuthScreens) {
         const AuthScreens = require<ReactComponentModule>('./AuthScreens').default;

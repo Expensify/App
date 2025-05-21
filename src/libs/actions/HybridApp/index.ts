@@ -52,7 +52,7 @@ function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) {
     if (hybridApp?.useNewDotSignInPage) {
         return Onyx.merge(ONYXKEYS.HYBRID_APP, {
             ...hybridApp,
-            readyToShowAuthScreens: false,
+            readyToShowAuthScreens: !(hybridApp?.useNewDotSignInPage ?? false),
             newDotSignInState: CONST.HYBRID_APP_SIGN_IN_STATE.NOT_STARTED,
         });
     }

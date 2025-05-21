@@ -55,8 +55,11 @@ Onyx.connect({
 });
 
 function shouldUseOldApp(tryNewDot?: TryNewDot) {
+    if (!tryNewDot) {
+        return true;
+    }
     // TODO: this is a workaround for backend issue with `tryNewDot` being an array
-    if (!tryNewDot || Array.isArray(tryNewDot)) {
+    if (Array.isArray(tryNewDot)) {
         return false;
     }
 
