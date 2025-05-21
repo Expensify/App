@@ -8540,7 +8540,7 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
             ROUTES.SEARCH_REPORT.getRoute({
                 reportID: ancestor.report.reportID,
                 reportActionID: ancestor.reportAction.reportActionID,
-                backTo: Navigation.getActiveRoute(),
+                backTo: SCREENS.SEARCH.REPORT_RHP,
             }),
         );
         return;
