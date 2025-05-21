@@ -46,7 +46,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         setSelectedItems(initiallySelectedItems ?? []);
     }, [initiallySelectedItems]);
 
-    const {sections, noResultsFound, firstKeyForList} = useMemo(() => {
+    const {sections, noResultsFound} = useMemo(() => {
         const remainingItemsSection = items
             .filter((item) => item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => sortOptionsWithEmptyValue(a, b))
@@ -59,9 +59,6 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
 
         const isEmpty = !remainingItemsSection.length;
 
-        const firstSelectedItem = remainingItemsSection.find((item) => item.isSelected);
-        const firstKey = firstSelectedItem?.keyForList ?? null;
-
         return {
             sections: isEmpty
                 ? []
@@ -73,7 +70,6 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                       },
                   ],
             noResultsFound: isEmpty,
-            firstKeyForList: firstKey,
         };
     }, [selectedItems, items, pickerTitle, debouncedSearchTerm]);
 
@@ -123,7 +119,6 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             shouldShowTooltips
             canSelectMultiple
             ListItem={SelectableListItem}
-            initiallyFocusedOptionKey={firstKeyForList}
         />
     );
 }
