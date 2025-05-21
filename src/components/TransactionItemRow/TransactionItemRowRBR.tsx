@@ -33,7 +33,6 @@ const extractErrorMessages = (errors: Errors | ReceiptErrors | undefined, errorA
     const addErrorMessages = (rawErrors: unknown) => {
         const errorValues = Object.values(rawErrors ?? {});
         for (const error of errorValues) {
-            
             const message = isReceiptError(error) ? translate('iou.error.receiptFailureMessageShort') : String(error);
             uniqueMessages.add(message);
         }
