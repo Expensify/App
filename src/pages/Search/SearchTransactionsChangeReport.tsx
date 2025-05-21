@@ -13,7 +13,7 @@ type ReportListItem = ListItem & {
     value: string;
 };
 
-function SearchMoveTransactions() {
+function SearchTransactionsChangeReport() {
     const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
 
@@ -37,7 +37,7 @@ function SearchMoveTransactions() {
         changeTransactionsReport(selectedTransactionsKeys, item.value);
         clearSelectedTransactions();
 
-        Navigation.dismissModalWithReport({reportID: item.value});
+        Navigation.goBack();
     };
 
     return (
@@ -49,6 +49,6 @@ function SearchMoveTransactions() {
     );
 }
 
-SearchMoveTransactions.displayName = 'IOURequestEditReport';
+SearchTransactionsChangeReport.displayName = 'SearchTransactionsChangeReport';
 
-export default SearchMoveTransactions;
+export default SearchTransactionsChangeReport;
