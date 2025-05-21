@@ -124,7 +124,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const isTransactionThreadView = isReportTransactionThread(report);
 
     const isEmptyTransactionReport = transactions && transactionThreadReportID === undefined && !isLoadingInitialReportActions;
-    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport && shouldDisplayReportTableView(report, transactions);
+    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || (transactions && shouldDisplayReportTableView(report, transactions));
 
     const reportHeaderView = useMemo(
         () =>
