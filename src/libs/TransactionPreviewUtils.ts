@@ -21,7 +21,6 @@ import {
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
-    hasReceipt,
     hasViolation,
     hasWarningTypeViolation,
     isAmountMissing,
@@ -33,7 +32,7 @@ import {
     isOnHold,
     isPending,
     isPerDiemRequest,
-    isReceiptBeingScanned,
+    isScanning,
 } from './TransactionUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
@@ -182,7 +181,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
     const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
-    const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
+    const isTransactionScanning = isScanning(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
     const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction?.transactionID, violations, true) && isPaidGroupPolicy(iouReport);
     const hasActionWithErrors = hasActionsWithErrors(iouReport?.reportID);
@@ -229,7 +228,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         previewHeaderText = [{translationPath: 'common.distance'}];
     } else if (isPerDiemRequest(transaction)) {
         previewHeaderText = [{translationPath: 'common.perDiem'}];
-    } else if (isScanning) {
+    } else if (isTransactionScanning) {
         previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
         previewHeaderText = [{translationPath: 'iou.split'}];
@@ -269,7 +268,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     const amount = isBillSplit ? getOriginalTransactionIfBillIsSplit(transaction).originalTransaction?.amount : requestAmount;
-    let displayAmountText: TranslationPathOrText = isScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
+    let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
     }
@@ -305,8 +304,6 @@ function createTransactionPreviewConditionals({
     areThereDuplicates: boolean;
 }) {
     const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactionDetails;
-
-    const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
 
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
@@ -349,7 +346,7 @@ function createTransactionPreviewConditionals({
         requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT &&
         requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
         !(isFetchingWaypoints && !requestAmount);
-    const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning;
+    const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning(transaction);
 
     return {
         shouldShowSkeleton,

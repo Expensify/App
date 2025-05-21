@@ -18,12 +18,11 @@ import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionU
 import {changeMoneyRequestHoldStatus, isSelfDM, navigateBackOnDeleteTransaction, navigateToDetailsPage} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
-    hasReceipt,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
-    isReceiptBeingScanned,
+    isScanning,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -105,8 +104,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         markAsCashAction(transaction?.transactionID, reportID);
     }, [reportID, transaction?.transactionID]);
 
-    const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
-
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
         <Icon
             src={src}
@@ -143,7 +140,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (hasPendingRTERViolation) {
             return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
-        if (isScanning) {
+        if (isScanning(transaction)) {
             return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
         }
     };
