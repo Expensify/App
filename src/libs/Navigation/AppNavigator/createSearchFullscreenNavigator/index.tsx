@@ -1,5 +1,6 @@
 import type {ParamListBase} from '@react-navigation/native';
 import {createNavigatorFactory} from '@react-navigation/native';
+import SearchSidebar from '@components/Navigation/SearchSidebar';
 import usePreserveNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import createPlatformStackNavigatorComponent from '@navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
@@ -30,6 +31,7 @@ const SearchFullscreenNavigatorComponent = createPlatformStackNavigatorComponent
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     useCustomEffects,
     useCustomState,
+    ExtraContent: SearchSidebar,
 });
 
 function createSearchFullscreenNavigator<ParamList extends ParamListBase>() {
