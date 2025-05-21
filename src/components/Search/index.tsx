@@ -197,24 +197,13 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth, selectedTransactions, selectionMode?.isEnabled]);
 
-    const {isOnSearch} = useSearchContext();
-
     useEffect(() => {
         if (isOffline) {
             return;
         }
 
-        // If we're not in search mode, only allow the search when:
-        // - it's a filter tab change (status: 'done', 'outstanding', etc.)
-        // - it's a sort or other search parameter change
-        const isFilterTabChange = !!queryJSON.status;
-
-        if (!isOnSearch && !isFilterTabChange) {
-            return;
-        }
-
         handleSearch({queryJSON, offset});
-    }, [handleSearch, isOffline, isOnSearch, offset, queryJSON]);
+    }, [handleSearch, isOffline, offset, queryJSON]);
 
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,

@@ -32,6 +32,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
@@ -59,23 +60,37 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         // https://github.com/Expensify/App/issues/57605
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
-            // We only want to highlight new items if the addition of transactions or report actions triggered the search.
-            // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
-            // We don't want to highlight these old items, even if they appear new in the current search results.
-            hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
+            // Clear any existing debounce timer
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
 
-            // Set the flag indicating the search is triggered by the hook
-            triggeredByHookRef.current = true;
+            // Set a debounce timer to prevent multiple rapid searches
+            debounceTimerRef.current = setTimeout(() => {
+                // We only want to highlight new items if the addition of transactions or report actions triggered the search.
+                // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
+                // We don't want to highlight these old items, even if they appear new in the current search results.
+                hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
 
-            // Trigger the search
-            search({queryJSON, offset});
+                // Set the flag indicating the search is triggered by the hook
+                triggeredByHookRef.current = true;
 
-            // Set the ref to prevent further triggers until reset
-            searchTriggeredRef.current = true;
+                // Trigger the search
+                search({queryJSON, offset});
+
+                // Set the ref to prevent further triggers until reset
+                searchTriggeredRef.current = true;
+
+                // Clear the timer reference
+                debounceTimerRef.current = null;
+            }, 150);
         }
 
-        // Reset the ref when transactions or report actions in chat search type are updated
+        // Reset the ref and timer when transactions or report actions in chat search type are updated
         return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
             searchTriggeredRef.current = false;
         };
     }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat]);
