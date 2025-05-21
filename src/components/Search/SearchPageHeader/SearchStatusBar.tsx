@@ -4,6 +4,7 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -266,6 +267,16 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
             };
         }, []),
     );
+
+    const translatedOptions = useMemo(
+        () =>
+            options.map((option) => ({
+                ...option,
+                translatedText: translate(option.text),
+            })),
+        [options, translate],
+    );
+
     const isOutstandingStatusActive = Array.isArray(queryJSON.status)
         ? queryJSON.status.includes(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING)
         : queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
@@ -279,6 +290,81 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
 
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
+
+    const renderStatusButton = useCallback(
+        (item: TupleToUnion<typeof options>, index: number) => {
+            const isOutstanding = item.status === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
+            const onPress = singleExecution(() => {
+                if (isOutstanding) {
+                    hideProductTrainingTooltip();
+                }
+                onStatusChange?.();
+                const query = buildSearchQueryString({...queryJSON, status: item.status});
+                Navigation.setParams({q: query});
+            });
+            const isActive = Array.isArray(queryJSON.status) ? queryJSON.status.includes(item.status) : queryJSON.status === item.status;
+            const isFirstItem = index === 0;
+            const isLastItem = index === options.length - 1;
+            const translatedItem = translatedOptions.at(index);
+
+            if (!translatedItem) {
+                return null;
+            }
+
+            return (
+                <EducationalTooltip
+                    key={item.status}
+                    shouldRender={isOutstanding && shouldShowProductTrainingTooltip}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
+                    shiftHorizontal={0}
+                    renderTooltipContent={renderProductTrainingTooltip}
+                    wrapperStyle={styles.productTrainingTooltipWrapper}
+                    shouldHideOnScroll
+                    shouldHideOnNavigate={false}
+                    onTooltipPress={onPress}
+                >
+                    <Button
+                        onLayout={(e) => {
+                            if (!isActive || isScrolledRef.current || !('left' in e.nativeEvent.layout)) {
+                                return;
+                            }
+                            isScrolledRef.current = true;
+                            scrollRef.current?.scrollTo({x: (e.nativeEvent.layout.left as number) - styles.pl5.paddingLeft});
+                        }}
+                        text={translatedItem.translatedText}
+                        onPress={onPress}
+                        icon={item.icon}
+                        iconFill={isActive ? theme.success : undefined}
+                        iconHoverFill={theme.success}
+                        innerStyles={!isActive && styles.bgTransparent}
+                        hoverStyles={StyleUtils.getBackgroundColorStyle(!isActive ? theme.highlightBG : theme.border)}
+                        textStyles={!isActive && StyleUtils.getTextColorStyle(theme.textSupporting)}
+                        textHoverStyles={StyleUtils.getTextColorStyle(theme.text)}
+                        // We add padding to the first and last items so that they align with the header and table but can overflow outside the screen when scrolled.
+                        style={[isFirstItem && styles.pl5, isLastItem && styles.pr5]}
+                    />
+                </EducationalTooltip>
+            );
+        },
+        [
+            translatedOptions,
+            queryJSON,
+            singleExecution,
+            hideProductTrainingTooltip,
+            onStatusChange,
+            shouldShowProductTrainingTooltip,
+            renderProductTrainingTooltip,
+            styles,
+            theme,
+            StyleUtils,
+            scrollRef,
+            isScrolledRef,
+            options.length,
+        ],
+    );
 
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
 
@@ -331,58 +417,7 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
                         triggerScrollEvent();
                     }}
                 >
-                    {options.map((item, index) => {
-                        const isOutstanding = item.status === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
-                        const onPress = singleExecution(() => {
-                            if (isOutstanding) {
-                                hideProductTrainingTooltip();
-                            }
-                            onStatusChange?.();
-                            const query = buildSearchQueryString({...queryJSON, status: item.status});
-                            Navigation.setParams({q: query});
-                        });
-                        const isActive = Array.isArray(queryJSON.status) ? queryJSON.status.includes(item.status) : queryJSON.status === item.status;
-                        const isFirstItem = index === 0;
-                        const isLastItem = index === options.length - 1;
-
-                        return (
-                            <EducationalTooltip
-                                key={item.status}
-                                shouldRender={isOutstanding && shouldShowProductTrainingTooltip}
-                                anchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                }}
-                                shiftHorizontal={0}
-                                renderTooltipContent={renderProductTrainingTooltip}
-                                wrapperStyle={styles.productTrainingTooltipWrapper}
-                                shouldHideOnScroll
-                                shouldHideOnNavigate={false}
-                                onTooltipPress={onPress}
-                            >
-                                <Button
-                                    onLayout={(e) => {
-                                        if (!isActive || isScrolledRef.current || !('left' in e.nativeEvent.layout)) {
-                                            return;
-                                        }
-                                        isScrolledRef.current = true;
-                                        scrollRef.current?.scrollTo({x: (e.nativeEvent.layout.left as number) - styles.pl5.paddingLeft});
-                                    }}
-                                    text={translate(item.text)}
-                                    onPress={onPress}
-                                    icon={item.icon}
-                                    iconFill={isActive ? theme.success : undefined}
-                                    iconHoverFill={theme.success}
-                                    innerStyles={!isActive && styles.bgTransparent}
-                                    hoverStyles={StyleUtils.getBackgroundColorStyle(!isActive ? theme.highlightBG : theme.border)}
-                                    textStyles={!isActive && StyleUtils.getTextColorStyle(theme.textSupporting)}
-                                    textHoverStyles={StyleUtils.getTextColorStyle(theme.text)}
-                                    // We add padding to the first and last items so that they align with the header and table but can overflow outside the screen when scrolled.
-                                    style={[isFirstItem && styles.pl5, isLastItem && styles.pr5]}
-                                />
-                            </EducationalTooltip>
-                        );
-                    })}
+                    {options.map((item, index) => renderStatusButton(item, index))}
                 </ScrollView>
             )}
         </View>
