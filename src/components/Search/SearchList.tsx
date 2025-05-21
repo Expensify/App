@@ -357,7 +357,7 @@ function SearchList(
                 return estimatedItemSize;
             }
         },
-        [isLargeScreenWidth, estimatedItemSize, shouldUseNarrowLayout],
+        [isLargeScreenWidth, estimatedItemSize, shouldUseNarrowLayout, queryJSONHType],
     );
 
     const overrideItemLayout = useCallback(
