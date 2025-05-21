@@ -703,6 +703,7 @@ const CONST = {
         TOTAL_FILES_SIZE_LIMIT: 5242880,
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         CURRENT_USER_KEY: 'currentUser',
+        CORPAY_UNDEFINED_OPTION_VALUE: 'Undefined',
         STEP: {
             COUNTRY: 'CountryStep',
             BANK_INFO: 'BankInfoStep',
