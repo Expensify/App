@@ -445,9 +445,6 @@ type OriginalMessagePolicyChangeLog = {
     /** Name of the approver */
     approverName?: string;
 
-    /** Field of which approver has been updated */
-    field?: string;
-
     /** Option name of a list report field */
     optionName?: string;
 
