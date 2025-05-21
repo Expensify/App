@@ -43,7 +43,7 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
 ## 🧾 Receipts
 
 - Your billing receipts show: `X Collect members @ $5.00`
-- View them in **Workspaces > [Workspace Name] > Subscription**
+- View them in **Workspaces > Subscription**
 
 ---
 
@@ -92,8 +92,8 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
 
 ## 🧾 Receipts
 
-- View billing receipts under **Workspaces > [Workspace Name] > Subscription**
-- Each workspace should have **one billing owner**
+- View billing receipts under **Workspaces > Subscription**
+- Each workspace can only have **one billing owner**
 
 ---
 
