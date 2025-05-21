@@ -347,6 +347,10 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 true,
                 true,
             );
+
+            if (hasSwitchedAccountInHybridMode) {
+                openApp();
+            }
         })
         .catch((error: string) => Log.warn('Error during sign out process:', error));
 }
