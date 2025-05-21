@@ -2039,9 +2039,25 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
                     newValue,
                     categoryName,
                 });
+            case 'commentHint':
+                return translateLocal('workspaceActions.updatedDescriptionHint', {
+                    oldValue,
+                    newValue,
+                    categoryName,
+                });
             case 'areCommentsRequired':
                 return translateLocal('workspaceActions.updatedAreCommentsRequired', {
                     newValue,
+                    categoryName,
+                });
+            case 'expenseLimitType':
+                return translateLocal('workspaceActions.updatedExpenseLimitType', {
+                    oldValue: Object.values(CONST.POLICY.EXPENSE_LIMIT_TYPES).some((value) => value === oldValue)
+                        ? translateLocal(`workspace.rules.categoryRules.expenseLimitTypes.${oldValue as ValueOf<typeof CONST.POLICY.EXPENSE_LIMIT_TYPES>}`)
+                        : oldValue,
+                    newValue: Object.values(CONST.POLICY.EXPENSE_LIMIT_TYPES).some((value) => value === newValue)
+                        ? translateLocal(`workspace.rules.categoryRules.expenseLimitTypes.${newValue as ValueOf<typeof CONST.POLICY.EXPENSE_LIMIT_TYPES>}`)
+                        : newValue,
                     categoryName,
                 });
             case 'maxExpenseAmount':

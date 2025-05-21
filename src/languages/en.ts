@@ -5139,6 +5139,15 @@ const translations = {
                 ? `updated the category "${categoryName}" by adding a Gl Code of "${newValue}"`
                 : `updated the category "${categoryName}" by changing the Gl Code to "${newValue}" (previously "${oldValue}")`;
         },
+        updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
+            if (!newValue) {
+                return `updated the category "${categoryName}" by removing the Description Hint (previously "${oldValue}")`;
+            }
+
+            return !oldValue
+                ? `updated the category "${categoryName}" by adding a Description Hint of "${newValue}"`
+                : `updated the category "${categoryName}" by changing the Description Hint to "${newValue}" (previously "${oldValue}")`;
+        },
         updatedMaxExpenseAmount: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
             if (!newValue) {
                 return `updated the category "${categoryName}" by removing the Max Amount (previously "${oldValue}")`;
@@ -5160,6 +5169,15 @@ const translations = {
                 }
             });
             return `updated the category "${categoryName}" by changing the receipts to "${newValueText}" (previously "${oldValueText}")`;
+        },
+        updatedExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
+            if (!newValue) {
+                return `updated the category "${categoryName}" by removing the Limit Type (previously "${oldValue}")`;
+            }
+
+            return !oldValue
+                ? `updated the category "${categoryName}" by adding a Limit Type of "${newValue}"`
+                : `updated the category "${categoryName}" by changing the Limit Type to "${newValue}" (previously "${oldValue}")`;
         },
         updatedAreCommentsRequired: ({categoryName, newValue}: UpdatedPolicyCategoryParams) => {
             if (newValue) {

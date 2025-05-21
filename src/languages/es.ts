@@ -5212,12 +5212,30 @@ const translations = {
             });
             return `actualizó la categoría "${categoryName}" cambiando los requisitos de recibos a "${newValueText}" (anteriormente "${oldValueText}")`;
         },
+        updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
+            if (!newValue) {
+                return `actualizó la categoría "${categoryName}" eliminando la sugerencia de descripción (anteriormente "${oldValue}")`;
+            }
+
+            return !oldValue
+                ? `actualizó la categoría "${categoryName}" añadiendo una sugerencia de descripción de "${newValue}"`
+                : `actualizó la categoría "${categoryName}" cambiando la sugerencia de descripción a "${newValue}" (anteriormente "${oldValue}")`;
+        },
         updatedAreCommentsRequired: ({categoryName, newValue}: UpdatedPolicyCategoryParams) => {
             if (newValue) {
                 return `actualizó la categoría "${categoryName}" cambiando la descripción de No requerida a Requerida`;
             }
 
             return `actualizó la categoría "${categoryName}" cambiando la descripción de Requerida a No requerida`;
+        },
+        updatedExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryParams) => {
+            if (!newValue) {
+                return `actualizó la categoría "${categoryName}" eliminando el tipo de límite (anteriormente "${oldValue}")`;
+            }
+
+            return !oldValue
+                ? `actualizó la categoría "${categoryName}" añadiendo un tipo de límite de "${newValue}"`
+                : `actualizó la categoría "${categoryName}" cambiando el tipo de límite a "${newValue}" (anteriormente "${oldValue}")`;
         },
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
