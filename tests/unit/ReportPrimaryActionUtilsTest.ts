@@ -43,7 +43,7 @@ describe('getPrimaryAction', () => {
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(getReportPrimaryAction(report, [], {}, {} as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE);
+        expect(getReportPrimaryAction({report, reportTransactions: [], violations: {}, policy: {} as Policy})).toBe(CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE);
     });
 
     it('should return SUBMIT for expense report with manual submit', async () => {
@@ -62,7 +62,7 @@ describe('getPrimaryAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+        expect(getReportPrimaryAction({report, reportTransactions: [transaction], violations: {}, policy: policy as Policy})).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
 
     it('should return Approve for report being processed', async () => {
@@ -86,7 +86,7 @@ describe('getPrimaryAction', () => {
             },
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.APPROVE);
+        expect(getReportPrimaryAction({report, reportTransactions: [transaction], violations: {}, policy: policy as Policy})).toBe(CONST.REPORT.PRIMARY_ACTIONS.APPROVE);
     });
 
     it('should return PAY for submitted invoice report', async () => {
@@ -105,7 +105,7 @@ describe('getPrimaryAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        expect(getReportPrimaryAction({report, reportTransactions: [transaction], violations: {}, policy: policy as Policy})).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('should return PAY for expense report with payments enabled', async () => {
@@ -124,7 +124,7 @@ describe('getPrimaryAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        expect(getReportPrimaryAction({report, reportTransactions: [transaction], violations: {}, policy: policy as Policy})).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('should return EXPORT TO ACCOUNTING for finished reports', async () => {
@@ -150,7 +150,7 @@ describe('getPrimaryAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
+        expect(getReportPrimaryAction({report, reportTransactions: [transaction], violations: {}, policy: policy as Policy})).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
     it('should not return EXPORT TO ACCOUNTING for reports marked manually as exported', async () => {
@@ -176,7 +176,7 @@ describe('getPrimaryAction', () => {
             {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, reportActionID: '1', created: '2025-01-01', originalMessage: {markedManually: true}},
         ] as unknown as ReportAction[];
 
-        expect(getReportPrimaryAction(report, [], {}, policy as Policy, {}, reportActions)).toBe('');
+        expect(getReportPrimaryAction({report, reportTransactions: [], violations: {}, policy: policy as Policy, reportNameValuePairs: {}, reportActions})).toBe('');
     });
 
     it('should return REMOVE HOLD for reports with transactions on hold', async () => {
@@ -223,7 +223,7 @@ describe('getPrimaryAction', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: reportAction});
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
 
-        expect(getReportPrimaryAction(report, [transaction], {}, policy as Policy)).toBe(CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD);
+        expect(getReportPrimaryAction({report, reportTransactions: [transaction], violations: {}, policy: policy as Policy})).toBe(CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD);
     });
 
     it('should return MARK AS CASH if has all RTER violations', async () => {
@@ -252,9 +252,14 @@ describe('getPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        expect(getReportPrimaryAction(report, [transaction], {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]}, policy as Policy)).toBe(
-            CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH,
-        );
+        expect(
+            getReportPrimaryAction({
+                report,
+                reportTransactions: [transaction],
+                violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+                policy: policy as Policy,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH);
     });
 
     it('should return MARK AS CASH for broken connection', async () => {
@@ -280,9 +285,14 @@ describe('getPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        expect(getReportPrimaryAction(report, [transaction], {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]}, policy as Policy)).toBe(
-            CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH,
-        );
+        expect(
+            getReportPrimaryAction({
+                report,
+                reportTransactions: [transaction],
+                violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+                policy: policy as Policy,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH);
     });
 });
 
