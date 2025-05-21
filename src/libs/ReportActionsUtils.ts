@@ -608,25 +608,25 @@ function findNextAction(reportActions: ReportAction[], actionIndex: number): Ony
  * Returns true when the report action immediately before the specified index is a comment made by the same actor who who is leaving a comment in the action at the specified index.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
- * @param reportActions - report actions ordered from newest
+ * @param reportActions - report actions ordered from latest
  * @param actionIndex - index of the comment item in state to check
  */
 function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[], actionIndex: number): boolean {
     const previousAction = findPreviousAction(reportActions, actionIndex);
-    const currentAction = reportActions.at(actionIndex);
+    const currentAction = reportActions?.at(actionIndex);
 
     return canActionsBeGrouped(currentAction, previousAction);
 }
 
 /**
- * Returns true when the report action immediately after the specified index is a comment made by the same actor who who is leaving a comment in the action at the specified index.
+ * Returns true when the report action immediately after the specified index is a comment made by the same actor who is leaving a comment in the action at the specified index.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
  * @param reportActions - report actions ordered from oldest
  * @param actionIndex - index of the comment item in state to check
  */
 function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex: number) {
-    const currentAction = reportActions.at(actionIndex);
+    const currentAction = reportActions?.at(actionIndex);
     const nextAction = findNextAction(reportActions, actionIndex);
 
     if (actionIndex === 0) {
@@ -641,49 +641,53 @@ function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex
  *  Returns true when messages are made by the same actor and not separated by more than 5 minutes.
  *
  * @param currentAction - Chronologically - latest action.
- * @param otherAction - Chronologically - previous action. Named otherAction to avoid confusion as isConsecutiveActionMadeByPreviousActor and hasNextActionMadeBySameActor take action lists that are in opposite orders.
+ * @param adjacentAction - Chronologically - previous action. Named adjacentAction to avoid confusion as isConsecutiveActionMadeByPreviousActor and hasNextActionMadeBySameActor take action lists that are in opposite orders.
  */
-function canActionsBeGrouped(currentAction?: ReportAction, otherAction?: ReportAction): boolean {
+function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: ReportAction): boolean {
     // It's OK for there to be no previous action, and in that case, false will be returned
     // so that the comment isn't grouped
-    if (!currentAction || !otherAction) {
+    if (!currentAction || !adjacentAction) {
         return false;
     }
 
-    // Comments are only grouped if they happen within 5 minutes of each other
-    if (new Date(currentAction?.created).getTime() - new Date(otherAction.created).getTime() > 5 * 60 * 1000) {
+    // Comments are only grouped if they happen within 5 minutes of each adjacent
+    if (new Date(currentAction?.created).getTime() - new Date(adjacentAction.created).getTime() > CONST.TIMING.REPORT_ACTIONS_GROUPING_TIME) {
         return false;
     }
-    // Do not group if other action was a created action
-    if (otherAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+    // Do not group if adjacent action was a created action
+    if (adjacentAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         return false;
     }
 
-    // Do not group if other or current action was a renamed action
-    if (otherAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED || currentAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+    // Do not group if adjacent or current action was a renamed action
+    if (adjacentAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED || currentAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return false;
     }
 
     // Do not group if the delegate account ID is different
-    if (otherAction.delegateAccountID !== currentAction.delegateAccountID) {
+    if (adjacentAction.delegateAccountID !== currentAction.delegateAccountID) {
         return false;
     }
 
-    // Do not group if one of previous / other action is report preview and another one is not report preview
-    if ((isReportPreviewAction(otherAction) && !isReportPreviewAction(currentAction)) || (isReportPreviewAction(currentAction) && !isReportPreviewAction(otherAction))) {
+    // Do not group if one of previous / adjacent action is report preview and another one is not report preview
+    if ((isReportPreviewAction(adjacentAction) && !isReportPreviewAction(currentAction)) || (isReportPreviewAction(currentAction) && !isReportPreviewAction(adjacentAction))) {
         return false;
     }
 
     if (isSubmittedAction(currentAction)) {
         const currentActionAdminAccountID = currentAction.adminAccountID;
-        return typeof currentActionAdminAccountID === 'number' ? currentActionAdminAccountID === otherAction.actorAccountID : currentAction.actorAccountID === otherAction.actorAccountID;
+        return typeof currentActionAdminAccountID === 'number'
+            ? currentActionAdminAccountID === adjacentAction.actorAccountID
+            : currentAction.actorAccountID === adjacentAction.actorAccountID;
     }
 
-    if (isSubmittedAction(otherAction)) {
-        return typeof otherAction.adminAccountID === 'number' ? currentAction.actorAccountID === otherAction.adminAccountID : currentAction.actorAccountID === otherAction.actorAccountID;
+    if (isSubmittedAction(adjacentAction)) {
+        return typeof adjacentAction.adminAccountID === 'number'
+            ? currentAction.actorAccountID === adjacentAction.adminAccountID
+            : currentAction.actorAccountID === adjacentAction.actorAccountID;
     }
 
-    return currentAction.actorAccountID === otherAction.actorAccountID;
+    return currentAction.actorAccountID === adjacentAction.actorAccountID;
 }
 function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportAction>, isChronosReport: boolean): boolean {
     const isAutomaticStartTimerAction = () => /start(?:ed|ing)?(?:\snow)?/i.test(getReportActionText(reportAction));

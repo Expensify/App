@@ -8,7 +8,7 @@ describe('hasNextActionMadeBySameActor', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
-    it('returns false if were inspecting first item on the list', () => {
+    it("returns false if we're inspecting first item on the list", () => {
         const result = hasNextActionMadeBySameActorUtil([], 0);
         expect(result).toBe(false);
     });
@@ -43,29 +43,26 @@ describe('hasNextActionMadeBySameActor', () => {
     });
 
     it('returns false if the current action is SUBMITTED and the current action adminID is different than previous action actorID', () => {
-        const actions = [getFakeReportAction(accountID, {adminAccountID: 3}), getFakeReportAction(2)];
-        const isConsecutiveActionMadeByPreviousActor = hasNextActionMadeBySameActorUtil(actions, 1);
-
-        expect(isConsecutiveActionMadeByPreviousActor).toBe(false);
-    });
-    it('returns false if the current action is SUBMITTED and the current action adminID is different than previous action actorID', () => {
         const actions = [getFakeReportAction(accountID, {adminAccountID: 3, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), getFakeReportAction(2)];
         const isConsecutiveActionMadeByPreviousActor = hasNextActionMadeBySameActorUtil(actions, 1);
 
         expect(isConsecutiveActionMadeByPreviousActor).toBe(false);
     });
+
     it('returns false if the previous action is SUBMITTED and the previous action adminID is different than current action actorID', () => {
         const actions = [getFakeReportAction(2, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), getFakeReportAction(accountID, {adminAccountID: 3})];
         const isConsecutiveActionMadeByPreviousActor = hasNextActionMadeBySameActorUtil(actions, 1);
 
         expect(isConsecutiveActionMadeByPreviousActor).toBe(false);
     });
+
     it('returns false if the current action is SUBMITTED and the previous action was made by a different actor', () => {
         const actions = [getFakeReportAction(accountID), getFakeReportAction(2, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})];
         const isConsecutiveActionMadeByPreviousActor = hasNextActionMadeBySameActorUtil(actions, 1);
 
         expect(isConsecutiveActionMadeByPreviousActor).toBe(false);
     });
+
     it('returns true if the current action is SUBMITTED and the previous action was made by the same actor', () => {
         const actions = [
             getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
