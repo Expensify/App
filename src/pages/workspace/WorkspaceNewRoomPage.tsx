@@ -68,6 +68,7 @@ function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
+    const [shouldEnableValidation, setShouldEnableValidation] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -138,8 +139,13 @@ function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef
     };
 
     useEffect(() => {
-        clearNewRoomFormError();
-    }, []);
+        if (!isFocused) {
+            return;
+        }
+
+        setShouldEnableValidation(false);
+        clearNewRoomFormError().then(() => setShouldEnableValidation(true));
+    }, [isFocused]);
 
     useEffect(() => {
         if (policyID) {
@@ -169,6 +175,10 @@ function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef
      */
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>): OnyxCommon.Errors => {
+            if (!shouldEnableValidation) {
+                return {};
+            }
+
             const errors: {policyID?: string; roomName?: string} = {};
 
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
@@ -198,7 +208,7 @@ function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef
 
             return errors;
         },
-        [reports, policyID, translate],
+        [reports, policyID, translate, shouldEnableValidation],
     );
 
     const writeCapabilityOptions = useMemo(

@@ -619,7 +619,7 @@ describe('ReportUtils', () => {
                     },
                 } as ReportAction;
 
-                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted $1.69');
+                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted');
             });
 
             test('Invited/Removed Room Member Action', () => {
@@ -2643,6 +2643,7 @@ describe('ReportUtils', () => {
         it('should exclude hidden participants', () => {
             const report: Report = {
                 ...createRandomReport(1),
+                chatType: 'policyRoom',
                 participants: {
                     1: {notificationPreference: 'hidden'},
                     2: {notificationPreference: 'always'},
