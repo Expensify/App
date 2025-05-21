@@ -1,4 +1,5 @@
 import ROUTES from '@src/ROUTES';
+import {setDisableDismissOnEscape} from './actions/Modal';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport} from './ReportUtils';
@@ -11,6 +12,7 @@ const navigateAfterOnboarding = (
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
 ) => {
+    setDisableDismissOnEscape(false);
     Navigation.dismissModal();
 
     let reportID: string | undefined;
