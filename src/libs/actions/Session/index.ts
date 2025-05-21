@@ -246,6 +246,9 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
+    // Navigate to signing out page immediately
+    Navigation.navigate(ROUTES.SIGNING_OUT);
+
     if (isAnonymousUser()) {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             if (shouldResetToHome) {
