@@ -130,6 +130,7 @@ function OnyxTabNavigator({
                 backBehavior="initialRoute"
                 keyboardDismissMode="none"
                 tabBar={TabBarWithFocusTrapInclusion}
+                onTabSelect={onTabSelect}
                 screenListeners={{
                     state: (e) => {
                         const event = e as unknown as EventMapCore<NavigationState>['state'];
