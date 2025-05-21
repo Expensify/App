@@ -17,6 +17,7 @@ import CardInstructionsStep from './CardInstructionsStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import DetailsStep from './DetailsStep';
+import PlaidConnectionStep from './PlaidConnectionStep';
 import SelectBankStep from './SelectBankStep';
 import SelectCountryStep from './SelectCountryStep';
 import SelectFeedType from './SelectFeedType';
@@ -74,6 +75,8 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             return <DetailsStep policyID={policyID} />;
         case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
             return <AmexCustomFeed />;
+        case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
+            return <PlaidConnectionStep />;
         default:
             return canUsePlaidCompanyCards ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
     }

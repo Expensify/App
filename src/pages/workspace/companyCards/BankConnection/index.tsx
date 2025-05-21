@@ -64,6 +64,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
+    const {canUsePlaidCompanyCards} = usePermissions();
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
@@ -86,7 +87,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             Navigation.goBack(backTo);
             return;
         }
-        if (bankName === CONST.COMPANY_CARDS.BANKS.BREX) {
+        if (bankName === CONST.COMPANY_CARDS.BANKS.BREX || canUsePlaidCompanyCards) {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
         }
