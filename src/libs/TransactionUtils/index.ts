@@ -1509,9 +1509,7 @@ function buildMergeDuplicatesParams(
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
         created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
         transactionID: reviewDuplicates?.transactionID,
-        transactionIDList: removeSettledAndApprovedTransactions(duplicates ?? [])
-            .filter((transaction) => !!transaction)
-            .map((transaction) => transaction.transactionID),
+        transactionIDList: (removeSettledAndApprovedTransactions(duplicates ?? []).filter((transaction) => !!transaction) as Transaction[]).map((transaction) => transaction.transactionID),
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',

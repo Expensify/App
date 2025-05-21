@@ -8,7 +8,7 @@ import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation'
 import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {compareDuplicateTransactionFields, getTransactionID} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -18,7 +18,7 @@ import ReviewFields from './ReviewFields';
 function ReviewMerchant() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAG>>();
     const {translate} = useLocalize();
-    const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
+    const transactionID = getTransactionID(route.params.threadReportID);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
@@ -34,12 +34,12 @@ function ReviewMerchant() {
         canBeMissing: true,
     });
 
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicates?.reportID ?? '-1');
+    const compareResult = compareDuplicateTransactionFields(transaction, allDuplicates, reviewDuplicates?.reportID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
         Object.keys(compareResult.change ?? {}),
         'merchant',
-        route.params.threadReportID ?? '',
+        route.params.threadReportID,
         route.params.backTo,
     );
     const options = useMemo(
