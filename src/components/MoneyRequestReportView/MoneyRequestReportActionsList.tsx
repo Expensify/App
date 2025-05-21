@@ -520,14 +520,14 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                                     transactions={transactions}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}
-                                    isLoadingReportActions={isLoadingReportActions && !reportHasComments}
+                                    isLoadingReportActions={isLoadingReportActions}
                                 />
                             </>
                         }
                         keyboardShouldPersistTaps="handled"
                         onScroll={trackVerticalScrolling}
                         ref={reportScrollManager.ref}
-                        ListEmptyComponent={isLoadingReportActions ? <ReportActionsListLoadingSkeleton /> : undefined} // this empty component is only used for loading state, real empty state is handled by SearchMoneyRequestReportEmptyState
+                        ListEmptyComponent={isLoadingReportActions ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
                     />
                 )}
             </View>
