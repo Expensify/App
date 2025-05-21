@@ -12,7 +12,7 @@ import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
-import type {CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CardFeedData, CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
@@ -325,7 +325,7 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
 }
 
 /**
- * Verify if the feed is a custom feed. Those are also refered to as commercial feeds.
+ * Verify if the feed is a custom feed. Those are also referred to as commercial feeds.
  */
 function isCustomFeed(feed: CompanyCardFeedWithNumber): boolean {
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
@@ -403,6 +403,10 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
 
     const formattedFeedName = translateLocal('workspace.companyCards.feedName', {feedName: getBankName(feed)});
     return customFeedName ?? formattedFeedName;
+}
+
+function getDomainOrWorkspaceAccountID(workspaceAccountID: number, cardFeedData: CardFeedData | undefined): number {
+    return cardFeedData?.domainID ?? workspaceAccountID;
 }
 
 // We will simplify the logic below once we have #50450 #50451 implemented
@@ -505,10 +509,22 @@ function filterInactiveCards(cards: CardList | undefined): CardList {
     return filterObject(cards ?? {}, (key, card) => !closedStates.includes(card.state));
 }
 
-function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): CardList {
+function getAllCardsForWorkspace(
+    workspaceAccountID: number,
+    allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards,
+    cardFeeds?: CardFeeds,
+    expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
+): CardList {
     const cards = {};
+    const companyCardsDomainFeeds = Object.entries(cardFeeds?.settings?.companyCards ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
+    const expensifyCardsDomainIDs = Object.keys(expensifyCardSettings ?? {})
+        .map((key) => key.split('_').at(-1))
+        .filter((id): id is string => !!id);
     for (const [key, values] of Object.entries(allCardList ?? {})) {
-        if (key.includes(workspaceAccountID.toString()) && values) {
+        const isWorkspaceAccountCards = key.includes(workspaceAccountID.toString());
+        const isCompanyDomainCards = companyCardsDomainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
+        const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
+        if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
             const {cardList, ...rest} = values;
             const filteredCards = filterInactiveCards(rest);
             Object.assign(cards, filteredCards);
@@ -548,14 +564,17 @@ function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>):
  *
  * @param allCardsList the list where cards split by workspaces and feeds and stored under `card_${workspaceAccountID}_${feedName}` keys
  * @param workspaceAccountID the workspace account id we want to get cards for
+ * @param domainIDs the domain ids we want to get cards for
  */
-function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): Record<string, Card> | undefined {
+function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number, domainIDs?: number[]): Record<string, Card> | undefined {
     if (!allCardsList) {
         return;
     }
 
     return Object.entries(allCardsList).reduce((acc, [key, cards]) => {
-        if (!key.includes(workspaceAccountID.toString()) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
+        const isWorkspaceAccountCards = key.includes(workspaceAccountID.toString());
+        const isDomainCards = domainIDs?.some((domainID) => key.includes(domainID.toString()));
+        if ((!isWorkspaceAccountCards && !isDomainCards) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
             return acc;
         }
         const {cardList, ...feedCards} = cards ?? {};
@@ -637,6 +656,7 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    getDomainOrWorkspaceAccountID,
     mergeCardListWithWorkspaceFeeds,
     isCard,
     getAllCardsForWorkspace,

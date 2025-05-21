@@ -10,8 +10,6 @@ const {
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
     OUTSANDING_FILTER,
-    SETTINGS_TAB,
-    WORKSPACES_SETTINGS,
     ACCOUNT_SWITCHER,
     GBR_RBR_CHAT,
     EXPENSE_REPORTS_FILTER,
@@ -82,16 +80,6 @@ type DismissedProductTraining = {
      * When user dismisses the outstanding filter product training tooltip, we store the timestamp here.
      */
     [OUTSANDING_FILTER]: DismissedProductTrainingElement;
-
-    /**
-     * When user dismisses the settings tab product training tooltip, we store the timestamp here.
-     */
-    [SETTINGS_TAB]: DismissedProductTrainingElement;
-
-    /**
-     * When user dismisses the workspaces settings product training tooltip, we store the timestamp here.
-     */
-    [WORKSPACES_SETTINGS]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the accountSwitcher product training tooltip, we store the timestamp here.

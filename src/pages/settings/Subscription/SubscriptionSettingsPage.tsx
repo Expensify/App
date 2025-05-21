@@ -21,7 +21,7 @@ import CardSection from './CardSection/CardSection';
 import ReducedFunctionalityMessage from './ReducedFunctionalityMessage';
 import SubscriptionPlan from './SubscriptionPlan';
 
-type SubscriptionSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.ROOT>;
+type SubscriptionSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE_HUB.SUBSCRIPTION.ROOT>;
 
 function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const backTo = route?.params?.backTo;
@@ -33,7 +33,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     useEffect(() => {
         openSubscriptionPage();
     }, []);
-    const [isAppLoading] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isAppLoading] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
 
     if (!subscriptionPlan && isAppLoading) {
         return <FullScreenLoadingIndicator />;
@@ -49,7 +49,13 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
-                onBackButtonPress={() => Navigation.goBack(backTo, {shouldPopToTop: true})}
+                onBackButtonPress={() => {
+                    if (Navigation.getShouldPopToSidebar()) {
+                        Navigation.popToSidebar();
+                        return;
+                    }
+                    Navigation.goBack(backTo);
+                }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 icon={Illustrations.CreditCardsNew}

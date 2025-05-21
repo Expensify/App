@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import type {ComponentType} from 'react';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -21,27 +21,24 @@ type RadioButtonWithLabelProps = {
     /** Text that appears next to check box */
     label?: string;
 
-    /** React element to display for the label */
-    labelElement?: ReactNode;
+    /** Component to display for label */
+    LabelComponent?: ComponentType;
 
-    /** Should the input be styled for errors */
+    /** Should the input be styled for errors  */
     hasError?: boolean;
 
     /** Error text to display */
     errorText?: string;
-
-    /** Additional styles to apply to the wrapper */
-    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 const PressableWithFeedback = Pressables.PressableWithFeedback;
 
-function RadioButtonWithLabel({labelElement, style, label = '', hasError = false, errorText = '', isChecked, onPress, wrapperStyle}: RadioButtonWithLabelProps) {
+function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = false, errorText = '', isChecked, onPress}: RadioButtonWithLabelProps) {
     const styles = useThemeStyles();
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
 
-    if (!label && !labelElement) {
-        throw new Error('Must provide at least label or labelComponent prop');
+    if (!label && !LabelComponent) {
+        throw new Error('Must provide at least label or LabelComponent prop');
     }
     return (
         <>
@@ -57,13 +54,13 @@ function RadioButtonWithLabel({labelElement, style, label = '', hasError = false
                     accessible={false}
                     onPress={onPress}
                     style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
-                    wrapperStyle={[styles.flex1, styles.ml3, styles.pr2, wrapperStyle]}
+                    wrapperStyle={[styles.flex1, styles.ml3, styles.pr2]}
                     // disable hover style when disabled
                     hoverDimmingValue={0.8}
                     pressDimmingValue={0.5}
                 >
                     {!!label && <Text style={[styles.ml1]}>{label}</Text>}
-                    {!!labelElement && labelElement}
+                    {!!LabelComponent && <LabelComponent />}
                 </PressableWithFeedback>
             </View>
             <FormHelpMessage message={errorText} />
