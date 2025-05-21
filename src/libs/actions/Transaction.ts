@@ -605,14 +605,20 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
-    const existingSelfDMReportID = findSelfDMReportID();
-    const currentTime = DateUtils.getDBTime();
-    const selfDMReport = buildOptimisticSelfDMReport(currentTime);
-    const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
 
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
+
+    const existingSelfDMReportID = findSelfDMReportID();
+    let selfDMReport: Report;
+    let selfDMCreatedReportAction: ReportAction;
+
+    if (!existingSelfDMReportID) {
+        const currentTime = DateUtils.getDBTime();
+        selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+    }
 
     transactions.forEach((transaction) => {
         const oldIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
