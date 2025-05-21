@@ -41,26 +41,40 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 
 type Props = {
     backTo: Route | undefined;
-    transactionReport: OnyxEntry<Report>;
+    transactionsReports: Report[];
     selectReport: (item: ReportListItem) => void;
     removeFromReport: () => void;
     isEditing: boolean;
 };
 
-function IOURequestEditReportCommon({backTo, transactionReport, selectReport, removeFromReport, isEditing}: Props) {
+function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, removeFromReport, isEditing}: Props) {
     const {translate} = useLocalize();
     const {options} = useOptionsList();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
+    const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const expenseReports = getOutstandingReportsForUser(transactionReport?.policyID, transactionReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {});
+    const expenseReports = useMemo(
+        () =>
+            Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
+                if (!policyID) {
+                    return [];
+                }
+                const reports = getOutstandingReportsForUser(policyID, currentUserPersonalDetails.accountID, allReports ?? {});
+                return reports;
+            }),
+        [allPoliciesID, allReports, currentUserPersonalDetails.accountID],
+    );
+
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
             return [];
         }
 
-        const isTransactionReportCorrect = expenseReports.some((report) => report?.reportID === transactionReport?.reportID);
+        const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
+
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
@@ -71,10 +85,10 @@ function IOURequestEditReportCommon({backTo, transactionReport, selectReport, re
                     ...matchingOption,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
                     value: report.reportID,
-                    isSelected: isTransactionReportCorrect ? report.reportID === transactionReport?.reportID : expenseReports.at(0)?.reportID === report.reportID,
+                    isSelected: onlyReport && report.reportID === onlyReport?.reportID,
                 };
             });
-    }, [allReports, expenseReports, transactionReport?.reportID, debouncedSearchValue, options.reports]);
+    }, [allReports, transactionsReports, expenseReports, debouncedSearchValue, options.reports]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -99,7 +113,7 @@ function IOURequestEditReportCommon({backTo, transactionReport, selectReport, re
                 textInputLabel={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                 shouldSingleExecuteRowSelect
                 headerMessage={headerMessage}
-                initiallyFocusedOptionKey={transactionReport?.reportID}
+                initiallyFocusedOptionKey={transactionsReports.length === 1 ? transactionsReports.at(0)?.reportID : undefined}
                 ListItem={InviteMemberListItem}
                 listFooterContent={
                     isEditing ? (

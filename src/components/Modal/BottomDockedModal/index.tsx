@@ -101,7 +101,6 @@ function BottomDockedModal({
 
     useEffect(
         () => () => {
-            onModalWillHide();
             if (handleRef.current) {
                 InteractionManager.clearInteractionHandle(handleRef.current);
             }
