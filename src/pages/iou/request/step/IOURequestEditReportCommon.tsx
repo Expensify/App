@@ -67,6 +67,8 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
             return [];
         }
 
+        const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
+
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
@@ -75,7 +77,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
                 text: report.reportName,
                 value: report.reportID,
                 keyForList: report.reportID,
-                isSelected: transactionsReports.at(0)?.reportID === report.reportID,
+                isSelected: onlyReport && report.reportID === onlyReport?.reportID,
             }));
     }, [allReports, debouncedSearchValue, expenseReports, transactionsReports]);
 
