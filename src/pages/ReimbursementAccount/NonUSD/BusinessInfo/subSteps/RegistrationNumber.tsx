@@ -84,6 +84,7 @@ function RegistrationNumber({onNext, isEditing}: RegistrationNumberProps) {
                 <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
                     <TextLink
                         style={[styles.textMicro]}
+                        // TODO replace link
                         href={CONST.HELP_LINK_URL}
                     >
                         {translate('businessInfoStep.whatsThisNumber')}
