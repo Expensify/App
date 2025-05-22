@@ -1408,6 +1408,7 @@ const CONST = {
             // Used when displaying reportActions list to handle unread messages icon/button
             SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
             ACTION_VISIBLE_THRESHOLD: 250,
+            MAX_GROUPING_TIME: 300000,
         },
         TRANSACTION_LIST: {
             COLUMNS: {
