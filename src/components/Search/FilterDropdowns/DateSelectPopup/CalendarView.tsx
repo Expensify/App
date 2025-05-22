@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 
 type CalendarViewProps = {
     view: SearchDateModifier;
@@ -45,6 +46,8 @@ function CalendarView({view, value, navigateBack, setValue}: CalendarViewProps) 
             <CalendarPicker
                 value={localDateValue ?? undefined}
                 onSelected={setLocalDateValue}
+                maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                minDate={CONST.CALENDAR_PICKER.MIN_DATE}
             />
 
             <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pt2]}>

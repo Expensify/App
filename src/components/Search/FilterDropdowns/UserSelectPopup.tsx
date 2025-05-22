@@ -138,8 +138,8 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
     const applyChanges = useCallback(() => {
         const accountIDs = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
-        onChange(accountIDs);
         closeOverlay();
+        onChange(accountIDs);
     }, [closeOverlay, onChange, selectedOptions]);
 
     const resetChanges = useCallback(() => {

@@ -51,6 +51,8 @@ function SearchFiltersExportedCalendarView({view, value, navigateBack, setValue}
             <CalendarPicker
                 value={localDateValue ?? undefined}
                 onSelected={setLocalDateValue}
+                maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                minDate={CONST.CALENDAR_PICKER.MIN_DATE}
             />
 
             <FixedFooter style={styles.mtAuto}>
