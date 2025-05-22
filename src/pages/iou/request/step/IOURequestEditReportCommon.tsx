@@ -45,6 +45,7 @@ type Props = {
 function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}: Props) {
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => mapOnyxCollectionItems(reports, reportSelector), canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -56,10 +57,10 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport}:
                 if (!policyID) {
                     return [];
                 }
-                const reports = getOutstandingReportsForUser(policyID, currentUserPersonalDetails.accountID, allReports ?? {});
+                const reports = getOutstandingReportsForUser(policyID, currentUserPersonalDetails.accountID, allReports ?? {}, reportNameValuePairs);
                 return reports;
             }),
-        [allPoliciesID, allReports, currentUserPersonalDetails.accountID],
+        [allPoliciesID, allReports, currentUserPersonalDetails.accountID, reportNameValuePairs],
     );
 
     const reportOptions: ReportListItem[] = useMemo(() => {
