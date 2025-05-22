@@ -59,6 +59,10 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
         return <NotFoundPage />;
     }
 
+    const editRateName = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_NAME_EDIT.getRoute(policyID, rateID));
+    };
+
     const editRateValue = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.getRoute(policyID, rateID));
     };
@@ -121,6 +125,20 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                 accessibilityLabel={translate('workspace.distanceRates.enableRate')}
                             />
                         </View>
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback
+                        errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'name')}
+                        pendingAction={rate?.pendingFields?.name}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => clearErrorFields('name')}
+                    >
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={rate.name}
+                            description={translate('common.name')}
+                            descriptionTextStyle={styles.textNormal}
+                            onPress={editRateName}
+                        />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
                         errors={ErrorUtils.getLatestErrorField(rate ?? {}, 'rate')}
