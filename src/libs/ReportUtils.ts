@@ -17,7 +17,6 @@ import type {
     OriginalMessageIOU,
     OriginalMessageModifiedExpense,
     OriginalMessageMovedTransaction,
-    OriginalMessageUnreportedTransaction,
 } from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
@@ -810,6 +809,11 @@ type Thread = {
 
 type GetChatRoomSubtitleConfig = {
     isCreateExpenseFlow?: boolean;
+};
+
+type SelfDMParameters = {
+    reportID?: string;
+    createdReportActionID?: string;
 };
 
 type GetPolicyNameParams = {
@@ -5832,17 +5836,6 @@ function getMovedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getUnreportedTransactionMessage(action: ReportAction) {
-    const unreportedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>) ?? {};
-    const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
-    const {reportName, reportUrl} = getReportDetails(fromReportID);
-    const message = translateLocal('iou.unreportedTransaction', {
-        reportUrl,
-        reportName,
-    });
-    return message;
-}
-
 function getPolicyChangeMessage(action: ReportAction) {
     const PolicyChangeOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
     const {fromPolicy: fromPolicyID, toPolicy: toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
@@ -6216,7 +6209,7 @@ function buildOptimisticTransactionAction(
     const [actionText, messageHtml] =
         type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION
             ? [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`]
-            : [`removed this expense from ${reportName}`, `removed this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
+            : ['moved this expense to your personal space', 'moved this expense to your personal space'];
 
     return {
         actionName: type,
@@ -10189,11 +10182,6 @@ function prepareOnboardingOnyxData(
         guidedSetupData.push({type: 'message', ...textMessage});
     }
 
-    type SelfDMParameters = {
-        reportID?: string;
-        createdReportActionID?: string;
-    };
-
     let selfDMParameters: SelfDMParameters = {};
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         const selfDMReportID = findSelfDMReportID();
@@ -11085,7 +11073,6 @@ export {
     getReportSubtitlePrefix,
     getPolicyChangeMessage,
     getMovedTransactionMessage,
-    getUnreportedTransactionMessage,
     getExpenseReportStateAndStatus,
     generateReportName,
     navigateToLinkedReportAction,
@@ -11122,4 +11109,5 @@ export type {
     ParsingDetails,
     MissingPaymentMethod,
     OptimisticNewReport,
+    SelfDMParameters,
 };
