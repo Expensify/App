@@ -1,10 +1,10 @@
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import {useScreenWrapper} from '@components/ScreenWrapper/ScreenWrapperInsetsContext';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -17,9 +17,6 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
 type SidebarLinksProps = {
-    /** Safe area insets required for mobile devices margins */
-    insets: EdgeInsets;
-
     /** List of options to display */
     optionListItems: Report[];
 
@@ -37,11 +34,12 @@ type SidebarLinksProps = {
     activeWorkspaceID: string | undefined;
 };
 
-function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
+function SidebarLinks({optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {updateLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {insets} = useScreenWrapper();
 
     useEffect(() => {
         confirmReadyToOpenApp();
