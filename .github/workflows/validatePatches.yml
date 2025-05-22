@@ -2,8 +2,9 @@ name: Validate Patches
 
 on:
   pull_request:
-    paths:
-      - 'patches/**'
+    types: [opened, synchronize]
+    branches: [main]
+    paths: ['patches/**']
 
 jobs:
   validate-patches:
