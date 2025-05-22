@@ -6,10 +6,9 @@ import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
-    getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getSubmitToAccountID,
-    hasAccountingConnections,
+    getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isPreferredExporter,
 } from './PolicyUtils';
@@ -19,6 +18,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     hasExportError as hasExportErrorUtil,
+    hasOnlyHeldExpenses,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -163,8 +163,8 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
         return false;
     }
 
-    const hasAccountingConnection = hasAccountingConnections(policy);
-    if (!hasAccountingConnection) {
+    const connectedIntegration = getValidConnectedIntegration(policy);
+    if (!connectedIntegration) {
         return false;
     }
 
@@ -173,7 +173,6 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
         return false;
     }
 
-    const connectedIntegration = getConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
     const isExported = isExportedUtil(reportActions);
     if (isExported) {
@@ -269,6 +268,8 @@ function getReportPrimaryAction(
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+    const isPayActionWithAllExpensesHeld = isPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID);
+
     if (isAddExpenseAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
     }
@@ -281,7 +282,7 @@ function getReportPrimaryAction(
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isRemoveHoldAction(report, reportTransactions)) {
+    if (isRemoveHoldAction(report, reportTransactions) || isPayActionWithAllExpensesHeld) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 

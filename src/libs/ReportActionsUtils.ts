@@ -1014,11 +1014,13 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
 
 /**
  * Helper for filtering out Report Actions that are either:
- * - ReportPreview with shouldShow set to false
- * - Action with parent action deleted
+ * - ReportPreview with shouldShow set to false and without a pending action
+ * - Money request with parent action deleted
  */
 function getFilteredReportActionsForReportView(actions: ReportAction[]) {
-    return actions.filter((action) => !isDeletedParentAction(action) && (!isReportPreviewAction(action) || action.shouldShow));
+    const isDeletedMoneyRequest = (action: ReportAction) => isDeletedParentAction(action) && isMoneyRequestAction(action);
+    const isHiddenReportPreviewWithoutPendingAction = (action: ReportAction) => isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
+    return actions.filter((action) => !isDeletedMoneyRequest(action) && !isHiddenReportPreviewWithoutPendingAction(action));
 }
 
 /**
@@ -1590,6 +1592,11 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
+    if (isConciergeCategoryOptions(action)) {
+        const message = getReportActionMessageText(action);
+        return [{text: message, html: message, type: 'COMMENT'}];
+    }
+
     const actionMessage = action.previousMessage ?? action.message;
     if (Array.isArray(actionMessage)) {
         return actionMessage.filter((item): item is Message => !!item);
@@ -1846,14 +1853,25 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
     }
-
-    if (reimbursableUrls.length === 1) {
+    if (reimbursableUrls.length || nonReimbursableUrls.length) {
         result.push({
-            text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink'),
+            text: translateLocal('report.actions.type.exportedToIntegration.automaticActionThree'),
+            url: '',
+        });
+    }
+    if (reimbursableUrls.length === 1) {
+        const shouldAddPeriod = nonReimbursableUrls.length === 0;
+        result.push({
+            text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink') + (shouldAddPeriod ? '.' : ''),
             url: reimbursableUrls.at(0) ?? '',
         });
     }
-
+    if (reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
+        result.push({
+            text: translateLocal('common.and'),
+            url: '',
+        });
+    }
     if (nonReimbursableUrls.length) {
         const text = translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
         let url = '';

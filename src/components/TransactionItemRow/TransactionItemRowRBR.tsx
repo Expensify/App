@@ -3,7 +3,7 @@ import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {DotIndicator} from '@components/Icon/Expensicons';
-import Text from '@components/Text';
+import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,19 +29,16 @@ function TransactionItemRowRBR({transaction, containerStyles}: {transaction: Tra
 
     return (
         transactionViolations.length > 0 && (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, containerStyles, styles.w100]}>
                 <Icon
                     src={DotIndicator}
                     fill={theme.danger}
                     height={variables.iconSizeExtraSmall}
                     width={variables.iconSizeExtraSmall}
                 />
-                <Text
-                    numberOfLines={1}
-                    style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}]}
-                >
-                    {RBRMessages}
-                </Text>
+                <View style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}]}>
+                    <RenderHTML html={`<rbr shouldShowEllipsis="1">${RBRMessages}</rbr>`} />
+                </View>
             </View>
         )
     );

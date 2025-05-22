@@ -11519,7 +11519,7 @@ async function run() {
                 };
             });
             // Generate the deploy blocker list, preserving the previous state of `isResolved`
-            const { data: openDeployBlockers } = await GithubUtils_1.default.octokit.issues.listForRepo({
+            const openDeployBlockers = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listForRepo, {
                 log: console,
                 owner: CONST_1.default.GITHUB_OWNER,
                 repo: CONST_1.default.APP_REPO,

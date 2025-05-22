@@ -37,6 +37,7 @@ function BottomDockedModal({
     ...props
 }: ModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
+    const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [deviceWidth, setDeviceWidth] = useState(() => Dimensions.get('window').width);
     const [deviceHeight, setDeviceHeight] = useState(() => Dimensions.get('window').height);
@@ -100,33 +101,33 @@ function BottomDockedModal({
 
     useEffect(
         () => () => {
-            onModalWillHide();
             if (handleRef.current) {
                 InteractionManager.clearInteractionHandle(handleRef.current);
             }
 
             setIsVisibleState(false);
+            setIsContainerOpen(false);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [],
     );
 
     useEffect(() => {
-        if (isVisible && !isVisibleState && !isTransitioning) {
+        if (isVisible && !isContainerOpen && !isTransitioning) {
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillShow();
 
             setIsVisibleState(true);
             setIsTransitioning(true);
-        } else if (!isVisible && isVisibleState && !isTransitioning) {
+        } else if (!isVisible && isContainerOpen && !isTransitioning) {
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillHide();
-            setIsTransitioning(true);
-        } else if (!isVisible && isVisibleState && isTransitioning) {
+
             setIsVisibleState(false);
+            setIsTransitioning(true);
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isVisible, isTransitioning, isVisibleState]);
+    }, [isVisible, isContainerOpen, isTransitioning]);
 
     const backdropStyle: ViewStyle = useMemo(() => {
         return {
@@ -138,6 +139,7 @@ function BottomDockedModal({
 
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
+        setIsContainerOpen(true);
         if (handleRef.current) {
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
@@ -146,6 +148,7 @@ function BottomDockedModal({
 
     const onCloseCallBack = useCallback(() => {
         setIsTransitioning(false);
+        setIsContainerOpen(false);
         if (handleRef.current) {
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
@@ -186,10 +189,12 @@ function BottomDockedModal({
                 pointerEvents="box-none"
                 style={[styles.modalBackdrop, styles.modalContainerBox]}
             >
-                <>
-                    {hasBackdrop && backdropView}
-                    {containerView}
-                </>
+                {isVisibleState && (
+                    <>
+                        {hasBackdrop && backdropView}
+                        {containerView}
+                    </>
+                )}
             </View>
         );
     }
@@ -200,7 +205,7 @@ function BottomDockedModal({
                 transparent
                 animationType="none"
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                visible={isVisibleState || isTransitioning}
+                visible={isVisibleState || isTransitioning || isContainerOpen !== isVisibleState}
                 onRequestClose={onBackButtonPress}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
