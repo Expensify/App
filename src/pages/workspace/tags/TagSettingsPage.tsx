@@ -39,7 +39,7 @@ import type SCREENS from '@src/SCREENS';
 type TagSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>;
 
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`, {canBeMissing: true});
     const {orderWeight, policyID, tagName, backTo} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();

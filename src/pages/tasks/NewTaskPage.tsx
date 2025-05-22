@@ -31,9 +31,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type NewTaskPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
 
 function NewTaskPage({route}: NewTaskPageProps) {
-    const [task] = useOnyx(ONYXKEYS.TASK);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const assignee = useMemo(() => getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails), [task?.assigneeAccountID, personalDetails]);

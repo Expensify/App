@@ -22,8 +22,8 @@ function BusinessType({onNext, isEditing}: BusinessTypeProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: true});
 
     const incorporationTypeListOptions = useMemo(() => {
         if (!corpayOnboardingFields?.picklists.ApplicantType) {

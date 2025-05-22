@@ -32,11 +32,11 @@ function ShareTab() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
     const {options, areOptionsInitialized} = useOptionsList();
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
