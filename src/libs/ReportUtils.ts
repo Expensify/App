@@ -4800,6 +4800,10 @@ function getReportNameInternal({
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
+        return getPolicyChangeMessage(parentReportAction);
+    }
+
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
         if (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
@@ -9755,7 +9759,7 @@ function prepareOnboardingOnyxData(
         return;
     }
 
-    const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration] : '';
+    const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] : '';
     const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? 'Setup Specialist';
     const assignedGuidePersonalDetail = Object.values(allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === assignedGuideEmail);
     let assignedGuideAccountID: number;
@@ -10144,7 +10148,7 @@ function prepareOnboardingOnyxData(
             key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
             value: {
                 areConnectionsEnabled: true,
-                ...(requiresControlPlan.includes(userReportedIntegration)
+                ...(requiresControlPlan.includes(userReportedIntegration as AllConnectionName)
                     ? {
                           type: CONST.POLICY.TYPE.CORPORATE,
                       }
