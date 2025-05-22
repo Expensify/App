@@ -16,7 +16,6 @@ import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/M
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -194,7 +193,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         canBeMissing: true,
     });
 
-    const {removeTransaction} = useMoneyRequestReportContext();
+    const {removeTransaction} = useSearchContext(CONST.TEMPORARY_MONEY_REQUEST_REPORT_CONTEXT);
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);

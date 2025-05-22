@@ -90,6 +90,14 @@ type SearchContext = {
     isOnSearch: boolean;
 };
 
+type TMoneyRequestReportContext = {
+    selectedTransactionsID: string[];
+    setSelectedTransactionsID: (transactionsID: string[]) => void;
+    toggleTransaction: (transactionID: string) => void;
+    removeTransaction: (transactionID?: string) => void;
+    isTransactionSelected: (transactionID: string) => boolean;
+};
+
 type ASTNode = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
     left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ASTNode;
@@ -173,6 +181,7 @@ export type {
     SearchQueryString,
     SortOrder,
     SearchContext,
+    TMoneyRequestReportContext,
     ASTNode,
     QueryFilter,
     QueryFilters,
