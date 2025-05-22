@@ -38,7 +38,7 @@ import CONFIG from './CONFIG';
 import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
-import HybridAppSignIn from './HybridAppSignIn';
+import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
@@ -113,7 +113,7 @@ function App({url, hybridAppSettings}: AppProps) {
                             <CustomStatusBarAndBackground />
                             <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
                                 {CONFIG.IS_HYBRID_APP && (
-                                    <HybridAppSignIn
+                                    <HybridAppHandler
                                         url={url}
                                         hybridAppSettings={hybridAppSettings}
                                     />

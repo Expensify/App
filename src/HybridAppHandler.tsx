@@ -9,6 +9,7 @@ import type {Route} from './ROUTES';
 import ROUTES from './ROUTES';
 import SCREENS from './SCREENS';
 import SplashScreenStateContext from './SplashScreenStateContext';
+import CONFIG from '@src/CONFIG';
 
 function handleHybridUrlNavigation(url: Route) {
     const parsedUrl = Navigation.parseHybridAppUrl(url);
@@ -25,7 +26,7 @@ function handleHybridUrlNavigation(url: Route) {
     });
 }
 
-function HybridAppSignIn({url, hybridAppSettings}: AppProps) {
+function HybridAppHandler({url, hybridAppSettings}: AppProps) {
     const [signInHandled, setSignInHandled] = useState(false);
     const {setSplashScreenState} = useContext(SplashScreenStateContext);
 
@@ -52,6 +53,6 @@ function HybridAppSignIn({url, hybridAppSettings}: AppProps) {
     return null;
 }
 
-HybridAppSignIn.displayName = 'HybridAppSignIn';
+HybridAppHandler.displayName = 'HybridAppSignIn';
 
-export default HybridAppSignIn;
+export default HybridAppHandler;
