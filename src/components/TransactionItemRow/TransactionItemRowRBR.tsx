@@ -17,7 +17,7 @@ import variables from '@styles/variables';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 
 type TransactionItemRowRBRProps = {
     transaction: Transaction;
@@ -30,21 +30,34 @@ type TransactionItemRowRBRProps = {
 const extractErrorMessages = (errors: Errors | ReceiptErrors | undefined, errorActions: ReportAction[] | undefined, translate: LocaleContextProps['translate']): string[] => {
     const uniqueMessages = new Set<string>();
 
-    const addErrorMessages = (rawErrors: unknown) => {
-        const errorValues = Object.values(rawErrors ?? {});
-        for (const error of errorValues) {
-            const message = isReceiptError(error) ? translate('iou.error.receiptFailureMessageShort') : String(error);
-            uniqueMessages.add(message);
-        }
-    };
+    // Combine transaction and action errors
+    let allErrors: Record<string, string | Errors | ReceiptError | null | undefined> = {...(errors ?? {})};
+    (errorActions ?? []).forEach((action) => {
+        allErrors = {...allErrors, ...(action.errors ?? {})};
+    });
 
-    addErrorMessages(errors);
-    for (const action of errorActions ?? []) {
-        addErrorMessages(action.errors);
-    }
+    // Extract error messages
+    Object.values(allErrors).forEach((errorValue) => {
+        if (!errorValue) {
+            return;
+        }
+        if (typeof errorValue === 'string') {
+            uniqueMessages.add(errorValue);
+        } else if (isReceiptError(errorValue)) {
+            uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
+        } else {
+            Object.values(errorValue ?? {}).forEach((nestedErrorValue) => {
+                if (!nestedErrorValue) {
+                    return;
+                }
+                uniqueMessages.add(nestedErrorValue);
+            });
+        }
+    });
 
     return Array.from(uniqueMessages);
 };
+
 function TransactionItemRowRBR({transaction, containerStyles}: TransactionItemRowRBRProps) {
     const styles = useThemeStyles();
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
