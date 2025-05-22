@@ -98,9 +98,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
-
-    const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const isUserExporter = qboConfig?.export.exporter === details?.login;
+    const isReimburser = policy?.achAccount?.reimburser === memberLogin;
+    const [isCannotRemoveUser, setIsCannotRemoveUser] = useState(false);
 
     const policyApproverEmail = policy?.approver;
     const {approvalWorkflows} = useMemo(
@@ -127,11 +126,24 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const confirmModalPrompt = useMemo(() => {
         const isApprover = isApproverUserAction(policy, accountID);
         const isTechnicalContact = policy?.technicalContact === details?.login;
+        const exporters = [
+            policy?.connections?.intacct?.config?.export?.exporter,
+            policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
+            policy?.connections?.quickbooksOnline?.config?.export?.exporter,
+        ];
+
+        const isUserExporter = exporters.includes(details.login);
 
         if (isTechnicalContact) {
             return translate('workspace.people.removeMemberPromptForTechnicalContact', {
                 memberName: displayName,
                 workspaceOwner: policyOwnerDisplayName,
+            });
+        }
+
+        if (isReimburser) {
+            return translate('workspace.people.removeMemberPromptForReimburser', {
+                memberName: displayName,
             });
         }
 
@@ -157,7 +169,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             memberName: displayName,
             ownerName: policyOwnerDisplayName,
         });
-    }, [policy, accountID, details?.login, isUserExporter, translate, displayName, policyOwnerDisplayName]);
+    }, [policy, accountID, details.login, isReimburser, translate, displayName, policyOwnerDisplayName]);
 
     const roleItems: ListItemType[] = useMemo(
         () => [
@@ -194,6 +206,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [member, prevMember]);
 
     const askForConfirmationToRemove = () => {
+        if (isReimburser) {
+            setIsCannotRemoveUser(true);
+            return;
+        }
         setIsRemoveMemberConfirmModalVisible(true);
     };
 
@@ -363,6 +379,17 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 prompt={confirmModalPrompt}
                                 confirmText={translate('common.remove')}
                                 cancelText={translate('common.cancel')}
+                            />
+                            <ConfirmModal
+                                title={translate('workspace.people.removeMemberTitle')}
+                                isVisible={isCannotRemoveUser}
+                                onConfirm={() => {
+                                    setIsCannotRemoveUser(false);
+                                }}
+                                prompt={confirmModalPrompt}
+                                confirmText={translate('common.buttonConfirm')}
+                                success
+                                shouldShowCancelButton={false}
                             />
                         </View>
                         <View style={styles.w100}>

@@ -53,7 +53,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceHubSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getAllSelfApprovers, getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, isPolicyAuditor, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar, isProcessingReport} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -149,7 +149,6 @@ function WorkspacesListPage() {
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
-    const technicalContact = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.technicalContact;
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -174,7 +173,6 @@ function WorkspacesListPage() {
     const [policyIDToLeave, setPolicyIDToLeave] = useState<string>();
     const policyToLeave = getPolicy(policyIDToLeave);
     const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
-    const [isWorkspaceReimburser, setIsWorkspaceReimburser] = useState(false);
 
     const hideSupportalModal = () => {
         setIsSupportalActionRestrictedModalOpen(false);
@@ -204,15 +202,17 @@ function WorkspacesListPage() {
     };
 
     const getLeaveWorkspaceConfirmation = () => {
-        const qboConfig = policyToLeave?.connections?.quickbooksOnline?.config;
+        const intacctConfig = policyToLeave?.connections?.intacct.config.export;
         const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
+        const technicalContact = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToLeave}`]?.technicalContact;
 
         if (technicalContact === session?.email) {
             return translate('common.leaveWorkspaceConfirmationForTechnicalContact', {
                 workspaceOwner: policyOwnerDisplayName,
             });
         }
-        if (qboConfig?.export.exporter === session?.email) {
+
+        if (intacctConfig?.exporter === session?.email) {
             return translate('common.leaveWorkspaceConfirmationForExporter', {
                 workspaceOwner: policyOwnerDisplayName,
             });
@@ -257,17 +257,6 @@ function WorkspacesListPage() {
                 },
             ];
 
-            // Check if the user has any outstanding processing report
-            const hasPendingApproval = Object.values(!reports || isEmptyObject(reports) ? {} : reports).some((report) => {
-                return report?.policyID === item.policyID && report?.managerID === item.ownerAccountID && isProcessingReport(report);
-            });
-
-            const policy = getPolicy(item.policyID);
-            const details = personalDetails?.[item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
-
-            // Check if the reimburser matches the login of the owner account
-            const isAuthorizedPayer = policy?.achAccount?.reimburser === details?.login;
-
             if (isOwner) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Trashcan,
@@ -305,11 +294,8 @@ function WorkspacesListPage() {
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
                     onSelected: callFunctionIfActionIsAllowed(() => {
-                        if (isAuthorizedPayer) {
-                            setIsWorkspaceReimburser(true);
-                            return;
-                        }
-                        if (hasPendingApproval) {
+                        const isReimburser = getPolicy(item.policyID)?.achAccount?.reimburser === session?.email;
+                        if (isReimburser) {
                             setIsCannotLeaveWorkspaceModalOpen(true);
                             return;
                         }
@@ -388,19 +374,17 @@ function WorkspacesListPage() {
             session?.accountID,
             activePolicyID,
             translate,
-            reports,
-            personalDetails,
             styles.ph5,
             styles.mb2,
             styles.mh5,
             styles.hoveredComponentBG,
             styles.offlineFeedback.deleted,
-            isSupportalAction,
-            isLessThanMediumScreen,
-            setIsDeletingPaidWorkspace,
-            isLoadingBill,
-            shouldCalculateBillNewDot,
             loadingSpinnerIconIndex,
+            shouldCalculateBillNewDot,
+            isSupportalAction,
+            setIsDeletingPaidWorkspace,
+            isLessThanMediumScreen,
+            isLoadingBill,
             resetLoadingSpinnerIconIndex,
         ],
     );
@@ -658,18 +642,11 @@ function WorkspacesListPage() {
             />
             <ConfirmModal
                 title={translate('common.leaveWorkspace')}
-                isVisible={isCannotLeaveWorkspaceModalOpen || isWorkspaceReimburser}
+                isVisible={isCannotLeaveWorkspaceModalOpen}
                 onConfirm={() => {
                     setIsCannotLeaveWorkspaceModalOpen(false);
-                    setIsWorkspaceReimburser(false);
                 }}
-                prompt={
-                    isWorkspaceReimburser
-                        ? translate('common.cannotRemoveUserDueToProcessingReport', {
-                              memberName: personalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '',
-                          })
-                        : translate('common.leaveWorkspaceReimburser')
-                }
+                prompt={translate('common.leaveWorkspaceReimburser')}
                 confirmText={translate('common.buttonConfirm')}
                 success
                 shouldShowCancelButton={false}
