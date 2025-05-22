@@ -95,6 +95,7 @@ function Template(
                         shouldShowTooltip={shouldShowTooltip}
                         dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         onCheckboxPress={() => {}}
                         shouldShowCheckbox={shouldShowCheckbox}
                         columns={columns}

@@ -1032,5 +1032,6 @@ export {
     compareValues,
     isSearchDataLoaded,
     isFormattedAmountTooLong,
+    isTaxAmountTooLong,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuItem};

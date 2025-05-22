@@ -583,6 +583,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                             sortBy={sortBy}
                             shouldShowYear={tableYearAndAmountWidth.shouldShowYear}
                             isAmountColumnWide={tableYearAndAmountWidth.isAmountLengthLong}
+                            isTaxAmountColumnWide={tableYearAndAmountWidth.isTaxAmountLengthLong}
                             shouldShowSorting={shouldShowSorting}
                         />
                     )
