@@ -1,3 +1,4 @@
+import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {SendPerformanceTimingParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -5,14 +6,40 @@ import * as Environment from '@libs/Environment/Environment';
 import Firebase from '@libs/Firebase';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import pkg from '../../../package.json';
+import TimingMonitor from './Metrics/TimingMonitor';
 
 type TimestampData = {
     startTime: number;
     shouldUseFirebase: boolean;
 };
 
+let timesMonitor: Record<string, TimingMonitor> = {};
 let timestampData: Record<string, TimestampData> = {};
+let sidebarInitialized = false;
+
+Onyx.connect({
+    key: ONYXKEYS.SIDEBAR_MEASUREMENTS,
+    callback: (value) => {
+        if (sidebarInitialized) {
+            return;
+        }
+        sidebarInitialized = true;
+
+        // todo create a new timing monitor
+        createTimingMonitor(CONST.TIMING.SIDEBAR_LOADED.BASE, CONST.TIMING.SIDEBAR_LOADED.EFFECT, CONST.TIMING.SIDEBAR_LOADED.LAYOUT, ONYXKEYS.SIDEBAR_MEASUREMENTS, value);
+    },
+});
+
+function createTimingMonitor(eventName: string, effectName: string, layoutName: string, onyxKey: OnyxKey, measurements: number[] | undefined) {
+    if (timesMonitor[eventName]) {
+        return;
+    }
+    timesMonitor[eventName] = new TimingMonitor(effectName, layoutName, onyxKey, measurements);
+}
 
 /**
  * Start a performance timing measurement
@@ -36,13 +63,25 @@ function start(eventName: string, shouldUseFirebase = true) {
  * @param [maxExecutionTime] - optional amount of time (ms) to wait before logging a warn
  */
 function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
-    if (!timestampData[eventName]) {
+    if (!timestampData[eventName] && !timesMonitor[eventName]) {
         return;
     }
 
-    const {startTime, shouldUseFirebase} = timestampData[eventName];
-
-    const eventTime = performance.now() - startTime;
+    let shouldUseFirebase = false;
+    let eventTime = 0;
+    if (timestampData[eventName]) {
+        const data = timestampData[eventName];
+        shouldUseFirebase = data.shouldUseFirebase;
+        eventTime = performance.now() - data.startTime;
+    } else {
+        const monitor = timesMonitor[eventName];
+        const layoutData = timestampData[monitor.getLayoutKey()];
+        const effectData = timestampData[monitor.getEffectKey()];
+        const measureType = monitor.getValidMeasurement(performance.now() - effectData.startTime);
+        shouldUseFirebase = effectData.shouldUseFirebase;
+        eventTime = performance.now() - (measureType === 'layout' ? layoutData.startTime : effectData.startTime);
+        monitor.addMeasurement(eventTime);
+    }
 
     if (shouldUseFirebase) {
         Firebase.stopTrace(eventName);
@@ -80,9 +119,11 @@ function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
  */
 function clearData() {
     timestampData = {};
+    timesMonitor = {};
 }
 
 export default {
+    createTimingMonitor,
     start,
     end,
     clearData,

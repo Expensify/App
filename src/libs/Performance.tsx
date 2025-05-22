@@ -114,7 +114,7 @@ const customMarksObserver = new PerformanceObserver((list) => {
         }
 
         // Capture any custom measures or metrics below
-        if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
+        if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED.BASE}_end`) {
             measureFailSafe('contentAppeared_To_screenTTI', 'contentAppeared', mark.name);
             measureTTI(mark.name);
         }

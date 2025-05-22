@@ -36,8 +36,8 @@ function BaseSidebarScreen() {
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     useEffect(() => {
-        Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
-        Timing.start(CONST.TIMING.SIDEBAR_LOADED);
+        Performance.markStart(CONST.TIMING.SIDEBAR_LOADED.BASE);
+        Timing.start(CONST.TIMING.SIDEBAR_LOADED.EFFECT);
     }, []);
 
     useEffect(() => {
@@ -67,6 +67,10 @@ function BaseSidebarScreen() {
         Navigation.replaceWithSplitNavigator(reportsSplitNavigatorWithoutPolicyID);
     }, [activeWorkspace, isLoading, currentRoute.key, activeWorkspaceResult]);
 
+    const handleLayout = () => {
+        Timing.start(CONST.TIMING.SIDEBAR_LOADED.LAYOUT);
+    };
+
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -81,7 +85,10 @@ function BaseSidebarScreen() {
                         shouldDisplaySearch={shouldUseNarrowLayout}
                         shouldDisplayHelpButton={shouldUseNarrowLayout}
                     />
-                    <View style={[styles.flex1]}>
+                    <View
+                        style={[styles.flex1]}
+                        onLayout={handleLayout}
+                    >
                         <SidebarLinksData insets={insets} />
                     </View>
                     {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}

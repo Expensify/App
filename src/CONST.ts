@@ -1586,7 +1586,11 @@ const CONST = {
         OPEN_REPORT: 'open_report',
         OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
         OPEN_REPORT_THREAD: 'open_report_thread',
-        SIDEBAR_LOADED: 'sidebar_loaded',
+        SIDEBAR_LOADED: {
+            BASE: 'sidebar_loaded',
+            LAYOUT: 'sidebar_loaded_layout',
+            EFFECT: 'sidebar_loaded_effect',
+        },
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         SEND_MESSAGE: 'send_message',
         OPEN_CREATE_EXPENSE: 'open_create_expense',
