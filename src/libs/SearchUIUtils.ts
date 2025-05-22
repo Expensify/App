@@ -61,6 +61,7 @@ import {buildCannedSearchQuery} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
+import { get } from 'http';
 
 const transactionColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -739,24 +740,6 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     });
 }
 
-/**
- * @private
- * Determines the date of the newest transaction within a report for sorting purposes.
- */
-function getReportNewestTransactionDate(report: ReportListItemType) {
-    if (!report.transactions?.length) {
-        return undefined;
-    }
-
-    const mostRecent = report.transactions.reduce((latest, transaction) => {
-        const latestDate = latest.modifiedCreated ?? latest.created;
-        const transactionDate = transaction.modifiedCreated ?? transaction.created;
-        return transactionDate > latestDate ? transaction : latest;
-    });
-
-    return mostRecent.modifiedCreated ?? mostRecent.created;
-}
-
 function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
@@ -781,9 +764,12 @@ function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, 
  * Sorts report sections based on a specified column and sort order.
  */
 function getSortedReportData(data: ReportListItemType[]) {
+    for (const report of data) {
+        report.transactions = getSortedTransactionData(report.transactions, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
+    }
     return data.sort((a, b) => {
-        const aNewestTransaction = getReportNewestTransactionDate(a);
-        const bNewestTransaction = getReportNewestTransactionDate(b);
+        const aNewestTransaction = a.transactions?.at(0)?.modifiedCreated ? a.transactions?.at(0)?.modifiedCreated : a.transactions?.at(0)?.created;
+        const bNewestTransaction = b.transactions?.at(0)?.modifiedCreated ? b.transactions?.at(0)?.modifiedCreated : b.transactions?.at(0)?.created;
 
         if (!aNewestTransaction || !bNewestTransaction) {
             return 0;
