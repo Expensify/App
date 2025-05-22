@@ -529,8 +529,8 @@ function ReportPreview({
         if (isPaidAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
-        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived);
-    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived]);
+        return getReportPreviewAction(violations, iouReport, policy, transactions, isIouReportArchived, undefined, invoiceReceiverPolicy);
+    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, invoiceReceiverPolicy]);
 
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (

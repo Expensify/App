@@ -324,6 +324,18 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+
+        if (canAllTransactionsBeMoved) {
+            options.push({
+                text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
+                icon: Expensicons.DocumentMerge,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP),
+            });
+        }
+
         const shouldShowDeleteOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canDelete);
 
         if (shouldShowDeleteOption) {

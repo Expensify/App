@@ -1,3 +1,4 @@
+import React from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';

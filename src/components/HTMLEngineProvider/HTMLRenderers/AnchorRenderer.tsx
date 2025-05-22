@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useContext, useMemo} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
@@ -82,9 +83,24 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
         // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
+
+        // Define link style based on context
+        let linkStyle: StyleProp<TextStyle> = styles.link;
+
+        // Special handling for links in RBR to maintain consistent font size
+        if (HTMLEngineUtils.isChildOfRBR(tnode)) {
+            linkStyle = [
+                styles.link,
+                {
+                    fontSize: styles.formError.fontSize,
+                    textDecorationLine: 'underline',
+                },
+            ];
+        }
+
         return (
             <Text
-                style={styles.link}
+                style={linkStyle}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
                 suppressHighlighting
             >

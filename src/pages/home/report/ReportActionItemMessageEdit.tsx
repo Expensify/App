@@ -85,7 +85,7 @@ function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
-    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
+    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE, canBeMissing: true});
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -116,8 +116,8 @@ function ReportActionItemMessageEdit(
             willAlertModalBecomeVisible: false,
             isVisible: false,
         },
-    ] = useOnyx(ONYXKEYS.MODAL);
-    const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
+    ] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
 
     const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
     const isFocusedRef = useRef<boolean>(false);
@@ -176,6 +176,7 @@ function ReportActionItemMessageEdit(
     const setUpComposeFocusManager = useCallback(() => {
         ReportActionComposeFocusManager.onComposerFocus(() => {
             focus(true, emojiPickerSelectionRef.current ? {...emojiPickerSelectionRef.current} : undefined);
+            emojiPickerSelectionRef.current = undefined;
         }, true);
     }, [focus]);
 

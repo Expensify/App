@@ -87,7 +87,7 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
     return isExpense && isApprover && isProcessing && isApprovalEnabled && !hasAnyViolations && reportTransactions.length > 0 && isCurrentUserManager;
 }
 
-function canPay(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, isReportArchived = false) {
+function canPay(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, isReportArchived = false, invoiceReceiverPolicy?: Policy) {
     if (isReportArchived) {
         return false;
     }
@@ -132,7 +132,7 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
         return parentReport?.invoiceReceiver?.accountID === getCurrentUserAccountID();
     }
 
-    return policy?.role === CONST.POLICY.ROLE.ADMIN;
+    return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN;
 }
 
 function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, reportActions?: OnyxEntry<ReportActions> | ReportAction[]) {
@@ -201,6 +201,7 @@ function getReportPreviewAction(
     transactions?: Transaction[],
     isReportArchived = false,
     reportActions?: OnyxEntry<ReportActions> | ReportAction[],
+    invoiceReceiverPolicy?: Policy,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -214,7 +215,7 @@ function getReportPreviewAction(
     if (canApprove(report, violations, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, violations, policy, isReportArchived)) {
+    if (canPay(report, violations, policy, isReportArchived, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
     if (canExport(report, violations, policy, reportActions)) {

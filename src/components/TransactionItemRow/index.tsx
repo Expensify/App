@@ -289,7 +289,7 @@ function TransactionItemRow({
                             </View>
                         </View>
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                            <View style={[styles.flexColumn]}>
+                            <View style={[styles.flexColumn, styles.mw100]}>
                                 {hasCategoryOrTag && (
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt3]}>
                                         <CategoryCell
@@ -318,7 +318,7 @@ function TransactionItemRow({
                 </Animated.View>
             ) : (
                 <Animated.View style={[animatedHighlightStyle]}>
-                    <View style={[...safeColumnWrapperStyle, styles.gap2, bgActiveStyles]}>
+                    <View style={[...safeColumnWrapperStyle, styles.gap2, bgActiveStyles, styles.mw100]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             <View style={[styles.mr1]}>
                                 <Checkbox

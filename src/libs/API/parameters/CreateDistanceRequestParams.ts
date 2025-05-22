@@ -15,7 +15,6 @@ type CreateDistanceRequestParams = {
     taxCode?: string;
     taxAmount?: number;
     billable?: boolean;
-    reimbursable?: boolean;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
     payerEmail?: string;

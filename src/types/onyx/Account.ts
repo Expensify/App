@@ -229,7 +229,7 @@ type Account = {
     /** Whether the debug mode is currently enabled */
     isDebugModeEnabled?: boolean;
 
-    /** If user has accesible policies on a private domain */
+    /** If user has accessible policies on a private domain */
     hasAccessibleDomainPolicies?: boolean;
 };
 

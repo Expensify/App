@@ -72,7 +72,7 @@ type SectionObject = {
 
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
     const styles = useThemeStyles();
-    const stylesutils = useStyleUtils();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
@@ -345,7 +345,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         (item: Item) => (
             <View
                 key={item.titleTranslationKey}
-                style={[styles.workspaceSectionMoreFeaturesItem, shouldUseNarrowLayout && styles.flexBasis100, shouldUseNarrowLayout && stylesutils.getMinimumWidth(0)]}
+                style={[styles.workspaceSectionMoreFeaturesItem, shouldUseNarrowLayout && styles.flexBasis100, shouldUseNarrowLayout && StyleUtils.getMinimumWidth(0)]}
             >
                 <ToggleSettingOptionRow
                     icon={item.icon}
@@ -364,7 +364,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
             </View>
         ),
-        [styles, stylesutils, shouldUseNarrowLayout, translate],
+        [styles, StyleUtils, shouldUseNarrowLayout, translate],
     );
 
     /** Used to fill row space in the Section items when there are odd number of items to create equal margins for last odd item. */
@@ -381,7 +381,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     accessibilityElementsHidden
                     style={[
                         styles.workspaceSectionMoreFeaturesItem,
-                        shouldUseNarrowLayout && stylesutils.getMinimumWidth(0),
+                        shouldUseNarrowLayout && StyleUtils.getMinimumWidth(0),
                         styles.p0,
                         styles.mt0,
                         styles.visibilityHidden,
@@ -390,7 +390,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
             );
         },
-        [styles, stylesutils, shouldUseNarrowLayout],
+        [styles, StyleUtils, shouldUseNarrowLayout],
     );
 
     const renderSection = useCallback(

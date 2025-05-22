@@ -15,7 +15,7 @@ import type {SignInPageRef} from './SignInPage';
 function SignInModal() {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const siginPageRef = useRef<SignInPageRef | null>(null);
+    const signinPageRef = useRef<SignInPageRef | null>(null);
     const session = useSession();
 
     useEffect(() => {
@@ -45,16 +45,16 @@ function SignInModal() {
         >
             <HeaderWithBackButton
                 onBackButtonPress={() => {
-                    if (!siginPageRef.current) {
+                    if (!signinPageRef.current) {
                         Navigation.goBack();
                         return;
                     }
-                    siginPageRef.current?.navigateBack();
+                    signinPageRef.current?.navigateBack();
                 }}
             />
             <SignInPage
                 shouldEnableMaxHeight={false}
-                ref={siginPageRef}
+                ref={signinPageRef}
             />
         </ScreenWrapper>
     );

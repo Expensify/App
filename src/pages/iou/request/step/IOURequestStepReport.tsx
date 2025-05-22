@@ -42,7 +42,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
-            transactionReport={transactionReport}
+            transactionsReports={transactionReport ? [transactionReport] : []}
             selectReport={selectReport}
         />
     );
