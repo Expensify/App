@@ -3,10 +3,12 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 function LoggingOutPage() {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     // Load for half a second to avoid flashing the content if the sign out process is fast.
     // The half second loading delay is shown only once per sign out by using sessionStorage. It has to be tracked outside of the component because the component hierarchy will be completely
@@ -49,6 +51,7 @@ function LoggingOutPage() {
                 iconHeight={variables.modalTopIconHeight}
                 title={translate('loggingOutPage.title')}
                 subtitle={translate('loggingOutPage.subtitle')}
+                subtitleStyle={[styles.textSupporting]}
                 shouldShowLink={false}
             />
         </ScreenWrapper>
