@@ -109,9 +109,6 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
 
-    /** Flag indicating if it is editing a split bill */
-    isEditingSplitBill: boolean | undefined;
-
     /** Flag indicating if the merchant is empty */
     isMerchantEmpty: boolean;
 
@@ -370,7 +367,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowSmartScanFields && shouldShowAmountField,
-            isSupplementary: false,
         },
         {
             item: (
@@ -403,7 +399,6 @@ function MoneyRequestConfirmationListFooter({
                 </View>
             ),
             shouldShow: true,
-            isSupplementary: false,
         },
         {
             item: (
@@ -426,7 +421,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isDistanceRequest,
-            isSupplementary: false,
         },
         {
             item: (
@@ -450,7 +444,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isDistanceRequest,
-            isSupplementary: false,
         },
         {
             item: (
@@ -477,7 +470,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowMerchant,
-            isSupplementary: !isMerchantRequired,
         },
         {
             item: (
@@ -503,7 +495,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowDate,
-            isSupplementary: true,
         },
         {
             item: (
@@ -528,7 +519,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowCategories,
-            isSupplementary: action === CONST.IOU.ACTION.CATEGORIZE ? false : !isCategoryRequired,
         },
         ...policyTagLists.map(({name, required, tags}, index) => {
             const isTagRequired = required ?? false;
@@ -555,7 +545,6 @@ function MoneyRequestConfirmationListFooter({
                     />
                 ),
                 shouldShow,
-                isSupplementary: !isTagRequired,
             };
         }),
         {
@@ -579,7 +568,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowTax,
-            isSupplementary: true,
         },
         {
             item: (
@@ -602,7 +590,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowTax,
-            isSupplementary: true,
         },
         {
             item: (
@@ -627,7 +614,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowAttendees,
-            isSupplementary: true,
         },
         {
             item: (
@@ -646,7 +632,6 @@ function MoneyRequestConfirmationListFooter({
                 </View>
             ),
             shouldShow: shouldShowBillable,
-            isSupplementary: true,
         },
         {
             item: (
@@ -668,7 +653,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isPolicyExpenseChat && canUseTableReportView,
-            isSupplementary: true,
         },
     ];
 
@@ -905,8 +889,7 @@ function MoneyRequestConfirmationListFooter({
                               }}
                           />
                       ))}
-            {classifiedFields.filter((field) => field.shouldShow && !field.isSupplementary).map((field) => field.item)}
-            {classifiedFields.filter((field) => field.shouldShow && field.isSupplementary).map((field) => field.item)}
+            {classifiedFields.filter((field) => field.shouldShow).map((field) => field.item)}
             <View style={[styles.mb5]} />
         </>
     );
@@ -933,7 +916,6 @@ export default memo(
         prevProps.iouType === nextProps.iouType &&
         prevProps.isCategoryRequired === nextProps.isCategoryRequired &&
         prevProps.isDistanceRequest === nextProps.isDistanceRequest &&
-        prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
         prevProps.isMerchantEmpty === nextProps.isMerchantEmpty &&
         prevProps.isMerchantRequired === nextProps.isMerchantRequired &&
         prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
