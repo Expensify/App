@@ -494,7 +494,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   completeTestDriveTask(isAnonymousUser());
                                   Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                               } else {
-                                  Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT);
+                                  Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
                               }
                           });
                       },

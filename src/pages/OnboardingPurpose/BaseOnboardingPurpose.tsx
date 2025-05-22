@@ -98,7 +98,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     });
 
                     InteractionManager.runAfterInteractions(() => {
-                        Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT);
+                        Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
                     });
 
                     return;

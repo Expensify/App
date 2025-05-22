@@ -38,10 +38,10 @@ const navigateAfterOnboarding = (
     }
 
     // We're using Navigation.isNavigationReady here because without it, on iOS,
-    // Navigation.dismissModal runs after Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT)
+    // Navigation.dismissModal runs after Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route)
     // And dismisses the modal before it even shows
     Navigation.isNavigationReady().then(() => {
-        Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT);
+        Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
     });
 };
 

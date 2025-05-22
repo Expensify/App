@@ -130,6 +130,6 @@ describe('navigateAfterOnboarding', () => {
         jest.spyOn(Navigation, 'isNavigationReady').mockReturnValue(Promise.resolve());
 
         navigateAfterOnboarding(true, true);
-        await waitFor(() => expect(navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_MODAL_ROOT));
+        await waitFor(() => expect(navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_MODAL_ROOT.route));
     });
 });

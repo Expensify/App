@@ -367,8 +367,8 @@ function IOURequestStepConfirmation({
         }
 
         // If the user came from Test Drive modal, we need to take him back there
-        if (transaction?.receipt?.isTestDriveReceipt) {
-            Navigation.goBack(ROUTES.TEST_DRIVE_MODAL_ROOT);
+        if (transaction?.receipt?.isTestDriveReceipt && (transaction.participants?.length ?? 0) > 0) {
+            Navigation.goBack(ROUTES.TEST_DRIVE_MODAL_ROOT.getRoute(transaction.participants?.at(0)?.login));
             return;
         }
 
@@ -382,6 +382,7 @@ function IOURequestStepConfirmation({
         transaction?.receipt?.isTestDriveReceipt,
         transaction?.participantsAutoAssigned,
         transaction?.reportID,
+        transaction?.participants,
         requestType,
         iouType,
         initialTransactionID,
