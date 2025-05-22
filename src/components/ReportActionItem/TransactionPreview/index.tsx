@@ -80,10 +80,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     const {originalTransaction, isBillSplit} = getOriginalTransactionIfBillIsSplit(transaction);
 
-    const iouAction =
-        isBillSplit && originalTransaction
-            ? (getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action)
-            : action;
+    const iouAction = isBillSplit && originalTransaction ? getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action : action;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);
