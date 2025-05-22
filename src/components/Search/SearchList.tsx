@@ -76,7 +76,7 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     queryJSONHash: number;
 
     /** The type of the queryJSON */
-    queryJSONHType: string;
+    queryJSONType: string;
 
     /** Whether to group the list by reports */
     shouldGroupByReports?: boolean;
@@ -113,7 +113,7 @@ function SearchList(
         onViewableItemsChanged,
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         onLayout,
-        queryJSONHType,
+        queryJSONType,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -315,7 +315,7 @@ function SearchList(
                 const isReportAction = isReportActionListItemType(reportActionListItem);
 
                 if (isTransaction || isReportAction) {
-                    if (queryJSONHType === CONST.SEARCH.DATA_TYPES.CHAT) {
+                    if (queryJSONType === CONST.SEARCH.DATA_TYPES.CHAT) {
                         return reportListItem?.childReportID ? variables.searchListItemHeightChat : variables.searchListItemHeightChatCompact;
                     }
                     const itemAction = transactionListItem?.action;
@@ -357,7 +357,7 @@ function SearchList(
                 return estimatedItemSize;
             }
         },
-        [isLargeScreenWidth, estimatedItemSize, shouldUseNarrowLayout, queryJSONHType],
+        [isLargeScreenWidth, estimatedItemSize, shouldUseNarrowLayout, queryJSONType],
     );
 
     const overrideItemLayout = useCallback(
