@@ -492,6 +492,9 @@ function BaseVideoPlayer({
                                                 videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
                                             }}
                                             onLoad={() => {
+                                                if (hasError) {
+                                                    setHasError(false);
+                                                }
                                                 if (!isCurrentlyURLSet || isUploading) {
                                                     return;
                                                 }
@@ -500,6 +503,11 @@ function BaseVideoPlayer({
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
                                             onError={() => {
+                                                // No need to set hasError while offline, since the offline indicator is already shown.
+                                                // Once the user reconnects, if the video is unsupported, the error will be triggered again.
+                                                if (isOffline) {
+                                                    return;
+                                                }
                                                 setHasError(true);
                                             }}
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}
