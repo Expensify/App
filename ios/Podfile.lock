@@ -1864,7 +1864,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pager-view (6.5.2):
+  - react-native-pager-view (6.5.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1877,7 +1877,7 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
-    - react-native-pager-view/common (= 6.5.2)
+    - react-native-pager-view/common (= 6.5.3)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1886,7 +1886,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-pager-view/common (6.5.2):
+  - react-native-pager-view/common (6.5.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3495,7 +3495,7 @@ SPEC CHECKSUMS:
   react-native-keyboard-controller: 5c628f5d8301047a87039a2d7de322233a39bbda
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: eb0dfd4450b6f825eea973c490cee45db21cf570
-  react-native-pager-view: 679269230b107e29b6a211a6387d3721b9d0eed4
+  react-native-pager-view: 8739e84346c6ad6c1afdb6ae6cc57ae5f738ba4d
   react-native-pdf: e4ae1d67ffaadc6f0e1bb103036276371e446626
   react-native-performance: 6171618da76fcf5aaed3eff4e841e44f3fbe05f0
   react-native-plaid-link-sdk: e774d5c1d57e10b5a8759dd439bcbd9a6af17fa1
