@@ -611,11 +611,15 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
 
+    let transactionsMoved = false;
+
     transactions.forEach((transaction) => {
         const oldIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-        if (!transaction.reportID) {
+        if (!transaction.reportID || transaction.reportID === reportID) {
             return;
         }
+
+        transactionsMoved = true;
 
         const oldReportID = transaction.reportID;
         const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
@@ -832,6 +836,10 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                 : {}),
         };
     });
+
+    if (!transactionsMoved) {
+        return;
+    }
 
     // 7. Update the report totals
     Object.entries(updatedReportTotals).forEach(([reportIDToUpdate, total]) => {

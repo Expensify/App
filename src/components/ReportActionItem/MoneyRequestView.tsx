@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -52,7 +51,6 @@ import {
     getBillable,
     getDescription,
     getDistanceInMeters,
-    getReimbursable,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -68,7 +66,7 @@ import {
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
-import {cleanUpMoneyRequest, updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@userActions/IOU';
+import {cleanUpMoneyRequest, updateMoneyRequestBillable} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
@@ -155,7 +153,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         currency: transactionCurrency,
         comment: transactionDescription,
         merchant: transactionMerchant,
-        reimbursable: transactionReimbursable,
         billable: transactionBillable,
         category: transactionCategory,
         tag: transactionTag,
@@ -233,9 +230,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
-    const shouldShowReimbursable =
-        isPolicyExpenseChat && (!!transactionReimbursable || !(policy?.disabledFields?.reimbursable ?? true) || !!updatedTransaction?.reimbursable) && !isCardTransaction;
-    const canEditReimbursable = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
@@ -281,17 +275,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 return;
             }
             updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories);
-        },
-        [transaction, report, policy, policyTagList, policyCategories],
-    );
-
-    const saveReimbursable = useCallback(
-        (newReimbursable: boolean) => {
-            // If the value hasn't changed, don't request to save changes on the server and just close the modal
-            if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !report?.reportID) {
-                return;
-            }
-            updateMoneyRequestReimbursable(transaction.transactionID, report?.reportID, newReimbursable, policy, policyTagList, policyCategories);
         },
         [transaction, report, policy, policyTagList, policyCategories],
     );
@@ -816,19 +799,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             shouldRenderAsHTML
                         />
                     </OfflineWithFeedback>
-                )}
-                {shouldShowReimbursable && (
-                    <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
-                        <View>
-                            <Text>{Str.UCFirst(translate('iou.reimbursable'))}</Text>
-                        </View>
-                        <Switch
-                            accessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
-                            isOn={updatedTransaction?.reimbursable ?? !!transactionReimbursable}
-                            onToggle={saveReimbursable}
-                            disabled={!canEditReimbursable}
-                        />
-                    </View>
                 )}
                 {/* Note: "Billable" toggle and "View trip details" should be always the last two items */}
                 {shouldShowBillable && (
