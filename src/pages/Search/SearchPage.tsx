@@ -9,11 +9,7 @@ import DecisionModal from '@components/DecisionModal';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TopBar from '@components/Navigation/TopBar';
 import PDFThumbnail from '@components/PDFThumbnail';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
@@ -31,7 +27,6 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -51,7 +46,6 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasVBBA} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {initMoneyRequest, setMoneyRequestReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -61,7 +55,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
-import SearchTypeMenu from './SearchTypeMenu';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -331,6 +324,18 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+
+        if (canAllTransactionsBeMoved) {
+            options.push({
+                text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
+                icon: Expensicons.DocumentMerge,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP),
+            });
+        }
+
         const shouldShowDeleteOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canDelete);
 
         if (shouldShowDeleteOption) {
@@ -471,9 +476,6 @@ function SearchPage({route}: SearchPageProps) {
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
 
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
-    const shouldShowLoadingState = !isOffline && !isDataLoaded;
-
     // TODO: to be refactored in step 3
     const PDFThumbnailView = pdfFile ? (
         <PDFThumbnail
@@ -581,28 +583,6 @@ function SearchPage({route}: SearchPageProps) {
             >
                 {!!queryJSON && (
                     <View style={styles.searchSplitContainer}>
-                        <View style={styles.searchSidebar}>
-                            {queryJSON ? (
-                                <View style={styles.flex1}>
-                                    <TopBar
-                                        shouldShowLoadingBar={shouldShowLoadingState}
-                                        breadcrumbLabel={translate('common.reports')}
-                                        shouldDisplaySearch={false}
-                                        shouldDisplayHelpButton={false}
-                                    />
-                                    <SearchTypeMenu queryJSON={queryJSON} />
-                                </View>
-                            ) : (
-                                <HeaderWithBackButton
-                                    title={translate('common.selectMultiple')}
-                                    onBackButtonPress={() => {
-                                        clearSelectedTransactions();
-                                        turnOffMobileSelectionMode();
-                                    }}
-                                />
-                            )}
-                            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
-                        </View>
                         <ScreenWrapper
                             testID={Search.displayName}
                             shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}

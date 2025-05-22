@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -37,7 +37,7 @@ type SubscriptAvatarProps = {
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Background color used for subscript avatar border */
-    backgroundColor?: string;
+    backgroundColor?: ColorValue;
 
     /** Subscript icon */
     subscriptIcon?: SubIcon;
@@ -73,7 +73,7 @@ function SubscriptAvatar({
         <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
-                accountID={Number(mainAvatar?.id ?? -1)}
+                accountID={Number(mainAvatar?.id ?? CONST.DEFAULT_NUMBER_ID)}
                 icon={mainAvatar}
                 fallbackUserDetails={{
                     displayName: mainAvatar?.name,
@@ -94,7 +94,7 @@ function SubscriptAvatar({
             {!!secondaryAvatar && (
                 <UserDetailsTooltip
                     shouldRender={showTooltip}
-                    accountID={Number(secondaryAvatar.id ?? -1)}
+                    accountID={Number(secondaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                     icon={secondaryAvatar}
                 >
                     <View

@@ -154,7 +154,7 @@ const WRITE_COMMANDS = {
     IMPORT_PER_DIEM_RATES: 'ImportPerDiemRates',
     EXPORT_CATEGORIES_CSV: 'ExportCategoriesCSV',
     EXPORT_MEMBERS_CSV: 'ExportMembersCSV',
-    EXPORT_TAGS_CSV: 'ExportSingleLevelTags',
+    EXPORT_TAGS_CSV: 'ExportSingleLevelTagsCSV',
     EXPORT_MULTI_LEVEL_TAGS_CSV: 'ExportMultiLevelTagsCSV',
     EXPORT_PER_DIEM_CSV: 'ExportPerDiemCSV',
     EXPORT_REPORT_TO_CSV: 'ExportReportToCSV',
