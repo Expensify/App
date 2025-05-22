@@ -1555,7 +1555,11 @@ function shouldShowRTERViolationMessage(transactions?: Transaction[]) {
  * Return transactions pending action.
  */
 function getTransactionPendingAction(transaction: OnyxEntry<Transaction>): PendingAction {
-    return transaction?.pendingAction ?? (Object.keys(transaction?.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null);
+    if (transaction?.pendingAction) {
+        return transaction.pendingAction;
+    }
+    const hasPendingFields = Object.keys(transaction?.pendingFields ?? {}).length > 0;
+    return hasPendingFields ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null;
 }
 
 export {
