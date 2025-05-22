@@ -61,7 +61,6 @@ import {buildCannedSearchQuery} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
-import { get } from 'http';
 
 const transactionColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
