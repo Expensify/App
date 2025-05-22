@@ -2770,6 +2770,6 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
             expect(isReportOutstanding(report, policy.id)).toBe(false);
-        })
+        });
     });
 });
