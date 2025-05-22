@@ -25,7 +25,7 @@ These shortcuts are personalized based on your role and workspace configuration,
 
 ## How to use Suggested Search
 
-Suggested Search options appear under the **To-do** section in the **left-hand navigation (LHN)**, alongside an **Explore** section for general browsing.
+Suggested Search options appear under the **To-do** section in the **left-hand menu**, alongside an **Explore** section for general browsing.
 
 Depending on your role, you’ll see shortcuts like:
 - **Submit** – Reports you’ve drafted and need to submit.
