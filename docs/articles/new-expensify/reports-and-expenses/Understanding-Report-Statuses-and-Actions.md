@@ -1,13 +1,15 @@
 ---
 title: Understanding Report Statuses and Actions
 description: Learn what each report status in Expensify means, what actions are available at each stage, and how to manage reports effectively.
-keywords: [report statuses, report actions, reimbursements, report approval, move report, delete report, submit report, approve report, invoice actions, IOU actions, export report, view report, decline, report progress, approve expense, pay invoice, what does submitted mean, locked report, report status meaning]
+keywords: [New Expensify, report statuses, report actions, reimbursements, report approval, move report, delete report, submit report, approve report, invoice actions, IOU actions, export report, view report, decline, report progress, approve expense, pay invoice, what does submitted mean, locked report, report status meaning]
 ---
 <div id="new-expensify" markdown="1">
 
 Understand what each report status means, what actions are available, and how to manage reports, invoices, and IOUs in New Expensify.
 
-# Report statuses and their meanings
+---
+
+# Report Statuses
 
 Each report status reflects a different stage in the reporting workflow:
 
@@ -20,14 +22,14 @@ Each report status reflects a different stage in the reporting workflow:
 
 ---
 
-# Understanding report action buttons
+# Report Action Buttons
 
-## Green button = Primary action  
+## Green Button = Primary Action  
 Green buttons are dynamic and change depending on your role and the report’s status.
 
-You’ll see a green button when a key action is available—such as **Submit**, **Approve**, **Pay**, or **Export**.
+You’ll see a green button when a key action is available, such as **Submit**, **Approve**, **Pay**, or **Export**.
 
-## Grey button = More actions  
+## Grey Button = More Actions  
 The grey **More** button is always visible in the report header. Tap it to access additional options, including:
 
 - Hold / Unhold
@@ -40,9 +42,9 @@ The grey **More** button is always visible in the report header. Tap it to acces
 
 ---
 
-# Context-specific green buttons
+# Context-Specific Buttons
 
-Depending on the report status and your role, the green button may say:
+Depending on the report status and your role, the primary action button may say:
 
 - **Submit**: The report is ready to submit.
 - **Review**: The report contains holds, violations, or duplicate warnings.
@@ -54,31 +56,31 @@ Depending on the report status and your role, the green button may say:
 
 ---
 
-# Special actions
+# Special Actions
 
-## Held expenses  
+## Held Expenses  
 If you're an Approver who placed a hold, you'll see a green **Remove hold** button. Other users will see a grey **Review** button.
 
-## Decline expenses  
+## Decline Expenses  
 If you're an Approver reviewing an expense that shouldn't have been submitted, you can **Decline** it back to the submitter with a reason. The decline reason will be added to the report. The expense can later be marked as resolved and resubmitted for approval.
 
-## Duplicate expenses
+## Duplicate Expenses
 - Submitters: See **Review Duplicates** if duplicates are suspected.
 - Approvers: See **Resolve Duplicates** to take action.
 
-## Receipt matching  
+## Receipt Matching  
 If Expensify cannot detect a potential match between a SmartScanned receipt and a card transaction, you'll see **Mark as Cash** as the suggested next step for the receipt.
 
 ---
 
-# Moving expenses or reports
+# Moving Expenses or Reports
 
 - **To move a single expense**: Open the expense, then update the **Report** field to select another Open report.
 - **To move a report to another workspace**: Tap **More > Change Workspace**.
 
 ---
 
-# Deleting a report
+# Deleting a Report
 
 - **To delete a report**: Go to an **Open** report and tap **More > Delete**.
   - If the report contains only one expense, that expense will also be deleted.
@@ -88,22 +90,18 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 
 # Actions for Invoices and IOUs
 
-## Invoices
-
-### As the receiver
+## Invoices - As the Receiver
 - Use **Pay** to reimburse.
 - Tap **More** for options like **Download** and **View Details**.
 
-### As the sender
+## Invoices - As the Sender
 - Choose **Export** or **Mark as exported**.
 - **Delete** and **Change Workspace** are not available.
 
-## IOUs
-
-### As the receiver
+## IOUs - As the Receiver
 - You can **Pay**, **Decline**, **Change Workspace**, or **Download**.
 
-### As the sender
+## IOUs - As the Sender
 - **Change Workspace** converts the IOU into a regular expense report on the selected workspace.
 
 ---
