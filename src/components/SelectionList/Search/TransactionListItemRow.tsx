@@ -340,7 +340,14 @@ function TransactionListItemRow({
                             </View>
                         )}
                     </View>
-                    <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1, styles.justifyContentBetween, StyleUtils.getMinimumWidth(variables.w128)]}>
+                    <View
+                        style={[
+                            styles.alignItemsEnd,
+                            styles.flex1,
+                            styles.gap1,
+                            styles.justifyContentBetween,
+                        ]}
+                    >
                         <TotalCell
                             showTooltip={showTooltip}
                             transactionItem={item}
@@ -447,7 +454,7 @@ function TransactionListItemRow({
                     </View>
                 )}
 
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, undefined, item.isAmountColumnWide)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]}>
                     <TotalCell
                         showTooltip={showTooltip}
                         transactionItem={item}
