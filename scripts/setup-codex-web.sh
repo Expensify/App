@@ -58,21 +58,44 @@ npm rebuild
 
 # Verify canvas module is working
 echo "🔍 Verifying canvas module..."
-if node -e "try { require('canvas'); console.log('✅ Canvas module loaded successfully'); } catch(e) { console.error('❌ Canvas module error:', e.message); process.exit(1); }" > /tmp/canvas.log 2>&1; then
+# First, ensure we have the right build tools
+echo "📦 Installing canvas build dependencies..."
+sudo apt-get update && sudo apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+
+# Remove existing canvas module and rebuild it specifically
+echo "🧹 Removing existing canvas module..."
+rm -rf node_modules/canvas
+
+# Reinstall and rebuild canvas specifically
+echo "📦 Reinstalling canvas module..."
+npm install canvas
+npm rebuild canvas
+
+# Verify canvas module with version check
+echo "🔍 Verifying canvas module compatibility..."
+if node -e "
+try {
+    const canvas = require('canvas');
+    const process = require('process');
+    const moduleVersion = process.versions.modules;
+    const canvasPath = require.resolve('canvas');
+    const canvasModule = require('module')._cache[canvasPath];
+
+    if (!canvasModule) {
+        throw new Error('Canvas module not found in module cache');
+    }
+
+    console.log('✅ Canvas module loaded successfully');
+    console.log('✅ Node.js module version:', moduleVersion);
+    console.log('✅ Canvas module path:', canvasPath);
+} catch(e) {
+    console.error('❌ Canvas module error:', e.message);
+    process.exit(1);
+}" > /tmp/canvas.log 2>&1; then
     echo "✅ Setup verification complete"
 else
-    echo "❌ Canvas module verification failed. Attempting to fix..."
-    # Remove node_modules and reinstall
-    rm -rf node_modules
-    npm install
-    npm rebuild
-    echo "🔄 Verifying canvas module again..."
-    if node -e "try { require('canvas'); console.log('✅ Canvas module loaded successfully'); } catch(e) { console.error('❌ Canvas module error:', e.message); process.exit(1); }" > /tmp/canvas.log 2>&1; then
-        echo "✅ Canvas module now working after rebuild"
-    else
-        echo "❌ Canvas module still not working. Please check /tmp/canvas.log for details"
-        exit 1
-    fi
+    echo "❌ Canvas module verification failed. Please check /tmp/canvas.log for details"
+    exit 1
 fi
 
 # Install mkcert for HTTPS setup
