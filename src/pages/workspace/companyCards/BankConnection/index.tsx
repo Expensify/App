@@ -130,6 +130,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
             }
+            Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
             return;
         }

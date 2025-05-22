@@ -1,9 +1,12 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
 import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import PlaidLink from '@components/PlaidLink';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -97,9 +100,18 @@ function PlaidConnectionStep() {
 
     if (isPlaidDisabled) {
         return (
-            <View>
-                <Text style={[styles.formError]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
-            </View>
+            <ScreenWrapper
+                testID={PlaidConnectionStep.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnablePickerAvoiding={false}
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.companyCards.addCards')}
+                    onBackButtonPress={handleBackButtonPress}
+                />
+                <Text style={[styles.formError, styles.ph5, styles.mv3]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
+            </ScreenWrapper>
         );
     }
 
@@ -111,11 +123,14 @@ function PlaidConnectionStep() {
                     onSuccess={({publicToken, metadata}) => {
                         // on success we need to move to bank connection screen with token, bank name = plaid
                         Log.info('[PlaidLink] Success!');
+
+                        const plaidConnectedBank =
+                            (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
                         setAddNewCompanyCardStepAndData({
                             step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
                             data: {
                                 publicToken,
-                                plaidConnectedBank: (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id,
+                                plaidConnectedBank,
                             },
                         });
                     }}
