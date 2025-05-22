@@ -43,7 +43,7 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
 
             if (!newRateName) {
                 errors.rateName = translate('workspace.distanceRates.errors.rateNameRequired');
-            } else if (customUnit?.rates?.[newRateName] && currentRateName !== newRateName) {
+            } else if (Object.values(customUnit?.rates ?? {}).some((r) => r.name === newRateName) && currentRateName !== newRateName) {
                 errors.rateName = translate('workspace.distanceRates.errors.existingRateName');
             } else if ([...newRateName].length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
                 // TODO: Confirm max length
