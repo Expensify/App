@@ -78,9 +78,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         if (!isDeleted) {
             return;
         }
-        close(() => {
-            Navigation.goBack();
-        });
         return () => {
             deactivateCardAction(defaultFundID, card);
         };
@@ -92,6 +89,10 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
     const deactivateCard = () => {
         setIsDeleted(true);
+        setIsDeactivateModalVisible(false);
+        requestAnimationFrame(() => {
+            Navigation.goBack();
+        });
     };
 
     if (!card && !isLoadingOnyxValue(cardsListResult)) {

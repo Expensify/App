@@ -1,39 +1,58 @@
 ---
-title: Split an expense
-description: Divide an expense between multiple people
+title: split-an-expense.md
+description: Learn how to split an expense with others in New Expensify, including how to initiate a chat before making a request.
+keywords: split expense, shared cost, request payment, Expensify Wallet, start chat, New Expensify
 ---
 <div id="new-expensify" markdown="1">
 
-Splitting an expense allows the person who paid the bill to request money from multiple people who will split the cost with them.
+Splitting an expense lets you share a bill with others by requesting payment for their portion directly through New Expensify.
 
-To split an expense with other people,
+# How to split an expense
 
-{% include selector.html values="desktop, mobile" %}
+To split an expense, you’ll need to start a chat with each person you’re requesting money from. Once the chat is started, you can request their share of the bill.
 
-{% include option.html value="desktop" %}
-1. Click the + icon in the bottom left menu and select **Split Expense**.
-2. Upload a photo of your receipt, or manually enter the total bill amount.
-3. Click **Next**.
-4. Enter the names, email addresses, or phone numbers for the people you want to request money from. *Note: You can select multiple people.*
-5. Click **Next**.
-6. (Optional) Enter a reason for the request in the Description field. 
-7. (Optional) If you manually entered the bill amount, add the merchant and date of purchase.
-8. Click **Split**.
-{% include end-option.html %}
+---
 
-{% include option.html value="mobile" %}
-1. Tap the + icon at the bottom of the screen and select **Split Expense**.
-2. Take a photo of your receipt, or manually enter the total bill amount.
-3. Tap **Next**.
-4. Enter the names, email addresses, or phone numbers for the people you want to request money from. Note: You can select multiple people
-5. Tap **Next**.
-6. (Optional) Enter a reason for the request in the Description field. 
-7. (Optional) If you manually entered the bill amount, add the merchant and date of purchase.
-8. Click **Split**.
-{% include end-option.html %}
+## Step-by-step instructions
 
-{% include end-selector.html %}
+### Start a chat before splitting
 
-Each person will receive an email or text with the details of the request. You can also chat with them about the expense in Expensify Chat, and you can receive payments through your Expensify Wallet or outside of Expensify.
+1. Click the green **Create** button in the left sidebar.
+2. Select **Start Chat**.
+3. Search for the person by name, email, or phone number.
+4. Send them a message to begin the conversation.
+
+Once a chat is started, follow the steps below to split the expense.
+
+---
+
+### Split the expense
+
+1. In the chat thread, click the **+** icon next to the message box.
+2. Select **Split Expense**.
+3. Upload a photo of your receipt, or manually enter the total bill amount.
+4. Click **Next**.
+5. Select the people you want to split the cost with.
+    - You can enter names, emails, or phone numbers.
+6. Click **Next**.
+7. (Optional) Add a reason for the request in the **Description** field.
+8. (Optional) If entering the amount manually, include the merchant and date of purchase.
+9. Click **Split**.
+
+---
+
+Each person will receive a notification via email or text with the request details. You can chat about the expense in Expensify Chat, and payments can be received via your Expensify Wallet or through other methods.
+
+---
+
+# FAQ
+
+## Why do I need to start a chat before splitting an expense?
+
+The split feature is accessed through the chat thread. Starting a chat ensures you're connected with the person you're requesting money from and makes tracking and communication about the expense easier.
+
+## How do recipients pay me back?
+
+They can pay through Expensify Wallet if it's enabled, or settle the amount outside Expensify. You can continue the conversation in the chat to coordinate payment.
 
 </div>

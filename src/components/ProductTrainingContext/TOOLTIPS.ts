@@ -12,9 +12,7 @@ const {
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
-    OUTSANDING_FILTER,
-    SETTINGS_TAB,
-    WORKSPACES_SETTINGS,
+    OUTSTANDING_FILTER,
     GBR_RBR_CHAT,
     ACCOUNT_SWITCHER,
     EXPENSE_REPORTS_FILTER,
@@ -163,34 +161,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         priority: 1100,
         shouldShow: () => true,
     },
-    [OUTSANDING_FILTER]: {
+    [OUTSTANDING_FILTER]: {
         content: [
             {text: 'productTrainingTooltip.outstandingFilter.part1', isBold: false},
             {text: 'productTrainingTooltip.outstandingFilter.part2', isBold: true},
         ],
-        onHideTooltip: () => dismissProductTraining(OUTSANDING_FILTER),
-        name: OUTSANDING_FILTER,
+        onHideTooltip: () => dismissProductTraining(OUTSTANDING_FILTER),
+        name: OUTSTANDING_FILTER,
         priority: 1925,
-        shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
-    },
-    [SETTINGS_TAB]: {
-        content: [
-            {text: 'productTrainingTooltip.settingsTab.part1', isBold: false},
-            {text: 'productTrainingTooltip.settingsTab.part2', isBold: true},
-        ],
-        onHideTooltip: () => dismissProductTraining(SETTINGS_TAB),
-        name: SETTINGS_TAB,
-        priority: 1750,
-        shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
-    },
-    [WORKSPACES_SETTINGS]: {
-        content: [
-            {text: 'productTrainingTooltip.workspacesSettings.part1', isBold: false},
-            {text: 'productTrainingTooltip.workspacesSettings.part2', isBold: true},
-        ],
-        onHideTooltip: () => dismissProductTraining(WORKSPACES_SETTINGS),
-        name: WORKSPACES_SETTINGS,
-        priority: 1550,
         shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
     },
 };

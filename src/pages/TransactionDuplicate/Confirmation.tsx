@@ -25,7 +25,6 @@ import variables from '@styles/variables';
 import * as IOU from '@src/libs/actions/IOU';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
-import {generateReportID} from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {getTransactionID} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,18 +55,18 @@ function Confirmation() {
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const mergeDuplicates = useCallback(() => {
-        const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
-
         if (!reportAction?.childReportID) {
-            transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
+            return;
         }
-
         IOU.mergeDuplicates(transactionsMergeParams);
         if (canUseTableReportView) {
             Navigation.dismissModal();
             return;
         }
-        Navigation.dismissModalWithReport({reportID: transactionThreadReportID});
+        if (!reportAction?.childReportID) {
+            return;
+        }
+        Navigation.dismissModalWithReport({reportID: reportAction.childReportID});
     }, [reportAction?.childReportID, transactionsMergeParams, canUseTableReportView]);
 
     const resolveDuplicates = useCallback(() => {
@@ -132,7 +131,7 @@ function Confirmation() {
                             </Text>
                             <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
                         </View>
-                        {/* We need that provider here becuase MoneyRequestView component requires that */}
+                        {/* We need that provider here because MoneyRequestView component requires that */}
                         <ShowContextMenuContext.Provider value={contextValue}>
                             <MoneyRequestView
                                 report={report}
