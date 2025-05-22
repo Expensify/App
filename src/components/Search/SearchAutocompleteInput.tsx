@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} from 'react';
+import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -133,6 +133,25 @@ function SearchAutocompleteInput(
         return focusedSharedValue.get() ? wrapperFocusedStyle : wrapperStyle ?? {};
     });
 
+    const [internalValue, setInternalValue] = useState(value);
+
+    useEffect(() => {
+        setInternalValue(value);
+    }, [value]);
+
+    const debouncedSearchQueryChange = useMemo(() => {
+        let timeoutId: NodeJS.Timeout;
+        return (searchTerm: string) => {
+            setInternalValue(searchTerm);
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            timeoutId = setTimeout(() => {
+                onSearchQueryChange(searchTerm);
+            }, 300);
+        };
+    }, [onSearchQueryChange]);
+
     useEffect(() => {
         runOnLiveMarkdownRuntime(() => {
             'worklet';
@@ -192,8 +211,8 @@ function SearchAutocompleteInput(
                 >
                     <TextInput
                         testID="search-autocomplete-text-input"
-                        value={value}
-                        onChangeText={onSearchQueryChange}
+                        value={internalValue}
+                        onChangeText={debouncedSearchQueryChange}
                         autoFocus={autoFocus}
                         caretHidden={caretHidden}
                         loadingSpinnerStyle={[styles.mt0, styles.mr2]}
