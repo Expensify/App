@@ -1,5 +1,6 @@
 import {fireEvent, screen} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
+import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ConnectOptions, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
@@ -14,7 +15,6 @@ import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
-import {Linking} from 'react-native';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
