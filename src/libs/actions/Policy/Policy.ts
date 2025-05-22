@@ -2100,7 +2100,12 @@ function buildPolicyData(
         companySize,
     };
 
-    if (introSelected !== undefined && !introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
+    if (
+        introSelected !== undefined &&
+        (introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER || !introSelected?.createWorkspace) &&
+        engagementChoice &&
+        shouldAddOnboardingTasks
+    ) {
         const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
