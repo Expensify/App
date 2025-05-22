@@ -27,7 +27,7 @@ type RequestMoneyParams = {
     receiptGpsPoints?: string;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string | undefined;
-    reimbursable?: boolean;
+    reimbursible?: boolean;
     description?: string;
     attendees?: string;
     isTestDrive?: boolean;

@@ -48,7 +48,6 @@ import {
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestReceipt,
-    setMoneyRequestReimbursable,
     splitBill,
     splitBillAndOpenReport,
     startMoneyRequest,
@@ -237,13 +236,6 @@ function IOURequestStepConfirmation({
             setMoneyRequestBillable(transactionID, defaultBillable);
         });
     }, [transactionIDs, defaultBillable]);
-
-    const defaultReimbursable = !!policy?.defaultReimbursable;
-    useEffect(() => {
-        transactionIDs.forEach((transactionID) => {
-            setMoneyRequestReimbursable(transactionID, defaultReimbursable);
-        });
-    }, [transactionIDs, defaultReimbursable]);
 
     useEffect(() => {
         // Exit early if the transaction is still loading
@@ -503,7 +495,6 @@ function IOURequestStepConfirmation({
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         billable: item.billable,
-                        reimbursable: item.reimbursable,
                         actionableWhisperReportActionID: item.actionableWhisperReportActionID,
                         linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
                         linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
@@ -563,7 +554,6 @@ function IOURequestStepConfirmation({
                     tag: transaction.tag,
                     customUnit: transaction.comment?.customUnit,
                     billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
                 },
             });
@@ -670,7 +660,6 @@ function IOURequestStepConfirmation({
                     splitShares: transaction.splitShares,
                     validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true),
                     billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
                 },
                 backToReport,
@@ -735,7 +724,6 @@ function IOURequestStepConfirmation({
                         receipt: currentTransactionReceiptFile,
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
-                        reimbursable: transaction.reimbursable,
                         category: transaction.category,
                         tag: transaction.tag,
                         currency: transaction.currency,
@@ -763,7 +751,6 @@ function IOURequestStepConfirmation({
                         tag: transaction.tag,
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
-                        reimbursable: transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
@@ -789,7 +776,6 @@ function IOURequestStepConfirmation({
                         category: transaction.category,
                         tag: transaction.tag,
                         billable: !!transaction.billable,
-                        reimbursable: !!transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs,
@@ -949,13 +935,6 @@ function IOURequestStepConfirmation({
     const setBillable = useCallback(
         (billable: boolean) => {
             setMoneyRequestBillable(currentTransactionID, billable);
-        },
-        [currentTransactionID],
-    );
-
-    const setReimbursable = useCallback(
-        (reimbursable: boolean) => {
-            setMoneyRequestReimbursable(currentTransactionID, reimbursable);
         },
         [currentTransactionID],
     );
@@ -1125,8 +1104,6 @@ function IOURequestStepConfirmation({
                         payeePersonalDetails={payeePersonalDetails}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
-                        iouIsReimbursable={transaction?.reimbursable}
-                        onToggleReimbursable={setReimbursable}
                         isReceiptEditable
                     />
                 </View>

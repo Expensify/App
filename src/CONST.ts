@@ -2890,6 +2890,9 @@ const CONST = {
             TAX: 'tax',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
+        DEFAULT_FIELD_LIST_TYPE: 'formula',
+        DEFAULT_FIELD_LIST_TARGET: 'expense',
+        DEFAULT_FIELD_LIST_NAME: 'title',
         ROLE: {
             ADMIN: 'admin',
             AUDITOR: 'auditor',
@@ -3733,7 +3736,6 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
-        REIMBURSABLE: 'reimbursable',
         REPORT: 'report',
     },
     FOOTER: {
