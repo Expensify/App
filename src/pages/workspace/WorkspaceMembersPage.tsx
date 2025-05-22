@@ -50,7 +50,6 @@ import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWo
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatPhoneNumber as formatPhoneNumberUtil} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -213,15 +212,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     useEffect(() => {
         getWorkspaceMembers();
     }, [getWorkspaceMembers]);
-
-    // useFocus would make getWorkspaceMembers get called twice on fresh login because policyEmployee is a dependency of getWorkspaceMembers.
-    useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
-        setSelectedEmployees([]);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isFocused]);
 
     useEffect(() => {
         validateSelection();
@@ -724,7 +714,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                     turnOffMobileSelectionMode();
                     return;
                 }
-                goBackFromWorkspaceCentralScreen(policyID);
+                Navigation.popToSidebar();
             }}
         >
             {() => (
@@ -798,6 +788,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                                 sections={[{data: filteredData, isDisabled: false}]}
                                 selectedItemKeys={selectedEmployees}
                                 ListItem={TableListItem}
+                                shouldUseDefaultRightHandSideCheckmark={false}
                                 turnOnSelectionModeOnLongPress={isPolicyAdmin}
                                 onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
                                 shouldUseUserSkeletonView

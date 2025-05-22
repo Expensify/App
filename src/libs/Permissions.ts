@@ -27,6 +27,10 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
+function canUseMultiLevelTags(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.MULTI_LEVEL_TAGS) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -70,12 +74,16 @@ function canUsePrivateDomainOnboarding(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PRIVATE_DOMAIN_ONBOARDING) || canUseAllBetas(betas);
 }
 
+function canUsePlaidCompanyCards(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.PLAID_COMPANY_CARDS) || canUseAllBetas(betas);
+}
+
 function canUseRetractNewDot(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.RETRACT_NEWDOT) || canUseAllBetas(betas);
 }
 
-function canUseCallScheduling() {
-    return false;
+function canUseMultiScan(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_MULTI_SCAN) || canUseAllBetas(betas);
 }
 
 function canUseMultiFilesDragAndDrop(betas: OnyxEntry<Beta[]>): boolean {
@@ -99,6 +107,8 @@ export default {
     canUseGlobalReimbursementsOnND,
     canUsePrivateDomainOnboarding,
     canUseRetractNewDot,
-    canUseCallScheduling,
+    canUseMultiLevelTags,
     canUseMultiFilesDragAndDrop,
+    canUseMultiScan,
+    canUsePlaidCompanyCards,
 };
