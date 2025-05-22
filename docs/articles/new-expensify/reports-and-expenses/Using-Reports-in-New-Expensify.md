@@ -1,6 +1,7 @@
 ---
 title: Using Reports in New Expensify
 description: Discover how to leverage New Expensify's advanced Reports feature for financial data management and expense tracking.
+keywords: [New Expensify, reports feature, filter expenses, create reports]
 ---
 <div id="new-expensify" markdown="1">
 
@@ -43,9 +44,9 @@ Expensify’s report filters help users narrow down results to find specific dat
 
 ---
 
-# Search Format
+# Search Formats
 
-Using this search format allows you to define complex report parameters using simple text commands. 
+Using search formats allows you to define complex report parameters using simple text commands. 
 
 ## Popular Searches for Employees
 
@@ -110,7 +111,8 @@ The Trips section in Reports helps you stay on top of travel-related information
 
 # Using Filters
 
-To refine report results using filters:
+**To refine report results using filters:**
+
 1. Press the **Reports** icon (🔍) to open the report router.
 2. Enter a keyword or phrase in the search bar.
 3. Select a **Type-based filter** (e.g., Expenses, Invoices) from the tab bar.
@@ -122,14 +124,15 @@ To refine report results using filters:
 
 # Saving Reports
 
-Save frequently used report queries for quick access:
-1. Perform a report query using the report router and filters.
-2. Tap **Save Report** in the Filters menu.
-3. Name the report or use the default name based on the query syntax.
+**Save common report queries for quick reuse:**
+
+1. Run a search using the report router and filters.
+2. Click **Save Report** from the Filters menu.
+3. Name your report or use the suggested syntax title.
 4. Access saved reports:
-   - On desktop: In the **Saved** section of the left-hand menu.
-   - On mobile: In the **Type** button menu at the top of the page.
-5. Rename or delete a saved report using the three-dot menu next to the report.
+   - **Web:** From the **Saved** section in the LHB.
+   - **Mobile:** From the **Type** menu at the top.
+5. Rename or delete saved reports using the ⋮ menu.
 
 ---
 
@@ -146,3 +149,5 @@ Use the following steps to locate unsubmitted reports:
 1. Go to the **Reports** page.
 2. Select **Expenses** from the Type-based filter.
 3. Apply the **Drafts** contextual filter to view all unsubmitted reports.
+
+</div>
