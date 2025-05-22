@@ -6,7 +6,7 @@ import usePrevious from './usePrevious';
 /**
  * This hook filters (and optionally sorts) a dataset based on a search parameter.
  * It utilizes `useTransition` to allow the searchQuery to change rapidly, while more expensive renders that occur using
- * the result of the filtering and sorting are deprioritized, allowing them to happen in the background.
+ * the result of the filtering and sorting are de-prioritized, allowing them to happen in the background.
  */
 function useSearchResults<TValue extends ListItem>(data: TValue[], filterData: (datum: TValue, searchInput: string) => boolean, sortData: (data: TValue[]) => TValue[] = (d) => d) {
     const [inputValue, setInputValue] = useState('');

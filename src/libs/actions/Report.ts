@@ -146,6 +146,7 @@ import {
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
+import playSound, {SOUNDS} from '@libs/Sound';
 import {addTrailingForwardSlash} from '@libs/Url';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -156,6 +157,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    Account,
     DismissedProductTraining,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -312,6 +314,14 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         allPersonalDetails = value ?? {};
+    },
+});
+
+let account: OnyxEntry<Account> = {};
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value ?? {};
     },
 });
 
@@ -803,12 +813,18 @@ function addActions(reportID: string, text = '', file?: FileObject) {
 }
 
 /** Add an attachment and optional comment. */
-function addAttachment(reportID: string, file: FileObject, text = '') {
+function addAttachment(reportID: string, file: FileObject, text = '', shouldPlaySound?: boolean) {
+    if (shouldPlaySound) {
+        playSound(SOUNDS.DONE);
+    }
     addActions(reportID, text, file);
 }
 
 /** Add a single comment to a report */
-function addComment(reportID: string, text: string) {
+function addComment(reportID: string, text: string, shouldPlaySound?: boolean) {
+    if (shouldPlaySound) {
+        playSound(SOUNDS.DONE);
+    }
     // If we are resolving a Concierge Category Options action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
     // This is because we need it to be associated with the transaction thread and not the expense report.
     if (isExpenseReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])) {
@@ -3345,7 +3361,12 @@ function openReportFromDeepLink(url: string) {
                         }
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
-                            onNotCompleted: () => startOnboardingFlow(undefined, val),
+                            onNotCompleted: () =>
+                                startOnboardingFlow({
+                                    onboardingValuesParam: val,
+                                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                                }),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });
@@ -4200,7 +4221,7 @@ function setNewRoomFormLoading(isLoading = true) {
 }
 
 function clearNewRoomFormError() {
-    Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
+    return Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
         isLoading: false,
         errorFields: null,
         errors: null,

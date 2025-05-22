@@ -61,6 +61,9 @@ function IOURequestStepParticipants({
         const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? optimisticTransactions ?? [] : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
+    // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? participants.at(0)?.reportID ?? reportID : reportID);
@@ -120,8 +123,8 @@ function IOURequestStepParticipants({
             return;
         }
 
-        transactions.forEach((transaction) => resetDraftTransactionsCustomUnit(transaction.transactionID));
-    }, [isFocused, isMovingTransactionFromTrackExpense, transactions]);
+        transactionIDs.forEach((transactionID) => resetDraftTransactionsCustomUnit(transactionID));
+    }, [isFocused, isMovingTransactionFromTrackExpense, transactionIDs]);
 
     const waitForKeyboardDismiss = useCallback(
         (callback: () => void) => {
@@ -228,7 +231,11 @@ function IOURequestStepParticipants({
                     },
                 ]);
             });
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID));
+            if (isCategorizing) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID));
+            } else {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID, undefined, true));
+            }
             return;
         }
 
@@ -274,7 +281,9 @@ function IOURequestStepParticipants({
             });
             numberOfParticipants.current = 0;
         }
-    }, [isFocused, action, transactions]);
+        // We don't want to clear out participants every time the transactions change
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isFocused, action]);
 
     return (
         <StepScreenWrapper
@@ -291,13 +300,15 @@ function IOURequestStepParticipants({
                     message={translate('quickAction.noLongerHaveReportAccess')}
                 />
             )}
-            <MoneyRequestParticipantsSelector
-                participants={isSplitRequest ? participants : []}
-                onParticipantsAdded={addParticipant}
-                onFinish={goToNextStep}
-                iouType={iouType}
-                action={action}
-            />
+            {transactions.length > 0 && (
+                <MoneyRequestParticipantsSelector
+                    participants={isSplitRequest ? participants : []}
+                    onParticipantsAdded={addParticipant}
+                    onFinish={goToNextStep}
+                    iouType={iouType}
+                    action={action}
+                />
+            )}
         </StepScreenWrapper>
     );
 }

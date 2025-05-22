@@ -44,6 +44,7 @@ import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -74,6 +75,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
+    const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
     const {environmentURL} = useEnvironment();
     const policyId = route.params.policyID;
     const backTo = route.params?.backTo;
@@ -90,7 +92,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const filterCategories = useCallback((category: PolicyCategory | undefined) => !!category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, []);
 
     const [selectedCategories, setSelectedCategories] = useFilteredSelection(policyCategories, filterCategories);
-
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
     const fetchCategories = useCallback(() => {
@@ -113,7 +114,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         onNavigationCallBack: () => Navigation.goBack(backTo),
     });
 
-    const updateWorkspaceRequiresCategory = useCallback(
+    const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
             setWorkspaceCategoryEnabled(policyId, {[categoryName]: {name: categoryName, enabled: value}});
         },
@@ -140,14 +141,21 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         isOn={value.enabled}
                         disabled={isDisabled}
                         accessibilityLabel={translate('workspace.categories.enableCategory')}
-                        onToggle={(newValue: boolean) => updateWorkspaceRequiresCategory(newValue, value.name)}
+                        onToggle={(newValue: boolean) => {
+                            if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
+                                setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                                return;
+                            }
+                            updateWorkspaceCategoryEnabled(newValue, value.name);
+                        }}
+                        showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
                     />
                 ),
             });
 
             return acc;
         }, []);
-    }, [policyCategories, isOffline, translate, updateWorkspaceRequiresCategory]);
+    }, [policyCategories, isOffline, translate, updateWorkspaceCategoryEnabled, policy]);
 
     const filterCategory = useCallback((categoryOption: PolicyOption, searchInput: string) => {
         const categoryText = StringUtils.normalize(categoryOption.text?.toLowerCase() ?? '');
@@ -226,6 +234,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+        const selectedCategoriesObject = selectedCategories.map((key) => policyCategories?.[key]);
 
         if (isSmallScreenWidth ? canSelectMultiple : selectedCategories.length > 0) {
             if (!isThereAnyAccountingConnection) {
@@ -233,7 +242,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: Expensicons.Trashcan,
                     text: translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                    onSelected: () => setDeleteCategoriesConfirmModalVisible(true),
+                    onSelected: () => {
+                        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
+                            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                            return;
+                        }
+
+                        setDeleteCategoriesConfirmModalVisible(true);
+                    },
                 });
             }
 
@@ -248,12 +264,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         };
                         return acc;
                     }, {});
-
                 options.push({
                     icon: Expensicons.Close,
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
+                        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
+                            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                            return;
+                        }
                         setSelectedCategories([]);
                         setWorkspaceCategoryEnabled(policyId, categoriesToDisable);
                     },
@@ -494,6 +513,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         />
                     </ScrollView>
                 )}
+                <ConfirmModal
+                    isVisible={isCannotDeleteOrDisableLastCategoryModalVisible}
+                    onConfirm={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
+                    onCancel={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
+                    title={translate('workspace.categories.cannotDeleteOrDisableAllCategories.title')}
+                    prompt={translate('workspace.categories.cannotDeleteOrDisableAllCategories.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
                 <ConfirmModal
                     isVisible={isOfflineModalVisible}
                     onConfirm={() => setIsOfflineModalVisible(false)}

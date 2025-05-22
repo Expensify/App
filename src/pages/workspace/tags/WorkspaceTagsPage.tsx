@@ -53,6 +53,7 @@ import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {isDisablingOrDeletingLastEnabledTag, isMakingLastRequiredTagListOptional} from '@libs/OptionsListUtils';
 import {
     getCleanedTagName,
     getConnectedIntegration,
@@ -88,6 +89,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+    const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
+    const [isCannotMakeLastTagOptionalModalVisible, setIsCannotMakeLastTagOptionalModalVisible] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
@@ -167,6 +170,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         },
         [policyID],
     );
+
     const tagList = useMemo<TagListItem[]>(() => {
         if (isMultiLevelTags) {
             return policyTagLists.map((policyTagList) => {
@@ -177,7 +181,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 if (policyTagList.required && !areTagsEnabled) {
                     updateWorkspaceRequiresTag(false, policyTagList.orderWeight);
                 }
-
                 return {
                     value: policyTagList.name,
                     orderWeight: policyTagList.orderWeight,
@@ -190,13 +193,22 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         <Switch
                             isOn={isSwitchEnabled}
                             accessibilityLabel={translate('workspace.tags.requiresTag')}
-                            onToggle={(newValue: boolean) => updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight)}
+                            onToggle={(newValue: boolean) => {
+                                if (isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])) {
+                                    setIsCannotMakeLastTagOptionalModalVisible(true);
+                                    return;
+                                }
+
+                                updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight);
+                            }}
                             disabled={isSwitchDisabled}
+                            showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])}
                         />
                     ),
                 };
             });
         }
+
         return Object.values(policyTagLists?.at(0)?.tags ?? {}).map((tag) => ({
             value: tag.name,
             text: getCleanedTagName(tag.name),
@@ -210,11 +222,18 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     isOn={tag.enabled}
                     disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                     accessibilityLabel={translate('workspace.tags.enableTag')}
-                    onToggle={(newValue: boolean) => updateWorkspaceTagEnabled(newValue, tag.name)}
+                    onToggle={(newValue: boolean) => {
+                        if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
+                            setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                            return;
+                        }
+                        updateWorkspaceTagEnabled(newValue, tag.name);
+                    }}
+                    showLockIcon={isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])}
                 />
             ),
         }));
-    }, [isMultiLevelTags, policyTagLists, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
+    }, [isMultiLevelTags, policyTagLists, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled, policy, policyTags]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
         const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
@@ -293,6 +312,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const getHeaderButtons = () => {
         const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+        const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
 
         if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTags.length === 0) {
             return (
@@ -323,7 +343,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: Expensicons.Trashcan,
                 text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setIsDeleteTagsConfirmModalVisible(true),
+                onSelected: () => {
+                    if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
+                        setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                        return;
+                    }
+
+                    setIsDeleteTagsConfirmModalVisible(true);
+                },
             });
         }
 
@@ -353,6 +380,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
+                    if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
+                        setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                        return;
+                    }
                     setSelectedTags([]);
                     setWorkspaceTagEnabled(policyID, tagsToDisable, 0);
                 },
@@ -382,6 +413,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedTags.length}
+                testID={`${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`}
             />
         );
     };
@@ -580,6 +612,24 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+            />
+            <ConfirmModal
+                isVisible={isCannotDeleteOrDisableLastTagModalVisible}
+                onConfirm={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
+                onCancel={() => setIsCannotDeleteOrDisableLastTagModalVisible(false)}
+                title={translate('workspace.tags.cannotDeleteOrDisableAllTags.title')}
+                prompt={translate('workspace.tags.cannotDeleteOrDisableAllTags.description')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+            />
+            <ConfirmModal
+                isVisible={isCannotMakeLastTagOptionalModalVisible}
+                onConfirm={() => setIsCannotMakeLastTagOptionalModalVisible(false)}
+                onCancel={() => setIsCannotMakeLastTagOptionalModalVisible(false)}
+                title={translate('workspace.tags.cannotMakeAllTagsOptional.title')}
+                prompt={translate('workspace.tags.cannotMakeAllTagsOptional.description')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
             />
         </>
     );
