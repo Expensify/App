@@ -1,12 +1,13 @@
+import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import createRandomReportAction from './collections/reportActions';
 
 const actionNames: ReportActionName[] = ['ADDCOMMENT', 'IOU', 'REPORTPREVIEW', 'CLOSED'];
 
-const getFakeReportAction = (index: number, actionName?: ReportActionName): ReportAction =>
+const getFakeReportAction = (index: number, overrides: Partial<ReportAction> = {}): ReportAction =>
     ({
-        actionName,
+        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
         actorAccountID: index,
         automatic: false,
         avatar: '',
@@ -44,12 +45,13 @@ const getFakeReportAction = (index: number, actionName?: ReportActionName): Repo
         reportActionID: index.toString(),
         sequenceNumber: 0,
         shouldShow: true,
+        ...overrides,
     } as ReportAction);
 
 const getMockedSortedReportActions = (length = 100): ReportAction[] =>
     Array.from({length}, (element, index): ReportAction => {
         const actionName: ReportActionName = index === 0 ? 'CREATED' : 'ADDCOMMENT';
-        return getFakeReportAction(index + 1, actionName);
+        return getFakeReportAction(index + 1, {actionName});
     }).reverse();
 
 const getMockedReportActionsMap = (length = 100): ReportActions => {

@@ -157,10 +157,10 @@ function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefau
     if (!isDefault) {
         return false;
     }
-    const defaultablePaymentMethodCount = filteredPaymentMethods.filter(
+    const defaultPaymentMethodCount = filteredPaymentMethods.filter(
         (method) => method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
     ).length;
-    return defaultablePaymentMethodCount > 1;
+    return defaultPaymentMethodCount > 1;
 }
 
 function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMethodID: string | number, paymentMethod: PaymentMethod) {
@@ -380,7 +380,7 @@ function PaymentMethodList({
 
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
             return;
         }
         onPress();

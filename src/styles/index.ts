@@ -1689,7 +1689,7 @@ const styles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-            marginLeft: variables.navigationTabBarSize,
+            marginLeft: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
         },
 
         searchSidebar: {
@@ -1698,6 +1698,7 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
+            marginLeft: variables.navigationTabBarSize,
         },
 
         // Sidebar Styles
@@ -5777,6 +5778,14 @@ const styles = (theme: ThemeColors) =>
             flexShrink: 1,
             // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
             flexBasis: '35%',
+        },
+
+        thumbnailImageContainerHover: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        thumbnailImageContainerHighlight: {
+            backgroundColor: theme.highlightBG,
         },
     } satisfies Styles);
 

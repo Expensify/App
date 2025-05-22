@@ -605,116 +605,90 @@ function findNextAction(reportActions: ReportAction[], actionIndex: number): Ony
 }
 
 /**
- * Returns true when the report action immediately before the specified index is a comment made by the same actor who who is leaving a comment in the action at the specified index.
+ * Returns true when the previous report action (before actionIndex) is made by the same actor who performed the action at actionIndex.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
+ * @param reportActions - report actions ordered from latest
  * @param actionIndex - index of the comment item in state to check
  */
 function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[], actionIndex: number): boolean {
     const previousAction = findPreviousAction(reportActions, actionIndex);
     const currentAction = reportActions.at(actionIndex);
 
+    return canActionsBeGrouped(currentAction, previousAction);
+}
+
+/**
+ * Returns true when the next report action (after actionIndex) is made by the same actor who performed the action at actionIndex.
+ * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
+ *
+ * @param reportActions - report actions ordered from oldest
+ * @param actionIndex - index of the comment item in state to check
+ */
+function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex: number) {
+    const currentAction = reportActions.at(actionIndex);
+    const nextAction = findNextAction(reportActions, actionIndex);
+
+    if (actionIndex === 0) {
+        return false;
+    }
+
+    return canActionsBeGrouped(currentAction, nextAction);
+}
+
+/**
+ * Combines the logic for grouping chat messages isConsecutiveActionMadeByPreviousActor and hasNextActionMadeBySameActor.
+ * Returns true when messages are made by the same actor and not separated by more than 5 minutes.
+ *
+ * @param currentAction - Chronologically - latest action.
+ * @param adjacentAction - Chronologically - previous action. Named adjacentAction to avoid confusion as isConsecutiveActionMadeByPreviousActor and hasNextActionMadeBySameActor take action lists that are in opposite orders.
+ */
+function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: ReportAction): boolean {
     // It's OK for there to be no previous action, and in that case, false will be returned
     // so that the comment isn't grouped
-    if (!currentAction || !previousAction) {
+    if (!currentAction || !adjacentAction) {
         return false;
     }
 
-    // Comments are only grouped if they happen within 5 minutes of each other
-    if (new Date(currentAction.created).getTime() - new Date(previousAction.created).getTime() > 300000) {
+    // Comments are only grouped if they happen within 5 minutes of each adjacent
+    if (new Date(currentAction?.created).getTime() - new Date(adjacentAction.created).getTime() > CONST.REPORT.ACTIONS.MAX_GROUPING_TIME) {
+        return false;
+    }
+    // Do not group if adjacent action was a created action
+    if (adjacentAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         return false;
     }
 
-    // Do not group if previous action was a created action
-    if (previousAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        return false;
-    }
-
-    // Do not group if previous or current action was a renamed action
-    if (previousAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED || currentAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+    // Do not group if adjacent or current action was a renamed action
+    if (adjacentAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED || currentAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return false;
     }
 
     // Do not group if the delegate account ID is different
-    if (previousAction.delegateAccountID !== currentAction.delegateAccountID) {
+    if (adjacentAction.delegateAccountID !== currentAction.delegateAccountID) {
         return false;
     }
 
-    // Do not group if one of previous / current action is report preview and another one is not report preview
-    if ((isReportPreviewAction(previousAction) && !isReportPreviewAction(currentAction)) || (isReportPreviewAction(currentAction) && !isReportPreviewAction(previousAction))) {
+    // Do not group if one of previous / adjacent action is report preview and another one is not report preview
+    if ((isReportPreviewAction(adjacentAction) && !isReportPreviewAction(currentAction)) || (isReportPreviewAction(currentAction) && !isReportPreviewAction(adjacentAction))) {
         return false;
     }
 
     if (isSubmittedAction(currentAction)) {
         const currentActionAdminAccountID = currentAction.adminAccountID;
         return typeof currentActionAdminAccountID === 'number'
-            ? currentActionAdminAccountID === previousAction.actorAccountID
-            : currentAction.actorAccountID === previousAction.actorAccountID;
+            ? currentActionAdminAccountID === adjacentAction.actorAccountID
+            : currentAction.actorAccountID === adjacentAction.actorAccountID;
     }
 
-    if (isSubmittedAction(previousAction)) {
-        return typeof previousAction.adminAccountID === 'number'
-            ? currentAction.actorAccountID === previousAction.adminAccountID
-            : currentAction.actorAccountID === previousAction.actorAccountID;
+    if (isSubmittedAction(adjacentAction)) {
+        return typeof adjacentAction.adminAccountID === 'number'
+            ? currentAction.actorAccountID === adjacentAction.adminAccountID
+            : currentAction.actorAccountID === adjacentAction.actorAccountID;
     }
 
-    return currentAction.actorAccountID === previousAction.actorAccountID;
+    return currentAction.actorAccountID === adjacentAction.actorAccountID;
 }
-
-// Todo combine with `isConsecutiveActionMadeByPreviousActor` so as to not duplicate logic (issue: https://github.com/Expensify/App/issues/58625)
-function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex: number) {
-    const currentAction = reportActions.at(actionIndex);
-    const nextAction = findNextAction(reportActions, actionIndex);
-
-    // Todo first should have avatar - verify that this works with long chats (issue: https://github.com/Expensify/App/issues/58625)
-    if (actionIndex === 0) {
-        return false;
-    }
-
-    // It's OK for there to be no previous action, and in that case, false will be returned
-    // so that the comment isn't grouped
-    if (!currentAction || !nextAction) {
-        return true;
-    }
-
-    // Comments are only grouped if they happen within 5 minutes of each other
-    if (new Date(currentAction.created).getTime() - new Date(nextAction.created).getTime() > 300000) {
-        return false;
-    }
-
-    // Do not group if previous action was a created action
-    if (nextAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        return false;
-    }
-
-    // Do not group if previous or current action was a renamed action
-    if (nextAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED || currentAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-        return false;
-    }
-
-    // Do not group if the delegate account ID is different
-    if (nextAction.delegateAccountID !== currentAction.delegateAccountID) {
-        return false;
-    }
-
-    // Do not group if one of previous / current action is report preview and another one is not report preview
-    if ((isReportPreviewAction(nextAction) && !isReportPreviewAction(currentAction)) || (isReportPreviewAction(currentAction) && !isReportPreviewAction(nextAction))) {
-        return false;
-    }
-
-    if (isSubmittedAction(currentAction)) {
-        const currentActionAdminAccountID = currentAction.adminAccountID;
-
-        return currentActionAdminAccountID === nextAction.actorAccountID || currentActionAdminAccountID === nextAction.adminAccountID;
-    }
-
-    if (isSubmittedAction(nextAction)) {
-        return typeof nextAction.adminAccountID === 'number' ? currentAction.actorAccountID === nextAction.adminAccountID : currentAction.actorAccountID === nextAction.actorAccountID;
-    }
-
-    return currentAction.actorAccountID === nextAction.actorAccountID;
-}
-
 function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportAction>, isChronosReport: boolean): boolean {
     const isAutomaticStartTimerAction = () => /start(?:ed|ing)?(?:\snow)?/i.test(getReportActionText(reportAction));
     const isAutomaticStopTimerAction = () => /stop(?:ped|ping)?(?:\snow)?/i.test(getReportActionText(reportAction));
@@ -1010,6 +984,17 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
     return Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => !isReportActionDeprecated(reportAction, key))
         .map((entry) => entry[1]);
+}
+
+/**
+ * Helper for filtering out Report Actions that are either:
+ * - ReportPreview with shouldShow set to false and without a pending action
+ * - Money request with parent action deleted
+ */
+function getFilteredReportActionsForReportView(actions: ReportAction[]) {
+    const isDeletedMoneyRequest = (action: ReportAction) => isDeletedParentAction(action) && isMoneyRequestAction(action);
+    const isHiddenReportPreviewWithoutPendingAction = (action: ReportAction) => isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
+    return actions.filter((action) => !isDeletedMoneyRequest(action) && !isHiddenReportPreviewWithoutPendingAction(action));
 }
 
 /**
@@ -1581,6 +1566,11 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
+    if (isConciergeCategoryOptions(action)) {
+        const message = getReportActionMessageText(action);
+        return [{text: message, html: message, type: 'COMMENT'}];
+    }
+
     const actionMessage = action.previousMessage ?? action.message;
     if (Array.isArray(actionMessage)) {
         return actionMessage.filter((item): item is Message => !!item);
@@ -1837,14 +1827,25 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
     }
-
-    if (reimbursableUrls.length === 1) {
+    if (reimbursableUrls.length || nonReimbursableUrls.length) {
         result.push({
-            text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink'),
+            text: translateLocal('report.actions.type.exportedToIntegration.automaticActionThree'),
+            url: '',
+        });
+    }
+    if (reimbursableUrls.length === 1) {
+        const shouldAddPeriod = nonReimbursableUrls.length === 0;
+        result.push({
+            text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink') + (shouldAddPeriod ? '.' : ''),
             url: reimbursableUrls.at(0) ?? '',
         });
     }
-
+    if (reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
+        result.push({
+            text: translateLocal('common.and'),
+            url: '',
+        });
+    }
     if (nonReimbursableUrls.length) {
         const text = translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
         let url = '';
@@ -2533,6 +2534,7 @@ export {
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
     getReportActionsLength,
+    getFilteredReportActionsForReportView,
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
     getJoinRequestMessage,

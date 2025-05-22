@@ -16,7 +16,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import variables from '@styles/variables';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, setDetailsValue, setShareDestinationValue} from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -28,7 +27,7 @@ import INPUT_IDS from '@src/types/form/NewTaskForm';
 type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
 
 function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
-    const [task] = useOnyx(ONYXKEYS.TASK);
+    const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [taskTitle, setTaskTitle] = useState(task?.title ?? '');
@@ -71,7 +70,6 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
 
         if (skipConfirmation) {
             setShareDestinationValue(task?.parentReportID);
-            playSound(SOUNDS.DONE);
             createTaskAndNavigate(task?.parentReportID, values.taskTitle, values.taskDescription ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport);
         } else {
             Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));
