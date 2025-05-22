@@ -605,7 +605,7 @@ function findNextAction(reportActions: ReportAction[], actionIndex: number): Ony
 }
 
 /**
- * Returns true when the report action immediately before the specified index is a comment made by the same actor who who is leaving a comment in the action at the specified index.
+ *  Returns true when the previous report action (before actionIndex) is made by the same actor who performed the action at actionIndex.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
  * @param reportActions - report actions ordered from latest
@@ -613,20 +613,20 @@ function findNextAction(reportActions: ReportAction[], actionIndex: number): Ony
  */
 function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[], actionIndex: number): boolean {
     const previousAction = findPreviousAction(reportActions, actionIndex);
-    const currentAction = reportActions?.at(actionIndex);
+    const currentAction = reportActions.at(actionIndex);
 
     return canActionsBeGrouped(currentAction, previousAction);
 }
 
 /**
- * Returns true when the report action immediately after the specified index is a comment made by the same actor who is leaving a comment in the action at the specified index.
+ * Returns true when the next report action (after actionIndex) is made by the same actor who performed the action at actionIndex.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
  * @param reportActions - report actions ordered from oldest
  * @param actionIndex - index of the comment item in state to check
  */
 function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex: number) {
-    const currentAction = reportActions?.at(actionIndex);
+    const currentAction = reportActions.at(actionIndex);
     const nextAction = findNextAction(reportActions, actionIndex);
 
     if (actionIndex === 0) {
